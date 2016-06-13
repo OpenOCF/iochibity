@@ -5,10 +5,7 @@
 Import('env')
 import os.path
 
-print "Reading IP adapter script"
-
 target_os = env.get('TARGET_OS')
-inc_files = env.get('CPPPATH')
 secured = env.get('SECURED')
 src_dir = './ip_adapter/'
 

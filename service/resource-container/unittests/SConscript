@@ -107,7 +107,7 @@ if int(containerJavaSupport):
         print ''
 
 if target_os not in ['windows', 'winrt']:
-    container_gtest_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall'])
+    container_gtest_env.AppendUnique(CXXFLAGS = ['-Wall'])
     if target_os != 'android':
         container_gtest_env.AppendUnique(CXXFLAGS = ['-pthread'])
         container_gtest_env.AppendUnique(LIBS = ['pthread'])
@@ -125,9 +125,10 @@ if int(containerJavaSupport):
     except KeyError:
         print ''
 
-container_gtest_env.AppendUnique(CCFLAGS = ['-Wnoexcept'])
+if target_os == 'linux':
+   container_gtest_env.AppendUnique(CCFLAGS = ['-Wnoexcept'])
 
-container_gtest_env.PrependUnique(LIBS = ['rcs_container', 'rcs_client', 'rcs_server', 'rcs_common', 'oc','octbstack', 'oc_logger', 'oc_logger_core', 'connectivity_abstraction', gtest, gtest_main])
+container_gtest_env.PrependUnique(LIBS = ['rcs_container', 'rcs_client', 'rcs_server', 'rcs_common', 'oc','octbstack', 'oc_logger', 'oc_logger_core', 'connectivity_abstraction', gtest, gtest_main, 'boost_system'])
 
 container_gtest_env.AppendUnique(LIBS = ['dl'])
 
@@ -146,6 +147,9 @@ test_bundle_env.AppendUnique(CCFLAGS = ['-fPIC'])
 
 if target_os not in ['darwin', 'ios', 'windows', 'winrt']:
     test_bundle_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
+
+if target_os == 'darwin':
+    test_bundle_env.AppendUnique(LINKFLAGS = ['-Wl,-undefined,error'])
 
 TEST_BUNDLE_DIR = 'TestBundle/'
 test_bundle_env.AppendUnique(CPPPATH = [
@@ -177,7 +181,7 @@ Ignore("./TestBundleJava/hue-0.1-jar-with-dependencies.jar", "./TestBundleJava/h
 
 if env.get('TEST') == '1':
     target_os = env.get('TARGET_OS')
-    if target_os == 'linux':
+    if target_os in ['darwin','linux']:
         from tools.scons.RunTest import *
         run_test(container_gtest_env,
             '',

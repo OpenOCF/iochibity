@@ -26,6 +26,8 @@ sptest_env = env.Clone()
 
 src_dir = sptest_env.get('SRC_DIR')
 
+target_os = env.get('TARGET_OS')
+
 ######################################################################
 # Build flags
 ######################################################################
@@ -69,15 +71,16 @@ if not env.get('RELEASE'):
 ######################################################################
 # Source files and Targets
 ######################################################################
-unittest = sptest_env.Program('unittest', ['pmutilitytest.cpp', 'otmunittest.cpp',
+if target_os != 'darwin':   # darwin linkage broken
+    unittest = sptest_env.Program('unittest', ['pmutilitytest.cpp', 'otmunittest.cpp',
                                            'secureresourceprovider.cpp',
                                            'provisioningdatabasemanager.cpp',
                                            'ocprovisioningmanager.cpp' ])
 
-Alias("test", [unittest])
+    Alias("test", [unittest])
 
-env.AppendTarget('test')
-if env.get('TEST') == '1':
+    env.AppendTarget('test')
+    if env.get('TEST') == '1':
 	target_os = env.get('TARGET_OS')
 	if target_os == 'linux':
 		out_dir = env.get('BUILD_DIR')

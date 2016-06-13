@@ -1,0 +1,40 @@
+= hosting iotivity on darwin
+
+Darwin is the underlying operating system of Mac OS X. It's a FreeBSD variant.
+
+In principle it is possible to run Darwin as a stand-alone,
+non-Mac OS.  In practice this is probably pretty rare but a goal this
+port is to have a pure Darwin development environment, with minimal
+dependency on OS X and as little difference from the vanilla Unix
+build as possible.
+
+== compilation
+
+The compiler that comes with OSX Xcode is `clang`, which is built on
+`llvm`.  Commands like `gcc`, `g++`, etc. still work, mostly the way
+they do in a GNU gcc environment, but they are just wrappers that call
+`clang` and friends.
+
+There are differences between `gcc` (i.e. `clang`) on OS X and
+genuine gcc. Some `gcc` options are different, and some libraries are
+different.  Here is a list of the bits affecting Iotivity:
+
+* c compiler flags:
+** clang supports `-Wno-#pragma-messages`; gcc does not
+** `--coverage` is not supported, instead use `-fprofile-arcs` and `-ftest-coverage`
+
+
+=== header files
+
+* limits.h
+* netdb.h
+* etc.
+
+
+=== libraries
+
+* gcov.  Not available on OS X; use `clang_rt.profile_osx` instead (see below)
+* uuid.  The functions are available but they are in system libraries
+  rather than `libuuid` so there is no need to link (`-luuid`).
+* std c++ library: we use `-stdlib=libc++`, not `libstdc++`.
+

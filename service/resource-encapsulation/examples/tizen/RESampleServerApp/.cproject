@@ -123,7 +123,7 @@
                                 </option>
                                 <option id="gnu.cpp.compiler.option.dialect.std.1929207991" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.default" valueType="enumerated"/>
                                 <option id="sbi.gnu.cpp.compiler.option.misc.pic.core.755649926" name="-fPIC option" superClass="sbi.gnu.cpp.compiler.option.misc.pic.core" value="true" valueType="boolean"/>
-                                <option id="gnu.cpp.compiler.option.other.other.1760093561" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
+                                <option id="gnu.cpp.compiler.option.other.other.1760093561" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++11" valueType="string"/>
                                 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1956958926" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
                             </tool>
                             <tool command="arm-linux-gnueabi-gcc.exe" id="org.tizen.nativecore.tool.sbi.gnu.c.compiler.2072036030" name="C Compiler" superClass="org.tizen.nativecore.tool.sbi.gnu.c.compiler">
@@ -211,7 +211,7 @@
                                     <listOptionValue builtIn="false" value="_DEBUG"/>
                                 </option>
                                 <option id="sbi.gnu.c.compiler.option.misc.pic.core.1304419386" name="-fPIC option" superClass="sbi.gnu.c.compiler.option.misc.pic.core" value="false" valueType="boolean"/>
-                                <option id="gnu.c.compiler.option.misc.other.2029079564" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
+                                <option id="gnu.c.compiler.option.misc.other.2029079564" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -std=c++11" valueType="string"/>
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1859092644" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                             </tool>
                             <tool id="org.tizen.nativeide.tool.sbi.gnu.c.linker.base.944066372" name="C Linker" superClass="org.tizen.nativeide.tool.sbi.gnu.c.linker.base"/>

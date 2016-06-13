@@ -23,6 +23,8 @@ Import('env')
 
 provisioning_env = env.Clone()
 
+target_os = env.get('TARGET_OS')
+
 ######################################################################
 # Build flags
 ######################################################################
@@ -58,7 +60,9 @@ if env.get('SECURED') == '1':
 if env.get('DTLS_WITH_X509') == '1':
 	provisioning_env.AppendUnique(LIBS = ['CKManager'])
 	provisioning_env.AppendUnique(LIBS = ['asn1'])
-provisioning_env.ParseConfig('pkg-config --libs glib-2.0');
+
+if target_os in ['tizen', 'linux']:
+   provisioning_env.ParseConfig('pkg-config --libs glib-2.0');
 
 provisioning_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 

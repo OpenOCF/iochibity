@@ -1,0 +1,145 @@
+= iotivity
+
+WARNING: This is derived from the official Gerrit repo, created for
+experimentation.  If you want the real thing, you should obtain it
+from the official https://www.iotivity.org/[Iotivity site].
+
+Status:  Darwin port seems to be working.
+
+=== plans
+
+* more testing of darwin port
+* make sure it still compiles on Linux, Tizen, etc.
+* clean up: make it strictly darwin, w/o dependencies on os x
+* add a separate project to support an OS X Framework
+* get it into official codebase
+
+==== java support
+
+* support for TARGET_OS=JVM.  A variant on the `generic-java`
+branch that is under development.
+* make android a separate thing, something like `TARGET_OS=JVM TARGET_ENV=ANDROID`
+** android depends on jvm target
+=== building
+
+`$ scons`
+
+To see what's happening: `$ scons VERBOSE=true 2>&1 | tee build.log`
+
+You can give it an OS X version:  `$ scons SYS_VERSION=10.11`.
+
+== branches
+
+The `iotivity-master` branch cleanly tracks the official Gerrit master
+branch.  At least it does when I get around to pulling in the changes.
+
+Branch `darwin` is where darwin development takes place.
+
+Branch `master` pulls in changes from branch `darwin`. So that's what
+you get by default if you fork/clone this repo.
+
+Branch `jvm` is where the target jvm dev occurs
+
+=== edits
+
+I've marked the edits I made to port to Darwin with GAR, e.g. //GAR,
+#GAR, etc.  So you can find them all (I hope) by running `$ grep -R
+GAR ./` from the root of a clean repo.
+
+Edits include not only changes needed to get running on darwin, but
+also some changes to eliminate warnings.
+
+One major change: in
+service/resource-encapsulation/include/RCSResourceObject.h I had to
+reorganize the code to eliminate an "incomplete type" error.  I pulled
+an embedded class (WeakGuard) out and made it a peer friend class.
+related changes also in RCSResource.cpp
+
+
+I also took the liberty of doing a little renaming where called for.
+E.g. some of the samples were called "linux sample foo ..." but
+they're not linux specific so I fixed that.  e.g.
+
+service/resource-container/examples/DiscomfortIndexSensorBundle/src/inputSensors/THSensorApp1/SConscript
+
+=== todo
+
+clock_gettime is unsupported on os x; see `service/easy-setup/mediator/richsdk/src/RemoteEnrolleeResource.cpp`
+
+Remove dependency on xcode and OS X version etc. This should be a
+strictly Darwin build.  An OS X specific build - e.g. to support an OS
+X Framework - should be a separate project.
+
+* don't use 'xcodebuild -showsdks' to get config info - darwin could be used with other toolchains
+* use uname -r rather than SYS_VERSION
+* use <sys/param.h> (a BSD feature?)
+
+== tools
+
+Some darwin-specific tools you may find useful along the way:
+
+* otool - object file displaying tool
+
+=== dependencies
+
+For Ubuntu, you would use `apt-get` to install dependencies.  On OS X,
+the best bet is probably `brew`, the http://brew.sh/[homebrew]
+command.  Try `brew search foo` and `brew info foo` to get a feel for
+what's what for package foo.
+
+WARNING: Some of this stuff (e.g. libffi, uuid) comes bundled with OS X.  The
+problem is that such bundled libraries do not come with `pkg-config`
+files, which the Iotivity build scripts use.  So either you have to
+install a third-party package that includes a pkg-config file, or you
+have to create and install the appropriate pkg-config file.  And the
+problem with that is that you do not want to install such in the
+system `/usr/lib/pkgconfig` dir, while if you install to
+`/usr/local/lib/pkgconfig` they will not be picked up by the build
+scripts.  That's because `scons`, the build tool, does not pull in
+environment vars, so it only uses the default search path for
+`pkg-config`, which is `/usr/lib/pkgconfig`.
+
+* https://developer.apple.com/xcode/download/[xcode] - gcc/g++ compilers.  Starting from xcode 4.2 OS X uses http://clang.llvm.org/get_started.html[clang].
+*  https://developer.apple.com/library/ios/technotes/tn2339/_index.html[xcode
+  command line tools] Just do a web search on "install os x command
+  line tools" or similar to get lots of guidance.
+
+NOTE: Apparently you can install the command line tools, including the
+compilers, without also installing xcode, by doing `$ xcode-select
+--install`.
+
+* https://www.freedesktop.org/wiki/Software/pkg-config/[pkg-config]
+** Not bundled.  `$ brew install pkg-config`
+* http://www.bzip.org/[bzip2] - preinstalled in OS X
+* https://github.com/01org/tinycbor[tinycbor] - see below
+* https://github.com/google/googletest[Google Test] - see below
+* http://site.icu-project.org/download[libicu]
+** `brew` says "OS X provides libicucore.dylib (but nothing else).".  The brew package is `icu4c`.
+* ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/[libpcre]
+** `/usr/lib/libpcre.*` bundled with OS X, but may not be enough
+** `$ brew install pcre`
+** Must be compiled with Unicode support.  To verify, run `$ pcretest -C`.
+* libffi.  bundled
+** `$ brew install libffi`
+* http://linux.die.net/man/3/libuuid[uuid]  Preinstalled on OS X.
+* glib-2.0 - required by Bluetooth LE (only?)
+** The build scripts use `pkg-config` to check for gio-unix-2.0, which in turn depends on:
+*** gobject-2.0
+*** gio-2.0, which in turn requires
+**** glib-2.0
+**** gobject-2.0
+** All of that stuff gets installed with glib-2.0
+*** `$ brew install glib`  (NB: not glib2)
+* http://www.boost.org/[boost]  `$ brew install boost`
+* http://scons.org/[scons]  `$brew install scons`
+* http://www.stack.nl/~dimitri/doxygen/[doxygen]  `$ brew install doxygen`
+
+== tinycbor
+
+When you first build, you'll get this:
+
+*********************************** Error: *************************************
+* Please download cbor using the following command:                               *
+*     $ git clone https://github.com/01org/tinycbor.git extlibs/tinycbor/tinycbor *
+******************************************************************************
+

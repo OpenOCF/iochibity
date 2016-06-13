@@ -41,12 +41,13 @@ target_os = env.get('TARGET_OS')
 ######################################################################
 # Build flags
 ######################################################################
-scenemanager_env.AppendUnique(CPPPATH = ['./include'])
-scenemanager_env.AppendUnique(CPPPATH = ['./src'])
-scenemanager_env.AppendUnique(CPPPATH = ['../../resource/csdk/connectivity/api'])
-scenemanager_env.AppendUnique(CPPPATH = ['../resource-encapsulation/include'])
-scenemanager_env.AppendUnique(CPPPATH = ['../resource-encapsulation/src/common/primitiveResource/include'])
-scenemanager_env.AppendUnique(CPPPATH = ['../resource-encapsulation/src/common/expiryTimer/include'])
+scenemanager_env.AppendUnique(CPPPATH = [
+				      './include',
+				      './src',
+				      './../../resource/csdk/connectivity/api',
+				      './../resource-encapsulation/include',
+				      './../resource-encapsulation/src/common/primitiveResource/include',
+				      './../resource-encapsulation/src/common/expiryTimer/include'])
 
 
 scenemanager_env.PrependUnique(LIBS = [
@@ -61,27 +62,43 @@ scenemanager_env.PrependUnique(LIBS = [
     ])
 
 if target_os not in ['windows', 'winrt']:
-    scenemanager_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-fmessage-length=0', '-std=c++0x'])
+    scenemanager_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-fmessage-length=0'])
 
 if target_os not in ['darwin', 'ios', 'windows', 'winrt']:
     scenemanager_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
 
+if target_os == 'darwin':
+    scenemanager_env.AppendUnique(LINKFLAGS = ['-Wl,-undefined,error'])
+    scenemanager_env.AppendUnique(LIBS = ['pthread'])
+
 if target_os == 'linux':
     scenemanager_env.AppendUnique(LIBS = ['pthread'])
-    
 
 if target_os == 'android':
     scenemanager_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
     scenemanager_env.AppendUnique(LIBS = ['gnustl_shared','log'])
 
 if not env.get('RELEASE'):
-    scenemanager_env.PrependUnique(LIBS = ['gcov'])
-    scenemanager_env.AppendUnique(CXXFLAGS = ['--coverage'])
+    if target_os != 'darwin':
+        scenemanager_env.AppendUnique(CXXFLAGS = ['--coverage'])
+        scenemanager_env.PrependUnique(LIBS = ['gcov'])
+    else:
+        # no -lgcov for os x
+	scenemanager_env.AppendUnique(CPPFLAGS = ['-fprofile-arcs', '-ftest-coverage'])
+        scenemanager_env.PrependUnique(LIBS = ['clang_rt.profile_osx'])
+
+	import subprocess
+	p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	out, err = p.communicate()
+	libsline = out.splitlines()[1]
+	clanglibs = libsline.split("libraries: =")[1]
+
+	scenemanager_env.PrependUnique(LIBPATH = [clanglibs + '/lib/darwin/'])
 
 ######################################################################
 # Source files and Targets
 ######################################################################
-SCENE_SRC_DIR = './src/' 
+SCENE_SRC_DIR = './src/'
 scenemanager_src = Glob(SCENE_SRC_DIR + '*.cpp')
 
 if target_os in ['tizen','android'] :
@@ -101,7 +118,7 @@ scenemanager_env.UserInstallTargetHeader('include/RemoteScene.h', 'service/scene
 scenemanager_env.UserInstallTargetHeader('include/RemoteSceneAction.h', 'service/scene-manager', 'RemoteSceneAction.h')
 
 # Go to build Unit test
-if target_os == 'linux':
+if target_os in ['darwin', 'linux']:
     SConscript('unittests/SConscript')
 
 # Go to build sample apps

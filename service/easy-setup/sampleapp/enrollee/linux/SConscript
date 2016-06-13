@@ -33,7 +33,7 @@ transport = enrollee_env.get('TARGET_TRANSPORT')
 # Build flags
 ######################################################################
 enrollee_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-enrollee_env.AppendUnique(CXXFLAGS = ['-Wall', '-std=c++0x'])
+enrollee_env.AppendUnique(CXXFLAGS = ['-Wall'])
 
 if env.get('RELEASE'):
     enrollee_env.AppendUnique(CCFLAGS = ['-Os'])

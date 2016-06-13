@@ -70,7 +70,6 @@ ThingsManager_gtest_env.AppendUnique(
         ])
 
 if target_os not in ['windows', 'winrt']:
-        ThingsManager_gtest_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall'])
         if target_os != 'android':
                 ThingsManager_gtest_env.AppendUnique(CXXFLAGS = ['-pthread'])
                 ThingsManager_gtest_env.AppendUnique(LIBS = ['pthread'])

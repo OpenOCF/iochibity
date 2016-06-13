@@ -59,15 +59,28 @@ scene_test_env.AppendUnique(LIBS = [
     GTest_Main, GTest])
 
 if target_os not in ['windows', 'winrt']:
-    scene_test_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-fmessage-length=0', '-std=c++0x'])
+    scene_test_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-fmessage-length=0'])
 
-if target_os == 'linux':
+if target_os in ['darwin', 'linux']:
     scene_test_env.AppendUnique(CXXFLAGS = ['-pthread'])
     scene_test_env.AppendUnique(LIBS = ['pthread'])
 
 if not env.get('RELEASE'):
-    scene_test_env.PrependUnique(LIBS = ['gcov'])
-    scene_test_env.AppendUnique(CXXFLAGS = ['--coverage'])
+    if target_os != 'darwin':
+        scene_test_env.AppendUnique(CXXFLAGS = ['--coverage'])
+        scene_test_env.PrependUnique(LIBS = ['gcov'])
+    else:
+        # no -lgcov for os x
+	scene_test_env.AppendUnique(CPPFLAGS = ['-fprofile-arcs', '-ftest-coverage'])
+	scene_test_env.PrependUnique(LIBS = ['clang_rt.profile_osx'])
+
+	import subprocess
+	p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	out, err = p.communicate()
+	libsline = out.splitlines()[1]
+	clanglibs = libsline.split("libraries: =")[1]
+
+	scene_test_env.PrependUnique(LIBPATH = [clanglibs + '/lib/darwin/'])
 
 scene_test_env.PrependUnique(CPPPATH = [ src_dir + '/extlibs/hippomocks-master',
                              gtest_dir + '/include'])

@@ -37,7 +37,7 @@ resource_path = src_dir + '/resource'
 ######################################################################
 # Check dependent packages (Linux only)
 ######################################################################
-if target_os in ['linux']:
+if target_os in ['linux','darwin']:
 	if not env.GetOption('help'):
 		if not target_arch == platform.machine():
 			print '''
@@ -49,13 +49,13 @@ if target_os in ['linux']:
 
 		conf = Configure(lib_env)
 
-		if target_os not in ['tizen'] and not conf.CheckLib('boost_thread', language='C++'):
-			print 'Did not find boost_thread, exiting!'
-			Exit(1)
+		# if target_os not in ['tizen'] and not conf.CheckLib('boost_thread', language='C++'):
+		# 	print 'Did not find boost_thread, exiting!'
+		# 	Exit(1)
 
-		if target_os not in ['tizen'] and not conf.CheckLib('boost_system', language='C++'):
-			print 'Did not find boost_system, exiting!'
-			Exit(1)
+		# if target_os not in ['tizen'] and not conf.CheckLib('boost_system', language='C++'):
+		# 	print 'Did not find boost_system, exiting!'
+		# 	Exit(1)
 
 		lib_env = conf.Finish()
 
@@ -91,9 +91,6 @@ if target_os == 'android':
 
 elif target_os == 'ios':
 	lib_env.AppendUnique(FRAMEWORKS = ['boost', 'openssl'])
-elif target_os == 'darwin':
-	lib_env.AppendUnique(CPPPATH = ['/usr/local/include'])
-	lib_env.AppendUnique(LIBPATH = ['/usr/local/lib'])
 
 Import('env')
 lib_env.AppendUnique(LIBPATH = env.get('BUILD_DIR'))

@@ -11,11 +11,14 @@ scenemanager_sample_env = lib_env.Clone()
 ######################################################################
 # Build flags
 ######################################################################
-scenemanager_sample_env.AppendUnique(CPPPATH = ['../../include', '../../src'])
-scenemanager_sample_env.AppendUnique(CPPPATH = ['../../../resource-encapsulation/include'])
-scenemanager_sample_env.AppendUnique(CPPPATH = ['../../../../extlibs/cjson'])
-scenemanager_sample_env.AppendUnique(CPPPATH = ['../../../../resource/csdk/connectivity/api'])
-scenemanager_sample_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-fmessage-length=0', '-std=c++0x'])
+scenemanager_sample_env.AppendUnique(CPPPATH = [
+					     './../../include',
+					     './../../src',
+					     './../../../resource-encapsulation/include',
+					     './../../../../extlibs/cjson',
+					     './../../../../resource/csdk/connectivity/api'])
+
+scenemanager_sample_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-fmessage-length=0'])
 
 scenemanager_sample_env.AppendUnique(LIBS = [
     'oc_logger',
@@ -36,9 +39,24 @@ if env.get('SECURED') == '1':
 if 'rt' in scenemanager_sample_env.get('LIBS'):
     scenemanager_sample_env.Append(LIBS = ['rt'])
 
+target_os = env.get('TARGET_OS')
 if not env.get('RELEASE'):
-    scenemanager_sample_env.PrependUnique(LIBS = ['gcov'])
-    scenemanager_sample_env.AppendUnique(CXXFLAGS = ['--coverage'])
+    if target_os != 'darwin':
+        scenemanager_sample_env.AppendUnique(CXXFLAGS = ['--coverage'])
+        scenemanager_sample_env.PrependUnique(LIBS = ['gcov'])
+    else:
+        # no -lgcov for os x
+	scenemanager_sample_env.AppendUnique(CPPFLAGS = ['-fprofile-arcs', '-ftest-coverage'])
+	scenemanager_sample_env.PrependUnique(LIBS = ['clang_rt.profile_osx'])
+
+	import subprocess
+	p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	out, err = p.communicate()
+	libsline = out.splitlines()[1]
+	clanglibs = libsline.split("libraries: =")[1]
+
+	scenemanager_sample_env.PrependUnique(LIBPATH = [clanglibs + '/lib/darwin/'])
+
 ####################################################################
 # Source files and Targets
 ######################################################################

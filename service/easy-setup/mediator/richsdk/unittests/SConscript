@@ -70,7 +70,7 @@ mediator_rich_test_env.AppendUnique(
         ])
 
 if target_os not in ['windows', 'winrt']:
-        mediator_rich_test_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall'])
+        mediator_rich_test_env.AppendUnique(CXXFLAGS = ['-Wall'])
         if target_os != 'android':
                 mediator_rich_test_env.AppendUnique(CXXFLAGS = ['-pthread'])
                 mediator_rich_test_env.AppendUnique(LIBS = ['pthread'])

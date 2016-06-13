@@ -49,7 +49,7 @@ if target_enrollee == 'arduino':
 
 # Add third party libraries
 lib_env = env.Clone()
-SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
+SConscript(Dir('#').abspath + '/service/third_party_libs.scons', 'lib_env')
 
 easy_setup_env = lib_env.Clone()
 target_os = env.get('TARGET_OS')
@@ -60,15 +60,15 @@ target_os = env.get('TARGET_OS')
 easy_setup_env.AppendUnique(CPPPATH = ['inc', 'src', '../../inc'])
 
 if target_os not in ['windows', 'winrt']:
-    easy_setup_env.AppendUnique(CXXFLAGS = ['-Wall', '-std=c++0x'])
+    easy_setup_env.AppendUnique(CXXFLAGS = ['-Wall'])
 
-if target_os in ['linux']:
+if target_os in ['darwin','linux']:
    easy_setup_env.AppendUnique(LIBS = ['pthread', 'dl', 'coap'])
 
 if target_os in ['android']:
 	easy_setup_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 	if env.get('SECURED') == '1':
-		easy_setup_env.AppendUnique(LIBPATH = [env.get('SRC_DIR')+'/android/android_api/base/libs/armeabi'])
+		easy_setup_env.AppendUnique(LIBPATH = [Dir('#').abspath + '/android/android_api/base/libs/armeabi'])
 	easy_setup_env.AppendUnique(RPATH = [env.get('BUILD_DIR')])
 	easy_setup_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
 	easy_setup_env.PrependUnique(LIBS = ['oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'gnustl_shared'])
@@ -77,7 +77,7 @@ if target_os in ['android']:
 	if not env.get('RELEASE'):
 		easy_setup_env.AppendUnique(LIBS = ['log'])
 
-if target_os in ['linux']:
+if target_os in ['darwin','linux']:
 	easy_setup_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 	easy_setup_env.AppendUnique(RPATH = [env.get('BUILD_DIR')])
 	easy_setup_env.AppendUnique(CXXFLAGS = ['-pthread'])
@@ -85,24 +85,24 @@ if target_os in ['linux']:
 	if env.get('SECURED') == '1':
 		easy_setup_env.AppendUnique(LIBS = ['ocpmapi', 'ocprovision'])
 
-if target_os in ['android','linux']:
+if target_os in ['android','linux','darwin']:
 	easy_setup_env.PrependUnique(CPPPATH = [
-		env.get('SRC_DIR') + '/resource/c_common/oic_malloc/include',
-		env.get('SRC_DIR') + '/resource/include',
-		env.get('SRC_DIR') + '/resource/csdk/logger/include',
-        	env.get('SRC_DIR') + '/resource/csdk/stack/include',
-        	env.get('SRC_DIR') + '/resource/csdk/logger/include',
-		env.get('SRC_DIR') + '/resource/csdk/security/include',
-		env.get('SRC_DIR') + '/extlibs/cjson',
-		env.get('SRC_DIR') + '/extlibs/sqlite3',
-		env.get('SRC_DIR') + '/service/easy-setup/inc',
+		Dir('#').abspath + '/resource/c_common/oic_malloc/include',
+		Dir('#').abspath + '/resource/include',
+		Dir('#').abspath + '/resource/csdk/logger/include',
+        	Dir('#').abspath + '/resource/csdk/stack/include',
+        	Dir('#').abspath + '/resource/csdk/logger/include',
+		Dir('#').abspath + '/resource/csdk/security/include',
+		Dir('#').abspath + '/extlibs/cjson',
+		Dir('#').abspath + '/extlibs/sqlite3',
+		Dir('#').abspath + '/service/easy-setup/inc',
 		'inc'])
 	if env.get('SECURED') == '1':
 		easy_setup_env.AppendUnique(CPPPATH = [
-			env.get('SRC_DIR') + '/resource/csdk/security/provisioning/include',
-			env.get('SRC_DIR') + '/resource/csdk/connectivity/api/',
-	                env.get('SRC_DIR') + '/resource/csdk/security/provisioning/include/internal',
-			env.get('SRC_DIR') + '/resource/csdk/security/provisioning/include/oxm'])
+			Dir('#').abspath + '/resource/csdk/security/provisioning/include',
+			Dir('#').abspath + '/resource/csdk/connectivity/api/',
+	                Dir('#').abspath + '/resource/csdk/security/provisioning/include/internal',
+			Dir('#').abspath + '/resource/csdk/security/provisioning/include/oxm'])
 
 ######################################################################
 # Source files and Targets
@@ -113,7 +113,7 @@ print"easysetup_path %s" % easysetup_path
 
 es_src = None
 
-if target_os in ['android','linux']:
+if target_os in ['android','linux','darwin']:
 	if env.get('SECURED') == '1':
 		env.AppendUnique(es_src = [os.path.join(easysetup_path, 'src/EnrolleeSecurity.cpp')])
 
@@ -132,12 +132,11 @@ print "Files path is %s" % env.get('es_src')
 ######################################################################
 # Build RichSDK Mediator Sample App
 ################################################ ######################
-if target_os == 'linux':
+if target_os in ['darwin','linux']:
 	SConscript('../../sampleapp/mediator/linux/richsdk_sample/SConscript')
 
 ######################################################################
 #Build UnitTestcases for Mediator[RichSDK]
 ################################################ ######################
-if target_os == 'linux':
+if target_os in ['darwin','linux']:
     SConscript('unittests/SConscript')
-

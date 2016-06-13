@@ -31,6 +31,9 @@
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#ifdef __linux__
+#include <linux/if.h>
+#endif
 #include <net/if.h>
 #include <netdb.h>
 #include <errno.h>

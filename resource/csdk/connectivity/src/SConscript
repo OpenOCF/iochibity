@@ -7,7 +7,11 @@ import os.path
 Import('env')
 
 ca_os = env.get('TARGET_OS')
+
 ca_transport = env.get('TARGET_TRANSPORT')
+if ca_os == 'darwin':    # No BLE support for darwin yet
+    ca_transport = 'IP'
+
 secured = env.get('SECURED')
 with_ra = env.get ('WITH_RA')
 with_tcp = env.get('WITH_TCP')
@@ -15,11 +19,10 @@ src_dir = env.get('SRC_DIR')
 root_dir = os.pardir
 ca_path = os.curdir
 
+
 #####################################################################
 # Source files and Target(s)
 ######################################################################
-
-print"Reading ca script %s"%ca_transport
 
 env.PrependUnique(CPPPATH = [ os.path.join(root_dir, 'api') ])
 env.AppendUnique(CPPPATH = [ os.path.join(root_dir, 'inc'),
@@ -33,6 +36,9 @@ if ca_os not in ['arduino', 'windows', 'winrt']:
 
 if ca_os not in ['darwin', 'ios', 'windows', 'winrt']:
 	env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
+
+if ca_os == 'darwin':
+	env.AppendUnique(LINKFLAGS = ['-Wl,-undefined,error'])
 
 if ca_os in ['darwin','ios']:
 	env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
@@ -58,6 +64,9 @@ if env.get('SECURED') == '1':
 		env.SConscript('#extlibs/timer/SConscript')
 		env.AppendUnique(CPPPATH = ['#extlibs/timer'])
 
+if ca_os == 'linux':
+    # get access to netdb.h (guarded by __USE_POSIX) for adapter_util/caadapterutils.c
+    env.AppendUnique(CPPDEFINES = ['_XOPEN_SOURCE=700'])
 env.AppendUnique(CA_SRC = [os.path.join(ca_path,
                                         'adapter_util/caadapterutils.c')])
 
@@ -155,9 +164,6 @@ if ca_os in ['linux', 'tizen', 'android', 'arduino', 'ios']:
 	if (('BLE' in ca_transport) or ('BT' in ca_transport) or ('ALL' in ca_transport)):
 		env.AppendUnique(CPPDEFINES = ['WITH_TCP'])
 
-print "Include path is %s" % env.get('CPPPATH')
-print "Files path is %s" % env.get('CA_SRC')
-		
 lib_env = env.Clone()
 
 if ca_os == 'android':

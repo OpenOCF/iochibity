@@ -38,7 +38,6 @@ if target_os not in ['android', 'arduino', 'darwin', 'ios', 'tizen']:
     SConscript(os.path.join('unittests', 'SConscript'))
 
     if build_sample == 'ON':
-	    if target_os in ['linux']:
+	    if target_os in ['darwin', 'linux']:
 		    target_path = target_os
 		    SConscript(os.path.join('samples', target_path, 'SConscript'))
-

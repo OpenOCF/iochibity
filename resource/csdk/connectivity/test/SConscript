@@ -19,22 +19,24 @@
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 Import('env')
+
 import os
 import os.path
 catest_env = env.Clone()
 
 src_dir = catest_env.get('SRC_DIR')
 
+root_dir = Dir('#').abspath
+resource_dir = root_dir + "/resource"
 ######################################################################
 # Build flags
 ######################################################################
 catest_env.PrependUnique(CPPPATH = [
-                '../../ocsocket/include',
-                '../../logger/include',
-                '../../stack/include',
-                '../../extlibs/cjson',
-                '../../../oc_logger/include',
-                '../../../../extlibs/gtest/gtest-1.7.0/include'
+                './../../logger/include',
+                './../../stack/include',
+                './../../extlibs/cjson',
+                './../../../oc_logger/include',
+                './../../../../extlibs/gtest/gtest-1.7.0/include'
                ])
 
 tmplist = catest_env['LINKFLAGS'][:]
@@ -68,11 +70,12 @@ if env.get('LOGGING'):
 # Source files and Targets
 ######################################################################
 
-target_os = env.get('TARGET_OS')
 target_transport = env.get('TARGET_TRANSPORT')
 
+# darwin has linkage issues
+
 if (('IP' in target_transport) or ('ALL' in target_transport)):
-	if target_os != 'arduino':
+	if target_os not in ['arduino', 'darwin']:
 		catests = catest_env.Program('catests', ['catests.cpp',
 		                                         'caprotocolmessagetest.cpp',
 		                                         'cablocktransfertest.cpp',
@@ -88,12 +91,13 @@ else:
 	                                         'uarraylist_test.cpp'
 	                                               ])
 
-Alias("test", [catests])
+if target_os != 'darwin':
+    Alias("test", [catests])
 
-env.AppendTarget('test')
-if env.get('TEST') == '1':
-        if target_os == 'linux':
-                from tools.scons.RunTest import *
-                run_test(catest_env,
-                         'resource_csdk_connectivity_test.memcheck',
-                         'resource/csdk/connectivity/test/catests')
+    env.AppendTarget('test')
+    if env.get('TEST') == '1':
+        if target_os in ['linux']:
+    	    from tools.scons.RunTest import *
+	    run_test(catest_env,
+    	    'resource_csdk_connectivity_test.memcheck',
+    	    'resource/csdk/connectivity/test/catests')

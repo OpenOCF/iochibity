@@ -5,6 +5,8 @@
 import os
 import platform
 
+print "CONNECTIVITY BUILD"
+
 # Map of host os and allowed target os (host: allowed target os)
 host_target_map = {
 		'linux': ['linux', 'android', 'arduino', 'yocto', 'tizen'],
@@ -81,7 +83,7 @@ AddOption('--prefix',
 ######################################################################
 # Platform(build target) specific options: SDK/NDK & toolchain
 ######################################################################
-targets_support_cc = ['linux', 'arduino', 'tizen']
+targets_support_cc = ['linux', 'arduino', 'tizen', 'darwin']
 
 if target_os in targets_support_cc:
 	# Set cross compile toolchain
@@ -199,17 +201,20 @@ Targets:\n    ''')
 ===============================================================================
 ''')
 
-env.AddMethod(__set_dir, 'SetDir')
-env.AddMethod(__print_targets, 'PrintTargets')
-env.AddMethod(__src_to_obj, 'SrcToObj')
-env.AddMethod(__append_target, 'AppendTarget')
-env.AddMethod(__install, 'InstallTarget')
-env.AddMethod(__installlib, 'UserInstallTargetLib')
-env.AddMethod(__installbin, 'UserInstallTargetBin')
-env.SetDir(env.GetLaunchDir())
-env['ROOT_DIR']=env.GetLaunchDir()+'/..'
+# env.AddMethod(__set_dir, 'SetDir')
+# env.AddMethod(__print_targets, 'PrintTargets')
+# env.AddMethod(__src_to_obj, 'SrcToObj')
+# env.AddMethod(__append_target, 'AppendTarget')
+# env.AddMethod(__install, 'InstallTarget')
+# env.AddMethod(__installlib, 'UserInstallTargetLib')
+# env.AddMethod(__installbin, 'UserInstallTargetBin')
+# env.SetDir(env.GetLaunchDir())
+# env['ROOT_DIR']=env.GetLaunchDir()+'/..'
 
-Export('env')
+# Export('env')
+
+print "Connectivity/build/SConscript DUMP:"
+print env.Dump()
 
 ######################################################################
 # Link scons to Yocto cross-toolchain ONLY when target_os is yocto
@@ -267,7 +272,6 @@ if target_os == "yocto":
     if env.get('LOGGING'):
         env.AppendUnique(CPPDEFINES = ['TB_LOG'])
     env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__', '_GNU_SOURCE'])
-    env.AppendUnique(CFLAGS = ['-std=gnu99'])
     env.AppendUnique(CCFLAGS = ['-Wall', '-fPIC'])
     env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
     Export('env')

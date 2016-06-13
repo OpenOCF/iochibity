@@ -27,10 +27,25 @@
 #include <errno.h>
 
 #ifndef WITH_ARDUINO
+
+#ifdef  _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE_BACKUP _POSIX_C_SOURCE
+#undef  _POSIX_C_SOURCE
+#endif
+#define _POSIX_C_SOURCE 200809L	/* == #define _XOPEN_SOURCE 700 */
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+
+#undef  _POSIX_C_SOURCE
+
+#ifdef  _POSIX_C_SOURCE_BACKUP
+#define _POSIX_C_SOURCE _POSIX_C_SOURCE_BACKUP
+#undef  _POSIX_C_SOURCE_BACKUP
 #endif
+
+#endif	/* WITH_ARDUINO */
 
 #ifdef __ANDROID__
 #include <jni.h>

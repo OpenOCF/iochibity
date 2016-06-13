@@ -55,18 +55,18 @@ SConscript('csdk/security/SConscript')
 # Build liboctbstack
 SConscript('csdk/SConscript')
 
-if target_os not in ['arduino','darwin','ios']:
+if target_os not in ['arduino','ios']:
 	# Build liboc_logger
 	SConscript('oc_logger/SConscript')
 
 	# Build liboc
 	SConscript('src/SConscript')
 
-if target_os not in ['arduino','darwin','ios','android']:
+if target_os not in ['arduino','ios','android']:
 	# Build examples
 	SConscript('examples/SConscript')
 
-if target_os == 'linux':
+if target_os in ['darwin','linux']:
 	# Build C Samples
 	SConscript('csdk/stack/samples/linux/SimpleClientServer/SConscript')
 
@@ -76,13 +76,8 @@ if target_os == 'linux':
 	# Build C/C++ unit tests
 	SConscript('unit_tests.scons')
 
-elif target_os == 'darwin':
-	env.Command('../../out/darwin/iotivity-csdk.framework',None,src_dir + '/tools/darwin/mkfwk_osx.sh')
-	# Build linux samples for now
-	SConscript('csdk/stack/samples/linux/SimpleClientServer/SConscript')
-
-	# Build C stack's unit tests.
-	SConscript('unit_tests.scons')
+# if target_os == 'osx':
+# 	env.Command('../../out/darwin/iotivity-csdk.framework',None,src_dir + '/tools/darwin/mkfwk_osx.sh'
 
 elif target_os == 'arduino':
 	SConscript('csdk/stack/samples/arduino/SimpleClientServer/ocserver/SConscript')

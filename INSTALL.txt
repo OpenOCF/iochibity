@@ -1,0 +1,88 @@
+This file contains detailed but generic information on building and
+installing this project.  For shorter instructions, see README.
+
+Basic Installation
+==================
+
+   These are generic installation instructions.
+
+The simplest way to compile this package is:
+
+  1. `cd' to the directory containing the package's source code and type
+     `./scons.
+
+  2. You can remove the program binaries and object files from the
+     source code directory by typing `scons -c`.
+
+Tools
+=====
+
+The primary build tool used by this project is Scons. The best way to
+learn about scons is to read its manpage, which is available online at
+http://scons.org/doc/HTML/scons-man.html.
+
+scons has many options, documented in the man page.  Note that `scons
+--help` will print the help message for this project, not for scons
+itself.  To print that, use `scons -H`.
+
+Other required tools: git, ssh, etc.
+
+Compilers and Options
+=====================
+
+gcc
+
+clang
+
+llvm
+
+
+Compiling For Multiple Architectures
+====================================
+
+   You can compile the package for more than one kind of computer at the
+same time, by placing the object files for each architecture in their
+own directory.  To do this, ...
+
+Cross-compilation using clang: http://clang.llvm.org/docs/CrossCompilation.html
+
+Arch Cross-compiling tools package guidelines: https://wiki.archlinux.org/index.php/Cross-compiling_tools_package_guidelines
+
+Crosstool-ng:  http://crosstool-ng.org/
+
+Installation Names
+==================
+
+   By default, `make install' will install the package's files in
+`/usr/local/bin', `/usr/local/man', etc.  You can specify an
+
+
+Optional Features
+=================
+
+Run `scons --help`
+
+
+Specifying the System Type
+==========================
+
+   Usually scons can figure out by itself what features are available
+   in the host environment, but sometimes it needs help.
+
+   To cross-compile, use the TARGET_OS and TARGET_ARCH options.
+
+
+Sharing Defaults
+================
+
+   If you want to set default values for `scons` scripts to share,
+you can create a site script called `config.site' that gives
+default values for variables like `CC', `cache_file', and `prefix'.
+
+"Before reading the SConstruct file, scons looks for a directory named site_scons in various system directories (see below) and the directory containing the SConstruct file; for each of those dirs which exists, site_scons is prepended to sys.path, the file site_scons/site_init.py, is evaluated if it exists, and the directory site_scons/site_tools is prepended to the default toolpath if it exists. See the --no-site-dir and --site-dir options for more details."  (scons manpage)
+
+
+
+Defining Variables
+==================
+

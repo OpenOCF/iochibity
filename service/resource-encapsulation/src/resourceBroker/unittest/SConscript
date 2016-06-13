@@ -73,7 +73,7 @@ broker_test_env.AppendUnique(LIBS = [gtest])
 broker_test_env.AppendUnique(LIBS = [gtest_main])
 
 if target_os not in ['windows', 'winrt']:
-    broker_test_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-fmessage-length=0', '-std=c++0x'])
+    broker_test_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-fmessage-length=0'])
 
 if target_os == 'linux':
     broker_test_env.AppendUnique(LIBS = ['pthread'])

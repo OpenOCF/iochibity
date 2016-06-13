@@ -68,7 +68,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := ResourceHosing_JNI
-LOCAL_CPPFLAGS := -std=c++0x -frtti -fexceptions
+LOCAL_CPPFLAGS := -std=c++11 -frtti -fexceptions
 
 LOCAL_STATIC_LIBRARIES := ca_interface
 LOCAL_STATIC_LIBRARIES += ca

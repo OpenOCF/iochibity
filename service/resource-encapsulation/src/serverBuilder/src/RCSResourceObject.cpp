@@ -815,8 +815,9 @@ namespace OIC
                     m_resourceObject, m_resourceObject.m_resourceAttributes, m_autoNotifyPolicy);
         }
 
-        RCSResourceObject::WeakGuard::WeakGuard(
-                const RCSResourceObject& resourceObject) :
+      // RCSResourceObject::WeakGuard::WeakGuard(   //GAR
+                // const RCSResourceObject& resourceObject) :    //GAR
+      WeakGuard::WeakGuard(const RCSResourceObject& resourceObject) :   //GAR
                 m_isOwningLock{ false },
                 m_resourceObject(resourceObject)
         {
@@ -828,7 +829,8 @@ namespace OIC
             }
         }
 
-        RCSResourceObject::WeakGuard::~WeakGuard()
+        //GAR RCSResourceObject::WeakGuard::~WeakGuard()
+        WeakGuard::~WeakGuard()   //GAR
         {
             if (m_isOwningLock)
             {
@@ -837,7 +839,8 @@ namespace OIC
             }
         }
 
-        bool RCSResourceObject::WeakGuard::hasLocked() const
+        //GAR bool RCSResourceObject::WeakGuard::hasLocked() const
+        bool WeakGuard::hasLocked() const   //GAR
         {
             return m_isOwningLock;
         }

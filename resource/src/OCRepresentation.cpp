@@ -314,12 +314,13 @@ namespace OC
         ((int64_t*)array)[pos] = item;
     }
 
+  /*error: no type _Bit_reference in std::
     template<>
     void get_payload_array::copy_to_array(std::_Bit_reference br, void* array, size_t pos)
     {
         ((bool*)array)[pos] = static_cast<bool>(br);
     }
-
+  */
     template<>
     void get_payload_array::copy_to_array(std::string item, void* array, size_t pos)
     {
@@ -869,13 +870,13 @@ namespace OC
     OCRepresentation::AttributeItem OCRepresentation::operator[](const std::string& key)
     {
         OCRepresentation::AttributeItem attr{key, m_values};
-        return std::move(attr);
+        return attr;
     }
 
     const OCRepresentation::AttributeItem OCRepresentation::operator[](const std::string& key) const
     {
         OCRepresentation::AttributeItem attr{key, m_values};
-        return std::move(attr);
+        return attr;
     }
 
     const std::string& OCRepresentation::AttributeItem::attrname() const

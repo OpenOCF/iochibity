@@ -27,7 +27,9 @@
 #include <iostream>
 #include "SysTimer.h"
 
-#ifdef __ANDROID__
+#ifdef __APPLE__
+#include <string>
+#elif __ANDROID__
 #include "OCAndroid.h"
 #endif
 

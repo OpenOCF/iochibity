@@ -21,6 +21,9 @@
 Import('env')
 import os
 import os.path
+
+target_os = env.get('TARGET_OS')
+
 provisiontests_env = env.Clone()
 
 src_dir = provisiontests_env.get('SRC_DIR')
@@ -30,22 +33,22 @@ with_ra_ibb = env.get('WITH_RA_IBB')
 # Build flags
 ######################################################################
 provisiontests_env.PrependUnique(CPPPATH = [
-		'../../include',
-		'../../oc_logger/include',
-		'../../csdk/stack/include',
-		'../../csdk/security/include',
-		'../../csdk/security/provisioning/include',
-		'../../csdk/security/provisioning/include/oxm',
-		'../../csdk/security/provisioning/include/internal',
-		'../../csdk/stack/include/internal',
-		'../../csdk/connectivity/api',
-		'../../csdk/connectivity/external/inc',
-		'../../csdk/ocsocket/include',
-		'../../csdk/ocrandom/include',
-		'../../csdk/logger/include',
-		'../../../extlibs/gtest/gtest-1.7.0/include',
-		'../../../extlibs/hippomocks-master/HippoMocks',
-		'../../../extlibs/hippomocks-master/HippoMocksTest'
+		'./../../include',
+		'./../../oc_logger/include',
+		'./../../csdk/stack/include',
+		'./../../csdk/security/include',
+		'./../../csdk/security/provisioning/include',
+		'./../../csdk/security/provisioning/include/oxm',
+		'./../../csdk/security/provisioning/include/internal',
+		'./../../csdk/stack/include/internal',
+		'./../../csdk/connectivity/api',
+		'./../../csdk/connectivity/external/inc',
+		'./../../csdk/ocsocket/include',
+		'./../../csdk/ocrandom/include',
+		'./../../csdk/logger/include',
+		'./../../../extlibs/gtest/gtest-1.7.0/include',
+		'./../../../extlibs/hippomocks-master/HippoMocks',
+		'./../../../extlibs/hippomocks-master/HippoMocksTest'
 		])
 
 provisiontests_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
@@ -87,12 +90,13 @@ if env.get('LOGGING'):
 ######################################################################
 # Source files and Targets
 ######################################################################
-unittests = provisiontests_env.Program('provisiontests', ['OCProvisioningTest.cpp'])
+if target_os != 'darwin':  # darwin linkage broken
+    unittests = provisiontests_env.Program('provisiontests', ['OCProvisioningTest.cpp'])
 
-Alias("provisiontests", [unittests])
+    Alias("provisiontests", [unittests])
 
-env.AppendTarget('provisiontests')
-if env.get('TEST') == '1':
+    env.AppendTarget('provisiontests')
+    if env.get('TEST') == '1':
 	target_os = env.get('TARGET_OS')
 	if target_os == 'linux':
 		out_dir = env.get('BUILD_DIR')
@@ -105,8 +109,8 @@ if env.get('TEST') == '1':
 		ut = provisiontests_env.Command ('ut', None, out_dir + 'resource/provisioning/unittests/provisiontests')
 		AlwaysBuild ('ut')
 
-src_dir = provisiontests_env.get('SRC_DIR')
-svr_db_src_dir = src_dir + '/resource/provisioning/examples/'
-svr_db_build_dir = env.get('BUILD_DIR') +'/resource/provisioning/unittests/'
-provisiontests_env.Alias("install", provisiontests_env.Install( svr_db_build_dir,
-                                svr_db_src_dir + 'oic_svr_db_client.json'))
+    src_dir = provisiontests_env.get('SRC_DIR')
+    svr_db_src_dir = src_dir + '/resource/provisioning/examples/'
+    svr_db_build_dir = env.get('BUILD_DIR') +'/resource/provisioning/unittests/'
+    provisiontests_env.Alias("install", provisiontests_env.Install( svr_db_build_dir,
+    svr_db_src_dir + 'oic_svr_db_client.json'))

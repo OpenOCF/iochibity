@@ -34,7 +34,7 @@ unittests_env.PrependUnique(CPPPATH = [
                 '#extlibs/gtest/gtest-1.7.0/include',
 		])
 
-unittests_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
+unittests_env.AppendUnique(CXXFLAGS = ['-pthread'])
 unittests_env.PrependUnique(LIBS = ['-lpthread'])
 unittests_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 unittests_env.AppendUnique(LIBPATH = [os.path.join(src_dir, 'extlibs', 'gtest', 'gtest-1.7.0', 'lib', '.libs')])

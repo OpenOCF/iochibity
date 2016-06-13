@@ -43,7 +43,7 @@ LOCAL_C_INCLUDES += $(OIC_SRC_DIR)/extlibs/
 LOCAL_SRC_FILES += $(patsubst $(LOCAL_PATH)/%, %, $(wildcard $(LOCAL_PATH)/util/*.cpp))
 LOCAL_SRC_FILES += $(patsubst $(LOCAL_PATH)/%, %, $(wildcard $(LOCAL_PATH)/*.cpp))
 
-LOCAL_CPPFLAGS := -std=c++0x -frtti -fexceptions
+LOCAL_CPPFLAGS := -std=c++11 -frtti -fexceptions
 
 
 

@@ -44,6 +44,28 @@ namespace OIC
     namespace Service
     {
 
+      class RCSResourceObject;	/*GAR: fwd decl to elim incomplete type err  */
+        //! @cond
+        class WeakGuard  /*GAR RCSResourceObject::WeakGuard */
+        {
+        public:
+            WeakGuard(const RCSResourceObject&);
+            ~WeakGuard();
+
+            WeakGuard(const WeakGuard&) = delete;
+            WeakGuard(WeakGuard&&) = delete;
+
+            WeakGuard& operator=(const WeakGuard&) = delete;
+            WeakGuard& operator=(WeakGuard&&) = delete;
+
+            bool hasLocked() const;
+
+        private:
+            bool m_isOwningLock;
+            const RCSResourceObject& m_resourceObject;
+        };
+        //! @endcond
+
         class RCSRequest;
         class RCSRepresentation;
         class InterfaceHandler;
@@ -81,8 +103,9 @@ namespace OIC
          */
         class RCSResourceObject
         {
+	friend class WeakGuard;
         private:
-            class WeakGuard;
+            /*GAR ordering rearranged to elim "incomplete type" err class WeakGuard; */
 
             typedef AtomicWrapper< std::thread::id > AtomicThreadId;
 
@@ -668,26 +691,6 @@ namespace OIC
             std::function<void()> m_autoNotifyFunc;
         };
 
-        //! @cond
-        class RCSResourceObject::WeakGuard
-        {
-        public:
-            WeakGuard(const RCSResourceObject&);
-            ~WeakGuard();
-
-            WeakGuard(const WeakGuard&) = delete;
-            WeakGuard(WeakGuard&&) = delete;
-
-            WeakGuard& operator=(const WeakGuard&) = delete;
-            WeakGuard& operator=(WeakGuard&&) = delete;
-
-            bool hasLocked() const;
-
-        private:
-            bool m_isOwningLock;
-            const RCSResourceObject& m_resourceObject;
-        };
-        //! @endcond
     }
 }
 

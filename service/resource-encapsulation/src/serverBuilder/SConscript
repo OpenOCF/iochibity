@@ -51,12 +51,15 @@ server_builder_env.AppendUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs', 'inclu
 server_builder_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 
 if target_os not in ['windows', 'winrt']:
-    server_builder_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall'])
+    server_builder_env.AppendUnique(CXXFLAGS = ['-Wall'])
     if target_os != 'android':
         server_builder_env.AppendUnique(CXXFLAGS = ['-pthread'])
 
 if target_os not in ['darwin', 'ios', 'windows', 'winrt']:
     server_builder_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
+
+if target_os == 'darwin':
+    server_builder_env.AppendUnique(LINKFLAGS = ['-Wl,-undefined,error'])
 
 if target_os == 'android':
     server_builder_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
@@ -68,8 +71,22 @@ if env.get('LOGGING'):
 	server_builder_env.AppendUnique(LIBS = ['octbstack'])
 
 if not release:
-    server_builder_env.AppendUnique(CXXFLAGS = ['--coverage'])
-    server_builder_env.PrependUnique(LIBS = ['gcov'])
+    if target_os != 'darwin':
+        server_builder_env.AppendUnique(CXXFLAGS = ['--coverage'])
+        server_builder_env.PrependUnique(LIBS = ['gcov'])
+    else:
+        # no -lgcov for os x
+	server_builder_env.AppendUnique(CPPFLAGS = ['-fprofile-arcs', '-ftest-coverage'])
+	server_builder_env.PrependUnique(LIBS = ['clang_rt.profile_osx'])
+
+	import subprocess
+	p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	out, err = p.communicate()
+	libsline = out.splitlines()[1]
+	clanglibs = libsline.split("libraries: =")[1]
+
+	server_builder_env.PrependUnique(LIBPATH = [clanglibs + '/lib/darwin/'])
+
 
 ######################################################################
 # Source files and Targets

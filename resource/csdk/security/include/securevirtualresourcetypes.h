@@ -428,6 +428,7 @@ struct OicSecSacl
 {
     // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
     //TODO fill in from OIC Security Spec
+  short dummy;  //GAR: elim warning: empty struct has size 0 in C, size 1 in C++ [-Wextern-c-compat]
 };
 
 /**

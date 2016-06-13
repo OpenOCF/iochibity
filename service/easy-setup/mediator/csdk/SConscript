@@ -63,15 +63,15 @@ if target_os in ['android']:
 ######################################################################
 
 easy_setup_env.AppendUnique(CPPPATH = ['inc',  'src','../../inc'])
-easy_setup_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall'])
-if target_os == 'linux':
+easy_setup_env.AppendUnique(CXXFLAGS = ['-Wall'])
+if target_os in ['darwin','linux']:
 	easy_setup_env.AppendUnique(LIBS = ['pthread', 'dl'])
 
 
 ######################################################################
 # Linux Mediator
 ######################################################################
-if target_os == 'linux':
+if target_os in ['darwin','linux']:
 	easy_setup_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 	easy_setup_env.AppendUnique(RPATH = [env.get('BUILD_DIR')])
 	easy_setup_env.AppendUnique(CXXFLAGS = ['-pthread'])
@@ -89,7 +89,7 @@ if target_os == 'android':
 		easy_setup_env.AppendUnique(LIBS = ['log'])
 
 
-if target_os in ['android','linux']:
+if target_os in ['android','linux','darwin']:
 	easy_setup_env.PrependUnique(CPPPATH = [
 		env.get('SRC_DIR') + '/resource/c_common/oic_malloc/include',
 		env.get('SRC_DIR') + '/resource/csdk/connectivity/common/inc',
@@ -111,7 +111,7 @@ if target_os == 'android':
                     'src/provisioning.cpp'])
 	easy_setup_env.InstallTarget(es_m_csdk_static, 'libESMediatorCSDK')
 
-if target_os == 'linux':
+if target_os in ['darwin', 'linux']:
 	es_m_csdk_shared = easy_setup_env.SharedLibrary('ESMediatorCSDK',
 					['src/provisioningapi.cpp',
 					'src/wifiprovisioning.cpp',
@@ -124,14 +124,6 @@ if target_os == 'linux':
 ######################################################################
 #Build UnitTestcases for Mediator[CSDK]
 ################################################ ######################
-if target_os == 'linux':
+if target_os in ['darwin','linux']:
     SConscript('unittests/SConscript')
-
-
-
-
-
-
-
-
 

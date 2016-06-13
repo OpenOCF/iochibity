@@ -20,47 +20,51 @@
 #
 
 Import('env')
+import os.path
 
 provisioning_env = env.Clone()
-root_dir = './../../../../'
+root_dir = Dir('#').abspath
+src_dir = env.get('SRC_DIR')
+print "SRC DIR: ", src_dir
 
 ######################################################################
 # Build flags
 ######################################################################
 provisioning_env.AppendUnique(CPPPATH = [
-		'../../stack/include',
-		'../../stack/include/internal',
-		'../../../c_common/ocrandom/include',
-		'../../logger/include',
-		'../../../oc_logger/include',
-		'../../ocmalloc/include',
-		'include',
-		'include/internal',
-		'include/oxm',
-		'../../resource/csdk/security/include',
-		'../../../../extlibs/cjson/',
-		'../../../../../extlibs/tinydtls/',
-		'../../connectivity/inc',
-		'../../connectivity/external/inc',
-		'../../connectivity/common/inc',
-		'../../connectivity/lib/libcoap-4.1.1',
-		'../../connectivity/api',
-		'../include',
-		'../include/internal',
-		'../../../../extlibs/tinydtls/ecc',
-		'../../../../extlibs/tinydtls/sha2',
-		'../../../../extlibs/asn1cert',
-		'ck_manager/include'
+		'./include',
+		os.path.join(src_dir,'resource','csdk','security','provisioning','include'),
+		'./include/internal',
+		'./include/oxm',
+		'./../../stack/include',
+		'./../../stack/include/internal',
+		'./../../../c_common/ocrandom/include',
+		'./../../logger/include',
+		'./../../../oc_logger/include',
+		'./../../ocmalloc/include',
+		'./../../resource/csdk/security/include',
+		'./../../../../extlibs/cjson/',
+		'./../../../../../extlibs/tinydtls/',
+		'./../../connectivity/inc',
+		'./../../connectivity/external/inc',
+		'./../../connectivity/common/inc',
+		'./../../connectivity/lib/libcoap-4.1.1',
+		'./../../connectivity/api',
+		'./../include',
+		'./../include/internal',
+		'./../../../../extlibs/tinydtls/ecc',
+		'./../../../../extlibs/tinydtls/sha2',
+		'./../../../../extlibs/asn1cert',
+		'./ck_manager/include'
 		])
+
 target_os = env.get('TARGET_OS')
 
 if target_os != 'tizen':
-	provisioning_env.AppendUnique(CPPPATH = ['../../../../extlibs/sqlite3'])
+	provisioning_env.AppendUnique(CPPPATH = [root_dir +'/extlibs/sqlite3'])
 
 provisioning_env.AppendUnique(CFLAGS = ['-D__WITH_DTLS__'])
-provisioning_env.AppendUnique(CFLAGS = ['-std=c99'])
 if target_os not in ['windows', 'winrt']:
-	provisioning_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread', '-D__WITH_DTLS__'])
+	provisioning_env.AppendUnique(CXXFLAGS = ['-Wall', '-pthread', '-D__WITH_DTLS__'])
 
 	# Note: 'pthread' is in libc for android. On other platform, if use
 	# new gcc(>4.9?) it isn't required, otherwise, it's required
@@ -76,7 +80,7 @@ provisioning_env.AppendUnique(LIBS = ['tinydtls'])
 if env.get('DTLS_WITH_X509') == '1':
 	provisioning_env.AppendUnique(LIBS = ['CKManager', 'asn1'])
 
-if target_os != 'android':
+if target_os in ['linux', 'tizen']:
 	provisioning_env.ParseConfig('pkg-config --libs glib-2.0')
 
 if target_os == 'tizen':
@@ -116,6 +120,6 @@ provisioning_env.UserInstallTargetLib(provisioningserver, 'libocpmapi')
 if env.get('DTLS_WITH_X509') == '1':
 	SConscript('ck_manager/SConscript')
 
-if target_os in ['linux']:
+if target_os in ['darwin','linux']:
 	SConscript('sample/SConscript')
 

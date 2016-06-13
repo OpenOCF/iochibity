@@ -32,13 +32,13 @@ oclib_env = lib_env.Clone()
 # Build flags
 ######################################################################
 oclib_env.AppendUnique(CPPPATH = [
-		'../include/',
-		'../csdk/stack/include',
-		'../c_common/ocrandom/include',
-		'../csdk/logger/include',
-		'../oc_logger/include',
-		'../csdk/connectivity/lib/libcoap-4.1.1',
-		'../csdk/connectivity/api'
+		'./../include/',
+		'./../csdk/stack/include',
+		'./../c_common/ocrandom/include',
+		'./../csdk/logger/include',
+		'./../oc_logger/include',
+		'./../csdk/connectivity/lib/libcoap-4.1.1',
+		'./../csdk/connectivity/api'
 		])
 
 oclib_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
@@ -50,8 +50,11 @@ target_os = env.get('TARGET_OS')
 if target_os == 'linux':
 	oclib_env.AppendUnique(LIBS = ['pthread'])
 
-if target_os not in ['windows', 'winrt']:
-	oclib_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-fPIC'])
+if target_os not in ['windows', 'winrt', 'darwin']:
+	oclib_env.AppendUnique(CXXFLAGS = ['-Wall', '-fPIC'])
+
+if target_os == 'darwin':
+	oclib_env.AppendUnique(CXXFLAGS = ['-stdlib=libc++', '-fPIC'])
 
 if target_os not in ['darwin', 'ios', 'windows', 'winrt']:
 	oclib_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
@@ -117,5 +120,5 @@ oclib_env.UserInstallTargetHeader(header_dir + 'OCUtilities.h', 'resource', 'OCU
 oclib_env.UserInstallTargetHeader(header_dir + 'CAManager.h', 'resource', 'CAManager.h')
 
 # Add Provisioning library
-if target_os in ['linux', 'android', 'tizen'] and env.get('SECURED') == '1':
+if target_os in ['linux', 'darwin', 'android', 'tizen'] and env.get('SECURED') == '1':
         SConscript('../provisioning/SConscript')

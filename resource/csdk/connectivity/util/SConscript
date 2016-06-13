@@ -5,8 +5,6 @@
 Import('env')
 import os.path
 
-print "Reading util folder script"
-
 ca_os = env.get('TARGET_OS')
 ca_transport = env.get('TARGET_TRANSPORT')
 target_os = env.get('TARGET_OS')

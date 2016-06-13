@@ -25,7 +25,11 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/select.h>
+#if (_POSIX_TIMERS > 0)
 #include <time.h>
+#else
+#include <sys/time.h>
+#endif
 
 #include "twsocketlist.h"
 #include "oic_string.h"
@@ -33,6 +37,9 @@
 #include "logger.h"
 
 #define TAG "Telegesis_Socket"
+
+
+#define MICROSECONDS_TO_NANOSECONDS 1000
 
 /**
  * New thread's main() ftn.
@@ -126,8 +133,14 @@ TWResultCode TWWait(pthread_cond_t * cond, pthread_mutex_t * mutex, uint8_t time
     int ret = 0;
     // This is a blocking call which hold the calling thread until an entry
     // has been enqueued or until the specified timeout has surpassed.
-    struct timespec abs_time;
+    struct timespec abs_time = { .tv_sec = 0, .tv_nsec = 0 };
+#if (_POSIX_TIMERS > 0)
     clock_gettime(CLOCK_REALTIME , &abs_time);
+#else
+    struct timeval curr_time = { .tv_sec = 0, .tv_usec = 0 };
+    gettimeofday(&curr_time, NULL);
+    abs_time.tv_sec = curr_time.tv_sec;
+#endif
     abs_time.tv_sec += timeout;
     ret = pthread_cond_timedwait(cond, mutex, &abs_time);
 
@@ -811,9 +824,19 @@ TWResultCode TWDequeueEntry(PIPlugin_Zigbee * plugin, TWEntry ** entry, TWEntryT
     *entry = NULL;
     if(type != TW_NONE)
     {
-        struct timespec abs_time;
-        clock_gettime(CLOCK_REALTIME , &abs_time);
-        abs_time.tv_sec += TIME_OUT_10_SECONDS;
+	struct timespec abs_time = { .tv_sec = 0, .tv_nsec = 0 };
+#if (_POSIX_TIMERS > 0)
+	static const struct timespec zero_time = { .tv_sec = 0, .tv_nsec = 0 };
+	struct timespec curr_time = { .tv_sec = 0, .tv_nsec = 0 };
+	clock_gettime(CLOCK_REALTIME , &abs_time);
+#else
+	static const struct timeval zero_time = { .tv_sec = 0, .tv_usec = 0 };
+	struct timeval curr_time = { .tv_sec = 0, .tv_usec = 0 };
+	gettimeofday(&curr_time, NULL);
+	abs_time.tv_sec = curr_time.tv_sec;
+#endif
+	abs_time.tv_sec += TIME_OUT_10_SECONDS;
+
         while(!*entry)
          {
             // Wait for up to 10 seconds for the entry to put into the queue.
@@ -836,9 +859,13 @@ TWResultCode TWDequeueEntry(PIPlugin_Zigbee * plugin, TWEntry ** entry, TWEntryT
                     break;
                 }
             }
-            struct timespec cur_time;
-            clock_gettime(CLOCK_REALTIME, &cur_time);
-            if(cur_time.tv_sec >= abs_time.tv_sec)
+	    curr_time = zero_time;
+#if (_POSIX_TIMERS > 0)
+            clock_gettime(CLOCK_REALTIME, &curr_time);
+#else
+	    gettimeofday(&curr_time, NULL);
+#endif
+            if(curr_time.tv_sec >= abs_time.tv_sec)
             {
                 break;
             }

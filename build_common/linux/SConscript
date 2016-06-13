@@ -16,9 +16,12 @@ else:
 if env.get('LOGGING'):
 	env.AppendUnique(CPPDEFINES = ['-DTB_LOG'])
 
+env.AppendUnique(CXXFLAGS = ['-std=c++0x'])
+env.AppendUnique(CFLAGS = ['-std=c99'])
+
 env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__'])
-env.AppendUnique(CFLAGS = ['-std=gnu99'])
-env.AppendUnique(CCFLAGS = ['-Wall', '-Wextra', '-fPIC'])
+env.AppendUnique(CPPFLAGS = ['-fPIC', '-Wall', '-Wextra', '-Wno-unused'])
+
 env.AppendUnique(LIBS = ['uuid'])
 env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
 

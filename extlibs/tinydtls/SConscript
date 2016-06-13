@@ -43,6 +43,8 @@ dtls_env.AppendUnique(CPPPATH = [root_dir+'sha2/'])
 if target_os not in ['arduino', 'windows', 'winrt']:
 	dtls_env.AppendUnique(CPPDEFINES = ['HAVE_SYS_TIME_H'])
 
+# make "void function should not return a value" a warning, not error
+dtls_env.AppendUnique(CPPFLAGS = ['-Wno-error=return-type'])
 ######################################################################
 # Source files and Target(s)
 ######################################################################

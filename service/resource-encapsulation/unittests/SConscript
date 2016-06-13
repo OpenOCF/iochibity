@@ -70,7 +70,6 @@ rcs_test_env.AppendUnique(
         ])
 
 if target_os not in ['windows', 'winrt']:
-        rcs_test_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall'])
         if target_os != 'android':
                 rcs_test_env.AppendUnique(CXXFLAGS = ['-pthread'])
                 rcs_test_env.AppendUnique(LIBS = ['pthread'])

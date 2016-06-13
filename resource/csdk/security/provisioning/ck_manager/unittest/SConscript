@@ -87,7 +87,7 @@ pki_test_env.Alias("install",env.Install( unittest_build_dir, [ unittest_src_dir
 env.AppendTarget('test')
 if env.get('TEST') == '1':
 	target_os = env.get('TARGET_OS')
-	if target_os == 'linux':
+	if target_os in ['darwin','linux']:
 		out_dir = env.get('BUILD_DIR')
 		result_dir = env.get('BUILD_DIR') + '/test_out/'
 		if not os.path.isdir(result_dir):

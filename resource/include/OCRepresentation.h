@@ -37,7 +37,12 @@
 #include <AttributeValue.h>
 #include <StringConstants.h>
 
-#ifdef __ANDROID__
+#ifdef __APPLE__
+    #ifdef __MACH__
+#include <cstddef>
+#include <string>
+    #endif
+#elif __ANDROID__
 #include "OCAndroid.h"
 #endif
 
@@ -465,4 +470,3 @@ namespace OC
 
 
 #endif // OC_REPRESENTATION_H_
-

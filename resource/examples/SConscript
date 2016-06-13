@@ -32,16 +32,18 @@ examples_env = lib_env.Clone()
 # Build flags
 ######################################################################
 examples_env.AppendUnique(CPPPATH = [
-		'../include/',
-		'../csdk/stack/include',
-		'../c_common/ocrandom/include',
-		'../csdk/logger/include',
-		'../oc_logger/include'
+		'./../include/',
+		'./../csdk/stack/include',
+		'./../csdk/security/provisioning/include',
+		'./../csdk/security/provisioning/include/internal',
+		'./../c_common/ocrandom/include',
+		'./../csdk/logger/include',
+		'./../oc_logger/include'
 		])
 
 target_os = env.get('TARGET_OS')
 if target_os not in ['windows', 'winrt']:
-	examples_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
+	examples_env.AppendUnique(CXXFLAGS = ['-pthread'])
 
 	# Note: 'pthread' is in libc for android. On other platform, if use
 	# new gcc(>4.9?) it isn't required, otherwise, it's required

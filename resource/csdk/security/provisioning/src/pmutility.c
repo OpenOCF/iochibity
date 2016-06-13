@@ -23,8 +23,11 @@
 
 #include <unistd.h>
 #include <string.h>
+#if (_POSIX_TIMERS > 0)
 #include <time.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include "ocstack.h"
 #include "oic_malloc.h"
@@ -341,25 +344,39 @@ exit:
  */
 OCStackResult PMTimeout(unsigned short waittime, bool waitForStackResponse)
 {
+    int clock_res;
+#if (_POSIX_TIMERS > 0)
     struct timespec startTime = {.tv_sec=0, .tv_nsec=0};
+    static const struct timespec zeroTime = {.tv_sec=0, .tv_nsec=0};
     struct timespec currTime  = {.tv_sec=0, .tv_nsec=0};
-
-    OCStackResult res = OC_STACK_OK;
-#ifdef _POSIX_MONOTONIC_CLOCK
-    int clock_res = clock_gettime(CLOCK_MONOTONIC, &startTime);
+# if defined(_POSIX_MONOTONIC_CLOCK)
+    clock_res = clock_gettime(CLOCK_MONOTONIC, &startTime);
+# else
+    clock_res = clock_gettime(CLOCK_REALTIME, &startTime);
+# endif
 #else
-    int clock_res = clock_gettime(CLOCK_REALTIME, &startTime);
+    struct timeval startTime = { .tv_sec = 0, .tv_usec = 0 };
+    static const struct timeval zeroTime = { .tv_sec = 0, .tv_usec = 0 };
+    struct timeval currTime = { .tv_sec = 0, .tv_usec = 0 };
+    clock_res = gettimeofday(&startTime, NULL);
 #endif
     if (0 != clock_res)
     {
         return OC_STACK_ERROR;
     }
+
+    OCStackResult res = OC_STACK_OK;
     while (OC_STACK_OK == res)
     {
-#ifdef _POSIX_MONOTONIC_CLOCK
+        currTime = zeroTime;
+#if (_POSIX_TIMERS > 0)
+# if defined(_POSIX_MONOTONIC_CLOCK)
         clock_res = clock_gettime(CLOCK_MONOTONIC, &currTime);
-#else
+# else
         clock_res = clock_gettime(CLOCK_REALTIME, &currTime);
+# endif
+#else
+        clock_res = gettimeofday(&currTime, NULL);
 #endif
         if (0 != clock_res)
         {

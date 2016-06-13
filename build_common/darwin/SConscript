@@ -1,7 +1,9 @@
 ##
-# This script set darwin specific flags (GNU GCC)
+# This script sets darwin-specific flags (Clang/GCC)
+# NOTE: cross-compilation is not yet supported.
 #
 ##
+
 import os
 import platform
 import commands
@@ -11,6 +13,12 @@ Import('env')
 
 target_arch = env.get('TARGET_ARCH')
 target_os = env.get('TARGET_OS')
+
+import subprocess
+p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+out, err = p.communicate()
+libsline = out.splitlines()[1]
+clanglibs = libsline.split("libraries: =")[1]
 
 tc_path=commands.getoutput('xcode-select -p')
 
@@ -29,12 +37,16 @@ for line in tc_sdks.split('\n'):
         sdks.append(line[:14].strip())
 
 #find the latest
-maxsdk='0.0'
+minsdk = '0.0'
+maxsdk='10.10'    # Jenkins
 if len(sdks) > 0:
     for sdk in sdks:
         p = sdk.rsplit(' ',1)[1]
-        if (StrictVersion(p)) > StrictVersion(maxsdk):
-            maxsdk=p
+        if (StrictVersion(p)) > StrictVersion(minsdk):
+	   if (StrictVersion(p)) < StrictVersion(maxsdk):
+               minsdk=p
+	   else:
+	       minsdk=maxsdk
 
 # SYS_VERSION build option
 help_vars = Variables()
@@ -44,36 +56,41 @@ Help(help_vars.GenerateHelpText(env))
 
 sys_version = env.get('SYS_VERSION')
 
-#if they didn't explictly set it use the auto-detected one
+# #if they didn't explictly set it use the auto-detected one
 if sys_version is None:
-    sys_version=maxsdk
+    sys_version=minsdk
 
 env['SYS_VERSION']=sys_version
 
-# Set release/debug flags
+env.AppendUnique(CPPFLAGS = ['-fPIC', '-Wall', '-Wno-unused', '-Wno-#pragma-messages'])  # , '-pedantic'
+
+flag = '-mmacosx-version-min=' + sys_version
+env.AppendUnique(CCFLAGS = [flag])
+env.AppendUnique(LINKFLAGS = [flag])
+
+env.AppendUnique(CXXFLAGS = ['-std=c++11'])
+env.AppendUnique(CFLAGS = ['-std=c11'])
+
 if env.get('RELEASE'):
-	env.AppendUnique(CCFLAGS = ['-Os'])
+	env.AppendUnique(CPPFLAGS = ['-Os'])
 	env.AppendUnique(CPPDEFINES = ['NDEBUG'])
 else:
-	env.AppendUnique(CCFLAGS = ['-g'])
-	env.AppendUnique(LINKFLAGS = ['-g'])
+	env.AppendUnique(CPPFLAGS = ['-g'])
 
 if env.get('LOGGING'):
     env.AppendUnique(CPPDEFINES = ['-DTB_LOG'])
 
-if target_os == 'darwin':
-	sys_root = tc_path + '/Platforms/MacOSX.platform/Developer/SDKs/MacOSX' + sys_version + '.sdk/'
-else:
-	if target_arch in ['i386', 'x86_64']:
-		sys_root = tc_path + '/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator' + sys_version + '.sdk/'
-	else:
-		sys_root = tc_path + '/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS' + sys_version + '.sdk/'
+env.AppendUnique(LINKFLAGS = ['-stdlib=libc++'])
+# this is necessary; they're supposed to be sys paths, but they must be made explicit
+env.AppendUnique(LIBPATH = ['/usr/lib', '/usr/local/lib'])
 
-# Set arch flags
-env.AppendUnique(CCFLAGS = ['-arch', target_arch, '-isysroot', sys_root])
-env.AppendUnique(LINKFLAGS = ['-arch', target_arch, '-isysroot', sys_root])
+# cross-compilation - not supported
+# if target_os == 'darwin':
+# 	sys_root = tc_path + '/Platforms/MacOSX.platform/Developer/SDKs/MacOSX' + sys_version + '.sdk/'
+# else:
+# 	if target_arch in ['i386', 'x86_64']:
+# 		sys_root = tc_path + '/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator' + sys_version + '.sdk/'
+# 	else:
+# 		sys_root = tc_path + '/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS' + sys_version + '.sdk/'
 
-if target_os == 'darwin':
-	flag = '-mmacosx-version-min=' + sys_version
-	env.AppendUnique(CCFLAGS = [flag])
-	env.AppendUnique(LINKFLAGS = [flag])
+# env.AppendUnique(CCFLAGS = ['-isysroot', sys_root])

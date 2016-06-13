@@ -59,7 +59,7 @@ hosting_test_env.AppendUnique(LIBS = [
 	GTest_Main, GTest])
 
 if target_os not in ['windows', 'winrt']:
-    hosting_test_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-fmessage-length=0', '-std=c++0x'])
+    hosting_test_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-fmessage-length=0'])
 
 if target_os == 'linux':
 	hosting_test_env.AppendUnique(CXXFLAGS = ['-pthread'])

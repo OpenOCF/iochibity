@@ -26,14 +26,16 @@ with_ra = env.get ('WITH_RA')
 # Build flags
 ######################################################################
 samples_env.PrependUnique(CPPPATH = [
-		'../../../../logger/include',
-		'../../../../stack/include',
-		'../../../../../../extlibs/cjson',
-		'../../../../../oc_logger/include',
-		'../../../../../connectivity/lib/libcoap-4.1.1'
+		'./../../../../logger/include',
+		'./../../../../stack/include',
+		'./../../../../security/provisioning/include',
+		'./../../../../security/provisioning/include/internal',
+		'./../../../../../../extlibs/cjson',
+		'./../../../../../oc_logger/include',
+		'./../../../../../connectivity/lib/libcoap-4.1.1'
 		])
 
-samples_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
+samples_env.AppendUnique(CXXFLAGS = ['-pthread'])
 samples_env.AppendUnique(RPATH = [env.get('BUILD_DIR')])
 samples_env.AppendUnique(LIBS = ['-lpthread' ])
 samples_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])

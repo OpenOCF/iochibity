@@ -23,7 +23,11 @@ extern "C" {
 #include "Hosting.h"
 }
 #include "ResourceHosing_JNI.h"
+// #ifdef __APPLE__
+// #include <string>
+// #elif __ANDROID__
 #include "OCAndroid.h"
+// #endif
 
 using namespace std;
 

@@ -29,6 +29,11 @@ SConscript('build_common/SConscript')
 
 Import('env')
 
+if env.get('VERBOSE'):
+    print "ENV:"
+    print env.Dump()
+    print "START"
+
 if os.environ.get('TERM') != None:
 	env['ENV']['TERM'] = os.environ['TERM']
 
@@ -56,11 +61,11 @@ build_dir = env.get('BUILD_DIR')
 # Build 'resource' sub-project
 SConscript(build_dir + 'resource/SConscript')
 
-if target_os not in ['arduino','darwin','ios', 'android']:
-	SConscript(build_dir + 'examples/OICMiddle/SConscript')
-
 # Build 'service' sub-project
 SConscript(build_dir + 'service/SConscript')
+
+if target_os not in ['arduino','ios', 'android']:
+	SConscript(build_dir + 'examples/OICMiddle/SConscript')
 
 # Build "cloud" sub-project
 SConscript(build_dir + 'cloud/SConscript')

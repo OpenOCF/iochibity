@@ -49,6 +49,10 @@ service/things-manager/build/linux/release
 service/things-manager/build/linux/debug
 service/things-manager/sdk/build/linux/
 
+# Ignore log files
+log/
+*.log
+
 # Ignore any object files
 *.o
 *.os
@@ -99,6 +103,8 @@ extlibs/android/sdk/android-sdk-macosx
 extlibs/android/sdk/android-sdk-windows
 extlibs/boost/boost_1_58_0
 extlibs/tinycbor/tinycbor
+extlibs/libstrophe
+extlibs/sqlite3
 *.tgz
 *.zip
 extlibs/arduino/arduino-1.5.8

@@ -21,7 +21,15 @@
 #include "gtest/gtest.h"
 #include <pwd.h>
 #include <grp.h>
-#include <linux/limits.h>
+// #ifdef __APPLE__
+//     #include <limits.h>
+// #else
+//     #ifdef linux
+//         #include <linux/limits.h>
+//     #else
+//         #include <limits.h>
+//     #endif
+// #endif
 #include <sys/stat.h>
 #include "ocstack.h"
 #include "psinterface.h"
