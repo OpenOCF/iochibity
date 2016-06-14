@@ -128,13 +128,11 @@ if env.get('SECURED') == '1':
 
 ca_interface = jni_env.SharedLibrary(target = 'ca-interface',
 	       			source = ['JniCaInterface.c'])
-				# SHLIBSUFFIX = 'jnilib')
 
-ocstack_jni = jni_env.SharedLibrary(target = 'ocstack-jni.dylib',
+ocstack_jni = jni_env.SharedLibrary(target = 'ocstack-jni',
 	      			source = ocstack_files)
-				# SHLIBSUFFIX = 'jnilib')
 
-# jni_env.InstallTarget(ocstack_jni, 'libocstack-jni.jnilib')
-# jni_env.InstallTarget(ca_interface, 'libca-interface.jnilib')
+jni_env.InstallTarget(ocstack_jni, 'libocstack-jni')
+jni_env.InstallTarget(ca_interface, 'libca-interface')
 
-# env.AppendTarget('ocstack-jni')
+env.AppendTarget('ocstack-jni')
