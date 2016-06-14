@@ -64,6 +64,7 @@ except KeyError:
 	
 java_headers = [os.path.join(os.environ['JAVA_HOME'], 'include')]
 java_headers.append(os.path.join(java_headers[0], 'win32'))
+java_headers.append(os.path.join(java_headers[0], 'darwin'))
 java_headers.append(os.path.join(java_headers[0], 'linux'))
 java_headers.append(os.path.join(java_headers[0], 'solaris'))
 simulator_env.AppendUnique(CPPPATH = java_headers)

@@ -1,0 +1,107 @@
+import os
+import platform
+Import('env')
+
+target_arch = env.get('TARGET_ARCH')
+if env.get('RELEASE'):
+	release="release"
+else:
+	release="debug"
+secured = env.get('SECURED')
+
+target_os = env.get('TARGET_OS')
+
+src_dir   = env.get('SRC_DIR')
+build_dir = env.get('BUILD_DIR')
+gradle_path = env.get('ANDROID_GRADLE')
+
+if target_os == "android":
+	os.environ['ANDROID_HOME'] = env.get('ANDROID_HOME')
+	os.environ['ANDROID_NDK_HOME'] = env.get('ANDROID_NDK')
+
+	if not os.path.exists(android_home + '/platforms/android-21') or not os.path.exists(android_home + '/build-tools/20.0.0'):
+		print '''
+***************************************** Info ********************************
+*   Either 'Android API 21' is not installed or 'Android SDK Build Tools      *
+*   20.0.0' is not installed. The Android SDK Manager will now open. Please   *
+*   be sure to deselect all options, then select the following 2 packages:    *
+*       1. Under "Tools" select "Android SDK Build-tools" Revision 20.        *
+*       2. Under "Android 5.0.1 (API 21)" select "SDK Platform"               *
+*       3. Continue by selecting "Install 2 Packages"                         *
+*                                                                             *
+*   NOTE: If you have an http proxy, please press ctrl+c now and edit/create  *
+*         the following file in your $HOME directory as follows:              *
+*                                                                             *
+* Edit/Create file: "$HOME/.android/androidtool.cfg"                          *
+*                                                                             *
+*    http.proxyPort=<YOUR_PORT_NUMBER>                                        *
+*    sdkman.monitor.density=108                                               *
+*    http.proxyHost=<YOUR_HTTP_PROXY_ADDRESS>                                 *
+*    sdkman.show.update.only=true                                             *
+*    sdkman.ask.adb.restart=false                                             *
+*    sdkman.force.http=true                                                   *
+*    sdkman.show.updateonly=true                                              *
+*                                                                             *
+*******************************************************************************
+
+...Opening Android SDK Manager now. Once you are finished, the build will continue.
+'''
+	os.system(android_home + '/tools/android')
+
+if target_os == 'darwin':
+   ext = '.dylib'
+elif target_os == 'linux':
+   ext = '.so'
+
+def ensure_libs(target, source, env):
+	return target, [source, build_dir
+	+ 'liboc' + ext, build_dir
+	+ 'liboc_logger' + ext, build_dir
+	+ 'libocstack-jni.jnilib']
+
+SConscript('jni/SConscript')	#FIXME: do this separately from Java compilation
+
+jdk_env = Environment(ENV=os.environ)
+jdk_env['BUILDERS']['Gradle'] = Builder(action = gradle_path
+			       + ' build -b'
+			       + src_dir
+			       + '/java/iotivity-' + target_os + '/build.gradle'
+			       # + ' --debug'
+			       + ' -PTARGET_ARCH=' + target_arch
+			       + ' -PRELEASE=' + release
+			       + ' -PSECURED=' + secured
+			       + ' -PBUILD_DIR=' + build_dir
+			       + ' -PSRC_DIR=' + src_dir
+			       + ' --stacktrace',
+			       emitter = ensure_libs)
+
+jdk_env['BUILD_DIR'] = env.get('BUILD_DIR')
+
+cmdBuildApi=jdk_env.Gradle(target="base/objs",
+			   source="common/src/main/java/org/iotivity/base/OcResource.java")
+
+examples_target = "java"
+if target_os == 'android':
+	examples_target = "android"
+
+jdk_env['BUILDERS']['Gradle'] = Builder(action = env.get('ANDROID_GRADLE')
+			       + ' build'
+			       + ' -p'
+			       + src_dir
+			       + '/java/examples-' + examples_target
+			       # + ' --debug'
+			       + ' -PTARGET_OS=' + target_os
+			       + ' -PTARGET_ARCH=' + target_arch
+			       + ' -PRELEASE=' + release
+			       + ' -PSECURED=' + secured
+			       + ' -PBUILD_DIR=' + build_dir
+			       + ' -PSRC_DIR=' + src_dir
+			       + ' --stacktrace')
+
+
+
+cmdBuildExamples=jdk_env.Gradle(target='examples-' + examples_target + '/simpleclient/jar',
+				source='examples-' + examples_target
+				+ '/simpleclient/src/main/java/org/iotivity/base/examples/SimpleClient.java')
+
+Depends(cmdBuildExamples, cmdBuildApi)

@@ -1,0 +1,3 @@
+include ':simpleserver', ':simpleclient'
+
+//, ':fridgeserver', ':fridgeclient', ':guiclient', ':provisioningclient', ':presenceserver', ':presenceclient', ':devicediscoveryclient', ':devicediscoveryserver', ':groupclient', ':groupserver', ':fridgegroupclient', ':fridgegroupserver'

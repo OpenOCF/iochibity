@@ -62,7 +62,6 @@ if int(containerJavaSupport):
         '''
         resource_container_env.Append(CPPDEFINES={'JAVA_SUPPORT':0})
 
-
 resource_container_env.AppendUnique(
     CPPPATH = [
         env.get('SRC_DIR')+'/extlibs',
@@ -72,13 +71,12 @@ resource_container_env.AppendUnique(
         'src'
     ])
 
+java_inc = [os.environ['JAVA_HOME'] + '/include'
+	   ,os.environ['JAVA_HOME'] + '/include/' + target_os]
+
 if int(containerJavaSupport):
     try:
-        resource_container_env.AppendUnique(
-        CPPPATH = [
-            os.environ['JAVA_HOME']+'/include',
-            os.environ['JAVA_HOME']+'/include/linux'
-        ])
+        resource_container_env.AppendUnique(CPPPATH = java_inc)
     except KeyError:
         print ''
 

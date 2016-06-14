@@ -17,6 +17,8 @@ function build_all()
 		build_linux_unsecured_with_rm $1 $2
 		build_linux_unsecured_with_rd $1 $2
 		build_linux_secured_with_rd $1 $2
+		build_linux_unsecured_with_java $1 $2
+		build_linux_secured_with_java $1 $2
 		build_simulator $1 $2
 	fi
 
@@ -30,6 +32,8 @@ function build_all()
 	then
 		build_darwin_unsecured $1 $2
 		build_darwin_secured $1 $2
+		build_darwin_unsecured_with_java $1 $2
+		build__secured_with_java $1 $2
 		build_ios $1 $2
 	fi
 }
@@ -82,6 +86,18 @@ function build_linux_secured_with_rd()
 {
 	echo "*********** Build for linux With Resource Directory & Security ************"
 	scons RELEASE=$1 WITH_RD=1 SECURED=1 $2
+}
+
+function build_linux_unsecured_with_java()
+{
+	echo "*********** Build for linux With Resource Directory & Security ************"
+	scons RELEASE=$1 BUILD_JAVA=ON TARGET_TRANSPORT=IP $2
+}
+
+function build_linux_secured_with_java()
+{
+	echo "*********** Build for linux With Resource Directory & Security ************"
+	scons RELEASE=$1 SECURED=1 BUILD_JAVA=ON TARGET_TRANSPORT=IP $2
 }
 
 function build_android()
@@ -194,6 +210,18 @@ function build_darwin_secured()
 	scons VERBOSE=$VERBOSE TARGET_OS=darwin SECURED=1 RELEASE=$1 $2
 }
 
+function build_darwin_unsecured_with_java()
+{
+	echo "*********** Build for darwin With Resource Directory & Security ************"
+	scons RELEASE=$1 TARGET_OS=darwin SECURED=0 BUILD_JAVA=ON TARGET_TRANSPORT=IP $2
+}
+
+function build_darwin_secured_with_java()
+{
+	echo "*********** Build for darwin With Resource Directory & Security ************"
+	scons RELEASE=$1 TARGET_OS=darwin SECURED=1 BUILD_JAVA=ON TARGET_TRANSPORT=IP $2
+}
+
 function build_ios() # Apple iOS
 {
 	echo "*********** Build for IOS i386 *************"
@@ -232,7 +260,7 @@ function  help()
 	echo "Usage:"
         echo "  build:"
         echo "     `basename $0` <target_build>"
-	echo "      Allowed values for <target_build>: all, linux_unsecured, linux_secured, linux_unsecured_with_ra, linux_secured_with_ra, linux_unsecured_with_rd, linux_secured_with_rd, android, arduino, tizen, simulator, darwin, darwin_unsecured, darwin_secured, ios"
+	echo "      Allowed values for <target_build>: all, linux_unsecured, linux_secured, linux_unsecured_with_ra, linux_secured_with_ra, linux_unsecured_with_rd, linux_secured_with_rd, android, arduino, tizen, simulator, darwin, darwin_unsecured, darwin_secured, darwin_unsecured_with_java, darwin_unsecured_with_java, ios"
 	echo "      Note: \"linux\" will build \"linux_unsecured\", \"linux_secured\", \"linux_unsecured_with_ra\", \"linux_secured_with_ra\", \"linux_secured_with_rd\" & \"linux_unsecured_with_rd\"."
 	echo "      Any selection will build both debug and release versions of all available targets in the scope you've"
 	echo "      selected. To choose any specific command, please use the SCons commandline directly. Please refer"
@@ -286,6 +314,14 @@ then
 	then
 		build_linux_secured_with_rd true
 		build_linux_secured_with_rd false
+	elif [ $1 = 'linux_unsecured_with_java' ]
+	then
+		build_linux_unsecured_with_java true
+		build_linux_unsecured_with_java false
+	elif [ $1 = 'linux_secured_with_java' ]
+	then
+		build_linux_secured_with_java true
+		build_linux_secured_with_java false
 	elif [ $1 = 'android' ]
 	then
 		build_android true
@@ -336,6 +372,14 @@ then
 	then
 		build_darwin_secured true
 		build_darwin_secured false
+	elif [ $1 = 'darwin_unsecured_with_java' ]
+	then
+		build_darwin_unsecured_with_java true
+		build_darwin_unsecured_with_java false
+	elif [ $1 = 'darwin_secured_with_java' ]
+	then
+		build_darwin_secured_with_java true
+		build_darwin_secured_with_java false
 	elif [ $1 = 'ios' ]
 	then
 		build_ios true

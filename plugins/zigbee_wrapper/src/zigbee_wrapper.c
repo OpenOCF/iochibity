@@ -41,8 +41,10 @@
 // This ifdef ensures that "__STDC_IEC_559__" is defined. If it is defined,
 // then we are guaranteed that the 'double' type is 64-bit. Otherwise, the
 // compilation of this file should fail because we are no longer guaranteed.
-#ifndef __STDC_IEC_559__
+#if !defined(__STDC_IEC_559__)
+#if !defined(__SIZEOF_DOUBLE__) && !(__SIZEOF_DOUBLE__ >= 8)
 #error "Requires IEEE 754 floating point!"
+#endif
 #endif
 
 #include "zigbee_wrapper.h"

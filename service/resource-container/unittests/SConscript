@@ -101,7 +101,7 @@ if int(containerJavaSupport):
         container_gtest_env.AppendUnique(
         CPPPATH = [
             os.environ['JAVA_HOME']+'/include',
-            os.environ['JAVA_HOME']+'/include/linux'
+            os.environ['JAVA_HOME']+'/include/' + target_os
         ])
     except KeyError:
         print ''

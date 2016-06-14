@@ -12,20 +12,22 @@ root_dir = './../'
 ca_common_path = root_dir + 'common/'
 ca_common_src_path = ca_common_path + 'src/'
 
-env.AppendUnique(CPPPATH = [
-	'common/inc/',
-	src_dir + '/resource/csdk/logger/include/',
-	])
+ca_common_include =  ['common/inc/'
+		     ,src_dir + '/resource/csdk/logger/include/']
+
+if env.get('BUILD_JAVA'):
+    ca_common_include = ca_common_include + [env.get('JAVA_HOME') + '/include'
+    		    		    	    ,env.get('JAVA_HOME') + '/include/darwin']
+
+env.AppendUnique(CPPPATH = ca_common_include)
 
 ######################################################################
 # Source files and Target(s)
 ######################################################################
-ca_common_src = [
-		ca_common_src_path + 'uarraylist.c',
-		ca_common_src_path + 'ulinklist.c',
-		ca_common_src_path + 'uqueue.c',
-		ca_common_src_path + 'caremotehandler.c'
-	]
+ca_common_src = [ca_common_src_path + 'uarraylist.c'
+		,ca_common_src_path + 'ulinklist.c'
+		,ca_common_src_path + 'uqueue.c'
+		,ca_common_src_path + 'caremotehandler.c']
 
 if env['POSIX_SUPPORTED']:
 	platform_src = [

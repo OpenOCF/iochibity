@@ -34,6 +34,20 @@ if target_os == 'android':
 	if target_arch == 'armeabi-v7a-hard':
 		target_arch = 'armeabi-v7a'
 
+if target_os == 'darwin':
+	env.AppendUnique(CPPPATH = ['/usr/local/include'])
+	env.AppendUnique(LIBPATH = ['/usr/local/lib'])
+
+if env.get('BUILD_JAVA') == 'ON' and target_os != 'android':
+	if env.get('JAVA_HOME') != None:
+                env.AppendUnique(CCFLAGS = ['-D__JAVA__'])
+	        env.AppendUnique(CPPPATH = [
+			env.get('JAVA_HOME') + '/include',
+			env.get('JAVA_HOME') + '/include/linux'
+		])
+	else:
+		print 'JAVA_HOME is not set. Java bindings will not be built.'
+
 # External library include files are in <src_dir>/deps/<target_os>/include
 # the library binaries are in <src_dir>/deps/<target_os>/lib/<arch>
 if target_os != 'darwin':

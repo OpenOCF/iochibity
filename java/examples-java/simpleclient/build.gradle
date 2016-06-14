@@ -1,0 +1,15 @@
+jar {
+    manifest {
+        attributes("Main-Class": "org.iotivity.base.examples.SimpleClient")
+	           // "Implementation-Title": "Gradle",
+                   // "Implementation-Version": version,
+		   // "Manifest-Version": "1.0",
+		   // "Created-By": "foobar")
+    }
+}
+
+// sourceSets {
+//     main {
+// 	  output.classesDir 'buildout'
+//     }
+// }

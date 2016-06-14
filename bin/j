@@ -1,0 +1,14 @@
+#! /bin/sh
+
+set -x
+
+java -jar ./java/examples-java/simpleclient/build/libs/simpleclient.jar \
+     -Djava.library.path=./out/darwin/x86_64/release/libocstack-jni.jnilib
+#     SimpleClient
+
+#     org.iotivity.base.examples.SimpleClient
+
+# -cp /Users/gar/iotivity/iotivation/libiotivity/java/examples-java/simpleclient/build/classes:$CLASSPATH \
+
+
+# -Djava.library.path=out/darwin/x86_64/release/java/jni/libca-interface.dylib:out/darwin/x86_64/release/java/jni/libocstack-jni.dylib \

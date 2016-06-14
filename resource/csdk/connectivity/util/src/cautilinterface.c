@@ -212,6 +212,7 @@ uint16_t CAGetAssignedPortNumber(CATransportAdapter_t adapter, CATransportFlags_
     return 0;
 }
 
+#if defined(__ANDROID__) || defined(__JAVA__)
 #ifdef __ANDROID__
 /**
  * initialize client connection manager
@@ -241,6 +242,36 @@ CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm, jobject context)
 #endif
     return res;
 }
+#else
+/**
+ * initialize client connection manager
+ * @param[in]   env                   JNI interface pointer.
+ * @param[in]   jvm                   invocation inferface for JAVA virtual machine.
+ */
+CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm)
+{
+    OIC_LOG(DEBUG, TAG, "CAUtilClientInitialize");
+
+    CAResult_t res = CA_STATUS_OK;
+#ifdef LE_ADAPTER
+    if (CA_STATUS_OK != CAManagerLEClientInitialize(env, jvm))
+    {
+        OIC_LOG(ERROR, TAG, "CAManagerLEClientInitialize has failed");
+        res = CA_STATUS_FAILED;
+    }
+#endif
+
+#ifdef EDR_ADAPTER
+    if (CA_STATUS_OK != CABTPairingInitialize(env, jvm))
+    {
+        OIC_LOG(ERROR, TAG, "CABTPairingInitialize has failed");
+        res = CA_STATUS_FAILED;
+    }
+#endif
+    return res;
+}
+
+#endif
 
 /**
  * terminate client connection manager
