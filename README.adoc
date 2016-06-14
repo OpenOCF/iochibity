@@ -6,3 +6,9 @@ from the official https://www.iotivity.org/[Iotivity site].
 
 Status:  Compiles.
 
+1. git clone https://github.com/iotivation/iotivity.git
+2. cd iotivity
+3. git checkout darwin-java
+4. git branch --set-upstream-to=origin/darwin-java darwin-java
+5. git pull
+6. scons BUILD_JAVA=ON VERBOSE=true 2>&1 | tee build.log
