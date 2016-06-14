@@ -125,7 +125,6 @@ if env.get('SECURED') == '1':
 				'JniPinCheckListener.cpp',
 				'JniDisplayPinListener.cpp'
 			]
-jni_env.Replace(TARGET = 'libocstack-jni.jnilib')
 
 ca_interface = jni_env.SharedLibrary(target = 'ca-interface',
 	       			source = ['JniCaInterface.c'])

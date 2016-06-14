@@ -40,8 +40,8 @@ else:
 if env.get('LOGGING'):
 	env.AppendUnique(CPPDEFINES = ['-DTB_LOG'])
 
-env.AppendUnique(CXXFLAGS = ['-std=c++0x'])
-env.AppendUnique(CFLAGS = ['-std=c99'])
+env.AppendUnique(CXXFLAGS = ['-std=c++11'])
+env.AppendUnique(CFLAGS = ['-std=c11'])
 
 env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__darwin__'])
 env.AppendUnique(CPPFLAGS = ['-fPIC', '-Wall', '-Wextra', '-Wno-unused'])
