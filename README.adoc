@@ -5,7 +5,11 @@ experimentation.  If you want the real thing, you should obtain it
 from the official https://www.iotivity.org/[Iotivity site].
 
 Status: Darwin port seems to be working.  Java on Darwin compiles, not
-tested.
+tested.  The codebase may be lagging behind the official master
+somewhat.
+
+Plans: Once the patches for Darwin/Java have been integrated into the
+official repo, this repo will (probably) go away.
 
 If you're here for Darwin:
 
