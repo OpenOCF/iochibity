@@ -48,16 +48,21 @@ if target_os == "android":
 '''
 	os.system(android_home + '/tools/android')
 
-if target_os == 'darwin':
-   ext = '.dylib'
-elif target_os == 'linux':
-   ext = '.so'
+if target_os == 'linux':
+   shlibsuffix = '.so'
+   jnilibsuffix = '.so'
+elif target_os == 'darwin':
+   shlibsuffix = '.dylib'
+   jnilibsuffix = '.jnilib'
+elif target_os == 'win32':
+   shlibsuffix = '.dll'
+   jnilibsuffix = '.dll'
 
 def ensure_libs(target, source, env):
-	return target, [source, build_dir
-	+ 'liboc' + ext, build_dir
-	+ 'liboc_logger' + ext, build_dir
-	+ 'libocstack-jni.jnilib']
+	return target, [source,
+	 build_dir + 'liboc' + shlibsuffix,
+	 build_dir + 'liboc_logger' + shlibsuffix]
+	 # build_dir + 'libocstack-jni' + jnilibsuffix]
 
 SConscript('jni/SConscript')	#FIXME: do this separately from Java compilation
 
