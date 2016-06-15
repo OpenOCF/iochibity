@@ -472,7 +472,7 @@ OCStackResult TWSetAttribute(char* extendedUniqueId, char* nodeId, char* endpoin
     ret = OC_STACK_OK;
 
 exit:
-    if (entry != NULL) TWDeleteEntry(ctx->g_plugin, entry);
+    /* if (entry != NULL) TWDeleteEntry(ctx->g_plugin, entry); */
     OICFree(cmdString);
     OIC_LOG_V(INFO, TAG, "Leave TWSetAttribute() with ret=%d", ret);
     return ret;

@@ -181,6 +181,22 @@ if target_os in targets_support_cc:
 	if prefix or tc_path:
 		print tc_set_msg
 
+######################################################################
+# Autoconf-style Feature Tests
+######################################################################
+env_conf = Configure(env)
+env_conf.CheckLib('uuid')
+if env_conf.CheckFunc('clock_gettime'):
+	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
+if env_conf.CheckFunc('gettimeofday'):
+	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETTIMEOFDAY'])
+if env_conf.CheckFunc('GetSystemTimeAsFileTime') or target_os == 'windows':
+	# TODO: Remove target_os check.
+	# We currently check for 'windows' as well, because the environment can
+	# sometimes get so polluted that CheckFunc ceases to work!
+	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETSYSTEMTIMEASFILETIME'])
+env = env_conf.Finish()
+
 # Ensure scons be able to change its working directory
 env.SConscriptChdir(1)
 
@@ -332,6 +348,13 @@ env.Substfile(pc_file, SUBST_DICT = pc_vars)
 ######################################################################
 # Link scons to Yocto cross-toolchain ONLY when target_os is yocto
 ######################################################################
+env.AppendUnique(CPPFLAGS = ['-fPIC', '-Wall', '-Wextra', '-Wno-unused'])
+
+if target_os != 'darwin':
+    env.AppendUnique(CPPFLAGS = ['-Wl,--no-undefined'])
+
+env.AppendUnique(LINKFLAGS = ['-ldl','-lpthread'])
+
 if target_os == "yocto":
     '''
     This code injects Yocto cross-compilation tools+flags into scons'
@@ -384,9 +407,8 @@ if target_os == "yocto":
         env.AppendUnique(CPPDEFINES = ['NDEBUG'])
     if env.get('LOGGING'):
         env.AppendUnique(CPPDEFINES = ['TB_LOG'])
-    env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__', '_GNU_SOURCE'])
-    env.AppendUnique(CCFLAGS = ['-Wall', '-Wextra', '-fPIC'])
-    env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
+
+    env.AppendUnique(CPPDEFINES = ['WITH_POSIX'])
     env.AppendUnique(LIBS = ['uuid'])
     Export('env')
 else:

@@ -62,7 +62,7 @@ Alias("piunittests", [piunittests])
 env.AppendTarget('piunittests')
 if env.get('TEST') == '1':
 	target_os = env.get('TARGET_OS')
-	if target_os == 'linux':
+	if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(unittests_env,
                          'plugins_unittests.memcheck',

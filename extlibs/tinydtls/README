@@ -1,5 +1,7 @@
 CONTENTS
 
+Sources: https://projects.eclipse.org/projects/iot.tinydtls/developer
+
 This library contains functions and structures that can help
 constructing a single-threaded UDP server with DTLS support in
 C99. The following components are available:

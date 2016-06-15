@@ -29,7 +29,6 @@ SConscript(env.get('SRC_DIR') + '/resource/third_party_libs.scons', 'lib_env')
 jni_env = lib_env.Clone()
 
 src_dir   = env.get('SRC_DIR')
-java_home = env.get('JAVA_HOME')
 
 ######################################################################
 # Build flags
@@ -51,8 +50,6 @@ jni_env.AppendUnique(CPPPATH = [
 		src_dir + '/resource/csdk/security/provisioning/include/oxm',
 		src_dir + '/resource/csdk/security/provisioning/include/internal',
 		src_dir + '/resource/csdk/security/include'
-		# java_home + '/include',
-		# java_home + '/include/darwin'
 		])
 
 target_os = env.get('TARGET_OS')
@@ -63,7 +60,6 @@ if target_os == 'darwin':
 jni_env.AppendUnique(CCFLAGS = ['-Wno-error', '-Wno-comment', '-Wno-unused-function', '-Wno-unused-parameter'])
 if target_os not in ['windows', 'winrt']:
 	jni_env.AppendUnique(CXXFLAGS = ['-pthread'])
-	# jni_env.PrependUnique(LINKFLAGS = ['-o', env.get('BUILD_DIR') + 'java/jni/libocstack-jni.jnilib'])
 
 	# Note: 'pthread' is in libc for android. On other platform, if use
 	# new gcc(>4.9?) it isn't required, otherwise, it's required

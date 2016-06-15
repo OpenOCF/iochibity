@@ -457,11 +457,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
     g_mid_OcOicSecAcl_get_recurrences = env->GetMethodID(g_cls_OcOicSecAcl, "getRecurrences", "(I)Ljava/lang/String;");
     if (!g_mid_OcOicSecAcl_get_recurrences) return JNI_ERR;
 
-    g_mid_OcOicSecAcl_get_owners_cnt = env->GetMethodID(g_cls_OcOicSecAcl, "getOwnersCount", "()I");
-    if (!g_mid_OcOicSecAcl_get_owners_cnt) return JNI_ERR;
+    // g_mid_OcOicSecAcl_get_owners_cnt = env->GetMethodID(g_cls_OcOicSecAcl, "getOwnersCount", "()I");
+    // if (!g_mid_OcOicSecAcl_get_owners_cnt) return JNI_ERR;
 
-    g_mid_OcOicSecAcl_get_owners = env->GetMethodID(g_cls_OcOicSecAcl, "getOwners", "(I)Ljava/lang/String;");
-    if (!g_mid_OcOicSecAcl_get_owners) return JNI_ERR;
+    // g_mid_OcOicSecAcl_get_owners = env->GetMethodID(g_cls_OcOicSecAcl, "getOwners", "(I)Ljava/lang/String;");
+    // if (!g_mid_OcOicSecAcl_get_owners) return JNI_ERR;
 
     return JNI_CURRENT_VERSION;
 }

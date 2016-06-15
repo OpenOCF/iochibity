@@ -41,15 +41,12 @@ examples_env.AppendUnique(CPPPATH = [
 
 target_os = env.get('TARGET_OS')
 if target_os not in ['windows', 'winrt']:
-	examples_env.AppendUnique(CXXFLAGS = ['-Wall', '-pthread'])
+	# examples_env.AppendUnique(CXXFLAGS = ['-Wall', '-pthread'])
 
 	# Note: 'pthread' is in libc for android. On other platform, if use
 	# new gcc(>4.9?) it isn't required, otherwise, it's required
 	if target_os != 'android':
 		examples_env.AppendUnique(LIBS = ['-lpthread'])
-
-if target_os == 'darwin':
-	examples_env.Append(CXXFLAGS = ['-stdlib=libc++', '-fPIC'])
 
 examples_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 examples_env.PrependUnique(LIBS = ['coap'])

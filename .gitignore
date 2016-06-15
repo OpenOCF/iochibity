@@ -62,6 +62,12 @@ log/
 *.a
 *.so
 
+# Ignore data files
+*.dat
+
+# Ignore pkg-config files
+*.pc
+
 # Ignore Eclipse workspace files
 *.settings/
 

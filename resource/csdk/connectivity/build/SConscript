@@ -272,7 +272,6 @@ if target_os == "yocto":
     if env.get('LOGGING'):
         env.AppendUnique(CPPDEFINES = ['TB_LOG'])
     env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__', '_GNU_SOURCE'])
-    env.AppendUnique(CCFLAGS = ['-Wall', '-fPIC'])
     env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
     Export('env')
 else:

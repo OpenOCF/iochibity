@@ -30,6 +30,8 @@ help_vars.Update(env)
 Help(help_vars.GenerateHelpText(env))
 
 
+env.AppendUnique(LINKFLAGS = ['-undefined', 'error'])
+
 # Set release/debug flags
 if env.get('RELEASE'):
 	env.AppendUnique(CCFLAGS = ['-Os'])
@@ -44,10 +46,12 @@ env.AppendUnique(CXXFLAGS = ['-std=c++11'])
 env.AppendUnique(CFLAGS = ['-std=c11'])
 
 env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__darwin__'])
-env.AppendUnique(CPPFLAGS = ['-fPIC', '-Wall', '-Wextra', '-Wno-unused'])
 
 env.AppendUnique(LIBS = ['uuid'])
-env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
+
+# in case of ld: symbol(s) not found for architecture x86_64
+# -Wl,-undefined -Wl,dynamic_lookup
+# env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
 
 # Set arch flags that match best TARGET_ARCH variable
 target_arch = env.get('TARGET_ARCH')

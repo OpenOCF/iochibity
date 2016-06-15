@@ -91,19 +91,11 @@ if target_os not in ['android', 'arduino', 'windows', 'winrt']:
 
 if target_os == 'arduino':
 	liboctbstack_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
-elif target_os not in ['ios']:
-	liboctbstack_env.AppendUnique(CFLAGS = ['-fPIC'])
 
 if target_os in ['darwin', 'ios']:
 	env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
 	liboctbstack_env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
 	liboctbstack_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-
-if target_os not in ['arduino', 'darwin']:
-	liboctbstack_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
-
-if target_os == 'darwin':
-	liboctbstack_env.AppendUnique(LINKFLAGS = ['-Wl,-undefined,error'])
 
 if target_os == 'android':
     liboctbstack_env.AppendUnique(LINKFLAGS = ['-Wl,-soname,liboctbstack.so'])

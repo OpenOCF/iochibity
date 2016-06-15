@@ -342,67 +342,67 @@ exit:
  * @param[in]  waitForStackResponse if true timeout function will call OCProcess while waiting.
  * @return OC_STACK_OK on success otherwise error.
  */
-/* OCStackResult PMTimeout(unsigned short waittime, bool waitForStackResponse) */
-/* { */
-/*     OCStackResult res = OC_STACK_OK; */
-/* #if defined(HAVE_GETSYSTEMTIMEASFILETIME) */
-/*     FILETIME startTime = {0}; */
-/*     FILETIME currTime = {0}; */
+OCStackResult PMTimeout(unsigned short waittime, bool waitForStackResponse)
+{
+    OCStackResult res = OC_STACK_OK;
+#if defined(HAVE_GETSYSTEMTIMEASFILETIME)
+    FILETIME startTime = {0};
+    FILETIME currTime = {0};
 
-/*     GetSystemTimeAsFileTime(&startTime); */
-/* #elif defined(HAVE_CLOCK_GETTIME) */
-/*     struct timespec startTime = {.tv_sec=0, .tv_nsec=0}; */
-/*     struct timespec currTime  = {.tv_sec=0, .tv_nsec=0}; */
+    GetSystemTimeAsFileTime(&startTime);
+#elif defined(HAVE_CLOCK_GETTIME)
+    struct timespec startTime = {.tv_sec=0, .tv_nsec=0};
+    struct timespec currTime  = {.tv_sec=0, .tv_nsec=0};
 
-/* # if defined(_POSIX_MONOTONIC_CLOCK) */
-/*     int clock_res = clock_gettime(CLOCK_MONOTONIC, &startTime); */
-/* # else */
-/*     int clock_res = clock_gettime(CLOCK_REALTIME, &startTime); */
-/* # endif // defined(_POSIX_MONOTONIC_CLOCK) */
-/* #elif defined(HAVE_GETTIMEOFDAY) */
-/*     struct timeval startTime = { .tv_sec = 0, .tv_usec = 0 }; */
-/*     static const struct timeval zeroTime = { .tv_sec = 0, .tv_usec = 0 }; */
-/*     struct timeval currTime = { .tv_sec = 0, .tv_usec = 0 }; */
-/*     clock_res = gettimeofday(&startTime, NULL); */
-/* #else */
-/*     ERROR Need PMTimeout implementation */
-/*     return OC_STACK_ERROR; */
-/* #endif */
+# if defined(_POSIX_MONOTONIC_CLOCK)
+    int clock_res = clock_gettime(CLOCK_MONOTONIC, &startTime);
+# else
+    int clock_res = clock_gettime(CLOCK_REALTIME, &startTime);
+# endif // defined(_POSIX_MONOTONIC_CLOCK)
+#elif defined(HAVE_GETTIMEOFDAY)
+    struct timeval startTime = { .tv_sec = 0, .tv_usec = 0 };
+    static const struct timeval zeroTime = { .tv_sec = 0, .tv_usec = 0 };
+    struct timeval currTime = { .tv_sec = 0, .tv_usec = 0 };
+    clock_res = gettimeofday(&startTime, NULL);
+#else
+    ERROR Need PMTimeout implementation
+    return OC_STACK_ERROR;
+#endif
 
-/*     if (0 != clock_res) */
-/*     { */
-/*         return OC_STACK_ERROR; */
-/*     } */
+    if (0 != clock_res)
+    {
+        return OC_STACK_ERROR;
+    }
 
-/*     OCStackResult res = OC_STACK_OK; */
-/*     while (OC_STACK_OK == res) */
-/*     { */
-/*         currTime = zeroTime; */
-/* #if (_POSIX_TIMERS > 0) */
-/* # if defined(_POSIX_MONOTONIC_CLOCK) */
-/*         clock_res = clock_gettime(CLOCK_MONOTONIC, &currTime); */
-/* # else */
-/*         clock_res = clock_gettime(CLOCK_REALTIME, &currTime); */
-/* # endif */
-/* #else */
-/*         clock_res = gettimeofday(&currTime, NULL); */
-/* #endif */
-/*         if (0 != clock_res) */
-/*         { */
-/*             return OC_STACK_TIMEOUT; */
-/*         } */
-/*         long elapsed = (currTime.tv_sec - startTime.tv_sec); */
-/*         if (elapsed > waittime) */
-/*         { */
-/*             return OC_STACK_OK; */
-/*         } */
-/*         if (waitForStackResponse) */
-/*         { */
-/*             res = OCProcess(); */
-/*         } */
-/*     } */
-/*     return res; */
-/* } */
+    OCStackResult res = OC_STACK_OK;
+    while (OC_STACK_OK == res)
+    {
+        currTime = zeroTime;
+#if (_POSIX_TIMERS > 0)
+# if defined(_POSIX_MONOTONIC_CLOCK)
+        clock_res = clock_gettime(CLOCK_MONOTONIC, &currTime);
+# else
+        clock_res = clock_gettime(CLOCK_REALTIME, &currTime);
+# endif
+#else
+        clock_res = gettimeofday(&currTime, NULL);
+#endif
+        if (0 != clock_res)
+        {
+            return OC_STACK_TIMEOUT;
+        }
+        long elapsed = (currTime.tv_sec - startTime.tv_sec);
+        if (elapsed > waittime)
+        {
+            return OC_STACK_OK;
+        }
+        if (waitForStackResponse)
+        {
+            res = OCProcess();
+        }
+    }
+    return res;
+}
 
 /**
  * Extract secure port information from payload of discovery response.
