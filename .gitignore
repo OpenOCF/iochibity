@@ -53,6 +53,9 @@ service/things-manager/sdk/build/linux/
 log/
 *.log
 
+# Ignore temp files
+tmp/
+
 # Ignore any object files
 *.o
 *.os
@@ -76,6 +79,11 @@ proguard-project.txt
 
 # Ignore CTags default data
 tags
+
+# Ignore gnu global
+GPATH
+GRTAGS
+GTAGS
 
 # Ignore dependencies folder, which should be generated
 dependencies/
