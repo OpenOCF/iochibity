@@ -43,29 +43,6 @@ namespace OIC
 {
     namespace Service
     {
-
-      class RCSResourceObject;	/*GAR: fwd decl to elim incomplete type err  */
-        //! @cond
-        class WeakGuard  /*GAR RCSResourceObject::WeakGuard */
-        {
-        public:
-            WeakGuard(const RCSResourceObject&);
-            ~WeakGuard();
-
-            WeakGuard(const WeakGuard&) = delete;
-            WeakGuard(WeakGuard&&) = delete;
-
-            WeakGuard& operator=(const WeakGuard&) = delete;
-            WeakGuard& operator=(WeakGuard&&) = delete;
-
-            bool hasLocked() const;
-
-        private:
-            bool m_isOwningLock;
-            const RCSResourceObject& m_resourceObject;
-        };
-        //! @endcond
-
         class RCSRequest;
         class RCSRepresentation;
         class InterfaceHandler;
@@ -101,15 +78,35 @@ namespace OIC
          * in instead of overriding SetRequestHandler.
          * </p>
          */
+
         class RCSResourceObject
         {
-	friend class WeakGuard;
         private:
-            /*GAR ordering rearranged to elim "incomplete type" err class WeakGuard; */
-
             typedef AtomicWrapper< std::thread::id > AtomicThreadId;
 
+        //! @cond
+        class WeakGuard
+        {
         public:
+            WeakGuard(const RCSResourceObject&);
+            ~WeakGuard();
+
+            WeakGuard(const WeakGuard&) = delete;
+            WeakGuard(WeakGuard&&) = delete;
+
+            WeakGuard& operator=(const WeakGuard&) = delete;
+            WeakGuard& operator=(WeakGuard&&) = delete;
+
+            bool hasLocked() const;
+
+        private:
+            bool m_isOwningLock;
+            const RCSResourceObject& m_resourceObject;
+        };
+        //! @endcond
+
+        public:
+
             /**
              * Represents the policy of auto-notify function.
              * In accord with this policy, observers are notified of attributes
@@ -351,7 +348,7 @@ namespace OIC
             template< typename T >
             T getAttribute(const std::string& key) const
             {
-                WeakGuard lock(*this);
+	        RCSResourceObject::WeakGuard lock(*this);
                 return m_resourceAttributes.at(key).get< T >();
             }
 

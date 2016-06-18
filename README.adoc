@@ -4,7 +4,45 @@ WARNING: This is derived from the official Gerrit repo, created for
 experimentation.  If you want the real thing, you should obtain it
 from the official https://www.iotivity.org/[Iotivity site].
 
-Status:  Darwin port seems to be working.
+Status: Darwin port seems to be working.  Java on Darwin compiles, not
+tested.  The codebase may be lagging behind the official master
+somewhat.
+
+Plans: Once the patches for Darwin/Java have been integrated into the
+official repo, this repo will (probably) go away.
+
+If you're here for Darwin:
+
+```
+$ git clone https://github.com/iotivation/iotivity.git
+$ git checkout darwin
+$ git branch --set-upstream-to=origin/darwin darwin  # necessary?
+$ git pull
+and off you go
+```
+
+If you're here for Java on Darwin: start by thanking Petre Eftime,
+whose https://gerrit.iotivity.org/gerrit/#/c/7895/[patch] forms the
+basis of this port.  Then do:
+
+[source,shell]
+----
+$ git clone https://github.com/iotivation/iotivity.git
+$ git checkout darwin-java
+$ git branch --set-upstream-to=origin/darwin-java darwin-java  # ??
+$ git pull
+$ scons BUILD_JAVA=ON VERBOSE=true 2>&1 | tee build.log
+----
+
+If you run into trouble like missing libs (e.g. libssl), go with http://brew.sh/[homebrew].
+
+The Java SDK compiles on Darwin, but it is not tested.  Of the example
+apps, only simpleclient and simpleserver have been ported, but I have
+not been able to get either running.
+
+== etc.
+
+The following doc is outdated but may still be useful.
 
 === plans
 

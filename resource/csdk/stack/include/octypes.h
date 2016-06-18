@@ -950,7 +950,7 @@ typedef struct
     /** Pointer to the device specification version.*/
     char *specVersion;
     /** Pointer to the device data model version.*/
-    char *dataModleVersion;
+    char *dataModelVersion;
 } OCDeviceInfo;
 
 #ifdef RA_ADAPTER
@@ -1490,11 +1490,12 @@ typedef OCEntityHandlerResult (*OCDeviceEntityHandler)
 /**
  * Callback function definition of direct-pairing
  *
+ * @param[OUT] ctx - user context returned in the callback.
  * @param[OUT] peer - pairing device info.
  * @param[OUT} result - It's returned with 'OC_STACK_XXX'. It will return 'OC_STACK_OK'
  *                                   if D2D pairing is success without error
  */
-typedef void (*OCDirectPairingCB)(OCDPDev_t *peer, OCStackResult result);
+typedef void (*OCDirectPairingCB)(void *ctx, OCDPDev_t *peer, OCStackResult result);
 //#endif // DIRECT_PAIRING
 
 #ifdef __cplusplus

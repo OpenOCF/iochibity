@@ -24,10 +24,11 @@
 #include "BMISensor.h"
 
 #include <iostream>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "SysTimer.h"
 
-#if __ANDROID__
+#if defined(__ANDROID__)
 #include "OCAndroid.h"
 #else
 #include <cstdlib>
