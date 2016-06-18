@@ -42,23 +42,21 @@ srmtest_env = conf.Finish()
 # Build flags
 ######################################################################
 srmtest_env.PrependUnique(CPPPATH = [
-        './../../ocmalloc/include',
-		'./../../connectivity/inc',
+		'../../../c_common/oic_malloc/include',
+ 		'./../../connectivity/inc',
 		'./../../connectivity/api',
 		'./../../connectivity/external/inc',
 		'./../../connectivity/lib/libcoap-4.1.1',
 		'./../include',
 		'./../include/internal',
 		'./../../logger/include',
-		'./../../ocmalloc/include',
 		'./../../stack/include',
 		'./../../stack/include/internal',
 		'./../../../oc_logger/include',
 		'./../../../../extlibs/gtest/gtest-1.7.0/include',
 		'./../../../../extlibs/cjson/',
-                './../provisioning/include',
-#		'./../../../../extlibs/tinydtls/',
-		'./../include'
+                './../provisioning/include'
+#		'./../../../../extlibs/tinydtls/'
 		])
 
 srmtest_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
@@ -95,7 +93,8 @@ if target_os != 'darwin':  # darwin linkage broken
                                             'base64tests.cpp',
                                             'svcresourcetest.cpp',
                                             'srmtestcommon.cpp',
-                                            'directpairingtest.cpp'])
+                                            'directpairingtest.cpp',
+                                            'crlresourcetest.cpp'])
 
     Alias("test", [unittest])
 
@@ -120,17 +119,12 @@ srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_unittest_acl1.dat'))
 srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_unittest_default_acl.dat'))
-
-if target_os == 'darwin':
-    ld_path = 'DYLD_FALLBACK_LIBRARY_PATH'
-else:
-    if target_os == 'linux':
-        ld_path = 'LD_LIBRARY_PATH'
-
+srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
+    unittest_src_dir + 'oic_svr_db_prov.dat'))
 if target_os != 'darwin':  # darwin linkage broken
     env.AppendTarget('test')
     if env.get('TEST') == '1':
-	if target_os in ['linux']:    # darwin linkage broken
+	if target_os == 'linux':
 		out_dir = env.get('BUILD_DIR')
 		result_dir = env.get('BUILD_DIR') + '/test_out/'
 		if not os.path.isdir(result_dir):

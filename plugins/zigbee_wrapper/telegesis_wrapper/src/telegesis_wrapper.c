@@ -472,7 +472,10 @@ OCStackResult TWSetAttribute(char* extendedUniqueId, char* nodeId, char* endpoin
     ret = OC_STACK_OK;
 
 exit:
-    /* if (entry != NULL) TWDeleteEntry(ctx->g_plugin, entry); */
+    if (entry != NULL)
+    {
+        TWDeleteEntry(ctx->g_plugin, entry);
+    }
     OICFree(cmdString);
     OIC_LOG_V(INFO, TAG, "Leave TWSetAttribute() with ret=%d", ret);
     return ret;
@@ -574,7 +577,10 @@ OCStackResult TWGetAttribute(char* extendedUniqueId, char* nodeId, char* endpoin
     ret = OC_STACK_OK;
 
 exit:
-    if (entry != NULL) TWDeleteEntry(ctx->g_plugin, entry);
+    if (entry != NULL)
+    {
+        TWDeleteEntry(ctx->g_plugin, entry);
+    }
     OICFree(cmdString);
     OIC_LOG_V(INFO, TAG, "Leave TWGetAttribute() with ret=%d", ret);
     return ret;
@@ -674,7 +680,10 @@ OCStackResult TWSwitchOnOff(char* nodeId, char* endpointId, char* newState,
     ret = OC_STACK_OK;
 
 exit:
-    if (entry != NULL) TWDeleteEntry(ctx->g_plugin, entry);
+    if (entry != NULL)
+    {
+        TWDeleteEntry(ctx->g_plugin, entry);
+    }
     OICFree(cmdString);
     OIC_LOG_V(INFO, TAG, "Leave TWSwitchOnOff() with ret=%d", ret);
     return ret;
@@ -765,7 +774,10 @@ OCStackResult TWMoveToLevel(char* nodeId, char* endpointId,
     ret = OC_STACK_OK;
 
 exit:
-    if (entry != NULL) TWDeleteEntry(ctx->g_plugin, entry);
+    if (entry != NULL)
+    {
+        TWDeleteEntry(ctx->g_plugin, entry);
+    }
     OICFree(cmdString);
     OIC_LOG_V(INFO, TAG, "Leave TWMoveToLevel() with ret=%d", ret);
     return ret;
@@ -852,7 +864,10 @@ OCStackResult TWSwitchDoorLockState(char* nodeId, char* endpointId, char* newSta
     ret = OC_STACK_OK;
 
 exit:
-    if (entry != NULL) TWDeleteEntry(ctx->g_plugin, entry);
+    if (entry != NULL)
+    {
+        TWDeleteEntry(ctx->g_plugin, entry);
+    }
     OICFree(cmdString);
     OIC_LOG_V(INFO, TAG, "Leave TWSwitchDoorLockState() with ret=%d", ret);
     return ret;
@@ -942,7 +957,10 @@ OCStackResult TWColorMoveToColorTemperature(char* nodeId, char* endpointId,
     ret = OC_STACK_OK;
 
 exit:
-    if (entry != NULL) TWDeleteEntry(ctx->g_plugin, entry);
+    if (entry != NULL)
+    {
+        TWDeleteEntry(ctx->g_plugin, entry);
+    }
     OICFree(cmdString);
     OIC_LOG_V(INFO, TAG, "Leave TWColorMoveToColorTemperature() with ret=%d", ret);
     return ret;
@@ -1786,7 +1804,7 @@ TWResultCode CreatePAN(TWContext* ctx)
     }
 
 exit:
-    if (entry == NULL)
+    if (entry != NULL)
     {
         twRet1 = TWDeleteEntry(ctx->g_plugin, entry);
         if(twRet1 != TW_RESULT_OK)
@@ -2007,7 +2025,10 @@ TWResultCode FindClusters(char nodeId[], char endpoint[], TWContext* ctx)
     }
 
 exit:
-    if (entry != NULL) TWDeleteEntry(ctx->g_plugin, entry);
+    if (entry != NULL)
+    {
+        TWDeleteEntry(ctx->g_plugin, entry);
+    }
     OICFree(cmdString);
     OIC_LOG_V(INFO, TAG, "Leave FindClusters() with ret=%d", ret);
     return ret;
@@ -2091,7 +2112,10 @@ TWResultCode GetRemoteEUI(char *nodeId, char* outRemoteEUI, TWContext* ctx)
 exit:
     memset(ctx->g_WIPRemoteEUI, '\0', sizeof(ctx->g_WIPRemoteEUI));
     memset(ctx->g_WIPRemoteNodeId, '\0', sizeof(ctx->g_WIPRemoteNodeId));
-    if (entry != NULL) TWDeleteEntry(ctx->g_plugin, entry);
+    if (entry != NULL)
+    {
+        TWDeleteEntry(ctx->g_plugin, entry);
+    }
     OICFree(cmdString);
     OIC_LOG_V(INFO, TAG, "Leave GetRemoteEUI() with ret=%d", ret);
     return ret;
@@ -2543,7 +2567,7 @@ TWResultCode TelSimpleDescInClusterHandler(int count, char* tokens[], TWContext*
     {
         OIC_LOG(ERROR, TAG, "Invalid Params");
         ret = TW_RESULT_ERROR_INVALID_PARAMS;
-	        goto exit;
+        goto exit;
     }
 
     if (ctx->g_WIPDevice == NULL)

@@ -43,7 +43,6 @@ namespace OIC
 {
     namespace Service
     {
-
         class RCSRequest;
         class RCSRepresentation;
         class InterfaceHandler;
@@ -83,7 +82,6 @@ namespace OIC
         class RCSResourceObject
         {
         private:
-
             typedef AtomicWrapper< std::thread::id > AtomicThreadId;
 
         //! @cond

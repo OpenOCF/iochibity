@@ -48,17 +48,18 @@ root_dir = Dir('#').abspath
 mediator_env.PrependUnique(CPPPATH = [
             root_dir + '/resource/include',
             root_dir + '/resource/oc_logger/include',
-			root_dir + '/resource/csdk/ocmalloc/include',
-			root_dir + '/resource/csdk/stack/include',
-			root_dir + '/resource/csdk/security/provisioning/include',
-			root_dir + '/resource/csdk/security/provisioning/include/internal',
-			root_dir + '/resource/csdk/logger/include',
-			root_dir + '/resource/csdk/security/include',
-			root_dir + '/resource/csdk/connectivity/api',
-			root_dir + '/extlibs/cjson',
-			root_dir + '/service/easy-setup/mediator/richsdk/inc',
-			root_dir + '/service/easy-setup/mediator/richsdk/src',
-			root_dir + '/service/easy-setup/inc'])
+	    root_dir + '/resource/c_common/oic_malloc/include',
+	    root_dir + '/resource/csdk/ocmalloc/include',
+	    root_dir + '/resource/csdk/stack/include',
+	    root_dir + '/resource/csdk/security/provisioning/include',
+	    root_dir + '/resource/csdk/security/provisioning/include/internal',
+	    root_dir + '/resource/csdk/logger/include',
+	    root_dir + '/resource/csdk/security/include',
+	    root_dir + '/resource/csdk/connectivity/api',
+	    root_dir + '/extlibs/cjson',
+	    root_dir + '/service/easy-setup/mediator/richsdk/inc',
+	    root_dir + '/service/easy-setup/mediator/richsdk/src',
+	    root_dir + '/service/easy-setup/inc'])
 
 if env.get('SECURED') == '1':
 	mediator_env.PrependUnique(LIBS = ['tinydtls', 'timer'])

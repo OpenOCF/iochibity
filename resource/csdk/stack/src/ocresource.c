@@ -334,9 +334,11 @@ OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
     {
         tcpPort = 0;
     }
+    OCDiscoveryPayloadAddResource(payload, resourcePtr, securePort, tcpPort);
+#else
+    OCDiscoveryPayloadAddResource(payload, resourcePtr, securePort);
 #endif
 
-    OCDiscoveryPayloadAddResource(payload, resourcePtr, securePort, tcpPort);
     return OC_STACK_OK;
 }
 
@@ -869,7 +871,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
         else
         {
             payload = (OCPayload*) OCDevicePayloadCreate(deviceId, savedDeviceInfo.deviceName,
-                savedDeviceInfo.types, savedDeviceInfo.specVersion, savedDeviceInfo.dataModleVersion);
+                savedDeviceInfo.types, savedDeviceInfo.specVersion, savedDeviceInfo.dataModelVersion);
             if (!payload)
             {
                 discoveryResult = OC_STACK_NO_MEMORY;
@@ -1343,10 +1345,10 @@ void DeleteDeviceInfo()
     OICFree(savedDeviceInfo.deviceName);
     OCFreeOCStringLL(savedDeviceInfo.types);
     OICFree(savedDeviceInfo.specVersion);
-    OICFree(savedDeviceInfo.dataModleVersion);
+    OICFree(savedDeviceInfo.dataModelVersion);
     savedDeviceInfo.deviceName = NULL;
     savedDeviceInfo.specVersion = NULL;
-    savedDeviceInfo.dataModleVersion = NULL;
+    savedDeviceInfo.dataModelVersion = NULL;
 }
 
 static OCStackResult DeepCopyDeviceInfo(OCDeviceInfo info)
@@ -1388,10 +1390,10 @@ static OCStackResult DeepCopyDeviceInfo(OCDeviceInfo info)
         }
     }
 
-    if (info.dataModleVersion)
+    if (info.dataModelVersion)
     {
-        savedDeviceInfo.dataModleVersion = OICStrdup(info.dataModleVersion);
-        if(!savedDeviceInfo.dataModleVersion && info.dataModleVersion)
+        savedDeviceInfo.dataModelVersion = OICStrdup(info.dataModelVersion);
+        if(!savedDeviceInfo.dataModelVersion && info.dataModelVersion)
         {
             DeleteDeviceInfo();
             return OC_STACK_NO_MEMORY;
@@ -1399,8 +1401,8 @@ static OCStackResult DeepCopyDeviceInfo(OCDeviceInfo info)
     }
     else
     {
-        savedDeviceInfo.dataModleVersion = OICStrdup(OC_DATA_MODEL_VERSION);
-        if(!savedDeviceInfo.dataModleVersion && OC_DATA_MODEL_VERSION)
+        savedDeviceInfo.dataModelVersion = OICStrdup(OC_DATA_MODEL_VERSION);
+        if(!savedDeviceInfo.dataModelVersion && OC_DATA_MODEL_VERSION)
         {
             DeleteDeviceInfo();
             return OC_STACK_NO_MEMORY;
