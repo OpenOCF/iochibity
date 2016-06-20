@@ -27,6 +27,8 @@
 #include "JniOcSecurity.h"
 #include "JniUtils.h"
 
+#define UNUSED(expr) (void)(expr);
+
 using namespace OC;
 
 JniOnResourceFoundListener* AddOnResourceFoundListener(JNIEnv* env, jobject jListener)
@@ -330,7 +332,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_configure
                                                                  jint jQOS, jstring jDbPath)
 {
     LOGI("OcPlatform_configure");
-
+    (void) clazz;
     std::string ipAddress;
     std::string dbfile;
     if (jIpAddress)
@@ -368,6 +370,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_notifyAllObservers0
 (JNIEnv *env, jclass clazz, jobject jResourceHandle)
 {
     LOGI("OcPlatform_notifyAllObservers");
+    UNUSED(clazz)
     if (!jResourceHandle)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "resourceHandle cannot be null");
@@ -405,6 +408,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_notifyAllObservers1
 (JNIEnv *env, jclass clazz, jobject jResourceHandle, jint jQoS)
 {
     LOGI("OcPlatform_notifyAllObservers1");
+    UNUSED(clazz)
 
     if (!jResourceHandle)
     {
@@ -450,6 +454,8 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_notifyListOfObservers2(
     jobject jResourceResponse)
 {
     LOGD("OcPlatform_notifyListOfObservers2");
+    UNUSED(clazz)
+
     if (!jResourceHandle)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "resourceHandle cannot be null");
@@ -524,6 +530,8 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_notifyListOfObservers3(
     jint jQoS)
 {
     LOGD("OcPlatform_notifyListOfObservers3");
+    UNUSED(clazz)
+
     if (!jResourceHandle)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "resourceHandle cannot be null");
@@ -599,6 +607,8 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_findResource0(
     jobject jListener)
 {
     LOGD("OcPlatform_findResource");
+    UNUSED(clazz)
+
     std::string host;
     if (jHost)
     {
@@ -658,6 +668,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_findResource1(
     jint jQoS)
 {
     LOGD("OcPlatform_findResource");
+    UNUSED(clazz)
     std::string host;
     if (jHost)
     {
@@ -716,6 +727,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_getDeviceInfo0(
     jobject jListener)
 {
     LOGD("OcPlatform_getDeviceInfo0");
+    UNUSED(clazz)
     std::string host;
     if (jHost)
     {
@@ -774,6 +786,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_getDeviceInfo1(
     jint jQoS)
 {
     LOGD("OcPlatform_getDeviceInfo1");
+    UNUSED(clazz)
     std::string host;
     if (jHost)
     {
@@ -832,6 +845,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_getPlatformInfo0(
     jobject jListener)
 {
     LOGD("OcPlatform_getPlatformInfo0");
+    UNUSED(clazz)
     std::string host;
     if (jHost)
     {
@@ -890,6 +904,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_getPlatformInfo1(
     jint jQoS)
 {
     LOGD("OcPlatform_getPlatformInfo1");
+    UNUSED(clazz)
     std::string host;
     if (jHost)
     {
@@ -943,6 +958,7 @@ JNIEXPORT jobject JNICALL Java_org_iotivity_base_OcPlatform_registerResource0(
     JNIEnv *env, jclass clazz, jobject jResource)
 {
     LOGD("OcPlatform_registerResource");
+    UNUSED(clazz)
     if (!jResource)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "Resource cannot be null");
@@ -996,6 +1012,7 @@ JNIEXPORT jobject JNICALL Java_org_iotivity_base_OcPlatform_registerResource1(
 jobject jListener, jint jResourceProperty)
 {
     LOGI("OcPlatform_registerResource1");
+    UNUSED(clazz)
     std::string resourceUri;
     if (jResourceUri)
     {
@@ -1073,6 +1090,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_registerDeviceInfo0(
     jstring jDeviceName)
 {
     LOGI("OcPlatform_registerDeviceInfo");
+    UNUSED(clazz)
 
     std::string deviceName;
     if (jDeviceName)
@@ -1131,7 +1149,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_registerPlatformInfo0(
     jstring jSystemTime)
 {
     LOGI("OcPlatform_registerPlatformInfo");
-
+    UNUSED(clazz)
 
     std::string platformID;
         std::string manufacturerName;
@@ -1249,6 +1267,8 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_unregisterResource0(
     JNIEnv *env, jclass clazz, jobject jResourceHandle)
 {
     LOGI("OcPlatform_unregisterResource");
+    UNUSED(clazz)
+
     if (!jResourceHandle)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "resourceHandle cannot be null");
@@ -1286,6 +1306,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_bindResource0
 (JNIEnv *env, jclass clazz, jobject jResourceCollectionHandle, jobject jResourceHandle)
 {
     LOGI("OcPlatform_bindResource");
+    UNUSED(clazz)
     if (!jResourceCollectionHandle)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "resourceCollectionHandle cannot be null");
@@ -1338,6 +1359,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_bindResources0(
     jobjectArray jResourceHandleArray)
 {
     LOGI("OcPlatform_bindResources");
+    UNUSED(clazz)
 
     if (!jResourceCollectionHandle)
     {
@@ -1410,6 +1432,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_unbindResource0(
     jobject jResourceHandle)
 {
     LOGI("OcPlatform_unbindResource");
+    UNUSED(clazz)
     if (!jResourceCollectionHandle)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "resourceCollectionHandle cannot be null");
@@ -1465,6 +1488,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_unbindResources0(
     jobjectArray jResourceHandleArray)
 {
     LOGI("OcPlatform_unbindResources");
+    UNUSED(clazz)
     if (!jResourceCollectionHandle)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "resourceCollectionHandle cannot be null");
@@ -1536,6 +1560,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_bindTypeToResource0(
     jstring jResourceTypeName)
 {
     LOGI("OcPlatform_bindTypeToResource");
+    UNUSED(clazz)
     if (!jResourceHandle)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "resourceHandle cannot be null");
@@ -1579,6 +1604,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_bindInterfaceToResource
 (JNIEnv *env, jclass clazz, jobject jResourceHandle, jstring jResourceInterfaceName)
 {
     LOGI("OcPlatform_bindInterfaceToResource");
+    UNUSED(clazz)
     if (!jResourceHandle)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "resourceHandle cannot be null");
@@ -1625,6 +1651,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_startPresence0(
     JNIEnv *env, jclass clazz, jint ttl)
 {
     LOGI("OcPlatform_startPresence");
+    UNUSED(clazz)
 
     try
     {
@@ -1651,6 +1678,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_stopPresence0(
     JNIEnv *env, jclass clazz)
 {
     LOGI("OcPlatform_stopPresence");
+    UNUSED(clazz)
 
     try
     {
@@ -1681,6 +1709,7 @@ JNIEXPORT jobject JNICALL Java_org_iotivity_base_OcPlatform_subscribePresence0(
     jobject jListener)
 {
     LOGD("OcPlatform_subscribePresence");
+    UNUSED(clazz)
     std::string host;
     if (jHost)
     {
@@ -1751,6 +1780,7 @@ JNIEXPORT jobject JNICALL Java_org_iotivity_base_OcPlatform_subscribePresence1(
     jobject jListener)
 {
     LOGD("OcPlatform_subscribePresence1");
+    UNUSED(clazz)
     std::string host;
     if (jHost)
     {
@@ -1819,6 +1849,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_unsubscribePresence0(
     JNIEnv *env, jclass clazz, jobject jPresenceHandle)
 {
     LOGD("OcPlatform_unsubscribePresence");
+    UNUSED(clazz)
     if (!jPresenceHandle)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "presenceHandle cannot be null");
@@ -1873,6 +1904,7 @@ JNIEXPORT jobject JNICALL Java_org_iotivity_base_OcPlatform_constructResourceObj
     jobjectArray jInterfaceArray)
 {
     LOGD("OcPlatform_constructResourceObject");
+    UNUSED(clazz)
     std::string host;
     if (jHost)
     {
@@ -1940,6 +1972,7 @@ JNIEXPORT void JNICALL Java_org_iotivity_base_OcPlatform_sendResponse0(
     JNIEnv *env, jclass clazz, jobject jResourceResponse)
 {
     LOGD("OcPlatform_sendResponse");
+    UNUSED(clazz)
     if (!jResourceResponse)
     {
         ThrowOcException(OC_STACK_INVALID_PARAM, "resourceResponse cannot be null");
