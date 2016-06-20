@@ -108,6 +108,9 @@ public class SimpleServer {
 
     public static void main(String[] args) {
         startSimpleServer();
+	System.out.print("Enter something:  ");
+	String input = System.console().readLine();
+	System.out.print("You entered: " + input + " ... bye!\n");
     }
 
     public void sleep(int seconds) {
