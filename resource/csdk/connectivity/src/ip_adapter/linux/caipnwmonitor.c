@@ -114,7 +114,7 @@ static bool CACmpNetworkList(uint32_t ifiindex)
 {
     if (!g_netInterfaceList)
     {
-        OIC_LOG(ERROR, TAG, "g_netInterfaceList is NULL");
+        OIC_LOG(ERROR, TAG, "g_netInterfaceList is NULL A");
         return false;
     }
 
@@ -136,7 +136,7 @@ static bool CACmpNetworkList(uint32_t ifiindex)
 
 static CAResult_t CAAddNetworkMonitorList(CAInterface_t *ifitem)
 {
-    VERIFY_NON_NULL(g_netInterfaceList, TAG, "g_netInterfaceList is NULL");
+    VERIFY_NON_NULL(g_netInterfaceList, TAG, "g_netInterfaceList is NULL B");
     VERIFY_NON_NULL(ifitem, TAG, "ifitem is NULL");
 
     ca_mutex_lock(g_networkMonitorContextMutex);
@@ -153,7 +153,7 @@ static CAResult_t CAAddNetworkMonitorList(CAInterface_t *ifitem)
 
 static void CARemoveNetworkMonitorList(int ifiindex)
 {
-    VERIFY_NON_NULL_VOID(g_netInterfaceList, TAG, "g_netInterfaceList is NULL");
+    VERIFY_NON_NULL_VOID(g_netInterfaceList, TAG, "g_netInterfaceList is NULL C");
 
     ca_mutex_lock(g_networkMonitorContextMutex);
 
@@ -257,7 +257,7 @@ CAInterface_t *CAFindInterfaceChange()
 
         if (!iflist)
         {
-            OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
+            OIC_LOG_V(ERROR, TAG, "IP NWM: get interface info failed: %s", strerror(errno));
             return NULL;
         }
 
@@ -307,7 +307,7 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
         u_arraylist_destroy(iflist);
         return NULL;
     }
-    OIC_LOG(DEBUG, TAG, "Got ifaddrs");
+    OIC_LOG(DEBUG, TAG, "CI IPNW Linux: Got ifaddrs");
 
     struct ifaddrs *ifa = NULL;
     for (ifa = ifp; ifa; ifa = ifa->ifa_next)
@@ -346,7 +346,6 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
         {
             continue;
         }
-
         CAInterface_t *ifitem = (CAInterface_t *)OICCalloc(1, sizeof(CAInterface_t));
         if (!ifitem)
         {
@@ -366,12 +365,13 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
             OIC_LOG(ERROR, TAG, "u_arraylist_add failed.");
             goto exit;
         }
-
         bool isFound = CACmpNetworkList(ifitem->index);
         if (!isFound)
         {
+	  //GAR printf("**************** GAR: NOT FOUND ifitem %d\n", ifitem->index);
             CAInterface_t *newifitem = CANewInterfaceItem(ifitem->index, ifitem->name, ifitem->family,
                                                           ifitem->ipv4addr, ifitem->flags);
+	    //GAR printf("**************** GAR: NEW ifitem %d\n", newifitem->index);
             CAResult_t ret = CAAddNetworkMonitorList(newifitem);
             if (CA_STATUS_OK != ret)
             {

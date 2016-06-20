@@ -38,6 +38,7 @@ def run_test(env, xml_file, test):
 
     # Make sure the Google Test libraries are in the dynamic
     # linker/loader path.
+    #GAR FIXME: use DYLD_LIBRARY_PATH for darwin
     env.AppendENVPath('LD_LIBRARY_PATH', [build_dir])
     env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
 
@@ -57,7 +58,16 @@ def run_test(env, xml_file, test):
         suppression_file = env.File('#tools/valgrind/iotivity.supp').srcnode().path
 
         # Set up to run the test under Valgrind.
-        test_cmd = '%s valgrind --leak-check=full --suppressions=%s --xml=yes --xml-file=%s %s' % (valgrind_environment, suppression_file, xml_file, test_cmd)
+
+        #  helgrind
+        # test_cmd = '%s valgrind --tool=helgrind --log-file=valgrind.log --fullpath-after= --suppressions=%s --xml=yes --xml-file=%s %s' % (valgrind_environment, suppression_file, xml_file, test_cmd)
+
+        #  memleak
+        test_cmd = '%s valgrind --leak-check=full --log-file=valgrind.log --fullpath-after= --suppressions=%s --xml=yes --xml-file=%s %s' % (valgrind_environment, suppression_file, xml_file, test_cmd)
+
+        # darwin:  --valgrind-stacksize=8388608
+
+        # test_cmd = '%s valgrind --leak-check=full -v -v -v -d -d -d --vgdb-stop-at=valgrindabexit --log-file=valgrind.log --fullpath-after= --suppressions=%s --xml=yes --xml-file=%s %s' % (valgrind_environment, suppression_file, xml_file, test_cmd)
 
     ut = env.Command('ut', None, test_cmd)
     env.AlwaysBuild('ut')

@@ -37,6 +37,11 @@
 #include "srmresourcestrings.h"
 #include "srmutility.h"
 
+//GAR
+#include <execinfo.h>
+#include <stdio.h>
+//GAR
+
 #define TAG  "SRM-PSI"
 
 //SVR database buffer block size
@@ -93,6 +98,16 @@ OCStackResult GetSecureVirtualDatabaseFromPS(const char *rsrcName, uint8_t **dat
     uint8_t *fsData = NULL;
     size_t fileSize = 0;
     OCStackResult ret = OC_STACK_ERROR;
+
+    /* //GAR */
+    /* void* callstack[128]; */
+    /* int i, frames = backtrace(callstack, 128); */
+    /* char** strs = backtrace_symbols(callstack, frames); */
+    /* for (i = 0; i < frames; ++i) { */
+    /*   printf("%s\n", strs[i]); */
+    /* } */
+    /* free(strs); */
+    /* //GAR */
 
     OCPersistentStorage *ps = SRMGetPersistentStorageHandler();
     VERIFY_NON_NULL(TAG, ps, ERROR);

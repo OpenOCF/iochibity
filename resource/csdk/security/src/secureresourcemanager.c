@@ -33,6 +33,11 @@
 #include "secureresourcemanager.h"
 #include "srmresourcestrings.h"
 
+/* //GAR */
+/* #include <execinfo.h> */
+/* #include <stdio.h> */
+/* //GAR */
+
 #define TAG  "SRM"
 
 #ifdef __WITH_X509__
@@ -294,6 +299,17 @@ OCStackResult SRMRegisterHandler(CARequestCallback reqHandler,
 OCStackResult SRMRegisterPersistentStorageHandler(OCPersistentStorage* persistentStorageHandler)
 {
     OIC_LOG(DEBUG, TAG, "SRMRegisterPersistentStorageHandler !!");
+
+    /* //GAR initResources */
+    /* void* callstack[128]; */
+    /* int i, frames = backtrace(callstack, 128); */
+    /* char** strs = backtrace_symbols(callstack, frames); */
+    /* for (i = 0; i < frames; ++i) { */
+    /*   printf("%s\n", strs[i]); */
+    /* } */
+    /* free(strs); */
+    /* //GAR */
+
     if(!persistentStorageHandler)
     {
         OIC_LOG(ERROR, TAG, "The persistent storage handler is invalid");
