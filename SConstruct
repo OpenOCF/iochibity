@@ -34,7 +34,7 @@ print "CPPATH: ", env.get('CPPPATH')
 
 if env.get('VERBOSE'):
     print "ENV:"
-    print env.Dump()
+    # print env.Dump()
     print "START"
 
 if os.environ.get('TERM') != None:
