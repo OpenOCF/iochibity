@@ -43,11 +43,11 @@ oclib_env.AppendUnique(CPPPATH = [
 
 oclib_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 
-oclib_env.AppendUnique(LIBS = ['octbstack', 'oc_logger'])
+oclib_env.AppendUnique(LIBS = ['octbstack', 'oc_logger', 'ocsrm', 'coap'])
 oclib_env.AppendUnique(LIBS = ['connectivity_abstraction'])
 
 target_os = env.get('TARGET_OS')
-# if target_os == 'linux':
+#GAR if target_os == 'linux':
 # 	oclib_env.AppendUnique(LIBS = ['pthread'])
 
 # if target_os not in ['windows', 'winrt', 'darwin']:
@@ -122,5 +122,6 @@ oclib_env.UserInstallTargetHeader(header_dir + 'CAManager.h', 'resource', 'CAMan
 oclib_env.UserInstallTargetHeader(header_dir + 'OCDirectPairing.h', 'resource', 'OCDirectPairing.h')
 
 # Add Provisioning library
-if target_os in ['linux', 'darwin', 'android', 'tizen'] and env.get('SECURED') == '1':
+if env.get('SECURED') == '1':
+    if target_os in ['linux', 'darwin', 'android', 'tizen']:
         SConscript('../provisioning/SConscript')

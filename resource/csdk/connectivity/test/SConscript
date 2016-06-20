@@ -44,7 +44,6 @@ if '-lpthread' in tmplist:
     tmplist.remove('-lpthread')
     catest_env.Replace(LINKFLAGS = tmplist)
 
-catest_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
 catest_env.AppendUnique(LIBS = ['pthread'])
 catest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 catest_env.AppendUnique(LIBPATH = [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
@@ -72,10 +71,8 @@ if env.get('LOGGING'):
 
 target_transport = env.get('TARGET_TRANSPORT')
 
-# darwin has linkage issues
-
 if (('IP' in target_transport) or ('ALL' in target_transport)):
-	if target_os not in ['arduino', 'darwin']:
+	if target_os not in ['arduino']:
 		catests = catest_env.Program('catests', ['catests.cpp',
 		                                         'caprotocolmessagetest.cpp',
 		                                         'cablocktransfertest.cpp',
@@ -91,12 +88,11 @@ else:
 	                                         'uarraylist_test.cpp'
 	                                               ])
 
-if target_os != 'darwin':
-    Alias("test", [catests])
+Alias("test", [catests])
 
-    env.AppendTarget('test')
-    if env.get('TEST') == '1':
-        if target_os in ['linux']:
+env.AppendTarget('test')
+if env.get('TEST') == '1':
+        if target_os in ['darwin', 'linux']:
     	    from tools.scons.RunTest import *
 	    run_test(catest_env,
     	    'resource_csdk_connectivity_test.memcheck',

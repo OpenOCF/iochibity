@@ -98,8 +98,12 @@ if env.get('TEST') == '1':
 		if not os.path.isdir(result_dir):
 			os.makedirs(result_dir)
 		pki_test_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
-		pki_test_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		pki_test_env.AppendENVPath('LD_LIBRARY_PATH', [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
+		if target_os == 'darwin':
+		    pki_test_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
+		    pki_test_env.AppendENVPath('DYLD_LIBRARY_PATH', [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
+		if target_os == 'linux':
+		    pki_test_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+		    pki_test_env.AppendENVPath('LD_LIBRARY_PATH', [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
  		ut = pki_test_env.Command ('ut', None, out_dir + '/resource/csdk/security/provisioning/ck_manager/unittest/unittest')
 AlwaysBuild ('ut')
 

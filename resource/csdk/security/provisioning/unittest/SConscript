@@ -80,8 +80,7 @@ if not env.get('RELEASE'):
 ######################################################################
 # Source files and Targets
 ######################################################################
-if target_os != 'darwin':   # darwin linkage broken
-    unittest = sptest_env.Program('unittest', ['pmutilitytest.cpp',
+unittest = sptest_env.Program('unittest', ['pmutilitytest.cpp',
                                            'secureresourceprovider.cpp',
                                            'provisioningdatabasemanager.cpp',
                                            'ocprovisioningmanager.cpp',
@@ -95,17 +94,21 @@ provisioning_unittest_build_dir = env.get('BUILD_DIR') +'/resource/csdk/security
 
 Alias("test", [unittest, sample_server1, sample_server2])
 
-    env.AppendTarget('test')
-    if env.get('TEST') == '1':
+env.AppendTarget('test')
+if env.get('TEST') == '1':
 	target_os = env.get('TARGET_OS')
-	if target_os == 'linux':
+	if target_os in ['darwin', 'linux']:
 		out_dir = env.get('BUILD_DIR')
 		result_dir = env.get('BUILD_DIR') + '/test_out/'
 		if not os.path.isdir(result_dir):
 			os.makedirs(result_dir)
 		sptest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
-		sptest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		sptest_env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
+		if target_os == 'darwin':
+		    sptest_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
+		    sptest_env.AppendENVPath('DYLD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
+		elif target_os == 'linux':
+		    sptest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+		    sptest_env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
 		ut = sptest_env.Command ('ut', None, out_dir + '/resource/csdk/security/provisioning/unittest/unittest')
 		AlwaysBuild ('ut')
 

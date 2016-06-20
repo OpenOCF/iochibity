@@ -53,7 +53,7 @@ Alias("test", [timetests])
 env.AppendTarget('test')
 if env.get('TEST') == '1':
     target_os = env.get('TARGET_OS')
-    if target_os == 'linux':
+    if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(timetest_env,
                          'resource_ccommon_time_test.memcheck',

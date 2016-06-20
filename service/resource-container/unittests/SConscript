@@ -125,8 +125,8 @@ if int(containerJavaSupport):
     except KeyError:
         print ''
 
-if target_os == 'linux':
-   container_gtest_env.AppendUnique(CCFLAGS = ['-Wnoexcept'])
+# if target_os == 'linux':
+#    container_gtest_env.AppendUnique(CCFLAGS = ['-Wnoexcept'])
 
 container_gtest_env.PrependUnique(LIBS = ['rcs_container', 'rcs_client', 'rcs_server', 'rcs_common', 'oc','octbstack', 'oc_logger', 'oc_logger_core', 'connectivity_abstraction', gtest, gtest_main, 'boost_system'])
 
@@ -143,13 +143,12 @@ if int(containerJavaSupport):
 # build test bundle
 ######################################################################
 test_bundle_env = container_gtest_env.Clone()
-test_bundle_env.AppendUnique(CCFLAGS = ['-fPIC'])
 
-if target_os not in ['darwin', 'ios', 'windows', 'winrt']:
-    test_bundle_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
+# if target_os not in ['darwin', 'ios', 'windows', 'winrt']:
+#     test_bundle_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
 
-if target_os == 'darwin':
-    test_bundle_env.AppendUnique(LINKFLAGS = ['-Wl,-undefined,error'])
+# if target_os == 'darwin':
+#     test_bundle_env.AppendUnique(LINKFLAGS = ['-Wl,-undefined,error'])
 
 TEST_BUNDLE_DIR = 'TestBundle/'
 test_bundle_env.AppendUnique(CPPPATH = [

@@ -35,16 +35,24 @@ if env.get('RELEASE'):
 	env.AppendUnique(CCFLAGS = ['-Os'])
 	env.AppendUnique(CPPDEFINES = ['NDEBUG'])
 else:
-	env.AppendUnique(CCFLAGS = ['-g'])
+	env.AppendUnique(CPPFLAGS = ['-g', '--coverage'])
+	# --coverage = -fprofile-arcs -ftest-coverage (when compiling) and -lgcov (when linking). 
+        env.PrependUnique(LIBS = ['gcov'])
 
 if env.get('LOGGING'):
 	env.AppendUnique(CPPDEFINES = ['-DTB_LOG'])
 
 env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__'])
-env.AppendUnique(CFLAGS = ['-std=gnu99'])
-env.AppendUnique(CCFLAGS = ['-Wall', '-Wextra', '-fPIC'])
-env.AppendUnique(LIBS = ['uuid'])
+env.AppendUnique(CPPFLAGS = ['-Wall', '-Wextra', '-fPIC'])
+env.AppendUnique(CFLAGS = ['-std=c99'])
+env.AppendUnique(CXXFLAGS = ['-Wnoexcept', '-std=c++0x'])
+# env.AppendUnique(LIBS = ['uuid'])
 env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
+
+# env.AppendUnique(CFLAGS = ['-ffunction-sections', '-fdata-sections'])
+
+if env.get('WITH_TCP'):
+    env.AppendUnique(CPPDEFINES = ['WITH_TCP'])
 
 # Set arch flags that match best TARGET_ARCH variable
 target_arch = env.get('TARGET_ARCH')

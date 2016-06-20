@@ -30,28 +30,47 @@ help_vars.Update(env)
 Help(help_vars.GenerateHelpText(env))
 
 
-env.AppendUnique(LINKFLAGS = ['-undefined', 'error'])
-
 # Set release/debug flags
 if env.get('RELEASE'):
-	env.AppendUnique(CCFLAGS = ['-Os'])
+	env.AppendUnique(CPPFLAGS = ['-Os'])
 	env.AppendUnique(CPPDEFINES = ['NDEBUG'])
 else:
-	env.AppendUnique(CCFLAGS = ['-g'])
+	env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+	# no gcov, instead: http://llvm.org/docs/CommandGuide/llvm-cov.html
+	env.AppendUnique(CPPFLAGS = ['-g', '-O0', '-fno-inline'])
+	env.AppendUnique(CPPFLAGS = ['-fprofile-arcs', '-ftest-coverage'])
+	env.AppendUnique(CPPFLAGS = ['-fprofile-instr-generate', '-fcoverage-mapping'])
+	env.AppendUnique(LINKFLAGS = ['-fprofile-instr-generate'])
+        env.PrependUnique(LIBS = ['clang_rt.profile_osx'])
+	import subprocess
+	p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	out, err = p.communicate()
+	libsline = out.splitlines()[1]
+	clangbin = libsline.split("libraries: =")[1]
+	clanglib = libsline.split("libraries: =")[1]
+	env.PrependUnique(GCOV = [clangbin + '/llvm-cov'])
+	env.PrependUnique(LIBPATH = [clanglib + '/lib/darwin/'])
 
 if env.get('LOGGING'):
 	env.AppendUnique(CPPDEFINES = ['-DTB_LOG'])
 
-env.AppendUnique(CXXFLAGS = ['-std=c++11'])
-env.AppendUnique(CFLAGS = ['-std=c11'])
+env.AppendUnique(LINKFLAGS = ['-undefined', 'error'])
+# env.Append(LINKFLAGS = ['-undefined', 'dynamic_lookup'])
 
+env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
+
+env.AppendUnique(CPPFLAGS = ['-pthread'])
+
+env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
 env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__darwin__'])
+
+env.AppendUnique(CXXFLAGS = ['-std=c++0x'])
+env.AppendUnique(CFLAGS = ['-std=c11'])
 
 env.AppendUnique(LIBS = ['uuid'])
 
 # in case of ld: symbol(s) not found for architecture x86_64
 # -Wl,-undefined -Wl,dynamic_lookup
-# env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
 
 # Set arch flags that match best TARGET_ARCH variable
 target_arch = env.get('TARGET_ARCH')

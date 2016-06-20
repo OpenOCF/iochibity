@@ -90,22 +90,25 @@ if env.get('LOGGING'):
 ######################################################################
 # Source files and Targets
 ######################################################################
-if target_os != 'darwin':  # darwin linkage broken
-    unittests = provisiontests_env.Program('provisiontests', ['OCProvisioningTest.cpp'])
+unittests = provisiontests_env.Program('provisiontests', ['OCProvisioningTest.cpp'])
 
-    Alias("provisiontests", [unittests])
+Alias("provisiontests", [unittests])
 
-    env.AppendTarget('provisiontests')
-    if env.get('TEST') == '1':
+env.AppendTarget('provisiontests')
+if env.get('TEST') == '1':
 	target_os = env.get('TARGET_OS')
-	if target_os == 'linux':
+	if target_os in ['darwin', 'linux']:
 		out_dir = env.get('BUILD_DIR')
 		result_dir = env.get('BUILD_DIR') + '/test_out/'
 		if not os.path.isdir(result_dir):
 			os.makedirs(result_dir)
 		provisiontests_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
-		provisiontests_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		provisiontests_env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
+		if target_os == 'darwin':
+		    provisiontests_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
+		    provisiontests_env.AppendENVPath('DYLD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
+		elif target_os == 'linux':
+		    provisiontests_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+		    provisiontests_env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
 		ut = provisiontests_env.Command ('ut', None, out_dir + 'resource/provisioning/unittests/provisiontests')
 		AlwaysBuild ('ut')
 

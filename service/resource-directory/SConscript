@@ -46,9 +46,6 @@ rd_env.AppendUnique(CPPPATH = ['src/internal'])
 rd_env.AppendUnique(CPPPATH = ['../../resource/csdk/logger/include'])
 rd_env.PrependUnique(LIBS = ['oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'libcoap'])
 
-if target_os not in ['windows', 'winrt']:
-    rd_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-Wextra'])
-
 if target_os == 'linux':
     rd_env.AppendUnique(LIBS = ['pthread'])
 

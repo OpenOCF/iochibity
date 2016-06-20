@@ -62,7 +62,7 @@ srmtest_env.PrependUnique(CPPPATH = [
 srmtest_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
 srmtest_env.AppendUnique(LIBS = ['-lpthread'])
 srmtest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-#srmtest_env.AppendUnique(LIBPATH = [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
+srmtest_env.AppendUnique(LIBPATH = [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
 srmtest_env.PrependUnique(LIBS = ['ocsrm',
                                     'octbstack',
                                     'oc_logger',
@@ -80,8 +80,7 @@ if not env.get('RELEASE'):
 ######################################################################
 # Source files and Targets
 ######################################################################
-if target_os != 'darwin':  # darwin linkage broken
-    unittest = srmtest_env.Program('unittest', ['aclresourcetest.cpp',
+unittest = srmtest_env.Program('unittest', ['aclresourcetest.cpp',
                                             'amaclresourcetest.cpp',
                                             'pstatresource.cpp',
                                             'doxmresource.cpp',
@@ -96,13 +95,10 @@ if target_os != 'darwin':  # darwin linkage broken
                                             'directpairingtest.cpp',
                                             'crlresourcetest.cpp'])
 
-    Alias("test", [unittest])
+Alias("test", [unittest])
 
 unittest_src_dir = src_dir + '/resource/csdk/security/unittest/'
 unittest_build_dir = build_dir + 'resource/csdk/security/unittest'
-
-srmtest_env.AppendUnique(LIBS = ['libgtest.0'
-			       ,'libgtest_main.0'])
 
 srmtest_env.AppendUnique(CPPDEFINES = ['SECURITY_BUILD_UNITTEST_DIR='+unittest_build_dir])
 
@@ -121,18 +117,21 @@ srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_unittest_default_acl.dat'))
 srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_svr_db_prov.dat'))
-if target_os != 'darwin':  # darwin linkage broken
-    env.AppendTarget('test')
-    if env.get('TEST') == '1':
-	if target_os == 'linux':
+env.AppendTarget('test')
+if env.get('TEST') == '1':
+	if target_os in ['darwin', 'linux']:
 		out_dir = env.get('BUILD_DIR')
 		result_dir = env.get('BUILD_DIR') + '/test_out/'
 		if not os.path.isdir(result_dir):
 			os.makedirs(result_dir)
 		srmtest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
-		srmtest_env.AppendENVPath(ld_path, [out_dir])
-		srmtest_env.AppendENVPath(ld_path, ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
-		srmtest_env.AppendENVPath('DYLD_LIBRARY_PATH', ['/Users/gar/iotivity/iotivity-darwin-merge/extlibs/gtest/gtest-1.7.0/lib/.libs'])
-		srmtest_env.AppendENVPath('DYLD_FALLBACK_LIBRARY_PATH', ['/Users/gar/iotivity/iotivity-darwin-merge/extlibs/gtest/gtest-1.7.0/lib/.libs'])
+		if target_os == 'darwin':
+		    srmtest_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
+		    srmtest_env.AppendENVPath('DYLD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
+		    srmtest_env.AppendENVPath('DYLD_FALLBACK_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
+
+		if target_os == 'linux':
+		    srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+		    srmtest_env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
 		ut = srmtest_env.Command ('ut', None, out_dir + '/resource/csdk/security/unittest/unittest')
 		AlwaysBuild ('ut')

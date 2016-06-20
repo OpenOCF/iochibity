@@ -37,29 +37,21 @@ samples_env.PrependUnique(CPPPATH = [
                 os.path.join(pi_dir, 'include')
                 ])
 
-samples_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-Wextra', '-Werror'])
 samples_env.AppendUnique(RPATH = [env.get('BUILD_DIR')])
 samples_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 
-if target_os in ['darwin', 'ios']:
-	samples_env.PrependUnique(LIBS = ['m',
-                                          'octbstack',
-                                          'ocsrm',
-                                          'connectivity_abstraction',
-                                          'coap' ])
-elif target_os not in ['arduino']:
-	samples_env.PrependUnique(LIBS = ['m',
-                                          'octbstack',
-                                          'ocsrm',
-                                          'connectivity_abstraction',
-                                          'coap',
-                                          'plugin_interface'])
-	samples_env.AppendUnique(LIBS = ['rt'])
-	if target_arch in ['x86_64', 'arm64']:
-		samples_env.AppendUnique(CPPFLAGS = ['-Llib64'])
-	else:
-		samples_env.AppendUnique(CPPFLAGS = ['-Llib'])
-	samples_env.AppendUnique(LIBS = ['pthread'])
+samples_env.PrependUnique(LIBS = ['m'
+			       	 ,'octbstack'
+				 ,'ocsrm'
+				 ,'connectivity_abstraction'
+				 ,'coap'
+				 ,'plugin_interface'])
+samples_env.AppendUnique(LIBS = ['rt'])
+if target_arch in ['x86_64', 'arm64']:
+    samples_env.AppendUnique(CPPFLAGS = ['-Llib64'])
+else:
+    samples_env.AppendUnique(CPPFLAGS = ['-Llib'])
+# samples_env.AppendUnique(LIBS = ['pthread'])
 
 if env.get('SECURED') == '1':
     samples_env.AppendUnique(LIBS = ['tinydtls'])

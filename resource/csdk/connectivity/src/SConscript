@@ -37,8 +37,8 @@ if ca_os not in ['arduino', 'windows', 'winrt']:
 if ca_os not in ['darwin', 'ios', 'windows', 'winrt']:
 	env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
 
-if ca_os == 'darwin':
-	env.AppendUnique(LINKFLAGS = ['-Wl,-undefined,error'])
+#GAR if ca_os == 'darwin':
+# 	env.AppendUnique(LINKFLAGS = ['-Wl,-undefined,error'])
 
 if ca_os in ['darwin','ios']:
 	env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
@@ -64,11 +64,10 @@ if env.get('SECURED') == '1':
 		env.SConscript('#extlibs/timer/SConscript')
 		env.AppendUnique(CPPPATH = ['#extlibs/timer'])
 
-if ca_os == 'linux':
+if ca_os == 'linux':  #GAR NOTE: not for 'darwin'!
     # get access to netdb.h (guarded by __USE_POSIX) for adapter_util/caadapterutils.c
     env.AppendUnique(CPPDEFINES = ['_XOPEN_SOURCE=700'])
-env.AppendUnique(CA_SRC = [os.path.join(ca_path,
-                                        'adapter_util/caadapterutils.c')])
+env.AppendUnique(CA_SRC = [os.path.join(ca_path, 'adapter_util/caadapterutils.c')])
 
 if env.get('SECURED') == '1':
 	env.AppendUnique(CA_SRC = [os.path.join(ca_path,
@@ -155,12 +154,12 @@ if 'BLE' in ca_transport:
 if 'NFC' in ca_transport:
 	env.SConscript(os.path.join(ca_path, 'nfc_adapter/SConscript'))
 
-if ca_os in ['linux', 'tizen', 'android']:
+if ca_os in ['darwin', 'linux', 'tizen', 'android']:
 	if with_tcp == True:
 		env.SConscript(os.path.join(ca_path, 'tcp_adapter/SConscript'))
 		env.AppendUnique(CPPDEFINES = ['WITH_TCP'])
 
-if ca_os in ['linux', 'tizen', 'android', 'arduino', 'ios']:
+if ca_os in ['darwin', 'linux', 'tizen', 'android', 'arduino', 'ios']:
 	if (('BLE' in ca_transport) or ('BT' in ca_transport) or ('ALL' in ca_transport)):
 		env.AppendUnique(CPPDEFINES = ['WITH_TCP'])
 

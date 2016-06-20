@@ -36,7 +36,7 @@ src_dir = env.get('SRC_DIR')
 ######################################################################
 # Check dependent packages (Linux only)
 ######################################################################
-if target_os in ['linux']:
+if target_os in ['darwin', 'linux']:
 	if not env.GetOption('help'):
 		if not target_arch == platform.machine():
 			print '''

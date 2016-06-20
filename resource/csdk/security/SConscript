@@ -60,24 +60,14 @@ if target_os not in ['arduino', 'windows', 'winrt']:
 	libocsrm_env.AppendUnique(CPPDEFINES  = ['WITH_POSIX'])
 	libocsrm_env.AppendUnique(CPPDEFINES = ['HAVE_STRINGS_H'])
 
-if target_os not in ['windows', 'winrt']:
-	libocsrm_env.AppendUnique(CFLAGS = ['-Wall'])
-
 libocsrm_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 libocsrm_env.AppendUnique(LIBS = ['coap', 'm'])
 
 if target_os == 'arduino':
 	libocsrm_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
-else:
-	libocsrm_env.AppendUnique(CFLAGS = ['-fPIC'])
 
 if target_os in ['darwin', 'ios']:
-	libocsrm_env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
-	libocsrm_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 	libocsrm_env.AppendUnique(LIBS = ['coap'])
-
-if not env.get('RELEASE'):
-	libocsrm_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 if env.get('DTLS_WITH_X509') == '1':
 	libocsrm_env.AppendUnique(CPPDEFINES = ['__WITH_X509__'])
@@ -109,10 +99,10 @@ libocsrm_src = [
 
 if env.get('SECURED') == '1':
     libocsrm_src = libocsrm_src + [OCSRM_SRC + 'oxmpincommon.c'
+				  ,OCSRM_SRC + 'pbkdf2.c']
     		   		  #pbkdf2.c is required for PIN based OxM only.
 				  # But we did not use a separate build options
 				  # to prevent complicating the build command.
-				  ,OCSRM_SRC + 'pbkdf2.c']
 
     if env.get('DTLS_WITH_X509') == '1':
 	libocsrm_src  = libocsrm_src + [OCSRM_SRC + 'crlresource.c']

@@ -57,14 +57,15 @@ target_os = env.get('TARGET_OS')
 if target_os == 'darwin':
     jni_env.Replace(SHLIBSUFFIX = '.jnilib')
 
-jni_env.AppendUnique(CCFLAGS = ['-Wno-error', '-Wno-comment', '-Wno-unused-function', '-Wno-unused-parameter'])
-if target_os not in ['windows', 'winrt']:
-	jni_env.AppendUnique(CXXFLAGS = ['-pthread'])
+# jni_env.AppendUnique(CCFLAGS = ['-Wno-error', '-Wno-comment', '-Wno-unused-function', '-Wno-unused-parameter'])
 
-	# Note: 'pthread' is in libc for android. On other platform, if use
-	# new gcc(>4.9?) it isn't required, otherwise, it's required
-	if target_os != 'android':
-		jni_env.AppendUnique(LIBS = ['-lpthread'])
+# if target_os not in ['windows', 'winrt']:
+# 	jni_env.AppendUnique(CXXFLAGS = ['-pthread'])
+
+# 	# Note: 'pthread' is in libc for android. On other platform, if use
+# 	# new gcc(>4.9?) it isn't required, otherwise, it's required
+# 	if target_os != 'android':
+# 		jni_env.AppendUnique(LIBS = ['-lpthread'])
 
 jni_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 jni_env.AppendUnique(RPATH = [env.get('BUILD_DIR')])
@@ -85,8 +86,6 @@ if target_os in ['darwin', 'ios']:
 ######################################################################
 # Source files and Targets
 ######################################################################
-
-print jni_env.Dump()
 
 ocstack_files = [
 			'JniOcStack.cpp',

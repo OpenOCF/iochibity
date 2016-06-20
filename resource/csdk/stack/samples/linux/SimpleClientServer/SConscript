@@ -40,10 +40,9 @@ samples_env.AppendUnique(RPATH = [env.get('BUILD_DIR')])
 samples_env.AppendUnique(LIBS = ['-lpthread' ])
 samples_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 
-if target_os in ['darwin', 'ios']:
-	samples_env.PrependUnique(LIBS = ['m','octbstack', 'ocsrm', 'connectivity_abstraction','coap' ])
-elif target_os not in ['arduino']:
+if target_os not in ['arduino']:
 	samples_env.PrependUnique(LIBS = ['m', 'octbstack', 'ocsrm', 'connectivity_abstraction', 'coap'])
+if target_os not in ['darwin']:
 	samples_env.AppendUnique(LIBS = ['rt'])
 
 if env.get('SECURED') == '1':

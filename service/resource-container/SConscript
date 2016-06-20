@@ -137,7 +137,6 @@ resource_container_env.UserInstallTargetHeader('include/RCSResourceContainer.h',
 ######################################################################
 if target_os in ['darwin', 'linux', 'tizen', 'android']:
     DI_sensor_bundle_env = resource_container_env.Clone()
-    DI_sensor_bundle_env.AppendUnique(CCFLAGS = ['-fPIC'])
 
     DI_SENSOR_BUNDLE_DIR = 'examples/DiscomfortIndexSensorBundle/'
     DI_sensor_bundle_env.AppendUnique(CPPPATH = [ DI_SENSOR_BUNDLE_DIR + 'include' ])
@@ -160,7 +159,6 @@ if target_os in ['darwin', 'linux', 'tizen', 'android']:
 ######################################################################
 if target_os in ['darwin', 'linux', 'tizen', 'android']:
     BMI_sensor_bundle_env = resource_container_env.Clone()
-    BMI_sensor_bundle_env.AppendUnique(CCFLAGS = ['-fPIC'])
 
     BMI_SENSOR_BUNDLE_DIR = 'examples/BMISensorBundle/'
     BMI_sensor_bundle_env.AppendUnique(CPPPATH = [ BMI_SENSOR_BUNDLE_DIR + 'include' ])
@@ -196,7 +194,6 @@ if not conf2.CheckLib('curl'):
     '''
 else:
     hue_resource_bundle_env = resource_container_env.Clone()
-    hue_resource_bundle_env.AppendUnique(CCFLAGS = ['-fPIC'])
 
     HUE_RESOURCE_BUNDLE_DIR = 'examples/HueSampleBundle/'
     hue_resource_bundle_env.AppendUnique(CPPPATH = [
@@ -216,7 +213,7 @@ lib_env = conf2.Finish()
 ######################################################################
 # build resource container unit tests
 ######################################################################
-if target_os in ['darwin', 'linux']:
+if target_os in ['linux']:  #GAR FIXME: 'darwin', 
     SConscript('unittests/SConscript')
 
 ######################################################################

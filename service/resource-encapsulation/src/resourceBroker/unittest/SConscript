@@ -24,12 +24,6 @@
 
 Import('env')
 
-if env.get('RELEASE'):
-	env.AppendUnique(CCFLAGS = ['-Os'])
-	env.AppendUnique(CPPDEFINES = ['NDEBUG'])
-else:
-	env.AppendUnique(CCFLAGS = ['-g'])
-
 if env.get('LOGGING'):
 	env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
@@ -73,7 +67,7 @@ broker_test_env.AppendUnique(LIBS = [gtest])
 broker_test_env.AppendUnique(LIBS = [gtest_main])
 
 if target_os not in ['windows', 'winrt']:
-    broker_test_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-fmessage-length=0'])
+    broker_test_env.AppendUnique(CXXFLAGS = ['-fmessage-length=0'])
 
 if target_os == 'linux':
     broker_test_env.AppendUnique(LIBS = ['pthread'])

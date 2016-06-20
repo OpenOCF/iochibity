@@ -43,8 +43,8 @@ unittests_env.PrependUnique(CPPPATH = [
 		'#extlibs/hippomocks-master/HippoMocksTest'
 		])
 
-unittests_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
-unittests_env.AppendUnique(LIBS = ['-lpthread'])
+#GAR unittests_env.AppendUnique(CXXFLAGS = ['-pthread'])
+#GAR unittests_env.AppendUnique(LIBS = ['-lpthread'])
 unittests_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 unittests_env.AppendUnique(LIBPATH = [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
 unittests_env.PrependUnique(LIBS = [
@@ -66,30 +66,30 @@ if env.get('LOGGING'):
 ######################################################################
 # Source files and Targets
 ######################################################################
-# unittests = unittests_env.Program('unittests', ['ConstructResourceTest.cpp',
-#                                                 'OCPlatformTest.cpp',
-#                                                 'OCRepresentationTest.cpp',
-#                                                 'OCRepresentationEncodingTest.cpp',
-#                                                 'OCResourceTest.cpp',
-#                                                 'OCExceptionTest.cpp',
-#                                                 'OCResourceResponseTest.cpp',
-#                                                 'OCHeaderOptionTest.cpp'])
+unittests = unittests_env.Program('unittests', ['ConstructResourceTest.cpp',
+                                                'OCPlatformTest.cpp',
+                                                'OCRepresentationTest.cpp',
+                                                'OCRepresentationEncodingTest.cpp',
+                                                'OCResourceTest.cpp',
+                                                'OCExceptionTest.cpp',
+                                                'OCResourceResponseTest.cpp',
+                                                'OCHeaderOptionTest.cpp'])
 
-# Alias("unittests", [unittests])
+Alias("unittests", [unittests])
 
-# env.AppendTarget('unittests')
-# if env.get('TEST') == '1':
-# 	target_os = env.get('TARGET_OS')
-# 	if target_os == 'linux':
-#                 from tools.scons.RunTest import *
-#                 run_test(unittests_env,
-#                          'resource_unittests_unittests.memcheck',
-#                          'resource/unittests/unittests')
+env.AppendTarget('unittests')
+if env.get('TEST') == '1':
+	target_os = env.get('TARGET_OS')
+	if target_os in ['darwin', 'linux']:
+                from tools.scons.RunTest import *
+                run_test(unittests_env,
+                         'resource_unittests_unittests.memcheck',
+                         'resource/unittests/unittests')
 
-# src_dir = unittests_env.get('SRC_DIR')
-# svr_db_src_dir = os.path.join(src_dir, 'resource/examples/')
-# svr_db_build_dir = os.path.join(env.get('BUILD_DIR'), 'resource/unittests/')
-# unittests_env.Alias("install",
-#                     unittests_env.Install(svr_db_build_dir,
-#                                           os.path.join(svr_db_src_dir,
-#                                                        'oic_svr_db_client.dat')))
+src_dir = unittests_env.get('SRC_DIR')
+svr_db_src_dir = os.path.join(src_dir, 'resource/examples/')
+svr_db_build_dir = os.path.join(env.get('BUILD_DIR'), 'resource/unittests/')
+unittests_env.Alias("install",
+                    unittests_env.Install(svr_db_build_dir,
+                                          os.path.join(svr_db_src_dir,
+                                                       'oic_svr_db_client.dat')))

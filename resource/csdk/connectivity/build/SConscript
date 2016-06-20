@@ -213,9 +213,6 @@ Targets:\n    ''')
 
 # Export('env')
 
-print "Connectivity/build/SConscript DUMP:"
-print env.Dump()
-
 ######################################################################
 # Link scons to Yocto cross-toolchain ONLY when target_os is yocto
 ######################################################################

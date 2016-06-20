@@ -124,6 +124,6 @@ if target_os in ['darwin', 'linux']:
 ######################################################################
 #Build UnitTestcases for Mediator[CSDK]
 ################################################ ######################
-if target_os in ['darwin','linux']:
+if target_os in ['linux']:  #GAR FIXME: 'darwin',
     SConscript('unittests/SConscript')
 

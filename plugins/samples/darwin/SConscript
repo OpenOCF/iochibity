@@ -46,11 +46,8 @@ samples_env.PrependUnique(LIBS = ['m',
 				 'connectivity_abstraction',
 				 'coap',
 				 'plugin_interface'])
-if target_arch in ['x86_64', 'arm64']:
-   samples_env.AppendUnique(CPPFLAGS = ['-Llib64'])
-else:
-	samples_env.AppendUnique(CPPFLAGS = ['-Llib'])
-	samples_env.AppendUnique(LIBS = ['pthread'])
+samples_env.AppendUnique(CPPFLAGS = ['-Llib'])
+samples_env.AppendUnique(LIBS = ['pthread'])
 
 if env.get('SECURED') == '1':
     samples_env.AppendUnique(LIBS = ['tinydtls'])

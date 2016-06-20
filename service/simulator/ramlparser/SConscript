@@ -36,9 +36,6 @@ raml_env.Append( RPATH = env.Literal('\\$$ORIGIN'))
 
 raml_env.AppendUnique(CPPPATH = ['../../../extlibs/cjson/'])
 raml_env.PrependUnique(LIBS = ['octbstack', 'YamlParser'])
-raml_env.AppendUnique(LIBS = ['pthread'])
-
-raml_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-fmessage-length=0'])
 
 ######################################################################
 # Source files and Targets

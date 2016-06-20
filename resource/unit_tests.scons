@@ -39,20 +39,18 @@ if target_os in ['darwin','linux']:
 	SConscript(src_dir + '/extlibs/hippomocks.scons')
 
 	# Build Common unit tests
-    	if target_os != 'darwin':
-	    SConscript('c_common/oic_string/test/SConscript')
-	    SConscript('c_common/oic_malloc/test/SConscript')
-	    SConscript('c_common/oic_time/test/SConscript')
-	    SConscript('c_common/ocrandom/test/SConscript')
+	#GAR    	if target_os != 'darwin':
+	SConscript('c_common/oic_string/test/SConscript')
+	SConscript('c_common/oic_malloc/test/SConscript')
+	SConscript('c_common/oic_time/test/SConscript')
+	SConscript('c_common/ocrandom/test/SConscript')
 
 	# Build C unit tests
-	if target_os != 'darwin':
-	    SConscript('csdk/stack/test/SConscript')
+	SConscript('csdk/stack/test/SConscript')
 
 	SConscript('csdk/connectivity/test/SConscript')
 
 	# Build Security Resource Manager unit tests
-	# if target_os != 'darwin':    # darwin linkage broken
         SConscript('csdk/security/unittest/SConscript')
 
 	# Build C++ unit tests

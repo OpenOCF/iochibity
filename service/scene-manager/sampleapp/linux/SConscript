@@ -18,8 +18,6 @@ scenemanager_sample_env.AppendUnique(CPPPATH = [
 					     './../../../../extlibs/cjson',
 					     './../../../../resource/csdk/connectivity/api'])
 
-scenemanager_sample_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-fmessage-length=0'])
-
 scenemanager_sample_env.AppendUnique(LIBS = [
     'oc_logger',
     'coap',
@@ -40,22 +38,22 @@ if 'rt' in scenemanager_sample_env.get('LIBS'):
     scenemanager_sample_env.Append(LIBS = ['rt'])
 
 target_os = env.get('TARGET_OS')
-if not env.get('RELEASE'):
-    if target_os != 'darwin':
-        scenemanager_sample_env.AppendUnique(CXXFLAGS = ['--coverage'])
-        scenemanager_sample_env.PrependUnique(LIBS = ['gcov'])
-    else:
-        # no -lgcov for os x
-	scenemanager_sample_env.AppendUnique(CPPFLAGS = ['-fprofile-arcs', '-ftest-coverage'])
-	scenemanager_sample_env.PrependUnique(LIBS = ['clang_rt.profile_osx'])
+# if not env.get('RELEASE'):
+#     if target_os != 'darwin':
+#         scenemanager_sample_env.AppendUnique(CXXFLAGS = ['--coverage'])
+#         scenemanager_sample_env.PrependUnique(LIBS = ['gcov'])
+#     else:
+#         # no -lgcov for os x
+# 	scenemanager_sample_env.AppendUnique(CPPFLAGS = ['-fprofile-arcs', '-ftest-coverage'])
+# 	scenemanager_sample_env.PrependUnique(LIBS = ['clang_rt.profile_osx'])
 
-	import subprocess
-	p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	out, err = p.communicate()
-	libsline = out.splitlines()[1]
-	clanglibs = libsline.split("libraries: =")[1]
+# 	import subprocess
+# 	p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+# 	out, err = p.communicate()
+# 	libsline = out.splitlines()[1]
+# 	clanglibs = libsline.split("libraries: =")[1]
 
-	scenemanager_sample_env.PrependUnique(LIBPATH = [clanglibs + '/lib/darwin/'])
+# 	scenemanager_sample_env.PrependUnique(LIBPATH = [clanglibs + '/lib/darwin/'])
 
 ####################################################################
 # Source files and Targets

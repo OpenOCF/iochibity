@@ -48,7 +48,7 @@ Alias("test", [stringtests])
 env.AppendTarget('test')
 if env.get('TEST') == '1':
 	target_os = env.get('TARGET_OS')
-	if target_os == 'linux':
+	if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(stringtest_env,
                          'resource_ccommon_string_test.memcheck',

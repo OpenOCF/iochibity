@@ -75,8 +75,6 @@ simulator_env.AppendUnique(CPPPATH = ['../../extlibs/cjson'])
 simulator_env.PrependUnique(LIBS = ['oc', 'octbstack', 'RamlParser'])
 simulator_env.AppendUnique(LIBS = ['pthread'])
 
-simulator_env.AppendUnique(CXXFLAGS = ['-O2', '-fmessage-length=0'])
-
 ######################################################################
 # Source files and Targets
 ######################################################################
