@@ -80,6 +80,7 @@ proguard-project.txt
 # Ignore profile files
 *.gcno
 *.gcda
+*.profraw
 
 # Ignore CTags default data
 tags
