@@ -47,17 +47,6 @@ oclib_env.AppendUnique(LIBS = ['octbstack', 'oc_logger', 'ocsrm', 'coap'])
 oclib_env.AppendUnique(LIBS = ['connectivity_abstraction'])
 
 target_os = env.get('TARGET_OS')
-#GAR if target_os == 'linux':
-# 	oclib_env.AppendUnique(LIBS = ['pthread'])
-
-# if target_os not in ['windows', 'winrt', 'darwin']:
-# 	oclib_env.AppendUnique(CXXFLAGS = ['-Wall', '-fPIC'])
-
-# if target_os == 'darwin':
-# 	oclib_env.AppendUnique(CXXFLAGS = ['-stdlib=libc++', '-fPIC'])
-
-# if target_os not in ['darwin', 'ios', 'windows', 'winrt']:
-# 	oclib_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
 
 if target_os == 'android':
     oclib_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
