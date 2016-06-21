@@ -469,7 +469,7 @@ TEST_F(ResourceObjectHandlingRequestTest, SendSetResponseWithCustomAttrs)
     constexpr char value[]{ "VALUE" };
 
     server->setSetRequestHandler(
-            [](const RCSRequest&, RCSResourceAttributes&) -> RCSSetResponse
+            [&value](const RCSRequest&, RCSResourceAttributes&) -> RCSSetResponse
             {
                 RCSResourceAttributes attrs;
                 attrs[KEY] = value;
@@ -478,7 +478,7 @@ TEST_F(ResourceObjectHandlingRequestTest, SendSetResponseWithCustomAttrs)
     );
 
     mocks.ExpectCallFunc(OCPlatform::sendResponse).Match(
-            [](const shared_ptr<OCResourceResponse> response)
+            [&value](const shared_ptr<OCResourceResponse> response)
             {
                 return value == response->getResourceRepresentation()[KEY].getValue<std::string>()
                         && response->getErrorCode() == errorCode;
