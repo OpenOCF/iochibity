@@ -41,7 +41,7 @@ target_os = env.get('TARGET_OS')
 ######################################################################
 #unit test setting
 ######################################################################
-# src_dir = lib_env.get('SRC_DIR')
+src_dir = lib_env.get('SRC_DIR')
 # gtest_dir = src_dir + '/extlibs/gtest/' + target_os
 home = lib_env.get('HOME')
 gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
