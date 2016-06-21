@@ -58,17 +58,12 @@ gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 mediator_rich_test_env.AppendUnique(
         CPPPATH = [
                 src_dir + '/extlibs/hippomocks-master',
-                src_dir + '/extlibs/gtest/gtest-1.7.0/include',
+                gtest_dir + '/include',
                 '../inc',
                 '../../../inc',
         ])
 
-if target_os not in ['windows', 'winrt']:
-        mediator_rich_test_env.AppendUnique(CXXFLAGS = ['-Wall'])
-        if target_os != 'android':
-                mediator_rich_test_env.AppendUnique(CXXFLAGS = ['-pthread'])
-                mediator_rich_test_env.AppendUnique(LIBS = ['pthread'])
-
+mediator_rich_test_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 
 if env.get('SECURED') == '1':
 	     mediator_rich_test_env.PrependUnique(LIBS = ['tinydtls','ocprovision', 'ocpmapi', 'timer'])

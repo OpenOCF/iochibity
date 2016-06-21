@@ -52,21 +52,15 @@ gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 ######################################################################
 # Build flags
 ######################################################################
-# gtest = File(gtest_dir + '/lib/.libs/libgtest.a')
-# gtest_main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
-
 ThingsManager_gtest_env.AppendUnique(
         CPPPATH = [
                 src_dir + '/extlibs/hippomocks-master',
-                src_dir + '/extlibs/gtest/gtest-1.7.0/include',
+                gtest_dir + '/include',
                 '../sdk/inc',
                 '../../../extlibs/timer'
         ])
 
-if target_os not in ['windows', 'winrt']:
-        if target_os != 'android':
-                ThingsManager_gtest_env.AppendUnique(CXXFLAGS = ['-pthread'])
-                ThingsManager_gtest_env.AppendUnique(LIBS = ['pthread'])
+ThingsManager_gtest_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 
 ThingsManager_gtest_env.PrependUnique(LIBS = [
     'libTGMSDKLibrary',
@@ -92,7 +86,7 @@ env.AppendTarget('ThingsManagerTest')
 
 if env.get('TEST') == '1':
     target_os = env.get('TARGET_OS')
-    if target_os == 'linux':
+    if target_os in ['darwin', 'linux']:
         from tools.scons.RunTest import *
         run_test(ThingsManager_gtest_env, '',
                 'service/things-manager/unittests/ThingsManagerTest')

@@ -58,15 +58,12 @@ gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 rcs_test_env.AppendUnique(
         CPPPATH = [
                 src_dir + '/extlibs/hippomocks-master',
-                src_dir + '/extlibs/gtest/gtest-1.7.0/include',
+                gtest_dir + '/include',
                 '../include',
                 '../src/common/utils/include',
         ])
 
-if target_os not in ['windows', 'winrt']:
-        if target_os != 'android':
-                rcs_test_env.AppendUnique(CXXFLAGS = ['-pthread'])
-                rcs_test_env.AppendUnique(LIBS = ['pthread'])
+rcs_test_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 
 rcs_test_env.PrependUnique(LIBS = [
     'connectivity_abstraction',

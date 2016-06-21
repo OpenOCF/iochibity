@@ -30,7 +30,8 @@ SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', exports = 'li
 
 src_dir = lib_env.get('SRC_DIR')
 
-gtest_dir = src_dir + '/extlibs/gtest/gtest-1.7.0'
+home = lib_env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 server_builder_env = lib_env.Clone()
 target_os = env.get('TARGET_OS')
@@ -102,7 +103,7 @@ server_builder_env.UserInstallTargetLib([server_builder_static, server_builder_s
 ######################################################################
 # Build Test
 ######################################################################
-if target_os == 'linux':
+if target_os in ['darwin', 'linux']:
 	server_builder_test_env = server_builder_env.Clone();
 
 	server_builder_test_env.AppendUnique(CPPPATH = [
@@ -111,8 +112,7 @@ if target_os == 'linux':
 		'../common/utils/include'
 		])
 
-	gtest = File(gtest_dir + '/lib/.libs/libgtest.a')
-	gtest_main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
+	server_builder_test_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 
 	server_builder_test_env.PrependUnique(LIBS = [
 		'rcs_server',
@@ -120,8 +120,8 @@ if target_os == 'linux':
 		'oc_logger',
 		'connectivity_abstraction',
 		'coap',
-		gtest,
-		gtest_main,
+		'gtest',
+		'gtest_main',
 		'pthread',
 		])
 

@@ -53,8 +53,8 @@ scene_test_env = lib_env.Clone()
 # GTest = File(gtest_dir + '/lib/.libs/libgtest.a')
 # GTest_Main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
 
-#scene_test_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
-scene_test_env.AppendUnique(LIBPATH = [lib_env.get('BUILD_DIR')])
+scene_test_env.AppendUnique(LIBPATH = [lib_env.get('BUILD_DIR')
+				      ,gtest_dir + '/lib/.libs'])
 scene_test_env.AppendUnique(LIBS = [
     'scene_manager', 'rcs_server', 'rcs_client','rcs_common',
     'oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'coap',
