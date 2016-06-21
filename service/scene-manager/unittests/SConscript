@@ -36,14 +36,16 @@ if env.get('LOGGING'):
 lib_env = env.Clone()
 SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
 
+target_os = env.get('TARGET_OS')
+
 ######################################################################
 #unit test setting
 ######################################################################
 src_dir = lib_env.get('SRC_DIR')
-gtest_dir = src_dir + '/extlibs/gtest/gtest-1.7.0'
+home = lib_env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 scene_test_env = lib_env.Clone()
-target_os = env.get('TARGET_OS')
 
 ######################################################################
 # Build flags
@@ -51,8 +53,8 @@ target_os = env.get('TARGET_OS')
 # GTest = File(gtest_dir + '/lib/.libs/libgtest.a')
 # GTest_Main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
 
-#scene_test_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
-scene_test_env.AppendUnique(LIBPATH = [lib_env.get('BUILD_DIR')])
+scene_test_env.AppendUnique(LIBPATH = [lib_env.get('BUILD_DIR')
+				      ,gtest_dir + '/lib/.libs'])
 scene_test_env.AppendUnique(LIBS = [
     'scene_manager', 'rcs_server', 'rcs_client','rcs_common',
     'oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'coap',

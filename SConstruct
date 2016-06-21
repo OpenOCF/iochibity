@@ -29,13 +29,10 @@ SConscript('build_common/SConscript')
 
 Import('env')
 
-print "CPPATH: ", env.get('CPPPATH')
-
-
-if env.get('VERBOSE'):
-    print "ENV:"
-    # print env.Dump()
-    print "START"
+# if env.get('VERBOSE'):
+#     print "ENV:"
+#     print env.Dump()
+#     print "START"
 
 if os.environ.get('TERM') != None:
 	env['ENV']['TERM'] = os.environ['TERM']
@@ -64,8 +61,9 @@ SConscript(build_dir + 'resource/SConscript')
 # Build 'service' sub-project
 SConscript(build_dir + 'service/SConscript')
 
-if target_os not in ['arduino','ios', 'android']:
-	SConscript(build_dir + 'examples/OICMiddle/SConscript')
+#GAR FIXME: only make examples on demand
+# if target_os not in ['arduino','ios', 'android']:
+# 	SConscript(build_dir + 'examples/OICMiddle/SConscript')
 
 # Build "cloud" sub-project
 SConscript(build_dir + 'cloud/SConscript')

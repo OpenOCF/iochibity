@@ -41,6 +41,9 @@ srmtest_env = conf.Finish()
 ######################################################################
 # Build flags
 ######################################################################
+home = srmtest_env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
+
 srmtest_env.PrependUnique(CPPPATH = [
 		'../../../c_common/oic_malloc/include',
  		'./../../connectivity/inc',
@@ -53,7 +56,7 @@ srmtest_env.PrependUnique(CPPPATH = [
 		'./../../stack/include',
 		'./../../stack/include/internal',
 		'./../../../oc_logger/include',
-		'./../../../../extlibs/gtest/gtest-1.7.0/include',
+		gtest_dir + '/include',
 		'./../../../../extlibs/cjson/',
                 './../provisioning/include'
 #		'./../../../../extlibs/tinydtls/'
@@ -61,8 +64,8 @@ srmtest_env.PrependUnique(CPPPATH = [
 
 srmtest_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
 srmtest_env.AppendUnique(LIBS = ['-lpthread'])
-srmtest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-srmtest_env.AppendUnique(LIBPATH = [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
+srmtest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
+				   ,gtest_dir + '/lib/.libs'])
 srmtest_env.PrependUnique(LIBS = ['ocsrm',
                                     'octbstack',
                                     'oc_logger',
@@ -126,12 +129,10 @@ if env.get('TEST') == '1':
 			os.makedirs(result_dir)
 		srmtest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
 		if target_os == 'darwin':
-		    srmtest_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
-		    srmtest_env.AppendENVPath('DYLD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
-		    srmtest_env.AppendENVPath('DYLD_FALLBACK_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
-
-		if target_os == 'linux':
-		    srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		    srmtest_env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
+		    srmtest_env.AppendENVPath('DYLD_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
+		    srmtest_env.AppendENVPath('DYLD_FALLBACK_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
+		elif target_os == 'linux':
+		    srmtest_env.AppendENVPath(ld_path, [out_dir])
+		    srmtest_env.AppendENVPath(ld_path, [gtest_dir + '/lib/.libs'])
 		ut = srmtest_env.Command ('ut', None, out_dir + '/resource/csdk/security/unittest/unittest')
 		AlwaysBuild ('ut')

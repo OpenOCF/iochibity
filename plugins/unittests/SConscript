@@ -29,15 +29,19 @@ build_dir = env.get('BUILD_DIR')
 ######################################################################
 # Build flags
 ######################################################################
+home = env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
+
+
 unittests_env.PrependUnique(CPPPATH = [
                 os.path.join(pi_dir, 'include'),
-                '#extlibs/gtest/gtest-1.7.0/include',
+                gtest_dir + '/include',
 		])
 
 unittests_env.AppendUnique(CXXFLAGS = ['-pthread'])
 unittests_env.PrependUnique(LIBS = ['-lpthread'])
 unittests_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-unittests_env.AppendUnique(LIBPATH = [os.path.join(src_dir, 'extlibs', 'gtest', 'gtest-1.7.0', 'lib', '.libs')])
+unittests_env.AppendUnique(LIBPATH = [os.path.join(home, '.iotivity.d', 'gtest-1.7.0', 'lib', '.libs')])
 unittests_env.PrependUnique(LIBS = [
 		'plugin_interface',
 		'oc',

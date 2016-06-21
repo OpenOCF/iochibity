@@ -30,12 +30,15 @@ src_dir = timetest_env.get('SRC_DIR')
 ######################################################################
 # Build flags
 ######################################################################
+home = timetest_env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
+
 timetest_env.PrependUnique(CPPPATH = [
         '../include',
-        '#extlibs/gtest/gtest-1.7.0/include' ])
+        gtest_dir + '/include' ])
 
 timetest_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource/c_common')])
-timetest_env.AppendUnique(LIBPATH = [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
+timetest_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 timetest_env.PrependUnique(LIBS = ['c_common', 'gtest', 'gtest_main', 'pthread'])
 if target_os != 'darwin':
    timetest_env.Append(LIBS = ['rt']);

@@ -38,14 +38,6 @@ lib_env = env.Clone()
 SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
 
 target_os = env.get('TARGET_OS')
-if target_os == 'linux':
-        # Verify that 'google unit test' library is installed.  If not,
-        # get it and install it
-        SConscript(env.get('SRC_DIR') + '/extlibs/gtest/SConscript')
-
-        # Verify that 'hippomocks' mocking code is installed.  If not,
-        # get it and install it
-        SConscript(env.get('SRC_DIR') + '/extlibs/hippomocks.scons')
 
 ThingsManager_gtest_env = lib_env.Clone()
 
@@ -53,26 +45,22 @@ ThingsManager_gtest_env = lib_env.Clone()
 #unit test setting
 ######################################################################
 src_dir = lib_env.get('SRC_DIR')
-gtest_dir = src_dir + '/extlibs/gtest/gtest-1.7.0'
+# gtest_dir = src_dir + '/extlibs/gtest/' + target_os
+home = lib_env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 ######################################################################
 # Build flags
 ######################################################################
-gtest = File(gtest_dir + '/lib/.libs/libgtest.a')
-gtest_main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
-
 ThingsManager_gtest_env.AppendUnique(
         CPPPATH = [
                 src_dir + '/extlibs/hippomocks-master',
-                src_dir + '/extlibs/gtest/gtest-1.7.0/include',
+                gtest_dir + '/include',
                 '../sdk/inc',
                 '../../../extlibs/timer'
         ])
 
-if target_os not in ['windows', 'winrt']:
-        if target_os != 'android':
-                ThingsManager_gtest_env.AppendUnique(CXXFLAGS = ['-pthread'])
-                ThingsManager_gtest_env.AppendUnique(LIBS = ['pthread'])
+ThingsManager_gtest_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 
 ThingsManager_gtest_env.PrependUnique(LIBS = [
     'libTGMSDKLibrary',
@@ -82,8 +70,8 @@ ThingsManager_gtest_env.PrependUnique(LIBS = [
     'oc_logger_core',
     'oc',
     'octbstack',
-    gtest,
-    gtest_main])
+    'gtest',
+    'gtest_main'])
 
 ThingsManager_gtest_env.AppendUnique(LIBS = ['dl'])
 
@@ -98,7 +86,7 @@ env.AppendTarget('ThingsManagerTest')
 
 if env.get('TEST') == '1':
     target_os = env.get('TARGET_OS')
-    if target_os == 'linux':
+    if target_os in ['darwin', 'linux']:
         from tools.scons.RunTest import *
         run_test(ThingsManager_gtest_env, '',
                 'service/things-manager/unittests/ThingsManagerTest')

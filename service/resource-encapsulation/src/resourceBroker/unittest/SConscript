@@ -34,7 +34,9 @@ SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
 #unit test setting
 ######################################################################
 src_dir = lib_env.get('SRC_DIR')
-gtest_dir = src_dir + '/extlibs/gtest/gtest-1.7.0'
+home = lib_env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
+
 
 broker_test_env = lib_env.Clone()
 target_os = env.get('TARGET_OS')
@@ -42,9 +44,6 @@ target_os = env.get('TARGET_OS')
 ######################################################################
 # Build flags
 ######################################################################
-gtest = File(gtest_dir + '/lib/.libs/libgtest.a')
-gtest_main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
-
 broker_test_env.AppendUnique(CPPPATH = ['../include'])
 broker_test_env.AppendUnique(CPPPATH = ['../../../include'])
 broker_test_env.AppendUnique(CPPPATH = ['../../common/primitiveResource/include'])
@@ -52,9 +51,11 @@ broker_test_env.AppendUnique(CPPPATH = ['../../common/expiryTimer/include'])
 broker_test_env.AppendUnique(CPPPATH = ['../../common/expiryTimer/src'])
 broker_test_env.AppendUnique(CPPPATH = ['../../common/utils/include'])
 
-broker_test_env.PrependUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs/hippomocks-master',
-                             gtest_dir + '/include'])
-broker_test_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
+broker_test_env.PrependUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs/hippomocks-master'
+                             	      	,gtest_dir + '/include'])
+
+broker_test_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
+				       ,gtest_dir + '/lib/.libs'])
 
 broker_test_env.PrependUnique(LIBS = ['coap'])
 broker_test_env.AppendUnique(LIBS = ['connectivity_abstraction'])
@@ -63,8 +64,8 @@ broker_test_env.AppendUnique(LIBS = ['octbstack'])
 broker_test_env.AppendUnique(LIBS = ['oc'])
 broker_test_env.AppendUnique(LIBS = ['rcs_client'])
 broker_test_env.AppendUnique(LIBS = ['rcs_common'])
-broker_test_env.AppendUnique(LIBS = [gtest])
-broker_test_env.AppendUnique(LIBS = [gtest_main])
+broker_test_env.AppendUnique(LIBS = ['gtest'])
+broker_test_env.AppendUnique(LIBS = ['gtest_main'])
 
 if target_os not in ['windows', 'winrt']:
     broker_test_env.AppendUnique(CXXFLAGS = ['-fmessage-length=0'])

@@ -5,6 +5,10 @@
 import os
 import platform
 
+from os.path import expanduser
+home = expanduser("~")
+
+
 # Map of host os and allowed target os (host: allowed target os)
 host_target_map = {
 		'linux': ['linux', 'android', 'arduino', 'yocto', 'tizen'],
@@ -144,6 +148,8 @@ else:
 			LIB_INSTALL_DIR = ARGUMENTS.get('LIB_INSTALL_DIR') #for 64bit build
 			)
 Help(help_vars.GenerateHelpText(env))
+
+env['HOME'] = home
 
 tc_set_msg = '''
 ************************************ Warning **********************************
@@ -319,8 +325,13 @@ env['ROOT_DIR']=env.GetLaunchDir()+'/..'
 
 debug = ARGUMENTS.get('debug', 0)
 # if int(debug) and debug > 2:
+<<<<<<< HEAD
     # print "ENV:"
     # print env.Dump()
+=======
+#     print "ENV:"
+#     print env.Dump()
+>>>>>>> b09a5950f2cd91b5e3410977198c75f936710082
 
 Export('env')
 

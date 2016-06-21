@@ -36,17 +36,8 @@ def filtered_glob(env, pattern, omit=[],
 
 env.AddMethod(filtered_glob, "FilteredGlob");
 
-if env.get('RELEASE'):
-    env.AppendUnique(CCFLAGS = ['-Os'])
-    env.AppendUnique(CPPDEFINES = ['NDEBUG'])
-else:
-    env.AppendUnique(CCFLAGS = ['-g'])
-
 if env.get('LOGGING'):
     env.AppendUnique(CPPDEFINES = ['TB_LOG'])
-
-
-
 
 # Add third party libraries
 lib_env = env.Clone()
@@ -76,15 +67,19 @@ target_os = env.get('TARGET_OS')
 
 ######################### unit test setting ##########################
 src_dir = lib_env.get('SRC_DIR')
-gtest_dir = src_dir + '/extlibs/gtest/gtest-1.7.0'
+home = lib_env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
+
+container_gtest_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
+
 ######################################################################
 
 
 ######################################################################
 # Build flags
 ######################################################################
-gtest = File(gtest_dir + '/lib/.libs/libgtest.a')
-gtest_main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
+# gtest = File(gtest_dir + '/lib/.libs/libgtest.a')
+# gtest_main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
 
 container_gtest_env.AppendUnique(
     CPPPATH = [
@@ -106,12 +101,6 @@ if int(containerJavaSupport):
     except KeyError:
         print ''
 
-if target_os not in ['windows', 'winrt']:
-    container_gtest_env.AppendUnique(CXXFLAGS = ['-Wall'])
-    if target_os != 'android':
-        container_gtest_env.AppendUnique(CXXFLAGS = ['-pthread'])
-        container_gtest_env.AppendUnique(LIBS = ['pthread'])
-
 if target_os == 'android':
     container_gtest_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
     container_gtest_env.PrependUnique(LIBS = ['gnustl_shared', 'compatibility', 'log'])
@@ -125,10 +114,7 @@ if int(containerJavaSupport):
     except KeyError:
         print ''
 
-# if target_os == 'linux':
-#    container_gtest_env.AppendUnique(CCFLAGS = ['-Wnoexcept'])
-
-container_gtest_env.PrependUnique(LIBS = ['rcs_container', 'rcs_client', 'rcs_server', 'rcs_common', 'oc','octbstack', 'oc_logger', 'oc_logger_core', 'connectivity_abstraction', gtest, gtest_main, 'boost_system'])
+container_gtest_env.PrependUnique(LIBS = ['rcs_container', 'rcs_client', 'rcs_server', 'rcs_common', 'oc','octbstack', 'oc_logger', 'oc_logger_core', 'connectivity_abstraction', 'gtest', 'gtest_main', 'boost_system'])
 
 container_gtest_env.AppendUnique(LIBS = ['dl'])
 

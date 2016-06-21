@@ -7,7 +7,36 @@ Import('env')
 
 print "Reading darwin configuration script"
 
-SConscript('../external_libs.scons')
+#Find the SDK's that are installed
+sdks=[]
+for line in tc_sdks.split('\n'):
+    if (line == ''):
+        bIn=False
+    if (line[:10] == 'OS X SDKs:'):
+        bIn=(target_os == 'darwin')
+    elif (line[:9] == 'iOS SDKs:'):
+        bIn=(target_os == 'ios')
+    elif bIn:
+        sdks.append(line[:14].strip())
+
+#find the latest
+minsdk = '0.0'
+maxsdk='10.10'    # Jenkins
+if len(sdks) > 0:
+    for sdk in sdks:
+        p = sdk.rsplit(' ',1)[1]
+        if (StrictVersion(p)) > StrictVersion(minsdk):
+	   if (StrictVersion(p)) < StrictVersion(maxsdk):
+               minsdk=p
+	   else:
+	       minsdk=maxsdk
+
+### NOTE:
+### $ sw_vers -productVersion
+### 10.11.5
+
+# SYS_VERSION build option
+
 help_vars = Variables()
 if env.get('BUILD_JAVA') == 'ON':
     if not env.get('ANDROID_GRADLE'):

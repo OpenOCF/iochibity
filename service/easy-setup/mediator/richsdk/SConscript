@@ -107,10 +107,6 @@ if target_os in ['android','linux','darwin']:
 ######################################################################
 # Source files and Targets
 ######################################################################
-
-
-print"easysetup_path %s" % easysetup_path
-
 es_src = None
 
 if target_os in ['android','linux','darwin']:

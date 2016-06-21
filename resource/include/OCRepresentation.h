@@ -444,7 +444,8 @@ namespace OC
                     Prop(std::vector<std::string>& resourceTypes,
                             std::vector<std::string>& interfaces)
                     : m_types(resourceTypes), m_interfaces(interfaces)
-                    {}
+	            {(void)m_types; /* avoid warnings about unused privates */
+		     (void)m_interfaces;}
 
                  /*   Prop(const std::vector<std::string>& resourceTypes,
                             const std::vector<std::string>& interfaces)

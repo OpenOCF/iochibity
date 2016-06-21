@@ -30,6 +30,9 @@ src_dir = stacktest_env.get('SRC_DIR')
 ######################################################################
 # Build flags
 ######################################################################
+home = stacktest_env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
+
 stacktest_env.PrependUnique(CPPPATH = [
 		'../../security/include',
 		'../../ocsocket/include',
@@ -41,13 +44,13 @@ stacktest_env.PrependUnique(CPPPATH = [
 		'../../connectivity/external/inc',
 		'../../extlibs/cjson',
 		'../../../oc_logger/include',
-		'#extlibs/gtest/gtest-1.7.0/include'
+		gtest_dir + '/include'
 		])
 
 stacktest_env.AppendUnique(CPPFLAGS = ['-pthread', '-Wl,-pthread'])
 stacktest_env.AppendUnique(LIBS = ['-lpthread'])
-stacktest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-stacktest_env.AppendUnique(LIBPATH = [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
+stacktest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
+				     ,gtest_dir + '/lib/.libs'])
 stacktest_env.PrependUnique(LIBS = ['m',
                                     'octbstack',
                                     'ocsrm',
