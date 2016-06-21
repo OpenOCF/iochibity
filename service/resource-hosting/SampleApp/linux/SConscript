@@ -48,11 +48,11 @@ if 'rt' in resourcehosting_sample_env.get('LIBS'):
 ####################################################################
 # Source files and Targets
 ######################################################################
-sampleprovider = resourcehosting_sample_env.Program('sampleprovider', 'sampleProvider/SampleProvider.cpp')
-sampleconsumer = resourcehosting_sample_env.Program('sampleconsumer', 'sampleConsumer/SampleConsumer.cpp')
+sampleprovider = resourcehosting_sample_env.Program('provider', 'sample_provider/SampleProvider.cpp')
+sampleconsumer = resourcehosting_sample_env.Program('consumer', 'sample_consumer/SampleConsumer.cpp')
 
-sampleresourcehosting = resourcehosting_env.Program('sampleresourcehosting', 'sampleResourceHosting/main.cpp')
+sampleresourcehosting = resourcehosting_env.Program('resourcehosting', 'sample_resource_hosting/main.cpp')
 
-#resourcehosting_sample_env.InstallTarget(sampleprovider, 'sampleprovider')
-#resourcehosting_sample_env.InstallTarget(sampleconsumer, 'sampleconsumer')
-#resourcehosting_env.InstallTarget(sampleresourcehosting, 'sampleresourcehosting')
+resourcehosting_sample_env.InstallTarget(sampleprovider, 'sampleprovider')
+resourcehosting_sample_env.InstallTarget(sampleconsumer, 'sampleconsumer')
+#resourcehosting_env.InstallTarget(sampleresourcehosting, 'resourcehosting')
