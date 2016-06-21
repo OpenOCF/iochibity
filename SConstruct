@@ -64,8 +64,9 @@ SConscript(build_dir + 'resource/SConscript')
 # Build 'service' sub-project
 SConscript(build_dir + 'service/SConscript')
 
-if target_os not in ['arduino','ios', 'android']:
-	SConscript(build_dir + 'examples/OICMiddle/SConscript')
+#GAR FIXME: only make examples on demand
+# if target_os not in ['arduino','ios', 'android']:
+# 	SConscript(build_dir + 'examples/OICMiddle/SConscript')
 
 # Build "cloud" sub-project
 SConscript(build_dir + 'cloud/SConscript')
