@@ -364,10 +364,8 @@ class ResourceObjectHandlingRequestTest: public ResourceObjectTest
 public:
     EntityHandler handler;
 
-    static constexpr OCRequestHandle fakeRequestHandle =
-            reinterpret_cast<OCRequestHandle>(0x1234);
-    static constexpr OCResourceHandle fakeResourceHandle =
-            reinterpret_cast<OCResourceHandle>(0x4321);
+    OCRequestHandle fakeRequestHandle = (void *)0x1234;
+    OCResourceHandle fakeResourceHandle = (void *)0x4321;
 
 public:
     OCResourceRequest::Ptr createRequest(OCMethod method = OC_REST_GET, OCRepresentation ocRep =
@@ -432,10 +430,10 @@ TEST_F(ResourceObjectHandlingRequestTest, ReturnErrorCodeWhenSendResponseFailed)
 TEST_F(ResourceObjectHandlingRequestTest, SendResponseWithSameHandlesPassedByRequest)
 {
     mocks.ExpectCallFunc(OCPlatform::sendResponse).Match(
-            [](const shared_ptr<OCResourceResponse> response)
+            [this](const shared_ptr<OCResourceResponse> response)
             {
-                return response->getRequestHandle() == fakeRequestHandle &&
-                        response->getResourceHandle() == fakeResourceHandle;
+                return response->getRequestHandle() == this->fakeRequestHandle &&
+                        response->getResourceHandle() == this->fakeResourceHandle;
             }
     ).Return(OC_STACK_OK);
 
