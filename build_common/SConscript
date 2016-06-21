@@ -325,13 +325,8 @@ env['ROOT_DIR']=env.GetLaunchDir()+'/..'
 
 debug = ARGUMENTS.get('debug', 0)
 # if int(debug) and debug > 2:
-<<<<<<< HEAD
-    # print "ENV:"
-    # print env.Dump()
-=======
 #     print "ENV:"
 #     print env.Dump()
->>>>>>> b09a5950f2cd91b5e3410977198c75f936710082
 
 Export('env')
 
