@@ -36,27 +36,30 @@ if env.get('LOGGING'):
 lib_env = env.Clone()
 SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
 
+target_os = env.get('TARGET_OS')
+
 ######################################################################
 #unit test setting
 ######################################################################
-src_dir = lib_env.get('SRC_DIR')
-gtest_dir = src_dir + '/extlibs/gtest/gtest-1.7.0'
+# src_dir = lib_env.get('SRC_DIR')
+# gtest_dir = src_dir + '/extlibs/gtest/' + target_os
+home = lib_env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 hosting_test_env = lib_env.Clone()
-target_os = env.get('TARGET_OS')
 
 ######################################################################
 # Build flags
 ######################################################################
-GTest = File(gtest_dir + '/lib/.libs/libgtest.a')
-GTest_Main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
+# GTest = File(gtest_dir + '/lib/.libs/libgtest.a')
+# GTest_Main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
 
 #hosting_test_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 hosting_test_env.AppendUnique(LIBPATH = [lib_env.get('BUILD_DIR')])
 hosting_test_env.AppendUnique(LIBS = [
 	'resource_hosting', 'rcs_server', 'rcs_client','rcs_common',
 	'oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'coap',
-	GTest_Main, GTest])
+	'gtest_main', 'gtest'])
 
 if target_os not in ['windows', 'winrt']:
     hosting_test_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-fmessage-length=0'])

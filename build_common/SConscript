@@ -5,6 +5,10 @@
 import os
 import platform
 
+from os.path import expanduser
+home = expanduser("~")
+
+
 # Map of host os and allowed target os (host: allowed target os)
 host_target_map = {
 		'linux': ['linux', 'android', 'arduino', 'yocto', 'tizen'],
@@ -142,6 +146,8 @@ else:
 			)
 Help(help_vars.GenerateHelpText(env))
 
+env['HOME'] = home
+
 tc_set_msg = '''
 ************************************ Warning **********************************
 *   Enviornment variable TC_PREFIX/TC_PATH is set. It will change the default *
@@ -208,7 +214,7 @@ def __set_dir(env, dir):
 		Exit(1)
 
 	env.Replace(SRC_DIR = dir)
-	print "SRC_DIR: ", env.Dump('SRC_DIR')
+	# print "SRC_DIR: ", env.Dump('SRC_DIR')
 
 	if env.get('RELEASE'):
 		build_dir = dir + '/out/' + target_os + '/' + target_arch + '/release/'
@@ -219,7 +225,7 @@ def __set_dir(env, dir):
 	env.VariantDir(build_dir, dir, duplicate=0)
 
 	env.Replace(BUILD_DIR = build_dir)
-	print "BUILD_DIR: ", env.Dump('BUILD_DIR')
+	# print "BUILD_DIR: ", env.Dump('BUILD_DIR')
 	# NB: the build_dir tree has NOT yet been written to disk!
 
 def __src_to_obj(env, src, home = ''):
@@ -296,9 +302,9 @@ env.SetDir(env.GetLaunchDir())
 env['ROOT_DIR']=env.GetLaunchDir()+'/..'
 
 debug = ARGUMENTS.get('debug', 0)
-if int(debug) and debug > 2:
-    print "ENV:"
-    print env.Dump()
+# if int(debug) and debug > 2:
+#     print "ENV:"
+#     print env.Dump()
 
 Export('env')
 

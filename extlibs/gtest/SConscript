@@ -11,10 +11,17 @@ Import('env')
 target_os = env.get('TARGET_OS')
 src_dir = env.get('SRC_DIR')
 
+home = env.get('HOME')
+
 targets_need_gtest = ['darwin','linux']
-gtest_dir      = src_dir + '/extlibs/gtest/gtest-1.7.0'
-gtest_zip_file = src_dir + '/extlibs/gtest/gtest-1.7.0.zip'
+# gtest_dir      = src_dir + '/extlibs/gtest/' + target_os
+gtest_dir      = home + '/.iotivity.d/gtest-1.7.0'
+# gtest_zip_file = src_dir + '/extlibs/gtest/gtest-1.7.0.zip'
+gtest_zip_file = home + '/.iotivity.d/gtest-1.7.0.zip'
 gtest_url      = 'https://googletest.googlecode.com/files/gtest-1.7.0.zip'
+
+print "gtest_dir", gtest_dir
+print "gtest_zip_file", gtest_zip_file
 
 if target_os in targets_need_gtest:
 	print '*** Checking for installation of google unit test 1.7.0 ***'
@@ -39,7 +46,9 @@ if target_os in ['darwin']:
 			if env.get('CROSS_COMPILE'):
 				env.Configure(gtest_dir, './configure --host=' + env['CROSS_COMPILE'])
 			else:
-			        env.Replace(CFLAGS = env['SYS_VERSION'])
+				minver = '-mmacosx-version-min=' + env['SYS_VERSION']
+				print "MINVER:", minver
+			        env.Replace(CPPFLAGS = minver)
 				env.Configure(gtest_dir,  './configure')
 
 			# Run make on gtest

@@ -29,10 +29,10 @@ SConscript('build_common/SConscript')
 
 Import('env')
 
-if env.get('VERBOSE'):
-    print "ENV:"
-    print env.Dump()
-    print "START"
+# if env.get('VERBOSE'):
+#     print "ENV:"
+#     print env.Dump()
+#     print "START"
 
 if os.environ.get('TERM') != None:
 	env['ENV']['TERM'] = os.environ['TERM']
