@@ -158,7 +158,7 @@ TEST_F(PrimitiveResourceTest, ResponseStatementHasSameValuesWithOCRepresentation
     constexpr int value{ 1999 };
 
     mocks.OnCall(fakeResource, FakeOCResource::get).Do(
-            [](const std::string&, const std::string&, const OC::QueryParamsMap&, OC::GetCallback cb)
+            [&value](const std::string&, const std::string&, const OC::QueryParamsMap&, OC::GetCallback cb)
             {
                 OC::OCRepresentation ocRep;
                 ocRep[KEY] = value;
