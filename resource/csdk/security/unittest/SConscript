@@ -132,7 +132,7 @@ if env.get('TEST') == '1':
 		    srmtest_env.AppendENVPath('DYLD_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
 		    srmtest_env.AppendENVPath('DYLD_FALLBACK_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
 		elif target_os == 'linux':
-		    srmtest_env.AppendENVPath(ld_path, [out_dir])
-		    srmtest_env.AppendENVPath(ld_path, [gtest_dir + '/lib/.libs'])
+		    srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+		    srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
 		ut = srmtest_env.Command ('ut', None, out_dir + '/resource/csdk/security/unittest/unittest')
 		AlwaysBuild ('ut')
