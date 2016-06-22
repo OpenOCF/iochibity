@@ -129,7 +129,7 @@ ca_common_src = [
 env.AppendUnique(CA_SRC = ca_common_src)
 
 if 'ALL' in ca_transport:
-		if env('WITH_GDBUS')
+		if env('WITH_GDBUS'):
 		    transports = [ 'ip_adapter', 'bt_edr_adapter', 'bt_le_adapter']
 		else: # Edison uses dbus-glib
 		    transports = [ 'ip_adapter', 'bt_edr_adapter']
