@@ -29,7 +29,7 @@ if 'ALL' in transport:
 	if with_tcp == True:
 			env.AppendUnique(CPPDEFINES = ['TCP_ADAPTER'])
 	if target_os == 'linux':
-		if env.get('WITH_GDBUS')
+		if env.get('WITH_GDBUS'):
 		    env.AppendUnique(CPPDEFINES = ['IP_ADAPTER','NO_EDR_ADAPTER','LE_ADAPTER'])
 		else:  # Edison uses dbus-glib, gdbus-codegen unavail
 		    print "**** WARNING: host uses dbus-glib, GDBus required (for gdbus-codegen)"
