@@ -55,25 +55,32 @@ if target_os == 'arduino':
 # be relevant to build_dir.
 build_dir = env.get('BUILD_DIR')
 
+#GAR default: build the kernel
 # Build 'resource' sub-project
 SConscript(build_dir + 'resource/SConscript')
 
-# Build 'service' sub-project
-SConscript(build_dir + 'service/SConscript')
+#GAR FIXME: only build services on demand
+# # Build 'service' sub-project
+# SConscript(build_dir + 'service/SConscript')
 
 #GAR FIXME: only make examples on demand
 # if target_os not in ['arduino','ios', 'android']:
 # 	SConscript(build_dir + 'examples/OICMiddle/SConscript')
 
-# Build "cloud" sub-project
-SConscript(build_dir + 'cloud/SConscript')
+#GAR FIXME: only build cloud on demand
+# # Build "cloud" sub-project
+# SConscript(build_dir + 'cloud/SConscript')
 
-# Build "plugin interface" sub-project
-SConscript(build_dir + 'plugins/SConscript')
+#GAR FIXME: only on demand
+# # Build "plugin interface" sub-project
+# SConscript(build_dir + 'plugins/SConscript')
 
+#GAR: only build the Java SDK on demand:
 if env.get('BUILD_JAVA') == 'ON' or target_os == 'android':
 	if env.get('JAVA_HOME') != None:
 		SConscript(build_dir + 'java/SConscript')
+
+#GAR FIXME: only build the Android SDK on demand
 
 # Append targets information to the help information, to see help info, execute command line:
 #     $ scon [options] -h
@@ -83,6 +90,7 @@ env.PrintTargets()
 if target_os == 'arduino':
 	env.UploadHelp()
 
-# to install the generated pc file into custome prefix location
-env.UserInstallTargetPCFile('iotivity.pc', 'iotivity.pc')
+#GAR FIXME
+# # to install the generated pc file into custome prefix location
+# env.UserInstallTargetPCFile('iotivity.pc', 'iotivity.pc')
 
