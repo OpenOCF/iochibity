@@ -6,6 +6,7 @@ import os, subprocess, struct
 import urllib2, urlparse
 import SCons.Errors
 import shutil
+import build.utils
 
 Import('env')
 
@@ -42,7 +43,7 @@ if target_os == 'android':
 		if not os.path.exists(androidlib_dir):
 			# If the zip file is not already present, download it
 			if not os.path.exists(androidlib_zip_file):
-				androidlib_zip = env.Download(androidlib_zip_file, androidlib_url)
+				androidlib_zip = build.utils.download(androidlib_zip_file, androidlib_url)
 			else:
 				androidlib_zip = androidlib_zip_file
 

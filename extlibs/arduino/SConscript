@@ -7,6 +7,7 @@ import os, subprocess, struct
 import urllib2, urlparse
 import SCons.Errors
 import shutil
+import build.utils
 
 Import('env')
 
@@ -52,7 +53,7 @@ if target_os == 'arduino':
 
 			# If the zip file is not already present, download it
 			if not os.path.exists(arduinolib_zip_file):
-				arduinolib_zip = env.Download(arduinolib_zip_file, arduinolib_url)
+				arduinolib_zip = build.utils.download(arduinolib_zip_file, arduinolib_url)
 			else:
 				arduinolib_zip = arduinolib_zip_file
 
@@ -77,7 +78,7 @@ if target_os == 'arduino':
 			os.mkdir(timelib_dir)
 			os.chdir(timelib_dir)
 			if not os.path.exists(timelib_zip_file):
-				timelib_zip = env.Download(timelib_zip_file, timelib_url)
+				timelib_zip = build.utils.download(timelib_zip_file, timelib_url)
 			else:
 				timelib_zip = timelib_zip_file
 
@@ -109,7 +110,7 @@ if target_os == 'arduino':
 			redbearlib_zip_file    = src_dir + '/extlibs/arduino/25643e7b1b7da3740406325a471e3faa4b948747.zip'
 			redbearlib_url         = 'https://github.com/RedBearLab/nRF8001/archive/25643e7b1b7da3740406325a471e3faa4b948747.zip'
 			if not os.path.exists(redbearlib_zip_file):
-				redbearlib_zip = env.Download(redbearlib_zip_file, redbearlib_url)
+				redbearlib_zip = build.utils.download(redbearlib_zip_file, redbearlib_url)
 			else:
 				redbearlib_zip = redbearlib_zip_file
 
@@ -146,7 +147,7 @@ if target_os == 'arduino':
 			nordiclib_zip_file    = src_dir + '/extlibs/arduino/ble-sdk-arduino-0.9.5.beta.zip'
 		        nordiclib_url         = 'https://github.com/NordicSemiconductor/ble-sdk-arduino/archive/0.9.5.beta.zip'
 			if not os.path.exists(nordiclib_zip_file):
-				nordiclib_zip = env.Download(nordiclib_zip_file, nordiclib_url)
+				nordiclib_zip = build.utils.download(nordiclib_zip_file, nordiclib_url)
 			else:
 				nordiclib_zip = nordiclib_zip_file
 

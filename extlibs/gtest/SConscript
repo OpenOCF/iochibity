@@ -5,6 +5,7 @@
 ##
 
 import os
+import build.utils
 
 Import('env')
 
@@ -29,7 +30,7 @@ if target_os in targets_need_gtest:
 	if not os.path.exists(gtest_dir):
 		# If the gtest zip file is not already present, download it
 		if not os.path.exists(gtest_zip_file):
-			gtest_zip = env.Download(gtest_zip_file, gtest_url)
+			gtest_zip = build.utils.download(gtest_zip_file, gtest_url)
 		else:
 			gtest_zip = gtest_zip_file
 

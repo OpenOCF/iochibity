@@ -105,23 +105,6 @@ def __configure(env, cwd, cmd) :
 	if handle.wait() <> 0 :
 		raise SCons.Errors.BuildError( "Run configuring script [%s]" % (cmd) )
 
-# Download from URL 'url', will save as 'target'
-def __download(ienv, target, url) :
-	if os.path.exists(target) :
-		return target
-
-	try :
-		print "Download %s from %s" % (target, url)
-		print "Downloading ..."
-		stream = urllib2.urlopen(url)
-		file = open(target, 'wb')
-		file.write(stream.read())
-		file.close()
-		print "Download %s from %s complete" % (target, url)
-		return target
-	except Exception, e :
-		raise SCons.Errors.StopError( '%s [%s]' % (e, url) )
-
 # Install header file(s) to <src_dir>/deps/<target_os>/include
 def __install_head_file(ienv, file):
 		return ienv.Install(os.path.join(env.get('SRC_DIR'), 'dep', target_os, target_arch, 'usr', 'include'), file)
@@ -146,7 +129,6 @@ if with_ra_ibb:
 
 env.AddMethod(__prepare_lib, "PrepareLib")
 env.AddMethod(__configure, "Configure")
-env.AddMethod(__download, "Download")
 env.AddMethod(__install_head_file, "InstallHeadFile")
 env.AddMethod(__install_lib, "InstallLib")
 

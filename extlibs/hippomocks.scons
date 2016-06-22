@@ -25,6 +25,7 @@
 ##
 
 import os, sys
+import build.utils
 
 Import('env')
 
@@ -32,13 +33,10 @@ target_os = env.get('TARGET_OS')
 src_dir = env.get('SRC_DIR')
 
 # Only verify/install on linux
-if target_os in ['darwin', 'linux']:
+if target_os == 'linux':
 	print '*** Checking for installation of hippomocks ***'
 
-	if target_os == 'linux':
-	   hippomocks_sha      = '8e210c5808d490b26fff69151c801fa28d291fcb'
-	elif target_os == 'darwin':
-	   hippomocks_sha      = '2f40aa11e31499432283b67f9d3449a3cd7b9c4d'
+	hippomocks_sha      = '8e210c5808d490b26fff69151c801fa28d291fcb'
 	hippomocks_dir_src  = src_dir + '/extlibs/hippomocks-' + hippomocks_sha
 	hippomocks_dir_dest = src_dir + '/extlibs/hippomocks-master'
 	hippomocks_zip_file = src_dir + '/extlibs/hippomocks-' + hippomocks_sha + '.zip'
@@ -47,7 +45,7 @@ if target_os in ['darwin', 'linux']:
 	if not os.path.exists(hippomocks_dir_dest):
 		# If the hippomocks zip file is not already present, download it
 		if not os.path.exists(hippomocks_zip_file):
-			hippomocks_zip = env.Download(hippomocks_zip_file, hippomocks_url)
+			hippomocks_zip = build.utils.download(hippomocks_zip_file, hippomocks_url)
 		else:
 			hippomocks_zip = hippomocks_zip_file
 

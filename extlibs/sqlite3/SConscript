@@ -4,6 +4,7 @@
 
 import os
 import shutil
+import build.utils
 
 Import('env')
 sqlite_env = env.Clone()
@@ -11,7 +12,7 @@ sqlite_env = env.Clone()
 target_os = sqlite_env.get('TARGET_OS')
 src_dir = sqlite_env.get('SRC_DIR')
 
-targets_need_sqlite = ['darwin', 'linux', 'android', 'tizen']
+targets_need_sqlite = ['linux', 'android', 'tizen']
 sqlite_dir      = src_dir + '/extlibs/sqlite3/'
 sqlite_build_dir      = src_dir + '/extlibs/sqlite3/sqlite-amalgamation-3081101/'
 sqlite_zip_file = src_dir + '/extlibs/sqlite3/sqlite-amalgamation-3081101.zip'
@@ -24,7 +25,7 @@ if target_os in targets_need_sqlite:
 
 	    # If the zip file is not already present, download it
 		if not os.path.exists(sqlite_zip_file):
-			sqlite_zip = sqlite_env.Download(sqlite_zip_file, sqlite_url)
+			sqlite_zip = build.utils.download(sqlite_zip_file, sqlite_url)
 		else:
 			sqlite_zip = sqlite_zip_file
 

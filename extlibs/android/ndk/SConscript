@@ -1,4 +1,5 @@
 import os, string, sys, subprocess, struct
+import build.utils
 
 Import('env')
 
@@ -22,16 +23,16 @@ if not os.path.exists(path):
 	if host_os == 'linux2' :
 		archType = 8 * struct.calcsize("P")
 		if archType == 64:
-			env.Download('android-ndk-r10d.bin', 'http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin')
+			build.utils.download('android-ndk-r10d.bin', 'http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin')
 		else:
-			env.Download('android-ndk-r10d.bin', 'http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86.bin')
+			build.utils.download('android-ndk-r10d.bin', 'http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86.bin')
 
 		os.system("chmod a+x android-ndk-r10d.bin")
 		os.system("./android-ndk-r10d.bin")
 	else:
 		if target_arch in ['x86_64']:
-			env.Download('android-ndk-r10d', 'http://dl.google.com/android/ndk/android-ndk-r10d-windows-x86_64.exe')
+			build.utils.download('android-ndk-r10d', 'http://dl.google.com/android/ndk/android-ndk-r10d-windows-x86_64.exe')
 		if target_arch in ['x86']:
-			env.Download('android-ndk-r10d', 'http://dl.google.com/android/ndk/android-ndk-r10d-windows-x86.exe')
+			build.utils.download('android-ndk-r10d', 'http://dl.google.com/android/ndk/android-ndk-r10d-windows-x86.exe')
 
 
