@@ -192,7 +192,11 @@ if not env.get('RELEASE'):
 ######################################################################
 home        = os.environ['HOME']
 iotcfg_dir  = os.path.join(home, '.iotivity.d')
-gradle_home = os.environ['GRADLE_HOME']
+try:
+    gradle_home = os.environ['GRADLE_HOME']
+except:
+    print "GRADLE_HOME not set"
+    gradle_home = 0
 
 # print "GRADLE HOME: ", gradle_home
 bindir = '/bin'
@@ -237,7 +241,7 @@ if env_conf.CheckProg('gdbus-codegen'):
 else:
         print 'GDBus is required but gdbus-codegen not found.'
         print '(maybe your system uses dbus-glib instead?)'
-	Exit(1)
+	print 'BLE support will be disabled.'
 if env_conf.CheckFunc('clock_gettime'):
 	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
 if env_conf.CheckFunc('gettimeofday'):
