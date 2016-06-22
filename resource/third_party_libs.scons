@@ -32,7 +32,6 @@ target_os = env.get('TARGET_OS')
 target_arch = env.get('TARGET_ARCH')
 src_dir = env.get('SRC_DIR')
 
-
 ######################################################################
 # Check dependent packages (Linux only)
 ######################################################################
@@ -41,10 +40,11 @@ if target_os in ['darwin', 'linux']:
 		if not target_arch == platform.machine():
 			print '''
 *********************************** Warning ***********************************
-* You are trying cross build, please make sure (%s) version libraries are     *
-* installed!                                                                  *
+* host arch:    {0}
+* target arch:  {1}
+* This looks like a cross build, please make sure {1} libraries are installed!
 *******************************************************************************
-''' % target_arch
+'''.format(platform.machine(), target_arch)
 
 		conf = Configure(lib_env)
 		conf.Finish()
@@ -70,4 +70,3 @@ if target_os == 'android':
 
 elif target_os == 'ios':
 	lib_env.AppendUnique(FRAMEWORKS = ['boost'])
-
