@@ -3,9 +3,18 @@
 #
 ##
 import os
+import platform
+import commands
+from distutils.version import StrictVersion
+
 Import('env')
 
-print "Reading darwin configuration script"
+target_arch = env.get('TARGET_ARCH')
+target_os = env.get('TARGET_OS')
+
+tc_path=commands.getoutput('xcode-select -p')
+
+tc_sdks=commands.getoutput('xcodebuild -showsdks')
 
 #Find the SDK's that are installed
 sdks=[]

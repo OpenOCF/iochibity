@@ -24,24 +24,28 @@ Import('env')
 
 src_dir = env.get('SRC_DIR')
 
-cborDir = os.path.join(src_dir, 'extlibs','tinycbor','tinycbor')
+target_os = env.get('TARGET_OS')
+target_arch = env.get('TARGET_ARCH')
 
-if not os.path.exists(cborDir):
+home = env.get('HOME')
+cbor_dir = home + '/.iotivity.d/' + target_os + '/' + target_arch + '/tinycbor'
+
+if not os.path.exists(cbor_dir):
     print '''
 *********************************** Error: ****************************************
 * Please download cbor using the following command:                               *
-*     $ git clone https://github.com/01org/tinycbor.git extlibs/tinycbor/tinycbor *
+*     $ git clone https://github.com/01org/tinycbor.git {}/.iotivity.d/{}/{}/tinycbor *
 ***********************************************************************************
-'''
+'''.format(home, target_os, target_arch)
     Exit(1)
 
 cbor_src = [
-    os.path.join(cborDir,'src/cborparser.c'),
-    os.path.join(cborDir,'src/cborencoder.c'),
-    os.path.join(cborDir,'src/cborerrorstrings.c'),
+    os.path.join(cbor_dir,'src/cborparser.c'),
+    os.path.join(cbor_dir,'src/cborencoder.c'),
+    os.path.join(cbor_dir,'src/cborerrorstrings.c'),
     ]
 
 env['cbor_files'] = cbor_src
-env.AppendUnique(CPPPATH  = [os.path.join(cborDir, 'src')])
+env.AppendUnique(CPPPATH  = [os.path.join(cbor_dir, 'src')])
 
 

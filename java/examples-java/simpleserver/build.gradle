@@ -1,1 +1,5 @@
-
+jar {
+    manifest {
+        attributes("Main-Class": "org.iotivity.base.examples.SimpleServer")
+    }
+}

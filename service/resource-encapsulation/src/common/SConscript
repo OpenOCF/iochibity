@@ -52,37 +52,11 @@ rcs_common_env.AppendUnique(CPPPATH = [
 
 rcs_common_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 
-if target_os not in ['windows', 'winrt']:
-    rcs_common_env.AppendUnique(CXXFLAGS = ['-Wall'])
-    if target_os != 'android':
-        rcs_common_env.AppendUnique(CXXFLAGS = ['-pthread'])
-        rcs_common_env.AppendUnique(LIBS = ['pthread'])
-
-if target_os not in ['darwin', 'ios', 'windows', 'winrt']:
-    rcs_common_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
-
 if target_os == 'android':
     rcs_common_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
     rcs_common_env.PrependUnique(LIBS = ['gnustl_shared', 'log'])
 
 rcs_common_env.AppendUnique(LIBS = ['dl', 'oc'])
-
-if not release:
-    if target_os != 'darwin':
-        rcs_common_env.AppendUnique(CXXFLAGS = ['--coverage'])
-        rcs_common_env.PrependUnique(LIBS = ['gcov'])
-    else:
-        # no -lgcov for os x
-	rcs_common_env.AppendUnique(CPPFLAGS = ['-fprofile-arcs', '-ftest-coverage'])
-	rcs_common_env.PrependUnique(LIBS = ['clang_rt.profile_osx'])
-
-	import subprocess
-	p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	out, err = p.communicate()
-	libsline = out.splitlines()[1]
-	clanglibs = libsline.split("libraries: =")[1]
-
-	rcs_common_env.PrependUnique(LIBPATH = [clanglibs + '/lib/darwin/'])
 
 ######################################################################
 # Source files and Targets

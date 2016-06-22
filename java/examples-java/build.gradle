@@ -19,4 +19,14 @@ allprojects {
     dependencies {
         compile fileTree(dir: "../../iotivity-$TARGET_OS/build/libs/", include: '*.jar')
     }
+    sourceSets {
+        main {
+            java {
+	    	 output.classesDir file('build/' + project.TARGET_OS)
+	    }
+        }
+    }
+    jar {
+        destinationDir file('build/' + project.TARGET_OS)
+    }
 }

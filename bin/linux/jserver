@@ -1,0 +1,9 @@
+#! /bin/sh
+
+set -x
+
+IOTIVITY_JAR=./java/iotivity-linux/build/libs/iotivity-darwin.jar
+
+java -cp ./java/examples-java/simpleserver/build/libs/simpleserver.jar:${IOTIVITY_JAR} \
+     -Djava.library.path=$(pwd)/out/linux/x86_64/release/ \
+     org.iotivity.base.examples.SimpleServer

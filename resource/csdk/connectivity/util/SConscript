@@ -19,13 +19,13 @@ src_dir = os.path.join(root_dir, 'util', 'src')
 env.AppendUnique(CA_SRC = [os.path.join('./../util/src/cautilinterface.c')])
 
 if target_os == 'android':
-	if (('BLE' in ca_transport) or ('ALL' in ca_transport)):
-			env.AppendUnique(CA_SRC = [
-			os.path.join(src_dir, 'camanager', 'android', 'caleconnectionmanager.c'),
-			os.path.join(src_dir, 'camanager', 'android', 'caleautoconnector.c'),
-			os.path.join(src_dir, 'camanager', 'android', 'camanagerleutil.c'),
-			os.path.join(src_dir, 'camanager', 'android', 'camanagerdevice.c')])
+    if (('BLE' in ca_transport) or ('ALL' in ca_transport)):
+        env.AppendUnique(CA_SRC = [
+			os.path.join(src_dir, 'camanager', ca_os, 'caleconnectionmanager.c'),
+			os.path.join(src_dir, 'camanager', ca_os, 'caleautoconnector.c'),
+			os.path.join(src_dir, 'camanager', ca_os, 'camanagerleutil.c'),
+			os.path.join(src_dir, 'camanager', ca_os, 'camanagerdevice.c')])
 
-	if (('BT' in ca_transport) or ('ALL' in ca_transport)):
+        if (('BT' in ca_transport) or ('ALL' in ca_transport)):
 			env.AppendUnique(CA_SRC = [
-			os.path.join(src_dir, 'btpairing' ,'android', 'cabtpairing.c')])
+			os.path.join(src_dir, 'btpairing' ,ca_os, 'cabtpairing.c')])

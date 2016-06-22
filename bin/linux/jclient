@@ -2,10 +2,10 @@
 
 set -x
 
-IOTIVITY_JAR=./java/iotivity-darwin/build/libs/iotivity-darwin.jar
+IOTIVITY_JAR=./java/iotivity-linux/build/libs/iotivity-linux.jar
 
-java -cp ./java/examples-java/simpleclient/build/libs/simpleclient.jar:${IOTIVITY_JAR} \
-     -Djava.library.path=$(pwd)/out/darwin/x86_64/release/ \
+java -cp ./java/examples-java/simpleclient/build/linux/simpleclient.jar:${IOTIVITY_JAR} \
+     -Djava.library.path=$(pwd)/out/linux/x86_64/release/ \
      org.iotivity.base.examples.SimpleClient
 
 

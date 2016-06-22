@@ -212,8 +212,7 @@ uint16_t CAGetAssignedPortNumber(CATransportAdapter_t adapter, CATransportFlags_
     return 0;
 }
 
-#if defined(__ANDROID__) || defined(__JAVA__)
-#ifdef __ANDROID__
+#ifdef __ANDROID__   //GAR FIXME:  non-android java support
 /**
  * initialize client connection manager
  * @param[in]   env                   JNI interface pointer.
@@ -242,7 +241,7 @@ CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm, jobject context)
 #endif
     return res;
 }
-#else
+
 /**
  * initialize client connection manager
  * @param[in]   env                   JNI interface pointer.
@@ -270,8 +269,6 @@ CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm)
 #endif
     return res;
 }
-
-#endif
 
 /**
  * terminate client connection manager

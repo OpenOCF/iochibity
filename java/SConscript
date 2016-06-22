@@ -66,6 +66,12 @@ def ensure_libs(target, source, env):
 
 SConscript('jni/SConscript')	#FIXME: do this separately from Java compilation
 
+#SConscript('common/SConscript')
+
+#SConscript('iotivity-' + target_os + '/SConscript')
+
+#SConscript('examples-java/SConscript')
+
 jdk_env = Environment(ENV=os.environ)
 jdk_env['BUILDERS']['Gradle'] = Builder(action = gradle_path
 			       + ' build -b'

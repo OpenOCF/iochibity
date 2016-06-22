@@ -7,9 +7,3 @@ jar {
 		   // "Created-By": "foobar")
     }
 }
-
-// sourceSets {
-//     main {
-// 	  output.classesDir 'buildout'
-//     }
-// }

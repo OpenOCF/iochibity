@@ -255,7 +255,9 @@ Java_org_iotivity_ca_CaInterface_caManagerTerminate(JNIEnv *env, jclass clazz)
 {
     LOGI("CaManager_terminate");
 
+#ifdef __ANDROID__		/*GAR FIXME  */
     CAUtilClientTerminate(env);
+#endif
 
     if (g_listenerObject)
     {
@@ -323,10 +325,13 @@ Java_org_iotivity_ca_CaInterface_caBtPairingInitialize(JNIEnv *env, jclass clazz
     LOGI("caBtPairingInitialize");
     (void)clazz;
 
+    /*GAR FIXME
     CAUtilClientInitialize(env, g_jvm);
 
     g_foundDeviceListenerObject = (*env)->NewGlobalRef(env, listener);
     CAUtilSetFoundDeviceListener(g_foundDeviceListenerObject);
+    */
+
 }
 #endif
 
@@ -347,7 +352,9 @@ Java_org_iotivity_ca_CaInterface_caBtPairingStartScan(JNIEnv *env, jclass clazz)
 {
     LOGI("caBtPairingStartScan");
     (void)clazz;
+    /*GAR FIXME
     CAUtilStartScan(env);
+    */
 }
 
 JNIEXPORT void JNICALL
@@ -355,7 +362,9 @@ Java_org_iotivity_ca_CaInterface_caBtPairingStopScan(JNIEnv *env, jclass clazz)
 {
     LOGI("caBtPairingStopScan");
     (void)clazz;
+    /*GAR FIXME
     CAUtilStopScan(env);
+    */
 }
 
 JNIEXPORT void JNICALL
@@ -363,5 +372,7 @@ Java_org_iotivity_ca_CaInterface_caBtPairingCreateBond(JNIEnv *env, jclass clazz
 {
     LOGI("caBtPairingCreateBond");
     (void)clazz;
+    /*GAR FIXME
     CAUtilCreateBond(env, device);
+    */
 }
