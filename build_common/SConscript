@@ -195,6 +195,8 @@ if not env.get('RELEASE'):
 ######################################################################
 env_conf = Configure(env)
 env_conf.CheckLib('uuid')
+if env_conf.CheckProg('gdbus-codegen'):
+	env_conf.env.AppendUnique(WITH_GDBUS = 1)
 if env_conf.CheckFunc('clock_gettime'):
 	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
 if env_conf.CheckFunc('gettimeofday'):
