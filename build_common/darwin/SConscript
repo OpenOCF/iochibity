@@ -46,26 +46,31 @@ if len(sdks) > 0:
 
 # SYS_VERSION build option
 
-help_vars = Variables()
-if env.get('BUILD_JAVA') == 'ON':
-    if not env.get('ANDROID_GRADLE'):
-        SConscript('../../extlibs/android/gradle/SConscript')
-        help_vars.Add(PathVariable('ANDROID_GRADLE', 'Android Gradle directory', os.path.join(env.get('SRC_DIR'), 'extlibs', 'android', 'gradle', 'gradle-2.2.1/bin/gradle')))
+# help_vars = Variables()
+# if env.get('BUILD_JAVA') == 'ON':
+#     if not env.get('GRADLE_HOME'):
+#         SConscript('../../extlibs/android/gradle/SConscript')
+# 	tools.configure_gradle
+#         help_vars.Add(PathVariable('GRADLE_HOME',
+# 				'GRADLE_HOME directory',
+# 				os.path.join(os.environ('HOME'),
+# 					'.iotivity.d',
+# 					'gradle-2.2.1')))
 
-    if env.get('ANDROID_GRADLE'):
-        android_gradle = env.get('ANDROID_GRADLE')
-    else:
-        print '''
-*************************************** Info **********************************
-*    Android Gradle path isn't set, the default will be used. You can set     *
-* environment variable ANDROID_GRADLE or add it in command line as:           *
-*      # scons ANDROID_GRADLE=<path to android GRADLE> ...                    *
-*******************************************************************************
-'''
-        android_gradle = os.path.join(env.get('SRC_DIR'), 'extlibs', 'android', 'gradle', 'gradle-2.2.1', 'bin', 'gradle')
+#     if env.get('GRADLE_HOME'):
+#         android_gradle = env.get('GRADLE_HOME')
+#     else:
+#         print '''
+# *************************************** Info **********************************
+# *    GRADLE_HOME isn't set, the default 
+# *    environment or add it in command line as:                                *
+# *    $ scons GRADLE_HOME=<path to gradle installation>                        *
+# *******************************************************************************
+# '''
+#         android_gradle = os.path.join(env.get('SRC_DIR'), 'extlibs', 'android', 'gradle', 'gradle-2.2.1', 'bin', 'gradle')
 
-help_vars.Update(env)
-Help(help_vars.GenerateHelpText(env))
+# help_vars.Update(env)
+# Help(help_vars.GenerateHelpText(env))
 
 
 # Set release/debug flags

@@ -106,7 +106,6 @@ help_vars.Add(EnumVariable('BUILD_SAMPLE', 'Build with sample', 'ON', allowed_va
 help_vars.AddVariables(('DEVICE_NAME', 'Network display name for device (For Arduino)', device_name, None, None),)
 help_vars.Add(PathVariable('ANDROID_NDK', 'Android NDK path', None, PathVariable.PathAccept))
 help_vars.Add(PathVariable('ANDROID_HOME', 'Android SDK path', None, PathVariable.PathAccept))
-help_vars.Add(PathVariable('ANDROID_GRADLE', 'Gradle binary file', None, PathVariable.PathIsFile))
 #ES_TARGET_ENROLLEE is for specifying what is our target enrollee (Arduino or rest of platforms which support Multicast)
 help_vars.Add(EnumVariable('ES_TARGET_ENROLLEE', 'Target Enrollee', 'arduino', allowed_values=('arduino', 'tizen', 'linux', 'darwin')))
 #ES_ROLE is for specifying the role (Enrollee or Mediator) for which scons is being executed
@@ -145,11 +144,9 @@ else:
 	env = Environment(variables = help_vars, tools = ['default', 'textfile'],
 			TARGET_ARCH = target_arch, TARGET_OS = target_os,
 			PREFIX = GetOption('prefix'),
-			LIB_INSTALL_DIR = ARGUMENTS.get('LIB_INSTALL_DIR') #for 64bit build
-			)
+			LIB_INSTALL_DIR = ARGUMENTS.get('LIB_INSTALL_DIR'), #for 64bit build
+			ENV = os.environ)
 Help(help_vars.GenerateHelpText(env))
-
-env['HOME'] = home
 
 tc_set_msg = '''
 ************************************ Warning **********************************
@@ -193,10 +190,54 @@ if not env.get('RELEASE'):
 ######################################################################
 # Autoconf-style Feature Tests
 ######################################################################
+home        = os.environ['HOME']
+iotcfg_dir  = os.path.join(home, '.iotivity.d')
+gradle_home = os.environ['GRADLE_HOME']
+
+# print "GRADLE HOME: ", gradle_home
+bindir = '/bin'
+if gradle_home:
+    env.AppendUnique(GRADLE_HOME = gradle_home)
+    env.PrependENVPath('PATH', gradle_home + bindir)
+
 env_conf = Configure(env)
 env_conf.CheckLib('uuid')
+
+if not env_conf.CheckProg('gradle'):
+	if gradle_home:
+	    print "$GRADLE_HOME is '{0}', but gradle not found in {1}".format(
+	    	  	       	  gradle_home, gradle_home + bindir)
+	else:
+	    print "gradle not found and GRADLE_HOME not set"
+	yn = raw_input('download and install gradle-2.2.1 to ~/.iotivity.d ? (Y/n):  ')
+	print "ANSWER:", yn
+	if yn == 'y':
+	    import build.utils
+	    tools = Environment(tools=['UnpackAll'])
+            gradle_zip_path = os.path.join(iotcfg_dir, 'gradle-2.2.1-all.zip')
+	    gradle_zip = build.utils.download(gradle_zip_path,
+					 'https://services.gradle.org/distributions/gradle-2.2.1-all.zip')
+	    if not os.path.exists(gradle_zip):
+	        print 'download failed, exiting'
+		exit(1)
+	    else:
+	        print 'download succeeded, unzipping', gradle_zip
+	    gradle_dir = tools.UnpackAll(gradle_home,
+					 gradle_zip)
+	    gdir = str(gradle_dir[0])
+	    print "GRADLE DIR:", gdir
+	    if not os.path.exists(gdir):
+	        print 'unzip failed at', gdir
+	    	exit(1)
+	else:
+	    exit(1)
+
 if env_conf.CheckProg('gdbus-codegen'):
 	env_conf.env.AppendUnique(WITH_GDBUS = 1)
+else:
+        print 'GDBus is required but gdbus-codegen not found.'
+        print '(maybe your system uses dbus-glib instead?)'
+	Exit(1)
 if env_conf.CheckFunc('clock_gettime'):
 	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
 if env_conf.CheckFunc('gettimeofday'):
@@ -206,6 +247,11 @@ if env_conf.CheckFunc('GetSystemTimeAsFileTime') or target_os == 'windows':
 	# We currently check for 'windows' as well, because the environment can
 	# sometimes get so polluted that CheckFunc ceases to work!
 	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETSYSTEMTIMEASFILETIME'])
+if env_conf.CheckCHeader('limits.h'):
+    env.Append(CPPDEFINES = ['HAS_LIMITS_H'])
+else:
+    print 'limit.h must be installed!'
+    Exit(1)
 env = env_conf.Finish()
 
 # If cross-compiling, honor environment settings for toolchain to avoid picking up native tools
@@ -312,6 +358,7 @@ Targets:\n    ''')
     $ scons [options] [target]
 ===============================================================================
 ''')
+
 
 env.AddMethod(__set_dir, 'SetDir')
 env.AddMethod(__print_targets, 'PrintTargets')

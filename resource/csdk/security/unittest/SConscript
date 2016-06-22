@@ -30,18 +30,10 @@ target_os = env.get('TARGET_OS')
 src_dir   = srmtest_env.get('SRC_DIR')
 build_dir = srmtest_env.get('BUILD_DIR')
 
-conf = Configure(srmtest_env)
-if conf.CheckCHeader('limits.h'):
-    srmtest_env.Append(CPPDEFINES = ['HAS_LIMITS_H'])
-else:
-    print 'limit.h must be installed!'
-    Exit(1)
-srmtest_env = conf.Finish()
-
 ######################################################################
 # Build flags
 ######################################################################
-home = srmtest_env.get('HOME')
+home = os.environ['HOME']
 gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 srmtest_env.PrependUnique(CPPPATH = [

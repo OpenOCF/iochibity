@@ -30,7 +30,7 @@ src_dir = timetest_env.get('SRC_DIR')
 ######################################################################
 # Build flags
 ######################################################################
-home = timetest_env.get('HOME')
+home = os.environ['HOME']
 gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 timetest_env.PrependUnique(CPPPATH = [

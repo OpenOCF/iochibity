@@ -27,7 +27,7 @@ src_dir = env.get('SRC_DIR')
 target_os = env.get('TARGET_OS')
 target_arch = env.get('TARGET_ARCH')
 
-home = env.get('HOME')
+home = os.environ['HOME']
 cbor_dir = home + '/.iotivity.d/' + target_os + '/' + target_arch + '/tinycbor'
 
 if not os.path.exists(cbor_dir):

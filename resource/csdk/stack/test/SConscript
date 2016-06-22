@@ -18,8 +18,6 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-print "Reading stack/test"
-
 Import('env')
 import os
 import os.path
@@ -30,7 +28,7 @@ src_dir = stacktest_env.get('SRC_DIR')
 ######################################################################
 # Build flags
 ######################################################################
-home = stacktest_env.get('HOME')
+home = os.environ['HOME']
 gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 stacktest_env.PrependUnique(CPPPATH = [

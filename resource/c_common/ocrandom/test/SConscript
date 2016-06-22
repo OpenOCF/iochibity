@@ -30,7 +30,7 @@ src_dir = randomtest_env.get('SRC_DIR')
 ######################################################################
 # Build flags
 ######################################################################
-home = randomtest_env.get('HOME')
+home = os.environ['HOME']
 gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 randomtest_env.PrependUnique(CPPPATH = [gtest_dir + '/include'
