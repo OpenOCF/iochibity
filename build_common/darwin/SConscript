@@ -46,33 +46,6 @@ if len(sdks) > 0:
 
 # SYS_VERSION build option
 
-# help_vars = Variables()
-# if env.get('BUILD_JAVA') == 'ON':
-#     if not env.get('GRADLE_HOME'):
-#         SConscript('../../extlibs/android/gradle/SConscript')
-# 	tools.configure_gradle
-#         help_vars.Add(PathVariable('GRADLE_HOME',
-# 				'GRADLE_HOME directory',
-# 				os.path.join(os.environ('HOME'),
-# 					'.iotivity.d',
-# 					'gradle-2.2.1')))
-
-#     if env.get('GRADLE_HOME'):
-#         android_gradle = env.get('GRADLE_HOME')
-#     else:
-#         print '''
-# *************************************** Info **********************************
-# *    GRADLE_HOME isn't set, the default 
-# *    environment or add it in command line as:                                *
-# *    $ scons GRADLE_HOME=<path to gradle installation>                        *
-# *******************************************************************************
-# '''
-#         android_gradle = os.path.join(env.get('SRC_DIR'), 'extlibs', 'android', 'gradle', 'gradle-2.2.1', 'bin', 'gradle')
-
-# help_vars.Update(env)
-# Help(help_vars.GenerateHelpText(env))
-
-
 # Set release/debug flags
 if env.get('RELEASE'):
 	env.AppendUnique(CPPFLAGS = ['-Os'])
