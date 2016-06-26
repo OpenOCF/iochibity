@@ -4,10 +4,10 @@
 ##
 import os
 import platform
+import build.utils
 
 from os.path import expanduser
 home = expanduser("~")
-
 
 # Map of host os and allowed target os (host: allowed target os)
 host_target_map = {
@@ -113,9 +113,6 @@ help_vars.Add(EnumVariable('ES_ROLE', 'Target build mode', 'mediator', allowed_v
 #ES_SOFT_MODE is for specifying MODE (Mode 1 : Enrollee with  Soft AP or Mode 2  : Mediator with Soft AP)
 help_vars.Add(EnumVariable('ES_SOFTAP_MODE', 'Target build mode', 'ENROLLEE_SOFTAP', allowed_values=('ENROLLEE_SOFTAP', 'MEDIATOR_SOFTAP')))
 
-help_vars.Add(EnumVariable('BUILD_JAVA', 'Build Java bindings', 'OFF', allowed_values=('ON', 'OFF')))
-help_vars.Add(PathVariable('JAVA_HOME', 'JDK directory', os.environ.get('JAVA_HOME'), PathVariable.PathAccept))
-
 AddOption('--prefix',
                   dest='prefix',
                   type='string',
@@ -192,71 +189,96 @@ if not env.get('RELEASE'):
 ######################################################################
 home        = os.environ['HOME']
 iotcfg_dir  = os.path.join(home, '.iotivity.d')
-try:
-    gradle_home = os.environ['GRADLE_HOME']
-except:
-    print "GRADLE_HOME not set"
-    gradle_home = 0
+# try:
+#     gradle_home = os.environ['GRADLE_HOME']
+# except:
+#     print "GRADLE_HOME not set"
+#     gradle_home = 0
 
-# print "GRADLE HOME: ", gradle_home
-bindir = '/bin'
-if gradle_home:
-    env.AppendUnique(GRADLE_HOME = gradle_home)
-    env.PrependENVPath('PATH', gradle_home + bindir)
+# # print "GRADLE HOME: ", gradle_home
+# bindir = '/bin'
+# if gradle_home:
+#     env.AppendUnique(GRADLE_HOME = gradle_home)
+#     env.PrependENVPath('PATH', gradle_home + bindir)
 
-env_conf = Configure(env)
-env_conf.CheckLib('uuid')
+env.Append(CPPFLAGS = [])
+env.Append(CPPFLAGS = [])
+features_env = build.utils.feature_tests()
+cppdefs   = {'CPPDEFINES': features_env['CPPDEFINES']}
+#cppflags  = {'CPPFLAGS': features_env['CPPFLAGS']}
+pthreadcflags  = {'PTHREAD_CFLAGS': features_env['PTHREAD_CFLAGS']}
+pthreadlibs   = {'PTHREAD_LIBS': features_env['PTHREAD_LIBS']}
+env.MergeFlags(cppdefs)
+env.MergeFlags(pthreadcflags)
+env.MergeFlags(pthreadlibs)
+#env.MergeFlags(cppflags)
+#print env['CPPDEFINES']
 
-if not env_conf.CheckProg('gradle'):
-	if gradle_home:
-	    print "$GRADLE_HOME is '{0}', but gradle not found in {1}".format(
-	    	  	       	  gradle_home, gradle_home + bindir)
-	else:
-	    print "gradle not found and GRADLE_HOME not set"
-	yn = raw_input('download and install gradle-2.2.1 to ~/.iotivity.d ? (Y/n):  ')
-	print "ANSWER:", yn
-	if yn == 'y':
-	    import build.utils
-	    tools = Environment(tools=['UnpackAll'])
-            gradle_zip_path = os.path.join(iotcfg_dir, 'gradle-2.2.1-all.zip')
-	    gradle_zip = build.utils.download(gradle_zip_path,
-					 'https://services.gradle.org/distributions/gradle-2.2.1-all.zip')
-	    if not os.path.exists(gradle_zip):
-	        print 'download failed, exiting'
-		exit(1)
-	    else:
-	        print 'download succeeded, unzipping', gradle_zip
-	    gradle_dir = tools.UnpackAll(gradle_home,
-					 gradle_zip)
-	    gdir = str(gradle_dir[0])
-	    print "GRADLE DIR:", gdir
-	    if not os.path.exists(gdir):
-	        print 'unzip failed at', gdir
-	    	exit(1)
-	else:
-	    exit(1)
+#print env.Dump()
 
-if env_conf.CheckProg('gdbus-codegen'):
-	env_conf.env.AppendUnique(WITH_GDBUS = 1)
-else:
-        print 'GDBus is required but gdbus-codegen not found.'
-        print '(maybe your system uses dbus-glib instead?)'
-	print 'BLE support will be disabled.'
-if env_conf.CheckFunc('clock_gettime'):
-	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
-if env_conf.CheckFunc('gettimeofday'):
-	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETTIMEOFDAY'])
-if env_conf.CheckFunc('GetSystemTimeAsFileTime') or target_os == 'windows':
-	# TODO: Remove target_os check.
-	# We currently check for 'windows' as well, because the environment can
-	# sometimes get so polluted that CheckFunc ceases to work!
-	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETSYSTEMTIMEASFILETIME'])
-if env_conf.CheckCHeader('limits.h'):
-    env.Append(CPPDEFINES = ['HAS_LIMITS_H'])
-else:
-    print 'limit.h must be installed!'
-    Exit(1)
-env = env_conf.Finish()
+# try:
+#     if env['CPPDEFINES']:
+#         newfeats = env['CPPDEFINES'] + features_env['CPPDEFINES']
+#     else:
+#         newfeats = features_env['CPPDEFINES']
+# except:
+#     newfeats = features_env['CPPDEFINES']
+
+# env.AppendUnique(CPPDEFINES = newfeats)
+
+# env_conf = Configure(env)
+# env_conf.CheckLib('uuid')
+
+# if not env_conf.CheckProg('gradle'):
+# 	if gradle_home:
+# 	    print "$GRADLE_HOME is '{0}', but gradle not found in {1}".format(
+# 	    	  	       	  gradle_home, gradle_home + bindir)
+# 	else:
+# 	    print "gradle not found and GRADLE_HOME not set"
+# 	yn = raw_input('download and install gradle-2.2.1 to ~/.iotivity.d ? (Y/n):  ')
+# 	print "ANSWER:", yn
+# 	if yn == 'y':
+# 	    import build.utils
+# 	    tools = Environment(tools=['UnpackAll'])
+#             gradle_zip_path = os.path.join(iotcfg_dir, 'gradle-2.2.1-all.zip')
+# 	    gradle_zip = build.utils.download(gradle_zip_path,
+# 					 'https://services.gradle.org/distributions/gradle-2.2.1-all.zip')
+# 	    if not os.path.exists(gradle_zip):
+# 	        print 'download failed, exiting'
+# 		exit(1)
+# 	    else:
+# 	        print 'download succeeded, unzipping', gradle_zip
+# 	    gradle_dir = tools.UnpackAll(gradle_home,
+# 					 gradle_zip)
+# 	    gdir = str(gradle_dir[0])
+# 	    print "GRADLE DIR:", gdir
+# 	    if not os.path.exists(gdir):
+# 	        print 'unzip failed at', gdir
+# 	    	exit(1)
+# 	else:
+# 	    exit(1)
+
+# if env_conf.CheckProg('gdbus-codegen'):
+# 	env_conf.env.AppendUnique(WITH_GDBUS = 1)
+# else:
+#         print 'GDBus is required but gdbus-codegen not found.'
+#         print '(maybe your system uses dbus-glib instead?)'
+# 	print 'BLE support will be disabled.'
+# if env_conf.CheckFunc('clock_gettime'):
+# 	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
+# if env_conf.CheckFunc('gettimeofday'):
+# 	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETTIMEOFDAY'])
+# if env_conf.CheckFunc('GetSystemTimeAsFileTime') or target_os == 'windows':
+# 	# TODO: Remove target_os check.
+# 	# We currently check for 'windows' as well, because the environment can
+# 	# sometimes get so polluted that CheckFunc ceases to work!
+# 	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETSYSTEMTIMEASFILETIME'])
+# if env_conf.CheckCHeader('limits.h'):
+#     env.Append(CPPDEFINES = ['HAS_LIMITS_H'])
+# else:
+#     print 'limit.h must be installed!'
+#     Exit(1)
+# env = env_conf.Finish()
 
 # If cross-compiling, honor environment settings for toolchain to avoid picking up native tools
 if os.environ.get('PKG_CONFIG') != None:
@@ -377,9 +399,9 @@ env.SetDir(env.GetLaunchDir())
 env['ROOT_DIR']=env.GetLaunchDir()+'/..'
 
 debug = ARGUMENTS.get('debug', 0)
-# if int(debug) and debug > 2:
-#     print "ENV:"
-#     print env.Dump()
+#if int(debug) and debug > 2:
+# print "ENV:"
+# print env.Dump()
 
 Export('env')
 
@@ -502,21 +524,21 @@ if env.GetOption('clean'):
 ######################################################################
 # Check for PThreads support
 ######################################################################
-import iotivityconfig
-from iotivityconfig import *
+# import iotivityconfig
+# from iotivityconfig import *
 
-conf = Configure(env,
-        custom_tests =
-        {
-            'CheckPThreadsSupport' : iotivityconfig.check_pthreads
-        } )
+# conf = Configure(env,
+#         custom_tests =
+#         {
+#             'CheckPThreadsSupport' : iotivityconfig.check_pthreads
+#         } )
 
-# Identify whether we have pthreads support, which is necessary for
-# threading and mutexes.  This will set the environment variable
-# POSIX_SUPPORTED, 1 if it is supported, 0 otherwise
-conf.CheckPThreadsSupport()
+# # Identify whether we have pthreads support, which is necessary for
+# # threading and mutexes.  This will set the environment variable
+# # POSIX_SUPPORTED, 1 if it is supported, 0 otherwise
+# conf.CheckPThreadsSupport()
 
-env = conf.Finish()
+# env = conf.Finish()
 ######################################################################
 
 env.SConscript('external_libs.scons')

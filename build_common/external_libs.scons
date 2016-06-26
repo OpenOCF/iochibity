@@ -34,84 +34,70 @@ if target_os == 'android':
 	if target_arch == 'armeabi-v7a-hard':
 		target_arch = 'armeabi-v7a'
 
-if target_os == 'darwin':
-	env.AppendUnique(CPPPATH = ['/usr/local/include'])
-	env.AppendUnique(LIBPATH = ['/usr/local/lib'])
+# # External library include files are in <src_dir>/deps/<target_os>/include
+# # the library binaries are in <src_dir>/deps/<target_os>/lib/<arch>
+# if target_os != 'darwin':
+#    env.AppendUnique(CPPPATH = [os.path.join(env.get('SRC_DIR'), 'deps', target_os, 'include')])
+#    env.AppendUnique(LIBPATH = [os.path.join(env.get('SRC_DIR'), 'deps', target_os, 'lib', target_arch)])
 
-if env.get('BUILD_JAVA') == 'ON' and target_os != 'android':
-	if env.get('JAVA_HOME') != None:
-                env.AppendUnique(CCFLAGS = ['-D__JAVA__'])
-	        env.AppendUnique(CPPPATH = [
-			env.get('JAVA_HOME') + '/include',
-			env.get('JAVA_HOME') + '/include/linux'
-		])
-	else:
-		print 'JAVA_HOME is not set. Java bindings will not be built.'
+# # Check whether a library exists, if not, notify user to install it or try to
+# # download the source code and build it
+# # @param libname - the name of the library try to prepare
+# # @param lib - the lib(.so, .a etc) to check (a library may include more then
+# #      one lib, e.g. boost, includes boost_thread, boost_system ...
+# # @param path - the directory of the library building script, if it's not set,
+# #			by default, it's <src_dir>/extlibs/<libname>/
+# # @param script - the building script, by default, it's 'SConscript'
+# #
+# def __prepare_lib(ienv, libname, lib = None, path = None, script = None):
+# 	p_env = ienv.Clone()
+# 	if p_env.GetOption('clean') or p_env.GetOption('help'):
+# 		return
 
-# External library include files are in <src_dir>/deps/<target_os>/include
-# the library binaries are in <src_dir>/deps/<target_os>/lib/<arch>
-if target_os != 'darwin':
-   env.AppendUnique(CPPPATH = [os.path.join(env.get('SRC_DIR'), 'deps', target_os, 'include')])
-   env.AppendUnique(LIBPATH = [os.path.join(env.get('SRC_DIR'), 'deps', target_os, 'lib', target_arch)])
+# 	conf = Configure(p_env)
 
-# Check whether a library exists, if not, notify user to install it or try to
-# download the source code and build it
-# @param libname - the name of the library try to prepare
-# @param lib - the lib(.so, .a etc) to check (a library may include more then
-#      one lib, e.g. boost, includes boost_thread, boost_system ...
-# @param path - the directory of the library building script, if it's not set,
-#			by default, it's <src_dir>/extlibs/<libname>/
-# @param script - the building script, by default, it's 'SConscript'
-#
-def __prepare_lib(ienv, libname, lib = None, path = None, script = None):
-	p_env = ienv.Clone()
-	if p_env.GetOption('clean') or p_env.GetOption('help'):
-		return
+# 	if not lib:
+# 		lib = libname
+# 	if not conf.CheckLib(lib):
+# 		if path:
+# 			dir = path
+# 		else:
+# 			dir = os.path.join(env.get('SRC_DIR'), 'extlibs', libname)
 
-	conf = Configure(p_env)
+# 		# Execute the script to download(if required) and build source code
+# 		if script:
+# 			st = os.path.join(dir, script)
+# 		else:
+# 			st = os.path.join(dir, 'SConscript')
 
-	if not lib:
-		lib = libname
-	if not conf.CheckLib(lib):
-		if path:
-			dir = path
-		else:
-			dir = os.path.join(env.get('SRC_DIR'), 'extlibs', libname)
+# 		if os.path.exists(st):
+# 			SConscript(st)
+# 		else:
+# 			if target_os in ['linux', 'darwin', 'tizen']:
+# 				print 'Don\'t find library(%s), please intall it, exit ...' % libname
+# 			else:
+# 				print 'Don\'t find library(%s) and don\'t find the process script (%s), exit ...' % (libname, st)
+# 			Exit(1)
 
-		# Execute the script to download(if required) and build source code
-		if script:
-			st = os.path.join(dir, script)
-		else:
-			st = os.path.join(dir, 'SConscript')
+# 	conf.Finish()
 
-		if os.path.exists(st):
-			SConscript(st)
-		else:
-			if target_os in ['linux', 'darwin', 'tizen']:
-				print 'Don\'t find library(%s), please intall it, exit ...' % libname
-			else:
-				print 'Don\'t find library(%s) and don\'t find the process script (%s), exit ...' % (libname, st)
-			Exit(1)
+# # Run configure command (usually it's done before build a library)
+# def __configure(env, cwd, cmd) :
+# 	print "Configuring using [%s/%s] ..." % (cwd, cmd)
+# 	# build it now (we need the shell, because some programs need it)
+# 	devnull = open(os.devnull, "wb")
+# 	handle  = subprocess.Popen(cmd, shell=True, cwd=cwd, stdout=devnull)
 
-	conf.Finish()
+# 	if handle.wait() <> 0 :
+# 		raise SCons.Errors.BuildError( "Run configuring script [%s]" % (cmd) )
 
-# Run configure command (usually it's done before build a library)
-def __configure(env, cwd, cmd) :
-	print "Configuring using [%s/%s] ..." % (cwd, cmd)
-	# build it now (we need the shell, because some programs need it)
-	devnull = open(os.devnull, "wb")
-	handle  = subprocess.Popen(cmd, shell=True, cwd=cwd, stdout=devnull)
+# # Install header file(s) to <src_dir>/deps/<target_os>/include
+# def __install_head_file(ienv, file):
+# 		return ienv.Install(os.path.join(env.get('SRC_DIR'), 'dep', target_os, target_arch, 'usr', 'include'), file)
 
-	if handle.wait() <> 0 :
-		raise SCons.Errors.BuildError( "Run configuring script [%s]" % (cmd) )
-
-# Install header file(s) to <src_dir>/deps/<target_os>/include
-def __install_head_file(ienv, file):
-		return ienv.Install(os.path.join(env.get('SRC_DIR'), 'dep', target_os, target_arch, 'usr', 'include'), file)
-
-# Install library binaries to <src_dir>/deps/<target_os>/lib/<arch>
-def __install_lib(ienv, lib):
-		return ienv.Install(os.path.join(env.get('SRC_DIR'), 'dep', target_os, target_arch, 'usr', 'lib'), lib)
+# # Install library binaries to <src_dir>/deps/<target_os>/lib/<arch>
+# def __install_lib(ienv, lib):
+# 		return ienv.Install(os.path.join(env.get('SRC_DIR'), 'dep', target_os, target_arch, 'usr', 'lib'), lib)
 
 # tinycbor build/fetch
 SConscript(os.path.join(env.get('SRC_DIR'), 'extlibs', 'tinycbor', 'SConscript'))
@@ -125,10 +111,10 @@ if with_ra_ibb:
 	SConscript(os.path.join(env.get('SRC_DIR'), 'extlibs', 'wksxmppxep', 'SConscript'))
 
 
-env.AddMethod(__prepare_lib, "PrepareLib")
-env.AddMethod(__configure, "Configure")
-env.AddMethod(__install_head_file, "InstallHeadFile")
-env.AddMethod(__install_lib, "InstallLib")
+# env.AddMethod(__prepare_lib, "PrepareLib")
+# env.AddMethod(__configure, "Configure")
+# env.AddMethod(__install_head_file, "InstallHeadFile")
+# env.AddMethod(__install_lib, "InstallLib")
 
 if env.get('SECURED') == '1':
 	SConscript(os.path.join(env.get('SRC_DIR'), 'extlibs', 'sqlite3', 'SConscript'))

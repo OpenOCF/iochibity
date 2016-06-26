@@ -18,11 +18,18 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+# prevent accidentally building all. to intentionally build all:
+# $ scons .
+Default(None)
+
 ##
 # The main build script
 #
 ##
 import os
+
+print "CL TARGETS: ", COMMAND_LINE_TARGETS
+print "BUILD_TARGETS is", map(str, BUILD_TARGETS)
 
 # Load common build config
 SConscript('build_common/SConscript')
@@ -74,11 +81,6 @@ SConscript(build_dir + 'resource/SConscript')
 #GAR FIXME: only on demand
 # # Build "plugin interface" sub-project
 # SConscript(build_dir + 'plugins/SConscript')
-
-#GAR: only build the Java SDK on demand:
-if env.get('BUILD_JAVA') == 'ON' or target_os == 'android':
-	if env.get('JAVA_HOME') != None:
-		SConscript(build_dir + 'java/SConscript')
 
 #GAR FIXME: only build the Android SDK on demand
 
