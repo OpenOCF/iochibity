@@ -40,7 +40,53 @@ The Java SDK compiles on Darwin, but it is not tested.  Of the example
 apps, only simpleclient and simpleserver have been ported, but I have
 not been able to get either running.
 
-== etc.
+== darwin status
+
+* all work has been done on El Capitan (10.11.5)
+* passes most of the tests (build with TEST=1), but valgrind crashes
+  on many stacktests and a few others.  This seems to be due to
+  problems Valgrind has on El Capitan.  At least some of the crashes
+  occur when pthread_join is called in OCStop.  So it looks like the
+  tests are passed but crashes occur on thread shutdown or sth.
+* I've built the stack and run a few of the test apps on OS X 10.11.5,
+  Ubuntu 14.04, Wind River Linux on a Dell 3298 gateway, and the Intel
+  Edison (latest version, June 2016).
+
+== java status
+
+The original build system carries out various java and android related
+tasks (like downloading gradle) even if the user has no intention of
+using either.  Furthermore the build system for these is far more
+complicated than it needs to be.  For example, the build code for
+compiling the Java bits involves a more or less opaque construction of
+a more or less complex gradle instruction, etc.  In fact the Java code
+can be compiled and jarred up with two simple commands.  You hardly
+even need a makefile.  Gradle may be necessary for Android, but not
+for Java.
+
+Therefore Java support has been removed from the main repo and
+migrated to a separate, independent API/SDK project at
+https://github.com/iotk/iotivity-java[iotivity-java].
+
+
+== build system status
+
+
+* android and java code has been removed and migrated to separate independent SDK projects
+* lots of clean up of SConscripts.  for example flags like `-Wall` can be set once and for all, no need to set it all over the place.
+* gtest has been removed; it is now treated like any other system dependency for which we do a feature test.  It's up to the user to install it, just like e.g. libuuid and all the other deps.
+* only the kernel (resource/) is built by default. at the moment I do not need the services so it's a waste of time to build them.
+* feature tests are done once, before the build proper begins, in `site_scons/build/utils.py`.
+
+The ultimate goal with respect to the SConscript files is that each
+should do the minimal amount of work necessary.  Setup of the build
+environment itself (feature testing etc.) will be done (by code in
+`site_scons`) before the SConscripts are processed.  This is the same
+as the logic behind doing `./configure` and then `make` in tradition
+autoconf-style build systems.
+
+
+= etc.
 
 The following doc is outdated but may still be useful.
 
