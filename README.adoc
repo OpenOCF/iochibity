@@ -78,6 +78,8 @@ https://github.com/iotk/iotivity-java[iotivity-java].
 * only the kernel (resource/) is built by default. at the moment I do not need the services so it's a waste of time to build them.
 * feature tests are done once, before the build proper begins, in `site_scons/build/utils.py`.
 
+Fixing the build system is a work in progress.
+
 The ultimate goal with respect to the SConscript files is that each
 should do the minimal amount of work necessary.  Setup of the build
 environment itself (feature testing etc.) will be done (by code in
