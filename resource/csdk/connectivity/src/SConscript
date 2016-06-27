@@ -133,6 +133,17 @@ if 'ALL' in ca_transport:
 		    transports = [ 'ip_adapter', 'bt_edr_adapter', 'bt_le_adapter']
 		else: # Edison uses dbus-glib
 		    transports = [ 'ip_adapter', 'bt_edr_adapter']
+
+	        transports = []
+		for item in env.get('CPPDEFINES'):
+        	        if 'IP_ADAPTER' in item:
+	        	        transports = transports + ['ip_adapter']
+        	        elif 'EDR_ADAPTER' in item:
+	        	        transports = transports + ['bt_edr_adapter']
+        	        elif 'LE_ADAPTER' in item:
+	        	        transports = transports + ['bt_le_adapter']
+		print "TRANSPORTS:", transports
+
 		if with_ra:
 				transports.append ('ra_adapter')
 		if ca_os in ['android']:
