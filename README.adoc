@@ -77,6 +77,10 @@ https://github.com/iotk/iotivity-java[iotivity-java].
 * gtest has been removed; it is now treated like any other system dependency for which we do a feature test.  It's up to the user to install it, just like e.g. libuuid and all the other deps.
 * only the kernel (resource/) is built by default. at the moment I do not need the services so it's a waste of time to build them.
 * feature tests are done once, before the build proper begins, in `site_scons/build/utils.py`.
+* output has been relativized to host.  this makes it possible to use
+  virtual machines to develop for multiple hosts using a single
+  codebase on a single machine.  For example, on OS X with parallels,
+  I can run simultaneous Darwin and Linux builds in the same repo.
 
 Fixing the build system is a work in progress.
 
