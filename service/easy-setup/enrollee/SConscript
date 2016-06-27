@@ -78,11 +78,9 @@ if target_os in ['darwin','linux']:
 	enrollee_env.PrependUnique(CPPPATH = [
 		enrollee_env.get('SRC_DIR') + '/service/easy-setup/enrollee/linux/wifi'])
 
-	enrollee_env.AppendUnique(LIBS = ['pthread', 'dl'])
 	enrollee_env.AppendUnique(LIBPATH = [enrollee_env.get('BUILD_DIR')])
 	enrollee_env.AppendUnique(RPATH = [enrollee_env.get('BUILD_DIR')])
-	enrollee_env.AppendUnique(CXXFLAGS = ['-pthread'])
-	enrollee_env.PrependUnique(LIBS = ['oc', 'octbstack', 'oc_logger', 'pthread', 'connectivity_abstraction'])
+	enrollee_env.PrependUnique(LIBS = ['oc', 'octbstack', 'oc_logger', 'connectivity_abstraction'])
 	if enrollee_env.get('SECURED') == '1':
 		enrollee_env.PrependUnique(LIBS = ['ocprovision', 'ocpmapi'])
 

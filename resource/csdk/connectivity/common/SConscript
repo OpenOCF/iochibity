@@ -15,10 +15,6 @@ ca_common_src_path = ca_common_path + 'src/'
 ca_common_include =  ['common/inc/'
 		     ,src_dir + '/resource/csdk/logger/include/']
 
-if env.get('BUILD_JAVA'):
-    ca_common_include = ca_common_include + [env.get('JAVA_HOME') + '/include'
-    		    		    	    ,env.get('JAVA_HOME') + '/include/darwin']
-
 env.AppendUnique(CPPPATH = ca_common_include)
 
 ######################################################################
@@ -29,15 +25,21 @@ ca_common_src = [ca_common_src_path + 'uarraylist.c'
 		,ca_common_src_path + 'uqueue.c'
 		,ca_common_src_path + 'caremotehandler.c']
 
-if env['POSIX_SUPPORTED']:
+pthreads = 0
+for item in env.get('CPPDEFINES'):
+        if 'HAVE_PTHREADS' in item:
+	        pthreads = 1
+		break;
+
+if pthreads:
 	platform_src = [
-		ca_common_src_path + 'cathreadpool_pthreads.c',
-		ca_common_src_path + 'camutex_pthreads.c'
-	]
+	    ca_common_src_path + 'cathreadpool_pthreads.c',
+	    ca_common_src_path + 'camutex_pthreads.c'
+	    ]
 else:
-	platform_src = [
-		ca_common_src_path + 'camutex_noop.c'
-		]
+        platform_src = [
+	    ca_common_src_path + 'camutex_noop.c'
+	]
 
 
 env.AppendUnique(CA_SRC = ca_common_src)

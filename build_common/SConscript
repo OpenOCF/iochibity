@@ -445,8 +445,6 @@ env.AppendUnique(CPPFLAGS = ['-fPIC', '-Wall', '-Wextra', '-Wno-unused'])
 if target_os != 'darwin':
     env.AppendUnique(CPPFLAGS = ['-Wl,--no-undefined'])
 
-env.AppendUnique(LINKFLAGS = ['-ldl','-lpthread'])
-
 if target_os == "yocto":
     '''
     This code injects Yocto cross-compilation tools+flags into scons'
@@ -540,6 +538,8 @@ if env.GetOption('clean'):
 
 # env = conf.Finish()
 ######################################################################
+
+print "RUNNING EXTERNALS"
 
 env.SConscript('external_libs.scons')
 Return('env')

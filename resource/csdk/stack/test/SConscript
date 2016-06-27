@@ -45,8 +45,6 @@ stacktest_env.PrependUnique(CPPPATH = [
 		gtest_dir + '/include'
 		])
 
-stacktest_env.AppendUnique(CPPFLAGS = ['-pthread', '-Wl,-pthread'])
-stacktest_env.AppendUnique(LIBS = ['-lpthread'])
 stacktest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
 				     ,gtest_dir + '/lib/.libs'])
 stacktest_env.PrependUnique(LIBS = ['m',
@@ -58,8 +56,8 @@ stacktest_env.PrependUnique(LIBS = ['m',
                                     'gtest_main'])
 
 target_os = env.get('TARGET_OS')
-if target_os == 'darwin':
-    stacktest_env.AppendUnique(CPPFLAGS = ['-Wl,-stack_size', '-Wl,0x1000000']) # 16MB stack size
+# if target_os == 'darwin':
+#     stacktest_env.AppendUnique(CPPFLAGS = ['-Wl,-stack_size', '-Wl,0x1000000']) # 16MB stack size
 
 stacktest_env.PrependUnique(LIBS = ['oc_logger'])
 
