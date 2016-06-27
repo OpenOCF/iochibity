@@ -42,8 +42,9 @@ if target_os == 'arduino':
 # Build flags
 ######################################################################
 liboctbstack_env.PrependUnique(CPPPATH = [
-		'./../../extlibs/cjson/',
-		'./../../extlibs/timer/',
+		'cbor/',
+		'cjson/',
+		'timer/',
 		'logger/include',
 		'stack/include',
 		'stack/include/internal',
@@ -83,9 +84,6 @@ liboctbstack_env.PrependUnique(LIBS = ['ocsrm'])
 if target_os in ['tizen', 'linux']:
 	liboctbstack_env.ParseConfig("pkg-config --cflags --libs uuid")
 
-if target_os not in ['android', 'arduino', 'windows', 'winrt']:
-	liboctbstack_env.AppendUnique(LIBS = ['pthread'])
-
 if target_os == 'arduino':
 	liboctbstack_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
 
@@ -120,9 +118,10 @@ if liboctbstack_env.get('ROUTING') in ['GW', 'EP']:
 # Source files and Targets
 ######################################################################
 OCTBSTACK_SRC = 'stack/src/'
+CBORSTACK_SRC = 'cbor/'
 liboctbstack_src = [
-	'./../../extlibs/cjson/cJSON.c',
-	'./../../extlibs/timer/timer.c',
+	'cjson/cJSON.c',
+	'timer/timer.c',
 	OCTBSTACK_SRC + 'ocstack.c',
 	OCTBSTACK_SRC + 'ocpayload.c',
 	OCTBSTACK_SRC + 'ocpayloadparse.c',
@@ -133,13 +132,16 @@ liboctbstack_src = [
 	OCTBSTACK_SRC + 'ocserverrequest.c',
 	OCTBSTACK_SRC + 'occollection.c',
 	OCTBSTACK_SRC + 'oicgroup.c',
-	OCTBSTACK_SRC + "rdpayload.c"
+	OCTBSTACK_SRC + "rdpayload.c",
+	CBORSTACK_SRC + "cborencoder.c",
+	CBORSTACK_SRC + "cborerrorstrings.c",
+	CBORSTACK_SRC + "cborparser.c"
 	]
 
 if with_tcp == True:
 	liboctbstack_src.append(OCTBSTACK_SRC + 'oickeepalive.c')
 
-liboctbstack_src.extend(env['cbor_files'])
+# liboctbstack_src.extend(env['cbor_files'])
 
 if target_os in ['arduino','ios'] :
 	static_liboctbstack = liboctbstack_env.StaticLibrary('octbstack', liboctbstack_src)

@@ -33,6 +33,7 @@ gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 unittests_env.PrependUnique(CPPPATH = [
 		'../include',
 		'../oc_logger/include',
+		'../csdk/cbor',
 		'../csdk/stack/include',
 		'../csdk/security/include',
 		'../csdk/stack/include/internal',

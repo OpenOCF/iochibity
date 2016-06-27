@@ -39,7 +39,8 @@ if target_os == 'arduino':
 # Build flags
 ######################################################################
 libocsrm_env.PrependUnique(CPPPATH = [
-		'../../../extlibs/cjson/',
+		'./../cbor/',
+		'./../cjson/',
 		'../../../extlibs/tinydtls/',
 		'../logger/include',
 		'../../c_common/ocrandom/include',
