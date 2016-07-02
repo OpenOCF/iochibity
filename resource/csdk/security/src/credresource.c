@@ -21,9 +21,10 @@
 #define __STDC_LIMIT_MACROS
 
 #include <stdlib.h>
-#ifdef WITH_ARDUINO
+#ifdef HAVE_STRING_H
 #include <string.h>
-#else
+#endif
+#ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
 #include <stdint.h>
@@ -460,8 +461,10 @@ OCStackResult CBORPayloadToCred(const uint8_t *cborPayload, size_t size,
                             //credid
                             if (strcmp(name, OIC_JSON_CREDID_NAME)  == 0)
                             {
-                                cborFindResult = cbor_value_get_uint64(&credMap, (uint64_t *) &cred->credId);
+                                uint64_t credId = 0;
+                                cborFindResult = cbor_value_get_uint64(&credMap, &credId);
                                 VERIFY_CBOR_SUCCESS(TAG, cborFindResult, "Failed Finding CredId.");
+                                cred->credId = (uint16_t)credId;
                             }
                             // subjectid
                             if (strcmp(name, OIC_JSON_SUBJECTID_NAME)  == 0)
@@ -476,8 +479,10 @@ OCStackResult CBORPayloadToCred(const uint8_t *cborPayload, size_t size,
                             // credtype
                             if (strcmp(name, OIC_JSON_CREDTYPE_NAME)  == 0)
                             {
-                                cborFindResult = cbor_value_get_uint64(&credMap, (uint64_t *) &cred->credType);
+                                uint64_t credType = 0;
+                                cborFindResult = cbor_value_get_uint64(&credMap, &credType);
                                 VERIFY_CBOR_SUCCESS(TAG, cborFindResult, "Failed Finding CredType.");
+                                cred->credType = (OicSecCredType_t)credType;
                             }
                             // privatedata
                             if (strcmp(name, OIC_JSON_PRIVATEDATA_NAME)  == 0)
@@ -500,7 +505,7 @@ OCStackResult CBORPayloadToCred(const uint8_t *cborPayload, size_t size,
                                     if (privname)
                                     {
                                         // PrivateData::privdata -- Mandatory
-                                        if (strcmp(privname, OIC_JSON_DATA_NAME) == 0 && cbor_value_is_byte_string(&privateMap))
+                                        if (strcmp(privname, OIC_JSON_DATA_NAME) == 0)
                                         {
                                             if(cbor_value_is_byte_string(&privateMap))
                                             {
@@ -950,7 +955,8 @@ static bool FillPrivateDataOfOwnerPSK(OicSecCred_t* receviedCred, const CAEndpoi
         receviedCred->privateData.data = (uint8_t *)OICCalloc(1, b64OutSize + 1);
         VERIFY_NON_NULL(TAG, receviedCred->privateData.data, ERROR);
         receviedCred->privateData.len = b64OutSize;
-        strcpy((char*)receviedCred->privateData.data, b64Buf);
+        strncpy((char*)receviedCred->privateData.data, b64Buf, b64OutSize);
+        receviedCred->privateData.data[b64OutSize] = '\0';
     }
     else
     {
@@ -1249,11 +1255,11 @@ OCStackResult CreateCredResource()
 {
     OCStackResult ret = OCCreateResource(&gCredHandle,
                                          OIC_RSRC_TYPE_SEC_CRED,
-                                         OIC_MI_DEF,
+                                         OC_RSRVD_INTERFACE_DEFAULT,
                                          OIC_RSRC_CRED_URI,
                                          CredEntityHandler,
                                          NULL,
-                                         OC_RES_PROP_NONE);
+                                         OC_SECURE);
 
     if (OC_STACK_OK != ret)
     {
@@ -1342,7 +1348,7 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
         case CA_DTLS_PSK_HINT:
         case CA_DTLS_PSK_IDENTITY:
             {
-                OicUuid_t deviceID = {.id={}};
+                OicUuid_t deviceID = {.id={0}};
                 // Retrieve Device ID from doxm resource
                 if ( OC_STACK_OK != GetDoxmDeviceID(&deviceID) )
                 {
@@ -1382,7 +1388,6 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
                             if(IOTVTICAL_VALID_ACCESS != IsRequestWithinValidTime(cred->period, NULL))
                             {
                                 OIC_LOG (INFO, TAG, "Credentials are expired.");
-                                ret = -1;
                                 return ret;
                             }
                         }
@@ -1401,25 +1406,24 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
                             uint32_t outKeySize;
                             if(NULL == outKey)
                             {
-                                result_length = -1;
                                 OIC_LOG (ERROR, TAG, "Failed to memoray allocation.");
+                                return ret;
                             }
 
                             if(B64_OK == b64Decode((char*)cred->privateData.data, cred->privateData.len, outKey, outBufSize, &outKeySize))
                             {
                                 memcpy(result, outKey, outKeySize);
-                                result_length = outKeySize;
+                                ret = outKeySize;
                             }
                             else
                             {
-                                result_length = -1;
                                 OIC_LOG (ERROR, TAG, "Failed to base64 decoding.");
                             }
 
                             OICFree(outKey);
                         }
 
-                        return result_length;
+                        return ret;
                     }
                 }
             }
@@ -1428,7 +1432,6 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
         default:
             {
                 OIC_LOG (ERROR, TAG, "Wrong value passed for CADtlsPskCredType_t.");
-                ret = -1;
             }
             break;
     }

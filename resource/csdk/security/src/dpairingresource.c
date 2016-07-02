@@ -42,9 +42,7 @@
 #include "ocpayload.h"
 #include "payload_logging.h"
 #include <stdlib.h>
-#ifdef WITH_ARDUINO
-#include <string.h>
-#else
+#ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
 
@@ -657,7 +655,7 @@ OCStackResult CreateDpairingResource()
 
     ret = OCCreateResource(&gDpairHandle,
                            OIC_RSRC_TYPE_SEC_DPAIRING,
-                           OIC_MI_DEF,
+                           OC_RSRVD_INTERFACE_DEFAULT,
                            OIC_RSRC_DPAIRING_URI,
                            DpairingEntityHandler,
                            NULL,

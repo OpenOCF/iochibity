@@ -72,16 +72,17 @@
 #include "directpairing.h"
 //#endif
 
-#ifdef WITH_ARDUINO
+#ifdef HAVE_ARDUINO_TIME_H
 #include "Time.h"
-#else
+#endif
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 #include "coap_time.h"
 #include "utlist.h"
 #include "pdu.h"
 
-#ifndef ARDUINO
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
 
@@ -437,7 +438,7 @@ void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out)
     out->flags = CAToOCTransportFlags(in->flags);
     OICStrcpy(out->addr, sizeof(out->addr), in->addr);
     out->port = in->port;
-    out->interface = in->interface;
+    out->ifindex = in->ifindex;
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     memcpy(out->routeData, in->routeData, sizeof(out->routeData));
 #endif
@@ -455,7 +456,7 @@ void CopyDevAddrToEndpoint(const OCDevAddr *in, CAEndpoint_t *out)
     memcpy(out->routeData, in->routeData, sizeof(out->routeData));
 #endif
     out->port = in->port;
-    out->interface = in->interface;
+    out->ifindex = in->ifindex;
 }
 
 void FixUpClientResponse(OCClientResponse *cr)
@@ -518,7 +519,8 @@ OCStackResult OCStackFeedBack(CAToken_t token, uint8_t tokenLength, uint8_t stat
                                                 NULL, PAYLOAD_TYPE_REPRESENTATION,
                                                 NULL, 0, 0, NULL,
                                                 OC_OBSERVE_DEREGISTER,
-                                                observer->observeId);
+                                                observer->observeId,
+                                                0);
             if(result != OC_STACK_OK)
             {
                 return result;
@@ -569,7 +571,8 @@ OCStackResult OCStackFeedBack(CAToken_t token, uint8_t tokenLength, uint8_t stat
                                                     NULL, PAYLOAD_TYPE_REPRESENTATION,
                                                     NULL, 0, 0, NULL,
                                                     OC_OBSERVE_DEREGISTER,
-                                                    observer->observeId);
+                                                    observer->observeId,
+                                                    0);
                 if(result != OC_STACK_OK)
                 {
                     return OC_STACK_ERROR;
@@ -1149,7 +1152,7 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
 
             OCClientResponse response =
                 {.devAddr = {.adapter = OC_DEFAULT_ADAPTER}};
-            response.sequenceNumber = OC_OBSERVE_NO_OPTION;
+            response.sequenceNumber = -1;
             CopyEndpointToDevAddr(endPoint, &response.devAddr);
             FixUpClientResponse(&response);
             response.resourceUri = responseInfo->info.resourceUri;
@@ -2638,12 +2641,6 @@ OCStackResult OCDoResource(OCDoHandle *handle,
         requestInfo.info.payload = NULL;
         requestInfo.info.payloadSize = 0;
         requestInfo.info.payloadFormat = CA_FORMAT_UNDEFINED;
-    }
-
-    if (result != OC_STACK_OK)
-    {
-        OIC_LOG(ERROR, TAG, "CACreateEndpoint error");
-        goto exit;
     }
 
     // prepare for response
@@ -4403,7 +4400,11 @@ void insertResourceInterface(OCResource *resource, OCResourceInterface *newInter
             previous = pointer;
             pointer = pointer->next;
         }
-        previous->next = newInterface;
+
+        if (previous)
+        {
+            previous->next = newInterface;
+        }
     }
 }
 
