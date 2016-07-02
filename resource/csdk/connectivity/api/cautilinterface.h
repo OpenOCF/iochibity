@@ -22,7 +22,7 @@
 #define CA_UTILS_INTERFACE_H_
 
 #include "cacommon.h"
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__JAVA__)
 #include "jni.h"
 #endif
 #ifdef __cplusplus
@@ -90,6 +90,7 @@ CAResult_t CASetPortNumberToAssign(CATransportAdapter_t adapter,
  */
 uint16_t CAGetAssignedPortNumber(CATransportAdapter_t adapter, CATransportFlags_t flag);
 
+#if defined(__ANDROID__) || defined(__JAVA__)
 #ifdef __ANDROID__
 /**
  * initialize util client for android
@@ -100,6 +101,16 @@ uint16_t CAGetAssignedPortNumber(CATransportAdapter_t adapter, CATransportFlags_
  * @return  ::CA_STATUS_OK or ::CA_STATUS_FAILED or ::CA_MEMORY_ALLOC_FAILED
  */
 CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm, jobject context);
+#else
+/**
+ * initialize util client for android
+ * @param[in]   env                   JNI interface pointer.
+ * @param[in]   jvm                   invocation inferface for JAVA virtual machine.
+ *
+ * @return  ::CA_STATUS_OK or ::CA_STATUS_FAILED or ::CA_MEMORY_ALLOC_FAILED
+ */
+CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm);
+#endif
 
 /**
  * terminate util client for android

@@ -25,7 +25,7 @@
 #include "EasySetup.h"
 #include "OCPlatform.h"
 #include "logger.h"
-#include "OCProvisioningManager.h"
+#include "OCProvisioningManager.hpp"
 
 
 #define ES_SAMPLE_APP_TAG "ES_SAMPLE_APP_TAG"

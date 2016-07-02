@@ -168,7 +168,7 @@ namespace OIC
                 SCENE_CLIENT_PRINT_LOG(e.what());
             }
 
-            return std::move(newList);
+            return newList;
         }
 
         RemoteSceneCollection::Ptr RemoteSceneList::createRemoteSceneCollection(

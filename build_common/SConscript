@@ -4,6 +4,10 @@
 ##
 import os
 import platform
+import build.utils
+
+from os.path import expanduser
+home = expanduser("~")
 
 # Map of host os and allowed target os (host: allowed target os)
 host_target_map = {
@@ -65,8 +69,6 @@ else:
 		release_mode = True
 	logging_default = (release_mode == False)
 
-
-
 ######################################################################
 # Common build options (release, target os, target arch)
 ######################################################################
@@ -104,9 +106,8 @@ help_vars.Add(EnumVariable('BUILD_SAMPLE', 'Build with sample', 'ON', allowed_va
 help_vars.AddVariables(('DEVICE_NAME', 'Network display name for device (For Arduino)', device_name, None, None),)
 help_vars.Add(PathVariable('ANDROID_NDK', 'Android NDK path', None, PathVariable.PathAccept))
 help_vars.Add(PathVariable('ANDROID_HOME', 'Android SDK path', None, PathVariable.PathAccept))
-help_vars.Add(PathVariable('ANDROID_GRADLE', 'Gradle binary file', None, PathVariable.PathIsFile))
 #ES_TARGET_ENROLLEE is for specifying what is our target enrollee (Arduino or rest of platforms which support Multicast)
-help_vars.Add(EnumVariable('ES_TARGET_ENROLLEE', 'Target Enrollee', 'arduino', allowed_values=('arduino', 'tizen', 'linux')))
+help_vars.Add(EnumVariable('ES_TARGET_ENROLLEE', 'Target Enrollee', 'arduino', allowed_values=('arduino', 'tizen', 'linux', 'darwin')))
 #ES_ROLE is for specifying the role (Enrollee or Mediator) for which scons is being executed
 help_vars.Add(EnumVariable('ES_ROLE', 'Target build mode', 'mediator', allowed_values=('mediator', 'enrollee')))
 #ES_SOFT_MODE is for specifying MODE (Mode 1 : Enrollee with  Soft AP or Mode 2  : Mediator with Soft AP)
@@ -123,7 +124,7 @@ AddOption('--prefix',
 ######################################################################
 # Platform(build target) specific options: SDK/NDK & toolchain
 ######################################################################
-targets_support_cc = ['linux', 'arduino', 'tizen']
+targets_support_cc = ['darwin', 'linux', 'arduino', 'tizen']
 
 if target_os in targets_support_cc:
 	# Set cross compile toolchain
@@ -140,8 +141,8 @@ else:
 	env = Environment(variables = help_vars, tools = ['default', 'textfile'],
 			TARGET_ARCH = target_arch, TARGET_OS = target_os,
 			PREFIX = GetOption('prefix'),
-			LIB_INSTALL_DIR = ARGUMENTS.get('LIB_INSTALL_DIR') #for 64bit build
-			)
+			LIB_INSTALL_DIR = ARGUMENTS.get('LIB_INSTALL_DIR'), #for 64bit build
+			ENV = os.environ)
 Help(help_vars.GenerateHelpText(env))
 
 tc_set_msg = '''
@@ -180,6 +181,105 @@ if target_os in targets_support_cc:
 	if prefix or tc_path:
 		print tc_set_msg
 
+if not env.get('RELEASE'):
+	env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+
+######################################################################
+# Autoconf-style Feature Tests
+######################################################################
+home        = os.environ['HOME']
+iotcfg_dir  = os.path.join(home, '.iotivity.d')
+# try:
+#     gradle_home = os.environ['GRADLE_HOME']
+# except:
+#     print "GRADLE_HOME not set"
+#     gradle_home = 0
+
+# # print "GRADLE HOME: ", gradle_home
+# bindir = '/bin'
+# if gradle_home:
+#     env.AppendUnique(GRADLE_HOME = gradle_home)
+#     env.PrependENVPath('PATH', gradle_home + bindir)
+
+env.Append(CPPFLAGS = [])
+env.Append(CPPFLAGS = [])
+features_env = build.utils.feature_tests()
+cppdefs   = {'CPPDEFINES': features_env['CPPDEFINES']}
+#cppflags  = {'CPPFLAGS': features_env['CPPFLAGS']}
+pthreadcflags  = {'PTHREAD_CFLAGS': features_env['PTHREAD_CFLAGS']}
+pthreadlibs   = {'PTHREAD_LIBS': features_env['PTHREAD_LIBS']}
+env.MergeFlags(cppdefs)
+env.MergeFlags(pthreadcflags)
+env.MergeFlags(pthreadlibs)
+#env.MergeFlags(cppflags)
+#print env['CPPDEFINES']
+
+#print env.Dump()
+
+# try:
+#     if env['CPPDEFINES']:
+#         newfeats = env['CPPDEFINES'] + features_env['CPPDEFINES']
+#     else:
+#         newfeats = features_env['CPPDEFINES']
+# except:
+#     newfeats = features_env['CPPDEFINES']
+
+# env.AppendUnique(CPPDEFINES = newfeats)
+
+# env_conf = Configure(env)
+# env_conf.CheckLib('uuid')
+
+# if not env_conf.CheckProg('gradle'):
+# 	if gradle_home:
+# 	    print "$GRADLE_HOME is '{0}', but gradle not found in {1}".format(
+# 	    	  	       	  gradle_home, gradle_home + bindir)
+# 	else:
+# 	    print "gradle not found and GRADLE_HOME not set"
+# 	yn = raw_input('download and install gradle-2.2.1 to ~/.iotivity.d ? (Y/n):  ')
+# 	print "ANSWER:", yn
+# 	if yn == 'y':
+# 	    import build.utils
+# 	    tools = Environment(tools=['UnpackAll'])
+#             gradle_zip_path = os.path.join(iotcfg_dir, 'gradle-2.2.1-all.zip')
+# 	    gradle_zip = build.utils.download(gradle_zip_path,
+# 					 'https://services.gradle.org/distributions/gradle-2.2.1-all.zip')
+# 	    if not os.path.exists(gradle_zip):
+# 	        print 'download failed, exiting'
+# 		exit(1)
+# 	    else:
+# 	        print 'download succeeded, unzipping', gradle_zip
+# 	    gradle_dir = tools.UnpackAll(gradle_home,
+# 					 gradle_zip)
+# 	    gdir = str(gradle_dir[0])
+# 	    print "GRADLE DIR:", gdir
+# 	    if not os.path.exists(gdir):
+# 	        print 'unzip failed at', gdir
+# 	    	exit(1)
+# 	else:
+# 	    exit(1)
+
+# if env_conf.CheckProg('gdbus-codegen'):
+# 	env_conf.env.AppendUnique(WITH_GDBUS = 1)
+# else:
+#         print 'GDBus is required but gdbus-codegen not found.'
+#         print '(maybe your system uses dbus-glib instead?)'
+# 	print 'BLE support will be disabled.'
+# if env_conf.CheckFunc('clock_gettime'):
+# 	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
+# if env_conf.CheckFunc('gettimeofday'):
+# 	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETTIMEOFDAY'])
+# if env_conf.CheckFunc('GetSystemTimeAsFileTime') or target_os == 'windows':
+# 	# TODO: Remove target_os check.
+# 	# We currently check for 'windows' as well, because the environment can
+# 	# sometimes get so polluted that CheckFunc ceases to work!
+# 	env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETSYSTEMTIMEASFILETIME'])
+# if env_conf.CheckCHeader('limits.h'):
+#     env.Append(CPPDEFINES = ['HAS_LIMITS_H'])
+# else:
+#     print 'limit.h must be installed!'
+#     Exit(1)
+# env = env_conf.Finish()
+
 # If cross-compiling, honor environment settings for toolchain to avoid picking up native tools
 if os.environ.get('PKG_CONFIG') != None:
 	env["ENV"]["PKG_CONFIG"] = os.environ.get("PKG_CONFIG")
@@ -209,14 +309,20 @@ def __set_dir(env, dir):
 ''' % dir
 		Exit(1)
 
+	env.Replace(SRC_DIR = dir)
+	# print "SRC_DIR: ", env.Dump('SRC_DIR')
+
 	if env.get('RELEASE'):
 		build_dir = dir + '/out/' + target_os + '/' + target_arch + '/release/'
 	else:
 		build_dir = dir + '/out/' + target_os + '/' + target_arch + '/debug/'
+
+	# the following cmd will add the build_dir tree to env?
 	env.VariantDir(build_dir, dir, duplicate=0)
 
 	env.Replace(BUILD_DIR = build_dir)
-	env.Replace(SRC_DIR = dir)
+	# print "BUILD_DIR: ", env.Dump('BUILD_DIR')
+	# NB: the build_dir tree has NOT yet been written to disk!
 
 def __src_to_obj(env, src, home = ''):
 	obj = env.get('BUILD_DIR') + src.replace(home, '')
@@ -279,6 +385,7 @@ Targets:\n    ''')
 ===============================================================================
 ''')
 
+
 env.AddMethod(__set_dir, 'SetDir')
 env.AddMethod(__print_targets, 'PrintTargets')
 env.AddMethod(__src_to_obj, 'SrcToObj')
@@ -290,6 +397,11 @@ env.AddMethod(__installheader, 'UserInstallTargetHeader')
 env.AddMethod(__installpcfile, 'UserInstallTargetPCFile')
 env.SetDir(env.GetLaunchDir())
 env['ROOT_DIR']=env.GetLaunchDir()+'/..'
+
+debug = ARGUMENTS.get('debug', 0)
+#if int(debug) and debug > 2:
+# print "ENV:"
+# print env.Dump()
 
 Export('env')
 
@@ -328,6 +440,11 @@ env.Substfile(pc_file, SUBST_DICT = pc_vars)
 ######################################################################
 # Link scons to Yocto cross-toolchain ONLY when target_os is yocto
 ######################################################################
+env.AppendUnique(CPPFLAGS = ['-fPIC', '-Wall', '-Wextra', '-Wno-unused'])
+
+if target_os != 'darwin':
+    env.AppendUnique(CPPFLAGS = ['-Wl,--no-undefined'])
+
 if target_os == "yocto":
     '''
     This code injects Yocto cross-compilation tools+flags into scons'
@@ -380,10 +497,8 @@ if target_os == "yocto":
         env.AppendUnique(CPPDEFINES = ['NDEBUG'])
     if env.get('LOGGING'):
         env.AppendUnique(CPPDEFINES = ['TB_LOG'])
-    env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__', '_GNU_SOURCE'])
-    env.AppendUnique(CFLAGS = ['-std=gnu99'])
-    env.AppendUnique(CCFLAGS = ['-Wall', '-Wextra', '-fPIC'])
-    env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
+
+    env.AppendUnique(CPPDEFINES = ['WITH_POSIX'])
     env.AppendUnique(LIBS = ['uuid'])
     Export('env')
 else:
@@ -407,22 +522,24 @@ if env.GetOption('clean'):
 ######################################################################
 # Check for PThreads support
 ######################################################################
-import iotivityconfig
-from iotivityconfig import *
+# import iotivityconfig
+# from iotivityconfig import *
 
-conf = Configure(env,
-        custom_tests =
-        {
-            'CheckPThreadsSupport' : iotivityconfig.check_pthreads
-        } )
+# conf = Configure(env,
+#         custom_tests =
+#         {
+#             'CheckPThreadsSupport' : iotivityconfig.check_pthreads
+#         } )
 
-# Identify whether we have pthreads support, which is necessary for
-# threading and mutexes.  This will set the environment variable
-# POSIX_SUPPORTED, 1 if it is supported, 0 otherwise
-conf.CheckPThreadsSupport()
+# # Identify whether we have pthreads support, which is necessary for
+# # threading and mutexes.  This will set the environment variable
+# # POSIX_SUPPORTED, 1 if it is supported, 0 otherwise
+# conf.CheckPThreadsSupport()
 
-env = conf.Finish()
+# env = conf.Finish()
 ######################################################################
+
+print "RUNNING EXTERNALS"
 
 env.SConscript('external_libs.scons')
 Return('env')

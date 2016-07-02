@@ -30,8 +30,6 @@ target_os = env.get('TARGET_OS')
 src_dir = env.get('SRC_DIR')
 zw_path = os.path.join(src_dir, 'plugins')
 
-print"Reading Zigbee Wrapper (ZW) script"
-
 ######################################################################
 # Build flags
 ######################################################################
@@ -53,7 +51,6 @@ if target_os not in ['arduino', 'windows', 'winrt']:
 if target_os in ['darwin','ios']:
 	env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
 
-env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-Wextra', '-Werror'])
 env.AppendUnique(RPATH = [env.get('BUILD_DIR')])
 env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 

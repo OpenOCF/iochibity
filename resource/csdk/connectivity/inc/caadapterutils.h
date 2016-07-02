@@ -28,7 +28,7 @@
 #define CA_ADAPTER_UTILS_H_
 
 #include <stdbool.h>
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__JAVA__)
 #include <jni.h>
 #endif
 
@@ -209,7 +209,7 @@ void CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_t sock
 void CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_storage *sockaddr);
 #endif /* WITH_ARDUINO */
 
-#ifdef __ANDROID__
+#if defined (__ANDROID__) || defined(__JAVA__)
 /**
  * To set context of JNI Application.
  * This must be called by the Android API before CA Initialization.
@@ -239,6 +239,7 @@ jobject CANativeJNIGetContext();
  */
 JavaVM *CANativeJNIGetJavaVM();
 
+#ifdef __ANDROID__
 /**
  * To set Activity to JNI.
  * This must be called by the Android API before CA Initialization.
@@ -253,6 +254,7 @@ void CANativeSetActivity(JNIEnv *env, jobject activity);
  * @return  Activity object.
  */
 jobject *CANativeGetActivity();
+#endif
 
 /**
  * get method ID for method Name and class

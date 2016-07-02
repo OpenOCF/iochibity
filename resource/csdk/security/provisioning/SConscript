@@ -20,53 +20,53 @@
 #
 
 Import('env')
+import os.path
 
 provisioning_env = env.Clone()
-root_dir = './../../../../'
+root_dir = Dir('#').abspath
+src_dir = env.get('SRC_DIR')
+print "SRC DIR: ", src_dir
 
 ######################################################################
 # Build flags
 ######################################################################
 provisioning_env.AppendUnique(CPPPATH = [
-		'../../stack/include',
-		'../../stack/include/internal',
-		'../../../c_common/ocrandom/include',
-		'../../logger/include',
-		'../../../oc_logger/include',
-		'../../../c_common/oic_malloc/include',
-		'include',
-		'include/internal',
-		'include/oxm',
-		'../../resource/csdk/security/include',
-		'../../../../extlibs/cjson/',
-		'../../../../extlibs/tinydtls/',
-		'../../connectivity/inc',
-		'../../connectivity/external/inc',
-		'../../connectivity/common/inc',
-		'../../connectivity/lib/libcoap-4.1.1',
-		'../../connectivity/api',
-		'../include',
-		'../include/internal',
-		'../../../../extlibs/tinydtls/ecc',
-		'../../../../extlibs/tinydtls/sha2',
-		'../../../../extlibs/asn1cert',
-		'ck_manager/include'
+		'./include',
+		os.path.join(src_dir,'resource','csdk','security','provisioning','include'),
+		'./include/internal',
+		'./include/oxm',
+		'./../../stack/include',
+		'./../../stack/include/internal',
+		'./../../../c_common/ocrandom/include',
+		'./../../logger/include',
+		'./../../../oc_logger/include',
+		'./../../ocmalloc/include',
+		'./../../resource/csdk/security/include',
+		'./../../../../extlibs/cjson/',
+		'./../../../../../extlibs/tinydtls/',
+		'./../../connectivity/inc',
+		'./../../connectivity/external/inc',
+		'./../../connectivity/common/inc',
+		'./../../connectivity/lib/libcoap-4.1.1',
+		'./../../connectivity/api',
+		'./../include',
+		'./../include/internal',
+		'./../../../../extlibs/tinydtls/ecc',
+		'./../../../../extlibs/tinydtls/sha2',
+		'./../../../../extlibs/asn1cert',
+		'./ck_manager/include'
 		])
+
 target_os = env.get('TARGET_OS')
 
 if target_os != 'tizen':
-	provisioning_env.AppendUnique(CPPPATH = ['../../../../extlibs/sqlite3'])
+	provisioning_env.AppendUnique(CPPPATH = [root_dir +'/extlibs/sqlite3'])
 
 provisioning_env.AppendUnique(CFLAGS = ['-D__WITH_DTLS__'])
-provisioning_env.AppendUnique(CFLAGS = ['-std=c99'])
-if target_os not in ['windows', 'winrt']:
-	provisioning_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread', '-D__WITH_DTLS__'])
+# provisioning_env.AppendUnique(CXXFLAGS = ['-D__WITH_DTLS__'])
 
-	# Note: 'pthread' is in libc for android. On other platform, if use
-	# new gcc(>4.9?) it isn't required, otherwise, it's required
-	if target_os != 'android':
-		provisioning_env.AppendUnique(LIBS = ['-lpthread', '-ldl'])
-
+# Note: 'pthread' is in libc for android. On other platform, if use
+# new gcc(>4.9?) it isn't required, otherwise, it's required
 
 provisioning_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 provisioning_env.PrependUnique(LIBS = ['oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'coap'])
@@ -76,7 +76,7 @@ provisioning_env.AppendUnique(LIBS = ['tinydtls'])
 if env.get('DTLS_WITH_X509') == '1':
 	provisioning_env.AppendUnique(LIBS = ['CKManager', 'asn1'])
 
-if target_os != 'android':
+if target_os in ['linux', 'tizen']:
 	provisioning_env.ParseConfig('pkg-config --libs glib-2.0')
 
 if target_os == 'tizen':
@@ -105,6 +105,15 @@ provisioning_src = [
 	'src/oxmrandompin.c',
 	'src/provisioningdatabasemanager.c' ]
 
+if target_os == 'darwin':  #FIXME: if HAS_GETTIMEOFDAY
+   provisioning_src = provisioning_src + ['src/compat/darwin.c']
+elif target_os == 'linux': #FIXME:  if HAS_POSIX_TIMERS
+   provisioning_src = provisioning_src + ['src/compat/posix.c']
+elif target_os == 'win32': #FIXME:  if WIN32?
+   provisioning_src = provisioning_src + ['src/compat/win32.c']
+else:
+   provisioning_src = provisioning_src + ['src/compat/generic.c']
+
 if target_os != 'tizen':
 	provisioning_src = provisioning_src + [root_dir+'/extlibs/sqlite3/sqlite3.c' ]
 
@@ -116,6 +125,6 @@ provisioning_env.UserInstallTargetLib(provisioningserver, 'libocpmapi')
 if env.get('DTLS_WITH_X509') == '1':
 	SConscript('ck_manager/SConscript')
 
-if target_os in ['linux']:
+if target_os in ['darwin', 'linux']:
 	SConscript('sample/SConscript')
 

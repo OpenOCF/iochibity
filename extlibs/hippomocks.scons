@@ -25,6 +25,7 @@
 ##
 
 import os, sys
+import build.utils
 
 Import('env')
 
@@ -44,7 +45,7 @@ if target_os == 'linux':
 	if not os.path.exists(hippomocks_dir_dest):
 		# If the hippomocks zip file is not already present, download it
 		if not os.path.exists(hippomocks_zip_file):
-			hippomocks_zip = env.Download(hippomocks_zip_file, hippomocks_url)
+			hippomocks_zip = build.utils.download(hippomocks_zip_file, hippomocks_url)
 		else:
 			hippomocks_zip = hippomocks_zip_file
 

@@ -71,7 +71,7 @@ namespace OIC
             public:
                 CustomAtomic() noexcept :
                     m_value { },
-                    m_flag { ATOMIC_FLAG_INIT }
+		    m_flag ATOMIC_FLAG_INIT
                 {
 
                 }
@@ -84,7 +84,7 @@ namespace OIC
 
                 explicit CustomAtomic(T v) noexcept :
                     m_value{ v },
-                    m_flag { ATOMIC_FLAG_INIT }
+                    m_flag ATOMIC_FLAG_INIT
                 {
                 }
 

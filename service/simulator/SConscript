@@ -64,6 +64,7 @@ except KeyError:
 	
 java_headers = [os.path.join(os.environ['JAVA_HOME'], 'include')]
 java_headers.append(os.path.join(java_headers[0], 'win32'))
+java_headers.append(os.path.join(java_headers[0], 'darwin'))
 java_headers.append(os.path.join(java_headers[0], 'linux'))
 java_headers.append(os.path.join(java_headers[0], 'solaris'))
 simulator_env.AppendUnique(CPPPATH = java_headers)
@@ -73,8 +74,6 @@ simulator_env.Append( RPATH = env.Literal('\\$$ORIGIN'))
 simulator_env.AppendUnique(CPPPATH = ['../../extlibs/cjson'])
 simulator_env.PrependUnique(LIBS = ['oc', 'octbstack', 'RamlParser'])
 simulator_env.AppendUnique(LIBS = ['pthread'])
-
-simulator_env.AppendUnique(CXXFLAGS = ['-O2', '-Wall', '-fmessage-length=0', '-std=c++0x'])
 
 ######################################################################
 # Source files and Targets

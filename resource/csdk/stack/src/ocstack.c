@@ -1989,7 +1989,8 @@ OCStackResult OCInit(const char *ipAddr, uint16_t port, OCMode mode)
 {
     (void) ipAddr;
     (void) port;
-    return OCInit1(mode, OC_DEFAULT_FLAGS, OC_DEFAULT_FLAGS);
+    OCStackResult ocr = OCInit1(mode, OC_DEFAULT_FLAGS, OC_DEFAULT_FLAGS);
+    return ocr;
 }
 
 OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlags clientFlags)
@@ -2105,6 +2106,7 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
         result = SRMInitPolicyEngine();
         // TODO after BeachHead delivery: consolidate into single SRMInit()
     }
+
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     RMSetStackMode(mode);
 #ifdef ROUTING_GATEWAY
@@ -2168,21 +2170,29 @@ OCStackResult OCStop()
 #endif
 
     // Free memory dynamically allocated for resources
+    //GAR printf("**************** GAR: deleting all resources...\n");
     deleteAllResources();
+    //GAR printf("**************** GAR: deleting device info...\n");
     DeleteDeviceInfo();
+    //GAR printf("**************** GAR: deleting platform info...\n");
     DeletePlatformInfo();
+    //GAR printf("**************** GAR: terminating ca...\n");
     CATerminate();
     // Remove all observers
+    //GAR printf("**************** GAR: removing observers...\n");
     DeleteObserverList();
     // Remove all the client callbacks
+    //GAR printf("**************** GAR: deleting callbacks...\n");
     DeleteClientCBList();
 
     // De-init the SRM Policy Engine
     // TODO after BeachHead delivery: consolidate into single SRMDeInit()
+    //GAR printf("**************** GAR: decommish SRM policy engine...\n");
     SRMDeInitPolicyEngine();
 
 
     stackState = OC_STACK_UNINITIALIZED;
+    //GAR printf("**************** GAR: Return from OCStop!\n");
     return OC_STACK_OK;
 }
 
@@ -3102,7 +3112,7 @@ OCStackResult OCCreateResource(OCResourceHandle *handle,
     OCResource *pointer = NULL;
     OCStackResult result = OC_STACK_ERROR;
 
-    OIC_LOG(INFO, TAG, "Entering OCCreateResource");
+    OIC_LOG_V(INFO, TAG, "Entering OCCreateResource for t %s, if %s", resourceTypeName, resourceInterfaceName); 
 
     if(myStackMode == OC_CLIENT)
     {

@@ -30,7 +30,8 @@ SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', exports = 'li
 
 src_dir = lib_env.get('SRC_DIR')
 
-gtest_dir = src_dir + '/extlibs/gtest/gtest-1.7.0'
+home = lib_env.get('HOME')
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 server_builder_env = lib_env.Clone()
 target_os = env.get('TARGET_OS')
@@ -50,14 +51,6 @@ server_builder_env.AppendUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs', 'inclu
 
 server_builder_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 
-if target_os not in ['windows', 'winrt']:
-    server_builder_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall'])
-    if target_os != 'android':
-        server_builder_env.AppendUnique(CXXFLAGS = ['-pthread'])
-
-if target_os not in ['darwin', 'ios', 'windows', 'winrt']:
-    server_builder_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
-
 if target_os == 'android':
     server_builder_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
     server_builder_env.PrependUnique(LIBS = ['gnustl_shared', 'log'])
@@ -66,10 +59,6 @@ server_builder_env.AppendUnique(LIBS = ['dl', 'oc', 'rcs_common'])
 
 if env.get('LOGGING'):
 	server_builder_env.AppendUnique(LIBS = ['octbstack'])
-
-if not release:
-    server_builder_env.AppendUnique(CXXFLAGS = ['--coverage'])
-    server_builder_env.PrependUnique(LIBS = ['gcov'])
 
 ######################################################################
 # Source files and Targets
@@ -85,7 +74,7 @@ server_builder_env.UserInstallTargetLib([server_builder_static, server_builder_s
 ######################################################################
 # Build Test
 ######################################################################
-if target_os == 'linux':
+if target_os in ['darwin', 'linux']:
 	server_builder_test_env = server_builder_env.Clone();
 
 	server_builder_test_env.AppendUnique(CPPPATH = [
@@ -94,8 +83,7 @@ if target_os == 'linux':
 		'../common/utils/include'
 		])
 
-	gtest = File(gtest_dir + '/lib/.libs/libgtest.a')
-	gtest_main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
+	server_builder_test_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 
 	server_builder_test_env.PrependUnique(LIBS = [
 		'rcs_server',
@@ -103,8 +91,8 @@ if target_os == 'linux':
 		'oc_logger',
 		'connectivity_abstraction',
 		'coap',
-		gtest,
-		gtest_main,
+		'gtest',
+		'gtest_main',
 		'pthread',
 		])
 

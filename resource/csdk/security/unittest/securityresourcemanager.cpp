@@ -21,7 +21,8 @@
 #include "gtest/gtest.h"
 #include <pwd.h>
 #include <grp.h>
-#include <linux/limits.h>
+#include <limits.h>
+
 #include "ocstack.h"
 #include "cainterface.h"
 #include "secureresourcemanager.h"

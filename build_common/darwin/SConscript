@@ -29,51 +29,80 @@ for line in tc_sdks.split('\n'):
         sdks.append(line[:14].strip())
 
 #find the latest
-maxsdk='0.0'
+minsdk = '0.0'
+maxsdk='10.10'    # Jenkins
 if len(sdks) > 0:
     for sdk in sdks:
         p = sdk.rsplit(' ',1)[1]
-        if (StrictVersion(p)) > StrictVersion(maxsdk):
-            maxsdk=p
+        if (StrictVersion(p)) > StrictVersion(minsdk):
+	   if (StrictVersion(p)) < StrictVersion(maxsdk):
+               minsdk=p
+	   else:
+	       minsdk=maxsdk
+
+### NOTE:
+### $ sw_vers -productVersion
+### 10.11.5
 
 # SYS_VERSION build option
-help_vars = Variables()
-help_vars.Add('SYS_VERSION', 'MAC OS X SDK version / IOS SDK version', os.environ.get('SYS_VERSION'))
-help_vars.Update(env)
-Help(help_vars.GenerateHelpText(env))
-
-sys_version = env.get('SYS_VERSION')
-
-#if they didn't explictly set it use the auto-detected one
-if sys_version is None:
-    sys_version=maxsdk
-
-env['SYS_VERSION']=sys_version
 
 # Set release/debug flags
 if env.get('RELEASE'):
-	env.AppendUnique(CCFLAGS = ['-Os'])
+	env.AppendUnique(CPPFLAGS = ['-Os'])
 	env.AppendUnique(CPPDEFINES = ['NDEBUG'])
 else:
-	env.AppendUnique(CCFLAGS = ['-g'])
-	env.AppendUnique(LINKFLAGS = ['-g'])
+	env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+	# no gcov, instead: http://llvm.org/docs/CommandGuide/llvm-cov.html
+	env.AppendUnique(CPPFLAGS = ['-g', '-O0', '-fno-inline'])
+	env.AppendUnique(CPPFLAGS = ['-fprofile-arcs', '-ftest-coverage'])
+	env.AppendUnique(CPPFLAGS = ['-fprofile-instr-generate', '-fcoverage-mapping'])
+	env.AppendUnique(LINKFLAGS = ['-fprofile-instr-generate'])
+        env.PrependUnique(LIBS = ['clang_rt.profile_osx'])
+	import subprocess
+	p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	out, err = p.communicate()
+	libsline = out.splitlines()[1]
+	clangbin = libsline.split("libraries: =")[1]
+	clanglib = libsline.split("libraries: =")[1]
+	env.PrependUnique(GCOV = [clangbin + '/llvm-cov'])
+	env.PrependUnique(LIBPATH = [clanglib + '/lib/darwin/'])
 
 if env.get('LOGGING'):
-    env.AppendUnique(CPPDEFINES = ['-DTB_LOG'])
+	env.AppendUnique(CPPDEFINES = ['-DTB_LOG'])
 
-if target_os == 'darwin':
-	sys_root = tc_path + '/Platforms/MacOSX.platform/Developer/SDKs/MacOSX' + sys_version + '.sdk/'
-else:
-	if target_arch in ['i386', 'x86_64']:
-		sys_root = tc_path + '/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator' + sys_version + '.sdk/'
-	else:
-		sys_root = tc_path + '/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS' + sys_version + '.sdk/'
+env.AppendUnique(LINKFLAGS = ['-undefined', 'error'])
+# env.Append(LINKFLAGS = ['-undefined', 'dynamic_lookup'])
 
-# Set arch flags
-env.AppendUnique(CCFLAGS = ['-arch', target_arch, '-isysroot', sys_root])
-env.AppendUnique(LINKFLAGS = ['-arch', target_arch, '-isysroot', sys_root])
+env.AppendUnique(CPPFLAGS = env['PTHREAD_CFLAGS'])
+env.AppendUnique(LINKFLAGS = env['PTHREAD_LIBS'])
 
-if target_os == 'darwin':
-	flag = '-mmacosx-version-min=' + sys_version
-	env.AppendUnique(CCFLAGS = [flag])
-	env.AppendUnique(LINKFLAGS = [flag])
+env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
+env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__darwin__'])
+
+env.AppendUnique(CXXFLAGS = ['-std=c++0x'])
+env.AppendUnique(CFLAGS = ['-std=c11'])
+
+env.AppendUnique(LIBS = ['uuid'])
+
+# in case of ld: symbol(s) not found for architecture x86_64
+# -Wl,-undefined -Wl,dynamic_lookup
+
+# Set arch flags that match best TARGET_ARCH variable
+target_arch = env.get('TARGET_ARCH')
+if target_arch in ['x86']:
+	env.AppendUnique(CCFLAGS = ['-m32'])
+	env.AppendUnique(LINKFLAGS = ['-m32'])
+elif target_arch in ['x86_64']:
+	env.AppendUnique(CCFLAGS = ['-m64'])
+	env.AppendUnique(LINKFLAGS = ['-m64'])
+elif target_arch in ['arm'] or target_arch.find('v5') > 0:
+	env.AppendUnique(CPPFLAGS = ['-march=armv5te'])
+elif target_arch.find('v7a-hard') > 0:
+	env.AppendUnique(CPPFLAGS = ['-march=armv7-a'])
+	env.AppendUnique(CPPFLAGS = ['-mfloat-abi=hard'])
+	env.AppendUnique(CCFLAGS = ['-mfloat-abi=hard'])
+	env.AppendUnique(LINKFLAGS = ['-mfloat-abi=hard'])
+elif target_arch.find('v7a') > 0:
+	env.AppendUnique(CPPFLAGS = ['-march=armv7-a'])
+elif target_arch.find('arm64') >= 0:
+	env.AppendUnique(CPPFLAGS = ['-march=armv8-a'])

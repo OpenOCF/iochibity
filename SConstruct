@@ -18,16 +18,28 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+# prevent accidentally building all. to intentionally build all:
+# $ scons .
+Default(None)
+
 ##
 # The main build script
 #
 ##
 import os
 
+print "CL TARGETS: ", COMMAND_LINE_TARGETS
+print "BUILD_TARGETS is", map(str, BUILD_TARGETS)
+
 # Load common build config
 SConscript('build_common/SConscript')
 
 Import('env')
+
+# if env.get('VERBOSE'):
+#     print "ENV:"
+#     print env.Dump()
+#     print "START"
 
 if os.environ.get('TERM') != None:
 	env['ENV']['TERM'] = os.environ['TERM']
@@ -38,9 +50,6 @@ SConscript('extra_options.scons')
 target_os = env.get('TARGET_OS')
 if target_os == 'arduino':
 	SConscript('arduino.scons')
-
-if target_os == 'android':
-	SConscript('android/android_api/SConscript')
 
 # By default, src_dir is current dir, the build_dir is:
 #     ./out/<target_os>/<target_arch>/<release or debug>/
@@ -53,20 +62,27 @@ if target_os == 'android':
 # be relevant to build_dir.
 build_dir = env.get('BUILD_DIR')
 
+#GAR default: build the kernel
 # Build 'resource' sub-project
 SConscript(build_dir + 'resource/SConscript')
 
-if target_os not in ['arduino','darwin','ios', 'android']:
-	SConscript(build_dir + 'examples/OICMiddle/SConscript')
+#GAR FIXME: only build services on demand
+# # Build 'service' sub-project
+# SConscript(build_dir + 'service/SConscript')
 
-# Build 'service' sub-project
-SConscript(build_dir + 'service/SConscript')
+#GAR FIXME: only make examples on demand
+# if target_os not in ['arduino','ios', 'android']:
+# 	SConscript(build_dir + 'examples/OICMiddle/SConscript')
 
-# Build "cloud" sub-project
-SConscript(build_dir + 'cloud/SConscript')
+#GAR FIXME: only build cloud on demand
+# # Build "cloud" sub-project
+# SConscript(build_dir + 'cloud/SConscript')
 
-# Build "plugin interface" sub-project
-SConscript(build_dir + 'plugins/SConscript')
+#GAR FIXME: only on demand
+# # Build "plugin interface" sub-project
+# SConscript(build_dir + 'plugins/SConscript')
+
+#GAR FIXME: only build the Android SDK on demand
 
 # Append targets information to the help information, to see help info, execute command line:
 #     $ scon [options] -h
@@ -76,6 +92,7 @@ env.PrintTargets()
 if target_os == 'arduino':
 	env.UploadHelp()
 
-# to install the generated pc file into custome prefix location
-env.UserInstallTargetPCFile('iotivity.pc', 'iotivity.pc')
+#GAR FIXME
+# # to install the generated pc file into custome prefix location
+# env.UserInstallTargetPCFile('iotivity.pc', 'iotivity.pc')
 

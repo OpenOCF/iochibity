@@ -55,34 +55,50 @@ SConscript('csdk/security/SConscript')
 # Build liboctbstack
 SConscript('csdk/SConscript')
 
-if target_os not in ['arduino','darwin','ios']:
+if target_os not in ['arduino','ios']:
 	# Build liboc_logger
 	SConscript('oc_logger/SConscript')
 
 	# Build liboc
 	SConscript('src/SConscript')
 
-if target_os not in ['arduino','darwin','ios','android']:
+if target_os not in ['arduino','ios','android']:
 	# Build examples
 	SConscript('examples/SConscript')
 
-if target_os == 'linux':
+# Build Common unit tests
+#GAR    	if target_os != 'darwin':
+SConscript('c_common/oic_string/test/SConscript')
+SConscript('c_common/oic_malloc/test/SConscript')
+SConscript('c_common/oic_time/test/SConscript')
+SConscript('c_common/ocrandom/test/SConscript')
+
+# Build C unit tests
+SConscript('csdk/stack/test/SConscript')
+
+SConscript('csdk/connectivity/test/SConscript')
+
+# Build Security Resource Manager unit tests
+SConscript('csdk/security/unittest/SConscript')
+
+# Build C++ unit tests
+SConscript('unittests/SConscript')
+
+# Build Provisioning API unit test
+if env.get('SECURED') == '1':
+        SConscript('csdk/security/provisioning/unittest/SConscript')
+	SConscript('provisioning/unittests/SConscript')
+
+
+if target_os in ['darwin','linux']:
 	# Build C Samples
 	SConscript('csdk/stack/samples/linux/SimpleClientServer/SConscript')
 
 	# Build secure samples
 	SConscript('csdk/stack/samples/linux/secure/SConscript')
 
-	# Build C/C++ unit tests
-	SConscript('unit_tests.scons')
-
-elif target_os == 'darwin':
-	env.Command('../../out/darwin/iotivity-csdk.framework',None,src_dir + '/tools/darwin/mkfwk_osx.sh')
-	# Build linux samples for now
-	SConscript('csdk/stack/samples/linux/SimpleClientServer/SConscript')
-
-	# Build C stack's unit tests.
-	SConscript('unit_tests.scons')
+# if target_os == 'osx':
+# 	env.Command('../../out/darwin/iotivity-csdk.framework',None,src_dir + '/tools/darwin/mkfwk_osx.sh'
 
 elif target_os == 'arduino':
 	SConscript('csdk/stack/samples/arduino/SimpleClientServer/ocserver/SConscript')

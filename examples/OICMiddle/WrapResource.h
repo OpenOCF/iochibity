@@ -33,7 +33,7 @@
 using namespace OC;
 using namespace std;
 
-class WrapRequest;
+struct WrapRequest;
 class MiddleClient;
 
 enum RequestType {
@@ -61,7 +61,7 @@ public:
     WrapRequest *waitResource(token_t token);
     const stringmap_t& getFormats();
 
-    friend class WrapRequest;
+    friend struct WrapRequest;
     friend class MiddleClient;
 
 protected:

@@ -341,7 +341,7 @@ CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, uint32_t *size)
     u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
     if (!iflist)
     {
-        OIC_LOG(ERROR, TAG, "get interface info failed");
+        OIC_LOG(ERROR, TAG, "CP IPETH: get interface info failed");
         return CA_STATUS_FAILED;
     }
 

@@ -1033,7 +1033,7 @@ CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, uint32_t *size)
     u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
     if (!iflist)
     {
-        OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
+        OIC_LOG_V(ERROR, TAG, "IP AD: get interface info failed: %s", strerror(errno));
         return CA_STATUS_FAILED;
     }
 

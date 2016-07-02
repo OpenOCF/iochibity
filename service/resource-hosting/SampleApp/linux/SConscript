@@ -14,7 +14,7 @@ resourcehosting_env = lib_env.Clone()
 resourcehosting_env.AppendUnique(CPPPATH = ['../../include'])
 resourcehosting_env.AppendUnique(CPPPATH = ['../../../../extlibs/cjson'])
 resourcehosting_env.AppendUnique(CPPPATH = ['../../../../resource/csdk/connectivity/api'])
-resourcehosting_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-fmessage-length=0', '-std=c++0x'])
+resourcehosting_env.AppendUnique(CXXFLAGS = ['-fmessage-length=0'])
 resourcehosting_sample_env = resourcehosting_env.Clone()
 resourcehosting_env.AppendUnique(LIBS = [
     'coap',
@@ -48,11 +48,11 @@ if 'rt' in resourcehosting_sample_env.get('LIBS'):
 ####################################################################
 # Source files and Targets
 ######################################################################
-sampleprovider = resourcehosting_sample_env.Program('sampleprovider', 'sampleProvider/SampleProvider.cpp')
-sampleconsumer = resourcehosting_sample_env.Program('sampleconsumer', 'sampleConsumer/SampleConsumer.cpp')
+sampleprovider = resourcehosting_sample_env.Program('provider', 'sample_provider/SampleProvider.cpp')
+sampleconsumer = resourcehosting_sample_env.Program('consumer', 'sample_consumer/SampleConsumer.cpp')
 
-sampleresourcehosting = resourcehosting_env.Program('sampleresourcehosting', 'sampleResourceHosting/main.cpp')
+sampleresourcehosting = resourcehosting_env.Program('resourcehosting', 'sample_resource_hosting/main.cpp')
 
-#resourcehosting_sample_env.InstallTarget(sampleprovider, 'sampleprovider')
-#resourcehosting_sample_env.InstallTarget(sampleconsumer, 'sampleconsumer')
-#resourcehosting_env.InstallTarget(sampleresourcehosting, 'sampleresourcehosting')
+resourcehosting_sample_env.InstallTarget(sampleprovider, 'sampleprovider')
+resourcehosting_sample_env.InstallTarget(sampleconsumer, 'sampleconsumer')
+#resourcehosting_env.InstallTarget(sampleresourcehosting, 'resourcehosting')

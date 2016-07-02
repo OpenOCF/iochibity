@@ -74,15 +74,13 @@ if target_os not in ['windows', 'winrt']:
 ######################################################################
 # Linux Enrollee
 ######################################################################
-if target_os == 'linux':
+if target_os in ['darwin','linux']:
 	enrollee_env.PrependUnique(CPPPATH = [
 		enrollee_env.get('SRC_DIR') + '/service/easy-setup/enrollee/linux/wifi'])
 
-	enrollee_env.AppendUnique(LIBS = ['pthread', 'dl'])
 	enrollee_env.AppendUnique(LIBPATH = [enrollee_env.get('BUILD_DIR')])
 	enrollee_env.AppendUnique(RPATH = [enrollee_env.get('BUILD_DIR')])
-	enrollee_env.AppendUnique(CXXFLAGS = ['-pthread'])
-	enrollee_env.PrependUnique(LIBS = ['oc', 'octbstack', 'oc_logger', 'pthread', 'connectivity_abstraction'])
+	enrollee_env.PrependUnique(LIBS = ['oc', 'octbstack', 'oc_logger', 'connectivity_abstraction'])
 	if enrollee_env.get('SECURED') == '1':
 		enrollee_env.PrependUnique(LIBS = ['ocprovision', 'ocpmapi'])
 
@@ -112,7 +110,7 @@ if target_os == 'arduino':
 ######################################################################
 es_enrollee_src = None
 
-if target_os == 'linux':
+if target_os in ['darwin','linux']:
 	es_enrollee_common_src =	[enrollee_env.get('SRC_DIR') + '/service/easy-setup/enrollee/src/easysetup.c',
 		enrollee_env.get('SRC_DIR') + '/service/easy-setup/enrollee/src/onboarding.c',
 		enrollee_env.get('SRC_DIR') + '/service/easy-setup/enrollee/src/resourcehandler.c',
@@ -149,7 +147,7 @@ if target_os == 'arduino':
 if target_os == 'arduino':
 	SConscript('../sampleapp/enrollee/arduino/SConscript')
 
-if target_os == 'linux':
+if target_os in ['darwin','linux']:
 	SConscript('../sampleapp/enrollee/linux/SConscript')
 	#Build UnitTestcases for Enrollee
 	SConscript('../enrollee/unittests/SConscript')

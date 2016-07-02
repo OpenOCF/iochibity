@@ -24,12 +24,6 @@
 
 Import('env')
 
-if env.get('RELEASE'):
-	env.AppendUnique(CCFLAGS = ['-Os'])
-	env.AppendUnique(CPPDEFINES = ['NDEBUG'])
-else:
-	env.AppendUnique(CCFLAGS = ['-g'])
-
 if env.get('LOGGING'):
 	env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
@@ -41,9 +35,12 @@ target_os = env.get('TARGET_OS')
 ######################################################################
 # Build flags
 ######################################################################
-resourcehosting_env.AppendUnique(CPPPATH = ['include'])
-resourcehosting_env.AppendUnique(CPPPATH = ['../resource-encapsulation/include'])
-resourcehosting_env.AppendUnique(CPPPATH = ['../resource-encapsulation/src/common/primitiveResource/include'])
+resourcehosting_env.AppendUnique(CPPPATH = [
+					 'include',
+					 './../resource-encapsulation/include',
+					 '/../resource-encapsulation/src/common/primitiveResource/include',
+					 '#/resource/csdk/security/provisioning/include'
+	])
 
 resourcehosting_env.PrependUnique(LIBS = [
 	'rcs_client',
@@ -55,12 +52,6 @@ resourcehosting_env.PrependUnique(LIBS = [
 	'connectivity_abstraction',
 	'libcoap'
 	])
-
-if target_os not in ['windows', 'winrt']:
-	resourcehosting_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-fmessage-length=0', '-std=c++0x'])
-
-if target_os not in ['darwin', 'ios', 'windows', 'winrt']:
-	resourcehosting_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
 
 if target_os == 'linux':
 	resourcehosting_env.AppendUnique(LIBS = ['pthread'])
@@ -94,7 +85,7 @@ resourcehosting_env.UserInstallTargetHeader('include/Hosting.h',\
 	'service/resource-hosting', 'Hosting.h')
 
 # Go to build Unit test
-if target_os == 'linux':
+if target_os == ['darwin', 'linux']:
 	SConscript('unittest/SConscript')
 
 # Go to build sample apps

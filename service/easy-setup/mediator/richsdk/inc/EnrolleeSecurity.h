@@ -24,7 +24,7 @@
 #include <functional>
 
 #include "ESRichCommon.h"
-#include "OCProvisioningManager.h"
+#include "OCProvisioningManager.hpp"
 
 namespace OIC
 {

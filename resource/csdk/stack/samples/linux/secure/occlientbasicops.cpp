@@ -52,7 +52,7 @@ static OCConnectivityType ocConnType;
 //of other devices which the client trusts
 static char CRED_FILE_DEVOWNER[] = "oic_svr_db_client_devowner.dat";
 static char CRED_FILE_NONDEVOWNER[] = "oic_svr_db_client_nondevowner.dat";
-const char * OIC_RSRC_DOXM_URI =  "/oic/sec/doxm";
+extern const char * OIC_RSRC_DOXM_URI; //GAR =  "/oic/sec/doxm";
 
 int gQuitFlag = 0;
 

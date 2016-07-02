@@ -37,7 +37,12 @@
 #include <AttributeValue.h>
 #include <StringConstants.h>
 
-#ifdef __ANDROID__
+#ifdef __APPLE__
+    #ifdef __MACH__
+#include <cstddef>
+#include <string>
+    #endif
+#elif __ANDROID__
 #include "OCAndroid.h"
 #endif
 
@@ -439,7 +444,8 @@ namespace OC
                     Prop(std::vector<std::string>& resourceTypes,
                             std::vector<std::string>& interfaces)
                     : m_types(resourceTypes), m_interfaces(interfaces)
-                    {}
+	            {(void)m_types; /* avoid warnings about unused privates */
+		     (void)m_interfaces;}
 
                  /*   Prop(const std::vector<std::string>& resourceTypes,
                             const std::vector<std::string>& interfaces)
@@ -465,4 +471,3 @@ namespace OC
 
 
 #endif // OC_REPRESENTATION_H_
-

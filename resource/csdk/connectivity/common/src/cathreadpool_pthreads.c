@@ -73,7 +73,7 @@ void* ca_thread_pool_pthreads_delegate(void* data)
 // was greater than the number of requested threads.
 CAResult_t ca_thread_pool_init(int32_t num_of_threads, ca_thread_pool_t *thread_pool)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG(DEBUG, TAG, "IN: ca_thread_pool_init");
 
     if(!thread_pool)
     {
@@ -124,7 +124,7 @@ CAResult_t ca_thread_pool_init(int32_t num_of_threads, ca_thread_pool_t *thread_
         goto exit;
     }
 
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG(DEBUG, TAG, "OUT: ca_thread_pool_init");
     return CA_STATUS_OK;
 
 exit:
@@ -137,7 +137,7 @@ exit:
 CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool, ca_thread_func method,
                                     void *data)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG(DEBUG, TAG, "IN: ca_thread_pool_add_task");
 
     if(NULL == thread_pool || NULL == method)
     {
@@ -164,7 +164,6 @@ CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool, ca_thread_func 
         OIC_LOG_V(ERROR, TAG, "Thread start failed with error %d", result);
         return CA_STATUS_FAILED;
     }
-
     ca_mutex_lock(thread_pool->details->list_lock);
     bool addResult = u_arraylist_add(thread_pool->details->threads_list, (void*)threadHandle);
     ca_mutex_unlock(thread_pool->details->list_lock);
@@ -175,32 +174,34 @@ CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool, ca_thread_func 
         return CA_STATUS_FAILED;
     }
 
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG(DEBUG, TAG, "OUT: ca_thread_pool_add_task");
     return CA_STATUS_OK;
 }
 
 void ca_thread_pool_free(ca_thread_pool_t thread_pool)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG(DEBUG, TAG, "IN: ca_thread_pool_free");
+
+    void *status;
 
     if(!thread_pool)
     {
         OIC_LOG(ERROR, TAG, "Invalid parameter thread_pool was NULL");
         return;
     }
-
     ca_mutex_lock(thread_pool->details->list_lock);
+    //GAR printf("++++++++++++++++ GAR: thread pool size: %d\n", u_arraylist_length(thread_pool->details->threads_list));
 
     for(uint32_t i = 0; i<u_arraylist_length(thread_pool->details->threads_list); ++i)
     {
         pthread_t tid = (pthread_t)u_arraylist_get(thread_pool->details->threads_list, i);
-        int joinres = pthread_join(tid, NULL);
+	//GAR printf("++++++++++++++++ GAR: thread pool free 2.%d, joining thread %d\n", i, tid);
+	int joinres = pthread_join(tid, &status);
         if(0 != joinres)
         {
             OIC_LOG_V(ERROR, TAG, "Failed to join thread at index %u with error %d", i, joinres);
         }
     }
-
     u_arraylist_free(&(thread_pool->details->threads_list));
 
     ca_mutex_unlock(thread_pool->details->list_lock);
@@ -209,5 +210,5 @@ void ca_thread_pool_free(ca_thread_pool_t thread_pool)
     OICFree(thread_pool->details);
     OICFree(thread_pool);
 
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG(DEBUG, TAG, "OUT: ca_thread_pool_free");
 }

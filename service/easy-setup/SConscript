@@ -37,15 +37,15 @@ print "*************************************************************************
 if ('mediator' in es_role) :
 	print "Building Easysetup mediator SDKs [CSDK & RichSDK]"
 
-	if es_target in ['linux','android']:
+	if es_target in ['darwin','linux','android']:
 		SConscript('mediator/SConscript')
 	else :
-		print "****************************Mediator supports Linux and Android platform****************************"
+		print "****************************Mediator supports Darwin, Linux and Android platform****************************"
 
 if ('enrollee' in es_role) :
 	print "Building Easysetup enrollee SDK"
 
-	if es_target in ['linux', 'arduino', 'tizen']:
+	if es_target in ['darwin', 'linux', 'arduino', 'tizen']:
 		SConscript('enrollee/SConscript')
 	else :
-		print "****************************Enrollee supports linux, tizen and arduino platform****************************"
+		print "****************************Enrollee supports darwin, linux, tizen and arduino platform****************************"

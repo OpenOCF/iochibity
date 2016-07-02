@@ -29,7 +29,7 @@ SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
 
 sample_env = lib_env.Clone()
 
-sample_env.AppendUnique(CXXFLAGS = ['-Wall', '-std=c++0x'])
+sample_env.AppendUnique(CXXFLAGS = ['-Wall'])
 sample_env.AppendUnique(LIBS = [
     'coap',
     'connectivity_abstraction',

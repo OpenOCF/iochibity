@@ -24,7 +24,7 @@
 #include <OCPlatform_impl.h>
 #include <oxmjustworks.h>
 #include <oxmrandompin.h>
-#include <OCProvisioningManager.h>
+#include <OCProvisioningManager.hpp>
 #include <gtest/gtest.h>
 
 #define TIMEOUT 5

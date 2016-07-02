@@ -1,0 +1,403 @@
+C Kernel v. High-level bindings
+================================================================
+
+Currently the C++ code is not cleanly separated from the kernel C
+code.  Layout:
+
+resource/csdk:    The kernel C code: connectivity, routing, stack etc.
+
+resource/c_common:  some utility code wrapping std fns like malloc; only to suport debugging?
+
+resource/examples:  only c++ code
+
+resource/include:  headers for the c++ binding
+
+resource/oc_logger:  both c and c++ implementations
+
+resource/patches:  boost stuff.  why not put it in e.g. resource/boost?
+
+resource/provisioning:  c++ Provisioning Manager.  Is this a core part of Iotivity, or an app?
+
+resource/src:  c++ code for CAManager, OCPlatform, etc.  This is the c++ wrapper around the c kernel?  headers are in resource/include
+
+PROPOSAL: treat the c stuff as "kernel", group the C++ along with the
+other bindings (Java, ObjC, Lua, Python, etc.).  For example:
+
+kernel/src  - what's now in csdk
+kernel/include
+kernel/...etc...
+
+bindings/cpp/src
+bindings/cpp/include
+bindings/cpp/...
+
+bindings/jvm/src/main/cpp     jni code
+bindings/jvm/src/main/java
+bindings/jvm/include
+bindings/jvm/...
+etc.
+
+
+Portability
+================================================================
+https://discuss.fogcreek.com/joelonsoftware4/default.asp?cmd=show&ixPost=141255&ixReplies=11
+
+plan 9:  http://plan9.bell-labs.com/plan9/
+
+adding new arch in plan 9:  http://plan9.bell-labs.com/sys/doc/libmach.html
+
+Chromium Conventions and patterns for multi-platform development
+https://www.chromium.org/developers/design-documents/conventions-and-patterns-for-multi-platform-development
+
+Apache Portable Runtime: http://apr.apache.org/
+
+Cross-compilation using clang:  http://clang.llvm.org/docs/CrossCompilation.html
+
+Cross-platform Support
+======================
+
+Currently this is only supported for Android and iOS?  What about
+other constrained devices, e.g. TI LaunchPads?  E.g. http://www.ti.com/ww/en/launchpad/launchpads-msp430-msp-exp430FR6989.html#tabs (MSP-EXP430FR6989).
+
+Does it even make sense to run Iotivity on such small devices?  In
+this case, the MSP-EXP430FR6989 has only 128K FRAM.  Is that enough?
+
+The csdk sample ocserverbasicops is 16K.  Is that statically linked?
+Evidently, here's the link cmd:
+
+g++ -o out/darwin/x86_64/release/resource/csdk/stack/samples/linux/SimpleClientServer/ocserverbasicops -arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/ -mmacosx-version-min=10.11 -Wl,-undefined,error out/darwin/x86_64/release/resource/csdk/stack/samples/linux/SimpleClientServer/ocserverbasicops.o out/darwin/x86_64/release/resource/csdk/stack/samples/linux/SimpleClientServer/common.o -L/usr/local/lib -Lout/darwin/x86_64/release/resource/csdk/logger -Lresource/csdk/logger -Lout/darwin/x86_64/release/resource/c_common -Lresource/c_common -Lout/darwin/x86_64/release/resource/csdk/routing -Lresource/csdk/routing -Lout/darwin/x86_64/release -L. -lm -loctbstack -locsrm -lconnectivity_abstraction -lcoap -lc_common -llogger -lroutingmanager -lpthread
+
+See e.g. http://www.ti.com/tool/msp430-gcc-opensource
+
+
+Toolchains
+================================================================
+
+crosstool-ng:  http://crosstool-ng.org/
+
+clang.  Note that although clang is natively a cross-compiler, the OS
+X installation only includes toolchains for Mac platforms: AppleTV,
+MacOSX, WatchOS, and iPhoneOS.
+
+(/Applications/Xcode.app/Contents/Developer/Platforms/)
+
+
+gcc for msp mcus:  http://www.ti.com/tool/msp430-gcc-opensource
+
+gcc arm embedded: https://launchpad.net/gcc-arm-embedded
+
+Darwin
+================================================================
+
+gcc is an OSX-specific wrapper around (generic) clang.  So the two
+report different options.  For example, gcc supports
+-mmacosx-version-min, clang doesn't.
+
+
+darwin build command:
+
+`$ scons SYS_VERSION=10.11 VERBOSE=true 2>&1 | tee build.log`
+
+tinycbor: instead of a message asking user to clone it, can we write
+some scons code (i.e. a tinycbor target) to do this automatically?  or
+just embed the code?
+
+google test: the build currently downloads a zip file.  why not clone
+https://github.com/google/googletest?
+
+resource/csdk/logger/src/logger.o  - why is this being created in the source dir?
+
+CASE INSENSITIVE FILESYSTEM!  we need to rename ocprovisioningmanager.h to ocprovisioning_manager.h in order to avoid clash with OCProvisioningManager.h
+
+WARNINGS:  we use -Wno-unused-function, etc. in some places.  Need to parameterize this so user can turn on these warnings globally
+
+-Wunused-function
+-Wunused-label
+-Wunused-parameter
+-Wunused-value
+-Wunused-variable
+-Wunused (=all of the above)
+
+prepend no- to turn off
+
+====
+resource/csdk/connectivity/src/bt_le_adapter/caleadapter.c:766:39: warning: implicit declaration of function 'coap_get_total_message_length' is invalid in C99 [-Wimplicit-function-declaration]
+
+????  doesn't seem implicit
+
+================================================================
+
+resource/c_common/platform_features.h:38:14: fatal error: 'stdassert.h' file not found
+see https://lists.linuxfoundation.org/pipermail/iotivity-dev/2016-January/003373.html: use assert.h
+
+various fixes in csdk/stack to elim warnings
+
+ld warnings: ld: warning: directory not found for option '-Ldeps/darwin/lib/x86_64'
+
+g++ -o out/darwin/x86_64/release/resource/csdk/connectivity/test/catests
+g++ -o out/darwin/x86_64/release/resource/csdk/stack/test/cbortests
+everthing in csdk/stack/samples/linux/SimpleClientServer/
+
+
+resource/csdk/stack/samples/linux/SimpleClientServer/occlientslow.cpp:130:24: warning: address of array 'clientResponse->rcvdVendorSpecificHeaderOptions' will always evaluate to 'true' [-Wpointer-bool-conversion]
+    if(clientResponse->rcvdVendorSpecificHeaderOptions &&
+
+resource/csdk/security/include/securevirtualresourcetypes.h:426:1: warning: empty struct has size 0 in C, size 1 in C++ [-Wextern-c-compat]
+struct OicSecSacl
+^
+
+resource/csdk/connectivity/lib/libcoap-4.1.1/net.c:882:19: warning: unused function 'check_opt_size' [-Wunused-function]
+static inline int check_opt_size(coap_opt_t *opt, unsigned char *maxpos)
+                  ^
+
+resource/csdk/connectivity/src/bt_le_adapter/caleadapter.c:754:39: warning: implicit declaration of function 'coap_get_total_message_length' is invalid in C99 [-Wimplicit-function-declaration]
+            newSender->totalDataLen = coap_get_total_message_length(bleData->data, bleData->dataLen);
+                                      ^
+resource/csdk/connectivity/src/bt_le_adapter/caleadapter.c:2309:43: warning: implicit conversion from enumeration type 'CAAdapterState_t' to different enumeration type 'CANetworkStatus_t' [-Wenum-conversion]
+        g_networkCallback(&localEndpoint, adapter_state);
+        ~~~~~~~~~~~~~~~~~                 ^~~~~~~~~~~~~
+
+
+resource/csdk/security/include/internal/policyengine.h:32:30: warning: redefinition of typedef 'AmsMgrContext_t' is a C11 feature [-Wtypedef-redefinition]
+typedef struct AmsMgrContext AmsMgrContext_t;
+                             ^
+resource/csdk/security/include/internal/amsmgr.h:41:3: note: previous definition is here
+} AmsMgrContext_t;
+  ^
+In file included from resource/csdk/security/src/secureresourcemanager.c:27:
+resource/csdk/security/include/internal/policyengine.h:54:3: warning: redefinition of typedef 'PEContext_t' is a C11 feature [-Wtypedef-redefinition]
+} PEContext_t;
+  ^
+resource/csdk/security/include/internal/amsmgr.h:32:26: note: previous definition is here
+typedef struct PEContext PEContext_t;
+                         ^
+
+resource/csdk/security/include/internal/amsmgr.h:32:26: warning: redefinition of typedef 'PEContext_t' is a C11 feature [-Wtypedef-redefinition]
+typedef struct PEContext PEContext_t;
+                         ^
+resource/csdk/security/include/internal/policyengine.h:54:3: note: previous definition is here
+} PEContext_t;
+  ^
+In file included from resource/csdk/security/src/amsmgr.c:22:
+resource/csdk/security/include/internal/amsmgr.h:41:3: warning: redefinition of typedef 'AmsMgrContext_t' is a C11 feature [-Wtypedef-redefinition]
+} AmsMgrContext_t;
+  ^
+resource/csdk/security/include/internal/policyengine.h:32:30: note: previous definition is here
+typedef struct AmsMgrContext AmsMgrContext_t;
+                             ^
+
+In file included from resource/csdk/security/src/policyengine.c:22:
+resource/csdk/security/include/internal/policyengine.h:54:3: warning: redefinition of typedef 'PEContext_t' is a C11 feature [-Wtypedef-redefinition]
+} PEContext_t;
+  ^
+resource/csdk/security/include/internal/amsmgr.h:32:26: note: previous definition is here
+typedef struct PEContext PEContext_t;
+                         ^
+
+BUG:
+resource/csdk/stack/src/rdpayload.c:607:23: warning: address of array 'tags->di.id' will always evaluate to 'true' [-Wpointer-bool-conversion]
+        if (!tags->di.id)
+            ~~~~~~~~~~^~
+
+    FIX: octypes.h/OCTagsPayload, .di : OCIdentity, id : unsigned char id[MAX...]
+
+=== building
+
+`$ scons TARGET_OS=android \
+   TARGET_ARCH=x86_64 \
+   TARGET_TRANSPORT=IP \
+   RELEASE=1 \
+   SECURED=0 \
+   ANDROID_HOME=<path to android SDK> ANDROID_NDK=<path to android NDK> GRADLE_HOME=<path to gradle/bin>`
+
+
+on linux `$ scons TARGET_OS=android` is enough
+
+
+Install file: "out/android/x86/release/resource/oc_logger/liboc_logger.so" as "out/android/x86/release/liboc_logger.so"
+/Users/gar/iotivity/iotivity/extlibs/android/ndk/android-ndk-r10d/toolchains/x86-4.8/prebuilt/darwin-x86_64/bin/i686-linux-android-g++ -o out/android/x86/release/resource/src/liboc.so -Wl,--gc-sections -Wl,-z,nocopyreloc --sysroot=/Users/gar/iotivity/iotivity/extlibs/android/ndk/android-ndk-r10d/platforms/android-21/arch-x86 -no-canonical-prefixes -Wl,-z,noexecstack -Wl,--no-undefined -Wl,-z,relro -Wl,-z,now -s -Wl,-soname,liboc.so -shared out/android/x86/release/resource/src/OCPlatform.os out/android/x86/release/resource/src/OCPlatform_impl.os out/android/x86/release/resource/src/OCResource.os out/android/x86/release/resource/src/OCUtilities.os out/android/x86/release/resource/src/OCException.os out/android/x86/release/resource/src/OCRepresentation.os out/android/x86/release/resource/src/InProcServerWrapper.os out/android/x86/release/resource/src/InProcClientWrapper.os out/android/x86/release/resource/src/OCResourceRequest.os out/android/x86/release/resource/src/CAManager.os -Ldeps/android/lib/x86 -Lextlibs/android/ndk/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/libs/x86 -Ldep/android/x86/usr/lib -Lout/android/x86/release -L. -Lresource/csdk/connectivity/lib/android -Lout/android/x86/release/resource/csdk/logger -Lresource/csdk/logger -Lout/android/x86/release/resource/c_common -Lresource/c_common -Lout/android/x86/release/resource/csdk/routing -Lresource/csdk/routing -lc_common -llogger -llog -lcoap -lc_compat -landroid_cpp11_compat -lroutingmanager -loctbstack -loc_logger -lconnectivity_abstraction -lboost_thread -lgnustl_shared
+/Users/gar/iotivity/iotivity/extlibs/android/ndk/android-ndk-r10d/toolchains/x86-4.8/prebuilt/darwin-x86_64/bin/../lib/gcc/i686-linux-android/4.8/../../../../i686-linux-android/bin/ld: error: boost_thread: no archive symbol table (run ranlib)
+
+CAUSE: the boost libs were compiled for darwin instead of android
+FIX: cross-compile boost, see below
+
+
+=== boost
+
+only for android?
+
+extlibs/boost/SConscript does not support darwin
+
+also the download code is broken
+
+so just use wget from extlibs/boost:
+
+wget http://downloads.sourceforge.net/project/boost/boost/1.58.0/boost_1_58_0.zip
+
+scons builds boost, but it uses the host (darwin) toolchain. use the `file` cmd (Linux/OSX) to find the arch of the binaries, e.g.
+
+```
+$ file extlibs/boost/boost_1_58_0/build/android/x86/boost/architecture/darwin-4.2.1/debug/target-os-linux/x86.o
+extlibs/boost/boost_1_58_0/build/android/x86/boost/architecture/darwin-4.2.1/debug/target-os-linux/x86.o: Mach-O 64-bit object x86_64
+```
+
+we need
+to cross-compile it. see
+http://stackoverflow.com/questions/30491158/compile-and-use-boost-for-android-ndk-r10e
+
+see also
+http://munteanumarian.blogspot.com/2014/10/build-boost-for-android.html
+and look at extlibs/boost/boost_1_58_0/tools/build/src/user-config.jam
+
+https://github.com/moritz-wundke/Boost-for-Android[Boost for Android]
+
+However, it looks like Iotivity is already setup to do this; see
+tools/scons/BoostBuild.py, which creates
+
+/extlibs/boost/boost_1_58_0/tools/build/src/user-config.jam
+
+which points to the ndk.  but it doesn't seem to be used in the build.
+
+debug:  add     cmd.append('--debug-configuration') to tools/scons/BoostBuild.py
+the debug out put shows the ndk is being used
+
+FIX: in extlibs/boost/SConscript:
+
+    if host_os == 'linux2' :
+        boost_bootstrap = boost_base_name+os.sep+'bootstrap.sh'
+  # begin insert
+    else :
+        if host_os == 'darwin' :
+    	    boost_bootstrap = ''
+  # end insert
+	else:
+		msg="Host platform (%s) is currently not supported for boost builds" % host_os
+		raise SCons.Errors.EnvironmentError(msg)
+
+
+=== android sdk/ndk
+
+the code to check for ANDROID_HOME/platforms/android-21 is in
+service/resource-container AND service/resource-encapsulation - WHY?
+
+android build tools rev 20: hard coded dir name "20.0.0", but earlier
+version was named "android-4.4W" (at least on the mac).  fix: delete
+then reinstall.  in sconscripts
+service/resource-container/android/Sconscript and service/resource-encapsulation/android/Sconscript
+
+ndk version r10d is hardcoded into the build specs, current is r11c
+
+extlibs/android/ndk/SConscript does not support darwin
+
+the darwin ndk: http://dl.google.com/android/ndk/android-ndk-r10d-darwin-x86_64.bin
+
+to extract:  https://github.com/inferjay/AndroidDevTools/wiki/Installing-the-NDK-On-Linux-and-Mac-OS-X-(Darwin)
+1.  chmod ug+x android-ndk-r10d-darwin-x86_64.bin
+2. ./android-ndk-r10d-darwin-x86_64.bin
+
+=== tools
+
+useful os x commands:
+
+* file - determine file type
+* otool - object file display tool
+
+
+REQUIRED VERSIONS:
+
+Android SDK Build Tools Revision 20
+Android 5.0.1 (API 21)
+
+
+***************************************** Info ********************************
+*   Either 'Android API 21' is not installed or 'Android SDK Build Tools      *
+*   20.0.0' is not installed. The Android SDK Manager will now open. Please   *
+*   be sure to deselect all options, then select the following 2 packages:    *
+*       1. Under "Tools" select "Android SDK Build-tools" Revision 20.        *
+*       2. Under "Android 5.0.1 (API 21)" select "SDK Platform"               *
+*       3. Continue by selecting "Install 2 Packages"                         *
+*                                                                             *
+*   NOTE: If you have an http proxy, please press ctrl+c now and edit/create  *
+*         the following file in your $HOME directory as follows:              *
+*                                                                             *
+* Edit/Create file: "$HOME/.android/androidtool.cfg"                          *
+*                                                                             *
+*    http.proxyPort=<YOUR_PORT_NUMBER>                                        *
+*    sdkman.monitor.density=108                                               *
+*    http.proxyHost=<YOUR_HTTP_PROXY_ADDRESS>                                 *
+*    sdkman.show.update.only=true                                             *
+*    sdkman.ask.adb.restart=false                                             *
+*    sdkman.force.http=true                                                   *
+*    sdkman.show.updateonly=true                                              *
+*                                                                             *
+*******************************************************************************
+
+
+
+https://developer.android.com/studio/index.html#downloads[Android SDK downloads] (Command line, not Studio)
+https://developer.android.com/ndk/downloads/index.html[NDK downloads]
+https://services.gradle.org/distributions/gradle-2.2.1-all.zip[Gradle 2.2.1]
+
+=== build cmds
+
+To see the actual build commands, add VERBOSE=TRUE arg, e.g. $ scons VERBOSE=TRUE ...
+
+
+scons: building associated VariantDir targets: out/linux/x86_64/release
+Compiling extlibs/tinycbor/tinycbor/src/cborparser.o
+Compiling extlibs/tinycbor/tinycbor/src/cborencoder.o
+Compiling extlibs/tinycbor/tinycbor/src/cborerrorstrings.o
+Compiling extlibs/tinycbor/tinycbor/src/cborparser.os
+Compiling extlibs/tinycbor/tinycbor/src/cborencoder.os
+Compiling extlibs/tinycbor/tinycbor/src/cborerrorstrings.os
+Compiling resource/c_common/oic_malloc/src/oic_malloc.o
+Compiling resource/csdk/logger/src/logger.o
+Compiling resource/c_common/oic_string/src/oic_string.o
+/home/gar/iotivity/iotivity/extlibs/android/gradle/gradle-2.2.1/bin/gradle build -b/home/gar/iotivity/iotivity/java/iotivity-linux/build.gradle -PTARGET_ARCH=x86_64 -PRELEASE=release -PSECURED=0 -PBUILD_DIR=/home/gar/iotivity/iotivity/out/linux/x86_64/release/ -PSRC_DIR=/home/gar/iotivity/iotivity --stacktrace
+Creating 'iotivity.pc'
+:compileJava UP-TO-DATE
+...
+
+/home/gar/iotivity/iotivity/extlibs/android/gradle/gradle-2.2.1/bin/gradle build -bjava/examples-java/build.gradle -PTARGET_OS=linux -PTARGET_ARCH=x86_64 -PRELEASE=debug -PSECURED=0 --stacktrace
+:
+...
+
+scons: building associated VariantDir targets: out/linux/x86_64/debug
+Compiling extlibs/tinycbor/tinycbor/src/cborparser.o
+Compiling extlibs/tinycbor/tinycbor/src/cborencoder.o
+Compiling extlibs/tinycbor/tinycbor/src/cborerrorstrings.o
+Compiling extlibs/tinycbor/tinycbor/src/cborparser.os
+Compiling extlibs/tinycbor/tinycbor/src/cborencoder.os
+Compiling extlibs/tinycbor/tinycbor/src/cborerrorstrings.os
+Compiling resource/c_common/oic_malloc/src/oic_malloc.o
+Compiling resource/csdk/logger/src/logger.o
+Compiling resource/c_common/oic_string/src/oic_string.o
+/home/gar/iotivity/iotivity/extlibs/android/gradle/gradle-2.2.1/bin/gradle build -b/home/gar/iotivity/iotivity/java/iotivity-linux/build.gradle -PTARGET_ARCH=x86_64 -PRELEASE=debug -PSECURED=0 -PBUILD_DIR=/home/gar/iotivity/iotivity/out/linux/x86_64/debug/ -PSRC_DIR=/home/gar/iotivity/iotivity --stacktrace
+Creating 'iotivity.pc'
+:compileJava UP-TO-DATE
+...
+
+
+/home/gar/iotivity/iotivity/extlibs/android/gradle/gradle-2.2.1/bin/gradle build -bjava/examples-java/build.gradle -PTARGET_OS=linux -PTARGET_ARCH=x86_64 -PRELEASE=debug -PSECURED=0 --stacktrace
+:compileJava UP-TO-DATE
+...
+
+
+=== warnings
+
+
+*************************************** Info **********************************
+*    Android Gradle path isn't set, the default will be used. You can set     *
+* environment variable ANDROID_GRADLE or add it in command line as:           *
+*      # scons ANDROID_GRADLE=<path to android GRADLE> ...                    *
+*******************************************************************************
+
+Even if ANDROID_GRADLE is set in the env!
+
+                                     ^
+resource/include/OCResourceRequest.h:58:37: warning: missing initializer for member 'OC::ObservationInfo::obsId' [-Wmissing-field-initializers]
+resource/include/OCResourceRequest.h:58:37: warning: missing initializer for member 'OC::ObservationInfo::connectivityType' [-Wmissing-field-initializers]
+resource/include/OCResourceRequest.h:58:37: warning: missing initializer for member 'OC::ObservationInfo::address' [-Wmissing-field-initializers]
+resource/include/OCResourceRequest.h:58:37: warning: missing initializer for member 'OC::ObservationInfo::port' [-Wmissing-field-initializers]
+
+FIX: added initializers to defn of struct ObservationInfo in resource/include/OCApi.h

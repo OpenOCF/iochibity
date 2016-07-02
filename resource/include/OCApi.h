@@ -232,8 +232,8 @@ namespace OC
         OCObservationId obsId;
 
         OCConnectivityType connectivityType;
-        std::string address;
-        uint16_t port;
+        std::string address = "";
+        uint16_t port = 0;
     } ObservationInfo;
 
     // const strings for different interfaces

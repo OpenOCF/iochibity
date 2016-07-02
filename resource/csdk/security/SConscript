@@ -39,7 +39,8 @@ if target_os == 'arduino':
 # Build flags
 ######################################################################
 libocsrm_env.PrependUnique(CPPPATH = [
-		'../../../extlibs/cjson/',
+		'./../cbor/',
+		'./../cjson/',
 		'../../../extlibs/tinydtls/',
 		'../logger/include',
 		'../../c_common/ocrandom/include',
@@ -58,27 +59,16 @@ libocsrm_env.PrependUnique(CPPPATH = [
 
 if target_os not in ['arduino', 'windows', 'winrt']:
 	libocsrm_env.AppendUnique(CPPDEFINES  = ['WITH_POSIX'])
-	libocsrm_env.AppendUnique(CFLAGS = ['-std=c99'])
 	libocsrm_env.AppendUnique(CPPDEFINES = ['HAVE_STRINGS_H'])
-
-if target_os not in ['windows', 'winrt']:
-	libocsrm_env.AppendUnique(CFLAGS = ['-Wall'])
 
 libocsrm_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 libocsrm_env.AppendUnique(LIBS = ['coap', 'm'])
 
 if target_os == 'arduino':
 	libocsrm_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
-else:
-	libocsrm_env.AppendUnique(CFLAGS = ['-fPIC'])
 
 if target_os in ['darwin', 'ios']:
-	libocsrm_env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
-	libocsrm_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 	libocsrm_env.AppendUnique(LIBS = ['coap'])
-
-if not env.get('RELEASE'):
-	libocsrm_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 if env.get('DTLS_WITH_X509') == '1':
 	libocsrm_env.AppendUnique(CPPDEFINES = ['__WITH_X509__'])
@@ -87,66 +77,44 @@ if env.get('DTLS_WITH_X509') == '1':
 # Source files and Targets
 ######################################################################
 OCSRM_SRC = 'src/'
+libocsrm_src = [
+	OCSRM_SRC + 'secureresourcemanager.c',
+	OCSRM_SRC + 'resourcemanager.c',
+	OCSRM_SRC + 'aclresource.c',
+	OCSRM_SRC + 'amaclresource.c',
+	OCSRM_SRC + 'amsmgr.c',
+	OCSRM_SRC + 'pstatresource.c',
+	OCSRM_SRC + 'doxmresource.c',
+	OCSRM_SRC + 'credresource.c',
+	OCSRM_SRC + 'svcresource.c',
+	OCSRM_SRC + 'pconfresource.c',
+	OCSRM_SRC + 'directpairing.c',
+	OCSRM_SRC + 'dpairingresource.c',
+	OCSRM_SRC + 'verresource.c',
+	OCSRM_SRC + 'policyengine.c',
+	OCSRM_SRC + 'psinterface.c',
+	OCSRM_SRC + 'srmresourcestrings.c',
+	OCSRM_SRC + 'srmutility.c',
+	OCSRM_SRC + 'iotvticalendar.c',
+	OCSRM_SRC + 'base64.c']
+
 if env.get('SECURED') == '1':
-	libocsrm_src = [
-		OCSRM_SRC + 'secureresourcemanager.c',
-		OCSRM_SRC + 'resourcemanager.c',
-		OCSRM_SRC + 'aclresource.c',
-		OCSRM_SRC + 'amaclresource.c',
-		OCSRM_SRC + 'amsmgr.c',
-		OCSRM_SRC + 'pstatresource.c',
-		OCSRM_SRC + 'doxmresource.c',
-		OCSRM_SRC + 'credresource.c',
-		OCSRM_SRC + 'svcresource.c',
-		OCSRM_SRC + 'pconfresource.c',
-		OCSRM_SRC + 'dpairingresource.c',
-		OCSRM_SRC + 'verresource.c',
-		OCSRM_SRC + 'policyengine.c',
-		OCSRM_SRC + 'psinterface.c',
-		OCSRM_SRC + 'srmresourcestrings.c',
-		OCSRM_SRC + 'srmutility.c',
-		OCSRM_SRC + 'iotvticalendar.c',
-		OCSRM_SRC + 'oxmpincommon.c',
-		OCSRM_SRC + 'base64.c',
-		#pbkdf2.c is required to PIN based OxM only.
-		#But we did not use a separate build options to prevent the build command becomes complicated.
-		OCSRM_SRC + 'pbkdf2.c',
-		OCSRM_SRC + 'directpairing.c'
-		]
-else:
-	libocsrm_src = [
-		OCSRM_SRC + 'secureresourcemanager.c',
-		OCSRM_SRC + 'resourcemanager.c',
-		OCSRM_SRC + 'aclresource.c',
-		OCSRM_SRC + 'amaclresource.c',
-		OCSRM_SRC + 'amsmgr.c',
-		OCSRM_SRC + 'pstatresource.c',
-		OCSRM_SRC + 'doxmresource.c',
-		OCSRM_SRC + 'credresource.c',
-		OCSRM_SRC + 'svcresource.c',
-		OCSRM_SRC + 'pconfresource.c',
-		OCSRM_SRC + 'dpairingresource.c',
-		OCSRM_SRC + 'policyengine.c',
-		OCSRM_SRC + 'verresource.c',
-		OCSRM_SRC + 'psinterface.c',
-		OCSRM_SRC + 'srmresourcestrings.c',
-		OCSRM_SRC + 'srmutility.c',
-		OCSRM_SRC + 'iotvticalendar.c',
-		OCSRM_SRC + 'base64.c',
-		OCSRM_SRC + 'directpairing.c'
-		]
+    libocsrm_src = libocsrm_src + [OCSRM_SRC + 'oxmpincommon.c'
+				  ,OCSRM_SRC + 'pbkdf2.c']
+    		   		  #pbkdf2.c is required for PIN based OxM only.
+				  # But we did not use a separate build options
+				  # to prevent complicating the build command.
 
-if env.get('DTLS_WITH_X509') == '1' and env.get('SECURED') == '1':
-	crl_src = [OCSRM_SRC + 'crlresource.c']
-	libocsrm_src  = libocsrm_src + crl_src
-
+    if env.get('DTLS_WITH_X509') == '1':
+	libocsrm_src  = libocsrm_src + [OCSRM_SRC + 'crlresource.c']
 
 libocsrm = libocsrm_env.StaticLibrary('libocsrm', libocsrm_src)
 
 libocsrm_env.InstallTarget(libocsrm, 'libocsrm')
 
-if target_os in ['linux', 'android', 'tizen'] and env.get('SECURED') == '1':
-	SConscript('provisioning/SConscript')
+if env.get('SECURED') == '1':
+    if target_os in ['linux', 'darwin', 'android', 'tizen']:
+        SConscript('provisioning/SConscript')
 
-if target_os in ['linux'] and env.get('SECURED') == '1':
-	SConscript('tool/SConscript')
+    if target_os in ['linux', 'darwin']:
+        SConscript('tool/SConscript')

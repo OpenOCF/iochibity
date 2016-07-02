@@ -25,27 +25,23 @@ samples_env = env.Clone()
 # Build flags
 ######################################################################
 samples_env.PrependUnique(CPPPATH = [
-		'../../../../logger/include',
-		'../../../../stack/include',
-		'../../../../security/include',
-		'../../../../../../extlibs/cjson',
-		'../../../../../oc_logger/include'
+		'./../../../../logger/include',
+		'./../../../../stack/include',
+		'./../../../../security/include',
+		'./../../../../cbor',
+		'./../../../../cjson',
+		'./../../../../../oc_logger/include'
 		])
 
 target_os = env.get('TARGET_OS')
-if target_os not in ['windows', 'winrt']:
-	samples_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
-
-	# Note: 'pthread' is in libc for android.
-	if target_os != 'android':
-		samples_env.AppendUnique(LIBS = ['-lpthread'])
 
 samples_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-samples_env.PrependUnique(LIBS = ['octbstack', 'm', 'connectivity_abstraction', 'coap'])
+samples_env.PrependUnique(LIBS = ['octbstack', 'm', 'connectivity_abstraction', 'coap', 'ocsrm'])
 if env.get('SECURED') == '1':
     samples_env.AppendUnique(LIBS = ['tinydtls'])
 
-samples_env.Append(LINKFLAGS = ['-Wl,--no-as-needed'])
+if target_os == 'linux':
+   samples_env.Append(LINKFLAGS = ['-Wl,--no-as-needed'])
 
 if target_os == 'android':
 	samples_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
@@ -54,11 +50,6 @@ if target_os == 'android':
 
 	if not env.get('RELEASE'):
 		samples_env.AppendUnique(LIBS = ['log'])
-
-if target_os in ['darwin', 'ios']:
-	samples_env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
-
-samples_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 ######################################################################
 # Source files and Targets

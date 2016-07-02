@@ -61,7 +61,7 @@ LOCAL_MODULE = OICCommon
 #Build Common Libraries
 LOCAL_PATH = $(OIC_C_COMMON_PATH)
 LOCAL_CFLAGS = -D__ANDROID__ $(DEBUG_FLAG)
-LOCAL_CFLAGS += -std=c99
+LOCAL_CFLAGS += -std=c11
 
 LOCAL_C_INCLUDES = $(OIC_C_COMMON_PATH)/oic_malloc/include \
                    $(OIC_C_COMMON_PATH)/oic_string/include
@@ -84,7 +84,7 @@ LOCAL_STATIC_LIBRARIES = rt pthread
 LOCAL_STATIC_LIBRARIES += OICCommon
 
 LOCAL_CFLAGS = -D__ANDROID__ $(DEBUG_FLAG)
-LOCAL_CFLAGS += -std=c99
+LOCAL_CFLAGS += -std=c11
 
 LOCAL_C_INCLUDES = $(PROJECT_COMMON_INC_PATH)
 LOCAL_C_INCLUDES += $(PROJECT_API_PATH)
@@ -144,7 +144,7 @@ LOCAL_C_INCLUDES += $(OIC_C_COMMON_PATH)/oic_string/include
 LOCAL_C_INCLUDES += $(DTLS_LIB)
 
 LOCAL_CFLAGS += $(BUILD_FLAG)
-LOCAL_CFLAGS += -std=c99 -DWITH_POSIX -DWITH_BWT
+LOCAL_CFLAGS += -std=c11 -DWITH_POSIX -DWITH_BWT
 
 LOCAL_SRC_FILES = \
                 caconnectivitymanager.c cainterfacecontroller.c \

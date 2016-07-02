@@ -1028,7 +1028,8 @@ HandleResourceWithEntityHandler (OCServerRequest *request,
     OIC_LOG(INFO, TAG, "Entering HandleResourceWithEntityHandler");
     OCPayloadType type = PAYLOAD_TYPE_REPRESENTATION;
     // check the security resource
-    if (request && request->resourceUrl && SRMIsSecurityResourceURI(request->resourceUrl))
+    //GAR bugfix: request->resourceUrl always true
+    if (request && request->resourceUrl[0] && SRMIsSecurityResourceURI(request->resourceUrl)) //GAR
     {
         type = PAYLOAD_TYPE_SECURITY;
 

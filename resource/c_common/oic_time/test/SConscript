@@ -22,6 +22,7 @@
 Import('env')
 import os
 
+target_os = env.get('TARGET_OS')
 
 timetest_env = env.Clone()
 src_dir = timetest_env.get('SRC_DIR')
@@ -29,14 +30,18 @@ src_dir = timetest_env.get('SRC_DIR')
 ######################################################################
 # Build flags
 ######################################################################
+home = os.environ['HOME']
+gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
+
 timetest_env.PrependUnique(CPPPATH = [
         '../include',
-        '#extlibs/gtest/gtest-1.7.0/include' ])
+        gtest_dir + '/include' ])
 
 timetest_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource/c_common')])
-timetest_env.AppendUnique(LIBPATH = [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
+timetest_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 timetest_env.PrependUnique(LIBS = ['c_common', 'gtest', 'gtest_main', 'pthread'])
-timetest_env.Append(LIBS = ['rt']);
+if target_os != 'darwin':
+   timetest_env.Append(LIBS = ['rt']);
 
 if env.get('LOGGING'):
     timetest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
@@ -51,7 +56,7 @@ Alias("test", [timetests])
 env.AppendTarget('test')
 if env.get('TEST') == '1':
     target_os = env.get('TARGET_OS')
-    if target_os == 'linux':
+    if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(timetest_env,
                          'resource_ccommon_time_test.memcheck',

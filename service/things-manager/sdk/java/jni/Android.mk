@@ -60,7 +60,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/jniutil/inc \
 LOCAL_SRC_FILES += $(patsubst $(LOCAL_PATH)/%, %, $(wildcard $(LOCAL_PATH)/jniutil/src/*.cpp))
 LOCAL_SRC_FILES += $(patsubst $(LOCAL_PATH)/%, %, $(wildcard $(LOCAL_PATH)/tm/src/*.cpp))
 
-LOCAL_CPPFLAGS := -std=c++0x -frtti -fexceptions
+LOCAL_CPPFLAGS := -std=c++11 -frtti -fexceptions
 
 LOCAL_LDLIBS := -llog
 LOCAL_SHARED_LIBRARIES := android-ocstack-jni

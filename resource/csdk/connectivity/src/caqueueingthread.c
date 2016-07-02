@@ -24,6 +24,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+#include <pthread.h>  //GAR
+
 #include "caqueueingthread.h"
 #include "oic_malloc.h"
 #include "logger.h"
@@ -32,7 +34,7 @@
 
 static void CAQueueingThreadBaseRoutine(void *threadValue)
 {
-    OIC_LOG(DEBUG, TAG, "message handler main thread start..");
+    OIC_LOG_V(DEBUG, TAG, "message handler main thread %d start..", pthread_self());
 
     CAQueueingThread_t *thread = (CAQueueingThread_t *) threadValue;
 
@@ -56,7 +58,7 @@ static void CAQueueingThreadBaseRoutine(void *threadValue)
             // wait
             ca_cond_wait(thread->threadCond, thread->threadMutex);
 
-            OIC_LOG(DEBUG, TAG, "wake up..");
+            OIC_LOG_V(DEBUG, TAG, "wake up thread %d..", pthread_self());
         }
 
         // check stop flag
@@ -275,7 +277,7 @@ CAResult_t CAQueueingThreadStop(CAQueueingThread_t *thread)
         return CA_STATUS_INVALID_PARAM;
     }
 
-    OIC_LOG(DEBUG, TAG, "thread stop request!!");
+    OIC_LOG_V(DEBUG, TAG, "thread stop request!! pthread_self: %d", pthread_self());
 
     if (!thread->isStop)
     {

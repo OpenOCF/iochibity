@@ -604,7 +604,7 @@ OCTagsPayload* OCCopyTagsResources(const char *deviceName, const unsigned char *
     if (id)
     {
         OICStrcpy((char*)tags->di.id, MAX_IDENTITY_SIZE, (char *)id);
-        if (!tags->di.id)
+        if (!tags->di.id[0])  //GAR warning: address of array 'tags->di.id' will always evaluate to 'true'
         {
             goto memory_allocation_failed;
         }

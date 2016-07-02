@@ -26,7 +26,7 @@ Import('env')
 
 target_os = env.get('TARGET_OS')
 
-if target_os not in ['arduino','darwin', 'ios']:
+if target_os not in ['arduino', 'ios']:
     # Build things manager project
     SConscript('things-manager/SConscript')
 
@@ -40,11 +40,11 @@ if target_os not in ['arduino','darwin', 'ios']:
     SConscript('resource-container/SConscript')
 
     # Build scene-manager project
-    if target_os in ['linux']:
+    if target_os in ['darwin', 'linux']:
         SConscript('scene-manager/SConscript')
 
     # Build simulator module
-    if target_os in ['linux'] and env.get('SIMULATOR', False):
+    if target_os in ['darwin', 'linux'] and env.get('SIMULATOR', False):
         SConscript('simulator/SConscript')
 
     # Build resource directory project
@@ -52,6 +52,5 @@ if target_os not in ['arduino','darwin', 'ios']:
         SConscript('resource-directory/SConscript')
 
 # Build EasySetup module
-if target_os in ['arduino', 'android', 'linux','tizen']:
+if target_os in ['arduino', 'android', 'linux','tizen', 'darwin']:
     SConscript('easy-setup/SConscript')
-

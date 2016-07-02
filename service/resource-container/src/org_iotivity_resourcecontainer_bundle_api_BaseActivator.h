@@ -14,7 +14,7 @@ extern "C" {
  * Method:    registerJavaResource
  * Signature: (Lorg/iotivity/resourcecontainer/bundle/api/BundleResource;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_org_iotivity_resourcecontainer_bundle_api_BaseActivator_registerJavaResource
+JNIEXPORT jint JNICALL Java_org_iotivity_resourcecontainer_bundle_api_BaseActivator_registerJavaResource
   (JNIEnv *, jobject, jobject, jobjectArray, jstring, jstring, jstring, jstring);
 
 /*

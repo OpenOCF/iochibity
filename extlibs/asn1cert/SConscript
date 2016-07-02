@@ -5,6 +5,7 @@
 ##
 
 import os
+import build.utils
 
 Import('env')
 
@@ -25,7 +26,7 @@ if target_os in targets_need_asn1:
 	if not os.path.exists(asn1c_dir):
 		# If the asn1 gz file is not already present, download it
 		if not os.path.exists(asn1c_gz_file):
-			asn1c_gz = asn1_env.Download(asn1c_gz_file, asn1c_url)
+			asn1c_gz = build.utils.download(asn1c_gz_file, asn1c_url)
 		else:
 			asn1c_gz = asn1c_gz_file
 

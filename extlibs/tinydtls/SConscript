@@ -19,6 +19,7 @@
 # *****************************************************************/
 ##
 # Tinydtls build script
+# http://git.eclipse.org/c/tinydtls/org.eclipse.tinydtls.git
 ##
 
 Import('env')

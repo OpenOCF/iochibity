@@ -32,7 +32,7 @@ std::map< string, BundleResource::Ptr > java_resources;
  * Method:    registerJavaResource
  * Signature: (Lorg/iotivity/resourcecontainer/bundle/api/BundleResource;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL
+JNIEXPORT int JNICALL
 Java_org_iotivity_resourcecontainer_bundle_api_BaseActivator_registerJavaResource
 (JNIEnv *env, jobject obj, jobject bundleResource, jobjectArray attributes, jstring bundleId,
  jstring uri, jstring resourceType, jstring res_name)

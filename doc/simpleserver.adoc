@@ -1,0 +1,211 @@
+= simpleserver (c version)
+
+In the sources there are several sample programs:
+
+    resource/csdk/stack/samples/arduino/SimpleClientServer/ocserver/ocserver.cpp
+    resource/csdk/stack/samples/linux/SimpleClientServer/ - various cpp examples, including client
+
+== Service routines (a/k/a "handlers")
+
+There are two kinds of service routine.  One is for servers; this is
+referred to in the source code comments as the "OCEntityHandler
+callback API", which consists of two function pointer types,
+OCEntityHandler and OCDeviceEntityHandler.  The other is for clients;
+it consists of just one function pointer type,
+OCClientResponseHandler. We'll call these the "Service APIs" for the
+server and client, respectively.
+
+Naming conventions: so-called "entity handlers" are service
+routines. They come in pairs: one to handle incoming requests, another
+to handle incoming results. The official c++ samples use names like
+OCDeviceEntityHandlerCb, onGet, ProcessGetRequest etc.  Our convention
+is to prefix all such function types with "svc_", indicating that it
+is a service routine, and suffix it with the message type. Examples:
+
+EntityHandlers are function pointers (to svc_X_request routines) that live on
+the server; ResponseHandlers are function pointers (to svc_X_responses routines)
+that live on the client.
+
+NOTE: OCDeviceEntityHandler is misnamed; it's really OCDefaultEntityHandler.
+
+NOTE: "EntityHandler" is also a bit of a misnomer; the first
+responsiblity of such functions is to handle incoming requests.  Such
+handling will usually involve talking to the local instrument
+("entity"), but this is not necessary.  For example, the sample code
+only simulates an instrument so there is no real "entity" there.  For
+this reason we call such functions service routines.  Note that they
+are not necessarily callbacks, technically speaking. That's just one
+implementation choice. They could also be coroutines, for example.
+
+
+Example showing our names and the corresponding names in ocserver.cpp
+and occlient.cpp (in:
+`resource/csdk/stack/samples/linux/SimpleClientServer/`):
+
+* server.c
+[source,c]
+----
+OCDeviceEntityHandler svc_default_request;	/* = OCDeviceEntityHandlerCb */
+OCEntityHandler       svc_light_request;	/* = OCEntityHandlerCb */
+
+/* we define ServiceRoutine below */
+ServiceRoutine	      svc_get_request;		/* ProcessGetRequest */
+ServiceRoutine	      svc_put_request;		/* ProcessGetRequest */
+...etc...
+----
+
+* client.c
+
+[source,c]
+----
+OCClientResponseHandler svc_get_response;	/* getReqCB */
+  /* passed as arg to OCDoResource, as part of OCCallbackData struct */
+----
+
+For the sake of clarity, we declare these routines before defining
+them so that their types are explicitly exposed.
+
+==== handler typedefs
+
+The handler types typedefed defined (in
+resource/csdk/stack/include/octypes.h) as follows:
+
+* server side (OCEntityHandler callback API):
+
+[source,c]
+----
+/**
+ * Application server implementations must implement this callback to consume requests OTA.
+ * Entity handler callback needs to fill the resPayload of the entityHandlerRequest.
+ */
+typedef OCEntityHandlerResult (*OCEntityHandler) (OCEntityHandlerFlag flag,
+									       OCEntityHandlerRequest * entityHandlerRequest,
+									       void* callbackParam);
+
+/**
+ * Device Entity handler need to use this call back instead of OCEntityHandler.
+ */
+typedef OCEntityHandlerResult (*OCDeviceEntityHandler) (OCEntityHandlerFlag flag,
+											 OCEntityHandlerRequest * entityHandlerRequest,
+											 char* uri,
+											 void* callbackParam);
+
+/**
+ * Incoming requests handled by the server. Requests are passed in as a parameter to the
+ * OCEntityHandler callback API.
+ * The OCEntityHandler callback API must be implemented in the application in order
+ * to receive these requests.
+ */
+typdef struct { .... } OCEntityHandlerRequest;
+
+/**
+ * Request handle is passed to server via the entity handler for each incoming request.
+ * Stack assigns when request is received, server sets to indicate what request response is for.
+ */
+typedef struct { ... } OCEntityHandlerResponse;
+----
+
+Note that `OCEntityHandlerResponse` is sent by the server to the
+client, which receives it as an `OCClientResponse`.
+
+* Client side ("ResponseHandler callback" API):
+
+[source,c]
+----
+/**
+ * Client applications implement this callback to consume responses received from Servers.
+ */
+typedef OCStackApplicationResult (* OCClientResponseHandler)(void *context,
+												 OCDoHandle handle,
+												 OCClientResponse * clientResponse);
+
+
+
+/**
+ * Response from queries to remote servers. Queries are made by calling the OCDoResource API.
+ */
+typedef struct { ... } OCClientResponse;
+
+/**
+ * This info is passed from application to OC Stack when initiating a request to Server.
+ */
+typedef struct OCCallbackData {
+    ...
+    /** The pointer to a function the stack will call to handle the requests.*/
+    OCClientResponseHandler cb;
+    ...} OCCallbackData;
+
+/**
+ * This function discovers or Perform requests on a specified resource
+ * (specified by that Resource's respective URI).
+...
+*/
+OCStackResult OCDoResource(OCDoHandle *handle,
+                            OCMethod method,
+                            const char *requestUri,
+                            const OCDevAddr *destination,
+                            OCPayload* payload,
+                            OCConnectivityType connectivityType,
+                            OCQualityOfService qos,
+                            OCCallbackData *cbData,
+                            OCHeaderOption *options,
+                            uint8_t numOptions);
+----
+
+Note that `OCDoResource`, the primary means of making a client
+request, takes a pointer to `OCCallbackData`, which contains an
+`OCClientResponseHandler`).
+
+Iotivity does not typedef what we're calling a service routine, so we do, in our `service.h`:
+
+[source,c]
+----
+typedef OCEntityHandlerResult (* ServiceRoutine) (OCEntityHandlerRequest *ehRequest,
+										OCRepPayload **payload)
+----
+
+Now we can write, as above,
+
+[source,c]
+----
+ServiceRoutine	      svc_get_request;		/* ProcessGetRequest */
+----
+
+
+== observation
+
+
+
+== overall application structure
+
+* data structures
+
+  NB: depends on which features are enabled, e.g. RA_ADAPTER,
+  WITH_PRESENCE, etc.  hostname, port, etc.
+
+* resource implemention(s):
+
+      data definition
+      create logic
+          call OCCreateResource
+      	  define service routines
+
+Once the resource has been OCCreated, its resource service routine and
+other info is registered with the "resource container" (i.e. the OIC
+server; compare servlet container).  This means it can start servicing
+requests asynchronously, just like a Servlet.
+
+* default resource implementation
+
+    Define default service routine
+
+* main:
+
+	register default service routine
+	set the platform info
+	set device info
+	create resources - alloc, initialze, register with runtime
+	loop
+	    process incoming requests
+	until quit (ctrl-c signal)
+	cleanup and shutdown
