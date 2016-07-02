@@ -21,8 +21,12 @@
 #define _POSIX_C_SOURCE 200112L
 #endif
 
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_STRING_H
 #include <string.h>
+
 #if (_POSIX_TIMERS > 0)
 #include <time.h>
 #else
@@ -32,6 +36,7 @@
 #include "ocstack.h"
 #include "oic_malloc.h"
 #include "oic_string.h"
+#include "oic_time.h"
 #include "logger.h"
 #include "cJSON.h"
 #include "utlist.h"
@@ -342,6 +347,7 @@ exit:
  * @param[in]  waitForStackResponse if true timeout function will call OCProcess while waiting.
  * @return OC_STACK_OK on success otherwise error.
  */
+<<<<<<< HEAD
 /* OCStackResult PMTimeout(unsigned short waittime, bool waitForStackResponse) */
 /* { */
 /*     OCStackResult res = OC_STACK_OK; */
@@ -403,6 +409,29 @@ exit:
 /*     } */
 /*     return res; */
 /* } */
+=======
+OCStackResult PMTimeout(unsigned short waittime, bool waitForStackResponse)
+{
+    OCStackResult res = OC_STACK_OK;
+
+    uint64_t startTime = OICGetCurrentTime(TIME_IN_MS);
+    while (OC_STACK_OK == res)
+    {
+        uint64_t currTime = OICGetCurrentTime(TIME_IN_MS);
+
+        long elapsed = (long)((currTime - startTime) / MS_PER_SEC);
+        if (elapsed > waittime)
+        {
+            return OC_STACK_OK;
+        }
+        if (waitForStackResponse)
+        {
+            res = OCProcess();
+        }
+    }
+    return res;
+}
+>>>>>>> upstream-master
 
 /**
  * Extract secure port information from payload of discovery response.
@@ -454,8 +483,8 @@ uint16_t GetSecurePortFromJSON(char* jsonStr)
 }
 
 bool PMGenerateQuery(bool isSecure,
-                     const char* address, const uint16_t port,
-                     const OCConnectivityType connType,
+                     const char* address, uint16_t port,
+                     OCConnectivityType connType,
                      char* buffer, size_t bufferSize, const char* uri)
 {
     if(!address || !buffer || !uri)
@@ -613,7 +642,7 @@ static OCStackApplicationResult SecurePortDiscoveryHandler(void *ctx, OCDoHandle
             // Use seure port of doxm for OTM and Provision.
             while (resPayload)
             {
-                if (0 == strncmp(resPayload->uri, OIC_RSRC_DOXM_URI, sizeof(OIC_RSRC_DOXM_URI)))
+                if (0 == strncmp(resPayload->uri, OIC_RSRC_DOXM_URI, strlen(OIC_RSRC_DOXM_URI)))
                 {
                     OIC_LOG_V(INFO,TAG,"resPaylod->uri:%s",resPayload->uri);
                     OIC_LOG(INFO, TAG, "Found doxm resource.");

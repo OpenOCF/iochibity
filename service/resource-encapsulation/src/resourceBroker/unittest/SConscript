@@ -67,12 +67,6 @@ broker_test_env.AppendUnique(LIBS = ['rcs_common'])
 broker_test_env.AppendUnique(LIBS = ['gtest'])
 broker_test_env.AppendUnique(LIBS = ['gtest_main'])
 
-if target_os not in ['windows', 'winrt']:
-    broker_test_env.AppendUnique(CXXFLAGS = ['-fmessage-length=0'])
-
-if target_os == 'linux':
-    broker_test_env.AppendUnique(LIBS = ['pthread'])
-
 ######################################################################
 # Build Test
 ######################################################################
@@ -84,7 +78,7 @@ env.AppendTarget('broker_test')
 
 if env.get('TEST') == '1':
         target_os = env.get('TARGET_OS')
-        if target_os == 'linux':
+        if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(broker_test_env,
                          '',

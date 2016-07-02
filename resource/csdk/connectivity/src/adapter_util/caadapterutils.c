@@ -34,8 +34,20 @@
 #endif
 #define _POSIX_C_SOURCE 200809L	/* == #define _XOPEN_SOURCE 700 */
 
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#if defined(HAVE_WINSOCK2_H) && defined(HAVE_WS2TCPIP_H)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
 
 #undef  _POSIX_C_SOURCE
@@ -153,6 +165,7 @@ void CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_t sock
                         NI_NUMERICHOST|NI_NUMERICSERV);
     if (r)
     {
+#if defined(EAI_SYSTEM)
         if (EAI_SYSTEM == r)
         {
             OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG,
@@ -163,6 +176,13 @@ void CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_t sock
             OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG,
                             "getnameinfo failed: %s", gai_strerror(r));
         }
+#elif defined(_WIN32)
+        OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG,
+                            "getnameinfo failed: errno %i", WSAGetLastError());
+#else
+        OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG,
+                            "getnameinfo failed: %s", gai_strerror(r));
+#endif
         return;
     }
     *port = ntohs(((struct sockaddr_in *)sockAddr)->sin_port); // IPv4 and IPv6
@@ -181,6 +201,7 @@ void CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_storag
     int r = getaddrinfo(host, NULL, &hints, &addrs);
     if (r)
     {
+#if defined(EAI_SYSTEM)
         if (EAI_SYSTEM == r)
         {
             OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG,
@@ -191,6 +212,13 @@ void CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_storag
             OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG,
                             "getaddrinfo failed: %s", gai_strerror(r));
         }
+#elif defined(_WIN32)
+        OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG,
+                            "getaddrinfo failed: errno %i", WSAGetLastError());
+#else
+        OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG,
+                            "getaddrinfo failed: %s", gai_strerror(r));
+#endif
         return;
     }
     // assumption: in this case, getaddrinfo will only return one addrinfo

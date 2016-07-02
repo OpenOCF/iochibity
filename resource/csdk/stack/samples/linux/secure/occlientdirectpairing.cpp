@@ -22,10 +22,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_PTHREAD_H
 #include <pthread.h>
+#endif
 #include <iostream>
 #include <sstream>
+#if defined(HAVE_WINDOWS_H)
+#include <windows.h>
+/** @todo stop-gap for naming issue. Windows.h does not like us to use ERROR */
+#ifdef ERROR
+#undef ERROR
+#endif
+#endif // defined(HAVE_WINDOWS_H)
+#include "platform_features.h"
 #include "ocstack.h"
 #include "logger.h"
 #include "ocpayload.h"
@@ -626,7 +638,12 @@ int main(void)
             return 0;
         }
 
+#if defined(_WIN32)
+        Sleep(100);
+#else
         nanosleep(&timeout, NULL);
+#endif // defined(_WIN32)
+
     }
     OIC_LOG(INFO, TAG, "Exiting occlient main loop...");
 

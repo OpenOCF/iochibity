@@ -19,9 +19,17 @@
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 #include "gtest/gtest.h"
+#ifdef HAVE_PWD_H
 #include <pwd.h>
+#endif
+#ifdef HAVE_GRP_H
 #include <grp.h>
+#endif
+#ifdef HAVE_LINUX_LIMITS_H
+#include <linux/limits.h>
+#else
 #include <limits.h>
+#endif
 
 #include "ocstack.h"
 #include "cainterface.h"
@@ -120,6 +128,12 @@ TEST(PersistentStorageHandlerTest, RegisterValidHandler)
     EXPECT_TRUE(&gpsi == ps);
 }
 
+#if !(defined(HAVE_LINUX_LIMITS_H) && defined(HAVE_PWD_H))
+TEST(PersistentStorageHandlerTest, DISABLED_PersistentStorageValidHandlers)
+{
+    /** @todo: Implement test on non-Linux platform */
+}
+#else
 TEST(PersistentStorageHandlerTest, PersistentStorageValidHandlers)
 {
     OCPersistentStorage *psi = SRMGetPersistentStorageHandler();
@@ -158,3 +172,5 @@ TEST(PersistentStorageHandlerTest, PersistentStorageValidHandlers)
     }
     psi->unlink(outFilePath);
 }
+#endif
+

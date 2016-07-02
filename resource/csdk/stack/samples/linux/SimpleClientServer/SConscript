@@ -39,10 +39,13 @@ samples_env.PrependUnique(CPPPATH = [
 samples_env.AppendUnique(RPATH = [env.get('BUILD_DIR')])
 samples_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 
-if target_os not in ['arduino']:
-	samples_env.PrependUnique(LIBS = ['m', 'octbstack', 'ocsrm', 'connectivity_abstraction', 'coap'])
-if target_os not in ['darwin']:
+samples_env.PrependUnique(LIBS = ['octbstack', 'ocsrm', 'connectivity_abstraction', 'coap'])
+
+if target_os not in ['arduino', 'windows', 'darwin', 'ios', 'msys_nt']:
 	samples_env.AppendUnique(LIBS = ['rt'])
+
+if target_os not in ['windows']:
+	samples_env.PrependUnique(LIBS = ['m'])
 
 if env.get('SECURED') == '1':
     samples_env.AppendUnique(LIBS = ['tinydtls'])

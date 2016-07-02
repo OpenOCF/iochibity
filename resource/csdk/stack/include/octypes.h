@@ -281,8 +281,11 @@ extern "C" {
 #ifdef RA_ADAPTER
 #define MAX_ADDR_STR_SIZE (256)
 #else
-/** Max Address could be "coap+tcp://[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]:xxxxx" */
-#define MAX_ADDR_STR_SIZE (59)
+/** Max Address could be
+ * "coap+tcp://[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:yyy.yyy.yyy.yyy]:xxxxx"
+ * +1 for null terminator.
+ */
+#define MAX_ADDR_STR_SIZE (65)
 #endif
 
 /** Length of MAC address */
@@ -477,7 +480,7 @@ typedef struct
     char                    addr[MAX_ADDR_STR_SIZE];
 
     /** usually zero for default interface.*/
-    uint32_t                interface;
+    uint32_t                ifindex;
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     char                    routeData[MAX_ADDR_STR_SIZE]; //destination GatewayID:ClientId
 #endif
@@ -849,11 +852,21 @@ typedef enum
 {
     OC_EH_OK = 0,
     OC_EH_ERROR,
-    OC_EH_RESOURCE_CREATED,
-    OC_EH_RESOURCE_DELETED,
-    OC_EH_SLOW,
-    OC_EH_FORBIDDEN,
-    OC_EH_RESOURCE_NOT_FOUND
+    OC_EH_RESOURCE_CREATED, // 2.01
+    OC_EH_RESOURCE_DELETED, // 2.02
+    OC_EH_SLOW, // 2.05
+    OC_EH_FORBIDDEN, // 4.03
+    OC_EH_RESOURCE_NOT_FOUND, // 4.04
+    OC_EH_VALID,   // 2.03
+    OC_EH_CHANGED, // 2.04
+    OC_EH_CONTENT, // 2.05
+    OC_EH_BAD_REQ, // 4.00
+    OC_EH_UNAUTHORIZED_REQ, // 4.01
+    OC_EH_BAD_OPT, // 4.02
+    OC_EH_METHOD_NOT_ALLOWED, // 4.05
+    OC_EH_NOT_ACCEPTABLE, // 4.06
+    OC_EH_INTERNAL_SERVER_ERROR, // 5.00
+    OC_EH_RETRANSMIT_TIMEOUT // 5.04
 } OCEntityHandlerResult;
 
 /**
@@ -949,8 +962,8 @@ typedef struct
     OCStringLL *types;
     /** Pointer to the device specification version.*/
     char *specVersion;
-    /** Pointer to the device data model version.*/
-    char *dataModelVersion;
+    /** Pointer to the device data model versions (in CSV format).*/
+    OCStringLL *dataModelVersions;
 } OCDeviceInfo;
 
 #ifdef RA_ADAPTER
@@ -1198,10 +1211,10 @@ typedef struct
     char *uri;
 
     /** Resource Type */
-    char *type;
+    OCStringLL *type;
 
     /** Interface */
-    OCStringLL *interface;
+    OCStringLL *iface;
 
     /** This structure holds the old /oic/res response. */
     OCResourcePayload *resources;
@@ -1239,7 +1252,7 @@ typedef struct
     char *sid;
     char* deviceName;
     char* specVersion;
-    char* dataModelVersion;
+    OCStringLL *dataModelVersions;
     OCStringLL *interfaces;
     OCStringLL *types;
 } OCDevicePayload;
@@ -1303,6 +1316,9 @@ typedef struct
 
     /** Pointer to the array of the received vendor specific header options.*/
     OCHeaderOption * rcvdVendorSpecificHeaderOptions;
+
+    /** Message id.*/
+    uint16_t messageID;
 
     /** the payload from the request PDU.*/
     OCPayload *payload;

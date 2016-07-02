@@ -144,4 +144,8 @@ env.AppendTarget('remote_scene_action_test')
 #        from tools.scons.RunTest import *
 #        run_test(scene_test_env,
 #                 '',
+<<<<<<< HEAD
 #                 'service/scene-manager/unittests/scene_test')
+=======
+#                 'service/scene-manager/unittest/scene_test')
+>>>>>>> upstream-master

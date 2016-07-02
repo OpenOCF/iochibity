@@ -129,6 +129,13 @@ if int(containerJavaSupport):
 # build test bundle
 ######################################################################
 test_bundle_env = container_gtest_env.Clone()
+<<<<<<< HEAD
+=======
+test_bundle_env.AppendUnique(CCFLAGS = ['-fPIC'])
+
+if target_os not in ['darwin', 'ios', 'windows']:
+    test_bundle_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
+>>>>>>> upstream-master
 
 TEST_BUNDLE_DIR = 'TestBundle/'
 test_bundle_env.AppendUnique(CPPPATH = [

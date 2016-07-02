@@ -61,9 +61,6 @@ cache_test_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
 				      ,gtest_dir + '/lib/.libs'])
 cache_test_env.PrependUnique(LIBS = ['rcs_client', 'rcs_common', 'oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'coap', 'gtest', 'gtest_main'])
 
-if target_os not in ['windows', 'winrt']:
-    cache_test_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-fmessage-length=0'])
-
 if target_os == 'linux':
     cache_test_env.AppendUnique(LIBS = ['pthread'])
 
@@ -77,7 +74,7 @@ env.AppendTarget('cache_test')
 
 if env.get('TEST') == '1':
         target_os = env.get('TARGET_OS')
-        if target_os == 'linux':
+        if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(cache_test_env,
                          'cache_test.memcheck',

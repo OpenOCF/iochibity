@@ -37,7 +37,7 @@ gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 catest_env.PrependUnique(CPPPATH = [
                 './../../logger/include',
                 './../../stack/include',
-                './../../extlibs/cjson',
+                './../../cjson',
                 './../../../oc_logger/include',
              	gtest_dir + '/include'
                ])
@@ -59,14 +59,26 @@ catest_env.PrependUnique(LIBS = ['m',
 
 target_os = env.get('TARGET_OS')
 
-if target_os not in ['arduino', 'darwin', 'ios']:
+if target_os not in ['arduino', 'darwin', 'ios', 'msys_nt', 'windows']:
 	catest_env.AppendUnique(LIBS=['rt'])
 
 if env.get('SECURED') == '1':
-    catest_env.AppendUnique(LIBS = ['tinydtls'])
+	catest_env.AppendUnique(LIBS = ['tinydtls'])
+	catest_env.AppendUnique(LIBS = ['timer'])
+
+if env.get('WITH_RD') == '1':
+	catest_env.PrependUnique(LIBS = ['resource_directory'])
 
 if env.get('LOGGING'):
 	catest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+
+if target_os in ['msys_nt', 'windows']:
+	catest_env.AppendUnique(LINKFLAGS = ['/subsystem:CONSOLE'])
+	catest_env.AppendUnique(LIBS = ['ws2_32',
+                                        'advapi32',
+                                        'iphlpapi'])
+else:
+	catest_env.PrependUnique(LIBS = ['m', 'pthread'])
 
 ######################################################################
 # Source files and Targets
@@ -95,8 +107,17 @@ Alias("test", [catests])
 
 env.AppendTarget('test')
 if env.get('TEST') == '1':
+<<<<<<< HEAD
         if target_os in ['darwin', 'linux']:
     	    from tools.scons.RunTest import *
 	    run_test(catest_env,
     	    'resource_csdk_connectivity_test.memcheck',
     	    'resource/csdk/connectivity/test/catests')
+=======
+        if target_os in ['linux', 'windows']:
+                catest_env.AppendENVPath('PATH', env.get('BUILD_DIR'))
+                from tools.scons.RunTest import *
+                run_test(catest_env,
+                         'resource_csdk_connectivity_test.memcheck',
+                         'resource/csdk/connectivity/test/catests')
+>>>>>>> upstream-master

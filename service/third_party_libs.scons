@@ -91,6 +91,9 @@ if target_os == 'android':
 
 elif target_os == 'ios':
 	lib_env.AppendUnique(FRAMEWORKS = ['boost', 'openssl'])
+elif target_os == 'windows':
+	boost_path = os.path.join(src_dir,'extlibs','boost','boost')
+	lib_env.AppendUnique(CPPPATH = [boost_path])
 
 Import('env')
 lib_env.AppendUnique(LIBPATH = env.get('BUILD_DIR'))

@@ -188,7 +188,8 @@ void SRMRequestHandler(const CAEndpoint_t *endPoint, const CARequestInfo_t *requ
 
     if (IsAccessGranted(response) && gRequestHandler)
     {
-        return (gRequestHandler(endPoint, requestInfo));
+        gRequestHandler(endPoint, requestInfo);
+        return;
     }
 
     // Form a 'Error', 'slow response' or 'access deny' response and send to peer
@@ -358,7 +359,7 @@ OCStackResult SRMInitPolicyEngine()
 
 void SRMDeInitPolicyEngine()
 {
-    return DeInitPolicyEngine(&g_policyEngineContext);
+    DeInitPolicyEngine(&g_policyEngineContext);
 }
 
 bool SRMIsSecurityResourceURI(const char* uri)

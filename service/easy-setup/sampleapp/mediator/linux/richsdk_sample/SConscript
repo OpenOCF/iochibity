@@ -40,8 +40,6 @@ if env.get('LOGGING'):
 
 env.AppendUnique(CPPDEFINES = ['CPP_MEDIATOR'])
 
-if target_os not in ['windows', 'winrt']:
-    mediator_env.AppendUnique(CXXFLAGS = ['-Wall'])
 
 root_dir = Dir('#').abspath
 

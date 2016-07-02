@@ -29,6 +29,7 @@ SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
 
 rd_sample_app_env = lib_env.Clone()
 
+target_os = env.get('TARGET_OS')
 ######################################################################
 # Build flags
 ######################################################################

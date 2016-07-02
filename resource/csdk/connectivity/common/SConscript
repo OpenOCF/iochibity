@@ -31,7 +31,7 @@ for item in env.get('CPPDEFINES'):
 	        pthreads = 1
 		break;
 
-if pthreads:
+if pthreads or (ca_os in ['windows']):
 	platform_src = [
 	    ca_common_src_path + 'cathreadpool_pthreads.c',
 	    ca_common_src_path + 'camutex_pthreads.c'
