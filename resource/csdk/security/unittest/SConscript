@@ -27,13 +27,9 @@ import os.path
 srmtest_env = env.Clone()
 target_os = env.get('TARGET_OS')
 
-<<<<<<< HEAD
 src_dir   = srmtest_env.get('SRC_DIR')
 build_dir = srmtest_env.get('BUILD_DIR')
-=======
-src_dir = srmtest_env.get('SRC_DIR')
 target_os = env.get('TARGET_OS')
->>>>>>> upstream-master
 
 ######################################################################
 # Build flags
@@ -106,11 +102,7 @@ unittest = srmtest_env.Program('unittest', ['aclresourcetest.cpp',
 Alias("test", [unittest])
 
 unittest_src_dir = src_dir + '/resource/csdk/security/unittest/'
-<<<<<<< HEAD
-unittest_build_dir = build_dir + 'resource/csdk/security/unittest'
-=======
 unittest_build_dir = os.path.join(env.get('BUILD_DIR'), 'resource', 'csdk', 'security', 'unittest') + os.sep
->>>>>>> upstream-master
 
 srmtest_env.AppendUnique(CPPDEFINES = ['SECURITY_BUILD_UNITTEST_DIR='+unittest_build_dir.encode('string_escape')])
 
@@ -131,28 +123,18 @@ srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_svr_db_prov.dat'))
 env.AppendTarget('test')
 if env.get('TEST') == '1':
-<<<<<<< HEAD
-	if target_os in ['darwin', 'linux']:
-=======
-	target_os = env.get('TARGET_OS')
-	if target_os in ['linux', 'windows']:
->>>>>>> upstream-master
+	if target_os in ['darwin', 'linux', 'windows']:
 		out_dir = env.get('BUILD_DIR')
 		result_dir = env.get('BUILD_DIR') + '/test_out/'
 		if not os.path.isdir(result_dir):
 			os.makedirs(result_dir)
 		srmtest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
-<<<<<<< HEAD
 		if target_os == 'darwin':
 		    srmtest_env.AppendENVPath('DYLD_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
 		    srmtest_env.AppendENVPath('DYLD_FALLBACK_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
 		elif target_os == 'linux':
 		    srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
 		    srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
-=======
-		srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		srmtest_env.AppendENVPath('PATH', [os.path.join(out_dir, 'resource', 'csdk')])
-		srmtest_env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
->>>>>>> upstream-master
+		    srmtest_env.AppendENVPath('PATH', [os.path.join(out_dir, 'resource', 'csdk')])
 		ut = srmtest_env.Command ('ut', None, out_dir + '/resource/csdk/security/unittest/unittest')
 		AlwaysBuild ('ut')

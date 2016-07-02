@@ -107,17 +107,9 @@ Alias("test", [catests])
 
 env.AppendTarget('test')
 if env.get('TEST') == '1':
-<<<<<<< HEAD
-        if target_os in ['darwin', 'linux']:
-    	    from tools.scons.RunTest import *
-	    run_test(catest_env,
-    	    'resource_csdk_connectivity_test.memcheck',
-    	    'resource/csdk/connectivity/test/catests')
-=======
-        if target_os in ['linux', 'windows']:
+        if target_os in ['darwin', 'linux', 'windows']:
                 catest_env.AppendENVPath('PATH', env.get('BUILD_DIR'))
                 from tools.scons.RunTest import *
                 run_test(catest_env,
                          'resource_csdk_connectivity_test.memcheck',
                          'resource/csdk/connectivity/test/catests')
->>>>>>> upstream-master

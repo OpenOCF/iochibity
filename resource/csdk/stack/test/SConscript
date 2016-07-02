@@ -45,7 +45,6 @@ stacktest_env.PrependUnique(CPPPATH = [
 		gtest_dir + '/include'
 		])
 
-<<<<<<< HEAD
 stacktest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
 				     ,gtest_dir + '/lib/.libs'])
 stacktest_env.PrependUnique(LIBS = ['octbstack',
@@ -84,23 +83,12 @@ cbortests = stacktest_env.Program('cbortests', ['cbortests.cpp'])
 #GAR FIXME: valgrind broken on El Capitan
 # Alias("test", [stacktests, cbortests])
 
-<<<<<<< HEAD
-# env.AppendTarget('test')
-# if env.get('TEST') == '1':
-# 	target_os = env.get('TARGET_OS')
-# 	if target_os in ['darwin', 'linux']:
-#                 from tools.scons.RunTest import *
-#                 run_test(stacktest_env,
-#                          'resource_csdk_stack_test.memcheck',
-#                          'resource/csdk/stack/test/stacktests')
-=======
 env.AppendTarget('test')
 if env.get('TEST') == '1':
 	if target_os in ['windows']:
 		stacktest_env.AppendENVPath('PATH', [os.path.join(env.get('BUILD_DIR'), 'resource', 'csdk')])
-	if target_os in ['linux', 'windows']:
+	if target_os in ['linux', 'windows']:    #FIXME: add darwin
                 from tools.scons.RunTest import *
                 run_test(stacktest_env,
                          'resource_csdk_stack_test.memcheck',
                          'resource/csdk/stack/test/stacktests')
->>>>>>> upstream-master

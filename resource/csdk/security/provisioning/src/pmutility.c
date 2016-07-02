@@ -347,7 +347,7 @@ exit:
  * @param[in]  waitForStackResponse if true timeout function will call OCProcess while waiting.
  * @return OC_STACK_OK on success otherwise error.
  */
-<<<<<<< HEAD
+
 /* OCStackResult PMTimeout(unsigned short waittime, bool waitForStackResponse) */
 /* { */
 /*     OCStackResult res = OC_STACK_OK; */
@@ -409,7 +409,7 @@ exit:
 /*     } */
 /*     return res; */
 /* } */
-=======
+
 OCStackResult PMTimeout(unsigned short waittime, bool waitForStackResponse)
 {
     OCStackResult res = OC_STACK_OK;
@@ -431,7 +431,6 @@ OCStackResult PMTimeout(unsigned short waittime, bool waitForStackResponse)
     }
     return res;
 }
->>>>>>> upstream-master
 
 /**
  * Extract secure port information from payload of discovery response.

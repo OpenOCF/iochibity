@@ -88,29 +88,12 @@ else:
 if target_os in ['tizen', 'linux']:
 	liboctbstack_env.ParseConfig("pkg-config --cflags --libs uuid")
 
-<<<<<<< HEAD
 if target_os == 'arduino':
 	liboctbstack_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
 
-=======
-if target_os not in ['android', 'arduino', 'windows', 'msys_nt']:
-	liboctbstack_env.AppendUnique(LIBS = ['pthread'])
-
 if target_os == 'arduino':
 	liboctbstack_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
-elif target_os not in ['darwin','ios', 'msys_nt', 'windows']:
-	liboctbstack_env.AppendUnique(CFLAGS = ['-fPIC'])
->>>>>>> upstream-master
-if target_os in ['darwin', 'ios']:
-	env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
-	liboctbstack_env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
-	liboctbstack_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-<<<<<<< HEAD
 
-=======
-if target_os not in ['arduino', 'windows']:
-	liboctbstack_env.AppendUnique(LINKFLAGS = ['-Wl,--no-undefined'])
->>>>>>> upstream-master
 if target_os == 'android':
     liboctbstack_env.AppendUnique(LINKFLAGS = ['-Wl,-soname,liboctbstack.so'])
 
@@ -163,16 +146,6 @@ if with_tcp == True:
 
 # liboctbstack_src.extend(env['cbor_files'])
 
-<<<<<<< HEAD
-if target_os in ['arduino','ios'] :
-	static_liboctbstack = liboctbstack_env.StaticLibrary('octbstack', liboctbstack_src)
-	liboctbstack_env.InstallTarget(static_liboctbstack, 'liboctbstack')
-	liboctbstack_env.UserInstallTargetLib(static_liboctbstack, 'liboctbstack')
-	liboctbstack_env.UserInstallTargetHeader('stack/include/ocstackconfig.h', 'resource', 'ocstackconfig.h')
-	liboctbstack_env.UserInstallTargetHeader('stack/include/octypes.h', 'resource', 'octypes.h')
-else:
-	static_liboctbstack = liboctbstack_env.StaticLibrary('octbstack', liboctbstack_src)
-=======
 if target_os == 'windows':
 	liboctbstack_env.AppendUnique(CPPDEFINES = ['CBOR_API=__declspec(dllexport)',
 	                                            'CBOR_PRIVATE_API=__declspec(dllexport)'
@@ -181,8 +154,7 @@ if target_os == 'windows':
 static_liboctbstack = liboctbstack_env.StaticLibrary('octbstack', liboctbstack_src)
 octbstack_libs = Flatten(static_liboctbstack)
 
-if target_os not in ['arduino','darwin','ios'] :
->>>>>>> upstream-master
+if target_os not in ['arduino', 'ios'] :
 	shared_liboctbstack = liboctbstack_env.SharedLibrary('octbstack', liboctbstack_src)
 	octbstack_libs += Flatten(shared_liboctbstack)
 	liboctbstack_env.UserInstallTargetHeader('stack/include/ocstack.h', 'resource', 'ocstack.h')

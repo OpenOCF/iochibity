@@ -139,13 +139,11 @@ remote_scene_action_test = scene_test_env.Program('remote_scene_action_test', re
 Alias("remote_scene_action_test", remote_scene_action_test)
 env.AppendTarget('remote_scene_action_test')
 
+#GAR
 # target_os = env.get('TARGET_OS')
 # if target_os in ['darwin','linux']:
 #        from tools.scons.RunTest import *
 #        run_test(scene_test_env,
 #                 '',
-<<<<<<< HEAD
 #                 'service/scene-manager/unittests/scene_test')
-=======
-#                 'service/scene-manager/unittest/scene_test')
->>>>>>> upstream-master
+

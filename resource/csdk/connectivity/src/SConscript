@@ -165,12 +165,6 @@ if ca_os in ['darwin', 'linux', 'tizen', 'android', 'arduino', 'ios']:
 	if (('BLE' in ca_transport) or ('BT' in ca_transport) or ('ALL' in ca_transport)):
 		env.AppendUnique(CPPDEFINES = ['WITH_TCP'])
 
-<<<<<<< HEAD
-=======
-print "Include path is %s" % env.get('CPPPATH')
-print "Files path is %s" % env.get('CA_SRC')
-
->>>>>>> upstream-master
 lib_env = env.Clone()
 
 if env.get('LOGGING'):
