@@ -26,8 +26,6 @@
 #include "oic_malloc.h"
 #include <errno.h>
 
-#ifndef WITH_ARDUINO
-
 #ifdef  _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE_BACKUP _POSIX_C_SOURCE
 #undef  _POSIX_C_SOURCE

@@ -207,7 +207,7 @@ iotcfg_dir  = os.path.join(home, '.iotivity.d')
 #     env.AppendUnique(GRADLE_HOME = gradle_home)
 #     env.PrependENVPath('PATH', gradle_home + bindir)
 
-env.Append(CPPFLAGS = [])
+env.Append(CPPDEFINES = [])
 env.Append(CPPFLAGS = [])
 features_env = build.utils.feature_tests()
 cppdefs   = {'CPPDEFINES': features_env['CPPDEFINES']}

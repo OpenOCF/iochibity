@@ -68,6 +68,60 @@ def feature_tests() :
         if env_conf.CheckFunc('gettimeofday'):
 	        env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETTIMEOFDAY'])
 
+        if env_conf.CheckFunc('strptime'):
+	        env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_STRPTIME'])
+
+        if env_conf.CheckCHeader('arpa/inet.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_ARPA_INET_H'])
+        if env_conf.CheckCHeader('fcntl.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_FCNTL_H'])
+        if env_conf.CheckCHeader('grp.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_GRP_H'])
+        if env_conf.CheckCHeader('i6addr.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_I6ADDR_H'])
+        if env_conf.CheckCHeader('linux/limits.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_LINUX_LIMITS_H'])
+        if env_conf.CheckCHeader('memory.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_MEMORY_H'])
+        if env_conf.CheckCHeader('netdb.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_NETDB_H'])
+        if env_conf.CheckCHeader('netinet/in.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_NETINET_IN_H'])
+        if env_conf.CheckCHeader('pthread.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_PTHREAD_H'])
+        if env_conf.CheckCHeader('stdlib.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_STDLIB_H'])
+        if env_conf.CheckCHeader('string.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_STRING_H'])
+        if env_conf.CheckCHeader('strings.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_STRINGS_H'])
+        if env_conf.CheckCHeader('sys/socket.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_SOCKET_H'])
+        if env_conf.CheckCHeader('sys/stat.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_STAT_H'])
+        if env_conf.CheckCHeader('sys/time.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TIME_H'])
+        if env_conf.CheckCHeader('sys/timeb.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TIMEB_H'])
+        if env_conf.CheckCHeader('sys/types.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TYPES_H'])
+        if env_conf.CheckCHeader('sys/unistd.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_UNISTD_H'])
+        if env_conf.CheckCHeader('syslog.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYSLOG_H'])
+        if env_conf.CheckCHeader('time.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_TIME_H'])
+        if env_conf.CheckCHeader('unistd.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_UNISTD_H'])
+        if env_conf.CheckCHeader('uuid/uuid.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_UUID_UUID_H'])
+        if env_conf.CheckCHeader('windows.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_WINDOWS_H'])
+        if env_conf.CheckCHeader('winsock2.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_WINSOCK2_H'])
+        if env_conf.CheckCHeader('ws2tcpip.h'):
+                env_conf.env.Append(CPPDEFINES = ['-DHAVE_WS2TCPIP_H'])
+
         if env_conf.CheckFunc('GetSystemTimeAsFileTime') or target_os == 'windows':
 	# TODO: Remove target_os check.
 	# We currently check for 'windows' as well, because the environment can
