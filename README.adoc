@@ -1,12 +1,13 @@
-= darwin-java
+= iochibity
 
-NOTE: This is derived from the official Gerrit repo, created for
-experimentation.  If you want the real thing, you can obtain it
-from the official https://www.iotivity.org/[Iotivity site].
+NOTE: This is a spork ('sperimental fork) derived from the official
+Gerrit repo, created for experimentation.  If you want the real thing,
+you can obtain it from the official https://www.iotivity.org/[Iotivity
+site].
 
-Status: The darwin-java branch has been compiled on OS X 10.11.5,
-Ubuntu 14.04, Wind River Linux (a Dell 3298 IoT Gateway) and the Intel
-Edison.  The sample code we have tried runs on all four platforms.
+Status: Compiled on OS X 10.11.5, Ubuntu 14.04, Wind River Linux (a
+Dell 3298 IoT Gateway) and the Intel Edison.  The sample code we have
+tried runs on all four platforms.
 
 WARNING: Java support has been split off into an independent project,
 https://github.com/iotk/iotivity-java[iotk/iotivity-java].
@@ -15,20 +16,11 @@ Plans: Once the patches for Darwin/Java have been integrated into the
 official repo (which may take a long time), this repo will (probably)
 go away.
 
-[source,shell]
-----
-$ git clone https://github.com/iotivation/iotivity.git
-$ git checkout darwin-java
-$ git branch --set-upstream-to=origin/darwin-java darwin-java  # ??
-$ git pull
-$ scons VERBOSE=true 2>&1 | tee build.log
-----
+To build: `$ scons VERBOSE=true 2>&1 | tee build.log`
 
 If you run into trouble like missing libs (e.g. libssl), go with http://brew.sh/[homebrew].
 
-Once you check out the darwin-java branch you'll see a Readme with more info.
-
-== darwin status
+== status
 
 * all work has been done on El Capitan (10.11.5)
 * passes most of the tests (build with TEST=1), but valgrind crashes
@@ -108,15 +100,8 @@ You can give it an OS X version:  `$ scons SYS_VERSION=10.11`.
 
 == branches
 
-The `iotivity-master` branch cleanly tracks the official Gerrit master
+The `upstream-master` branch cleanly tracks the official Gerrit master
 branch.  At least it does when I get around to pulling in the changes.
-
-Branch `darwin` is where darwin development takes place.
-
-Branch `master` pulls in changes from branch `darwin`. So that's what
-you get by default if you fork/clone this repo.
-
-Branch `jvm` is where the target jvm dev occurs
 
 === edits
 
@@ -212,18 +197,3 @@ compilers, without also installing xcode, by doing `$ xcode-select
 * http://scons.org/[scons]  `$brew install scons`
 * http://www.stack.nl/~dimitri/doxygen/[doxygen]  `$ brew install doxygen`
 
-== tinycbor
-
-When you first build, you'll get this:
-
-*********************************** Error: *************************************
-* Please download cbor using the following command:                               *
-*     $ git clone https://github.com/01org/tinycbor.git extlibs/tinycbor/tinycbor *
-******************************************************************************
-
-1. git clone https://github.com/iotivation/iotivity.git
-2. cd iotivity
-3. git checkout darwin-java
-4. git branch --set-upstream-to=origin/darwin-java darwin-java
-5. git pull
-6. scons BUILD_JAVA=ON VERBOSE=true 2>&1 | tee build.log
