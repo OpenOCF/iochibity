@@ -1,0 +1,21 @@
+= testing
+
+=== googletest
+
+Iotivity uses https://github.com/google/googletest[Google Test].
+
+`$ git clone https://github.com/google/googletest.git`
+
+
+==== os x
+
+Use CMake, following the instructions in the googletest
+https://github.com/google/googletest/blob/master/googletest/README.md[README].
+
+Running `$ make install` will install the gtest libs to
+`/usr/local/lib`, and the headers to `/usr/local/include/gtest`.
+
+NOTE: Those instructions seem to be slightly out of date; they say
+that a `.xcodeproject` file will be generated, which does not seem to
+be the case.  But that's ok, we do not need it.
+

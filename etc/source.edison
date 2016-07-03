@@ -1,0 +1,17 @@
+# source this file to setup the iotivity build environment on darwin
+
+export IOTIVITY_HOST_OS=linux
+export IOTIVITY_HOST_ARCH=x86
+
+export IOTIVITY_TARGET_OS=linux
+export IOTIVITY_TARGET_ARCH=x86
+
+export IOTIVITY_STAGE=release
+
+export IOTIVITY_HOME=`pwd`
+export IOTIVITY_LIBPATH=${IOTIVITY_HOME}/out/${IOTIVITY_HOST}/${IOTIVITY_ARCH}/${IOTIVITY_STAGE}
+
+export GTEST_DIR=${HOME}/googletest/googletest
+
+export LD_LIBRARY_PATH=${GTEST_DIR}/make:${LD_LIBRARY_PATH}
+
