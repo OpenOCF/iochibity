@@ -221,7 +221,10 @@ env.MergeFlags(cppdefs)
 env.MergeFlags(pthreadcflags)
 env.MergeFlags(pthreadlibs)
 
-env.AppendUnique(HAVE_LIBCURL = features_env['HAVE_LIBCURL'])
+try:
+	env.AppendUnique(HAVE_LIBCURL = features_env['HAVE_LIBCURL'])
+except:
+	pass
 
 #print env['CPPDEFINES']
 
