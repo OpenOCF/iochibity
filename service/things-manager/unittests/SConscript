@@ -51,9 +51,8 @@ src_dir = lib_env.get('SRC_DIR')
 ######################################################################
 ThingsManager_gtest_env.AppendUnique(
         CPPPATH = [
-                src_dir + '/extlibs/hippomocks-master',
                 '../sdk/inc',
-                '../../../extlibs/timer'
+                '../../../resource/csdk/timer'
         ])
 
 ThingsManager_gtest_env.PrependUnique(LIBS = [
