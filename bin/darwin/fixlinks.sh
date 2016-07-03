@@ -19,11 +19,11 @@ else
 	exit
 fi
 
-# install_name_tool \
-#     -change \
-#     out/darwin/x86_64/release/resource/csdk/liboctbstack.dylib \
-#     $JLP/liboctbstack.dylib \
-#     $JLP/libocstack-jni.jnilib
+install_name_tool \
+    -change \
+    out/darwin/x86_64/release/resource/csdk/liboctbstack.dylib \
+    $JLP/liboctbstack.dylib \
+    $JLP/liboc.dylib
 
 install_name_tool \
     -change \
