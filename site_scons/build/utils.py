@@ -27,10 +27,6 @@ def feature_tests() :
         #         print "We are cleaning, skip the config"
         #         return;
 
-        # home = os.environ['HOME']
-        # gtesthome = home + '/.iotivity.d/gtest-1.7.0'
-        # gtestpath = gtesthome + '/lib/.libs'
-        # env.AppendUnique(LIBPATH = gtestpath)
         conf = Configure(env)
         host_os = os.environ['IOTIVITY_HOST_OS']
         target_os = os.environ['IOTIVITY_TARGET_OS']
@@ -45,19 +41,8 @@ def feature_tests() :
                 print('!! Your compiler and/or environment is not correctly configured.')
                 Exit(0)
 
-        # if not 'GTEST_DIR' in os.environ:
-        #         print "****************************************************************"
-        #         print "\tWARNING: env var GTEST_DIR not found."
-        #         print "\tTesting will be disabled."
-        #         print "\tTo enable it, install googletest from https://github.com/google/googletest"
-        #         print "\tand set GTEST_DIR in the environment or in ./etc/source.<host>."
-        #         print "****************************************************************"
-        # else:
-        #         gtest_dir = os.environ['GTEST_DIR']
-                # if conf.CheckCXXHeader(gtest_dir + '/include/gtest/gtest.h'):
-                # conf.env.Append(GTEST_DIR = os.environ['GTEST_DIR'])
         if not conf.CheckLib('gtest'):
-                print "\tWARNING: googletest headers not found."
+                print "\tWARNING: googletest not found."
                 print "\t\tTesting will be disabled."
                 print "\t\tTo enable it, install googletest from https://github.com/google/googletest"
                 print "\t\tand set GTEST_DIR (in source.me)."
