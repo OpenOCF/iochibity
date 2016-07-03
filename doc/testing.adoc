@@ -1,6 +1,6 @@
 = testing
 
-=== googletest
+== googletest
 
 Iotivity uses https://github.com/google/googletest[Google Test].
 
@@ -26,3 +26,19 @@ Unfortunately Scons Checklib fails on them, something involving pthread syms.
 
 A workaround: clone, build (using CMake), and install googletest, and
 move the preinstalled libgtest*so files from /usr/lib to /usr/lib/gtest.
+
+== mocks
+
+https://github.com/dascandy/hippomocks[Hippomocks]
+
+Use CMake to build:
+
+[source,sh]
+----
+$ git clone https://github.com/dascandy/hippomocks.git
+$ cd hippomocks
+$ mkdir mybuild && cd mybuild
+$ cmake ..
+$ make
+$ sudo make install
+----
