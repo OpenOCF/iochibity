@@ -46,24 +46,23 @@ mediator_rich_test_env = lib_env.Clone()
 ######################################################################
 src_dir = lib_env.get('SRC_DIR')
 # gtest_dir = src_dir + '/extlibs/gtest/' + target_os
-home = lib_env.get('HOME')
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
+# gtest_home = lib_env.get('GTEST_HOME')
 
 ######################################################################
 # Build flags
 ######################################################################
-# gtest = File(gtest_dir + '/lib/.libs/libgtest.a')
-# gtest_main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
+# gtest = File(gtest_home + '/lib/.libs/libgtest.a')
+# gtest_main = File(gtest_home + '/lib/.libs/libgtest_main.a')
 
 mediator_rich_test_env.AppendUnique(
         CPPPATH = [
                 src_dir + '/extlibs/hippomocks-master',
-                gtest_dir + '/include',
                 '../inc',
                 '../../../inc',
         ])
+#                 gtest_home + '/include',
 
-mediator_rich_test_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
+# mediator_rich_test_env.AppendUnique(LIBPATH = [gtest_home + '/lib/.libs'])
 
 if env.get('SECURED') == '1':
 	     mediator_rich_test_env.PrependUnique(LIBS = ['tinydtls','ocprovision', 'ocpmapi', 'timer'])

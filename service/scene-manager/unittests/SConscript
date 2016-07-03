@@ -42,19 +42,18 @@ target_os = env.get('TARGET_OS')
 #unit test setting
 ######################################################################
 src_dir = lib_env.get('SRC_DIR')
-home = lib_env.get('HOME')
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
+# gtest_home = lib_env.get('GTEST_HOME')
 
 scene_test_env = lib_env.Clone()
 
 ######################################################################
 # Build flags
 ######################################################################
-# GTest = File(gtest_dir + '/lib/.libs/libgtest.a')
-# GTest_Main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
+# GTest = File(gtest_home + '/lib/.libs/libgtest.a')
+# GTest_Main = File(gtest_home + '/lib/.libs/libgtest_main.a')
 
-scene_test_env.AppendUnique(LIBPATH = [lib_env.get('BUILD_DIR')
-				      ,gtest_dir + '/lib/.libs'])
+scene_test_env.AppendUnique(LIBPATH = [lib_env.get('BUILD_DIR')])
+				      # ,gtest_home + '/lib/.libs'])
 scene_test_env.AppendUnique(LIBS = [
     'scene_manager', 'rcs_server', 'rcs_client','rcs_common',
     'oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'coap',
@@ -84,8 +83,8 @@ scene_test_env.AppendUnique(LIBS = [
 
 # 	scene_test_env.PrependUnique(LIBPATH = [clanglibs + '/lib/darwin/'])
 
-scene_test_env.PrependUnique(CPPPATH = [ src_dir + '/extlibs/hippomocks-master',
-                             gtest_dir + '/include'])
+scene_test_env.PrependUnique(CPPPATH = [ src_dir + '/extlibs/hippomocks-master']),
+                             # gtest_home + '/include'])
 scene_test_env.AppendUnique(CPPPATH = ['../include'])
 scene_test_env.AppendUnique(CPPPATH = ['../src'])
 scene_test_env.AppendUnique(CPPPATH = ['../../resource-encapsulation/include'])

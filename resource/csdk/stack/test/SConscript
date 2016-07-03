@@ -29,7 +29,6 @@ src_dir = stacktest_env.get('SRC_DIR')
 # Build flags
 ######################################################################
 home = os.environ['HOME']
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 stacktest_env.PrependUnique(CPPPATH = [
 		'../../security/include',
@@ -41,12 +40,11 @@ stacktest_env.PrependUnique(CPPPATH = [
 		'../../connectivity/api',
 		'../../connectivity/external/inc',
 		'../../extlibs/cjson',
-		'../../../oc_logger/include',
-		gtest_dir + '/include'
+		'../../../oc_logger/include'
 		])
 
-stacktest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
-				     ,gtest_dir + '/lib/.libs'])
+stacktest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
+
 stacktest_env.PrependUnique(LIBS = ['octbstack',
                                     'ocsrm',
                                     'connectivity_abstraction',
@@ -81,13 +79,13 @@ stacktest_env.Decider('timestamp-newer')
 cbortests = stacktest_env.Program('cbortests', ['cbortests.cpp'])
 
 #GAR FIXME: valgrind broken on El Capitan
-# Alias("test", [stacktests, cbortests])
+Alias("test", [stacktests, cbortests])
 
 env.AppendTarget('test')
 if env.get('TEST') == '1':
 	if target_os in ['windows']:
 		stacktest_env.AppendENVPath('PATH', [os.path.join(env.get('BUILD_DIR'), 'resource', 'csdk')])
-	if target_os in ['linux', 'windows']:    #FIXME: add darwin
+	if target_os in ['darwin', 'linux', 'windows']:    #FIXME: add darwin
                 from tools.scons.RunTest import *
                 run_test(stacktest_env,
                          'resource_csdk_stack_test.memcheck',

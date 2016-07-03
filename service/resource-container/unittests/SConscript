@@ -65,22 +65,9 @@ if int(containerJavaSupport):
 
 target_os = env.get('TARGET_OS')
 
-######################### unit test setting ##########################
-src_dir = lib_env.get('SRC_DIR')
-home = lib_env.get('HOME')
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
-
-container_gtest_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
-
-######################################################################
-
-
 ######################################################################
 # Build flags
 ######################################################################
-# gtest = File(gtest_dir + '/lib/.libs/libgtest.a')
-# gtest_main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
-
 container_gtest_env.AppendUnique(
     CPPPATH = [
         env.get('SRC_DIR')+'/extlibs',
@@ -105,8 +92,7 @@ if target_os == 'android':
     container_gtest_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
     container_gtest_env.PrependUnique(LIBS = ['gnustl_shared', 'compatibility', 'log'])
 
-container_gtest_env.PrependUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs/hippomocks-master',
-                             gtest_dir + '/include'])
+container_gtest_env.PrependUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs/hippomocks-master'])
 
 if int(containerJavaSupport):
     try:

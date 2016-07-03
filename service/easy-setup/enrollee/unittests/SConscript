@@ -29,7 +29,6 @@ src_dir = enrollee_test_env.get('SRC_DIR')
 ######################################################################
 
 enrollee_test_env.PrependUnique(CPPPATH = [
-		enrollee_test_env.get('SRC_DIR') + '/extlibs/gtest/gtest-1.7.0/include',
 		enrollee_test_env.get('SRC_DIR') + '/resource/c_common/ocrandom/include',
 		enrollee_test_env.get('SRC_DIR') + '/resource/csdk/stack/include/internal',
 		enrollee_test_env.get('SRC_DIR') + '/resource/csdk/connectivity/api',
@@ -51,7 +50,6 @@ enrollee_test_env.PrependUnique(CPPPATH = [
 enrollee_test_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
 enrollee_test_env.AppendUnique(LIBS = ['-lpthread'])
 enrollee_test_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-enrollee_test_env.AppendUnique(LIBPATH = [src_dir + '/extlibs/gtest/gtest-1.7.0/lib/.libs'])
 enrollee_test_env.PrependUnique(LIBS = ['m',
                                     'octbstack',
                                     'ocsrm',

@@ -28,14 +28,10 @@ src_dir = stringtest_env.get('SRC_DIR')
 # Build flags
 ######################################################################
 home = os.environ['HOME']
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
-stringtest_env.PrependUnique(CPPPATH = [
-        '../include',
-        gtest_dir + '/include' ])
+stringtest_env.PrependUnique(CPPPATH = ['../include'])
 
 stringtest_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource/c_common')])
-stringtest_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 stringtest_env.PrependUnique(LIBS = ['c_common', 'gtest', 'gtest_main', 'pthread'])
 
 if env.get('LOGGING'):

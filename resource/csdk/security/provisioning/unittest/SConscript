@@ -51,7 +51,6 @@ sptest_env.PrependUnique(CPPPATH = [
 		'../../../connectivity/lib/libcoap-4.1.1',
 		'../../../connectivity/api',
 		'../../../../../extlibs/tinydtls',
-		'../../../../../extlibs/gtest/gtest-1.7.0/include'
 		])
 
 sptest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
@@ -115,10 +114,8 @@ if env.get('TEST') == '1':
 #GAR FIXME: gtest paths
 		if target_os == 'darwin':
 		    sptest_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
-		    sptest_env.AppendENVPath('DYLD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
 		elif target_os == 'linux':
 		    sptest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		    sptest_env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
 		ut = sptest_env.Command ('ut', None, out_dir + '/resource/csdk/security/provisioning/unittest/unittest')
 		AlwaysBuild ('ut')
 

@@ -46,7 +46,6 @@ provisiontests_env.PrependUnique(CPPPATH = [
 		'./../../csdk/ocsocket/include',
 		'./../../csdk/ocrandom/include',
 		'./../../csdk/logger/include',
-		'./../../../extlibs/gtest/gtest-1.7.0/include',
 		'./../../../extlibs/hippomocks-master/HippoMocks',
 		'./../../../extlibs/hippomocks-master/HippoMocksTest'
 		])
@@ -102,10 +101,8 @@ if env.get('TEST') == '1':
 		provisiontests_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
 		if target_os == 'darwin':
 		    provisiontests_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
-		    provisiontests_env.AppendENVPath('DYLD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
 		elif target_os == 'linux':
 		    provisiontests_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		    provisiontests_env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
 		ut = provisiontests_env.Command ('ut', None, out_dir + 'resource/provisioning/unittests/provisiontests')
 		AlwaysBuild ('ut')
 

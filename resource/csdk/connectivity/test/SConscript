@@ -32,14 +32,12 @@ resource_dir = root_dir + "/resource"
 # Build flags
 ######################################################################
 home = os.environ['HOME']
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 catest_env.PrependUnique(CPPPATH = [
                 './../../logger/include',
                 './../../stack/include',
                 './../../cjson',
                 './../../../oc_logger/include',
-             	gtest_dir + '/include'
                ])
 
 tmplist = catest_env['LINKFLAGS'][:]
@@ -49,7 +47,6 @@ if '-lpthread' in tmplist:
 
 catest_env.AppendUnique(LIBS = ['pthread'])
 catest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-catest_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 catest_env.PrependUnique(LIBS = ['m',
                                     'octbstack',
                                     'connectivity_abstraction',

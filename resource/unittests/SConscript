@@ -28,7 +28,6 @@ src_dir = unittests_env.get('SRC_DIR')
 # Build flags
 ######################################################################
 home = os.environ['HOME']
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 unittests_env.PrependUnique(CPPPATH = [
 		'../include',
@@ -42,7 +41,6 @@ unittests_env.PrependUnique(CPPPATH = [
 		'../csdk/ocsocket/include',
 		'../c_common/ocrandom/include',
 		'../csdk/logger/include',
-		gtest_dir + '/include',
 		'#extlibs/hippomocks-master/HippoMocks',
 		'#extlibs/hippomocks-master/HippoMocksTest'
 		])
@@ -50,7 +48,6 @@ unittests_env.PrependUnique(CPPPATH = [
 #GAR unittests_env.AppendUnique(CXXFLAGS = ['-pthread'])
 #GAR unittests_env.AppendUnique(LIBS = ['-lpthread'])
 unittests_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-unittests_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 unittests_env.PrependUnique(LIBS = [
 		'oc',
 		'octbstack',

@@ -45,25 +45,16 @@ rcs_test_env = lib_env.Clone()
 #unit test setting
 ######################################################################
 src_dir = lib_env.get('SRC_DIR')
-# gtest_dir = src_dir + '/extlibs/gtest/' + target_os
-home = lib_env.get('HOME')
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 ######################################################################
 # Build flags
 ######################################################################
-# gtest = File(gtest_dir + '/lib/.libs/libgtest.a')
-# gtest_main = File(gtest_dir + '/lib/.libs/libgtest_main.a')
-
 rcs_test_env.AppendUnique(
         CPPPATH = [
                 src_dir + '/extlibs/hippomocks-master',
-                gtest_dir + '/include',
                 '../include',
                 '../src/common/utils/include',
         ])
-
-rcs_test_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 
 rcs_test_env.PrependUnique(LIBS = [
     'connectivity_abstraction',

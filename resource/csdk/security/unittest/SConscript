@@ -35,7 +35,6 @@ target_os = env.get('TARGET_OS')
 # Build flags
 ######################################################################
 home = os.environ['HOME']
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 srmtest_env.PrependUnique(CPPPATH = [
 		'../../../c_common/oic_malloc/include',
@@ -49,7 +48,6 @@ srmtest_env.PrependUnique(CPPPATH = [
 		'./../../stack/include',
 		'./../../stack/include/internal',
 		'./../../../oc_logger/include',
-		gtest_dir + '/include',
 		'./../../cbor/',
 		'./../../cjson/',
                 './../provisioning/include'
@@ -58,15 +56,15 @@ srmtest_env.PrependUnique(CPPPATH = [
 
 srmtest_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
 srmtest_env.AppendUnique(LIBS = ['-lpthread'])
-srmtest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
-				   ,gtest_dir + '/lib/.libs'])
-srmtest_env.PrependUnique(LIBS = ['ocsrm',
-                                    'octbstack',
-                                    'oc_logger',
-                                    'connectivity_abstraction',
-                                    'coap',
-                                    'gtest',
-                                    'gtest_main'])
+srmtest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
+
+srmtest_env.PrependUnique(LIBS = ['ocsrm'
+			         ,'octbstack'
+				 ,'oc_logger'
+				 ,'connectivity_abstraction'
+				 ,'coap'
+				 ,'gtest'
+				 ,'gtest_main'])
 
 if env.get('SECURED') == '1':
     srmtest_env.AppendUnique(LIBS = ['tinydtls', 'timer'])
@@ -129,12 +127,7 @@ if env.get('TEST') == '1':
 		if not os.path.isdir(result_dir):
 			os.makedirs(result_dir)
 		srmtest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
-		if target_os == 'darwin':
-		    srmtest_env.AppendENVPath('DYLD_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
-		    srmtest_env.AppendENVPath('DYLD_FALLBACK_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
-		elif target_os == 'linux':
-		    srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		    srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [gtest_dir + '/lib/.libs'])
+		if target_os == 'linux':
 		    srmtest_env.AppendENVPath('PATH', [os.path.join(out_dir, 'resource', 'csdk')])
 		ut = srmtest_env.Command ('ut', None, out_dir + '/resource/csdk/security/unittest/unittest')
 		AlwaysBuild ('ut')

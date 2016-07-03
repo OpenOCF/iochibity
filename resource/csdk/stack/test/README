@@ -9,6 +9,10 @@ about building using SCONS see Readme.scons.txt in the repository root
 directory. The build steps used in continuous integration can be found
 in auto_build.sh which is also in the the repository root directory.
 
+////   WARNING WARNING WARNING    ////
+//// the following info about gtest is obsolete.    ////
+//// for up-to-date info see doc/testing.adoc    ////
+
 To dynamically link with the Google Unit test library,
 add <src_dir>/extlibs/gtest/gtest-1.7.0/lib/.libs/ to LD_LIBRARY_PATH
 

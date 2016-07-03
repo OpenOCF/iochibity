@@ -209,15 +209,20 @@ iotcfg_dir  = os.path.join(home, '.iotivity.d')
 
 env.Append(CPPDEFINES = [])
 env.Append(CPPFLAGS = [])
+
 features_env = build.utils.feature_tests()
 cppdefs   = {'CPPDEFINES': features_env['CPPDEFINES']}
 #cppflags  = {'CPPFLAGS': features_env['CPPFLAGS']}
 pthreadcflags  = {'PTHREAD_CFLAGS': features_env['PTHREAD_CFLAGS']}
 pthreadlibs   = {'PTHREAD_LIBS': features_env['PTHREAD_LIBS']}
+
 env.MergeFlags(cppdefs)
+#env.MergeFlags(cppflags)
 env.MergeFlags(pthreadcflags)
 env.MergeFlags(pthreadlibs)
-#env.MergeFlags(cppflags)
+
+env.AppendUnique(HAVE_LIBCURL = features_env['HAVE_LIBCURL'])
+
 #print env['CPPDEFINES']
 
 #print env.Dump()

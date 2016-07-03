@@ -30,9 +30,6 @@ SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', exports = 'li
 
 src_dir = lib_env.get('SRC_DIR')
 
-home = lib_env.get('HOME')
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
-
 rcs_common_env = lib_env.Clone()
 target_os = env.get('TARGET_OS')
 
@@ -90,11 +87,12 @@ if target_os in ['darwin', 'linux']:
 
 	rcs_common_test_env.PrependUnique(CPPPATH = [
 		env.get('SRC_DIR')+'/extlibs/hippomocks-master',
-		gtest_dir + '/include',
 		'utils/include'
 		])
+		# gtest_home + '/include',
 
-	rcs_common_test_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
+
+	# rcs_common_test_env.AppendUnique(LIBPATH = [gtest_home + '/lib/.libs'])
 
 	rcs_common_test_env.PrependUnique(LIBS = [
 		'octbstack',

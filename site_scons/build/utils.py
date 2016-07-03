@@ -1,7 +1,7 @@
 import os, urllib2
 from sys import platform as _platform
 import subprocess
-from string import maketrans 
+from string import maketrans
 from SCons.Script import *
 
 # Download from URL 'url', will save as 'target'
@@ -23,35 +23,62 @@ def download(target, url) :
 def feature_tests() :
         print "Running feature tests..."
         env = Environment()
-        home = os.environ['HOME']
-        gtestpath = home + '/.iotivity.d/gtest-1.7.0/lib/.libs'
-        print "gt:", gtestpath
-        env.AppendUnique(LIBPATH = gtestpath)
-        env_conf = Configure(env)
-        target_os = env.get('TARGET_OS')
+        # if env.GetOption('clean'):
+        #         print "We are cleaning, skip the config"
+        #         return;
 
-        if not env_conf.CheckLib('gtest'):
-                print "gtest not found"
-                exit(1)
+        # home = os.environ['HOME']
+        # gtesthome = home + '/.iotivity.d/gtest-1.7.0'
+        # gtestpath = gtesthome + '/lib/.libs'
+        # env.AppendUnique(LIBPATH = gtestpath)
+        conf = Configure(env)
+        host_os = os.environ['IOTIVITY_HOST_OS']
+        target_os = os.environ['IOTIVITY_TARGET_OS']
+        print "IOTIVITY_HOST_OS:", host_os
+        print "IOTIVITY_TARGET_OS:", target_os
 
-        if not env_conf.CheckLib('gtest_main'):
-                print "gtest_main not found"
-                exit(1)
+        if not conf.CheckCXX():
+                print('!! Your compiler and/or environment is not correctly configured.')
+                Exit(0)
 
-        if env_conf.CheckLib('uuid'):
+        if not conf.CheckFunc('printf'):
+                print('!! Your compiler and/or environment is not correctly configured.')
+                Exit(0)
+
+        # if not 'GTEST_DIR' in os.environ:
+        #         print "****************************************************************"
+        #         print "\tWARNING: env var GTEST_DIR not found."
+        #         print "\tTesting will be disabled."
+        #         print "\tTo enable it, install googletest from https://github.com/google/googletest"
+        #         print "\tand set GTEST_DIR in the environment or in ./etc/source.<host>."
+        #         print "****************************************************************"
+        # else:
+        #         gtest_dir = os.environ['GTEST_DIR']
+                # if conf.CheckCXXHeader(gtest_dir + '/include/gtest/gtest.h'):
+                # conf.env.Append(GTEST_DIR = os.environ['GTEST_DIR'])
+        if not conf.CheckLib('gtest'):
+                print "\tWARNING: googletest headers not found."
+                print "\t\tTesting will be disabled."
+                print "\t\tTo enable it, install googletest from https://github.com/google/googletest"
+                print "\t\tand set GTEST_DIR (in source.me)."
+
+        if conf.CheckLib('curl'):
+                env.AppendUnique(HAVE_LIBCURL = 1)
+
+        if conf.CheckLib('uuid'):
                 env.AppendUnique(CPPDEFINES = ['HAVE_UUID'])
 
-        if env_conf.CheckLib('pthread'):
+        if conf.CheckLib('pthread'):
                 env.AppendUnique(PTHREAD_CFLAGS = ['-pthread'])
                 env.AppendUnique(PTHREAD_LIBS = ['-lpthread'])
                 env.AppendUnique(CPPDEFINES = ['HAVE_PTHREADS'])
 
-        if env_conf.CheckProg('gdbus-codegen'):
+        if conf.CheckProg('gdbus-codegen'):
                 env.AppendUnique(CPPDEFINES = ['HAVE_GDBUS'])
                 #WARNING: having gdbus-codegen does not guarantee bluez stack
                 # it could be installed on e.g. os x by some lib other than bluez
 
-        if _platform in ['linux', 'linux2']:
+        if conf.CheckProg('bluetoothd'):
                 #TODO: make sure we have a bluez stack
                 sys.stdout.write('Checking bluetooth version... ')
                 sys.stdout.flush()
@@ -60,75 +87,75 @@ def feature_tests() :
                 sys.stdout.write(bltv)
                 bltv = bltv.replace('.', '')
                 bldef = 'BLUEZ=' + bltv.rstrip()
-                env_conf.env.PrependUnique(CPPDEFINES = [bldef])
+                conf.env.PrependUnique(CPPDEFINES = [bldef])
 
-        if env_conf.CheckFunc('clock_gettime'):
-	        env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
+        if conf.CheckFunc('clock_gettime'):
+	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
 
-        if env_conf.CheckFunc('gettimeofday'):
-	        env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETTIMEOFDAY'])
+        if conf.CheckFunc('gettimeofday'):
+	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETTIMEOFDAY'])
 
-        if env_conf.CheckFunc('strptime'):
-	        env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_STRPTIME'])
+        if conf.CheckFunc('strptime'):
+	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_STRPTIME'])
 
-        if env_conf.CheckCHeader('arpa/inet.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_ARPA_INET_H'])
-        if env_conf.CheckCHeader('fcntl.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_FCNTL_H'])
-        if env_conf.CheckCHeader('grp.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_GRP_H'])
-        if env_conf.CheckCHeader('i6addr.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_I6ADDR_H'])
-        if env_conf.CheckCHeader('linux/limits.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_LINUX_LIMITS_H'])
-        if env_conf.CheckCHeader('memory.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_MEMORY_H'])
-        if env_conf.CheckCHeader('netdb.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_NETDB_H'])
-        if env_conf.CheckCHeader('netinet/in.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_NETINET_IN_H'])
-        if env_conf.CheckCHeader('pthread.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_PTHREAD_H'])
-        if env_conf.CheckCHeader('stdlib.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_STDLIB_H'])
-        if env_conf.CheckCHeader('string.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_STRING_H'])
-        if env_conf.CheckCHeader('strings.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_STRINGS_H'])
-        if env_conf.CheckCHeader('sys/socket.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_SOCKET_H'])
-        if env_conf.CheckCHeader('sys/stat.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_STAT_H'])
-        if env_conf.CheckCHeader('sys/time.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TIME_H'])
-        if env_conf.CheckCHeader('sys/timeb.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TIMEB_H'])
-        if env_conf.CheckCHeader('sys/types.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TYPES_H'])
-        if env_conf.CheckCHeader('sys/unistd.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_UNISTD_H'])
-        if env_conf.CheckCHeader('syslog.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_SYSLOG_H'])
-        if env_conf.CheckCHeader('time.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_TIME_H'])
-        if env_conf.CheckCHeader('unistd.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_UNISTD_H'])
-        if env_conf.CheckCHeader('uuid/uuid.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_UUID_UUID_H'])
-        if env_conf.CheckCHeader('windows.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_WINDOWS_H'])
-        if env_conf.CheckCHeader('winsock2.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_WINSOCK2_H'])
-        if env_conf.CheckCHeader('ws2tcpip.h'):
-                env_conf.env.Append(CPPDEFINES = ['-DHAVE_WS2TCPIP_H'])
+        if conf.CheckCHeader('arpa/inet.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_ARPA_INET_H'])
+        if conf.CheckCHeader('fcntl.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_FCNTL_H'])
+        if conf.CheckCHeader('grp.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_GRP_H'])
+        if conf.CheckCHeader('i6addr.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_I6ADDR_H'])
+        if conf.CheckCHeader('linux/limits.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_LINUX_LIMITS_H'])
+        if conf.CheckCHeader('memory.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_MEMORY_H'])
+        if conf.CheckCHeader('netdb.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_NETDB_H'])
+        if conf.CheckCHeader('netinet/in.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_NETINET_IN_H'])
+        if conf.CheckCHeader('pthread.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_PTHREAD_H'])
+        if conf.CheckCHeader('stdlib.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_STDLIB_H'])
+        if conf.CheckCHeader('string.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_STRING_H'])
+        if conf.CheckCHeader('strings.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_STRINGS_H'])
+        if conf.CheckCHeader('sys/socket.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_SOCKET_H'])
+        if conf.CheckCHeader('sys/stat.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_STAT_H'])
+        if conf.CheckCHeader('sys/time.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TIME_H'])
+        if conf.CheckCHeader('sys/timeb.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TIMEB_H'])
+        if conf.CheckCHeader('sys/types.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TYPES_H'])
+        if conf.CheckCHeader('sys/unistd.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_UNISTD_H'])
+        if conf.CheckCHeader('syslog.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_SYSLOG_H'])
+        if conf.CheckCHeader('time.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_TIME_H'])
+        if conf.CheckCHeader('unistd.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_UNISTD_H'])
+        if conf.CheckCHeader('uuid/uuid.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_UUID_UUID_H'])
+        if conf.CheckCHeader('windows.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_WINDOWS_H'])
+        if conf.CheckCHeader('winsock2.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_WINSOCK2_H'])
+        if conf.CheckCHeader('ws2tcpip.h'):
+                conf.env.Append(CPPDEFINES = ['-DHAVE_WS2TCPIP_H'])
 
-        if env_conf.CheckFunc('GetSystemTimeAsFileTime') or target_os == 'windows':
+        if conf.CheckFunc('GetSystemTimeAsFileTime') or target_os == 'windows':
 	# TODO: Remove target_os check.
 	# We currently check for 'windows' as well, because the environment can
 	# sometimes get so polluted that CheckFunc ceases to work!
-	        env_conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETSYSTEMTIMEASFILETIME'])
+	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETSYSTEMTIMEASFILETIME'])
 
-        env = env_conf.Finish()
+        env = conf.Finish()
         print "... feature testing complete"
         return env
 
@@ -152,4 +179,3 @@ def feature_tests() :
 # # 	# Build C stack's unit tests.
 # # 	SConscript('csdk/stack/test/SConscript')
 # # 	SConscript('csdk/connectivity/test/SConscript')
-

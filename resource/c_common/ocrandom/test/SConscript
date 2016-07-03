@@ -31,22 +31,15 @@ src_dir = randomtest_env.get('SRC_DIR')
 # Build flags
 ######################################################################
 home = os.environ['HOME']
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
-randomtest_env.PrependUnique(CPPPATH = [gtest_dir + '/include'
-				       ,'../include'
+randomtest_env.PrependUnique(CPPPATH = ['../include'
 				       ,'./../../logger/include'
 				       ,'./../../../oc_logger/include'])
 
 randomtest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
-				      ,'/usr/local/lib'
-				      ,gtest_dir + '/lib/.libs'])
+				      ,'/usr/local/lib'])
 
 if target_os == 'darwin':
-    # randomtest_env.AppendUnique(CFLAGS = [
-    # '-Wl,-dylib_file,/usr/local/lib/libgtest.dylib:./extlibs/gtest/gtest-1.7.0/lib/.libs/libgtest.dylib',
-    # '-dylib_file /usr/local/lib/libgtest_main.dylib:./extlibs/gtest/gtest-1.7.0/lib/.libs/libgtest_main.dylib'
-    # ])
     randomtest_env.PrependUnique(LIBS = ['m'
     				      ,'gtest'
 				      ,'gtest_main'

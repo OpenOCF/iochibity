@@ -28,14 +28,10 @@ src_dir = malloctest_env.get('SRC_DIR')
 # Build flags
 ######################################################################
 home = os.environ['HOME']
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
-malloctest_env.PrependUnique(CPPPATH = [
-        '../include',
-        gtest_dir + '/include' ])
+malloctest_env.PrependUnique(CPPPATH = ['../include'])
 
 malloctest_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource/c_common')])
-malloctest_env.AppendUnique(LIBPATH = [gtest_dir + '/lib/.libs'])
 malloctest_env.PrependUnique(LIBS = ['c_common', 'gtest', 'gtest_main', 'pthread'])
 
 if env.get('LOGGING'):

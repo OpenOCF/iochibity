@@ -41,7 +41,6 @@ SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
 ######################################################################
 src_dir = lib_env.get('SRC_DIR')
 home = lib_env.get('HOME')
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
 
 cache_test_env = lib_env.Clone()
 target_os = env.get('TARGET_OS')
@@ -55,10 +54,8 @@ cache_test_env.AppendUnique(CPPPATH = ['../../common/primitiveResource/include']
 cache_test_env.AppendUnique(CPPPATH = ['../../common/expiryTimer/include'])
 cache_test_env.AppendUnique(CPPPATH = ['../../common/expiryTimer/src'])
 cache_test_env.AppendUnique(CPPPATH = ['../../common/utils/include'])
-cache_test_env.PrependUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs/hippomocks-master'
-                             	       ,gtest_dir + '/include'])
-cache_test_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
-				      ,gtest_dir + '/lib/.libs'])
+cache_test_env.PrependUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs/hippomocks-master'])
+cache_test_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 cache_test_env.PrependUnique(LIBS = ['rcs_client', 'rcs_common', 'oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'coap', 'gtest', 'gtest_main'])
 
 if target_os == 'linux':
