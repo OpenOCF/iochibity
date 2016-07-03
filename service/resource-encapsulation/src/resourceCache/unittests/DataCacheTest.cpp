@@ -20,7 +20,7 @@
 
 #include <iostream>
 #include <gtest/gtest.h>
-#include <HippoMocks/hippomocks.h>
+#include <hippomocks.h>
 
 #include "ResourceCacheManager.h"
 #include "DataCache.h"

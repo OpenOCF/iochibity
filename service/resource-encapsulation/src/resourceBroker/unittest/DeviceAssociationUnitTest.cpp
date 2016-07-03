@@ -20,8 +20,8 @@
 
 #include <iostream>
 
-#include "gtest/gtest.h"
-#include "HippoMocks/hippomocks.h"
+#include <gtest/gtest.h>
+#include <hippomocks.h>
 
 #include "OCPlatform.h"
 

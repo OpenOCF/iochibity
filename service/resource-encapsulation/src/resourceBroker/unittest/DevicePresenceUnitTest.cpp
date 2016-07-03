@@ -19,8 +19,8 @@
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 #include <unistd.h>
 
-#include "gtest/gtest.h"
-#include "HippoMocks/hippomocks.h"
+#include <gtest/gtest.h>
+#include <hippomocks.h>
 
 #include "BrokerTypes.h"
 #include "PrimitiveResource.h"

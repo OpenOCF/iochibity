@@ -31,7 +31,7 @@
 #include <UnitTestHelper.h>
 
 #include <gtest/gtest.h>
-#include <HippoMocks/hippomocks.h>
+#include <hippomocks.h>
 
 #include "Configuration.h"
 #include "BundleActivator.h"

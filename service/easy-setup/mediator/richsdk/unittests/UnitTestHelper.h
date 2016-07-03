@@ -22,7 +22,7 @@
 #define COMMON_UTILS_UNITTESTHELPER_H
 
 #include <gtest/gtest.h>
-#include <HippoMocks/hippomocks.h>
+#include <hippomocks.h>
 
 class TestWithMock: public testing::Test
 {

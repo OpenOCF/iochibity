@@ -22,8 +22,8 @@
 #include <unistd.h>
 #include <memory>
 
-#include "gtest/gtest.h"
-#include "HippoMocks/hippomocks.h"
+#include <gtest/gtest.h>
+#include <hippomocks.h>
 
 #include "OCResource.h"
 #include "OCPlatform.h"
