@@ -19,3 +19,10 @@ NOTE: Those instructions seem to be slightly out of date; they say
 that a `.xcodeproject` file will be generated, which does not seem to
 be the case.  But that's ok, we do not need it.
 
+==== edison
+
+It looks like edison comes with libgtest shared libs preinstalled.
+Unfortunately Scons Checklib fails on them, something involving pthread syms.
+
+A workaround: clone, build (using CMake), and install googletest, and
+move the preinstalled libgtest*so files from /usr/lib to /usr/lib/gtest.
