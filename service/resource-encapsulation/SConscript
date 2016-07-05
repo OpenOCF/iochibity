@@ -97,11 +97,6 @@ resourceClient_env.UserInstallTargetHeader('include/RCSRequest.h', 'service/reso
 resourceClient_env.UserInstallTargetHeader('include/RCSResponse.h', 'service/resource-encapsulation', 'RCSResponse.h')
 
 ######################################################################
-# Build Sample App: SampleResourceClient & SampleResourceServer
-######################################################################
-SConscript('examples/SConscript')
-
-######################################################################
 # Build UnitTests Resource Client , resourceCache and resourceBroker and 
 # DiscoveryManager
 ################################################ ######################
