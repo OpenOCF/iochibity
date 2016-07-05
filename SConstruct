@@ -44,10 +44,10 @@ Import('env')
 if os.environ.get('TERM') != None:
 	env['ENV']['TERM'] = os.environ['TERM']
 
-# Load extra options
-SConscript('extra_options.scons')
-
 target_os = env.get('TARGET_OS')
+target_arch = env.get('TARGET_ARCH')
+src_dir = env.get('SRC_DIR')
+
 if target_os == 'arduino':
 	SConscript('arduino.scons')
 
