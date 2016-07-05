@@ -101,6 +101,3 @@ scenemanager_env.UserInstallTargetHeader('include/RemoteSceneAction.h', 'service
 # Go to build Unit test
 if target_os in ['darwin', 'linux']:
     SConscript('unittests/SConscript')
-
-# Go to build sample apps
-SConscript('sampleapp/SConscript')
