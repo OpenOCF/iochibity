@@ -10,6 +10,16 @@
 
 	* various other build cleanups
 
+2016-07-03  Gregg Reynolds  <gar@Sparky.lan>
+
+	* remove gtest - treat it as ordinary dependency that user is
+	expected to obtain and install. build scripts now only include
+	-lgtest -lgtest-main, which are expected to be in libpath, we
+	feature test for them like any other lib.
+
+	* remove hippomocks - as for gtest, user can easily obtain and
+	install, we feature test for the header
+
 2016-06-04  Gregg Reynolds  <reynolds-gregg@norc.org>
 
 	* SConstruct: set flags -Wall, -std=c11, -std=c++11 in root
