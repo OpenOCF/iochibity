@@ -429,7 +429,7 @@ Export('env')
 ######################################################################
 # Scons to generate the iotivity.pc file from iotivity.pc.in file
 ######################################################################
-pc_file = env.get('SRC_DIR') + '/iotivity.pc.in'
+pc_file = env.get('SRC_DIR') + 'etc/iotivity.pc.in'
 
 if env.get('ROUTING') == 'GW':
 	routing_define = 'ROUTING_GATEWAY'
