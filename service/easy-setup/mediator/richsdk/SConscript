@@ -111,12 +111,6 @@ if target_os in ['android','linux','darwin']:
 	easy_setup_env.InstallTarget(es_sdk_shared, 'libESMediatorRich')
 
 ######################################################################
-# Build RichSDK Mediator Sample App
-################################################ ######################
-if target_os in ['darwin','linux']:
-	SConscript('../../sampleapp/mediator/linux/richsdk_sample/SConscript')
-
-######################################################################
 #Build UnitTestcases for Mediator[RichSDK]
 ################################################ ######################
 if target_os in ['darwin','linux']:

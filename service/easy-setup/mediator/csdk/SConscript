@@ -107,9 +107,6 @@ if target_os in ['darwin', 'linux']:
                     'src/provisioning.cpp'])
 	easy_setup_env.InstallTarget(es_m_csdk_shared, 'libESMediatorCSDK')
 
-	#Go to build sample apps
-	SConscript('../../sampleapp/mediator/linux/csdk_sample/SConscript')
-
 ######################################################################
 #Build UnitTestcases for Mediator[CSDK]
 ################################################ ######################
