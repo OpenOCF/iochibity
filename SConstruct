@@ -68,11 +68,11 @@ SConscript(build_dir + 'resource/SConscript')
 
 #GAR FIXME: only build services on demand
 # # Build 'service' sub-project
-SConscript(build_dir + 'service/SConscript')
+#SConscript(build_dir + 'service/SConscript')
 
 #GAR FIXME: only make examples on demand
-if target_os not in ['arduino','ios', 'android', 'msys_nt', 'windows']:
-	SConscript(build_dir + 'examples/OICMiddle/SConscript')
+# if target_os not in ['arduino','ios', 'android', 'msys_nt', 'windows']:
+# 	SConscript(build_dir + 'examples/OICMiddle/SConscript')
 
 #GAR FIXME: only build cloud on demand
 # # Build "cloud" sub-project
