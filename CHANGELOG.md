@@ -1,5 +1,9 @@
 2016-07-05  Gregg Reynolds  <gar@Sparky.lan>
 
+	* remove extlibs/android. obtaining and installing sdk/ndk is user
+	responsibility.  anyway android support has been migrated to
+	external sdk project at https://github.com/iotk/iotivity-android
+
 	* move documentation from root dir to doc/
 
 	* move shell scripts from root dir to bin/
