@@ -1,0 +1,80 @@
+
+C API: app code must poll:
+
+    while (!gQuitFlag)
+    {
+        if (OCProcess() != OC_STACK_OK)
+        {
+            OIC_LOG(ERROR, TAG, "OCStack process error");
+            return 0;
+        }
+    }
+
+
+C\++ API: the implementation does it:
+
+in resource/src/InProcServerWrapper.cpp:
+
+OCInit1:
+    InProcServerWrapper::InProcServerWrapper(
+        std::weak_ptr<std::recursive_mutex> csdkLock, PlatformConfig cfg)
+     : m_csdkLock(csdkLock)
+    {
+        OCMode initType;
+
+        if(cfg.mode == ModeType::Server)
+        {
+            initType = OC_SERVER;
+        }
+        else if (cfg.mode == ModeType::Both)
+        {
+            initType = OC_CLIENT_SERVER;
+        }
+        else if (cfg.mode == ModeType::Gateway)
+        {
+            initType = OC_GATEWAY;
+        }
+        else
+        {
+            throw InitializeException(OC::InitException::NOT_CONFIGURED_AS_SERVER,
+                                         OC_STACK_INVALID_PARAM);
+        }
+
+        OCTransportFlags serverFlags =
+                            static_cast<OCTransportFlags>(cfg.serverConnectivity & CT_MASK_FLAGS);
+        OCTransportFlags clientFlags =
+                            static_cast<OCTransportFlags>(cfg.clientConnectivity & CT_MASK_FLAGS);
+        OCStackResult result = OCInit1(initType, serverFlags, clientFlags);
+
+        if(OC_STACK_OK != result)
+        {
+            throw InitializeException(OC::InitException::STACK_INIT_ERROR, result);
+        }
+
+        m_threadRun = true;
+        m_processThread = std::thread(&InProcServerWrapper::processFunc, this);
+    }
+
+
+OCProcess
+    void InProcServerWrapper::processFunc()
+    {
+        auto cLock = m_csdkLock.lock();
+        while(cLock && m_threadRun)
+        {
+            OCStackResult result;
+
+            {
+                std::lock_guard<std::recursive_mutex> lock(*cLock);
+                result = OCProcess();
+            }
+
+            if(OC_STACK_ERROR == result)
+            {
+                oclog() << "OCProcess failed with result " << result <<std::flush;
+                // ...the value of variable result is simply ignored for now.
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    }
