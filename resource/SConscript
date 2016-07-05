@@ -82,9 +82,3 @@ SConscript('unittests/SConscript')
 if env.get('SECURED') == '1':
         SConscript('csdk/security/provisioning/unittest/SConscript')
 	SConscript('provisioning/unittests/SConscript')
-
-
-if target_os in ['darwin', 'linux', 'windows']:
-
-# if target_os == 'osx':
-# 	env.Command('../../out/darwin/iotivity-csdk.framework',None,src_dir + '/tools/darwin/mkfwk_osx.sh'
