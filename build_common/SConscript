@@ -608,7 +608,5 @@ if env.GetOption('clean'):
 
 ######################################################################
 
-print "RUNNING EXTERNALS"
-
 env.SConscript('external_libs.scons')
 Return('env')
