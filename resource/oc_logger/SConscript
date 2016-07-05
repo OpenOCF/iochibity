@@ -63,7 +63,3 @@ liboc_logger_env.UserInstallTargetHeader('include/oc_logger_types.h', 'resource'
 liboc_logger_env.UserInstallTargetHeader('include/oc_log_stream.hpp', 'resource', 'oc_log_stream.hpp')
 liboc_logger_env.UserInstallTargetHeader('include/targets/oc_console_logger.h', 'resource/targets', 'oc_console_logger.h')
 liboc_logger_env.UserInstallTargetHeader('include/targets/oc_ostream_logger.h', 'resource/targets', 'oc_ostream_logger.h')
-
-if target_os not in ['ios', 'android']:
-	SConscript('examples/SConscript')
-

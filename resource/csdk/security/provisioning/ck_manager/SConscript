@@ -46,5 +46,4 @@ x509_env.AppendUnique(LIBS = ['asn1'])
 x509_env.AppendUnique(LIBS = ['Base64'])
 x509_env.AppendUnique(LIBS = ['Json'])
 
-SConscript('sample/SConscript')
 SConscript('unittest/SConscript')

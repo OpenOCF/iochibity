@@ -60,10 +60,6 @@ if target_os not in ['arduino','ios']:
 	# Build liboc
 	SConscript('src/SConscript')
 
-if target_os not in ['arduino','ios','android']:
-	# Build examples
-	SConscript('examples/SConscript')
-
 # Build Common unit tests
 #GAR    	if target_os != 'darwin':
 SConscript('c_common/oic_string/test/SConscript')
@@ -89,21 +85,9 @@ if env.get('SECURED') == '1':
 
 
 if target_os in ['darwin', 'linux', 'windows']:
-	# Build C Samples
-	SConscript('csdk/stack/samples/linux/SimpleClientServer/SConscript')
-
-	# Build secure samples
-	SConscript('csdk/stack/samples/linux/secure/SConscript')
 
 # if target_os == 'osx':
 # 	env.Command('../../out/darwin/iotivity-csdk.framework',None,src_dir + '/tools/darwin/mkfwk_osx.sh'
-
-elif target_os == 'arduino':
-	SConscript('csdk/stack/samples/arduino/SimpleClientServer/ocserver/SConscript')
-
-elif target_os == 'msys_nt':
-	# Build secure samples. Using linux samples for now.
-	SConscript('csdk/stack/samples/linux/secure/SConscript')
 
 	# Build C/C++ unit tests
 	SConscript('unit_tests.scons')
