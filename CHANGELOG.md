@@ -1,4 +1,4 @@
-2016-07-05  Gregg Reynolds  <gar@Sparky.lan>
+2016-07-05  Gregg Reynolds  <reynolds-gregg@norc.org>
 
 	* remove extlibs/android. obtaining and installing sdk/ndk is user
 	responsibility.  anyway android support has been migrated to
@@ -14,7 +14,7 @@
 
 	* various other build cleanups
 
-2016-07-03  Gregg Reynolds  <gar@Sparky.lan>
+2016-07-03  Gregg Reynolds  <reynolds-gregg@norc.org>
 
 	* remove gtest - treat it as ordinary dependency that user is
 	expected to obtain and install. build scripts now only include
