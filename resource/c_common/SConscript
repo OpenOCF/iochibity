@@ -41,9 +41,6 @@ if target_os == 'tizen':
 else:
 	env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource', 'c_common')])
 
-if target_os in ['tizen', 'linux']:
-	env.ParseConfig("pkg-config --cflags --libs uuid")
-
 env.PrependUnique(LIBS = ['c_common'])
 
 common_env = env.Clone()

@@ -85,9 +85,6 @@ if target_os in ['windows', 'msys_nt']:
 else:
 	liboctbstack_env.AppendUnique(LIBS = ['m'])
 
-if target_os in ['tizen', 'linux']:
-	liboctbstack_env.ParseConfig("pkg-config --cflags --libs uuid")
-
 if target_os == 'arduino':
 	liboctbstack_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
 

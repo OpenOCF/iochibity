@@ -51,6 +51,7 @@ catest_env.PrependUnique(LIBS = ['m',
                                     'octbstack',
                                     'connectivity_abstraction',
                                     'coap',
+				    'uuid',
                                     'gtest',
                                     'gtest_main'])
 

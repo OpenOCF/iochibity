@@ -49,6 +49,7 @@ stacktest_env.PrependUnique(LIBS = ['octbstack',
                                     'ocsrm',
                                     'connectivity_abstraction',
                                     'coap',
+				    'uuid',
                                     'gtest',
                                     'gtest_main'])
 

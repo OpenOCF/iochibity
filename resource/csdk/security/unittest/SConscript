@@ -63,6 +63,7 @@ srmtest_env.PrependUnique(LIBS = ['ocsrm'
 				 ,'oc_logger'
 				 ,'connectivity_abstraction'
 				 ,'coap'
+				 ,'uuid'
 				 ,'gtest'
 				 ,'gtest_main'])
 
