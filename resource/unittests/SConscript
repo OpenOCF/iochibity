@@ -54,6 +54,7 @@ unittests_env.PrependUnique(LIBS = [
 		'oc_logger',
 		'connectivity_abstraction',
 		'coap',
+		'uuid',
 		'gtest',
 		'gtest_main'
 		])
