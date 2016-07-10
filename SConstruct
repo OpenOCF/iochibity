@@ -48,8 +48,9 @@ target_os = env.get('TARGET_OS')
 target_arch = env.get('TARGET_ARCH')
 src_dir = env.get('SRC_DIR')
 
-if target_os == 'arduino':
-	SConscript('arduino.scons')
+# GAR FIXME: only build arduino on demand
+# if target_os == 'arduino':
+# 	SConscript('arduino.scons')
 
 # By default, src_dir is current dir, the build_dir is:
 #     ./out/<target_os>/<target_arch>/<release or debug>/
@@ -74,7 +75,7 @@ SConscript(build_dir + 'resource/SConscript')
 # # Build "cloud" sub-project
 # SConscript(build_dir + 'cloud/SConscript')
 
-#GAR FIXME: only on demand
+#GAR FIXME: only build plugins on demand
 # # Build "plugin interface" sub-project
 # SConscript(build_dir + 'plugins/SConscript')
 
@@ -82,9 +83,10 @@ SConscript(build_dir + 'resource/SConscript')
 #     $ scon [options] -h
 env.PrintTargets()
 
-# Print bin upload command line (arduino only)
-if target_os == 'arduino':
-	env.UploadHelp()
+# GAR FIXME: only build arduino on demand
+# # Print bin upload command line (arduino only)
+# if target_os == 'arduino':
+# 	env.UploadHelp()
 
 #GAR FIXME
 # # to install the generated pc file into custome prefix location
