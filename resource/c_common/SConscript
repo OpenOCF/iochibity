@@ -41,7 +41,7 @@ if target_os == 'tizen':
 else:
 	env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource', 'c_common')])
 
-env.PrependUnique(LIBS = ['c_common'])
+env.PrependUnique(LIBS = ['c_common', 'uuid'])
 
 common_env = env.Clone()
 common_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource')])
