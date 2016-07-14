@@ -71,7 +71,7 @@ if target_os not in ['arduino','ios']:
 # Build C unit tests
 # SConscript('csdk/stack/test/SConscript')
 
-# SConscript('csdk/connectivity/test/SConscript')
+SConscript('csdk/connectivity/test/SConscript')
 
 # Build Security Resource Manager unit tests
 # SConscript('csdk/security/unittest/SConscript')

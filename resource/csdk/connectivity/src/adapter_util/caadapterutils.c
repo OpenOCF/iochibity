@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+#ifdef  _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE_BACKUP _POSIX_C_SOURCE
+#undef  _POSIX_C_SOURCE
+#endif
+#define _POSIX_C_SOURCE 200809L	/* == #define _XOPEN_SOURCE 700 */
+
 #include "caadapterutils.h"
 
 #include <string.h>
@@ -25,12 +31,6 @@
 #include "oic_string.h"
 #include "oic_malloc.h"
 #include <errno.h>
-
-#ifdef  _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE_BACKUP _POSIX_C_SOURCE
-#undef  _POSIX_C_SOURCE
-#endif
-#define _POSIX_C_SOURCE 200809L	/* == #define _XOPEN_SOURCE 700 */
 
 #ifdef HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
@@ -47,14 +47,14 @@
 #endif
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
-
-#undef  _POSIX_C_SOURCE
-
-#ifdef  _POSIX_C_SOURCE_BACKUP
-#define _POSIX_C_SOURCE _POSIX_C_SOURCE_BACKUP
-#undef  _POSIX_C_SOURCE_BACKUP
 #endif
-#endif
+
+/* #undef  _POSIX_C_SOURCE */
+
+/* #ifdef  _POSIX_C_SOURCE_BACKUP */
+/* #define _POSIX_C_SOURCE _POSIX_C_SOURCE_BACKUP */
+/* #undef  _POSIX_C_SOURCE_BACKUP */
+/* #endif */
 
 #if defined(__ANDROID__) || defined(__JAVA__)
 #include <jni.h>

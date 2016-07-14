@@ -28,7 +28,7 @@
 #include <sys/types.h>
 #endif
 
-#include <pthread.h>  //GAR
+/* #include <pthread.h>  //GAR */
 
 #include "caqueueingthread.h"
 #include "oic_malloc.h"

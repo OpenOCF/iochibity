@@ -212,7 +212,7 @@ uint16_t CAGetAssignedPortNumber(CATransportAdapter_t adapter, CATransportFlags_
     return 0;
 }
 
-#ifdef __ANDROID__   //GAR FIXME:  non-android java support
+#if defined(__ANDROID__) || defined(__JAVA__)   //GAR FIXME:  non-android java support
 /**
  * initialize client connection manager
  * @param[in]   env                   JNI interface pointer.

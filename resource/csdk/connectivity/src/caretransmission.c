@@ -488,7 +488,7 @@ CAResult_t CARetransmissionReceivedData(CARetransmission_t *context,
                                         const CAEndpoint_t *endpoint, const void *pdu,
                                         uint32_t size, void **retransmissionPdu)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG(DEBUG, TAG, "CARetransmissionReceivedData IN");
     if (NULL == context || NULL == endpoint || NULL == pdu || NULL == retransmissionPdu)
     {
         OIC_LOG(ERROR, TAG, "invalid parameter");
@@ -593,7 +593,7 @@ CAResult_t CARetransmissionReceivedData(CARetransmission_t *context,
     // mutex unlock
     ca_mutex_unlock(context->threadMutex);
 
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG(DEBUG, TAG, "CARetransmissionReceivedData OUT");
     return CA_STATUS_OK;
 }
 
@@ -644,7 +644,7 @@ CAResult_t CARetransmissionDestroy(CARetransmission_t *context)
 
 uint64_t getCurrentTimeInMicroSeconds()
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG(DEBUG, TAG, "getCurrentTimeInMicroSeconds IN");
     uint64_t currentTime = 0;
 
 #ifdef __ANDROID__
@@ -673,6 +673,6 @@ uint64_t getCurrentTimeInMicroSeconds()
 #endif
 #endif
 
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG(DEBUG, TAG, "getCurrentTimeInMicroSeconds OUT");
     return currentTime;
 }

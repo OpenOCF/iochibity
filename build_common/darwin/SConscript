@@ -76,8 +76,7 @@ env.AppendUnique(LINKFLAGS = ['-undefined', 'error'])
 env.AppendUnique(CPPFLAGS = env['PTHREAD_CFLAGS'])
 env.AppendUnique(LINKFLAGS = env['PTHREAD_LIBS'])
 
-env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
-env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__darwin__'])
+env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '_DARWIN_C_SOURCE', '__darwin__'])
 
 env.AppendUnique(CXXFLAGS = ['-std=c++11'])
 env.AppendUnique(CFLAGS = ['-std=c11'])

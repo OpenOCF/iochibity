@@ -41,6 +41,9 @@
 #ifdef __linux__
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
+#endif
+
+#if defined(__linux__) || defined(__APPLE__)
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #endif
