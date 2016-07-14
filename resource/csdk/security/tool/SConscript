@@ -26,7 +26,8 @@ src_dir = tools_env.get('SRC_DIR')
 ######################################################################
 # Build flags
 ######################################################################
-tools_env.PrependUnique(CPPPATH = ['../../../../extlibs/cjson',
+tools_env.PrependUnique(CPPPATH = ['../../cjson',
+				'../../cbor',
                                   '../../stack/include',
                                   '../../stack/include/internal',
                                   '../../logger/include',

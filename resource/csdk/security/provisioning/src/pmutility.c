@@ -26,6 +26,7 @@
 #endif
 #ifdef HAVE_STRING_H
 #include <string.h>
+#endif
 
 #if (_POSIX_TIMERS > 0)
 #include <time.h>

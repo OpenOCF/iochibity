@@ -28,6 +28,7 @@ env.PrependUnique(CPPPATH = [ os.path.join(root_dir, 'api') ])
 env.AppendUnique(CPPPATH = [ os.path.join(root_dir, 'inc'),
                              os.path.join(root_dir, 'lib', 'libcoap-4.1.1'),
                              os.path.join(src_dir, 'resource', 'csdk', 'logger', 'include'),
+                             os.path.join(src_dir, 'resource', 'csdk', 'timer'),
                              os.path.join(root_dir, 'common', 'inc'),
                              os.path.join(root_dir, 'util', 'inc') ])
 

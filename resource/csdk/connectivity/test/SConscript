@@ -62,7 +62,7 @@ if target_os not in ['arduino', 'darwin', 'ios', 'msys_nt', 'windows']:
 
 if env.get('SECURED') == '1':
 	catest_env.AppendUnique(LIBS = ['tinydtls'])
-	catest_env.AppendUnique(LIBS = ['timer'])
+	# catest_env.AppendUnique(LIBS = ['timer'])
 
 if env.get('WITH_RD') == '1':
 	catest_env.PrependUnique(LIBS = ['resource_directory'])
