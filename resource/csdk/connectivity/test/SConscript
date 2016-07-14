@@ -104,11 +104,13 @@ else:
 
 Alias("test", [catests])
 
+import runtest.RunTest
+
 env.AppendTarget('test')
 if env.get('TEST') == '1':
         if target_os in ['darwin', 'linux', 'windows']:
                 catest_env.AppendENVPath('PATH', env.get('BUILD_DIR'))
-                from tools.scons.RunTest import *
-                run_test(catest_env,
+                # from tools.scons.RunTest import *
+                runtest.RunTest.run_test(catest_env,
                          'resource_csdk_connectivity_test.memcheck',
                          'resource/csdk/connectivity/test/catests')
