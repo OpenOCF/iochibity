@@ -47,6 +47,8 @@ def feature_tests() :
                 print "\t\tTo enable it, install googletest from https://github.com/google/googletest"
                 print "\t\tand set GTEST_DIR (in source.me)."
 
+        #GAR FIXME: check for boost libs UNLESS build target is c kernel
+
         if conf.CheckLib('curl'):
                 env.AppendUnique(HAVE_LIBCURL = 1)
 
