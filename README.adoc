@@ -32,6 +32,36 @@ If you run into trouble like missing libs (e.g. libssl), go with http://brew.sh/
   Ubuntu 14.04, Wind River Linux on a Dell 3298 gateway, and the Intel
   Edison (latest version, June 2016).
 
+NOTE: I've modified the test sconscripts to default to no valgrind;
+see `test/SConscript`.  Everything up to the provisioning unittests
+passes with flying colors on the mac.
+
+=== differences from official iotivity codebase
+
+The code is essentially the same, except for the stuff needed to make
+it go on Darwin.  However, I've done quite a bit of rearranging.  In
+particular I've migrated a bunch of stuff to external projects, since
+I don't think they belong in Iochibity kernel, and this simplifies and
+speeds things up in various ways.
+
+* android
+* cloud
+* java
+* sample/example code
+
+I also eliminated the dependency on gtest (google test).  Iochibity
+treats this just like any other system dependency.  The user is
+responsible for obtaining https://github.com/google/googletest[Google
+Test] and installing it in the standard location (/usr/local/lib).
+Iochibity will feature test for it.  If this causes you trouble please
+let me know, it's only been tested on my Mac and Linux systems.
+
+Some other extlibs have been migrated to `resource`: tinycbor, cjson,
+timer.  These are essential to the Iotivity kernel but not really
+treated as libs, so I see no point in treating them as external libs.
+There are only half a dozen or so files involved so I don't foresee
+any trouble keeping them up to date.
+
 == java status
 
 The original build system carries out various java and android related
@@ -197,3 +227,75 @@ compilers, without also installing xcode, by doing `$ xcode-select
 * http://scons.org/[scons]  `$brew install scons`
 * http://www.stack.nl/~dimitri/doxygen/[doxygen]  `$ brew install doxygen`
 
+== merging
+
+* the following have been migrated out of the source to other projects so can be deleted:
+
+android
+java
+cloud
+all example/sample code
+
+==== feature tests
+
+Feature testing is done once at startup by site_scons/build/utils.py/feature_tests
+
+TODO: get rid of the new build_common/threads.scons
+
+
+==== gtest
+
+Iochibity makes google test an ordinary lib dependency; it's the
+user's responsibility to obtain and install it (standardly, /usr/local/lib?)
+
+Unfortunately gtest stuff is scattered throughout the SConscript files.
+
+==== build tools
+
+iochibity puts build tools in site_scons, so tools/scons stuff is
+migrated there.
+
+iochibity runs all feature tests at starttup, so all feature tests
+have been migrated out of the SConscript files in the source tree.
+
+For example see resource/c_common/SConscript in 1.1.1, which adds a
+feature test for QueryPerformanceFrequency (a Windows feature).  this
+needs to be moved to site_scons/build/utils.py/feature_test, or in
+this case, maybe to build_common/windows
+
+==== resource directory
+
+RD stuff is mingled in csdk; see resource/csdk/SConscript
+
+==== extlibs
+
+Iochibity moves some stuff into csdk:  cbor, cjson, time
+
+
+=== gcov etc
+
+e.g. services/scene-mannager/unittests/SConscript
+
+# if target_os not in ['windows', 'winrt']:
+#     scene_test_env.AppendUnique(CXXFLAGS = ['-O2', '-g', '-Wall', '-fmessage-length=0'])
+
+# if target_os in ['darwin', 'linux']:
+#     scene_test_env.AppendUnique(CXXFLAGS = ['-pthread'])
+#     scene_test_env.AppendUnique(LIBS = ['pthread'])
+
+# if not env.get('RELEASE'):
+#     if target_os != 'darwin':
+#         scene_test_env.AppendUnique(CXXFLAGS = ['--coverage'])
+#         scene_test_env.PrependUnique(LIBS = ['gcov'])
+#     else:
+#         # no -lgcov for os x
+# 	scene_test_env.AppendUnique(CPPFLAGS = ['-fprofile-arcs', '-ftest-coverage'])
+# 	scene_test_env.PrependUnique(LIBS = ['clang_rt.profile_osx'])
+
+# 	import subprocess
+# 	p = subprocess.Popen(['clang', '-print-search-dirs'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+# 	out, err = p.communicate()
+# 	libsline = out.splitlines()[1]
+# 	clanglibs = libsline.split("libraries: =")[1]
+
+# 	scene_test_env.PrependUnique(LIBPATH = [clanglibs + '/lib/darwin/'])
