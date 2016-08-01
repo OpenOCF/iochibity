@@ -46,8 +46,7 @@ env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__'])
 env.AppendUnique(CPPFLAGS = ['-Wall', '-Wextra', '-fPIC'])
 env.AppendUnique(CFLAGS = ['-std=c99'])
 env.AppendUnique(CXXFLAGS = ['-Wnoexcept', '-std=c++0x'])
-# env.AppendUnique(LIBS = ['uuid'])
-env.AppendUnique(LINKFLAGS = ['-ldl', '-lpthread'])
+env.AppendUnique(LIBS = ['dl', 'pthread', 'uuid'])
 
 # env.AppendUnique(CFLAGS = ['-ffunction-sections', '-fdata-sections'])
 

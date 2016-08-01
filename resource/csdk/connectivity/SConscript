@@ -9,11 +9,13 @@ transport = env.get('TARGET_TRANSPORT')
 build_sample = env.get('BUILD_SAMPLE')
 with_ra = env.get('WITH_RA')
 with_tcp = env.get('WITH_TCP')
+with_mq = env.get('WITH_MQ')
 
 print "Connectivity Configuration (resource/csdk/connectivity/SConscript):"
 print "\tTarget Transport is %s" % transport
 print "\tTarget OS is %s" % target_os
 print "\tBuild with Sample? %s" % build_sample
+print "MQ flag is %s" % with_mq
 
 targets_disallow_multitransport = ['arduino']
 
@@ -28,6 +30,7 @@ if 'ALL' in transport:
 			env.AppendUnique(CPPDEFINES = ['RA_ADAPTER'])
 	if with_tcp == True:
 			env.AppendUnique(CPPDEFINES = ['TCP_ADAPTER'])
+
 	if target_os == 'linux':
 	        gdbus = 0
 		for item in env.get('CPPDEFINES'):
@@ -91,5 +94,17 @@ else:
 			Exit(1)
 	else:
 		env.AppendUnique(CPPDEFINES = ['NO_NFC_ADAPTER'])
+
+if 'SUB' in with_mq:
+	env.AppendUnique(CPPDEFINES = ['MQ_SUBSCRIBER', 'WITH_MQ'])
+	print "MQ SUB support"
+
+if 'PUB' in with_mq:
+	env.AppendUnique(CPPDEFINES = ['MQ_PUBLISHER', 'WITH_MQ'])
+	print "MQ PUB support"
+
+if 'BROKER' in with_mq:
+	env.AppendUnique(CPPDEFINES = ['MQ_BROKER', 'WITH_MQ'])
+	print "MQ Broker support"
 
 env.SConscript('./src/SConscript')

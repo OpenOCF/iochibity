@@ -47,9 +47,9 @@ OCStackResult DeInitACLResource();
  *
  * @note On the first call to @ref GetACLResourceData, savePtr should point to NULL.
  *
- * @return reference to @ref OicSecAcl_t if ACL is found, else NULL.
+ * @return reference to @ref OicSecAce_t if ACE is found, else NULL.
  */
-const OicSecAcl_t* GetACLResourceData(const OicUuid_t* subjectId, OicSecAcl_t **savePtr);
+const OicSecAce_t* GetACLResourceData(const OicUuid_t* subjectId, OicSecAce_t **savePtr);
 
 /**
  * This function converts ACL data into CBOR format.
@@ -63,11 +63,32 @@ const OicSecAcl_t* GetACLResourceData(const OicUuid_t* subjectId, OicSecAcl_t **
 OCStackResult AclToCBORPayload(const OicSecAcl_t * acl, uint8_t **outPayload, size_t *size);
 
 /**
+ * This method removes ACE for the subject and resource from the ACL
+ *
+ * @param subject of the ACE
+ * @param resource of the ACE
+ *
+ * @return
+ *     ::OC_STACK_RESOURCE_DELETED on success
+ *     ::OC_STACK_NO_RESOURCE on failure to find the appropriate ACE
+ *     ::OC_STACK_INVALID_PARAM on invalid parameter
+ */
+OCStackResult RemoveACE(const OicUuid_t * subject, const char * resource);
+
+/**
  * This function deletes ACL data.
  *
  * @param acl instance of @ref OicSecAcl_t structure to be deleted.
  */
 void DeleteACLList(OicSecAcl_t* acl);
+
+/**
+ * Internal function to duplicate the ACE instance.
+ *
+ * @param ace instance of @ref OicSecAce_t structure to be duplicated.
+ * @return reference to @ref OicSecAce_t if ACE was successfully duplicated.
+ */
+OicSecAce_t* DuplicateACE(const OicSecAce_t* ace);
 
 /**
  * This function installs a new ACL.
@@ -80,12 +101,12 @@ void DeleteACLList(OicSecAcl_t* acl);
 OCStackResult InstallNewACL(const uint8_t* payload, const size_t size);
 
 /**
- * This function updates default ACL which is required for ownership transfer.
+ * This function updates default ACE which is required for ownership transfer.
  * This function should be invoked after OTM is complete to prevent anonymous user access.
  *
  * @retval OC_STACK_OK for Success, otherwise some error value
  */
-OCStackResult UpdateDefaultSecProvACL();
+OCStackResult UpdateDefaultSecProvACE();
 
 /**
  * Internal function to update resource owner

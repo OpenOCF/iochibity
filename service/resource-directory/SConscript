@@ -39,9 +39,6 @@ rd_env.AppendUnique(CPPPATH = ['src/internal'])
 rd_env.AppendUnique(CPPPATH = ['../../resource/csdk/stack/include'])
 rd_env.PrependUnique(LIBS = ['oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'coap'])
 
-if target_os == 'linux':
-    rd_env.AppendUnique(LIBS = ['pthread'])
-
 if target_os == 'android':
     rd_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
     rd_env.AppendUnique(LIBS = ['gnustl_static'])

@@ -21,23 +21,28 @@
 ##
 # ResourceClient Unit Test build script
 ##
-import os
 Import('env')
+import os
 
 target_os = env.get('TARGET_OS')
 
-if env.get('RELEASE'):
-    env.AppendUnique(CCFLAGS = ['-Os'])
-    env.AppendUnique(CPPDEFINES = ['NDEBUG'])
-else:
-    env.AppendUnique(CCFLAGS = ['-g'])
+#GAR gtest
+# # SConscript file for Local PKI google tests
+# gtest_env = SConscript('#extlibs/gtest/SConscript')
+lib_env = env.Clone()
+target_os = lib_env.get('TARGET_OS')
 
-if env.get('LOGGING'):
-    env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+if lib_env.get('LOGGING'):
+    lib_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 # Add third party libraries
-lib_env = env.Clone()
-SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
+SConscript('#service/third_party_libs.scons', 'lib_env')
+
+#GAR hippomocks
+# if target_os in ['linux']:
+#     # Verify that 'hippomocks' mocking code is installed.  If not,
+#     # get it and install it
+#     SConscript('#extlibs/hippomocks.scons')
 
 rcs_test_env = lib_env.Clone()
 
@@ -68,19 +73,20 @@ rcs_test_env.PrependUnique(LIBS = [
     'gtest',
     'gtest_main'])
 
-rcs_test_env.AppendUnique(LIBS = ['dl'])
+#GAR libdl
+# rcs_test_env.AppendUnique(LIBS = ['dl'])
 
 ######################################################################
 # Build Test
 ######################################################################
-rcs_test_src = env.Glob('./*.cpp')
+rcs_test_src = rcs_test_env.Glob('./*.cpp')
 
 rcs_client_test = rcs_test_env.Program('rcs_client_test', rcs_test_src)
 Alias("rcs_client_test", rcs_client_test)
-env.AppendTarget('rcs_client_test')
+rcs_test_env.AppendTarget('rcs_client_test')
 
-if env.get('TEST') == '1':
-    target_os = env.get('TARGET_OS')
-    if target_os == 'linux':
+if rcs_test_env.get('TEST') == '1':
+    target_os = rcs_test_env.get('TARGET_OS')
+    if target_os in ['darwin', 'linux']:
         from tools.scons.RunTest import *
         run_test(rcs_test_env, '', 'service/resource-encapsulation/unittests/rcs_client_test')

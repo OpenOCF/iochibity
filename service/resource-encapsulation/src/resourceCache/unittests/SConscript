@@ -21,29 +21,24 @@
 ##
 # ResourceCache Unit Test build script
 ##
-
 Import('env')
+import os
 
-if env.get('RELEASE'):
-    env.AppendUnique(CCFLAGS = ['-Os'])
-    env.AppendUnique(CPPDEFINES = ['NDEBUG'])
-else:
-    env.AppendUnique(CCFLAGS = ['-g'])
-
-if env.get('LOGGING'):
-    env.AppendUnique(CPPDEFINES = ['TB_LOG'])
-
+#GAR gtest
+# # SConscript file for Local PKI google tests
+# gtest_env = SConscript('#extlibs/gtest/SConscript')
 lib_env = env.Clone()
-SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
+
+if lib_env.get('LOGGING'):
+    lib_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+
+SConscript('#service/third_party_libs.scons', 'lib_env')
 
 ######################################################################
 # unit test setting
 ######################################################################
-src_dir = lib_env.get('SRC_DIR')
-home = lib_env.get('HOME')
-
 cache_test_env = lib_env.Clone()
-target_os = env.get('TARGET_OS')
+target_os = cache_test_env.get('TARGET_OS')
 
 ######################################################################
 # Build flags
@@ -54,23 +49,19 @@ cache_test_env.AppendUnique(CPPPATH = ['../../common/primitiveResource/include']
 cache_test_env.AppendUnique(CPPPATH = ['../../common/expiryTimer/include'])
 cache_test_env.AppendUnique(CPPPATH = ['../../common/expiryTimer/src'])
 cache_test_env.AppendUnique(CPPPATH = ['../../common/utils/include'])
-cache_test_env.PrependUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs/hippomocks-master'])
-cache_test_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
+cache_test_env.PrependUnique(CPPPATH = [cache_test_env.get('SRC_DIR')+'/extlibs/hippomocks-master'])
+cache_test_env.AppendUnique(LIBPATH = [cache_test_env.get('BUILD_DIR')])
 cache_test_env.PrependUnique(LIBS = ['rcs_client', 'rcs_common', 'oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'coap', 'gtest', 'gtest_main'])
-
-if target_os == 'linux':
-    cache_test_env.AppendUnique(LIBS = ['pthread'])
 
 ######################################################################
 # Build Test
 ######################################################################
-cache_test_src = env.Glob('./*.cpp')
+cache_test_src = cache_test_env.Glob('./*.cpp')
 cache_test = cache_test_env.Program('cache_test', cache_test_src)
 Alias("cache_test", cache_test)
-env.AppendTarget('cache_test')
+cache_test_env.AppendTarget('cache_test')
 
-if env.get('TEST') == '1':
-        target_os = env.get('TARGET_OS')
+if cache_test_env.get('TEST') == '1':
         if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(cache_test_env,

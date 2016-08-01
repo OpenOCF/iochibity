@@ -20,21 +20,26 @@
 
 Import('env')
 import os
+import os.path
 
+#GAR gteset
+# # SConscript file for Local PKI google tests
+# gtest_env = SConscript('#extlibs/gtest/SConscript')
+# malloctest_env = gtest_env.Clone()
+
+target_os = env.get('TARGET_OS')
 malloctest_env = env.Clone()
 src_dir = malloctest_env.get('SRC_DIR')
 
 ######################################################################
 # Build flags
 ######################################################################
-home = os.environ['HOME']
-
 malloctest_env.PrependUnique(CPPPATH = ['../include'])
 
-malloctest_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource/c_common')])
+malloctest_env.AppendUnique(LIBPATH = [os.path.join(malloctest_env.get('BUILD_DIR'), 'resource', 'c_common')])
 malloctest_env.PrependUnique(LIBS = ['c_common', 'gtest', 'gtest_main', 'pthread'])
 
-if env.get('LOGGING'):
+if malloctest_env.get('LOGGING'):
 	malloctest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 #
 ######################################################################
@@ -44,9 +49,9 @@ malloctests = malloctest_env.Program('malloctests', ['linux/oic_malloc_tests.cpp
 
 Alias("test", [malloctests])
 
+<<<<<<< HEAD
 env.AppendTarget('test')
 if env.get('TEST') == '1':
-	target_os = env.get('TARGET_OS')
 	if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(malloctest_env,

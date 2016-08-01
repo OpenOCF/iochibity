@@ -40,7 +40,7 @@ if target_enrollee == 'arduino':
 
 # Add third party libraries
 lib_env = env.Clone()
-SConscript(Dir('#').abspath + '/service/third_party_libs.scons', 'lib_env')
+SConscript('#service/third_party_libs.scons', 'lib_env')
 
 easy_setup_env = lib_env.Clone()
 target_os = env.get('TARGET_OS')
@@ -110,8 +110,15 @@ if target_os in ['android','linux','darwin']:
 	es_sdk_shared = easy_setup_env.SharedLibrary('ESMediatorRich', env.get('es_src'))
 	easy_setup_env.InstallTarget(es_sdk_shared, 'libESMediatorRich')
 
+#GAR samples
+# ######################################################################
+# # Build RichSDK Mediator Sample App
+# ################################################ ######################
+# if target_os in ['darwin', 'linux']:
+# 	SConscript('../../sampleapp/mediator/linux/richsdk_sample/SConscript')
+
 ######################################################################
 #Build UnitTestcases for Mediator[RichSDK]
 ################################################ ######################
-if target_os in ['darwin','linux']:
+if target_os in ['darwin', 'linux']:
     SConscript('unittests/SConscript')

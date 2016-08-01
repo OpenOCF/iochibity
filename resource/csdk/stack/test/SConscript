@@ -21,9 +21,12 @@
 Import('env')
 import os
 import os.path
-stacktest_env = env.Clone()
 
-src_dir = stacktest_env.get('SRC_DIR')
+#GAR gtest
+# # SConscript file for Local PKI google tests
+# gtest_env = SConscript('#extlibs/gtest/SConscript')
+stacktest_env = env.Clone()
+target_os = stacktest_env.get('TARGET_OS')
 
 ######################################################################
 # Build flags
@@ -43,8 +46,7 @@ stacktest_env.PrependUnique(CPPPATH = [
 		'../../../oc_logger/include'
 		])
 
-stacktest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-
+#GAR uuid
 stacktest_env.PrependUnique(LIBS = ['octbstack',
                                     'ocsrm',
                                     'connectivity_abstraction',
@@ -53,24 +55,25 @@ stacktest_env.PrependUnique(LIBS = ['octbstack',
                                     'gtest',
                                     'gtest_main'])
 
-target_os = env.get('TARGET_OS')
+#GAR darwin
 # if target_os == 'darwin':
 #     stacktest_env.AppendUnique(CPPFLAGS = ['-Wl,-stack_size', '-Wl,0x1000000']) # 16MB stack size
 
+stacktest_env.AppendUnique(LIBPATH = [stacktest_env.get('BUILD_DIR')])
+
 stacktest_env.PrependUnique(LIBS = ['oc_logger'])
 
-
-if env.get('SECURED') == '1':
+if stacktest_env.get('SECURED') == '1':
     stacktest_env.AppendUnique(LIBS = ['tinydtls'])
 
-if env.get('LOGGING'):
+if stacktest_env.get('LOGGING'):
 	stacktest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 if target_os in ['msys_nt', 'windows']:
 	stacktest_env.AppendUnique(LINKFLAGS = ['/subsystem:CONSOLE'])
 	stacktest_env.AppendUnique(LIBS = ['ws2_32', 'iphlpapi', 'kernel32'])
 else:
-	stacktest_env.PrependUnique(LIBS = ['m', 'pthread'])
+	stacktest_env.PrependUnique(LIBS = ['m'])
 
 ######################################################################
 # Source files and Targets
@@ -82,10 +85,10 @@ cbortests = stacktest_env.Program('cbortests', ['cbortests.cpp'])
 #GAR FIXME: valgrind broken on El Capitan
 Alias("test", [stacktests, cbortests])
 
-env.AppendTarget('test')
-if env.get('TEST') == '1':
+stacktest_env.AppendTarget('test')
+if stacktest_env.get('TEST') == '1':
 	if target_os in ['windows']:
-		stacktest_env.AppendENVPath('PATH', [os.path.join(env.get('BUILD_DIR'), 'resource', 'csdk')])
+		stacktest_env.AppendENVPath('PATH', [os.path.join(stacktest_env.get('BUILD_DIR'), 'resource', 'csdk')]
 	if target_os in ['linux', 'windows']:    #GAR FIXME: broken on darwin
                 from tools.scons.RunTest import *
                 run_test(stacktest_env,

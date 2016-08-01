@@ -63,7 +63,7 @@ static const uint16_t CBOR_SIZE = 2048;
 static const uint16_t CBOR_MAX_SIZE = 4400;
 
 /** CRED size - Number of mandatory items. */
-static const uint8_t CRED_ROOT_MAP_SIZE = 2;
+static const uint8_t CRED_ROOT_MAP_SIZE = 4;
 static const uint8_t CRED_MAP_SIZE = 3;
 
 
@@ -336,6 +336,39 @@ OCStackResult CredToCBORPayload(const OicSecCred_t *credS, uint8_t **cborPayload
         VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Addding rownerid Value.");
         OICFree(rowner);
     }
+
+    //RT -- Mandatory
+    CborEncoder rtArray;
+    cborEncoderResult = cbor_encode_text_string(&credRootMap, OIC_JSON_RT_NAME,
+            strlen(OIC_JSON_RT_NAME));
+    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Addding RT Name Tag.");
+    cborEncoderResult = cbor_encoder_create_array(&credRootMap, &rtArray, 1);
+    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Addding RT Value.");
+    for (size_t i = 0; i < 1; i++)
+    {
+        cborEncoderResult = cbor_encode_text_string(&rtArray, OIC_RSRC_TYPE_SEC_CRED,
+                strlen(OIC_RSRC_TYPE_SEC_CRED));
+        VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding RT Value.");
+    }
+    cborEncoderResult = cbor_encoder_close_container(&credRootMap, &rtArray);
+    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Closing RT.");
+
+    //IF-- Mandatory
+    CborEncoder ifArray;
+    cborEncoderResult = cbor_encode_text_string(&credRootMap, OIC_JSON_IF_NAME,
+             strlen(OIC_JSON_IF_NAME));
+    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Addding IF Name Tag.");
+    cborEncoderResult = cbor_encoder_create_array(&credRootMap, &ifArray, 1);
+    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Addding IF Value.");
+    for (size_t i = 0; i < 1; i++)
+    {
+        cborEncoderResult = cbor_encode_text_string(&ifArray, OC_RSRVD_INTERFACE_DEFAULT,
+                strlen(OC_RSRVD_INTERFACE_DEFAULT));
+        VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding IF Value.");
+    }
+    cborEncoderResult = cbor_encoder_close_container(&credRootMap, &ifArray);
+    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Closing IF.");
+
 
     // Close CRED Root Map
     cborEncoderResult = cbor_encoder_close_container(&encoder, &credRootMap);
@@ -976,11 +1009,12 @@ exit:
 
 #endif //__WITH_DTLS__
 
-static OCEntityHandlerResult HandlePutRequest(const OCEntityHandlerRequest * ehRequest)
+static OCEntityHandlerResult HandlePostRequest(const OCEntityHandlerRequest * ehRequest)
 {
     OCEntityHandlerResult ret = OC_EH_ERROR;
-    OIC_LOG(DEBUG, TAG, "HandleCREDPutRequest IN");
+    OIC_LOG(DEBUG, TAG, "HandleCREDPostRequest IN");
 
+    static uint16_t previousMsgId = 0;
     //Get binary representation of cbor
     OicSecCred_t *cred  = NULL;
     uint8_t *payload = (((OCSecurityPayload*)ehRequest->payload)->securityData);
@@ -992,7 +1026,7 @@ static OCEntityHandlerResult HandlePutRequest(const OCEntityHandlerRequest * ehR
 #ifdef __WITH_DTLS__
         OicUuid_t emptyUuid = {.id={0}};
         const OicSecDoxm_t* doxm = GetDoxmResourceData();
-        if(false == doxm->owned && memcmp(&(doxm->owner), &emptyUuid, sizeof(OicUuid_t)) != 0)
+        if(doxm && false == doxm->owned && memcmp(&(doxm->owner), &emptyUuid, sizeof(OicUuid_t)) != 0)
         {
             //in case of owner PSK
             switch(cred->credType)
@@ -1010,7 +1044,7 @@ static OCEntityHandlerResult HandlePutRequest(const OCEntityHandlerRequest * ehR
                         OIC_LOG(ERROR, TAG, "OwnerPSK was generated successfully.");
                         if(OC_STACK_OK == AddCredential(cred))
                         {
-                            ret = OC_EH_RESOURCE_CREATED;
+                            ret = OC_EH_CHANGED;
                         }
                         else
                         {
@@ -1024,7 +1058,7 @@ static OCEntityHandlerResult HandlePutRequest(const OCEntityHandlerRequest * ehR
                         ret = OC_EH_ERROR;
                     }
 
-                    if(OC_EH_RESOURCE_CREATED == ret)
+                    if(OC_EH_CHANGED == ret)
                     {
                         /**
                          * in case of random PIN based OxM,
@@ -1082,14 +1116,27 @@ static OCEntityHandlerResult HandlePutRequest(const OCEntityHandlerRequest * ehR
                 }
             }
 
-            if(OC_EH_RESOURCE_CREATED != ret)
+            if(OC_EH_CHANGED != ret)
             {
                 /*
                   * If some error is occured while ownership transfer,
                   * ownership transfer related resource should be revert back to initial status.
                   */
-                RestoreDoxmToInitState();
-                RestorePstatToInitState();
+                const OicSecDoxm_t* doxm =  GetDoxmResourceData();
+                if(doxm)
+                {
+                    if(!doxm->owned && previousMsgId != ehRequest->messageID)
+                    {
+                        OIC_LOG(WARNING, TAG, "The operation failed during handle DOXM request,"\
+                                            "DOXM will be reverted.");
+                        RestoreDoxmToInitState();
+                        RestorePstatToInitState();
+                    }
+                }
+                else
+                {
+                    OIC_LOG(ERROR, TAG, "Invalid DOXM resource");
+                }
             }
         }
         else
@@ -1100,7 +1147,7 @@ static OCEntityHandlerResult HandlePutRequest(const OCEntityHandlerRequest * ehR
              * to it before getting appended to the existing credential
              * list and updating svr database.
              */
-            ret = (OC_STACK_OK == AddCredential(cred))? OC_EH_RESOURCE_CREATED : OC_EH_ERROR;
+            ret = (OC_STACK_OK == AddCredential(cred))? OC_EH_CHANGED : OC_EH_ERROR;
         }
 #else //not __WITH_DTLS__
         /*
@@ -1109,11 +1156,11 @@ static OCEntityHandlerResult HandlePutRequest(const OCEntityHandlerRequest * ehR
          * to it before getting appended to the existing credential
          * list and updating svr database.
          */
-        ret = (OC_STACK_OK == AddCredential(cred))? OC_EH_RESOURCE_CREATED : OC_EH_ERROR;
+        ret = (OC_STACK_OK == AddCredential(cred))? OC_EH_CHANGED : OC_EH_ERROR;
 #endif//__WITH_DTLS__
     }
 
-    if (OC_EH_RESOURCE_CREATED != ret)
+    if (OC_EH_CHANGED != ret)
     {
         if(OC_STACK_OK != RemoveCredential(&cred->subject))
         {
@@ -1121,7 +1168,15 @@ static OCEntityHandlerResult HandlePutRequest(const OCEntityHandlerRequest * ehR
         }
         FreeCred(cred);
     }
-    OIC_LOG(DEBUG, TAG, "HandleCREDPutRequest OUT");
+    else
+    {
+        previousMsgId = ehRequest->messageID;
+    }
+    //Send response to request originator
+    ret = ((SendSRMResponse(ehRequest, ret, NULL, 0)) == OC_STACK_OK) ?
+                   OC_EH_OK : OC_EH_ERROR;
+
+    OIC_LOG(DEBUG, TAG, "HandleCREDPostRequest OUT");
     return ret;
 }
 
@@ -1143,35 +1198,12 @@ static OCEntityHandlerResult HandleGetRequest (const OCEntityHandlerRequest * eh
     // A device should always have a default cred. Therefore, payload should never be NULL.
     OCEntityHandlerResult ehRet = (res == OC_STACK_OK) ? OC_EH_OK : OC_EH_ERROR;
 
-    // Send response payload to request originator
-    if (OC_STACK_OK != SendSRMResponse(ehRequest, ehRet, payload, size))
-    {
-        ehRet = OC_EH_ERROR;
-        OIC_LOG(ERROR, TAG, "SendSRMResponse failed in HandlePstatGetRequest");
-    }
+
+    //Send payload to request originator
+    ehRet = ((SendSRMResponse(ehRequest, ehRet, payload, size)) == OC_STACK_OK) ?
+                       OC_EH_OK : OC_EH_ERROR;
     OICFree(payload);
     return ehRet;
-}
-
-static OCEntityHandlerResult HandlePostRequest(const OCEntityHandlerRequest * ehRequest)
-{
-    OCEntityHandlerResult ret = OC_EH_ERROR;
-
-    //Get binary representation of CBOR
-    OicSecCred_t *cred  = NULL;
-    uint8_t *payload = ((OCSecurityPayload*)ehRequest->payload)->securityData;
-    size_t size = ((OCSecurityPayload*)ehRequest->payload)->payloadSize;
-    OCStackResult res = CBORPayloadToCred(payload, size, &cred);
-    if ((OC_STACK_OK == res) && cred)
-    {
-        //If the Post request credential has credId, it will be
-        //discarded and the next available credId will be assigned
-        //to it before getting appended to the existing credential
-        //list and updating svr database.
-        ret = (OC_STACK_OK == AddCredential(cred))? OC_EH_RESOURCE_CREATED : OC_EH_ERROR;
-    }
-
-    return ret;
 }
 
 static OCEntityHandlerResult HandleDeleteRequest(const OCEntityHandlerRequest *ehRequest)
@@ -1204,7 +1236,9 @@ static OCEntityHandlerResult HandleDeleteRequest(const OCEntityHandlerRequest *e
     {
         ehRet = OC_EH_RESOURCE_DELETED;
     }
-
+    //Send response to request originator
+    ehRet = ((SendSRMResponse(ehRequest, ehRet, NULL, 0)) == OC_STACK_OK) ?
+                   OC_EH_OK : OC_EH_ERROR;
 exit:
     return ehRet;
 }
@@ -1223,15 +1257,13 @@ OCEntityHandlerResult CredEntityHandler(OCEntityHandlerFlag flag,
     if (flag & OC_REQUEST_FLAG)
     {
         OIC_LOG (DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
-        //TODO :  Handle PUT/DEL methods
+        //TODO :  Remove Handle PUT methods once CTT have changed to POST on OTM
         switch (ehRequest->method)
         {
             case OC_REST_GET:
                 ret = HandleGetRequest(ehRequest);;
                 break;
             case OC_REST_PUT:
-                ret = HandlePutRequest(ehRequest);
-                break;
             case OC_REST_POST:
                 ret = HandlePostRequest(ehRequest);
                 break;
@@ -1239,15 +1271,11 @@ OCEntityHandlerResult CredEntityHandler(OCEntityHandlerFlag flag,
                 ret = HandleDeleteRequest(ehRequest);
                 break;
             default:
-                ret = OC_EH_ERROR;
+                ret = ((SendSRMResponse(ehRequest, ret, NULL, 0)) == OC_STACK_OK) ?
+                               OC_EH_OK : OC_EH_ERROR;
                 break;
         }
     }
-
-    //Send payload to request originator
-    ret = (SendSRMResponse(ehRequest, ret, NULL, 0) == OC_STACK_OK) ?
-                       ret : OC_EH_ERROR;
-
     return ret;
 }
 
@@ -1396,8 +1424,8 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
                         // TODO: Added as workaround. Will be replaced soon.
                         if(OIC_ENCODING_RAW == cred->privateData.encoding)
                         {
-                            result_length = cred->privateData.len;
-                            memcpy(result, cred->privateData.data, result_length);
+                            ret = cred->privateData.len;
+                            memcpy(result, cred->privateData.data, ret);
                         }
                         else if(OIC_ENCODING_BASE64 == cred->privateData.encoding)
                         {

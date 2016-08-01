@@ -21,23 +21,24 @@
 ##
 # ResourceBroker Unit Test build script
 ##
-
 Import('env')
 
-if env.get('LOGGING'):
-	env.AppendUnique(CPPDEFINES = ['TB_LOG'])
-
+#GAR gtest
+# SConscript file for Local PKI google tests
+# gtest_env = SConscript('#extlibs/gtest/SConscript')
 lib_env = env.Clone()
-SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
+
+if lib_env.get('LOGGING'):
+    lib_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+
+SConscript('#service/third_party_libs.scons', 'lib_env')
 
 ######################################################################
 #unit test setting
 ######################################################################
-src_dir = lib_env.get('SRC_DIR')
-home = lib_env.get('HOME')
-
 broker_test_env = lib_env.Clone()
-target_os = env.get('TARGET_OS')
+src_dir = broker_test_env.get('SRC_DIR')
+target_os = broker_test_env.get('TARGET_OS')
 
 ######################################################################
 # Build flags
@@ -49,9 +50,9 @@ broker_test_env.AppendUnique(CPPPATH = ['../../common/expiryTimer/include'])
 broker_test_env.AppendUnique(CPPPATH = ['../../common/expiryTimer/src'])
 broker_test_env.AppendUnique(CPPPATH = ['../../common/utils/include'])
 
-broker_test_env.PrependUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs/hippomocks-master'])
-
-broker_test_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
+#GAR hippomocks
+broker_test_env.PrependUnique(CPPPATH = [broker_test_env.get('SRC_DIR')+'/extlibs/hippomocks-master'])
+broker_test_env.AppendUnique(LIBPATH = [broker_test_env.get('BUILD_DIR')])
 
 broker_test_env.PrependUnique(LIBS = ['coap'])
 broker_test_env.AppendUnique(LIBS = ['connectivity_abstraction'])
@@ -67,13 +68,12 @@ broker_test_env.AppendUnique(LIBS = ['gtest_main'])
 # Build Test
 ######################################################################
 
-broker_test_src = env.Glob('./*.cpp')
+broker_test_src = broker_test_env.Glob('./*.cpp')
 broker_test = broker_test_env.Program('broker_test', broker_test_src)
 Alias("broker_test", broker_test)
-env.AppendTarget('broker_test')
+broker_test_env.AppendTarget('broker_test')
 
-if env.get('TEST') == '1':
-        target_os = env.get('TARGET_OS')
+if broker_test_env.get('TEST') == '1':
         if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(broker_test_env,

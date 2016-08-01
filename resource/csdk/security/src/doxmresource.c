@@ -60,7 +60,7 @@ static const uint16_t CBOR_SIZE = 512;
 static const uint16_t CBOR_MAX_SIZE = 4400;
 
 /** DOXM Map size - Number of mandatory items. */
-static const uint8_t DOXM_MAP_SIZE = 7;
+static const uint8_t DOXM_MAP_SIZE = 9;
 
 static OicSecDoxm_t        *gDoxm = NULL;
 static OCResourceHandle    gDoxmHandle = NULL;
@@ -81,6 +81,14 @@ static OicSecDoxm_t gDefaultDoxm =
     {.id = {0}},            /* OicUuid_t rownerID */
 };
 
+/**
+ * This method is internal method.
+ * the param roParsed is optionally used to know whether cborPayload has
+ * at least read only property value or not.
+ */
+static OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t size,
+                                OicSecDoxm_t **doxm, bool *roParsed);
+
 void DeleteDoxmBinData(OicSecDoxm_t* doxm)
 {
     if (doxm)
@@ -100,7 +108,8 @@ void DeleteDoxmBinData(OicSecDoxm_t* doxm)
     }
 }
 
-OCStackResult DoxmToCBORPayload(const OicSecDoxm_t *doxm, uint8_t **payload, size_t *size)
+OCStackResult DoxmToCBORPayload(const OicSecDoxm_t *doxm, uint8_t **payload, size_t *size,
+                                bool rwOnly)
 {
     if (NULL == doxm || NULL == payload || NULL != *payload || NULL == size)
     {
@@ -159,7 +168,7 @@ OCStackResult DoxmToCBORPayload(const OicSecDoxm_t *doxm, uint8_t **payload, siz
     }
 
     //Oxm -- Not Mandatory
-    if (doxm->oxmLen > 0)
+    if (doxm->oxmLen > 0 && false == rwOnly)
     {
         CborEncoder oxm;
         cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_OXMS_NAME,
@@ -185,11 +194,14 @@ OCStackResult DoxmToCBORPayload(const OicSecDoxm_t *doxm, uint8_t **payload, siz
     VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding Sel Value.");
 
     //sct -- Mandatory
-    cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_SUPPORTED_CRED_TYPE_NAME,
-        strlen(OIC_JSON_SUPPORTED_CRED_TYPE_NAME));
-    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding Cred Type Tag");
-    cborEncoderResult = cbor_encode_int(&doxmMap, doxm->sct);
-    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding Cred Type Value.");
+    if (false == rwOnly)
+    {
+        cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_SUPPORTED_CRED_TYPE_NAME,
+            strlen(OIC_JSON_SUPPORTED_CRED_TYPE_NAME));
+        VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding Cred Type Tag");
+        cborEncoderResult = cbor_encode_int(&doxmMap, doxm->sct);
+        VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding Cred Type Value.");
+    }
 
     //Owned -- Mandatory
     cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_OWNED_NAME,
@@ -198,16 +210,19 @@ OCStackResult DoxmToCBORPayload(const OicSecDoxm_t *doxm, uint8_t **payload, siz
     cborEncoderResult = cbor_encode_boolean(&doxmMap, doxm->owned);
     VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding Owned Value.");
 
-    //DeviceId -- Mandatory
-    cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_DEVICE_ID_NAME,
-        strlen(OIC_JSON_DEVICE_ID_NAME));
-    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding Device Id Tag.");
-    ret = ConvertUuidToStr(&doxm->deviceID, &strUuid);
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == ret , ERROR);
-    cborEncoderResult = cbor_encode_text_string(&doxmMap, strUuid, strlen(strUuid));
-    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding Device Id Value.");
-    OICFree(strUuid);
-    strUuid = NULL;
+    if (false == rwOnly)
+    {
+        //DeviceId -- Mandatory
+        cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_DEVICE_ID_NAME,
+            strlen(OIC_JSON_DEVICE_ID_NAME));
+        VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding Device Id Tag.");
+        ret = ConvertUuidToStr(&doxm->deviceID, &strUuid);
+        VERIFY_SUCCESS(TAG, OC_STACK_OK == ret , ERROR);
+        cborEncoderResult = cbor_encode_text_string(&doxmMap, strUuid, strlen(strUuid));
+        VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding Device Id Value.");
+        OICFree(strUuid);
+        strUuid = NULL;
+    }
 
     //devownerid -- Mandatory
     cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_DEVOWNERID_NAME,
@@ -231,12 +246,44 @@ OCStackResult DoxmToCBORPayload(const OicSecDoxm_t *doxm, uint8_t **payload, siz
     OICFree(strUuid);
     strUuid = NULL;
 
-    //DPC -- not Mandatory, but this type is boolean, so instance always has a value.
+    //x.org.iotivity.dpc -- not Mandatory(vendor-specific), but this type is boolean, so instance always has a value.
     cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_DPC_NAME,
         strlen(OIC_JSON_DPC_NAME));
     VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding DPC Tag.");
     cborEncoderResult = cbor_encode_boolean(&doxmMap, doxm->dpc);
     VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding DPC Value.");
+
+    //RT -- Mandatory
+    CborEncoder rtArray;
+    cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_RT_NAME,
+            strlen(OIC_JSON_RT_NAME));
+    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Addding RT Name Tag.");
+    cborEncoderResult = cbor_encoder_create_array(&doxmMap, &rtArray, 1);
+    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Addding RT Value.");
+    for (size_t i = 0; i < 1; i++)
+    {
+        cborEncoderResult = cbor_encode_text_string(&rtArray, OIC_RSRC_TYPE_SEC_DOXM,
+                strlen(OIC_RSRC_TYPE_SEC_DOXM));
+        VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding RT Value.");
+    }
+    cborEncoderResult = cbor_encoder_close_container(&doxmMap, &rtArray);
+    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Closing RT.");
+
+    //IF-- Mandatory
+     CborEncoder ifArray;
+     cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_IF_NAME,
+             strlen(OIC_JSON_IF_NAME));
+     VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Addding IF Name Tag.");
+     cborEncoderResult = cbor_encoder_create_array(&doxmMap, &ifArray, 1);
+     VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Addding IF Value.");
+    for (size_t i = 0; i < 1; i++)
+    {
+        cborEncoderResult = cbor_encode_text_string(&ifArray, OC_RSRVD_INTERFACE_DEFAULT,
+                strlen(OC_RSRVD_INTERFACE_DEFAULT));
+        VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Adding IF Value.");
+    }
+    cborEncoderResult = cbor_encoder_close_container(&doxmMap, &ifArray);
+    VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Closing IF.");
 
     cborEncoderResult = cbor_encoder_close_container(&encoder, &doxmMap);
     VERIFY_CBOR_SUCCESS(TAG, cborEncoderResult, "Failed Closing DoxmMap.");
@@ -257,7 +304,7 @@ exit:
         cborLen += encoder.ptr - encoder.end;
         OIC_LOG_V(DEBUG, TAG, "Doxm reallocation size : %zd.", cborLen);
         cborEncoderResult = CborNoError;
-        ret = DoxmToCBORPayload(doxm, payload, &cborLen);
+        ret = DoxmToCBORPayload(doxm, payload, &cborLen, rwOnly);
         *size = cborLen;
     }
 
@@ -275,6 +322,12 @@ exit:
 
 OCStackResult CBORPayloadToDoxm(const uint8_t *cborPayload, size_t size,
                                 OicSecDoxm_t **secDoxm)
+{
+    return CBORPayloadToDoxmBin(cborPayload, size, secDoxm, NULL);
+}
+
+static OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t size,
+                                OicSecDoxm_t **secDoxm, bool *roParsed)
 {
     if (NULL == cborPayload || NULL == secDoxm || NULL != *secDoxm || 0 == size)
     {
@@ -346,6 +399,23 @@ OCStackResult CBORPayloadToDoxm(const uint8_t *cborPayload, size_t size,
             cborFindResult = cbor_value_advance(&oxm);
             VERIFY_CBOR_SUCCESS(TAG, cborFindResult, "Failed Advancing oxmName.")
         }
+
+        if (roParsed)
+        {
+            *roParsed = true;
+        }
+    }
+    else
+    {
+        VERIFY_NON_NULL(TAG, gDoxm, ERROR);
+        doxm->oxm = (OicSecOxm_t *) OICCalloc(gDoxm->oxmLen, sizeof(*doxm->oxm));
+        VERIFY_NON_NULL(TAG, doxm->oxm, ERROR);
+        doxm->oxmLen = gDoxm->oxmLen;
+        int i;
+        for (i = 0; i < gDoxm->oxmLen; i++)
+        {
+            doxm->oxm[i] = gDoxm->oxm[i];
+        }
     }
 
     cborFindResult = cbor_value_map_find_value(&doxmCbor, OIC_JSON_OXM_SEL_NAME, &doxmMap);
@@ -365,6 +435,11 @@ OCStackResult CBORPayloadToDoxm(const uint8_t *cborPayload, size_t size,
     {
         cborFindResult = cbor_value_get_int(&doxmMap, (int *) &doxm->sct);
         VERIFY_CBOR_SUCCESS(TAG, cborFindResult, "Failed Finding Sct Name Value.")
+
+        if (roParsed)
+        {
+            *roParsed = true;
+        }
     }
     else // PUT/POST JSON may not have sct so set it to the gDoxm->sct
     {
@@ -405,6 +480,16 @@ OCStackResult CBORPayloadToDoxm(const uint8_t *cborPayload, size_t size,
         VERIFY_SUCCESS(TAG, OC_STACK_OK == ret, ERROR);
         OICFree(strUuid);
         strUuid  = NULL;
+
+        if (roParsed)
+        {
+            *roParsed = true;
+        }
+    }
+    else
+    {
+        VERIFY_NON_NULL(TAG, gDoxm, ERROR);
+        memcpy(doxm->deviceID.id, &gDoxm->deviceID.id, sizeof(doxm->deviceID.id));
     }
 
     cborFindResult = cbor_value_map_find_value(&doxmCbor, OIC_JSON_DEVOWNERID_NAME, &doxmMap);
@@ -417,6 +502,11 @@ OCStackResult CBORPayloadToDoxm(const uint8_t *cborPayload, size_t size,
         OICFree(strUuid);
         strUuid  = NULL;
     }
+    else
+    {
+        VERIFY_NON_NULL(TAG, gDoxm, ERROR);
+        memcpy(doxm->owner.id, gDoxm->owner.id, sizeof(doxm->owner.id));
+    }
 
     cborFindResult = cbor_value_map_find_value(&doxmCbor, OIC_JSON_ROWNERID_NAME, &doxmMap);
     if (CborNoError == cborFindResult && cbor_value_is_text_string(&doxmMap))
@@ -427,6 +517,11 @@ OCStackResult CBORPayloadToDoxm(const uint8_t *cborPayload, size_t size,
         VERIFY_SUCCESS(TAG, OC_STACK_OK == ret, ERROR);
         OICFree(strUuid);
         strUuid  = NULL;
+    }
+    else
+    {
+        VERIFY_NON_NULL(TAG, gDoxm, ERROR);
+        memcpy(doxm->rownerID.id, gDoxm->rownerID.id, sizeof(doxm->rownerID.id));
     }
 
     *secDoxm = doxm;
@@ -457,7 +552,7 @@ static bool UpdatePersistentStorage(OicSecDoxm_t * doxm)
         // Convert Doxm data into CBOR for update to persistent storage
         uint8_t *payload = NULL;
         size_t size = 0;
-        OCStackResult res = DoxmToCBORPayload(doxm, &payload, &size);
+        OCStackResult res = DoxmToCBORPayload(doxm, &payload, &size, false);
         if (payload && (OC_STACK_OK == res)
             && (OC_STACK_OK == UpdateSecureResourceInPS(OIC_JSON_DOXM_NAME, payload, size)))
         {
@@ -496,6 +591,8 @@ static bool ValidateQuery(const char * query)
     bool bOwnedMatch = false;       // does 'owned' query value matches with doxm.owned status?
     bool bDeviceIDQry = false;      // does querystring contains 'deviceid' query ?
     bool bDeviceIDMatch = false;    // does 'deviceid' query matches with doxm.deviceid ?
+    bool bInterfaceQry = false;      // does querystring contains 'if' query ?
+    bool bInterfaceMatch = false;    // does 'if' query matches with oic.if.baseline ?
 
     OicParseQueryIter_t parseIter = {.attrPos = NULL};
 
@@ -529,6 +626,16 @@ static bool ValidateQuery(const char * query)
                 bDeviceIDMatch = true;
             }
         }
+
+        if (strncasecmp((char *)parseIter.attrPos, OC_RSRVD_INTERFACE, parseIter.attrLen) == 0)
+        {
+            bInterfaceQry = true;
+            if ((strncasecmp((char *)parseIter.valPos, OC_RSRVD_INTERFACE_DEFAULT, parseIter.valLen) == 0))
+            {
+                bInterfaceMatch = true;
+            }
+            return (bInterfaceQry ? bInterfaceMatch: true);
+        }
     }
 
     return ((bOwnedQry ? bOwnedMatch : true) && (bDeviceIDQry ? bDeviceIDMatch : true));
@@ -543,6 +650,7 @@ static OCEntityHandlerResult HandleDoxmGetRequest (const OCEntityHandlerRequest 
     //Checking if Get request is a query.
     if (ehRequest->query)
     {
+        OIC_LOG_V(DEBUG,TAG,"query:%s",ehRequest->query);
         OIC_LOG(DEBUG, TAG, "HandleDoxmGetRequest processing query");
         if (!ValidateQuery(ehRequest->query))
         {
@@ -561,18 +669,18 @@ static OCEntityHandlerResult HandleDoxmGetRequest (const OCEntityHandlerRequest 
 
     if (ehRet == OC_EH_OK)
     {
-        if (OC_STACK_OK != DoxmToCBORPayload(gDoxm, &payload, &size))
+        if (OC_STACK_OK != DoxmToCBORPayload(gDoxm, &payload, &size, false))
         {
-            payload = NULL;
+            OIC_LOG(WARNING, TAG, "DoxmToCBORPayload failed in HandleDoxmGetRequest");
         }
     }
 
+    OIC_LOG(DEBUG, TAG, "Send payload for doxm GET request");
+    OIC_LOG_BUFFER(DEBUG, TAG, payload, size);
+
     // Send response payload to request originator
-    if (OC_STACK_OK != SendSRMResponse(ehRequest, ehRet, payload, size))
-    {
-        ehRet = OC_EH_ERROR;
-        OIC_LOG(ERROR, TAG, "SendSRMResponse failed in HandleDoxmGetRequest");
-    }
+    ehRet = ((SendSRMResponse(ehRequest, ehRet, payload, size)) == OC_STACK_OK) ?
+                   OC_EH_OK : OC_EH_ERROR;
 
     OICFree(payload);
 
@@ -584,6 +692,7 @@ static OCEntityHandlerResult HandleDoxmPostRequest(const OCEntityHandlerRequest 
     OIC_LOG (DEBUG, TAG, "Doxm EntityHandle  processing POST request");
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
     OicUuid_t emptyOwner = {.id = {0} };
+    static uint16_t previousMsgId = 0;
 
     /*
      * Convert CBOR Doxm data into binary. This will also validate
@@ -595,13 +704,48 @@ static OCEntityHandlerResult HandleDoxmPostRequest(const OCEntityHandlerRequest 
     {
         uint8_t *payload = ((OCSecurityPayload *)ehRequest->payload)->securityData;
         size_t size = ((OCSecurityPayload *)ehRequest->payload)->payloadSize;
-        OCStackResult res = CBORPayloadToDoxm(payload, size, &newDoxm);
-
+        bool roParsed = false;
+        OCStackResult res = CBORPayloadToDoxmBin(payload, size, &newDoxm, &roParsed);
         if (newDoxm && OC_STACK_OK == res)
         {
-            if (OIC_JUST_WORKS == newDoxm->oxmSel)
+            // Check request on RO property
+            if (true == roParsed)
             {
-                if ((false == gDoxm->owned) && (false == newDoxm->owned))
+                OIC_LOG(ERROR, TAG, "Not acceptable request because of read-only propertys");
+                ehRet = OC_EH_NOT_ACCEPTABLE;
+                goto exit;
+            }
+
+            // in owned state
+            if (true == gDoxm->owned)
+            {
+                // update writable properties
+                gDoxm->oxmSel = newDoxm->oxmSel;
+                memcpy(&(gDoxm->owner), &(newDoxm->owner), sizeof(OicUuid_t));
+                memcpy(&(gDoxm->rownerID), &(newDoxm->rownerID), sizeof(OicUuid_t));
+
+                if(gDoxm->owned != newDoxm->owned)
+                {
+                    gDoxm->owned = newDoxm->owned;
+                }
+
+                //Update new state in persistent storage
+                if (UpdatePersistentStorage(gDoxm) == true)
+                {
+                    ehRet = OC_EH_OK;
+                }
+                else
+                {
+                    OIC_LOG(ERROR, TAG, "Failed to update DOXM in persistent storage");
+                    ehRet = OC_EH_ERROR;
+                }
+                goto exit;
+            }
+
+            // in unowned state
+            if ((false == gDoxm->owned) && (false == newDoxm->owned))
+            {
+                if (OIC_JUST_WORKS == newDoxm->oxmSel)
                 {
                     /*
                      * If current state of the device is un-owned, enable
@@ -649,10 +793,7 @@ static OCEntityHandlerResult HandleDoxmPostRequest(const OCEntityHandlerRequest 
 #endif //__WITH_DTLS__
                     }
                 }
-            }
-            else if (OIC_RANDOM_DEVICE_PIN == newDoxm->oxmSel)
-            {
-                if ((false == gDoxm->owned) && (false == newDoxm->owned))
+                else if (OIC_RANDOM_DEVICE_PIN == newDoxm->oxmSel)
                 {
                     /*
                      * If current state of the device is un-owned, enable
@@ -683,25 +824,28 @@ static OCEntityHandlerResult HandleDoxmPostRequest(const OCEntityHandlerRequest 
                         caRes = CASelectCipherSuite(TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA_256);
                         VERIFY_SUCCESS(TAG, caRes == CA_STATUS_OK, ERROR);
 
-                        char ranPin[OXM_RANDOM_PIN_SIZE + 1] = {0,};
-                        if(OC_STACK_OK == GeneratePin(ranPin, OXM_RANDOM_PIN_SIZE + 1))
+                        if(previousMsgId != ehRequest->messageID)
                         {
-                            //Set the device id to derive temporal PSK
-                            SetUuidForRandomPinOxm(&gDoxm->deviceID);
+                            char ranPin[OXM_RANDOM_PIN_SIZE + 1] = {0,};
+                            if(OC_STACK_OK == GeneratePin(ranPin, OXM_RANDOM_PIN_SIZE + 1))
+                            {
+                                //Set the device id to derive temporal PSK
+                                SetUuidForRandomPinOxm(&gDoxm->deviceID);
 
-                            /**
-                             * Since PSK will be used directly by DTLS layer while PIN based ownership transfer,
-                             * Credential should not be saved into SVR.
-                             * For this reason, use a temporary get_psk_info callback to random PIN OxM.
-                             */
-                            caRes = CARegisterDTLSCredentialsHandler(GetDtlsPskForRandomPinOxm);
-                            VERIFY_SUCCESS(TAG, caRes == CA_STATUS_OK, ERROR);
-                            ehRet = OC_EH_OK;
-                        }
-                        else
-                        {
-                            OIC_LOG(ERROR, TAG, "Failed to generate random PIN");
-                            ehRet = OC_EH_ERROR;
+                                /**
+                                 * Since PSK will be used directly by DTLS layer while PIN based ownership transfer,
+                                 * Credential should not be saved into SVR.
+                                 * For this reason, use a temporary get_psk_info callback to random PIN OxM.
+                                 */
+                                caRes = CARegisterDTLSCredentialsHandler(GetDtlsPskForRandomPinOxm);
+                                VERIFY_SUCCESS(TAG, caRes == CA_STATUS_OK, ERROR);
+                                ehRet = OC_EH_OK;
+                            }
+                            else
+                            {
+                                OIC_LOG(ERROR, TAG, "Failed to generate random PIN");
+                                ehRet = OC_EH_ERROR;
+                            }
                         }
 #endif //__WITH_DTLS__
                     }
@@ -778,8 +922,8 @@ static OCEntityHandlerResult HandleDoxmPostRequest(const OCEntityHandlerRequest 
                 // Update new state in persistent storage
                 if (UpdatePersistentStorage(gDoxm))
                 {
-                    //Update default ACL of security resource to prevent anonymous user access.
-                    if(OC_STACK_OK == UpdateDefaultSecProvACL())
+                    //Update default ACE of security resource to prevent anonymous user access.
+                    if(OC_STACK_OK == UpdateDefaultSecProvACE())
                     {
                         ehRet = OC_EH_OK;
                     }
@@ -801,23 +945,35 @@ static OCEntityHandlerResult HandleDoxmPostRequest(const OCEntityHandlerRequest 
 exit:
     if(OC_EH_OK != ehRet)
     {
-        OIC_LOG(WARNING, TAG, "The operation failed during handle DOXM request,"\
-                            "DOXM will be reverted.");
 
         /*
          * If some error is occured while ownership transfer,
          * ownership transfer related resource should be revert back to initial status.
-         */
-        RestoreDoxmToInitState();
-        RestorePstatToInitState();
+        */
+        if(gDoxm)
+        {
+            if(!gDoxm->owned && previousMsgId != ehRequest->messageID)
+            {
+                OIC_LOG(WARNING, TAG, "The operation failed during handle DOXM request,"\
+                                    "DOXM will be reverted.");
+                RestoreDoxmToInitState();
+                RestorePstatToInitState();
+            }
+        }
+        else
+        {
+            OIC_LOG(ERROR, TAG, "Invalid DOXM resource.");
+        }
+    }
+    else
+    {
+        previousMsgId = ehRequest->messageID;
     }
 
     //Send payload to request originator
-    if (OC_STACK_OK != SendSRMResponse(ehRequest, ehRet, NULL, 0))
-    {
-        ehRet = OC_EH_ERROR;
-        OIC_LOG(ERROR, TAG, "SendSRMResponse failed in HandleDoxmPostRequest");
-    }
+    ehRet = ((SendSRMResponse(ehRequest, ehRet, NULL, 0)) == OC_STACK_OK) ?
+                   OC_EH_OK : OC_EH_ERROR;
+
     DeleteDoxmBinData(newDoxm);
 
     return ehRet;
@@ -850,8 +1006,8 @@ OCEntityHandlerResult DoxmEntityHandler(OCEntityHandlerFlag flag,
                 break;
 
             default:
-                ehRet = OC_EH_ERROR;
-                SendSRMResponse(ehRequest, ehRet, NULL, 0);
+                ehRet = ((SendSRMResponse(ehRequest, ehRet, NULL, 0)) == OC_STACK_OK) ?
+                               OC_EH_OK : OC_EH_ERROR;
                 break;
         }
     }

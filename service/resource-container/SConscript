@@ -37,7 +37,7 @@ env.AddMethod(filtered_glob, "FilteredGlob");
 
 # Add third party libraries
 lib_env = env.Clone()
-SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', exports = 'lib_env')
+SConscript('#service/third_party_libs.scons', exports = 'lib_env')
 
 resource_container_env = lib_env.Clone()
 target_os = env.get('TARGET_OS')
@@ -125,11 +125,5 @@ resource_container_env.UserInstallTargetHeader('include/RCSResourceContainer.h',
 ######################################################################
 # build resource container unit tests
 ######################################################################
-if target_os in ['linux']:  #GAR FIXME: 'darwin', 
+if target_os in ['linux']:  #GAR FIXME: 'darwin',
     SConscript('unittests/SConscript')
-
-######################################################################
-# Build Container Java SDK
-######################################################################
-if target_os == 'android':
-    SConscript('android/SConscript')

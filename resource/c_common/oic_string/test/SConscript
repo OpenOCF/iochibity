@@ -20,22 +20,27 @@
 
 Import('env')
 import os
+import os.path
+
+#GAR gtest
+# # SConscript file for Local PKI google tests
+# gtest_env = SConscript('#extlibs/gtest/SConscript')
+# stringtest_env = gtest_env.Clone()
+# target_os = stringtest_env.get('TARGET_OS')
 
 stringtest_env = env.Clone()
-src_dir = stringtest_env.get('SRC_DIR')
+target_os =      env.get('TARGET_OS')
 
 ######################################################################
 # Build flags
 ######################################################################
-home = os.environ['HOME']
-
 stringtest_env.PrependUnique(CPPPATH = ['../include'])
 
-stringtest_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource/c_common')])
+stringtest_env.AppendUnique(LIBPATH = [os.path.join(stringtest_env.get('BUILD_DIR'), 'resource', 'c_common')])
 stringtest_env.PrependUnique(LIBS = ['c_common', 'gtest', 'gtest_main', 'pthread'])
 
-if env.get('LOGGING'):
-	stringtest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+if stringtest_env.get('LOGGING'):
+    stringtest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 #
 ######################################################################
 # Source files and Targets
@@ -46,7 +51,6 @@ Alias("test", [stringtests])
 
 env.AppendTarget('test')
 if env.get('TEST') == '1':
-	target_os = env.get('TARGET_OS')
 	if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(stringtest_env,

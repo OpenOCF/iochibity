@@ -233,7 +233,13 @@ OC_EXPORT OCStackResult OCSetDefaultDeviceEntityHandler(OCDeviceEntityHandler en
 /**
  * This function sets device information.
  *
- * @param deviceInfo   Structure passed by the server application containing the device information.
+ * Upon call to OCInit, the default Device Type (i.e. "rt") has already been set to the default
+ * Device Type "oic.wk.d". You do not have to specify "oic.wk.d" in the OCDeviceInfo.types linked
+ * list. The default Device Type is mandatory and always specified by this Device as the first
+ * Device Type.
+ *
+ * @param deviceInfo   Structure passed by the server application containing the device
+ *                     information.
  *
  * @return
  *     ::OC_STACK_OK               no errors.
@@ -552,6 +558,37 @@ OC_EXPORT const OCDPDev_t* OCGetDirectPairedDevices();
  */
 OC_EXPORT OCStackResult OCDoDirectPairing(void *ctx, OCDPDev_t* peer, OCPrm_t pmSel, char *pinNumber,
                                                      OCDirectPairingCB resultCallback);
+
+#if defined(RD_CLIENT) || defined(RD_SERVER)
+/**
+ * This function binds an resource unique id to the resource.
+ *
+ * @param handle            Handle to the resource that the contained resource is to be bound.
+ * @param ins               Unique ID for resource.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+OC_EXPORT OCStackResult OCBindResourceInsToResource(OCResourceHandle handle, uint8_t ins);
+
+/**
+ * This function gets the resource unique id for a resource.
+ *
+ * @param handle            Handle of resource.
+ * @param ins               Unique ID for resource.
+ *
+ * @return Ins if resource found or 0 resource not found.
+ */
+OC_EXPORT OCStackResult OCGetResourceIns(OCResourceHandle handle, uint8_t *ins);
+
+/**
+ * This function gets a resource handle by resource uri.
+ *
+ * @param uri   Uri of Resource to get Resource handle.
+ *
+ * @return Found  resource handle or NULL if not found.
+ */
+OC_EXPORT OCResourceHandle OCGetResourceHandleAtUri(const char *uri);
+#endif
 //#endif // DIRECT_PAIRING
 
 #ifdef __cplusplus

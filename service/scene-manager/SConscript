@@ -28,7 +28,7 @@ if env.get('LOGGING'):
     env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 lib_env = env.Clone()
-SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
+SConscript('#service/third_party_libs.scons', 'lib_env')
 scenemanager_env = lib_env.Clone()
 
 target_os = env.get('TARGET_OS')
@@ -59,6 +59,7 @@ if target_os == 'android':
     scenemanager_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
     scenemanager_env.AppendUnique(LIBS = ['gnustl_shared','log'])
 
+#GAR gcov
 if not env.get('RELEASE'):
     if target_os != 'darwin':
         scenemanager_env.AppendUnique(CXXFLAGS = ['--coverage'])

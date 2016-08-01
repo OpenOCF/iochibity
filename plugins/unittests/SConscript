@@ -23,9 +23,15 @@ import os
 import os.path
 unittests_env = env.Clone()
 
+target_os = env.get('TARGET_OS')
+
+# # SConscript file for Local PKI google tests
+# gtest_env = SConscript('#extlibs/gtest/SConscript')
+unittests_env = env.Clone()
 src_dir = unittests_env.get('SRC_DIR')
 pi_dir = os.path.join(src_dir, 'plugins')
 build_dir = env.get('BUILD_DIR')
+
 ######################################################################
 # Build flags
 ######################################################################
@@ -38,22 +44,22 @@ unittests_env.PrependUnique(CPPPATH = [
                 gtest_dir + '/include',
 		])
 
-unittests_env.AppendUnique(CXXFLAGS = ['-pthread'])
-unittests_env.PrependUnique(LIBS = ['-lpthread'])
-unittests_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-unittests_env.AppendUnique(LIBPATH = [os.path.join(home, '.iotivity.d', 'gtest-1.7.0', 'lib', '.libs')])
+# unittests_env.AppendUnique(CXXFLAGS = ['-pthread'])
+# unittests_env.PrependUnique(LIBS = ['-lpthread'])
+# unittests_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
+# unittests_env.AppendUnique(LIBPATH = [os.path.join(home, '.iotivity.d', 'gtest-1.7.0', 'lib', '.libs')])
+
+unittests_env.AppendUnique(LIBPATH = [unittests_env.get('BUILD_DIR')])
 unittests_env.PrependUnique(LIBS = [
 		'plugin_interface',
 		'oc',
 		'octbstack',
 		'oc_logger',
 		'connectivity_abstraction',
-		'coap',
-		'gtest',
-		'gtest_main'
+		'coap'
 		])
 
-if env.get('LOGGING'):
+if unittests_env.get('LOGGING'):
 	unittests_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 ######################################################################
@@ -65,7 +71,6 @@ Alias("piunittests", [piunittests])
 
 env.AppendTarget('piunittests')
 if env.get('TEST') == '1':
-	target_os = env.get('TARGET_OS')
 	if target_os in ['darwin', 'linux']:
                 from tools.scons.RunTest import *
                 run_test(unittests_env,

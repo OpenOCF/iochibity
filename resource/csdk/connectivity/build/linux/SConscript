@@ -4,7 +4,8 @@
 ##
 Import('env')
 
-print "Reading linux configuration script"
+if env.get('LOGGING'):
+	env.AppendUnique(CPPDEFINES = ['-DTB_LOG'])
 
 # Set arch flags
 target_arch = env.get('TARGET_ARCH')

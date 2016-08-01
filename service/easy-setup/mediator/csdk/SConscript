@@ -48,9 +48,10 @@ easy_setup_env = env.Clone()
 
 target_os = env.get('TARGET_OS')
 
+#GAR android
 if target_os in ['android']:
 	# Add third party libraries
-	SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', 'lib_env')
+	SConscript('#service/third_party_libs.scons', 'lib_env')
 
 ######################################################################
 # Build flags

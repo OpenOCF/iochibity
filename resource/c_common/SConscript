@@ -41,7 +41,12 @@ if target_os == 'tizen':
 else:
 	env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource', 'c_common')])
 
-env.PrependUnique(LIBS = ['c_common', 'uuid'])
+#GAR FIXME: if HAVE_LIBUUID?
+if target_os not in ['darwin']:
+        env.PrependUnique(LIBS = ['uuid'])
+
+# if target_os in ['tizen', 'linux']:
+# 	env.ParseConfig("pkg-config --cflags --libs uuid")
 
 common_env = env.Clone()
 common_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource')])
@@ -49,6 +54,11 @@ common_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource'
 ######################################################################
 # Build flags
 ######################################################################
+#GAR FIXME: migrate to build_common/windows or site_scons/build/utils.py/feature_tests
+# common_conf = Configure(common_env)
+# if common_conf.CheckFunc('QueryPerformanceFrequency'):
+# 	common_env.AppendUnique(CPPDEFINES = ['HAVE_QUERYPERFORMANCEFREQUENCY'])
+# common_env = common_conf.Finish()
 
 ######################################################################
 # Source files and Targets
@@ -64,3 +74,5 @@ commonlib = common_env.StaticLibrary('c_common', common_src)
 common_env.InstallTarget(commonlib, 'c_common')
 common_env.UserInstallTargetLib(commonlib, 'c_common')
 common_env.UserInstallTargetHeader('platform_features.h', 'resource', 'platform_features.h')
+
+env.PrependUnique(LIBS = ['c_common'])

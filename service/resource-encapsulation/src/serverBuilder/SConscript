@@ -21,21 +21,22 @@
 ##
 # rcs_server (Server Builder) project build script
 ##
-import os
 Import('env')
+import os
+
+#GAR gtest
+# # SConscript file for Local PKI google tests
+# gtest_env = SConscript('#extlibs/gtest/SConscript')
+lib_env = env.Clone()
 
 # Add third party libraries
-lib_env = env.Clone()
-SConscript(env.get('SRC_DIR') + '/service/third_party_libs.scons', exports = 'lib_env')
-
-src_dir = lib_env.get('SRC_DIR')
-
-# gtest_home = lib_env.get('GTEST_HOME')
+SConscript('#service/third_party_libs.scons', exports = 'lib_env')
 
 server_builder_env = lib_env.Clone()
-target_os = env.get('TARGET_OS')
+release = server_builder_env.get('RELEASE')
+src_dir = server_builder_env.get('SRC_DIR')
+target_os = server_builder_env.get('TARGET_OS')
 
-release = env.get('RELEASE')
 
 ######################################################################
 # Build flags
@@ -46,23 +47,26 @@ server_builder_env.AppendUnique(CPPPATH = [
     '../../include',
     ])
 
-server_builder_env.AppendUnique(CPPPATH = [env.get('SRC_DIR')+'/extlibs', 'include'])
+server_builder_env.AppendUnique(CPPPATH = [server_builder_env.get('SRC_DIR')+'/extlibs', 'include'])
+server_builder_env.AppendUnique(LIBPATH = [server_builder_env.get('BUILD_DIR')])
+server_builder_env.AppendUnique(LIBS = ['oc', 'rcs_common'])
 
-server_builder_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
+if server_builder_env.get('LOGGING'):
+    server_builder_env.AppendUnique(LIBS = ['octbstack'])
 
-if target_os == 'android':
+#GAR release
+# if not release:
+#     server_builder_env.AppendUnique(CXXFLAGS = ['--coverage'])
+#     server_builder_env.PrependUnique(LIBS = ['gcov'])
+
+if target_os in ['android']:
     server_builder_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
     server_builder_env.PrependUnique(LIBS = ['gnustl_shared', 'log'])
-
-server_builder_env.AppendUnique(LIBS = ['dl', 'oc', 'rcs_common'])
-
-if env.get('LOGGING'):
-	server_builder_env.AppendUnique(LIBS = ['octbstack'])
 
 ######################################################################
 # Source files and Targets
 ######################################################################
-server_builder_src = env.Glob('src/*.cpp')
+server_builder_src = server_builder_env.Glob('src/*.cpp')
 
 server_builder_static = server_builder_env.StaticLibrary('rcs_server', server_builder_src)
 server_builder_shared = server_builder_env.SharedLibrary('rcs_server', server_builder_src)
@@ -76,13 +80,12 @@ server_builder_env.UserInstallTargetLib([server_builder_static, server_builder_s
 if target_os in ['darwin', 'linux']:
 	server_builder_test_env = server_builder_env.Clone();
 
+#GAR hippomocks
 	server_builder_test_env.AppendUnique(CPPPATH = [
-		env.get('SRC_DIR')+'/extlibs/hippomocks-master',
+		server_builder_test_env.get('SRC_DIR')+'/extlibs/hippomocks-master',
 		'../common/utils/include'
 		])
 		# gtest_home + '/include',
-
-	# server_builder_test_env.AppendUnique(LIBPATH = [gtest_home + '/lib/.libs'])
 
 	server_builder_test_env.PrependUnique(LIBS = [
 		'rcs_server',
@@ -95,13 +98,13 @@ if target_os in ['darwin', 'linux']:
 		'pthread',
 		])
 
-	server_builder_test_src = env.Glob('unittests/*.cpp')
+	server_builder_test_src = server_builder_test_env.Glob('unittests/*.cpp')
 
 	server_builder_test = server_builder_test_env.Program('rcs_server_test', server_builder_test_src)
 	Alias("rcs_server_test", server_builder_test)
-	env.AppendTarget('rcs_server_test')
+	server_builder_test_env.AppendTarget('rcs_server_test')
 
-	if env.get('TEST') == '1':
+	if server_builder_test_env.get('TEST') == '1':
 		from tools.scons.RunTest import *
 		run_test(server_builder_test_env, '',
 			'service/resource-encapsulation/src/serverBuilder/rcs_server_test')

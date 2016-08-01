@@ -17,19 +17,17 @@
 # // limitations under the License.
 # //
 # //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-#
 
 Import('env')
 import os
 import os.path
 
-#env = Environment()
+#GAR gtest
+# # SConscript file for Local PKI google tests
+# gtest_env = SConscript('#extlibs/gtest/SConscript')
 srmtest_env = env.Clone()
-target_os = env.get('TARGET_OS')
-
-src_dir   = srmtest_env.get('SRC_DIR')
-build_dir = srmtest_env.get('BUILD_DIR')
-target_os = env.get('TARGET_OS')
+src_dir = srmtest_env.get('SRC_DIR')
+target_os = srmtest_env.get('TARGET_OS')
 
 ######################################################################
 # Build flags
@@ -38,26 +36,26 @@ home = os.environ['HOME']
 
 srmtest_env.PrependUnique(CPPPATH = [
 		'../../../c_common/oic_malloc/include',
- 		'./../../connectivity/inc',
-		'./../../connectivity/api',
-		'./../../connectivity/external/inc',
-		'./../../connectivity/lib/libcoap-4.1.1',
-		'./../include',
-		'./../include/internal',
-		'./../../logger/include',
-		'./../../stack/include',
-		'./../../stack/include/internal',
-		'./../../../oc_logger/include',
-		'./../../cbor/',
-		'./../../cjson/',
-                './../provisioning/include'
-#		'./../../../../extlibs/tinydtls/'
+<<<<<<< HEAD
+ 		'../../connectivity/inc',
+		'../../connectivity/api',
+		'../../connectivity/external/inc',
+		'../../connectivity/lib/libcoap-4.1.1',
+		'../include',
+		'../include/internal',
+		'../../logger/include',
+		'../../stack/include',
+		'../../stack/include/internal',
+		'../../../oc_logger/include',
+		'../../cbor/',
+		'../../cjson/',
+                '../provisioning/include'
 		])
 
-srmtest_env.AppendUnique(CXXFLAGS = ['-std=c++0x', '-Wall', '-pthread'])
-srmtest_env.AppendUnique(LIBS = ['-lpthread'])
 srmtest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
+srmtest_env.AppendUnique(LIBPATH = [srmtest_env.get('BUILD_DIR')])
 
+#GAR uuid
 srmtest_env.PrependUnique(LIBS = ['ocsrm'
 			         ,'octbstack'
 				 ,'oc_logger'
@@ -67,10 +65,10 @@ srmtest_env.PrependUnique(LIBS = ['ocsrm'
 				 ,'gtest'
 				 ,'gtest_main'])
 
-if env.get('SECURED') == '1':
+if srmtest_env.get('SECURED') == '1':
     srmtest_env.AppendUnique(LIBS = ['tinydtls', 'timer'])
 
-if env.get('LOGGING') == '1':
+if srmtest_env.get('LOGGING') == '1':
 	srmtest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 if target_os == 'windows':
@@ -100,8 +98,8 @@ unittest = srmtest_env.Program('unittest', ['aclresourcetest.cpp',
 
 Alias("test", [unittest])
 
-unittest_src_dir = src_dir + '/resource/csdk/security/unittest/'
-unittest_build_dir = os.path.join(env.get('BUILD_DIR'), 'resource', 'csdk', 'security', 'unittest') + os.sep
+unittest_src_dir = os.path.join(src_dir, 'resource', 'csdk', 'security', 'unittest') + os.sep
+unittest_build_dir = os.path.join(srmtest_env.get('BUILD_DIR'), 'resource', 'csdk', 'security', 'unittest') + os.sep
 
 srmtest_env.AppendUnique(CPPDEFINES = ['SECURITY_BUILD_UNITTEST_DIR='+unittest_build_dir.encode('string_escape')])
 
@@ -111,6 +109,8 @@ srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_unittest_acl1.json'))
 srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_unittest_default_acl.json'))
+srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
+    unittest_src_dir + 'oic_svr_db.json'))
 
 srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_unittest.dat'))
@@ -120,15 +120,19 @@ srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_unittest_default_acl.dat'))
 srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_svr_db_prov.dat'))
-env.AppendTarget('test')
-if env.get('TEST') == '1':
+srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
+    unittest_src_dir + 'oic_svr_db.dat'))
+
+srmtest_env.AppendTarget('test')
+if srmtest_env.get('TEST') == '1':
 	if target_os in ['darwin', 'linux', 'windows']:
-		out_dir = env.get('BUILD_DIR')
-		result_dir = env.get('BUILD_DIR') + '/test_out/'
+		out_dir = srmtest_env.get('BUILD_DIR')
+		result_dir = os.path.join(srmtest_env.get('BUILD_DIR'), 'test_out') + os.sep
 		if not os.path.isdir(result_dir):
 			os.makedirs(result_dir)
 		srmtest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
-		if target_os == 'linux':
-		    srmtest_env.AppendENVPath('PATH', [os.path.join(out_dir, 'resource', 'csdk')])
-		ut = srmtest_env.Command ('ut', None, out_dir + '/resource/csdk/security/unittest/unittest')
-		AlwaysBuild ('ut')
+#GAR FIXME darwin unittest ld path
+		srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+		srmtest_env.AppendENVPath('PATH', [os.path.join(out_dir, 'resource', 'csdk')])
+		from tools.scons.RunTest import *
+		run_test(srmtest_env,'ut','resource/csdk/security/unittest/unittest')
