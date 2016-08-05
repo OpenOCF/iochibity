@@ -79,6 +79,8 @@ SConscript(build_dir + 'resource/SConscript')
 # # Build "plugin interface" sub-project
 # SConscript(build_dir + 'plugins/SConscript')
 
+SConscript(build_dir + 'test/SConscript')
+
 # Append targets information to the help information, to see help info, execute command line:
 #     $ scon [options] -h
 env.PrintTargets()

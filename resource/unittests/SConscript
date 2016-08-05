@@ -87,11 +87,16 @@ unittests = unittests_env.Program('unittests', ['ConstructResourceTest.cpp',
 Alias("unittests", [unittests])
 
 unittests_env.AppendTarget('unittests')
-if unittests_env.get('TEST') == '1':
-	if target_os in ['darwin', 'linux']:
-                from tools.scons.RunTest import *
-                run_test(unittests_env,
-                         'resource_unittests_unittests.memcheck',
+
+if env.get('WITH_VALGRIND'):
+        valgrind_xml = 'resource_unittests_unittests.memcheck'
+else:
+        valgrind_xml = ''
+
+import runtest.RunTest
+
+runtest.RunTest.run_test(unittests_env,
+                         valgrind_xml,
                          'resource/unittests/unittests')
 
 #GAR samples FIXME: disentagle samples and unittests

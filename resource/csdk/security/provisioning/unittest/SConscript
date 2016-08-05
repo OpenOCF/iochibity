@@ -40,6 +40,8 @@ sptest_env.PrependUnique(CPPPATH = [
 		'../../../ocrandom/include',
 		'../../../logger/include',
 		'../../../stack/include',
+		'../../../cjson',
+		'../../../timer',
 		'../../../security/include',
 		'../../../security/include/internal',
 		'../../../security/provisioning/include/internal',
@@ -62,10 +64,11 @@ sptest_env.PrependUnique(LIBS = [   'ocpmapi',
                                     'octbstack',
                                     'oc_logger',
                                     'connectivity_abstraction',
-                                    'coap'])
+                                    'coap',
+				    'gtest',
+				    'gtest_main'])
 
 if sptest_env.get('SECURED') == '1':
-    sptest_env.AppendUnique(LIBS = ['timer'])
     sptest_env.AppendUnique(LIBS = ['tinydtls'])
 
 if sptest_env.get('DTLS_WITH_X509') == '1':
@@ -88,8 +91,9 @@ unittest_src = ['pmutilitytest.cpp',
                 'secureresourceprovider.cpp',
                 'provisioningdatabasemanager.cpp',
                 'ocprovisioningmanager.cpp',
-                'credentialgeneratortest.cpp',
+                'credentialgeneratortest.cpp'
                 ]
+		# os.path.join(src_dir, 'resource', 'csdk', 'timer', 'timer.c')
 
 if target_os not in ['windows']:
     unittest_src += [ 'otmunittest.cpp' ]
@@ -105,19 +109,25 @@ if target_os not in ['windows']:
 Alias("test", [unittest])
 
 sptest_env.AppendTarget('test')
-if sptest_env.get('TEST') == '1':
-	if target_os in ['darwin', 'linux', 'windows']:
-		out_dir = sptest_env.get('BUILD_DIR')
-		result_dir = os.path.join(sptest_env.get('BUILD_DIR'), 'test_out') + os.sep
-		if not os.path.isdir(result_dir):
-			os.makedirs(result_dir)
-		sptest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
+
+# if env.get('WITH_VALGRIND'):
+#         valgrind_xml = 'plugins_unittests.memcheck'
+# else:
+#         valgrind_xml = ''
+
+# import runtest.RunTest
+
+out_dir = sptest_env.get('BUILD_DIR')
+result_dir = os.path.join(sptest_env.get('BUILD_DIR'), 'test_out') + os.sep
+if not os.path.isdir(result_dir):
+    os.makedirs(result_dir)
+sptest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
 #GAR FIXME: gtest paths
-		if target_os == 'darwin':
-		    sptest_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
-		elif target_os == 'linux':
-		    sptest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		sptest_env.AppendENVPath('PATH', sptest_env.get('BUILD_DIR'))
-		ut = sptest_env.Command ('ut', None, out_dir + '/resource/csdk/security/provisioning/unittest/unittest')
-		AlwaysBuild ('ut')
+if target_os == 'darwin':
+    sptest_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
+elif target_os == 'linux':
+    sptest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+sptest_env.AppendENVPath('PATH', sptest_env.get('BUILD_DIR'))
+ut = sptest_env.Command ('ut', None, out_dir + '/resource/csdk/security/provisioning/unittest/unittest')
+AlwaysBuild ('ut')
 

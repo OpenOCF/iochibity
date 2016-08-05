@@ -49,11 +49,15 @@ malloctests = malloctest_env.Program('malloctests', ['linux/oic_malloc_tests.cpp
 
 Alias("test", [malloctests])
 
-<<<<<<< HEAD
 env.AppendTarget('test')
-if env.get('TEST') == '1':
-	if target_os in ['darwin', 'linux']:
-                from tools.scons.RunTest import *
-                run_test(malloctest_env,
-                         'resource_ccommon_malloc_test.memcheck',
-                         'resource/c_common/oic_malloc/test/malloctests')
+
+if env.get('WITH_VALGRIND'):
+        valgrind_xml = 'resource_ccommon_malloc_test.memcheck'
+else:
+        valgrind_xml = ''
+
+import runtest.RunTest
+
+runtest.RunTest.run_test(malloctest_env,
+			valgrind_xml,
+			'resource/c_common/oic_malloc/test/malloctests')

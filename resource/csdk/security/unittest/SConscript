@@ -36,7 +36,6 @@ home = os.environ['HOME']
 
 srmtest_env.PrependUnique(CPPPATH = [
 		'../../../c_common/oic_malloc/include',
-<<<<<<< HEAD
  		'../../connectivity/inc',
 		'../../connectivity/api',
 		'../../connectivity/external/inc',
@@ -48,7 +47,8 @@ srmtest_env.PrependUnique(CPPPATH = [
 		'../../stack/include/internal',
 		'../../../oc_logger/include',
 		'../../cbor/',
-		'../../cjson/',
+                '../../cjson/',
+                '../../timer',
                 '../provisioning/include'
 		])
 
@@ -66,7 +66,7 @@ srmtest_env.PrependUnique(LIBS = ['ocsrm'
 				 ,'gtest_main'])
 
 if srmtest_env.get('SECURED') == '1':
-    srmtest_env.AppendUnique(LIBS = ['tinydtls', 'timer'])
+    srmtest_env.AppendUnique(LIBS = ['tinydtls'])
 
 if srmtest_env.get('LOGGING') == '1':
 	srmtest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
@@ -94,7 +94,8 @@ unittest = srmtest_env.Program('unittest', ['aclresourcetest.cpp',
                                             'svcresourcetest.cpp',
                                             'srmtestcommon.cpp',
                                             'directpairingtest.cpp',
-                                            'crlresourcetest.cpp'])
+                                            'crlresourcetest.cpp',
+                                            os.path.join(src_dir, 'resource', 'csdk', 'timer', 'timer.c')])
 
 Alias("test", [unittest])
 
@@ -124,15 +125,24 @@ srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
     unittest_src_dir + 'oic_svr_db.dat'))
 
 srmtest_env.AppendTarget('test')
-if srmtest_env.get('TEST') == '1':
-	if target_os in ['darwin', 'linux', 'windows']:
-		out_dir = srmtest_env.get('BUILD_DIR')
-		result_dir = os.path.join(srmtest_env.get('BUILD_DIR'), 'test_out') + os.sep
-		if not os.path.isdir(result_dir):
-			os.makedirs(result_dir)
-		srmtest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
+
+out_dir = srmtest_env.get('BUILD_DIR')
+result_dir = os.path.join(srmtest_env.get('BUILD_DIR'), 'test_out') + os.sep
+if not os.path.isdir(result_dir):
+    os.makedirs(result_dir)
+
+srmtest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
 #GAR FIXME darwin unittest ld path
-		srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		srmtest_env.AppendENVPath('PATH', [os.path.join(out_dir, 'resource', 'csdk')])
-		from tools.scons.RunTest import *
-		run_test(srmtest_env,'ut','resource/csdk/security/unittest/unittest')
+srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+srmtest_env.AppendENVPath('PATH', [os.path.join(out_dir, 'resource', 'csdk')])
+
+if env.get('WITH_VALGRIND'):
+        valgrind_xml = 'ut'
+else:
+        valgrind_xml = ''
+
+import runtest.RunTest
+
+runtest.RunTest.run_test(srmtest_env,
+                         valgrind_xml,
+                         'resource/csdk/security/unittest/unittest')

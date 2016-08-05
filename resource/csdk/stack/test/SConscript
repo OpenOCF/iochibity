@@ -55,10 +55,6 @@ stacktest_env.PrependUnique(LIBS = ['octbstack',
                                     'gtest',
                                     'gtest_main'])
 
-#GAR darwin
-# if target_os == 'darwin':
-#     stacktest_env.AppendUnique(CPPFLAGS = ['-Wl,-stack_size', '-Wl,0x1000000']) # 16MB stack size
-
 stacktest_env.AppendUnique(LIBPATH = [stacktest_env.get('BUILD_DIR')])
 
 stacktest_env.PrependUnique(LIBS = ['oc_logger'])
@@ -82,15 +78,20 @@ stacktests = stacktest_env.Program(target='stacktests', source=['./stacktests.cp
 stacktest_env.Decider('timestamp-newer')
 cbortests = stacktest_env.Program('cbortests', ['cbortests.cpp'])
 
-#GAR FIXME: valgrind broken on El Capitan
 Alias("test", [stacktests, cbortests])
 
 stacktest_env.AppendTarget('test')
-if stacktest_env.get('TEST') == '1':
-	if target_os in ['windows']:
-		stacktest_env.AppendENVPath('PATH', [os.path.join(stacktest_env.get('BUILD_DIR'), 'resource', 'csdk')]
-	if target_os in ['linux', 'windows']:    #GAR FIXME: broken on darwin
-                from tools.scons.RunTest import *
-                run_test(stacktest_env,
-                         'resource_csdk_stack_test.memcheck',
+
+if env.get('WITH_VALGRIND'):
+        valgrind_xml = 'resource_csdk_stack_test.memcheck'
+else:
+        valgrind_xml = ''
+
+import runtest.RunTest
+
+if target_os in ['windows']:
+    stacktest_env.AppendENVPath('PATH', [os.path.join(stacktest_env.get('BUILD_DIR'), 'resource', 'csdk')])
+
+runtest.RunTest.run_test(stacktest_env,
+                         valgrind_xml,
                          'resource/csdk/stack/test/stacktests')

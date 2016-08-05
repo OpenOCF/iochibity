@@ -59,27 +59,3 @@ if target_os not in ['arduino','ios']:
 
 	# Build liboc
 	SConscript('src/SConscript')
-
-#GAR FIXME: only build tests on demand
-# Build Common unit tests
-#GAR    	if target_os != 'darwin':
-# SConscript('c_common/oic_string/test/SConscript')
-# SConscript('c_common/oic_malloc/test/SConscript')
-# SConscript('c_common/oic_time/test/SConscript')
-# SConscript('c_common/ocrandom/test/SConscript')
-
-# Build C unit tests
-# SConscript('csdk/stack/test/SConscript')
-
-SConscript('csdk/connectivity/test/SConscript')
-
-# Build Security Resource Manager unit tests
-# SConscript('csdk/security/unittest/SConscript')
-
-# Build C++ unit tests
-# SConscript('unittests/SConscript')
-
-# Build Provisioning API unit test
-# if env.get('SECURED') == '1':
-#         SConscript('csdk/security/provisioning/unittest/SConscript')
-# 	SConscript('provisioning/unittests/SConscript')

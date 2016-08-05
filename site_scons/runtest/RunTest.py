@@ -38,9 +38,9 @@ def run_test(env, xml_file, test):
 
     # Make sure the Google Test libraries are in the dynamic
     # linker/loader path.
-    #GAR FIXME: use DYLD_LIBRARY_PATH for darwin
-    env.AppendENVPath('LD_LIBRARY_PATH', [build_dir])
-    env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
+    #GAR FIXME: this is taken care of in feature test
+    # env.AppendENVPath('LD_LIBRARY_PATH', [build_dir])
+    # env.AppendENVPath('LD_LIBRARY_PATH', ['./extlibs/gtest/gtest-1.7.0/lib/.libs'])
 
     test_cmd = os.path.join(build_dir, test)
 

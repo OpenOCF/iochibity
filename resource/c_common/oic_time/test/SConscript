@@ -54,9 +54,14 @@ timetests = timetest_env.Program('timetests', ['linux/oic_time_tests.cpp'])
 Alias("test", [timetests])
 
 env.AppendTarget('test')
-if env.get('TEST') == '1':
-    if target_os in ['darwin', 'linux']:
-                from tools.scons.RunTest import *
-                run_test(timetest_env,
-                         'resource_ccommon_time_test.memcheck',
+
+if env.get('WITH_VALGRIND'):
+        valgrind_xml = 'resource_ccommon_time_test.memcheck'
+else:
+        valgrind_xml = ''
+
+import runtest.RunTest
+
+runtest.RunTest.run_test(timetest_env,
+                         valgrind_xml,
                          'resource/c_common/oic_time/test/timetests')

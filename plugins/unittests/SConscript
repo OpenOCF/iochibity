@@ -35,19 +35,10 @@ build_dir = env.get('BUILD_DIR')
 ######################################################################
 # Build flags
 ######################################################################
-home = env.get('HOME')
-gtest_dir = home + '/.iotivity.d/gtest-1.7.0'
-
-
 unittests_env.PrependUnique(CPPPATH = [
                 os.path.join(pi_dir, 'include'),
-                gtest_dir + '/include',
+                os.path.join(src_dir, 'resource', 'csdk', 'stack', 'include')
 		])
-
-# unittests_env.AppendUnique(CXXFLAGS = ['-pthread'])
-# unittests_env.PrependUnique(LIBS = ['-lpthread'])
-# unittests_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-# unittests_env.AppendUnique(LIBPATH = [os.path.join(home, '.iotivity.d', 'gtest-1.7.0', 'lib', '.libs')])
 
 unittests_env.AppendUnique(LIBPATH = [unittests_env.get('BUILD_DIR')])
 unittests_env.PrependUnique(LIBS = [
@@ -56,7 +47,9 @@ unittests_env.PrependUnique(LIBS = [
 		'octbstack',
 		'oc_logger',
 		'connectivity_abstraction',
-		'coap'
+		'coap',
+		'gtest',
+		'gtest_main'
 		])
 
 if unittests_env.get('LOGGING'):
@@ -70,10 +63,15 @@ piunittests = unittests_env.Program('piunittests', ['plugininterfacetest.cpp'])
 Alias("piunittests", [piunittests])
 
 env.AppendTarget('piunittests')
-if env.get('TEST') == '1':
-	if target_os in ['darwin', 'linux']:
-                from tools.scons.RunTest import *
-                run_test(unittests_env,
-                         'plugins_unittests.memcheck',
+
+if env.get('WITH_VALGRIND'):
+        valgrind_xml = 'plugins_unittests.memcheck'
+else:
+        valgrind_xml = ''
+
+import runtest.RunTest
+
+runtest.RunTest.run_test(unittests_env,
+                         valgrind_xml,
                          'plugins/unittests/piunittests')
 

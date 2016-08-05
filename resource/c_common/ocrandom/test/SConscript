@@ -65,9 +65,14 @@ randomtests = randomtest_env.Program('randomtests', ['linux/randomtest.cpp'])
 Alias("test", [randomtests])
 
 env.AppendTarget('test')
-if env.get('TEST') == '1':
-	if target_os in ['darwin', 'linux']:
-                from tools.scons.RunTest import *
-                run_test(randomtest_env,
-                         'resource_csdk_random_test.memcheck',
+
+if env.get('WITH_VALGRIND'):
+        valgrind_xml = 'resource_csdk_random_test.memcheck'
+else:
+        valgrind_xml = ''
+
+import runtest.RunTest
+
+runtest.RunTest.run_test(randomtest_env,
+                         valgrind_xml,
                          'resource/c_common/ocrandom/test/randomtests')
