@@ -711,7 +711,7 @@ static OCStackApplicationResult DeviceDiscoveryHandler(void *ctx, OCDoHandle UNU
     {
         if  (NULL == clientResponse->payload)
         {
-            OIC_LOG(INFO, TAG, "Skiping Null payload");
+            OIC_LOG(INFO, TAG, "Skipping Null payload");
             return OC_STACK_KEEP_TRANSACTION;
         }
         if (OC_STACK_OK != clientResponse->result)
@@ -739,9 +739,10 @@ static OCStackApplicationResult DeviceDiscoveryHandler(void *ctx, OCDoHandle UNU
             }
             else
             {
-                OIC_LOG(DEBUG, TAG, "Successfully converted doxm cbor to bin.");
+                OIC_LOG(DEBUG, TAG, "Successfully converted cbor payload to OicSecDoxm struct.");
+		printf("GAR: doxm device id: %d\n", ptrDoxm->deviceID);
 
-                //If this is owend device discovery we have to filter out the responses.
+                //If this is owned device discovery we have to filter out the responses.
                 DiscoveryInfo* pDInfo = (DiscoveryInfo*)ctx;
                 OCProvisionDev_t **ppDevicesList = pDInfo->ppDevicesList;
 
@@ -751,7 +752,7 @@ static OCStackApplicationResult DeviceDiscoveryHandler(void *ctx, OCDoHandle UNU
                 OCStackResult res = GetDoxmDevOwnerId(&myId);
                 if(OC_STACK_OK != res)
                 {
-                    OIC_LOG(ERROR, TAG, "Error while getting my device ID.");
+                    OIC_LOG(ERROR, TAG, "Error while getting my device ID; deleting OicSecDoxm struct data.");
                     DeleteDoxmBinData(ptrDoxm);
                     return OC_STACK_KEEP_TRANSACTION;
                 }
