@@ -134,7 +134,7 @@ OCStackResult GetSecureVirtualDatabaseFromPS(const char *rsrcName, uint8_t **dat
                 CborParser parser;  // will be initialized in |cbor_parser_init|
                 CborValue cbor;     // will be initialized in |cbor_parser_init|
                 cbor_parser_init(fsData, fileSize, 0, &parser, &cbor);
-                CborValue cborValue = {0};
+                CborValue cborValue = { .parser = 0 };
                 CborError cborFindResult = cbor_value_map_find_value(&cbor, rsrcName, &cborValue);
                 if (CborNoError == cborFindResult && cbor_value_is_byte_string(&cborValue))
                 {
@@ -218,7 +218,7 @@ OCStackResult UpdateSecureResourceInPS(const char *rsrcName, const uint8_t *psPa
             CborParser parser;  // will be initialized in |cbor_parser_init|
             CborValue cbor;     // will be initialized in |cbor_parser_init|
             cbor_parser_init(dbData, dbSize, 0, &parser, &cbor);
-            CborValue curVal = {0};
+            CborValue curVal = { .parser = 0 };
             CborError cborFindResult = CborNoError;
 
             cborFindResult = cbor_value_map_find_value(&cbor, OIC_JSON_ACL_NAME, &curVal);
@@ -459,7 +459,7 @@ OCStackResult ResetSecureResourceInPS(void)
             CborParser parser;  // will be initialized in |cbor_parser_init|
             CborValue cbor;     // will be initialized in |cbor_parser_init|
             cbor_parser_init(dbData, dbSize, 0, &parser, &cbor);
-            CborValue curVal = {0};
+            CborValue curVal = { .parser = 0 };
             CborError cborFindResult = CborNoError;
             cborFindResult = cbor_value_map_find_value(&cbor, OIC_JSON_RESET_PF_NAME, &curVal);
             if (CborNoError == cborFindResult && cbor_value_is_byte_string(&curVal))
@@ -474,7 +474,7 @@ OCStackResult ResetSecureResourceInPS(void)
             CborParser parser;  // will be initialized in |cbor_parser_init|
             CborValue cbor;     // will be initialized in |cbor_parser_init|
             cbor_parser_init(resetPfCbor, resetPfCborLen, 0, &parser, &cbor);
-            CborValue curVal = {0};
+            CborValue curVal = { .parser = 0 };
             CborError cborFindResult = CborNoError;
             cborFindResult = cbor_value_map_find_value(&cbor, OIC_JSON_ACL_NAME, &curVal);
             if (CborNoError == cborFindResult && cbor_value_is_byte_string(&curVal))
@@ -573,6 +573,7 @@ exit:
     OICFree(pstatCbor);
     OICFree(doxmCbor);
     OICFree(resetPfCbor);
+    return ret;
 }
 
 /**
@@ -609,7 +610,7 @@ OCStackResult CreateResetProfile(void)
             CborParser parser;
             CborValue cbor;
             cbor_parser_init(dbData, dbSize, 0, &parser, &cbor);
-            CborValue curVal = {0};
+            CborValue curVal = { .parser = 0 };
             CborError cborFindResult = CborNoError;
             cborFindResult = cbor_value_map_find_value(&cbor, OIC_JSON_ACL_NAME, &curVal);
             if (CborNoError == cborFindResult && cbor_value_is_byte_string(&curVal))

@@ -899,7 +899,7 @@ OCStackApplicationResult ActionSetCB(void* context, OCDoHandle handle,
 
     if (info)
     {
-        OCEntityHandlerResponse response = { 0 };
+        OCEntityHandlerResponse response = { .requestHandle = 0 };
 
         response.ehResult = OC_EH_OK;
 
@@ -1241,7 +1241,7 @@ OCStackResult BuildCollectionGroupActionCBORResponse(
         }
         else
         {
-            OCEntityHandlerResponse response = { 0 };
+            OCEntityHandlerResponse response = { .requestHandle = NULL };
 
             if(stackRet == OC_STACK_OK)
                 response.ehResult = OC_EH_OK;
@@ -1416,7 +1416,7 @@ OCStackResult BuildCollectionGroupActionCBORResponse(
         }
         else
         {
-            OCEntityHandlerResponse response = { 0 };
+            OCEntityHandlerResponse response = { .requestHandle = NULL };
             if(stackRet == OC_STACK_OK)
                 response.ehResult = OC_EH_OK;
             else

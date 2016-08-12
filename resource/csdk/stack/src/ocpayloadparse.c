@@ -494,7 +494,7 @@ static OCStackResult OCParsePlatformPayload(OCPayload **outPayload, CborValue *r
 {
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     CborError err = CborNoError;
-    OCPlatformInfo info = {0};
+    OCPlatformInfo info = { .platformID  = NULL };
     OCStringLL* rt = NULL;
     OCStringLL* interfaces = NULL;
     OCPlatformPayload* out = NULL;

@@ -26,10 +26,10 @@
 // Refer http://pubs.opengroup.org/onlinepubs/009695399/
 #define _POSIX_C_SOURCE 200112L
 
-#ifdef WITH_STRING_H
+#ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef WITH_STRING_H
+#ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
 
@@ -63,8 +63,8 @@
 #include "platform_features.h"
 
 extern OCResource *headResource;
-static OCPlatformInfo savedPlatformInfo = {0};
-static OCDeviceInfo savedDeviceInfo = {0};
+static OCPlatformInfo savedPlatformInfo = { .platformID = NULL };
+static OCDeviceInfo savedDeviceInfo     = { .deviceName = NULL };
 
 /**
  * Prepares a Payload for response.
@@ -601,7 +601,7 @@ static bool includeThisResourceInResponse(OCResource *resource,
 OCStackResult SendNonPersistantDiscoveryResponse(OCServerRequest *request, OCResource *resource,
                                 OCPayload *discoveryPayload, OCEntityHandlerResult ehResult)
 {
-    OCEntityHandlerResponse response = {0};
+    OCEntityHandlerResponse response = { .requestHandle = 0 };
 
     response.ehResult = ehResult;
     response.payload = discoveryPayload;
@@ -869,7 +869,7 @@ HandleDefaultDeviceEntityHandler (OCServerRequest *request)
 
     OCStackResult result = OC_STACK_OK;
     OCEntityHandlerResult ehResult = OC_EH_ERROR;
-    OCEntityHandlerRequest ehRequest = {0};
+    OCEntityHandlerRequest ehRequest = { .resource = 0 };
 
     OIC_LOG(INFO, TAG, "Entering HandleResourceWithDefaultDeviceEntityHandler");
     result = FormOCEntityHandlerRequest(&ehRequest,
@@ -920,7 +920,7 @@ HandleResourceWithEntityHandler (OCServerRequest *request,
     OCEntityHandlerFlag ehFlag = OC_REQUEST_FLAG;
     ResourceObserver *resObs = NULL;
 
-    OCEntityHandlerRequest ehRequest = {0};
+    OCEntityHandlerRequest ehRequest = { .resource = 0 };
 
     OIC_LOG(INFO, TAG, "Entering HandleResourceWithEntityHandler");
     OCPayloadType type = PAYLOAD_TYPE_REPRESENTATION;
@@ -1074,7 +1074,7 @@ HandleCollectionResourceDefaultEntityHandler (OCServerRequest *request,
     }
 
     OCStackResult result = OC_STACK_ERROR;
-    OCEntityHandlerRequest ehRequest = {0};
+    OCEntityHandlerRequest ehRequest = { .resource = 0 };
 
     result = FormOCEntityHandlerRequest(&ehRequest,
                                         (OCRequestHandle)request,
@@ -1238,6 +1238,12 @@ OCStackResult SavePlatformInfo(OCPlatformInfo info)
     }
 
     return res;
+}
+
+OCStackResult GetPlatformInfo(OCPlatformInfo** pi)
+{
+    *pi = &savedPlatformInfo;
+    return OC_STACK_OK;
 }
 
 void DeleteDeviceInfo()

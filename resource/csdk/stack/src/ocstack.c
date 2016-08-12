@@ -125,7 +125,7 @@ static OCResourceHandle brokerResource = {0};
 
 #ifdef WITH_PRESENCE
 static OCPresenceState presenceState = OC_PRESENCE_UNINITIALIZED;
-static PresenceResource presenceResource = {0};
+static PresenceResource presenceResource = {NULL,0};
 static uint8_t PresenceTimeOutSize = 0;
 static uint32_t PresenceTimeOut[] = {50, 75, 85, 95, 100};
 #endif
@@ -508,7 +508,7 @@ OCStackResult OCStackFeedBack(CAToken_t token, uint8_t tokenLength, uint8_t stat
 {
     OCStackResult result = OC_STACK_ERROR;
     ResourceObserver * observer = NULL;
-    OCEntityHandlerRequest ehRequest = {0};
+    OCEntityHandlerRequest ehRequest = {.resource = NULL};
 
     switch(status)
     {
@@ -1789,7 +1789,7 @@ void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
         return;
     }
 
-    OCServerProtocolRequest serverRequest = {0};
+    OCServerProtocolRequest serverRequest = {.observationOption = 0};
 
     OIC_LOG_V(INFO, TAG, "Endpoint URI : %s", requestInfo->info.resourceUri);
 
@@ -2624,7 +2624,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
     ClientCB *clientCB = NULL;
     OCDoHandle resHandle = NULL;
     CAEndpoint_t endpoint = {.adapter = CA_DEFAULT_ADAPTER};
-    OCDevAddr tmpDevAddr = { OC_DEFAULT_ADAPTER };
+    OCDevAddr tmpDevAddr  = {.adapter = OC_DEFAULT_ADAPTER };
     uint32_t ttl = 0;
     OCTransportAdapter adapter;
     OCTransportFlags flags;
@@ -3109,7 +3109,7 @@ OCStackResult OCStartPresence(const uint32_t ttl)
     {
         presenceState = OC_PRESENCE_INITIALIZED;
 
-        OCDevAddr devAddr = { OC_DEFAULT_ADAPTER };
+        OCDevAddr devAddr = { .adapter = OC_DEFAULT_ADAPTER };
 
         CAToken_t caToken = NULL;
         CAResult_t caResult = CAGenerateToken(&caToken, tokenLength);
@@ -3181,6 +3181,27 @@ OCStackResult OCSetPlatformInfo(OCPlatformInfo platformInfo)
         {
             return OC_STACK_INVALID_PARAM;
         }
+    }
+    else
+    {
+        return OC_STACK_ERROR;
+    }
+}
+
+OCStackResult OCGetPlatformInfo(OCPlatformInfo** platformInfo)
+{
+    OIC_LOG(INFO, TAG, "Entering OCGetPlatformInfo");
+
+    if(myStackMode ==  OC_SERVER || myStackMode == OC_CLIENT_SERVER || myStackMode == OC_GATEWAY)
+    {
+	if ( GetPlatformInfo(platformInfo) == OC_STACK_OK )
+	{
+	    return OC_STACK_OK;
+	}
+	else
+	{
+	    return OC_STACK_ERROR;
+	}
     }
     else
     {

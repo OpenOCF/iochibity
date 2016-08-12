@@ -114,7 +114,7 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
     ResourceObserver * resourceObserver = g_serverObsList;
     uint8_t numObs = 0;
     OCServerRequest * request = NULL;
-    OCEntityHandlerRequest ehRequest = {0};
+    OCEntityHandlerRequest ehRequest = { .resource = 0 };
     OCEntityHandlerResult ehResult = OC_EH_ERROR;
     bool observeErrorFlag = false;
 
@@ -173,7 +173,7 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
             }
             else
             {
-                OCEntityHandlerResponse ehResponse = {0};
+                OCEntityHandlerResponse ehResponse = { .requestHandle = 0 };
 
                 //This is effectively the implementation for the presence entity handler.
                 OIC_LOG(DEBUG, TAG, "This notification is for Presence");
@@ -276,7 +276,7 @@ OCStackResult SendListObserverNotification (OCResource * resource,
                     request->observeResult = OC_STACK_OK;
                     if (result == OC_STACK_OK)
                     {
-                        OCEntityHandlerResponse ehResponse = {0};
+                        OCEntityHandlerResponse ehResponse = { .requestHandle = 0 };
                         ehResponse.ehResult = OC_EH_OK;
                         ehResponse.payload = (OCPayload*)OCRepPayloadCreate();
                         if (!ehResponse.payload)

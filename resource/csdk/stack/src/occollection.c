@@ -267,7 +267,7 @@ HandleLinkedListInterface(OCEntityHandlerRequest *ehRequest,
 
     if (ret == OC_STACK_OK)
     {
-        OCEntityHandlerResponse response = {0};
+        OCEntityHandlerResponse response = { .requestHandle = 0 };
         response.ehResult = OC_EH_OK;
         response.payload = (OCPayload*)payload;
         response.persistentBufferFlag = 0;
@@ -301,7 +301,7 @@ HandleBatchInterface(OCEntityHandlerRequest *ehRequest)
         OCRepPayloadSetUri(payload, collResource->uri);
     }
 
-    OCEntityHandlerResponse response = {0};
+    OCEntityHandlerResponse response = { .requestHandle = 0 };
     response.ehResult = OC_EH_OK;
     response.payload = (OCPayload*)payload;
     response.persistentBufferFlag = 0;
