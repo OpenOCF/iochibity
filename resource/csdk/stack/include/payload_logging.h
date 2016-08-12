@@ -258,26 +258,27 @@ INLINE_API void OCPayloadLogDiscovery(LogLevel level, OCDiscoveryPayload* payloa
     while(payload && payload->resources)
     {
         OIC_LOG_V(level, PL_TAG, "\tSID: %s", payload->sid);
-        if (payload->baseURI)
-        {
-            OIC_LOG_V(level, PL_TAG, "\tBase URI:%s", payload->baseURI);
-        }
-        if (payload->name)
-        {
+        /* if (payload->baseURI) */
+        /* { */
+            OIC_LOG_V(level, PL_TAG, "\tBase URI: %s", payload->baseURI);
+        /* } */
+        /* if (payload->name) */
+        /* { */
             OIC_LOG_V(level, PL_TAG, "\tNAME: %s", payload->name);
-        }
-        if (payload->uri)
-        {
+        /* } */
+        /* if (payload->uri) */
+        /* { */
             OIC_LOG_V(level, PL_TAG, "\tURI: %s", payload->uri);
-        }
-        if (payload->type)
-        {
+        /* } */
+        /* if (payload->type) */
+        /* { */
+            OIC_LOG(level, PL_TAG, "\tTypes:");
             for (OCStringLL *strll = payload->type; strll; strll = strll->next)
             {
-                OIC_LOG_V(level, PL_TAG, "\tResource Type: %s", strll->value);
+                OIC_LOG_V(level, PL_TAG, "\t\t: %s", strll->value);
             }
-        }
-        OIC_LOG(level, PL_TAG, "\tInterface:");
+        /* } */
+        OIC_LOG(level, PL_TAG, "\tInterfaces:");
         for (OCStringLL *itf = payload->iface; itf; itf = itf->next)
         {
             OIC_LOG_V(level, PL_TAG, "\t\t%s", itf->value);
@@ -285,12 +286,17 @@ INLINE_API void OCPayloadLogDiscovery(LogLevel level, OCDiscoveryPayload* payloa
 
         OCResourcePayload* res = payload->resources;
 
+	OIC_LOG(level, PL_TAG, "Discovered Resources:");
+
         int i = 1;
         while(res)
         {
             OIC_LOG_V(level, PL_TAG, "\tResource #%d", i);
-            OIC_LOG_V(level, PL_TAG, "\tURI:%s", res->uri);
-            OIC_LOG(level, PL_TAG, "\tResource Types:");
+            OIC_LOG_V(level, PL_TAG, "\tURI:        %s", res->uri);
+            OIC_LOG_V(level, PL_TAG, "\tPort:       %u", res->port);
+            OIC_LOG_V(level, PL_TAG, "\tBitmap:     %u", res->bitmap);
+            OIC_LOG_V(level, PL_TAG, "\tSecure?:    %s", res->secure ? "true" : "false");
+            OIC_LOG(level, PL_TAG, "\tTypes:");
             OCStringLL* strll =  res->types;
             while(strll)
             {
@@ -305,9 +311,6 @@ INLINE_API void OCPayloadLogDiscovery(LogLevel level, OCDiscoveryPayload* payloa
                 strll = strll->next;
             }
 
-            OIC_LOG_V(level, PL_TAG, "\tBitmap: %u", res->bitmap);
-            OIC_LOG_V(level, PL_TAG, "\tSecure?: %s", res->secure ? "true" : "false");
-            OIC_LOG_V(level, PL_TAG, "\tPort: %u", res->port);
             OIC_LOG(level, PL_TAG, "");
             res = res->next;
             ++i;
@@ -319,12 +322,12 @@ INLINE_API void OCPayloadLogDiscovery(LogLevel level, OCDiscoveryPayload* payloa
 INLINE_API void OCPayloadLogDevice(LogLevel level, OCDevicePayload* payload)
 {
     OIC_LOG(level, PL_TAG, "Payload Type: Device");
-    OIC_LOG_V(level, PL_TAG, "\tSID:%s", payload->sid);
-    OIC_LOG_V(level, PL_TAG, "\tDevice Name:%s", payload->deviceName);
-    OIC_LOG_V(level, PL_TAG, "\tSpec Version:%s", payload->specVersion);
+    OIC_LOG_V(level, PL_TAG, "\tSID:          %s", payload->sid);
+    OIC_LOG_V(level, PL_TAG, "\tDevice Name:  %s", payload->deviceName);
+    OIC_LOG_V(level, PL_TAG, "\tSpec Version: %s", payload->specVersion);
     if (payload->dataModelVersions)
     {
-        OIC_LOG(level, PL_TAG, "\tData Model Version:");
+        OIC_LOG(level, PL_TAG, "\tData Model Versions:");
         for (OCStringLL *strll = payload->dataModelVersions; strll; strll = strll->next)
         {
             OIC_LOG_V(level, PL_TAG, "\t\t%s", strll->value);
@@ -332,7 +335,7 @@ INLINE_API void OCPayloadLogDevice(LogLevel level, OCDevicePayload* payload)
     }
     if (payload->types)
     {
-        OIC_LOG(level, PL_TAG, "\tResource Type:");
+        OIC_LOG(level, PL_TAG, "\tResource Types:");
         for (OCStringLL *strll = payload->types; strll; strll = strll->next)
         {
             OIC_LOG_V(level, PL_TAG, "\t\t%s", strll->value);
@@ -340,7 +343,7 @@ INLINE_API void OCPayloadLogDevice(LogLevel level, OCDevicePayload* payload)
     }
     if (payload->interfaces)
     {
-        OIC_LOG(level, PL_TAG, "\tInterface:");
+        OIC_LOG(level, PL_TAG, "\tInterfaces:");
         for (OCStringLL *strll = payload->interfaces; strll; strll = strll->next)
         {
             OIC_LOG_V(level, PL_TAG, "\t\t%s", strll->value);
@@ -351,18 +354,18 @@ INLINE_API void OCPayloadLogDevice(LogLevel level, OCDevicePayload* payload)
 INLINE_API void OCPayloadLogPlatform(LogLevel level, OCPlatformPayload* payload)
 {
     OIC_LOG(level, PL_TAG, "Payload Type: Platform");
-    OIC_LOG_V(level, PL_TAG, "\tURI:%s", payload->uri);
-    OIC_LOG_V(level, PL_TAG, "\tPlatform ID:%s", payload->info.platformID);
-    OIC_LOG_V(level, PL_TAG, "\tMfg Name:%s", payload->info.manufacturerName);
-    OIC_LOG_V(level, PL_TAG, "\tMfg URL:%s", payload->info.manufacturerUrl);
-    OIC_LOG_V(level, PL_TAG, "\tModel Number:%s", payload->info.modelNumber);
-    OIC_LOG_V(level, PL_TAG, "\tDate of Mfg:%s", payload->info.dateOfManufacture);
-    OIC_LOG_V(level, PL_TAG, "\tPlatform Version:%s", payload->info.platformVersion);
-    OIC_LOG_V(level, PL_TAG, "\tOS Version:%s", payload->info.operatingSystemVersion);
-    OIC_LOG_V(level, PL_TAG, "\tHardware Version:%s", payload->info.hardwareVersion);
-    OIC_LOG_V(level, PL_TAG, "\tFirmware Version:%s", payload->info.firmwareVersion);
-    OIC_LOG_V(level, PL_TAG, "\tSupport URL:%s", payload->info.supportUrl);
-    OIC_LOG_V(level, PL_TAG, "\tSystem Time:%s", payload->info.systemTime);
+    OIC_LOG_V(level, PL_TAG, "\tURI:              %s", payload->uri);
+    OIC_LOG_V(level, PL_TAG, "\tPlatform ID:      %s", payload->info.platformID);
+    OIC_LOG_V(level, PL_TAG, "\tMfg Name:         %s", payload->info.manufacturerName);
+    OIC_LOG_V(level, PL_TAG, "\tMfg URL:          %s", payload->info.manufacturerUrl);
+    OIC_LOG_V(level, PL_TAG, "\tModel Number:     %s", payload->info.modelNumber);
+    OIC_LOG_V(level, PL_TAG, "\tDate of Mfg:      %s", payload->info.dateOfManufacture);
+    OIC_LOG_V(level, PL_TAG, "\tPlatform Version: %s", payload->info.platformVersion);
+    OIC_LOG_V(level, PL_TAG, "\tOS Version:       %s", payload->info.operatingSystemVersion);
+    OIC_LOG_V(level, PL_TAG, "\tHardware Version: %s", payload->info.hardwareVersion);
+    OIC_LOG_V(level, PL_TAG, "\tFirmware Version: %s", payload->info.firmwareVersion);
+    OIC_LOG_V(level, PL_TAG, "\tSupport URL:      %s", payload->info.supportUrl);
+    OIC_LOG_V(level, PL_TAG, "\tSystem Time:      %s", payload->info.systemTime);
 
     if (payload->rt)
     {
@@ -385,10 +388,10 @@ INLINE_API void OCPayloadLogPlatform(LogLevel level, OCPlatformPayload* payload)
 INLINE_API void OCPayloadLogPresence(LogLevel level, OCPresencePayload* payload)
 {
     OIC_LOG(level, PL_TAG, "Payload Type: Presence");
-    OIC_LOG_V(level, PL_TAG, "\tSequence Number:%u", payload->sequenceNumber);
-    OIC_LOG_V(level, PL_TAG, "\tMax Age:%d", payload->maxAge);
-    OIC_LOG_V(level, PL_TAG, "\tTrigger:%s", convertTriggerEnumToString(payload->trigger));
-    OIC_LOG_V(level, PL_TAG, "\tResource Type:%s", payload->resourceType);
+    OIC_LOG_V(level, PL_TAG, "\tSequence Number: %u", payload->sequenceNumber);
+    OIC_LOG_V(level, PL_TAG, "\tMax Age:         %d", payload->maxAge);
+    OIC_LOG_V(level, PL_TAG, "\tTrigger:         %s", convertTriggerEnumToString(payload->trigger));
+    OIC_LOG_V(level, PL_TAG, "\tResource Type:   %s", payload->resourceType);
 }
 
 INLINE_API void OCPayloadLogSecurity(LogLevel level, OCSecurityPayload* payload)
