@@ -27,6 +27,48 @@ install_name_tool \
 
 install_name_tool \
     -change \
+    out/darwin/x86_64/release/resource/csdk/liboctbstack.dylib \
+    $JLP/liboctbstack.dylib \
+    $JLP/libocprovision.dylib
+
+install_name_tool \
+    -change \
+    out/darwin/x86_64/release/resource/csdk/liboctbstack.dylib \
+    $JLP/liboctbstack.dylib \
+    $JLP/libocpmapi.dylib
+
+install_name_tool \
+    -change \
+    out/darwin/x86_64/release/resource/src/liboc.dylib \
+    $JLP/liboc.dylib \
+    $JLP/libocprovision.dylib
+
+install_name_tool \
+    -change \
+    out/darwin/x86_64/release/resource/src/liboc.dylib \
+    $JLP/liboc.dylib \
+    $JLP/libocpmapi.dylib
+
+install_name_tool \
+    -change \
+    out/darwin/x86_64/release/resource/csdk/security/provisioning/libocpmapi.dylib \
+    $JLP/libocpmapi.dylib \
+    $JLP/libocprovision.dylib
+
+install_name_tool \
+    -change \
+    out/darwin/x86_64/release/resource/oc_logger/liboc_logger.dylib \
+    $JLP/resource/oc_logger/liboc_logger.dylib \
+    $JLP/libocprovision.dylib
+
+install_name_tool \
+    -change \
+    out/darwin/x86_64/release/resource/oc_logger/liboc_logger.dylib \
+    $JLP/resource/oc_logger/liboc_logger.dylib \
+    $JLP/libocpmapi.dylib
+
+install_name_tool \
+    -change \
     out/darwin/x86_64/release/resource/oc_logger/liboc_logger.dylib \
     $JLP/resource/oc_logger/liboc_logger.dylib \
     $JLP/liboc.dylib

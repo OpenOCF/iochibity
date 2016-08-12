@@ -26,6 +26,9 @@ Import('env')
 lib_env = env.Clone()
 SConscript(env.get('SRC_DIR') + '/resource/third_party_libs.scons', 'lib_env')
 
+build_dir = env.get('BUILD_DIR')
+print "BUILD DIR", build_dir
+
 liboctbstack_env = lib_env.Clone()
 
 target_os = env.get('TARGET_OS')
@@ -78,7 +81,13 @@ elif liboctbstack_env.get('ROUTING') == 'EP':
 
 liboctbstack_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 
-liboctbstack_env.PrependUnique(LIBS = ['ocsrm', 'coap'])
+if target_os in ['darwin']:
+        ocsrm = File(build_dir + 'libocsrm.a')
+else:
+        ocsrm = 'ocsrm'
+
+liboctbstack_env.PrependUnique(LIBS = [ocsrm, 'coap'])
+
 if target_os in ['android', 'darwin', 'linux', 'tizen', 'msys_nt', 'windows']:
 	liboctbstack_env.PrependUnique(LIBS = ['connectivity_abstraction'])
 
