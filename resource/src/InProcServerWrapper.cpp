@@ -191,8 +191,6 @@ OCEntityHandlerResult EntityHandlerWrapper(OCEntityHandlerFlag flag,
 {
     OCEntityHandlerResult result = OC_EH_ERROR;
 
-    oclog() << "\nIn entity handler wrapper: " << endl;
-
     if(NULL == entityHandlerRequest)
     {
         oclog() << "Entity handler request is NULL."  << endl;
