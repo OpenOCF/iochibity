@@ -50,8 +50,9 @@ env.SConscript(os.path.join(root_dir, 'util', 'SConscript'))
 build_dir = env.get('BUILD_DIR')
 if env.get('SECURED') == '1':
 	env.SConscript(build_dir + 'extlibs/tinydtls/SConscript')
-	env.SConscript(build_dir + 'extlibs/timer/SConscript')
-	env.AppendUnique(CPPPATH = ['#extlibs/timer'])
+	#GAR timer migrated to csdk
+	##env.SConscript(build_dir + 'extlibs/timer/SConscript')
+	env.AppendUnique(CPPPATH = ['#resource/csdk/timer'])
 
 if ca_os == 'linux':  #GAR NOTE: not for 'darwin'!
     # get access to netdb.h (guarded by __USE_POSIX) for adapter_util/caadapterutils.c
@@ -188,7 +189,8 @@ elif ca_os in ['msys_nt', 'windows']:
 		lib_env.AppendUnique(LIBS = ['tinydtls'])
 		lib_env.AppendUnique(LIBS = ['timer'])
 	calib = lib_env.StaticLibrary('connectivity_abstraction', env.get('CA_SRC'))
-else:
+else:  #GAR why is linux static?
 	calib = lib_env.StaticLibrary('connectivity_abstraction', lib_env.get('CA_SRC'))
+
 lib_env.InstallTarget(calib, 'connectivity_abstraction')
 lib_env.UserInstallTargetLib(calib, 'connectivity_abstraction')

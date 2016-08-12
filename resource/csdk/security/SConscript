@@ -118,7 +118,6 @@ libocsrm_env.InstallTarget(libocsrm, 'ocsrm')
 
 if env.get('SECURED') == '1':
     if target_os in ['darwin', 'linux', 'android', 'tizen', 'msys_nt', 'windows']:
-        SConscript('provisioning/SConscript')
-
+            SConscript('provisioning/SConscript')
     if target_os in ['darwin', 'linux']:
         SConscript('tool/SConscript')
