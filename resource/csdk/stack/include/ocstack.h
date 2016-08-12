@@ -263,6 +263,17 @@ OC_EXPORT OCStackResult OCSetDeviceInfo(OCDeviceInfo deviceInfo);
 OC_EXPORT OCStackResult OCSetPlatformInfo(OCPlatformInfo platformInfo);
 
 /**
+ * This function gets platform information.
+ *
+ * @param platformInfo   pointer to empty OCPlatformInfo struct
+ *
+ * @return
+ *     ::OC_STACK_OK               no errors.
+ *     ::OC_STACK_ERROR            stack process error.
+ */
+OC_EXPORT OCStackResult OCGetPlatformInfo(OCPlatformInfo** platformInfo);
+
+/**
  * This function creates a resource.
  *
  * @param handle                Pointer to handle to newly created resource. Set by ocstack and

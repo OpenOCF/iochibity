@@ -155,6 +155,12 @@ OCStackResult ProcessRequest(ResourceHandling resHandling,
 OCStackResult SavePlatformInfo(OCPlatformInfo info);
 
 /**
+ * Internal API used to get pointer to platform's info
+ * @return ::OC_STACK_OK for Success, otherwise some error value.
+ */
+OCStackResult GetPlatformInfo(OCPlatformInfo** info);
+
+/**
  * Internal API used to save all of the device's information for use in platform
  * discovery requests.
  * @param info       Device name is received from the application.
