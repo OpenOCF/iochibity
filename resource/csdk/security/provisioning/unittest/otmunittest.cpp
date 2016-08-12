@@ -420,7 +420,7 @@ TEST(InitForOTM, NullParam)
 
 
 //GAR disable gtest
-TEST(DISABLED_PerformUnownedDeviceDiscovery, NullParam)
+TEST(PerformUnownedDeviceDiscovery, NullParam)
 {
     OCStackResult result = OC_STACK_ERROR;
 
@@ -442,8 +442,7 @@ TEST(DISABLED_PerformUnownedDeviceDiscovery, NullParam)
     EXPECT_EQ(2, NumOfUnownDevice);
 }
 
-//GAR disable gtest
-TEST(DISABLED_PerformJustWorksOxM, NullParam)
+TEST(PerformJustWorksOxM, NullParam)
 {
     OCStackResult result = OC_STACK_ERROR;
 
@@ -463,7 +462,7 @@ TEST(DISABLED_PerformJustWorksOxM, NullParam)
 }
 
 //GAR disable gtest
-TEST(DISABLED_PerformOwnedDeviceDiscovery, NullParam)
+TEST(PerformOwnedDeviceDiscovery, NullParam)
 {
     OCStackResult result = OC_STACK_ERROR;
 
@@ -485,7 +484,7 @@ TEST(DISABLED_PerformOwnedDeviceDiscovery, NullParam)
 }
 
 //GAR disable gtest
-TEST(DISABLED_PerformLinkDevices, NullParam)
+TEST(PerformLinkDevices, NullParam)
 {
     OicUuid_t myUuid;
     OCStackResult result = OC_STACK_ERROR;
@@ -537,7 +536,7 @@ TEST(PerformUnlinkDevices, NullParam)
 }
 
 //GAR disable gteset
-TEST(DISABLED_PerformRemoveDevice, NullParam)
+TEST(PerformRemoveDevice, NullParam)
 {
     OicUuid_t myUuid;
     OCStackResult result = OC_STACK_ERROR;
