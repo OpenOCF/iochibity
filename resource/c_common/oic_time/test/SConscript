@@ -18,50 +18,46 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-Import('env')
+Import('test_env')
 import os
 import os.path
 
-target_os = env.get('TARGET_OS')
+test_env.PrependUnique(CPPPATH = ['../include'])
 
-timetest_env = env.Clone()
-src_dir = timetest_env.get('SRC_DIR')
+test_env.AppendUnique(
+        LIBPATH = [os.path.join(test_env.get('BUILD_DIR'), 'resource', 'c_common')]
+)
 
-#GAR gtest
-# SConscript file for Local PKI google tests
-# gtest_env = SConscript('#extlibs/gtest/SConscript')
-# timetest_env = gtest_env.Clone()
-# target_os = timetest_env.get('TARGET_OS')
+test_env.PrependUnique(
+        LIBS = ['c_common']
+)
 
-######################################################################
-# Build flags
-######################################################################
-timetest_env.PrependUnique(CPPPATH = ['../include'])
+if test_env.get('TARGET_OS') != 'darwin':
+        test_env.Append(LIBS = ['rt']);
 
-timetest_env.AppendUnique(LIBPATH = [os.path.join(timetest_env.get('BUILD_DIR'), 'resource', 'c_common')])
-timetest_env.PrependUnique(LIBS = ['c_common', 'gtest', 'gtest_main', 'pthread'])
-if target_os != 'darwin':
-   timetest_env.Append(LIBS = ['rt']);
+if test_env.get('LOGGING'):
+        test_env.AppendUnique(
+                CPPDEFINES = ['TB_LOG']
+        )
 
-if timetest_env.get('LOGGING'):
-    timetest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
-#
 ######################################################################
 # Source files and Targets
 ######################################################################
-timetests = timetest_env.Program('timetests', ['linux/oic_time_tests.cpp'])
+timetests = test_env.Program('timetests', ['linux/oic_time_tests.cpp'])
 
 Alias("test", [timetests])
 
-env.AppendTarget('test')
+test_env.AppendTarget('test')
 
-if env.get('WITH_VALGRIND'):
-        valgrind_xml = 'resource_ccommon_time_test.memcheck'
-else:
-        valgrind_xml = ''
+test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  timetests)
 
-import runtest.RunTest
+#FIXME: run tests from somewhere else, this script is for building
+# if env.get('WITH_VALGRIND'):
+#         valgrind_xml = 'resource_ccommon_time_test.memcheck'
+# else:
+#         valgrind_xml = ''
 
-runtest.RunTest.run_test(timetest_env,
-                         valgrind_xml,
-                         'resource/c_common/oic_time/test/timetests')
+# import test_utils
+# test_utils.run_test(test_env,
+#                          valgrind_xml,
+#                          'resource/c_common/oic_time/test/timetests')

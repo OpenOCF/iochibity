@@ -18,41 +18,42 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-Import('env')
+Import('test_env')
 import os
 import os.path
 
-#GAR gtest
-# # SConscript file for Local PKI google tests
-# gtest_env = SConscript('#extlibs/gtest/SConscript')
-# stringtest_env = gtest_env.Clone()
-# target_os = stringtest_env.get('TARGET_OS')
+test_env.PrependUnique(
+    CPPPATH = ['../include']
+)
 
-stringtest_env = env.Clone()
-target_os =      env.get('TARGET_OS')
+test_env.AppendUnique(
+    LIBPATH = [os.path.join(test_env.get('BUILD_DIR'), 'resource', 'c_common')]
+)
 
-######################################################################
-# Build flags
-######################################################################
-stringtest_env.PrependUnique(CPPPATH = ['../include'])
+test_env.PrependUnique(
+    LIBS = ['c_common']
+)
 
-stringtest_env.AppendUnique(LIBPATH = [os.path.join(stringtest_env.get('BUILD_DIR'), 'resource', 'c_common')])
-stringtest_env.PrependUnique(LIBS = ['c_common', 'gtest', 'gtest_main', 'pthread'])
+if test_env.get('LOGGING'):
+    test_env.AppendUnique(
+        CPPDEFINES = ['TB_LOG']
+    )
 
-if stringtest_env.get('LOGGING'):
-    stringtest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
-#
 ######################################################################
 # Source files and Targets
 ######################################################################
-stringtests = stringtest_env.Program('stringtests', ['linux/oic_string_tests.cpp'])
+stringtests = test_env.Program('stringtests', ['linux/oic_string_tests.cpp'])
 
 Alias("test", [stringtests])
 
-env.AppendTarget('test')
-if env.get('TEST') == '1':
-	if target_os in ['darwin', 'linux']:
-                from tools.scons.RunTest import *
-                run_test(stringtest_env,
-                         'resource_ccommon_string_test.memcheck',
-                         'resource/c_common/oic_string/test/stringtests')
+test_env.AppendTarget('test')
+
+test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  stringtests)
+
+#FIXME: run tests from somewhere else, this script is for building
+# if env.get('TEST') == '1':
+# 	if target_os in ['darwin', 'linux']:
+#                 from tools.scons.RunTest import *
+#                 run_test(test_env,
+#                          'resource_ccommon_string_test.memcheck',
+#                          'resource/c_common/oic_string/test/stringtests')

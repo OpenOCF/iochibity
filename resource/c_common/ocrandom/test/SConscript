@@ -18,61 +18,43 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-Import('env')
+Import('test_env')
 import os
 import os.path
-randomtest_env = env.Clone()
+test_env = test_env.Clone()
 
-target_os = env.get('TARGET_OS')
+target_os = test_env.get('TARGET_OS')
 
-src_dir = randomtest_env.get('SRC_DIR')
+src_dir = test_env.get('SRC_DIR')
 
 ######################################################################
 # Build flags
 ######################################################################
-home = os.environ['HOME']
-
-randomtest_env.PrependUnique(CPPPATH = ['../include'
+test_env.PrependUnique(CPPPATH = ['../include'
 				       ,'./../../logger/include'
 				       ,'./../../../oc_logger/include'])
 
-randomtest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')
-				      ,'/usr/local/lib'])
-
-if target_os == 'darwin':
-    randomtest_env.PrependUnique(LIBS = ['m'
-    				      ,'gtest'
-				      ,'gtest_main'
-    				      ,'octbstack'])
-else:
-    randomtest_env.PrependUnique(LIBS = ['m'
-					,'gtest'
-					,'gtest_main'
-    				      	,'octbstack'
-					,'uuid'])
-
-# if target_os in ['linux']:
-#     randomtest_env.AppendUnique(LIBS = ['m'])
-
-if randomtest_env.get('LOGGING'):
-	randomtest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+if test_env.get('LOGGING'):
+	test_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 ######################################################################
 # Source files and Targets
 ######################################################################
-randomtests = randomtest_env.Program('randomtests', ['linux/randomtest.cpp'])
+randomtests = test_env.Program('randomtests', ['linux/randomtest.cpp'])
 
 Alias("test", [randomtests])
 
-env.AppendTarget('test')
+test_env.AppendTarget('test')
 
-if env.get('WITH_VALGRIND'):
-        valgrind_xml = 'resource_csdk_random_test.memcheck'
-else:
-        valgrind_xml = ''
+test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  randomtests)
 
-import runtest.RunTest
+#FIXME: run tests from somewhere else, this script is for building
+# if env.get('WITH_VALGRIND'):
+#         valgrind_xml = 'resource_csdk_random_test.memcheck'
+# else:
+#         valgrind_xml = ''
 
-runtest.RunTest.run_test(randomtest_env,
-                         valgrind_xml,
-                         'resource/c_common/ocrandom/test/randomtests')
+# import test_utils
+# test_utils.run_test(test_env,
+#                          valgrind_xml,
+#                          'resource/c_common/ocrandom/test/randomtests')

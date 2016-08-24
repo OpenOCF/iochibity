@@ -18,46 +18,45 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-Import('env')
+Import('test_env')
 import os
 import os.path
 
-#GAR gteset
-# # SConscript file for Local PKI google tests
-# gtest_env = SConscript('#extlibs/gtest/SConscript')
-# malloctest_env = gtest_env.Clone()
+test_env.PrependUnique(
+	CPPPATH = ['../include']
+)
 
-target_os = env.get('TARGET_OS')
-malloctest_env = env.Clone()
-src_dir = malloctest_env.get('SRC_DIR')
+test_env.AppendUnique(
+        LIBPATH = [os.path.join(test_env.get('BUILD_DIR'), 'resource', 'c_common')]
+)
 
-######################################################################
-# Build flags
-######################################################################
-malloctest_env.PrependUnique(CPPPATH = ['../include'])
+test_env.PrependUnique(
+	LIBS = ['c_common']
+)
 
-malloctest_env.AppendUnique(LIBPATH = [os.path.join(malloctest_env.get('BUILD_DIR'), 'resource', 'c_common')])
-malloctest_env.PrependUnique(LIBS = ['c_common', 'gtest', 'gtest_main', 'pthread'])
-
-if malloctest_env.get('LOGGING'):
-	malloctest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+if test_env.get('LOGGING'):
+	test_env.AppendUnique(
+		CPPDEFINES = ['TB_LOG']
+        )
 #
 ######################################################################
 # Source files and Targets
 ######################################################################
-malloctests = malloctest_env.Program('malloctests', ['linux/oic_malloc_tests.cpp'])
+malloctests = test_env.Program('malloctests', ['linux/oic_malloc_tests.cpp'])
 
 Alias("test", [malloctests])
 
-env.AppendTarget('test')
+test_env.AppendTarget('test')
 
-if env.get('WITH_VALGRIND'):
-        valgrind_xml = 'resource_ccommon_malloc_test.memcheck'
-else:
-        valgrind_xml = ''
+test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  malloctests)
 
-import runtest.RunTest
+#FIXME: run tests from somewhere else, this script is for building
+# if env.get('WITH_VALGRIND'):
+#         valgrind_xml = 'resource_ccommon_malloc_test.memcheck'
+# else:
+#         valgrind_xml = ''
 
-runtest.RunTest.run_test(malloctest_env,
-			valgrind_xml,
-			'resource/c_common/oic_malloc/test/malloctests')
+# import test_utils
+# test_utils.run_test(test_env,
+# 			valgrind_xml,
+# 			'resource/c_common/oic_malloc/test/malloctests')
