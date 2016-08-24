@@ -18,23 +18,19 @@
 # //
 # //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-Import('env')
+Import('test_env')
 import os
 import os.path
 
-#GAR gtest
-# # SConscript file for Local PKI google tests
-# gtest_env = SConscript('#extlibs/gtest/SConscript')
-srmtest_env = env.Clone()
-src_dir = srmtest_env.get('SRC_DIR')
-target_os = srmtest_env.get('TARGET_OS')
+src_dir = test_env.get('SRC_DIR')
+target_os = test_env.get('TARGET_OS')
 
 ######################################################################
 # Build flags
 ######################################################################
 home = os.environ['HOME']
 
-srmtest_env.PrependUnique(CPPPATH = [
+test_env.PrependUnique(CPPPATH = [
 		'../../../c_common/oic_malloc/include',
  		'../../connectivity/inc',
 		'../../connectivity/api',
@@ -52,36 +48,36 @@ srmtest_env.PrependUnique(CPPPATH = [
                 '../provisioning/include'
 		])
 
-srmtest_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-srmtest_env.AppendUnique(LIBPATH = [srmtest_env.get('BUILD_DIR')])
+test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_DIR')])
+test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_DIR')])
 
-#GAR uuid
-srmtest_env.PrependUnique(LIBS = ['ocsrm'
+test_env.PrependUnique(LIBS = ['ocsrm'
 			         ,'octbstack'
 				 ,'oc_logger'
 				 ,'connectivity_abstraction'
-				 ,'coap'
-				 ,'uuid'
-				 ,'gtest'
-				 ,'gtest_main'])
+				 ,'coap'])
 
-if srmtest_env.get('SECURED') == '1':
-    srmtest_env.AppendUnique(LIBS = ['tinydtls'])
+if target_os != 'darwin':
+        test_env.PrependUnique(LIBS = ['uuid'])
 
-if srmtest_env.get('LOGGING') == '1':
-	srmtest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+
+if test_env.get('SECURED') == '1':
+    test_env.AppendUnique(LIBS = ['tinydtls'])
+
+if test_env.get('LOGGING') == '1':
+	test_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 if target_os == 'windows':
-	srmtest_env.AppendUnique(LINKFLAGS = ['/subsystem:CONSOLE'])
-	srmtest_env.AppendUnique(LIBS = ['advapi32', 'kernel32', 'ws2_32', 'iphlpapi'])
-else:
-	# TODO: Implement feature check.
-	srmtest_env.AppendUnique(CPPDEFINES = ['HAVE_LOCALTIME_R'])
+	test_env.AppendUnique(LINKFLAGS = ['/subsystem:CONSOLE'])
+	test_env.AppendUnique(LIBS = ['advapi32', 'kernel32', 'ws2_32', 'iphlpapi'])
+# else:
+# 	# TODO: Implement feature check.
+# 	test_env.AppendUnique(CPPDEFINES = ['HAVE_LOCALTIME_R'])
 
 ######################################################################
 # Source files and Targets
 ######################################################################
-unittest = srmtest_env.Program('unittest', ['aclresourcetest.cpp',
+securitytest = test_env.Program('securitytest', ['aclresourcetest.cpp',
                                             'amaclresourcetest.cpp',
                                             'pstatresource.cpp',
                                             'doxmresource.cpp',
@@ -97,52 +93,58 @@ unittest = srmtest_env.Program('unittest', ['aclresourcetest.cpp',
                                             'crlresourcetest.cpp',
                                             os.path.join(src_dir, 'resource', 'csdk', 'timer', 'timer.c')])
 
-Alias("test", [unittest])
+Alias("test", [securitytest])
 
-unittest_src_dir = os.path.join(src_dir, 'resource', 'csdk', 'security', 'unittest') + os.sep
-unittest_build_dir = os.path.join(srmtest_env.get('BUILD_DIR'), 'resource', 'csdk', 'security', 'unittest') + os.sep
+securitytest_src_dir = os.path.join(src_dir,
+                                    'resource', 'csdk', 'security', 'unittest') + os.sep
+securitytest_build_dir = os.path.join(test_env.get('BUILD_DIR'),
+                                      'resource', 'csdk', 'security', 'unittest') + os.sep
 
-srmtest_env.AppendUnique(CPPDEFINES = ['SECURITY_BUILD_UNITTEST_DIR='+unittest_build_dir.encode('string_escape')])
+test_env.AppendUnique(CPPDEFINES = ['SECURITY_BUILD_UNITTEST_DIR='+securitytest_build_dir.encode('string_escape')])
 
-srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
-    unittest_src_dir + 'oic_unittest.json'))
-srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
-    unittest_src_dir + 'oic_unittest_acl1.json'))
-srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
-    unittest_src_dir + 'oic_unittest_default_acl.json'))
-srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
-    unittest_src_dir + 'oic_svr_db.json'))
+test_env.Alias("install", test_env.Install( securitytest_build_dir,
+                                            securitytest_src_dir + 'oic_unittest.json'))
+test_env.Alias("install", test_env.Install( securitytest_build_dir,
+                                            securitytest_src_dir + 'oic_unittest_acl1.json'))
+test_env.Alias("install", test_env.Install( securitytest_build_dir,
+                                            securitytest_src_dir + 'oic_unittest_default_acl.json'))
+test_env.Alias("install", test_env.Install( securitytest_build_dir,
+                                            securitytest_src_dir + 'oic_svr_db.json'))
 
-srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
-    unittest_src_dir + 'oic_unittest.dat'))
-srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
-    unittest_src_dir + 'oic_unittest_acl1.dat'))
-srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
-    unittest_src_dir + 'oic_unittest_default_acl.dat'))
-srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
-    unittest_src_dir + 'oic_svr_db_prov.dat'))
-srmtest_env.Alias("install", srmtest_env.Install( unittest_build_dir,
-    unittest_src_dir + 'oic_svr_db.dat'))
+test_env.Alias("install", test_env.Install( securitytest_build_dir,
+                                            securitytest_src_dir + 'oic_unittest.dat'))
+test_env.Alias("install", test_env.Install( securitytest_build_dir,
+                                            securitytest_src_dir + 'oic_unittest_acl1.dat'))
+test_env.Alias("install", test_env.Install( securitytest_build_dir,
+                                            securitytest_src_dir + 'oic_unittest_default_acl.dat'))
+test_env.Alias("install", test_env.Install( securitytest_build_dir,
+                                            securitytest_src_dir + 'oic_svr_db_prov.dat'))
+test_env.Alias("install", test_env.Install( securitytest_build_dir,
+                                            securitytest_src_dir + 'oic_svr_db.dat'))
 
-srmtest_env.AppendTarget('test')
+test_env.AppendTarget('test')
 
-out_dir = srmtest_env.get('BUILD_DIR')
-result_dir = os.path.join(srmtest_env.get('BUILD_DIR'), 'test_out') + os.sep
-if not os.path.isdir(result_dir):
-    os.makedirs(result_dir)
+test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'), securitytest)
 
-srmtest_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
-#GAR FIXME darwin unittest ld path
-srmtest_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-srmtest_env.AppendENVPath('PATH', [os.path.join(out_dir, 'resource', 'csdk')])
+#FIXME: run tests from somewhere else, this script is for building
+# out_dir = test_env.get('BUILD_DIR')
+# result_dir = os.path.join(test_env.get('BUILD_DIR'), 'test_out') + os.sep
+# if not os.path.isdir(result_dir):
+#     os.makedirs(result_dir)
 
-if env.get('WITH_VALGRIND'):
-        valgrind_xml = 'ut'
-else:
-        valgrind_xml = ''
+# test_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
+# #GAR FIXME darwin unittest ld path
+# test_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+# test_env.AppendENVPath('PATH', [os.path.join(out_dir, 'resource', 'csdk')])
 
-import runtest.RunTest
 
-runtest.RunTest.run_test(srmtest_env,
-                         valgrind_xml,
-                         'resource/csdk/security/unittest/unittest')
+
+# if test_env.get('WITH_VALGRIND'):
+#         valgrind_xml = 'ut'
+# else:
+#         valgrind_xml = ''
+
+# import test_utils
+# test_utils.run_test(test_env,
+#                          valgrind_xml,
+#                          'resource/csdk/security/unittest/unittest')

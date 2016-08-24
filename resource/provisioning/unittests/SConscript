@@ -18,23 +18,19 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-Import('env')
+Import('test_env')
 import os
 import os.path
 
-#GAR gtest
-# # SConscript file for Local PKI google tests
-# gtest_env = SConscript('#extlibs/gtest/SConscript')
-provisiontests_env = env.Clone()
-src_dir = provisiontests_env.get('SRC_DIR')
-target_os = provisiontests_env.get('TARGET_OS')
-with_ra = provisiontests_env.get('WITH_RA')
-with_ra_ibb = provisiontests_env.get('WITH_RA_IBB')
+src_dir = test_env.get('SRC_DIR')
+target_os = test_env.get('TARGET_OS')
+with_ra = test_env.get('WITH_RA')
+with_ra_ibb = test_env.get('WITH_RA_IBB')
 
 ######################################################################
 # Build flags
 ######################################################################
-provisiontests_env.PrependUnique(CPPPATH = [
+test_env.PrependUnique(CPPPATH = [
 		'../../include',
 		'../../oc_logger/include',
 		'../../csdk/stack/include',
@@ -52,63 +48,68 @@ provisiontests_env.PrependUnique(CPPPATH = [
 		'../../../extlibs/hippomocks-master/HippoMocksTest'
 		])
 
-provisiontests_env.AppendUnique(LIBPATH = [provisiontests_env.get('BUILD_DIR')])
-provisiontests_env.PrependUnique(LIBS = [
-        'ocprovision',
-		'oc',
-		'ocpmapi',
-		'octbstack',
-		'oc_logger',
-		'connectivity_abstraction',
-		'coap'
-		])
+test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_DIR')])
+test_env.PrependUnique(LIBS = ['ocprovision',
+		               'oc',
+		               'ocpmapi',
+		               'octbstack',
+		               'oc_logger',
+		               'connectivity_abstraction',
+		               'coap'])
 
 if with_ra_ibb:
-	provisiontests_env.AppendUnique(LIBS = provisiontests_env['RALIBS'], LIBPATH = provisiontests_env['RALIBPATH'], RPATH = provisiontests_env['RARPATH'])
-	print "RALIBS = %s" % provisiontests_env['RALIBS']
-	print "RALIBPATH = %s" % provisiontests_env['RALIBPATH']
-	print "RARPATH = %s" % provisiontests_env['RARPATH']
+	test_env.AppendUnique(LIBS = test_env['RALIBS'],
+                              LIBPATH = test_env['RALIBPATH'],
+                              RPATH = test_env['RARPATH'])
+	print "RALIBS = %s" % test_env['RALIBS']
+	print "RALIBPATH = %s" % test_env['RALIBPATH']
+	print "RARPATH = %s" % test_env['RARPATH']
 else :
 	if with_ra:
-		provisiontests_env.AppendUnique(LIBS = ['ra_xmpp'])
+		test_env.AppendUnique(LIBS = ['ra_xmpp'])
 
-if provisiontests_env.get('SECURED') == '1':
-    provisiontests_env.AppendUnique(LIBS = ['tinydtls'])
-    provisiontests_env.AppendUnique(LIBS = ['timer'])
-if provisiontests_env.get('DTLS_WITH_X509') == '1':
-	provisiontests_env.AppendUnique(LIBS = ['CKManager'])
-	provisiontests_env.AppendUnique(LIBS = ['asn1'])
+if test_env.get('SECURED') == '1':
+    test_env.AppendUnique(LIBS = ['tinydtls'])
+    test_env.AppendUnique(LIBS = ['timer'])
+if test_env.get('DTLS_WITH_X509') == '1':
+	test_env.AppendUnique(LIBS = ['CKManager'])
+	test_env.AppendUnique(LIBS = ['asn1'])
 
 
-if provisiontests_env.get('LOGGING'):
-	provisiontests_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+if test_env.get('LOGGING'):
+	test_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 ######################################################################
 # Source files and Targets
 ######################################################################
-unittests = provisiontests_env.Program('provisiontests', ['OCProvisioningTest.cpp'])
+cxx_provisiontests = test_env.Program('provisiontests', ['OCProvisioningTest.cpp'])
 
-Alias("provisiontests", [unittests])
+Alias("provisiontests", [cxx_provisiontests])
 
-provisiontests_env.AppendTarget('provisiontests')
-if provisiontests_env.get('TEST') == '1':
-	if target_os in ['darwin', 'linux']:
-		out_dir = provisiontests_env.get('BUILD_DIR')
-		result_dir = os.path.join(provisiontests_env.get('BUILD_DIR'), 'test_out') + os.sep
-		if not os.path.isdir(result_dir):
-			os.makedirs(result_dir)
-		provisiontests_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
-		if target_os == 'darwin':
-		    provisiontests_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
-		elif target_os == 'linux':
-		    provisiontests_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-		ut = provisiontests_env.Command ('ut', None, out_dir + 'resource/provisioning/unittests/provisiontests')
-		AlwaysBuild ('ut')
+env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  cxx_provisiontests)
+
+test_env.AppendTarget('provisiontests')
+
+#FIXME: run tests from somewhere else, this script is for building
+# if test_env.get('TEST') == '1':
+# 	if target_os in ['darwin', 'linux']:
+# 		out_dir = test_env.get('BUILD_DIR')
+# 		result_dir = os.path.join(test_env.get('BUILD_DIR'), 'test_out') + os.sep
+# 		if not os.path.isdir(result_dir):
+# 			os.makedirs(result_dir)
+# 		test_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
+# 		if target_os == 'darwin':
+# 		    test_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
+# 		elif target_os == 'linux':
+# 		    test_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+# 		ut = test_env.Command ('ut', None, out_dir + 'resource/provisioning/unittests/provisiontests')
+# 		AlwaysBuild ('ut')
+
 
 #GAR samples FIXME: examples migrated to cxx sdk
-# src_dir = provisiontests_env.get('SRC_DIR')
+# src_dir = test_env.get('SRC_DIR')
 # svr_db_src_dir = src_dir + '/resource/provisioning/examples/'
-# svr_db_build_dir = os.path.join(provisiontests_env.get('BUILD_DIR'), 'resource', 'provisioning', 'unittests')
-# provisiontests_env.Alias("install", provisiontests_env.Install( svr_db_build_dir,
+# svr_db_build_dir = os.path.join(test_env.get('BUILD_DIR'), 'resource', 'provisioning', 'unittests')
+# test_env.Alias("install", test_env.Install( svr_db_build_dir,
 #                                 svr_db_src_dir + 'oic_svr_db_client.json'))
 
