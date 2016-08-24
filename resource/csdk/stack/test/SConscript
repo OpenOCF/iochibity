@@ -18,22 +18,16 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-Import('env')
+Import('test_env')
 import os
 import os.path
 
-#GAR gtest
-# # SConscript file for Local PKI google tests
-# gtest_env = SConscript('#extlibs/gtest/SConscript')
-stacktest_env = env.Clone()
-target_os = stacktest_env.get('TARGET_OS')
+target_os = test_env.get('TARGET_OS')
 
 ######################################################################
 # Build flags
 ######################################################################
-home = os.environ['HOME']
-
-stacktest_env.PrependUnique(CPPPATH = [
+test_env.PrependUnique(CPPPATH = [
 		'../../security/include',
 		'../../ocsocket/include',
 		'../../logger/include',
@@ -47,51 +41,56 @@ stacktest_env.PrependUnique(CPPPATH = [
 		])
 
 #GAR uuid
-stacktest_env.PrependUnique(LIBS = ['octbstack',
-                                    'ocsrm',
-                                    'connectivity_abstraction',
-                                    'coap',
-				    'uuid',
-                                    'gtest',
-                                    'gtest_main'])
+test_env.PrependUnique(LIBS = ['octbstack',
+                               'ocsrm',
+                               'connectivity_abstraction',
+                               'coap',
+                               'gtest',
+                               'gtest_main'])
 
-stacktest_env.AppendUnique(LIBPATH = [stacktest_env.get('BUILD_DIR')])
+if target_os != 'darwin':
+        test_env.PrependUnique(LIBS = ['uuid'])
 
-stacktest_env.PrependUnique(LIBS = ['oc_logger'])
+test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_DIR')])
 
-if stacktest_env.get('SECURED') == '1':
-    stacktest_env.AppendUnique(LIBS = ['tinydtls'])
+test_env.PrependUnique(LIBS = ['oc_logger'])
 
-if stacktest_env.get('LOGGING'):
-	stacktest_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+if test_env.get('SECURED') == '1':
+    test_env.AppendUnique(LIBS = ['tinydtls'])
+
+if test_env.get('LOGGING'):
+	test_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 if target_os in ['msys_nt', 'windows']:
-	stacktest_env.AppendUnique(LINKFLAGS = ['/subsystem:CONSOLE'])
-	stacktest_env.AppendUnique(LIBS = ['ws2_32', 'iphlpapi', 'kernel32'])
+	test_env.AppendUnique(LINKFLAGS = ['/subsystem:CONSOLE'])
+	test_env.AppendUnique(LIBS = ['ws2_32', 'iphlpapi', 'kernel32'])
 else:
-	stacktest_env.PrependUnique(LIBS = ['m'])
+	test_env.PrependUnique(LIBS = ['m'])
 
 ######################################################################
 # Source files and Targets
 ######################################################################
-stacktests = stacktest_env.Program(target='stacktests', source=['./stacktests.cpp'])
-stacktest_env.Decider('timestamp-newer')
-cbortests = stacktest_env.Program('cbortests', ['cbortests.cpp'])
+stacktests = test_env.Program(target='stacktests', source=['./stacktests.cpp'])
+test_env.Decider('timestamp-newer')
+cbortests = test_env.Program('cbortests', ['cbortests.cpp'])
 
 Alias("test", [stacktests, cbortests])
 
-stacktest_env.AppendTarget('test')
+test_env.AppendTarget('test')
 
-if env.get('WITH_VALGRIND'):
-        valgrind_xml = 'resource_csdk_stack_test.memcheck'
-else:
-        valgrind_xml = ''
+test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  stacktests)
+test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  cbortests)
 
-import runtest.RunTest
+# if env.get('WITH_VALGRIND'):
+#         valgrind_xml = 'resource_csdk_stack_test.memcheck'
+# else:
+#         valgrind_xml = ''
 
-if target_os in ['windows']:
-    stacktest_env.AppendENVPath('PATH', [os.path.join(stacktest_env.get('BUILD_DIR'), 'resource', 'csdk')])
+# import test_utils
 
-runtest.RunTest.run_test(stacktest_env,
-                         valgrind_xml,
-                         'resource/csdk/stack/test/stacktests')
+# if target_os in ['windows']:
+#     test_env.AppendENVPath('PATH', [os.path.join(test_env.get('BUILD_DIR'), 'resource', 'csdk')])
+
+# test_utils.run_test(test_env,
+#                          valgrind_xml,
+#                          'resource/csdk/stack/test/stacktests')
