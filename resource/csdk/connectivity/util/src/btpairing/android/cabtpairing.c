@@ -18,7 +18,7 @@
  *
  ******************************************************************/
 
-#include "cabtpairinginterface.h"
+#include "cabtpairinginterface-android.h"
 #include "cabtpairing.h"
 #include "cacommon.h"
 #include "logger.h"

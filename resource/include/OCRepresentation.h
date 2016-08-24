@@ -41,8 +41,6 @@
 #include <cstddef>
 #include <string>
     #endif
-#elif __ANDROID__
-#include "OCAndroid.h"
 #endif
 
 #include <OCException.h>
