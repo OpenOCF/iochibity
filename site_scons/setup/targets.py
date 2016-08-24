@@ -45,76 +45,97 @@ def get_host(env):
 #  HOST_OS_BASE == windows
         return env
 
-# def config_toolchain(env):
-#         #FIXME: currently this is just for POC.
-#         # TODO: elim hardcoded stuff, use sourced env vars to drive config
-#         # TODO: get the versioning of the tools, needed for linking to crystax boost libs
+def config_transport(env):
+# from connectivity/SConscript:
+# 	if with_ra == True:
+# 			env.AppendUnique(CPPDEFINES = ['RA_ADAPTER'])
+# 	if with_tcp == True:
+# 			env.AppendUnique(CPPDEFINES = ['TCP_ADAPTER'])
+# if 'ALL' in transport:
+# 	if with_ra == True:
+# 			env.AppendUnique(CPPDEFINES = ['RA_ADAPTER'])
+# 	if with_tcp == True:
+# 			env.AppendUnique(CPPDEFINES = ['TCP_ADAPTER'])
 
-#         # First: tools
-#         env.Replace(CC = env['ENV']['TOOLCHAIN_DIR'] + '/bin/arm-linux-androideabi-gcc')
-#         env.Replace(CXX = env['ENV']['TOOLCHAIN_DIR'] + '/bin/arm-linux-androideabi-g++')
-#         env.Replace(LINK = env['ENV']['TOOLCHAIN_DIR'] + '/bin/arm-linux-androideabi-g++')
-#         env.Replace(LD = env['ENV']['TOOLCHAIN_DIR'] + '/bin/arm-linux-androideabi-ld')
-#         env.Replace(AR = env['ENV']['TOOLCHAIN_DIR'] + '/bin/arm-linux-androideabi-ar')
-#         env.Replace(RANLIB = env['ENV']['TOOLCHAIN_DIR'] + '/bin/arm-linux-androideabi-ranlib')
+# 	if target_os == 'linux':
+# 	        gdbus = 0
+# 		for item in env.get('CPPDEFINES'):
+#         	        if 'HAVE_GDBUS' in item:
+# 	        	        gdbus = 1
+# 				break;
+# 		if gdbus:
+# 		        env.AppendUnique(CPPDEFINES = ['IP_ADAPTER','NO_EDR_ADAPTER','LE_ADAPTER'])
+# 		else:  # Edison uses dbus-glib, gdbus-codegen unavail
+# 		        print "**** WARNING: host uses dbus-glib, GDBus required (for gdbus-codegen)"
+# 			env.AppendUnique(CPPDEFINES = ['IP_ADAPTER','NO_EDR_ADAPTER','NO_LE_ADAPTER'])
 
-#         # Then: transports
-#         try:
-#                 ip_api = env['ENV']['IOTIVITY_IP_API']
-#                 if ip_api:
-#                         env.Append(CPPDEFINES = ['IP_ADAPTER'])
-#         except KeyError:
-#                 env.Append(CPPDEFINES = ['NO_IP_ADAPTER'])
+# 	elif target_os == 'tizen':
+# 		env.AppendUnique(CPPDEFINES = ['IP_ADAPTER','EDR_ADAPTER','LE_ADAPTER'])
+# 	elif target_os == 'android':
+# 		env.AppendUnique(CPPDEFINES = ['IP_ADAPTER','EDR_ADAPTER','LE_ADAPTER', 'NFC_ADAPTER'])
+# 	elif target_os in['darwin','ios']:
+# 		env.AppendUnique(CPPDEFINES = ['IP_ADAPTER','NO_EDR_ADAPTER','NO_LE_ADAPTER'])
+# 	elif target_os in ['msys_nt', 'windows']:
+# 		env.AppendUnique(CPPDEFINES = ['IP_ADAPTER','NO_EDR_ADAPTER','NO_LE_ADAPTER'])
+# 	else:
+# 		env.AppendUnique(CPPDEFINES = ['IP_ADAPTER','EDR_ADAPTER','LE_ADAPTER'])
+# else:
+# 	if 'BT' in transport:
+# 		if target_os in ['darwin', 'linux']:
+# 			print "CA Transport BT is not supported on " + target_os
+# 			Exit(1)
+# 		else:
+# 			env.AppendUnique(CPPDEFINES = ['EDR_ADAPTER'])
+# 	else:
+# 		env.AppendUnique(CPPDEFINES = ['NO_EDR_ADAPTER'])
 
-#         try:
-#                 bt_api = env['ENV']['IOTIVITY_BT_API']
-#                 if bt_api:
-#                         env.Append(CPPDEFINES = ['EDR_ADAPTER'])
-#         except KeyError:
-#                 env.Append(CPPDEFINES = ['NO_EDR_ADAPTER'])
+# 	if 'BLE' in transport:
+# 	        if target_os == 'darwin':
+# 		    print "CA Transport BLE not supported on Darwin"
+# 		    Exit(1)
+# 		else:
+# 		    env.AppendUnique(CPPDEFINES = ['LE_ADAPTER'])
+# 	else:
+# 		env.AppendUnique(CPPDEFINES = ['NO_LE_ADAPTER'])
 
-#         try:
-#                 ble_api = env['ENV']['IOTIVITY_BLE_API']
-#                 if ble_api:
-#                         env.Append(CPPDEFINES = ['LE_ADAPTER'])
-#         except KeyError:
-#                 env.Append(CPPDEFINES = ['NO_LE_ADAPTER'])
+# 	if 'IP' in transport:
+# 		env.AppendUnique(CPPDEFINES = ['IP_ADAPTER'])
+# 	else:
+# 		env.AppendUnique(CPPDEFINES = ['NO_IP_ADAPTER'])
 
-#         try:
-#                 nfc_api = env['ENV']['IOTIVITY_NFC_API']
-#                 if nfc_api:
-#                         env.Append(CPPDEFINES = ['NFC_ADAPTER'])
-#         except KeyError:
-#                 env.Append(CPPDEFINES = ['NO_NFC_ADAPTER'])
-#         env.Append(CPPDEFINES = ['HAVE_ARPA_INET_H'])
-#         env.Append(CPPDEFINES = ['HAVE_ASSERT_H'])
-#         env.Append(CPPDEFINES = ['HAVE_FCNTL_H'])
-#         env.Append(CPPDEFINES = ['HAVE_LIMITS_H'])
-#         env.Append(CPPDEFINES = ['HAVE_NETDB_H'])
-#         env.Append(CPPDEFINES = ['HAVE_NETINET_IN_H'])
-#         env.Append(CPPDEFINES = ['HAVE_PTHREAD_H'])
-#         env.Append(CPPDEFINES = ['HAVE_SYS_SOCKET_H'])
-#         env.Append(CPPDEFINES = ['HAVE_SYS_TIME_H'])
-#         env.Append(CPPDEFINES = ['HAVE_SYS_TYPES_H'])
-#         env.Append(CPPDEFINES = ['HAVE_TIME_H'])
-#         env.Append(CPPDEFINES = ['WITH_POSIX'])
-#         env.Append(CPPDEFINES = ['__ANDROID__'])
-#         env.Append(CPPDEFINES = ['__JAVA__'])
-#         env.Append(CPPDEFINES = ['WITH_POSIX'])
-#         #GAR FIXME
-#         # env.Append(LIBPATH = ['/Users/gar/android/crystax-ndk-10.3.2/sources/boost/1.59/libs/armeabi-v7a/llvm-3.6/'])
-#         env.Append(CPPPATH = ['/Users/gar/android/crystax-ndk-10.3.2/sources/boost/1.59.0/include'])
-#         env.Append(LIBPATH = ['/Users/gar/android/crystax-ndk-10.3.2/sources/boost/1.59.0/libs/armeabi-v7a/gnu-4.9/'])
-#         env.Append(LIBS = ['boost_date_time'])
-#         env.Append(LIBS = ['boost_system'])
-#         env.Append(LIBS = ['boost_thread'])
-#         env.Append(LIBS = ['gnustl_shared'])
-#         env.AppendUnique(CXXFLAGS = ['-std=c++11', '-frtti', '-fexceptions'])
-#         env.AppendUnique(CFLAGS = ['-std=c11'])
-#         env.AppendUnique(LINKFLAGS = ['-shared'])
-#         env.Replace(SHLIBSUFFIX = '.so')
+# 	if with_tcp == True:
+# 		if target_os in ['darwin', 'linux', 'tizen', 'android', 'arduino']:
+# 			env.AppendUnique(CPPDEFINES = ['TCP_ADAPTER', 'WITH_TCP'])
+# 		else:
+# 			print "CA Transport TCP is not supported "
+# 			Exit(1)
+# 	else:
+# 		env.AppendUnique(CPPDEFINES = ['NO_TCP_ADAPTER'])
 
-#         return env
+# 	if 'NFC' in transport:
+# 		if target_os in['android']:
+# 			env.AppendUnique(CPPDEFINES = ['NFC_ADAPTER'])
+# 		else:
+# 			print "CA Transport NFC is not supported "
+# 			Exit(1)
+# 	else:
+# 		env.AppendUnique(CPPDEFINES = ['NO_NFC_ADAPTER'])
+
+#         if 'SUB' in with_mq:
+# 	env.AppendUnique(CPPDEFINES = ['MQ_SUBSCRIBER', 'WITH_MQ'])
+# 	print "MQ SUB support"
+
+# if 'PUB' in with_mq:
+# 	env.AppendUnique(CPPDEFINES = ['MQ_PUBLISHER', 'WITH_MQ'])
+# 	print "MQ PUB support"
+
+# if 'BROKER' in with_mq:
+# 	env.AppendUnique(CPPDEFINES = ['MQ_BROKER', 'WITH_MQ'])
+# 	print "MQ Broker support"
+
+
+
+        return env
 
 def host(env) :
         print "Running feature tests for host system..."
@@ -176,15 +197,13 @@ def host(env) :
         if conf.CheckLib('uuid'):
                 env.AppendUnique(CPPDEFINES = ['HAVE_UUID'])
 
-        if conf.CheckLib('pthread'):
+        if conf.CheckLibWithHeader('pthread', 'pthread.h', 'c'):
+                env.AppendUnique(CPPDEFINES = ['HAVE_PTHREAD_H'])
                 env.AppendUnique(PTHREAD_CFLAGS = '-pthread')
-                env.AppendUnique(PTHREAD_LIBS = 'pthread')
+                env.AppendUnique(PTHREAD_LIB = 'pthread')
 
         if conf.CheckCHeader('curl/curl.h'):
                 env.AppendUnique(CPPDEFINES = ['HAVE_CURL_CURL_H'])
-
-        if conf.CheckCHeader('pthread.h'):
-                env.AppendUnique(CPPDEFINES = ['HAVE_PTHREAD_H'])
 
         if conf.CheckProg('gdbus-codegen'):
                 env.AppendUnique(CPPDEFINES = ['HAVE_GDBUS'])
@@ -202,21 +221,21 @@ def host(env) :
                 bldef = 'BLUEZ=' + bltv.rstrip()
                 conf.env.PrependUnique(CPPDEFINES = [bldef])
 
+        # funcs
         if conf.CheckFunc('clock_gettime'):
 	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
-
         if conf.CheckFunc('gettimeofday'):
 	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETTIMEOFDAY'])
-
         if conf.CheckFunc('localtime_r'):
 	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_LOCALTIME_R'])
-
         if conf.CheckFunc('pthread_condattr_setclock'):
 	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_PTHREAD_CONDATTR_SETCLOCK'])
-
+        if conf.CheckFunc('QueryPerformanceFrequency'):
+	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_QUERYPERFORMANCEFREQUENCY'])
         if conf.CheckFunc('strptime'):
 	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_STRPTIME'])
 
+        # in alpha order
         if conf.CheckCHeader('arpa/inet.h'):
                 conf.env.Append(CPPDEFINES = ['HAVE_ARPA_INET_H'])
         if conf.CheckCHeader('fcntl.h'):
@@ -225,6 +244,11 @@ def host(env) :
                 conf.env.Append(CPPDEFINES = ['HAVE_GRP_H'])
         if conf.CheckCHeader('i6addr.h'):
                 conf.env.Append(CPPDEFINES = ['HAVE_I6ADDR_H'])
+        if conf.CheckCHeader('limits.h'):
+                conf.env.Append(CPPDEFINES = ['HAVE_LIMITS_H'])
+        else:
+                print "limits.h is required but not found; abending build"
+                Exit(2)
         if conf.CheckCHeader('linux/limits.h'):
                 conf.env.Append(CPPDEFINES = ['HAVE_LINUX_LIMITS_H'])
         if conf.CheckCHeader('memory.h'):

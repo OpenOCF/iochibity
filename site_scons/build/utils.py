@@ -20,149 +20,92 @@ def download(target, url) :
 	except Exception, e :
 		raise SCons.Errors.StopError( '%s [%s]' % (e, url) )
 
-def feature_tests() :
-        print "Running feature tests..."
-        env = Environment()
-        # if env.GetOption('clean'):
-        #         print "We are cleaning, skip the config"
-        #         return;
-
-        conf = Configure(env)
-        host_os = os.environ['IOTIVITY_HOST_OS']
-        target_os = os.environ['IOTIVITY_TARGET_OS']
-        print "IOTIVITY_HOST_OS:", host_os
-        print "IOTIVITY_TARGET_OS:", target_os
-
-        if not conf.CheckCXX():
-                print('!! Your compiler and/or environment is not correctly configured.')
-                Exit(0)
-
-        if not conf.CheckFunc('printf'):
-                print('!! Your compiler and/or environment is not correctly configured.')
-                Exit(0)
-
-        if not conf.CheckLib('gtest'):
-                print "\tWARNING: googletest not found."
-                print "\t\tTesting will be disabled."
-                print "\t\tTo enable it, install googletest from https://github.com/google/googletest"
-                print "\t\tand set GTEST_DIR (in source.me)."
-
-        #GAR FIXME: check for boost libs UNLESS build target is c kernel
-
-        if conf.CheckLib('curl'):
-                env.AppendUnique(HAVE_LIBCURL = 1)
-
-        if conf.CheckLib('uuid'):
-                env.AppendUnique(CPPDEFINES = ['HAVE_UUID'])
-
-        if conf.CheckLib('pthread'):
-                env.AppendUnique(PTHREAD_CFLAGS = ['-pthread'])
-                env.AppendUnique(PTHREAD_LIBS = ['-lpthread'])
-                env.AppendUnique(CPPDEFINES = ['HAVE_PTHREADS'])
-
-        if conf.CheckProg('gdbus-codegen'):
-                env.AppendUnique(CPPDEFINES = ['HAVE_GDBUS'])
-                #WARNING: having gdbus-codegen does not guarantee bluez stack
-                # it could be installed on e.g. os x by some lib other than bluez
-
-        if conf.CheckProg('bluetoothd'):
-                #TODO: make sure we have a bluez stack
-                sys.stdout.write('Checking bluetooth version... ')
-                sys.stdout.flush()
-                #try
-                bltv = subprocess.Popen(["bluetoothd", "-v"], stdout=subprocess.PIPE).communicate()[0]
-                sys.stdout.write(bltv)
-                bltv = bltv.replace('.', '')
-                bldef = 'BLUEZ=' + bltv.rstrip()
-                conf.env.PrependUnique(CPPDEFINES = [bldef])
-
-        if conf.CheckFunc('clock_gettime'):
-	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_CLOCK_GETTIME'])
-
-        if conf.CheckFunc('gettimeofday'):
-	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETTIMEOFDAY'])
-
-        if conf.CheckFunc('strptime'):
-	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_STRPTIME'])
-
-        if conf.CheckCHeader('arpa/inet.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_ARPA_INET_H'])
-        if conf.CheckCHeader('fcntl.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_FCNTL_H'])
-        if conf.CheckCHeader('grp.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_GRP_H'])
-        if conf.CheckCHeader('i6addr.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_I6ADDR_H'])
-        if conf.CheckCHeader('linux/limits.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_LINUX_LIMITS_H'])
-        if conf.CheckCHeader('memory.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_MEMORY_H'])
-        if conf.CheckCHeader('netdb.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_NETDB_H'])
-        if conf.CheckCHeader('netinet/in.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_NETINET_IN_H'])
-        if conf.CheckCHeader('pthread.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_PTHREAD_H'])
-        if conf.CheckCHeader('stdlib.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_STDLIB_H'])
-        if conf.CheckCHeader('string.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_STRING_H'])
-        if conf.CheckCHeader('strings.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_STRINGS_H'])
-        if conf.CheckCHeader('sys/socket.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_SOCKET_H'])
-        if conf.CheckCHeader('sys/stat.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_STAT_H'])
-        if conf.CheckCHeader('sys/time.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TIME_H'])
-        if conf.CheckCHeader('sys/timeb.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TIMEB_H'])
-        if conf.CheckCHeader('sys/types.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_TYPES_H'])
-        if conf.CheckCHeader('sys/unistd.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_SYS_UNISTD_H'])
-        if conf.CheckCHeader('syslog.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_SYSLOG_H'])
-        if conf.CheckCHeader('time.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_TIME_H'])
-        if conf.CheckCHeader('unistd.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_UNISTD_H'])
-        if conf.CheckCHeader('uuid/uuid.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_UUID_UUID_H'])
-        if conf.CheckCHeader('windows.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_WINDOWS_H'])
-        if conf.CheckCHeader('winsock2.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_WINSOCK2_H'])
-        if conf.CheckCHeader('ws2tcpip.h'):
-                conf.env.Append(CPPDEFINES = ['-DHAVE_WS2TCPIP_H'])
-
-        if conf.CheckFunc('GetSystemTimeAsFileTime') or target_os == 'windows':
-	# TODO: Remove target_os check.
-	# We currently check for 'windows' as well, because the environment can
-	# sometimes get so polluted that CheckFunc ceases to work!
-	        conf.env.AppendUnique(CPPDEFINES = ['HAVE_GETSYSTEMTIMEASFILETIME'])
-
-        env = conf.Finish()
-        print "... feature testing complete"
+def print_config(env):
+        print "HOST OS:  ", env.get('IOTIVITY_HOST_OS')
+        print "HOST ARCH:", env.get('IOTIVITY_HOST_ARCH')
+        print "TARGET OS:", env.get('TARGET_OS')
+        print "TARGET OS Version:", env.get('TARGET_OS_VERSION')
+        print "TARGET ARCH:", env.get('TARGET_ARCH')
         return env
 
+def get_help_vars():
+        help_vars = Variables()
+        help_vars.Add(BoolVariable('VERBOSE', 'Show compilation', False))
+        help_vars.Add(BoolVariable('RELEASE', 'Build for release?', True)) # set to 'no', 'false' or 0 for debug
+        # help_vars.Add(EnumVariable('TARGET_OS', 'Target platform', host, host_target_map[host]))
 
+        help_vars.Add(BoolVariable('WITH_RA', 'Build with Remote Access module', False))
+        help_vars.Add(BoolVariable('WITH_TCP', 'Build with TCP adapter', False))
+        help_vars.Add(ListVariable('WITH_MQ', 'Build with MQ publisher/broker', 'OFF', ['OFF', 'SUB', 'PUB', 'BROKER']))
+        help_vars.Add(BoolVariable('WITH_CLOUD', 'Build including Cloud Connector and Cloud Client sample', False))
+        help_vars.Add(ListVariable('RD_MODE', 'Resource Directory build mode', 'CLIENT', ['CLIENT', 'SERVER']))
 
-# if target_os in ['darwin','linux']:
-# 	# Verify that 'google unit test' library is installed.  If not,
-# 	# get it and install it
-# 	SConscript(src_dir + '/extlibs/gtest/SConscript')
+        help_vars.Add(BoolVariable('SIMULATOR', 'Build with simulator module', False))
 
-# 	# Verify that 'hippomocks' mocking code is installed.  If not,
-# 	# get it and install it
-# 	SConscript(src_dir + '/extlibs/hippomocks.scons')
+        help_vars.Add(BoolVariable('WITH_RA_IBB', 'Build with Remote Access module(workssys)', False))
 
+        # if target_os in targets_disallow_multitransport:
+	help_vars.Add(ListVariable('TARGET_TRANSPORT', 'Target transport', 'IP', ['BT', 'BLE', 'IP', 'NFC']))
+        # else:
+        # help_vars.Add(ListVariable('TARGET_TRANSPORT', 'Target transport', 'ALL', ['ALL', 'BT', 'BLE', 'IP', 'NFC']))
 
-# # elif target_os == 'darwin':
-# # 	# Verify that 'google unit test' library is installed.  If not,
-# # 	# get it and install it
-# # 	SConscript(src_dir + '/extlibs/gtest/SConscript')
+        # help_vars.Add(EnumVariable('TARGET_ARCH', 'Target architecture', default_arch, os_arch_map[target_os]))
+        help_vars.Add(EnumVariable('SECURED', 'Build with DTLS', '0', allowed_values=('0', '1')))
+        help_vars.Add(EnumVariable('DTLS_WITH_X509', 'DTLS with X.509 support', '0', allowed_values=('0', '1')))
+        help_vars.Add(EnumVariable('TEST', 'Run unit tests', '0', allowed_values=('0', '1')))
+        help_vars.Add(BoolVariable('LOGGING', 'Enable stack logging', False)) # logging_default))
+        # help_vars.Add(BoolVariable('UPLOAD', 'Upload binary ? (For Arduino)', require_upload))
+        help_vars.Add(EnumVariable('ROUTING', 'Enable routing', 'EP', allowed_values=('GW', 'EP')))
+        help_vars.Add(EnumVariable('BUILD_SAMPLE', 'Build with sample', 'ON', allowed_values=('ON', 'OFF')))
+        # help_vars.AddVariables(('DEVICE_NAME', 'Network display name for device (For Arduino)', device_name, None, None),)
+        help_vars.Add(PathVariable('ANDROID_NDK', 'Android NDK path', None, PathVariable.PathAccept))
+        help_vars.Add(PathVariable('ANDROID_HOME', 'Android SDK path', None, PathVariable.PathAccept))
+        #ES_TARGET_ENROLLEE is specifying what is our target enrollee (Arduino or rest of platforms which support Multicast)
+        help_vars.Add(EnumVariable('ES_TARGET_ENROLLEE', 'Target Enrollee', 'arduino', allowed_values=('arduino', 'tizen', 'linux', 'darwin')))
+        #ES_ROLE is for specifying the role (Enrollee or Mediator) for which scons is being executed
+        help_vars.Add(EnumVariable('ES_ROLE', 'Target build mode', 'mediator', allowed_values=('mediator', 'enrollee')))
+        #ES_SOFT_MODE is for specifying MODE (Mode 1 : Enrollee with  Soft AP or Mode 2  : Mediator with Soft AP)
+        help_vars.Add(EnumVariable('ES_SOFTAP_MODE', 'Target build mode', 'ENROLLEE_SOFTAP', allowed_values=('ENROLLEE_SOFTAP', 'MEDIATOR_SOFTAP')))
+ 	help_vars.Add('TC_PREFIX', "Toolchain prefix (Generally only be required for cross-compiling)", os.environ.get('TC_PREFIX'))
+ 	help_vars.Add(PathVariable('TC_PATH',
+ 			'Toolchain path (Generally only be required for cross-compiling)',
+ 			os.environ.get('TC_PATH')))
 
-# # 	# Build C stack's unit tests.
-# # 	SConscript('csdk/stack/test/SConscript')
-# # 	SConscript('csdk/connectivity/test/SConscript')
+        return help_vars
+
+# migrated from build_common/SConscript:
+def SetDir(env):
+        dir = env.GetLaunchDir()
+
+	if not os.path.exists(dir + '/SConstruct'):
+		print '''
+*************************************** Error *********************************
+* The directory(%s) seems isn't a source code directory, no SConstruct file is
+* found. *
+*******************************************************************************
+''' % dir
+		Exit(1)
+
+        target_os = env.get('TARGET_OS')
+        target_arch = env.get('TARGET_ARCH')
+
+        print "SetDir TARGET OS:", target_os
+        print "SetDir TARGET ARCH:", target_arch
+        print "SetDir BUILD SYSROOT:", env.get('BUILD_SYSROOT')
+
+	env.Replace(SRC_DIR = dir)
+	print "build.utils.SetDir SRC_DIR: ", env.Dump('SRC_DIR')
+
+        build_dir = env.get('BUILD_SYSROOT')
+	# if env.get('RELEASE'):
+	# 	build_dir = dir + '/out/' + target_os + '/' + target_arch + '/release/'
+	# else:
+	# 	build_dir = dir + '/out/' + target_os + '/' + target_arch + '/debug/'
+
+	# the following cmd will add the build_dir tree to env?
+	env.VariantDir(build_dir, dir, duplicate=0)
+
+	env.Replace(BUILD_DIR = build_dir)
+	print "build.utils.SetDir BUILD_DIR: ", env.Dump('BUILD_DIR')
+	# NB: the build_dir tree has NOT yet been written to disk!
+
