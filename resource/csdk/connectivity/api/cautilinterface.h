@@ -22,9 +22,11 @@
 #define CA_UTILS_INTERFACE_H_
 
 #include "cacommon.h"
-#if defined(__ANDROID__) || defined(__JAVA__)
-#include "jni.h"
-#endif
+//GAR FIXME: remove
+/* #ifdef __ANDROID__ */
+/* #include "jni.h" */
+/* #endif */
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -90,74 +92,6 @@ CAResult_t CASetPortNumberToAssign(CATransportAdapter_t adapter,
  * @return  assigned port number information.
  */
 uint16_t CAGetAssignedPortNumber(CATransportAdapter_t adapter, CATransportFlags_t flag);
-
-#if defined(__ANDROID__) || defined(__JAVA__)
-#ifdef __ANDROID__
-/**
- * initialize util client for android
- * @param[in]   env                   JNI interface pointer.
- * @param[in]   jvm                   invocation inferface for JAVA virtual machine.
- * @param[in]   context               application context.
- *
- * @return  ::CA_STATUS_OK or ::CA_STATUS_FAILED or ::CA_MEMORY_ALLOC_FAILED
- */
-CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm, jobject context);
-#else
-/**
- * initialize util client for android
- * @param[in]   env                   JNI interface pointer.
- * @param[in]   jvm                   invocation inferface for JAVA virtual machine.
- *
- * @return  ::CA_STATUS_OK or ::CA_STATUS_FAILED or ::CA_MEMORY_ALLOC_FAILED
- */
-CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm);
-#endif
-
-/**
- * terminate util client for android
- * @param[in]   env                   JNI interface pointer.
- *
- * @return  ::CA_STATUS_OK or ::CA_STATUS_FAILED or ::CA_MEMORY_ALLOC_FAILED
- */
-CAResult_t CAUtilClientTerminate(JNIEnv *env);
-
-// BT pairing
-/**
- * start discovery for BT device which has iotivity UUID.
- * @param[in]  env              JNI interface pointer.
- */
-CAResult_t CAUtilStartScan(JNIEnv *env);
-
-/**
- * stop discovery
- * @param[in]  env              JNI interface pointer.
- */
-CAResult_t CAUtilStopScan(JNIEnv *env);
-
-/**
- * bonding between devices.
- * @param[in]  env              JNI interface pointer.
- * @param[in]  device           bluetooth device object.
- */
-CAResult_t CAUtilCreateBond(JNIEnv *env, jobject device);
-
-
-/**
- * set callback listener of found device.
- * @param[in]  listener         callback listener
- */
-void CAUtilSetFoundDeviceListener(jobject listener);
-
-/**
- * set interval time and working count for LE scan.
- * @param[in]  intervalTime         interval time(Seconds).
- * @param[in]  workingCount         working cycle for selected interval time.
- *
- * @return  ::CA_STATUS_OK or ::CA_STATUS_FAILED or ::CA_MEMORY_ALLOC_FAILED
- */
-CAResult_t CAUtilSetLEScanInterval(jint intervalTime, jint workingCount);
-
-#endif
 
 #ifdef __cplusplus
 } /* extern "C" */
