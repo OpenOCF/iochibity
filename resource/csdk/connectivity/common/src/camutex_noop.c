@@ -37,29 +37,25 @@
 
 typedef struct _tagMutexInfo_t
 {
-#if defined(_MSC_VER)
-    uint8_t unused; //VS doesnt like empty structs
-#endif
+    uint8_t unused; /* empty structs are illegal in C */
 } ca_mutex_internal;
 
 typedef struct _tagEventInfo_t
 {
-#if defined(_MSC_VER)
-    uint8_t unused; //VS doesnt like empty structs
-#endif
+    uint8_t unused; /* empty structs are illegal in C */
 } ca_cond_internal;
 
 /**
  * @var g_mutexInfo
  * @brief This is used to return a non NULL value for ca_mutex_new().
  */
-static ca_mutex_internal g_mutexInfo = { 0 };
+static ca_mutex_internal g_mutexInfo;
 
 /**
  * @var g_condInfo
  * @brief This is used to return a non NULL value for ca_cond_new().
  */
-static ca_cond_internal g_condInfo = { 0 };
+static ca_cond_internal g_condInfo;
 
 ca_mutex ca_mutex_new(void)
 {
@@ -68,16 +64,19 @@ ca_mutex ca_mutex_new(void)
 
 bool ca_mutex_free(ca_mutex mutex)
 {
+    OC_UNUSED(mutex);
     return true;
 }
 
 void ca_mutex_lock(ca_mutex mutex)
 {
+    OC_UNUSED(mutex);
     return;
 }
 
 void ca_mutex_unlock(ca_mutex mutex)
 {
+    OC_UNUSED(mutex);
     return;
 }
 
@@ -88,26 +87,34 @@ ca_cond ca_cond_new(void)
 
 void ca_cond_free(ca_cond cond)
 {
+    OC_UNUSED(cond);
     return;
 }
 
 void ca_cond_signal(ca_cond cond)
 {
+    OC_UNUSED(cond);
     return;
 }
 
 void ca_cond_broadcast(ca_cond cond)
 {
+    OC_UNUSED(cond);
     return;
 }
 
 void ca_cond_wait(ca_cond cond, ca_mutex mutex)
 {
+    OC_UNUSED(cond);
+    OC_UNUSED(mutex);
     return;
 }
 
 CAWaitResult_t ca_cond_wait_for(ca_cond cond, ca_mutex mutex, uint64_t microseconds)
 {
+    OC_UNUSED(cond);
+    OC_UNUSED(mutex);
+    OC_UNUSED(microseconds);
     return CA_WAIT_SUCCESS;
 }
 
