@@ -19,7 +19,6 @@ src_dir = env.get('SRC_DIR')
 root_dir = os.pardir
 ca_path = os.curdir
 
-
 #####################################################################
 # Source files and Target(s)
 ######################################################################
@@ -49,9 +48,9 @@ env.SConscript(os.path.join(root_dir, 'util', 'SConscript'))
 # the SConscruct file is found.
 build_dir = env.get('BUILD_DIR')
 if env.get('SECURED') == '1':
-	env.SConscript(build_dir + 'extlibs/tinydtls/SConscript')
+	env.SConscript(build_dir + '/extlibs/tinydtls/SConscript')
 	#GAR timer migrated to csdk
-	##env.SConscript(build_dir + 'extlibs/timer/SConscript')
+	##env.SConscript(build_dir + '/extlibs/timer/SConscript')
 	env.AppendUnique(CPPPATH = ['#resource/csdk/timer'])
 
 if ca_os == 'linux':  #GAR NOTE: not for 'darwin'!
@@ -112,6 +111,7 @@ else:
 			env.AppendUnique(CPPPATH = [os.path.join(root_dir, 'extlibs/tinydtls')])
 		else:
 			env.AppendUnique(CPPPATH = ['#extlibs/tinydtls'])
+			env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'extlibs/tinydtls')])
 
 ca_common_src = [
         os.path.join(ca_path, d) for d in ca_common_src ]
@@ -175,14 +175,24 @@ if env.get('LOGGING'):
 if ca_os == 'android':
 	lib_env.AppendUnique(LINKFLAGS = ['-Wl,-soname,libconnectivity_abstraction.so'])
 
-if ca_os in ['android', 'tizen']:
+if ca_os in ['android']:
+	if lib_env.get('SECURED') == '1':
+		lib_env.AppendUnique(LIBS = ['tinydtls'])
+		# lib_env.AppendUnique(LIBS = ['timer'])
+	#GAR FIXME: put the build dir on libpath at startup
+        lib_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
+        lib_env.AppendUnique(LIBS = ['coap'])
+	calib = lib_env.SharedLibrary('connectivity_abstraction', env.get('CA_SRC'),
+	SHLIBSUFFIX=lib_env.get('SHLIBSUFFIX'))
+
+elif ca_os in ['tizen']:
 	lib_env.AppendUnique(LIBS = ['coap'])
 	if lib_env.get('SECURED') == '1':
 		lib_env.AppendUnique(LIBS = ['tinydtls'])
 		lib_env.AppendUnique(LIBS = ['timer'])
-	if ca_os != 'android':
-		lib_env.AppendUnique(LIBS = ['rt'])
+	lib_env.AppendUnique(LIBS = ['rt'])
 	calib = lib_env.SharedLibrary('connectivity_abstraction', env.get('CA_SRC'))
+
 elif ca_os in ['msys_nt', 'windows']:
 	lib_env.AppendUnique(LIBS = ['coap', 'mswsock', 'ws2_32', 'iphlpapi', 'logger'])
 	if lib_env.get('SECURED') == '1':
