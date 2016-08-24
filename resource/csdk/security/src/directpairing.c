@@ -23,12 +23,13 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_TIME_H
 #include <time.h>
-#endif
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
+/* #ifdef HAVE_TIME_H */
+/* #include <time.h> */
+/* #endif */
+/* #ifdef HAVE_SYS_TIME_H */
+/* #include <sys/time.h> */
+/* #endif */
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -36,6 +37,7 @@
 #include "ocstack.h"
 #include "oic_malloc.h"
 #include "oic_string.h"
+#include "oic_time.h"
 #include "logger.h"
 #include "cJSON.h"
 #include "utlist.h"
@@ -979,58 +981,23 @@ OCStackResult DPDeviceDiscovery(unsigned short waittime)
     }
 
     // wait..
-
-    int clock_res = -1;
-#if defined(_MSC_VER)
-    time_t startTime = NULL;
-    clock_res = (time(&startTime) == -1);
-#else
-    struct timespec startTime = {.tv_sec=0, .tv_nsec=0};
-#if defined(__ANDROID__) || _POSIX_TIMERS > 0
-    clock_res = clock_gettime(CLOCK_MONOTONIC, &startTime);
-#endif
-#endif
-    if (0 != clock_res)
-    {
-        OIC_LOG(ERROR, TAG, "clock error");
-        if(OC_STACK_OK !=  OCCancel(handle, OC_LOW_QOS, NULL, 0))
-        {
-            OIC_LOG(ERROR, TAG, "Failed to remove registered callback");
-        }
-        return OC_STACK_ERROR;
-    }
-
+    uint64_t startTime = OICGetCurrentTime(TIME_IN_MS);
+    uint64_t currTime;
+    struct timespec milli_100 = {.tv_sec=0, .tv_nsec=100000000L};
     while (1)
     {
-#if defined(_MSC_VER)
-        time_t currTime = NULL;
-        clock_res = (time(&currTime) == -1);
-#else
-        struct timespec currTime  = {.tv_sec=0, .tv_nsec=0};
-#if defined(__ANDROID__) || _POSIX_TIMERS > 0
-        clock_res = clock_gettime(CLOCK_MONOTONIC, &currTime);
-#endif
-#endif
-        if (0 != clock_res)
-        {
-            OIC_LOG(ERROR, TAG, "clock error");
-            ret = OC_STACK_ERROR;
-            break;
-        }
-#if defined(_MSC_VER)
+	currTime = OICGetCurrentTime(TIME_IN_MS);
+
         long elapsed = currTime - startTime;
-#else
-        long elapsed = (currTime.tv_sec - startTime.tv_sec);
-#endif
+
         if (elapsed > waittime)
         {
             break;
         }
         else
         {
-            struct timespec timeout = {.tv_sec=0, .tv_nsec=100000000L};
             OCProcess();
-            nanosleep(&timeout, NULL);
+            nanosleep(&milli_100, NULL);
         }
     }
 
