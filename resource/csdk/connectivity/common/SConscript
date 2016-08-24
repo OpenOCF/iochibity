@@ -8,30 +8,15 @@ ca_os = env.get('TARGET_OS')
 src_dir = env.get('SRC_DIR')
 root_dir = './../'
 
-
 ca_common_path = root_dir + 'common/'
 ca_common_src_path = ca_common_path + 'src/'
 
-ca_common_include =  ['common/inc/'
-		     ,src_dir + '/resource/csdk/logger/include/']
-
-env.AppendUnique(CPPPATH = ca_common_include)
-
-######################################################################
-# Source files and Target(s)
-######################################################################
 ca_common_src = [ca_common_src_path + 'uarraylist.c'
 		,ca_common_src_path + 'ulinklist.c'
 		,ca_common_src_path + 'uqueue.c'
 		,ca_common_src_path + 'caremotehandler.c']
 
-pthreads = 0
-for item in env.get('CPPDEFINES'):
-        if 'HAVE_PTHREADS' in item:
-	        pthreads = 1
-		break;
-
-if pthreads or (ca_os in ['windows']):
+if env.get('PTHREAD_LIB') == 'pthread':
 	platform_src = [
 	    ca_common_src_path + 'cathreadpool_pthreads.c',
 	    ca_common_src_path + 'camutex_pthreads.c'
@@ -40,7 +25,6 @@ else:
         platform_src = [
 	    ca_common_src_path + 'camutex_noop.c'
 	]
-
 
 env.AppendUnique(CA_SRC = ca_common_src)
 env.AppendUnique(CA_SRC = platform_src)
