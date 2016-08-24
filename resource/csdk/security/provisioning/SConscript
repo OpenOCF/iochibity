@@ -25,7 +25,7 @@ import os.path
 src_dir = env.get('SRC_DIR')
 print "SRC DIR: ", src_dir
 
-provisioning_env = SConscript('#build_common/thread.scons')
+provisioning_env = SConscript('#hosts/thread.scons')
 target_os = provisioning_env.get('TARGET_OS')
 #root_dir = './../../../../'
 root_dir = Dir('#').abspath
@@ -89,8 +89,7 @@ if target_os in ['tizen']:
 	provisioning_env.ParseConfig('pkg-config --cflags --libs sqlite3')
 
 if target_os in ['android']:
-	provisioning_env.AppendUnique(CXXFLAGS = ['-frtti', '-fexceptions'])
-	provisioning_env.AppendUnique(LIBS = ['gnustl_static'])
+	# provisioning_env.AppendUnique(LIBS = ['gnustl_static'])
 
 	if not provisioning_env.get('RELEASE'):
 		provisioning_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
