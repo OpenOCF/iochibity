@@ -29,24 +29,33 @@ extern "C"
 {
 #endif
 
+#if defined(__ANDROID__) && defined(LE_ADAPTER)
 /**
- * Register network monitor callbacks.
- * Adapter state changes and network state changes are delivered these callbacks.
- * @param[in]   adapterStateCB  Adapter state changed callback.
- * @param[in]   connStateCB     Connection state changed callback.
+ * initialize client connection manager
+ * @param[in]   env                   JNI interface pointer.
+ * @param[in]   jvm                   invocation inferface for JAVA virtual machine.
+ * @param[in]   context               application context.
+ *
+ * @return  ::CA_STATUS_OK or ::CA_STATUS_FAILED or ::CA_MEMORY_ALLOC_FAILED
  */
-void CASetLENetworkMonitorCallbacks(CAAdapterStateChangedCB adapterStateCB,
-                                    CAConnectionStateChangedCB connStateCB);
+CAResult_t CAManagerLEClientInitialize(JNIEnv *env, JavaVM *jvm, jobject context);
 
 /**
- * Set device information for auto connection.
+ * terminate client connection manager
+ * @param[in]   env                   JNI interface pointer.
+ *
+ * @return  ::CA_STATUS_OK or ::CA_STATUS_FAILED or ::CA_MEMORY_ALLOC_FAILED
  */
-CAResult_t CASetLEClientAutoConnectionDeviceInfo();
+CAResult_t CAManagerLEClientTerminate(JNIEnv *env);
 
 /**
- * Unset device information to stop auto connection.
+ * set BLE scan interval time and working count.
+ * @param[in]  intervalTime         interval time(Seconds).
+ * @param[in]  workingCount         working count for selected interval time.
  */
-CAResult_t CAUnsetLEClientAutoConnectionDeviceInfo();
+void CAManagerLESetScanInterval(jint intervalTime, jint workingCount);
+
+#endif
 
 #ifdef __cplusplus
 } /* extern "C" */
