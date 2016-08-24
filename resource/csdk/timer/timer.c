@@ -20,7 +20,7 @@
 
 
 
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
@@ -161,7 +161,7 @@ long int getSecondsFromAbsTime(struct tm* tp)
    return delayed_time;
 }
 
-time_t registerTimer(const time_t seconds, int *id, void *cb)
+time_t registerTimer(const time_t seconds, int *id, void (*cb)())
 {
     time_t now, then;
     time_t next;

@@ -56,7 +56,7 @@ long int getSecondsFromAbsTime(struct tm* tp);
 
 int initThread();
 void *loop(void *threadid);
-time_t registerTimer(const time_t seconds, int *id, void *cb);
+time_t registerTimer(const time_t seconds, int *id, void (*cb)());
 void unregisterTimer(int id);
 
 #else
