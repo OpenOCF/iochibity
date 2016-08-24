@@ -81,12 +81,7 @@ elif liboctbstack_env.get('ROUTING') == 'EP':
 
 liboctbstack_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 
-if target_os in ['darwin']:
-        ocsrm = File(build_dir + 'libocsrm.a')
-else:
-        ocsrm = 'ocsrm'
-
-liboctbstack_env.PrependUnique(LIBS = [ocsrm, 'coap'])
+liboctbstack_env.PrependUnique(LIBS = ['ocsrm', 'coap'])
 
 if target_os in ['android', 'darwin', 'linux', 'tizen', 'msys_nt', 'windows']:
 	liboctbstack_env.PrependUnique(LIBS = ['connectivity_abstraction'])
@@ -102,10 +97,6 @@ if target_os in ['windows', 'msys_nt']:
 	liboctbstack_env.AppendUnique(LIBS = ['ws2_32', 'advapi32', 'iphlpapi'])
 else:
 	liboctbstack_env.AppendUnique(LIBS = ['m'])
-
-#GAR uuid
-# if target_os in ['tizen', 'linux']:
-# 	liboctbstack_env.ParseConfig("pkg-config --cflags --libs uuid")
 
 if target_os == 'arduino':
 	liboctbstack_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
@@ -168,17 +159,42 @@ if target_os == 'windows':
 	                                            'CBOR_PRIVATE_API=__declspec(dllexport)'
     ])
 
-static_liboctbstack = liboctbstack_env.StaticLibrary('octbstack', liboctbstack_src)
-octbstack_libs = Flatten(static_liboctbstack)
+if target_os == 'darwin':
+ 	liboctbstack_env.AppendUnique(LINKFLAGS = ['-install_name', build_dir + '/liboctbstack.dylib'])
+# 	liboctbstack_env.AppendUnique(LINKFLAGS = ['-install_name', '/usr/local/lib/liboctbstack.dylib'])
+
+
+# static_liboctbstack = liboctbstack_env.StaticLibrary('octbstack', liboctbstack_src)
+# octbstack_libs = Flatten(static_liboctbstack)
+
+major_version = '1'
+liboctbstack_env.Replace(SHLIBVERSION='1.1.1')
 
 if target_os not in ['arduino', 'ios'] :
-	shared_liboctbstack = liboctbstack_env.SharedLibrary('octbstack', liboctbstack_src)
-	octbstack_libs += Flatten(shared_liboctbstack)
+        if target_os in ['linux']:
+	        shared_liboctbstack = liboctbstack_env.SharedLibrary(target='octbstack',
+                                                                     source=liboctbstack_src,
+                                                                     SHLIBVERSION='1.1.2')
+        elif target_os == 'darwin':
+                liboctbstack_env.PrependUnique(LINKFLAGS = ['-current_version', '1.1.1'])
+                liboctbstack_env.Prepend(LINKFLAGS = ['-compatibility_version', '1.1.1'])
+	        shared_liboctbstack = liboctbstack_env.SharedLibrary(target='octbstack', # + major_version,
+                                                                     source=liboctbstack_src)
+	# octbstack_libs += Flatten(shared_liboctbstack)
 	liboctbstack_env.UserInstallTargetHeader('stack/include/ocstack.h', 'resource', 'ocstack.h')
 	liboctbstack_env.UserInstallTargetHeader('stack/include/ocpresence.h', 'resource', 'ocpresence.h')
 
-liboctbstack_env.InstallTarget(octbstack_libs, 'octbstack')
-liboctbstack_env.UserInstallTargetLib(octbstack_libs, 'octbstack')
+
+#liboctbstack_env.Install(env.get('BUILD_DIR'),  shared_liboctbstack)
+
+#GAR: broken on OS X, no symlinks created
+liboctbstack_env.InstallVersionedLib(env.get('BUILD_SYSROOT'),
+                                     source=shared_liboctbstack)
+
+
+# liboctbstack_env.InstallTarget(octbstack_libs, 'octbstack')
+# liboctbstack_env.UserInstallTargetLib(octbstack_libs, 'octbstack')
+
 
 liboctbstack_env.UserInstallTargetHeader('stack/include/ocstackconfig.h', 'resource', 'ocstackconfig.h')
 liboctbstack_env.UserInstallTargetHeader('stack/include/octypes.h', 'resource', 'octypes.h')
