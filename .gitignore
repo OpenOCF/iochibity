@@ -19,6 +19,10 @@
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 # Ignore output dirs
+build/
+lib/
+sysroots/
+
 /release
 resource/release
 resource/csdk/release
@@ -142,3 +146,6 @@ extlibs/bluez/bluez
 
 # Ignore Valgrind generated files.
 *.memcheck
+
+# in case of running screen:
+screenlog.*
