@@ -31,9 +31,6 @@
 #include <sys/time.h>
 #endif
 
-#if defined(__ANDROID__)
-#include <linux/time.h>
-#endif
 #include "ulinklist.h"
 #include "uarraylist.h"
 #include "octypes.h"
@@ -309,12 +306,6 @@ OCStackResult RTMAddObserver(uint32_t obsID, CAEndpoint_t devAddr, u_linklist_t 
  */
 bool RTMIsObserverPresent(CAEndpoint_t devAddr, OCObservationId *obsID,
                           const u_linklist_t *gatewayTable);
-
-/**
- * Gets Current Time in Micro Seconds.
- * @return  Current Time.
- */
-uint64_t RTMGetCurrentTime();
 
 /**
  * Update Gateway Address Validity.

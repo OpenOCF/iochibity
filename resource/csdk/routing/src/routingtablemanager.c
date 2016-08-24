@@ -24,6 +24,7 @@
 #include "routingutility.h"
 #include "oic_malloc.h"
 #include "oic_string.h"
+#include "oic_time.h"
 #include "include/logger.h"
 
 /**
@@ -360,7 +361,7 @@ OCStackResult RTMAddGatewayEntry(uint32_t gatewayId, uint32_t nextHop, uint32_t 
                 }
 
                 *destAdr = *destInterfaces;
-                destAdr->timeElapsed = RTMGetCurrentTime();
+                destAdr->timeElapsed = OICGetCurrentTime(TIME_IN_US);
                 destAdr->isValid = true;
                 bool result =
                     u_arraylist_add(entry->destination->destIntfAddr, (void *)destAdr);
@@ -436,7 +437,7 @@ OCStackResult RTMAddGatewayEntry(uint32_t gatewayId, uint32_t nextHop, uint32_t 
             }
 
             *destAdr = *destInterfaces;
-            destAdr->timeElapsed = RTMGetCurrentTime();
+            destAdr->timeElapsed = OICGetCurrentTime(TIME_IN_US);
             destAdr->isValid = true;
             u_arraylist_add(hopEntry->destination->destIntfAddr, (void *)destAdr);
         }
@@ -723,7 +724,7 @@ OCStackResult RTMRemoveGatewayDestEntry(uint32_t gatewayId, uint32_t nextHop,
                     strlen(destInfAdr->destIntfAddr.addr))
                     && destInfAdr->destIntfAddr.port == destCheck->destIntfAddr.port)
                 {
-                    destCheck->timeElapsed =  RTMGetCurrentTime();
+                    destCheck->timeElapsed =  OICGetCurrentTime(TIME_IN_US);
                     break;
                 }
             }
@@ -1013,7 +1014,7 @@ OCStackResult RTMUpdateDestinationIntfAdr(uint32_t gatewayId, RTMDestIntfInfo_t 
                         strlen(destInterfaces.destIntfAddr.addr))
                         && destInterfaces.destIntfAddr.port == destCheck->destIntfAddr.port)
                     {
-                        destCheck->timeElapsed = RTMGetCurrentTime();
+                        destCheck->timeElapsed = OICGetCurrentTime(TIME_IN_US);
                         destCheck->isValid = true;
                         OIC_LOG(ERROR, TAG, "destInterfaces already present");
                         return OC_STACK_ERROR;
@@ -1028,7 +1029,7 @@ OCStackResult RTMUpdateDestinationIntfAdr(uint32_t gatewayId, RTMDestIntfInfo_t 
                     return OC_STACK_ERROR;
                 }
                 *destAdr = destInterfaces;
-                destAdr->timeElapsed = RTMGetCurrentTime();
+                destAdr->timeElapsed = OICGetCurrentTime(TIME_IN_US);
                 destAdr->isValid = true;
                 bool result =
                     u_arraylist_add(entry->destination->destIntfAddr, (void *)destAdr);
@@ -1102,32 +1103,6 @@ OCStackResult RTMUpdateMcastSeqNumber(uint32_t gatewayId, uint16_t seqNum,
     return OC_STACK_OK;
 }
 
-uint64_t RTMGetCurrentTime()
-{
-    uint64_t currentTime = 0;
-
-#ifdef __ANDROID__
-    struct timespec getTs;
-
-    clock_gettime(CLOCK_MONOTONIC, &getTs);
-
-    currentTime = getTs.tv_sec;
-#elif defined __ARDUINO__
-    currentTime = millis() / 1000;
-#else
-#if _POSIX_TIMERS > 0
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    currentTime = ts.tv_sec;
-#else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    currentTime = tv.tv_sec;
-#endif
-#endif
-    return currentTime;
-}
-
 OCStackResult RTMUpdateDestAddrValidity(u_linklist_t **invalidTable, u_linklist_t **gatewayTable)
 {
     OIC_LOG(DEBUG, TAG, "IN");
@@ -1143,7 +1118,7 @@ OCStackResult RTMUpdateDestAddrValidity(u_linklist_t **invalidTable, u_linklist_
     }
 
     u_linklist_iterator_t *iterTable = NULL;
-    uint64_t presentTime = RTMGetCurrentTime();
+    uint64_t presentTime = OICGetCurrentTime(TIME_IN_US);
 
     u_linklist_init_iterator(*gatewayTable, &iterTable);
     while (NULL != iterTable)
@@ -1279,7 +1254,7 @@ OCStackResult RTMUpdateEntryParameters(uint32_t gatewayId, uint32_t seqNum,
                      strlen(destAdr->destIntfAddr.addr)))
                      && destAdr->destIntfAddr.port == destCheck->destIntfAddr.port)
                 {
-                    destCheck->timeElapsed = RTMGetCurrentTime();
+                    destCheck->timeElapsed = OICGetCurrentTime(TIME_IN_US);
                     destCheck->isValid = true;
                 }
             }

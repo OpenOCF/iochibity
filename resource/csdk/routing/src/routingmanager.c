@@ -26,6 +26,7 @@
 #include "routingmessageparser.h"
 #include "oic_malloc.h"
 #include "oic_string.h"
+#include "oic_time.h"
 #include "ocrandom.h"
 #include "ulinklist.h"
 #include "uarraylist.h"
@@ -189,7 +190,7 @@ OCStackResult RMInitialize()
     }
 
     // Initialize the timer with the current time.
-    g_aliveTime = RTMGetCurrentTime();
+    g_aliveTime = OICGetCurrentTime(TIME_IN_US);
     g_refreshTableTime = g_aliveTime;
 
     OIC_LOG(DEBUG, TAG, "RMInitialize OUT");
@@ -705,7 +706,7 @@ OCStackResult RMSendNotificationToAll(const OCRepPayload *payload)
         OIC_LOG_V(DEBUG, TAG, "Sending notification with Sequence Number: %d", g_sequenceNumber);
         result = RMSendNotificationForListofObservers(obsList, obsLen, payload);
         RM_VERIFY_SUCCESS(result, OC_STACK_OK);
-        g_aliveTime = RTMGetCurrentTime();
+        g_aliveTime = OICGetCurrentTime(TIME_IN_US);
     }
 
 exit:
@@ -722,7 +723,7 @@ void RMProcess()
     }
 
     OCStackResult result = OC_STACK_OK;
-    uint64_t currentTime = RTMGetCurrentTime();
+    uint64_t currentTime = OICGetCurrentTime(TIME_IN_US);
     if (GATEWAY_ALIVE_TIMEOUT <= currentTime - g_aliveTime)
     {
         g_aliveTime = currentTime;
