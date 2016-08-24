@@ -40,7 +40,9 @@
 #include "doxmresource.h"
 
 //GAR
+#ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
+#endif
 #include <stdio.h>
 //GAR
 
