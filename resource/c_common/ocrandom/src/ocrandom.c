@@ -117,16 +117,12 @@ int8_t OCSeedRandom()
 #ifndef ARDUINO
     // Get current time to Seed.
     uint64_t currentTime = 0;
-#ifdef __ANDROID__
-    struct timespec getTs;
-    clock_gettime(CLOCK_MONOTONIC, &getTs);
-    currentTime = (getTs.tv_sec * (uint64_t)NANO_SEC + getTs.tv_nsec)/1000;
-#elif _WIN32
+#ifdef _WIN32
     LARGE_INTEGER count;
     if (QueryPerformanceCounter(&count)) {
         currentTime = count.QuadPart;
     }
-#elif  _POSIX_TIMERS > 0
+#elif  _POSIX_TIMERS > 0	/* this takes care of android */
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     currentTime = (ts.tv_sec * (uint64_t)NANO_SEC + ts.tv_nsec)/ 1000;
@@ -302,7 +298,8 @@ OCRandomUuidResult OCGenerateUuidString(char uuidString[UUID_STRING_SIZE])
     {
         return RAND_UUID_INVALID_PARAM;
     }
-#if defined(__ANDROID__)
+    /* GAR FIXME: this should be feature tested since any linux has it but not e.g. freebsd */
+#if defined(__ANDROID__)	/* GAR: test for __linux__ instead?  */
     int32_t fd = open("/proc/sys/kernel/random/uuid", O_RDONLY);
     if (fd > 0)
     {
