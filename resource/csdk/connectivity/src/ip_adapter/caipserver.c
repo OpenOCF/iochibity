@@ -775,7 +775,12 @@ static void CAInitializeNetlink()
     // create NETLINK fd for interface change notifications
     struct sockaddr_nl sa = { AF_NETLINK, 0, 0, RTMGRP_LINK };
 
-    caglobals.ip.netlinkFd = socket(AF_NETLINK, SOCK_RAW|SOCK_CLOEXEC, NETLINK_ROUTE);
+    int socktype = SOCK_RAW;
+#ifdef SOCK_CLOEXEC
+    socktype |= SOCK_CLOEXEC;
+#endif
+
+    caglobals.ip.netlinkFd = socket(AF_NETLINK, socktype, NETLINK_ROUTE);
     if (caglobals.ip.netlinkFd == OC_INVALID_SOCKET)
     {
         OIC_LOG_V(ERROR, TAG, "netlink socket failed: %s", strerror(errno));
