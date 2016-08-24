@@ -60,10 +60,6 @@
 #endif
 #endif
 
-#if defined(__ANDROID__)
-#include <linux/time.h>
-#endif
-
 #include "caretransmission.h"
 #include "caremotehandler.h"
 #include "caprotocolmessage.h"
@@ -631,39 +627,4 @@ CAResult_t CARetransmissionDestroy(CARetransmission_t *context)
 
     return CA_STATUS_OK;
 }
-/*GAR time */
-/* uint64_t getCurrentTimeInMicroSeconds() */
-/* { */
-/*     OIC_LOG(DEBUG, TAG, "getCurrentTimeInMicroSeconds IN"); */
-/*     uint64_t currentTime = 0; */
-
-/* #ifdef __ANDROID__ */
-/*     struct timespec getTs; */
-
-/*     clock_gettime(CLOCK_MONOTONIC, &getTs); */
-
-/*     currentTime = (getTs.tv_sec * (uint64_t)1000000000 + getTs.tv_nsec)/1000; */
-/*     OIC_LOG_V(DEBUG, TAG, "current time = %lld", currentTime); */
-/* #elif defined __ARDUINO__ */
-/*     currentTime = millis() * 1000; */
-/*     OIC_LOG_V(DEBUG, TAG, "currtime=%lu", currentTime); */
-/* #else */
-/* #if _POSIX_TIMERS > 0 */
-/*     struct timespec ts; */
-/*     clock_gettime(CLOCK_MONOTONIC, &ts); */
-/*     currentTime = ts.tv_sec * USECS_PER_SEC + ts.tv_nsec / 1000; */
-/* #elif defined(_WIN32) */
-/*     struct __timeb64 tb; */
-/*     _ftime64_s(&tb); */
-/*     currentTime = tb.time * USECS_PER_SEC + tb.millitm * MSECS_PER_SEC; */
-/* #else */
-/*     struct timeval tv; */
-/*     gettimeofday(&tv, NULL); */
-/*     currentTime = tv.tv_sec * USECS_PER_SEC + tv.tv_usec; */
-/* #endif */
-/* #endif */
-
-/*     OIC_LOG(DEBUG, TAG, "getCurrentTimeInMicroSeconds OUT"); */
-/*     return currentTime; */
-/* } */
 
