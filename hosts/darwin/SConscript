@@ -73,15 +73,12 @@ if env.get('LOGGING'):
 env.AppendUnique(LINKFLAGS = ['-undefined', 'error'])
 # env.Append(LINKFLAGS = ['-undefined', 'dynamic_lookup'])
 
-env.AppendUnique(CPPFLAGS = env['PTHREAD_CFLAGS'])
-env.AppendUnique(LINKFLAGS = env['PTHREAD_LIBS'])
+env.AppendUnique(CPPFLAGS = env.get('PTHREAD_CFLAGS'))
 
 env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '_DARWIN_C_SOURCE', '__darwin__'])
 
 env.AppendUnique(CXXFLAGS = ['-std=c++11'])
 env.AppendUnique(CFLAGS = ['-std=c11'])
-
-env.AppendUnique(LIBS = ['uuid'])
 
 # in case of ld: symbol(s) not found for architecture x86_64
 # -Wl,-undefined -Wl,dynamic_lookup
