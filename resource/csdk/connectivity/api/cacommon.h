@@ -179,7 +179,7 @@ typedef enum
     CA_ADAPTER_TCP           = (1 << 4),   // CoAP over TCP
     CA_ADAPTER_NFC           = (1 << 5),   // NFC Adapter
 
-    CA_ALL_ADAPTERS          = 0xffffffff
+    CA_ALL_ADAPTERS          = -1          // 0xffffffff is not portable
 } CATransportAdapter_t;
 
 typedef enum
