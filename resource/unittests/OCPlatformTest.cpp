@@ -18,6 +18,8 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+#include <exception>
+
 #include <OCPlatform.h>
 #include <OCApi.h>
 #include <oic_malloc.h>
@@ -247,9 +249,15 @@ namespace OCPlatformTest
         PlatformConfig cfg = {};
         OCPlatform::Configure(cfg);
 
-        EXPECT_NO_THROW(OCPlatform::registerResource(
-                 resourceHandle, uri, type,
-                 gResourceInterface, entityHandler, gResourceProperty));
+	try
+	{
+	    OCPlatform::registerResource(resourceHandle, uri, type,
+					 gResourceInterface, entityHandler, gResourceProperty);
+	}
+	catch(OCException& e)
+	{
+	    ADD_FAILURE() << "ConfigureDefault exception: " << e.what() << "\n";
+	}
     }
 
     TEST(ConfigureTest, ConfigureServer)
@@ -266,9 +274,16 @@ namespace OCPlatformTest
         };
         OCPlatform::Configure(cfg);
 
-        EXPECT_NO_THROW(OCPlatform::registerResource(
-                 resourceHandle, uri, type,
-                 gResourceInterface, entityHandler, gResourceProperty));
+	try
+	{
+	    OCPlatform::registerResource(
+					 resourceHandle, uri, type,
+					 gResourceInterface, entityHandler, gResourceProperty);
+	}
+	catch(OCException& e)
+	{
+	    ADD_FAILURE() << "ConfigureServer exception: " << e.what() << "\n";
+	}
     }
 
     TEST(ConfigureTest, ConfigureClient)
@@ -286,9 +301,17 @@ namespace OCPlatformTest
             &gps
         };
 
-        EXPECT_NO_THROW(OCPlatform::registerResource(
+	try
+	{
+	    OCPlatform::registerResource(
                  resourceHandle, uri, type,
-                 gResourceInterface, entityHandler, gResourceProperty));
+                 gResourceInterface, entityHandler, gResourceProperty);
+	}
+	catch(OCException& e)
+	{
+	    ADD_FAILURE() << "ConfigureClient exception: " << e.what() << "\n";
+	}
+
     }
     //PersistentStorageTest
     TEST(ConfigureTest, ConfigureDefaultNULLPersistentStorage)
@@ -301,7 +324,14 @@ namespace OCPlatformTest
              OC::QualityOfService::LowQos
          };
          OCPlatform::Configure(cfg);
-         EXPECT_NO_THROW(OCPlatform::setDefaultDeviceEntityHandler(nullptr));
+	 try
+	 {
+	     OCPlatform::setDefaultDeviceEntityHandler(nullptr);
+	 }
+	catch(OCException& e)
+	{
+	    ADD_FAILURE() << "ConfigureDefaultNULLPersistentStorage exception: " << e.what() << "\n";
+	}
      }
 
     //PersistentStorageTest
@@ -354,7 +384,14 @@ namespace OCPlatformTest
     TEST(RegisterResourceTest, RegisterSingleResource)
     {
         std::string uri = "/a/res2";
-        EXPECT_NE(HANDLE_ZERO, RegisterResource(uri));
+	try
+	{
+	    EXPECT_NE(HANDLE_ZERO, RegisterResource(uri));
+	}
+	catch(OCException& e)
+	{
+	    ADD_FAILURE() << "RegisterSingleResource exception: " << e.what() << "\n";
+	}
     }
 
     TEST(RegisterResourceTest, RegisterMultipleResources)
