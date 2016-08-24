@@ -20,7 +20,9 @@
 
 # prevent accidentally building all. to intentionally build all:
 # $ scons .
-Default(None)
+# Default(None)
+
+print "BUILD_TARGETS is", map(str, BUILD_TARGETS)
 
 ##
 # The main build script
@@ -32,9 +34,11 @@ print "CL TARGETS: ", COMMAND_LINE_TARGETS
 print "BUILD_TARGETS is", map(str, BUILD_TARGETS)
 
 # Load common build config
-SConscript('build_common/SConscript')
+SConscript('hosts/SConscript')
 
 Import('env')
+
+# print env.Dump()
 
 # if env.get('VERBOSE'):
 #     print "ENV:"
@@ -52,34 +56,26 @@ src_dir = env.get('SRC_DIR')
 # if target_os == 'arduino':
 # 	SConscript('arduino.scons')
 
-# By default, src_dir is current dir, the build_dir is:
-#     ./out/<target_os>/<target_arch>/<release or debug>/
-#
-# The build_dir is a variant directory of the source directory(You can
-# consider build_dir as a soft link to src_dir, for detail please refer to:
-#     http://www.scons.org/doc/production/HTML/scons-user.html#f-VariantDir
-#
-# Any way, to make the output is in build_dir, when load scripts, the path should
-# be relevant to build_dir.
 build_dir = env.get('BUILD_DIR')
 
 #GAR default: build the kernel
 # Build 'resource' sub-project
-SConscript(build_dir + 'resource/SConscript')
+SConscript(build_dir + '/resource/SConscript')
 
 #GAR FIXME: only build services on demand
 # # Build 'service' sub-project
-#SConscript(build_dir + 'service/SConscript')
+#SConscript(build_dir + '/service/SConscript')
 
 #GAR FIXME: only build cloud on demand
 # # Build "cloud" sub-project
-# SConscript(build_dir + 'cloud/SConscript')
+# SConscript(build_dir + '/cloud/SConscript')
 
 #GAR FIXME: only build plugins on demand
 # # Build "plugin interface" sub-project
-# SConscript(build_dir + 'plugins/SConscript')
+# SConscript(build_dir + '/plugins/SConscript')
 
-SConscript(build_dir + 'test/SConscript')
+print "EVAL TEST"
+SConscript(build_dir + '/test/SConscript')
 
 # Append targets information to the help information, to see help info, execute command line:
 #     $ scon [options] -h
@@ -94,3 +90,5 @@ env.PrintTargets()
 # # to install the generated pc file into custome prefix location
 # env.UserInstallTargetPCFile('iotivity.pc', 'iotivity.pc')
 
+print "PRINTING TARGETS"
+env.PrintTargets()
