@@ -1,0 +1,81 @@
+# source this file from IOTIVITY_HOME to clean the build env vars
+
+unset IOTIVITY_VERSION
+unset IOTIVITY_HOST_OS
+unset IOTIVITY_HOST_ARCH
+unset TARGET_PLATFORM
+unset TARGET_PLATFORM_VERSION
+unset TARGET_OS
+unset TARGET_OS_VERSION
+unset TARGET_ARCH
+unset TARGET_ARCH_ABI
+
+unset IOTIVITY_STAGE
+
+unset IOTIVITY_NDK_HOME
+unset IOTIVITY_TOOLCHAIN_DIR
+
+unset IOTIVITY_TOOLCHAIN
+
+# networking
+unset IP_API
+unset BT_API
+unset BLE_API
+unset NFC_API
+
+#dev
+unset IOTIVITY_HOME
+unset IOTIVITY_LIBPATH
+unset IOTIVITY_JAVA_SDK_HOME
+unset IOTIVITY_GRADLE_HOME
+unset IOTIVITY_JNIPATH
+unset JLP
+unset LD_LIBRARY_PATH
+unset DYLD_LIBRARY_PATH
+
+# output dirs
+unset BUILD_DIR
+unset INSTALL_DIR
+
+# toolchain
+
+unset TOOLCHAIN
+unset TOOLCHAIN_DIR
+unset TOOLCHAIN_PREFIX
+unset TOOLCHAIN_PATH
+
+unset HOST_SYSROOT
+unset TARGET_SYSROOT
+
+unset ADDR2LINE
+unset AR
+unset AS
+unset CC
+unset CPP
+unset CXX
+unset CXXFILT
+unset ELFEDIT
+unset GCOV
+unset GDB
+unset GPROF
+unset LD
+unset LINK
+unset NM
+unset OBJCOPY
+unset OBJDUMP
+unset RANLIB
+unset READELF
+unset SIZE
+unset STRINGS
+unset STRIP
+
+unset CPPFLAGS
+unset CFLAGS
+unset CXXFLAGS
+unset LDFLAGS
+unset LINKFLAGS
+unset SHLIBSUFFIX
+unset CPPPATH
+unset CPPDEFINES
+
+
