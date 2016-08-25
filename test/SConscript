@@ -12,14 +12,19 @@ target_os  = test_env.get('TARGET_OS')
 src_dir = test_env.get('SRC_DIR')
 bld_dir = test_env.get('BUILD_DIR')
 
-print "TEST SOURCE DIR:", src_dir
-print "TEST BUILD DIR:", bld_dir
+# print "TEST SOURCE DIR:", src_dir
+# print "TEST BUILD DIR:", bld_dir
 
 #if target_os in ['darwin', 'linux']:
 
 # gtest libs by convention are in project-specific LIB_SYSROOT (= IOTIVITY_HOME/lib/plat/form/pfx/lib)
-test_env.PrependUnique(CPPPATH = [test_env['ENV']['LIB_SYSROOT'] + '/include'])
-test_env.PrependUnique(LIBPATH = [test_env['ENV']['LIB_SYSROOT'] + '/lib'])
+lib_sysroot=test_env['ENV']['LIB_SYSROOT']
+# print "LIB_SYSROOT:", lib_sysroot
+# print "CC:", test_env.get('CC')
+test_env.Prepend(CPPPATH = [lib_sysroot + '/include'])
+test_env.Prepend(LIBPATH = [lib_sysroot + '/lib'])
+
+# print test_env.Dump()
 
 conf = Configure(test_env)
 
