@@ -197,6 +197,10 @@ def host(env) :
         if conf.CheckLib('uuid'):
                 env.AppendUnique(CPPDEFINES = ['HAVE_UUID'])
 
+# from build_common/SConscript:
+# if target_os == 'msys_nt':
+# 	# WinPThread provides a pthread.h, but we want to use native threads.
+# 	cxx_headers.remove('pthread.h')
         if conf.CheckLibWithHeader('pthread', 'pthread.h', 'c'):
                 env.AppendUnique(CPPDEFINES = ['HAVE_PTHREAD_H'])
                 env.AppendUnique(PTHREAD_CFLAGS = '-pthread')
@@ -759,6 +763,14 @@ def generic(env):
         env.AppendUnique(LINKFLAGS = ['-shared'])
         env.Replace(SHLIBSUFFIX = '.so')
 
+        return env
+
+def windows(env):
+# from resource/third_party_libs.scons:
+# if target_os in ['windows']:
+# 	SConscript(os.path.join(env.get('SRC_DIR'), 'extlibs', 'boost', 'SConscript'))
+# 	boost_path = os.path.join(src_dir,'extlibs','boost','boost')
+# 	lib_env.AppendUnique(CPPPATH = [boost_path])
         return env
 
 def get_help_vars():
