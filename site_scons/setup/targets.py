@@ -627,7 +627,6 @@ def edison(env):
         # export CPPFLAGS=""
         # export KCFLAGS="--sysroot=$SDKTARGETSYSROOT"
 
-        # for gtest etc. external libs
         env.AppendUnique(CPPPATH = [env['ENV']['INSTALL_OUT'] + '/include'])
         env.Append(LIBPATH = [env['ENV']['INSTALL_OUT'] + '/lib'])
 
@@ -662,14 +661,7 @@ def edison(env):
         except KeyError:
                 env.Append(CPPDEFINES = ['NO_NFC_ADAPTER'])
 
-        conf = Configure(env)
-        if not conf.CheckLib('gtest'):
-                print "\tWARNING: googletest not found."
-                print "\t\tTesting will be disabled."
-                print "\t\tTo enable it, install googletest from https://github.com/google/googletest"
-                print "\t\tand set GTEST_DIR (in source.me)."
-        env = conf.Finish()
-
+        #FIXME: put this stuff in CPPDEFINES env var?
         # env.Append(CPPDEFINES = ['HAVE_ARPA_INET_H'])
         # env.Append(CPPDEFINES = ['HAVE_ASSERT_H'])
         # env.Append(CPPDEFINES = ['HAVE_FCNTL_H'])
