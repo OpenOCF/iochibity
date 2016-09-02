@@ -1,7 +1,5 @@
 import os, urllib2
-from sys import platform as _platform
-import subprocess
-from string import maketrans
+import sys
 from SCons.Script import *
 
 # Download from URL 'url', will save as 'target'
@@ -103,9 +101,100 @@ def SetDir(env):
 	# 	build_dir = dir + '/out/' + target_os + '/' + target_arch + '/debug/'
 
 	# the following cmd will add the build_dir tree to env?
-	env.VariantDir(build_dir, dir, duplicate=0)
+	# env.VariantDir(build_dir, dir, duplicate=0)
 
 	env.Replace(BUILD_DIR = build_dir)
 	print "build.utils.SetDir BUILD_DIR: ", env.Dump('BUILD_DIR')
 	# NB: the build_dir tree has NOT yet been written to disk!
+        return env
+
+def src_to_obj(ienv, src, home = ''):
+	obj = ienv.get('BUILD_DIR') + src.replace(home, '')
+	if ienv.get('OBJSUFFIX'):
+		obj += ienv.get('OBJSUFFIX')
+	return ienv.Object(obj, src)
+
+# def install_target(ienv, targets, name):
+#         idir = ienv.get('INSTALL_SYSROOT') + '/lib'
+#         print "INSTALL_LIB", targets, " to ", idir
+# 	i_n = ienv.Install(idir, targets)
+# 	Alias(name, i_n)
+# 	ienv.AppendUnique(TS = [name])
+
+def install_lib(ienv, targets, name):
+        idir = ienv.get('INSTALL_SYSROOT') + '/lib'
+        print "INSTALL_LIB", targets, " to ", idir
+        sys.stdout.flush()
+	i_n = ienv.Install(idir, targets)
+	Alias(name, i_n)
+	ienv.AppendUnique(TS = [name])
+
+	# user_prefix = ienv.get('PREFIX')
+	# if user_prefix:
+	# 	user_lib = ienv.get('LIB_INSTALL_DIR')
+	# 	if user_lib:
+	# 		i_n = ienv.Install(user_lib, targets)
+	# 	else:
+	# 		i_n = ienv.Install(user_prefix + '/lib', targets)
+	# 	ienv.Alias("install", i_n)
+	# else:
+	# 	i_n = ienv.Install(ienv.get('INSTALL_SYSROOT') + '/lib', targets)
+	# ienv.Alias("install", i_n)
+
+def install_bin(ienv, targets, name):
+	i_n = ienv.Install(ienv.get('INSTALL_SYSROOT') + '/bin', targets)
+	Alias(name, i_n)
+	ienv.AppendUnique(TS = [name])
+	# user_prefix = ienv.get('PREFIX')
+	# if user_prefix:
+	# 	i_n = ienv.Install(user_prefix + '/bin', targets)
+	# 	ienv.Alias("install", i_n)
+
+def install_header(ienv, targets, dir, name):
+	user_prefix = ienv.get('PREFIX')
+	if user_prefix:
+		i_n = ienv.Install(user_prefix + '/include/' + dir ,targets)
+	else:
+		i_n = ienv.Install(os.path.join(ienv.get('BUILD_SYSROOT'), 'include', dir), targets)
+	ienv.Alias("install", i_n)
+
+def install_pcfile(ienv, targets, name):
+	user_prefix = ienv.get('PREFIX')
+	if user_prefix:
+		user_lib = ienv.get('LIB_INSTALL_DIR')
+		if user_lib:
+			i_n = ienv.Install(user_lib + '/pkgconfig', targets)
+		else:
+			i_n = ienv.Install(user_prefix + '/lib/pkgconfig', targets)
+	else:
+		i_n = ienv.Install(ienv.get('BUILD_DIR') + 'lib/pkgconfig', targets)
+	ienv.Alias("install", i_n)
+
+def append_target(ienv, name, targets = None):
+	if targets:
+		ienv.Alias(name, targets)
+	ienv.AppendUnique(TS = [name])
+
+def print_targets(ienv):
+	Help('''
+===============================================================================
+Targets:\n    ''')
+	for t in ienv.get('TS'):
+		Help(t + ' ')
+	Help('''
+\nDefault all targets will be built. You can specify the target to build:
+
+    $ scons [options] [target]
+===============================================================================
+''')
+
+
+# env.AddMethod(__print_targets, 'PrintTargets')
+# env.AddMethod(__src_to_obj, 'SrcToObj')
+# env.AddMethod(__append_target, 'AppendTarget')
+# env.AddMethod(__install, 'InstallTarget')
+# env.AddMethod(__installlib, 'UserInstallTargetLib')
+# env.AddMethod(__installbin, 'UserInstallTargetBin')
+# env.AddMethod(__installheader, 'UserInstallTargetHeader')
+# env.AddMethod(__installpcfile, 'UserInstallTargetPCFile')
 

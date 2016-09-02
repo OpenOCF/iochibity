@@ -21,12 +21,12 @@
 
 #include "ocstack.h"
 #include "ocserverrequest.h"
-#include "ocresourcehandler.h"
+#include "internal/ocresourcehandler.h"
 #include "ocobserve.h"
 #include "oic_malloc.h"
 #include "oic_string.h"
 #include "ocpayload.h"
-#include "ocpayloadcbor.h"
+#include "internal/ocpayloadcbor.h"
 #include "logger.h"
 
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)

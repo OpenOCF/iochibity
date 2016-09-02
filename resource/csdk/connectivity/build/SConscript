@@ -57,27 +57,27 @@ device_name = ARGUMENTS.get('DEVICE_NAME', "OIC-DEVICE")
 ######################################################################
 # Common build options (release, target os, target arch)
 ######################################################################
-help_vars = Variables()
-help_vars.Add(BoolVariable('RELEASE', 'Build for release?', True)) # set to 'no', 'false' or 0 for debug
-help_vars.Add(BoolVariable('LOGGING', 'Enable stack logging', False))
-help_vars.Add(EnumVariable('TARGET_OS', 'Target platform', host, host_target_map[host]))
-help_vars.Add(ListVariable('TARGET_TRANSPORT', 'Target transport', 'ALL', ['ALL', 'BT', 'BLE', 'IP']))
-help_vars.Add(EnumVariable('TARGET_ARCH', 'Target architecture', default_arch, os_arch_map[target_os]))
-help_vars.Add(EnumVariable('SECURED', 'Build with DTLS', '0', allowed_values=('0', '1')))
-help_vars.Add(BoolVariable('UPLOAD', 'Upload binary ? (For Arduino)', require_upload))
-help_vars.Add(EnumVariable('ROUTING', 'Enable routing', 'EP', allowed_values=('GW', 'EP')))
-help_vars.Add(EnumVariable('BUILD_SAMPLE', 'Build with sample', 'ON', allowed_values=('ON', 'OFF')))
-help_vars.Add(BoolVariable('WITH_TCP', 'Enable TCP', False))
+# help_vars = Variables()
+# help_vars.Add(BoolVariable('RELEASE', 'Build for release?', True)) # set to 'no', 'false' or 0 for debug
+# help_vars.Add(BoolVariable('LOGGING', 'Enable stack logging', False))
+# help_vars.Add(EnumVariable('TARGET_OS', 'Target platform', host, host_target_map[host]))
+# help_vars.Add(ListVariable('TARGET_TRANSPORT', 'Target transport', 'ALL', ['ALL', 'BT', 'BLE', 'IP']))
+# help_vars.Add(EnumVariable('TARGET_ARCH', 'Target architecture', default_arch, os_arch_map[target_os]))
+# help_vars.Add(EnumVariable('SECURED', 'Build with DTLS', '0', allowed_values=('0', '1')))
+# help_vars.Add(BoolVariable('UPLOAD', 'Upload binary ? (For Arduino)', require_upload))
+# help_vars.Add(EnumVariable('ROUTING', 'Enable routing', 'EP', allowed_values=('GW', 'EP')))
+# help_vars.Add(EnumVariable('BUILD_SAMPLE', 'Build with sample', 'ON', allowed_values=('ON', 'OFF')))
+# help_vars.Add(BoolVariable('WITH_TCP', 'Enable TCP', False))
 
-help_vars.AddVariables(('DEVICE_NAME', 'Network display name for device', 'OIC-DEVICE', None, None),)
+# help_vars.AddVariables(('DEVICE_NAME', 'Network display name for device', 'OIC-DEVICE', None, None),)
 
-AddOption('--prefix',
-                  dest='prefix',
-                  type='string',
-                  nargs=1,
-                  action='store',
-                  metavar='DIR',
-                  help='installation prefix')
+# AddOption('--prefix',
+#                   dest='prefix',
+#                   type='string',
+#                   nargs=1,
+#                   action='store',
+#                   metavar='DIR',
+#                   help='installation prefix')
 
 ######################################################################
 # Platform(build target) specific options: SDK/NDK & toolchain
@@ -142,66 +142,66 @@ env.SConscriptChdir(1)
 #   env.get('SRC_DIR')
 #   env.get('BUILD_DIR')
 
-def __set_dir(env, dir):
-	if not os.path.exists(dir + '/SConstruct'):
-		print '''
-*************************************** Error *********************************
-* The directory(%s) seems isn't a source code directory, no SConstruct file is
-* found. *
-*******************************************************************************
-''' % dir
-		Exit(1)
+# def __set_dir(env, dir):
+# 	if not os.path.exists(dir + '/SConstruct'):
+# 		print '''
+# *************************************** Error *********************************
+# * The directory(%s) seems isn't a source code directory, no SConstruct file is
+# * found. *
+# *******************************************************************************
+# ''' % dir
+# 		Exit(1)
 
-	if env.get('RELEASE'):
-		build_dir = os.path.join(dir, 'out', target_os, target_arch, 'release') + os.sep
-	else:
-		build_dir = os.path.join(dir, 'out', target_os, target_arch, 'debug') + os.sep
-	env.VariantDir(build_dir, dir, duplicate=0)
+# 	if env.get('RELEASE'):
+# 		build_dir = os.path.join(dir, 'out', target_os, target_arch, 'release') + os.sep
+# 	else:
+# 		build_dir = os.path.join(dir, 'out', target_os, target_arch, 'debug') + os.sep
+# 	env.VariantDir(build_dir, dir, duplicate=0)
 
-	env.Replace(BUILD_DIR = build_dir)
-	env.Replace(SRC_DIR = dir)
+# 	env.Replace(BUILD_DIR = build_dir)
+# 	env.Replace(SRC_DIR = dir)
 
-def __src_to_obj(env, src, home = ''):
-	obj = env.get('BUILD_DIR') + src.replace(home, '')
-	if env.get('OBJSUFFIX'):
-		obj += env.get('OBJSUFFIX')
-	return env.Object(obj, src)
+# def __src_to_obj(env, src, home = ''):
+# 	obj = env.get('BUILD_DIR') + src.replace(home, '')
+# 	if env.get('OBJSUFFIX'):
+# 		obj += env.get('OBJSUFFIX')
+# 	return env.Object(obj, src)
 
-def __install(ienv, targets, name):
-	i_n = ienv.Install(env.get('BUILD_DIR'), targets)
-	Alias(name, i_n)
-	env.AppendUnique(TS = [name])
+# def __install(ienv, targets, name):
+# 	i_n = ienv.Install(env.get('BUILD_DIR'), targets)
+# 	Alias(name, i_n)
+# 	env.AppendUnique(TS = [name])
 
-def __installlib(ienv, targets, name):
-	user_prefix = env.get('PREFIX')
-	if user_prefix:
-		install_lib_dir = os.path.join(user_prefix, 'lib')
-	else:
-		install_lib_dir = os.path.join(env.get('BUILD_DIR'), 'lib')
-	i_n = ienv.Install(install_lib_dir, targets)
-	ienv.Alias("install", i_n)
+# def __installlib(ienv, targets, name):
+# 	user_prefix = env.get('PREFIX')
+# 	if user_prefix:
+# 		install_lib_dir = os.path.join(user_prefix, 'lib')
+# 	else:
+# 		install_lib_dir = os.path.join(env.get('BUILD_DIR'), 'lib')
+# 	i_n = ienv.Install(install_lib_dir, targets)
+# 	ienv.Alias("install", i_n)
 
-def __installbin(ienv, targets, name):
-	user_prefix = env.get('PREFIX')
-	if user_prefix:
-		i_n = ienv.Install(user_prefix + '/bin', targets)
-		ienv.Alias("install", i_n)
+# def __installbin(ienv, targets, name):
+# 	user_prefix = env.get('PREFIX')
+# 	if user_prefix:
+# 		i_n = ienv.Install(user_prefix + '/bin', targets)
+# 		ienv.Alias("install", i_n)
 
-def __append_target(ienv, target):
-	env.AppendUnique(TS = [target])
+# def __append_target(ienv, target):
+# 	env.AppendUnique(TS = [target])
 
-def __print_targets(env):
-	Help('''
-===============================================================================
-Targets:\n    ''')
-	for t in env.get('TS'):
-		Help(t + ' ')
-	Help('''
-\nDefault all targets will be built. You can specify the target to build:
+# def __print_targets(env):
+# 	Help('''
+# ===============================================================================
+# Targets:\n    ''')
+# 	for t in env.get('TS'):
+# 		Help(t + ' ')
+# 	Help('''
+# \nDefault all targets will be built. You can specify the target to build:
 
-    $ scons [options] [target]
-===============================================================================
-''')
+#     $ scons [options] [target]
+# ===============================================================================
+# ''')
 
 # env.AddMethod(__set_dir, 'SetDir')
 # env.AddMethod(__print_targets, 'PrintTargets')
@@ -288,13 +288,13 @@ else:
     else:
 		env.SConscript(target_os + '/SConscript')
 
-# Delete the temp files of configuration
-if env.GetOption('clean'):
-	dir = env.get('SRC_DIR')
+# # Delete the temp files of configuration
+# if env.GetOption('clean'):
+# 	dir = env.get('SRC_DIR')
 
-	if os.path.exists(dir + '/config.log'):
-		Execute(Delete(dir + '/config.log'))
-		Execute(Delete(dir + '/.sconsign.dblite'))
-		Execute(Delete(dir + '/.sconf_temp'))
+# 	if os.path.exists(dir + '/config.log'):
+# 		Execute(Delete(dir + '/config.log'))
+# 		Execute(Delete(dir + '/.sconsign.dblite'))
+# 		Execute(Delete(dir + '/.sconf_temp'))
 
 Return('env')

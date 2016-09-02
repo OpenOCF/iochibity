@@ -23,29 +23,30 @@
 ##
 
 Import('env')
+import build.utils
 
 print "Reading Tinydtls folder script"
+
+dtls_env = env.Clone()
 
 target_os = env.get('TARGET_OS')
 
 if(target_os) == 'arduino':
-	env.Replace(CFLAGS = env.get('CXXFLAGS'))
+	dtls_env.Replace(CFLAGS = env.get('CXXFLAGS'))
 
-root_dir = './'
+root_dir = '#extlibs/tinydtls'
 tinydtls_src_path = root_dir
+print "DTLS SRC PATH", tinydtls_src_path
 
-dtls_env = env.Clone()
-
-dtls_env.PrependUnique(CPPPATH = [root_dir])
-dtls_env.AppendUnique(CPPPATH = [root_dir+'aes/'])
-dtls_env.AppendUnique(CPPPATH = [root_dir+'ecc/'])
-dtls_env.AppendUnique(CPPPATH = [root_dir+'sha2/'])
+dtls_env.PrependUnique(CPPPATH = [root_dir,
+                                  root_dir+'aes/',
+                                  root_dir+'ecc/',
+                                  root_dir+'sha2/'])
 
 ######################################################################
 # Source files and Target(s)
 ######################################################################
-tinydtls_src = [
-                'dtls.c',
+tinydtls_src = ['dtls.c',
                 'crypto.c',
                 'ccm.c',
                 'hmac.c',
@@ -55,8 +56,7 @@ tinydtls_src = [
                 'session.c',
                 'aes/rijndael.c',
                 'ecc/ecc.c',
-                'sha2/sha2.c',
-        ]
+                'sha2/sha2.c']
 
 if not dtls_env.get('RELEASE'):
 	if(target_os) not in ['arduino']:
@@ -69,7 +69,9 @@ else:
 dtls_env.AppendUnique(CPPDEFINES = ['DTLSV12',  'WITH_SHA256', 'DTLS_CHECK_CONTENTTYPE', 'SHA2_USE_INTTYPES_H'])
 env.AppendUnique(CPPDEFINES = ['SHA2_USE_INTTYPES_H'])
 
-libtinydtls = dtls_env.StaticLibrary('tinydtls', tinydtls_src, OBJPREFIX='libtinydtls_')
+print "TINYDTLS SRC:", tinydtls_src
+
+libtinydtls = dtls_env.StaticLibrary('tinydtls', tinydtls_src) #, OBJPREFIX='libtinydtls_')
 
 ######################################################################
 # Generate tinydtls samples
@@ -98,5 +100,6 @@ if not env.get('RELEASE'):
 
 	samples_env.AppendTarget('samples')
 
-dtls_env.InstallTarget(libtinydtls, 'tinydtls');
+print "TINYDTLS:", libtinydtls
+build.utils.install_lib(dtls_env, libtinydtls, 'tinydtls')
 

@@ -21,7 +21,7 @@
 #ifndef OC_RESOURCEHANDLER_H
 #define OC_RESOURCEHANDLER_H
 
-#include "ocstack.h"
+#include "../ocstack.h"
 #include "ocstackinternal.h"
 #include "ocserverrequest.h"
 

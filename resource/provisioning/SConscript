@@ -28,7 +28,7 @@ ocprovision_env = env.Clone()
 ocprovision_env.AppendUnique(CPPPATH = [
 		'./../include/',
 		'./../csdk/cjson',
-		'./../csdk/stack/include',
+		'./../csdk/stack',
 		'./../csdk/logger/include',
 		'./../oc_logger/include',
 		'./../csdk/connectivity/api',

@@ -27,7 +27,7 @@
 #include <string.h>
 #include "oic_malloc.h"
 #include "oic_string.h"
-#include "ocstackinternal.h"
+#include "internal/ocstackinternal.h"
 #include "ocresource.h"
 #include "logger.h"
 #include "rdpayload.h"

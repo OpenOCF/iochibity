@@ -2,14 +2,22 @@
 # CA build script
 ##
 
+import os
+
+print "LIBCONNECTIVITY"
+
 Import('env')
 
-target_os = env.get('TARGET_OS')
-transport = env.get('TARGET_TRANSPORT')
-build_sample = env.get('BUILD_SAMPLE')
-with_ra = env.get('WITH_RA')
-with_tcp = env.get('WITH_TCP')
-with_mq = env.get('WITH_MQ')
+local_env = env.Clone()
+
+build_sysroot = local_env.get('BUILD_SYSROOT')
+
+target_os = local_env.get('TARGET_OS')
+transport = local_env.get('TARGET_TRANSPORT')
+build_sample = local_env.get('BUILD_SAMPLE')
+with_ra = local_env.get('WITH_RA')
+with_tcp = local_env.get('WITH_TCP')
+with_mq = local_env.get('WITH_MQ')
 
 print "Connectivity Configuration (resource/csdk/connectivity/SConscript):"
 print "\tTarget Transport is %s" % transport
@@ -25,4 +33,22 @@ if target_os in targets_disallow_multitransport:
         print "%s disallowed until testing can validate use of multiple transports on %s %d" % (transport, target_os, len(transport))
         Exit(1)
 
-env.SConscript('./src/SConscript')
+# Getting common source files
+local_env.SConscript(os.path.join('common', 'SConscript'),
+                     variant_dir=build_sysroot + '/ca/common',
+                     duplicate=0)
+
+# Getting util source files
+local_env.SConscript(os.path.join('util', 'SConscript'),
+                     variant_dir=build_sysroot + '/ca/util',
+                     duplicate=0)
+
+# Build libcoap
+local_env.SConscript('lib/libcoap-4.1.1/SConscript',
+                     variant_dir=build_sysroot + '/coap',
+                     duplicate=0)
+
+local_env.SConscript('src/SConscript',
+                     variant_dir=build_sysroot + '/conn',
+                     duplicate=0)
+

@@ -41,11 +41,12 @@
 #include <ctype.h>
 
 #include "ocstack.h"
-#include "ocstackinternal.h"
-#include "ocresourcehandler.h"
+#include "internal/ocstackinternal.h"
+#include "internal/ocresourcehandler.h"
 #include "occlientcb.h"
 #include "ocobserve.h"
 #include "ocrandom.h"
+#include "oc_uuid.h"
 #include "oic_malloc.h"
 #include "oic_string.h"
 #include "logger.h"
@@ -56,7 +57,7 @@
 #include "cacommon.h"
 #include "cainterface.h"
 #include "ocpayload.h"
-#include "ocpayloadcbor.h"
+#include "internal/ocpayloadcbor.h"
 #include "platform_features.h"
 
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)

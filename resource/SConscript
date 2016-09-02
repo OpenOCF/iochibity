@@ -28,29 +28,13 @@ Import('env')
 target_os = env.get('TARGET_OS')
 src_dir = env.get('SRC_DIR')
 
-# Build liblogger
-SConscript('csdk/logger/SConscript')
-
 if target_os not in ['arduino', 'darwin', 'ios', 'android', 'msys_nt', 'windows']:
 	env.AppendUnique(LIBS=['rt'])
-
-# Build libcoap
-SConscript('csdk/connectivity/lib/libcoap-4.1.1/SConscript')
 
 # Build C Common dependencies
 SConscript('c_common/SConscript')
 
-# Build connectivity
-SConscript('csdk/connectivity/SConscript')
-
-if env.get('ROUTING') in ['GW', 'EP']:
-	# Build Routing
-	SConscript('csdk/routing/SConscript')
-
-# Build libocsrm
-SConscript('csdk/security/SConscript')
-
-# Build liboctbstack
+# Build csdk
 SConscript('csdk/SConscript')
 
 if target_os not in ['arduino','ios']:

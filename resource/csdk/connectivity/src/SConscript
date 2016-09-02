@@ -3,129 +3,133 @@
 ##
 
 import os.path
+import build.utils
 
 Import('env')
 
-ca_os = env.get('TARGET_OS')
+local_env = env.Clone()
 
-ca_transport = env.get('TARGET_TRANSPORT')
-if ca_os == 'darwin':    # No BLE support for darwin yet
-    ca_transport = 'IP'
+target_os = local_env.get('TARGET_OS')
 
-secured = env.get('SECURED')
-with_ra = env.get ('WITH_RA')
-with_tcp = env.get('WITH_TCP')
-src_dir = env.get('SRC_DIR')
+ca_transport = local_env.get('TARGET_TRANSPORT')
+print "CONN TARGET_TRANSPORT:", ca_transport
+# if target_os == 'darwin':    # No BLE support for darwin yet
+#     ca_transport = 'IP'
+
+secured = local_env.get('SECURED')
+print "CONN SECURED:", secured
+with_ra = local_env.get ('WITH_RA')
+with_tcp = local_env.get('WITH_TCP')
+src_dir = local_env.get('SRC_DIR')
 root_dir = os.pardir
-ca_path = os.curdir
+ca_path = Dir('.').abspath  #os.curdir
+
+# print "CONN ROOT DIR:", root_dir
+# print "CONN SRC DIR: ", src_dir
+print "CONN CA PATH: ", ca_path
 
 #####################################################################
 # Source files and Target(s)
 ######################################################################
 
-env.PrependUnique(CPPPATH = [ os.path.join(root_dir, 'api') ])
-env.AppendUnique(CPPPATH = [ os.path.join(root_dir, 'inc'),
-                             os.path.join(root_dir, 'lib', 'libcoap-4.1.1'),
-                             os.path.join(src_dir, 'resource', 'csdk', 'logger', 'include'),
-                             os.path.join(src_dir, 'resource', 'csdk', 'timer'),
-                             os.path.join(root_dir, 'common', 'inc'),
-                             os.path.join(root_dir, 'util', 'inc') ])
+conn_path = '#resource/csdk/connectivity'
 
-# if ca_os not in ['arduino', 'windows']:
-# 	env.AppendUnique(CPPDEFINES = ['WITH_POSIX'])
+local_env.PrependUnique(CPPPATH = [ conn_path + '/api' ])
+local_env.AppendUnique(CPPPATH = [ os.path.join(conn_path, 'inc'), # os.path.join(root_dir, 'inc'),
+                             os.path.join(conn_path, 'lib', 'libcoap-4.1.1'),
+                             os.path.join('#resource', 'csdk', 'logger'),
+                             os.path.join('#resource', 'csdk', 'timer'),
+                             os.path.join('#resource', 'c_common'),
+                             os.path.join(conn_path, 'common'),
+                             os.path.join(conn_path, 'util', 'inc') ])
 
-# if ca_os in ['darwin','ios']:
-# 	env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
+# if target_os not in ['arduino', 'windows']:
+# 	local_env.AppendUnique(CPPDEFINES = ['WITH_POSIX'])
 
-# Getting common source files
-env.SConscript(os.path.join(root_dir, 'common', 'SConscript'))
-
-# Getting util source files
-env.SConscript(os.path.join(root_dir, 'util', 'SConscript'))
+# if target_os in ['darwin','ios']:
+# 	local_env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
 
 # The tinydtls library is found in '#extlibs/tinydtls', where the '#'
 # is interpreted by SCons as the top-level iotivity directory where
 # the SConscruct file is found.
-build_dir = env.get('BUILD_DIR')
-if env.get('SECURED') == '1':
-	env.SConscript(build_dir + '/extlibs/tinydtls/SConscript')
-	#GAR timer migrated to csdk
-	##env.SConscript(build_dir + '/extlibs/timer/SConscript')
-	env.AppendUnique(CPPPATH = ['#resource/csdk/timer'])
+# build_sysroot = local_env.get('BUILD_SYSROOT')
+# print "CONN BUILD SYSROOT:", build_sysroot
+# if local_env.get('SECURED') == '1':
+# #	local_env.SConscript('#extlibs/tinydtls/SConscript')
+# 		             # variant_dir=build_sysroot + '/tinydtls',
+# 			     # duplicate=0)
 
-if ca_os == 'linux':  #GAR NOTE: not for 'darwin'!
+# 	#GAR timer migrated to csdk
+# 	##local_env.SConscript(build_dir + '/extlibs/timer/SConscript')
+# 	local_env.AppendUnique(CPPPATH = ['#resource/csdk/timer'])
+
+if target_os == 'linux':  #GAR NOTE: not for 'darwin'!
     # get access to netdb.h (guarded by __USE_POSIX) for adapter_util/caadapterutils.c
-    env.AppendUnique(CPPDEFINES = ['_XOPEN_SOURCE=700'])
-env.AppendUnique(CA_SRC = [os.path.join(ca_path, 'adapter_util/caadapterutils.c')])
+    local_env.AppendUnique(CPPDEFINES = ['_XOPEN_SOURCE=700'])
 
-if env.get('SECURED') == '1':
-	env.AppendUnique(CA_SRC = [os.path.join(ca_path,
+local_env.AppendUnique(CA_SRC = [os.path.join(ca_path, 'adapter_util/caadapterutils.c')])
+
+if local_env.get('SECURED') == '1':
+	local_env.AppendUnique(CA_SRC = [os.path.join(ca_path,
                                                 'adapter_util/caadapternetdtls.c')])
-	env.AppendUnique(CPPPATH = [os.path.join(root_dir,
+	local_env.AppendUnique(CPPPATH = [os.path.join(root_dir,
                                                  'external/inc')])
-if env.get('DTLS_WITH_X509') == '1':
-	env.AppendUnique(CPPPATH = [src_dir + '/resource/csdk/connectivity/inc/pkix'])
-	env.AppendUnique(CPPPATH = [src_dir + '/extlibs/tinydtls/ecc/'])
-	env.AppendUnique(CPPPATH = [src_dir + '/extlibs/tinydtls/sha2/'])
-	env.AppendUnique(CPPDEFINES = ['__WITH_X509__'])
-	if not env.get('RELEASE'):
-		env.AppendUnique(CPPDEFINES = ['X509_DEBUG'])
+if local_env.get('DTLS_WITH_X509') == '1':
+	local_env.AppendUnique(CPPPATH = [src_dir + '/resource/csdk/connectivity/inc/pkix'])
+	local_env.AppendUnique(CPPPATH = [src_dir + '/extlibs/tinydtls/ecc/'])
+	local_env.AppendUnique(CPPPATH = [src_dir + '/extlibs/tinydtls/sha2/'])
+	local_env.AppendUnique(CPPDEFINES = ['__WITH_X509__'])
+	if not local_env.get('RELEASE'):
+		local_env.AppendUnique(CPPDEFINES = ['X509_DEBUG'])
 	pkix_src = Glob('adapter_util/pkix/*.c');
-	env.AppendUnique(CA_SRC = pkix_src)
+	local_env.AppendUnique(CA_SRC = pkix_src)
 
 ca_common_src = None
 
-if env.get('ROUTING') == 'GW':
-	env.AppendUnique(CPPDEFINES = ['ROUTING_GATEWAY'])
-elif env.get('ROUTING') == 'EP':
-	env.AppendUnique(CPPDEFINES = ['ROUTING_EP'])
-
-if ca_os == 'arduino':
-	env.AppendUnique(CPPDEFINES = ['SINGLE_THREAD'])
-	env.AppendUnique(CPPDEFINES = ['WITH_ARDUINO'])
-	print "setting WITH_ARDUINO"
-	ca_common_src = [
-		'caconnectivitymanager.c',
-		'cainterfacecontroller.c',
-		'camessagehandler.c',
-		'canetworkconfigurator.c',
-		'caprotocolmessage.c',
-		'caretransmission.c',
-		]
+if local_env.get('ROUTING') == 'GW':
+	local_env.AppendUnique(CPPDEFINES = ['ROUTING_GATEWAY'])
+#elif local_env.get('ROUTING') == 'EP':
 else:
-	ca_common_src = [
-		'caconnectivitymanager.c',
-		'cainterfacecontroller.c',
-		'camessagehandler.c',
-		'canetworkconfigurator.c',
-		'caprotocolmessage.c',
-		'caqueueingthread.c',
-		'caretransmission.c',
-		]
+	local_env.AppendUnique(CPPDEFINES = ['ROUTING_EP'])
+
+ca_common_src = ['caconnectivitymanager.c',
+		 'cainterfacecontroller.c',
+		 'camessagehandler.c',
+		 'canetworkconfigurator.c',
+		 'caprotocolmessage.c',
+		 'caretransmission.c']
+
+if target_os == 'arduino':
+	local_env.AppendUnique(CPPDEFINES = ['SINGLE_THREAD'])
+	local_env.AppendUnique(CPPDEFINES = ['WITH_ARDUINO'])
+	print "setting WITH_ARDUINO"
+else:
+        ca_common_src = ca_common_src + ['caqueueingthread.c']
+
 	if (('IP' in ca_transport) or ('ALL' in ca_transport)):
-		env.AppendUnique(CA_SRC = [os.path.join(ca_path, 'cablockwisetransfer.c') ])
-		env.AppendUnique(CPPDEFINES = ['WITH_BWT'])
+		local_env.AppendUnique(CA_SRC = [os.path.join(ca_path, 'cablockwisetransfer.c') ])
+		local_env.AppendUnique(CPPDEFINES = ['WITH_BWT'])
 	if secured == '1':
-		env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
-		if ca_os == 'tizen' and os.path.exists(root_dir + '/extlibs/tinydtls'):
-			env.AppendUnique(CPPPATH = [os.path.join(root_dir, 'extlibs/tinydtls')])
+		local_env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
+		if target_os == 'tizen' and os.path.exists(root_dir + '/extlibs/tinydtls'):
+			local_env.AppendUnique(CPPPATH = [os.path.join(root_dir, 'extlibs/tinydtls')])
 		else:
-			env.AppendUnique(CPPPATH = ['#extlibs/tinydtls'])
-			env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'extlibs/tinydtls')])
+			local_env.AppendUnique(CPPPATH = ['#extlibs/tinydtls'])
+			local_env.AppendUnique(LIBPATH = [local_env.get('INSTALL_SYSROOT') + '/lib'])
 
 ca_common_src = [
         os.path.join(ca_path, d) for d in ca_common_src ]
 
-env.AppendUnique(CA_SRC = ca_common_src)
+local_env.AppendUnique(CA_SRC = ca_common_src)
 
 if 'ALL' in ca_transport:
-		if env.get('WITH_GDBUS'):
+		if local_env.get('WITH_GDBUS'):
 		    transports = [ 'ip_adapter', 'bt_edr_adapter', 'bt_le_adapter']
 		else: # Edison uses dbus-glib
 		    transports = [ 'ip_adapter', 'bt_edr_adapter']
 
 	        transports = []
-		for item in env.get('CPPDEFINES'):
+		for item in local_env.get('CPPDEFINES'):
         	        if 'IP_ADAPTER' in item:
 	        	        transports = transports + ['ip_adapter']
         	        elif 'EDR_ADAPTER' in item:
@@ -136,46 +140,50 @@ if 'ALL' in ca_transport:
 
 		if with_ra:
 				transports.append ('ra_adapter')
-		if ca_os in ['android']:
+		if target_os in ['android']:
 				transports.append ('nfc_adapter')
-		env.SConscript(dirs = [
+		local_env.SConscript(dirs = [
 				os.path.join(ca_path, d) for d in transports ])
 
 if 'IP' in ca_transport:
-	env.SConscript(os.path.join(ca_path, 'ip_adapter/SConscript'))
-	if ca_os == 'arduino':
+        Export('local_env')
+	local_env.SConscript('ip_adapter/SConscript',
+	                     variant_dir=local_env.get('BUILD_SYSROOT') + '/ip',
+        		     duplicate=0)
+	# print "CONN FILES: ", local_env.get('CA_SRC')
+	if target_os == 'arduino':
 		if with_tcp == True:
 			transports = [ 'ip_adapter', 'tcp_adapter']
-			env.SConscript(dirs = [
+			local_env.SConscript(dirs = [
 				os.path.join(ca_path, d) for d in transports ])
 
 if 'BT' in ca_transport:
-	env.SConscript(os.path.join(ca_path, 'bt_edr_adapter/SConscript'))
+	local_env.SConscript(os.path.join(ca_path, 'bt_edr_adapter/SConscript'))
 
 if 'BLE' in ca_transport:
-	env.SConscript(os.path.join(ca_path, 'bt_le_adapter/SConscript'))
+	local_env.SConscript(os.path.join(ca_path, 'bt_le_adapter/SConscript'))
 
 if 'NFC' in ca_transport:
-	env.SConscript(os.path.join(ca_path, 'nfc_adapter/SConscript'))
+	local_env.SConscript(os.path.join(ca_path, 'nfc_adapter/SConscript'))
 
-if ca_os in ['darwin', 'linux', 'tizen', 'android']:
+if target_os in ['darwin', 'linux', 'tizen', 'android']:
 	if with_tcp == True:
-		env.SConscript(os.path.join(ca_path, 'tcp_adapter/SConscript'))
-		env.AppendUnique(CPPDEFINES = ['WITH_TCP'])
+		local_env.SConscript(os.path.join(ca_path, 'tcp_adapter/SConscript'))
+		local_env.AppendUnique(CPPDEFINES = ['WITH_TCP'])
 
-if ca_os in ['darwin', 'linux', 'tizen', 'android', 'arduino', 'ios']:
+if target_os in ['darwin', 'linux', 'tizen', 'android', 'arduino', 'ios']:
 	if (('BLE' in ca_transport) or ('BT' in ca_transport) or ('ALL' in ca_transport)):
-		env.AppendUnique(CPPDEFINES = ['WITH_TCP'])
+		local_env.AppendUnique(CPPDEFINES = ['WITH_TCP'])
 
-lib_env = env.Clone()
+lib_env = local_env.Clone()
 
 if env.get('LOGGING'):
 	lib_env.AppendUnique(CPPDEFINES=['TB_LOG'])
 
-if ca_os == 'android':
+if target_os == 'android':
 	lib_env.AppendUnique(LINKFLAGS = ['-Wl,-soname,libconnectivity_abstraction.so'])
 
-if ca_os in ['android']:
+if target_os in ['android']:
 	if lib_env.get('SECURED') == '1':
 		lib_env.AppendUnique(LIBS = ['tinydtls'])
 		# lib_env.AppendUnique(LIBS = ['timer'])
@@ -185,7 +193,7 @@ if ca_os in ['android']:
 	calib = lib_env.SharedLibrary('connectivity_abstraction', env.get('CA_SRC'),
 	SHLIBSUFFIX=lib_env.get('SHLIBSUFFIX'))
 
-elif ca_os in ['tizen']:
+elif target_os in ['tizen']:
 	lib_env.AppendUnique(LIBS = ['coap'])
 	if lib_env.get('SECURED') == '1':
 		lib_env.AppendUnique(LIBS = ['tinydtls'])
@@ -193,14 +201,20 @@ elif ca_os in ['tizen']:
 	lib_env.AppendUnique(LIBS = ['rt'])
 	calib = lib_env.SharedLibrary('connectivity_abstraction', env.get('CA_SRC'))
 
-elif ca_os in ['msys_nt', 'windows']:
+elif target_os in ['msys_nt', 'windows']:
 	lib_env.AppendUnique(LIBS = ['coap', 'mswsock', 'ws2_32', 'iphlpapi', 'logger'])
 	if lib_env.get('SECURED') == '1':
 		lib_env.AppendUnique(LIBS = ['tinydtls'])
 		lib_env.AppendUnique(LIBS = ['timer'])
 	calib = lib_env.StaticLibrary('connectivity_abstraction', env.get('CA_SRC'))
 else:  #GAR why is linux static?
-	calib = lib_env.StaticLibrary('connectivity_abstraction', lib_env.get('CA_SRC'))
+        print "CA SOURCES:", local_env.get('CA_SRC')
+        #FIXME: don't hardcode .o
+        lib_env.AppendUnique(CA_SRC = env.get('BUILD_SYSROOT') + '/c_common/unix/ocrandom_seed.o')
+        lib_env.AppendUnique(ARFLAGS = ['-llogger'])
+	calib = lib_env.StaticLibrary('connectivity_abstraction',
+                                      lib_env.get('CA_SRC'))
 
-lib_env.InstallTarget(calib, 'connectivity_abstraction')
-lib_env.UserInstallTargetLib(calib, 'connectivity_abstraction')
+# build.utils.install_target(lib_env, calib, 'connectivity_abstraction')
+build.utils.install_lib(env, calib, 'connectivity')
+

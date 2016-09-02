@@ -21,6 +21,9 @@
 Import('test_env')
 import os
 import os.path
+import build.utils
+
+test_env = test_env.Clone()
 
 target_os = test_env.get('TARGET_OS')
 
@@ -28,32 +31,32 @@ target_os = test_env.get('TARGET_OS')
 # Build flags
 ######################################################################
 test_env.PrependUnique(CPPPATH = [
-		'../../security/include',
-		'../../ocsocket/include',
-		'../../logger/include',
-		'../../../c_common/ocrandom/include',
-		'../../stack/include',
-		'../../stack/include/internal',
-		'../../connectivity/api',
-		'../../connectivity/external/inc',
-		'../../extlibs/cjson',
-		'../../../oc_logger/include'
+		'#resource/csdk/security',
+		'#resource/csdk/security/ocsecurity',
+		'#resource/csdk/logger',
+		'#resource/csdk/cbor',
+		'#resource/c_common',
+		'#resource/csdk/stack',
+		'#resource/csdk/stack/internal',  #FIXME: this is private
+		'#resource/csdk/connectivity/api',
+		'#resource/csdk/connectivity/external/inc',
+		'#resource/csdk/cjson'
 		])
+#		'#resource/oc_logger/include'
+#		'../../stack/internal',
 
 #GAR uuid
 test_env.PrependUnique(LIBS = ['octbstack',
                                'ocsrm',
                                'connectivity_abstraction',
-                               'coap',
-                               'gtest',
-                               'gtest_main'])
+                               'coap'])
 
 if target_os != 'darwin':
         test_env.PrependUnique(LIBS = ['uuid'])
 
-test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_DIR')])
+test_env.AppendUnique(LIBPATH = [test_env.get('INSTALL_SYSROOT')])
 
-test_env.PrependUnique(LIBS = ['oc_logger'])
+# test_env.PrependUnique(LIBS = ['oc_logger'])
 
 if test_env.get('SECURED') == '1':
     test_env.AppendUnique(LIBS = ['tinydtls'])
@@ -76,10 +79,11 @@ cbortests = test_env.Program('cbortests', ['cbortests.cpp'])
 
 Alias("test", [stacktests, cbortests])
 
-test_env.AppendTarget('test')
+#test_env.Install(os.path.join(test_env.get('INSTALL_SYSROOT'), 'test'),  stacktests)
+build.utils.install_bin(test_env, stacktests, 'stacktests')
 
-test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  stacktests)
-test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  cbortests)
+#test_env.Install(os.path.join(test_env.get('INSTALL_SYSROOT'), 'test'),  cbortests)
+build.utils.install_bin(test_env, cbortests, 'cbortests')
 
 # if env.get('WITH_VALGRIND'):
 #         valgrind_xml = 'resource_csdk_stack_test.memcheck'

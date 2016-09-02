@@ -39,9 +39,9 @@
 #include "logger.h"
 #include "doxmresource.h"
 #include "ocpayload.h"
-#include "ocpayloadcbor.h"
+#include "internal/ocpayloadcbor.h"  //FIXME:  internal -> ocstack
 #include "payload_logging.h"
-#include "security_internals.h"
+#include "ocsecurity/security_internals.h"
 
 using namespace std;
 

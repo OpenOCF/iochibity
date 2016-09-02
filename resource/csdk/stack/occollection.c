@@ -28,8 +28,8 @@
 #include "occollection.h"
 #include <string.h>
 #include "ocstack.h"
-#include "ocstackinternal.h"
-#include "ocresourcehandler.h"
+#include "internal/ocstackinternal.h"
+#include "internal/ocresourcehandler.h"
 #include "logger.h"
 #include "cJSON.h"
 #include "oic_malloc.h"

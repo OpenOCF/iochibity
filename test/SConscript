@@ -1,5 +1,3 @@
-#GAR FIXME: only build tests on demand
-
 print "TEST/SCONSCRIPT"
 
 Import('env')
@@ -10,10 +8,11 @@ test_env = env.Clone()
 target_os  = test_env.get('TARGET_OS')
 
 src_dir = test_env.get('SRC_DIR')
-bld_dir = test_env.get('BUILD_DIR')
+
+build_sysroot = test_env.get('BUILD_SYSROOT')
 
 # print "TEST SOURCE DIR:", src_dir
-# print "TEST BUILD DIR:", bld_dir
+# print "TEST BUILD DIR:", build_sysroot
 
 #if target_os in ['darwin', 'linux']:
 
@@ -21,61 +20,84 @@ bld_dir = test_env.get('BUILD_DIR')
 lib_sysroot=test_env['ENV']['LIB_SYSROOT']
 # print "LIB_SYSROOT:", lib_sysroot
 # print "CC:", test_env.get('CC')
-test_env.Prepend(CPPPATH = [lib_sysroot + '/include'])
-test_env.Prepend(LIBPATH = [lib_sysroot + '/lib'])
+
+gt = test_env.Clone()
+gt.Replace(CPPFLAGS = [lib_sysroot + '/include'])
+gt.Replace(CPPPATH = [lib_sysroot + '/include'])
+gt.Replace(CPPDEFINES = [])
+gt.Replace(LIBPATH = [lib_sysroot + '/lib'])
+gt.Replace(LIBS = [])
 
 # print test_env.Dump()
 
-conf = Configure(test_env)
+conf = Configure(gt)
 
 # this will add gtest to LIBS, if found
-if not conf.CheckLib('gtest'):
+if conf.CheckLib('gtest'):
+        test_env.AppendUnique(CPPPATH = [lib_sysroot + '/include'])
+        test_env.AppendUnique(LIBPATH = [lib_sysroot + '/lib'])
+        test_env.Append(LIBS = ['gtest'])
+else:
         print "\tWARNING: libgtest not found."
         print "\t\tTesting will be disabled."
         print "\t\tTo enable it, install googletest from https://github.com/google/googletest"
         print "\t\tand set GTEST_DIR (in source.me)."
         Exit(2)
-if not conf.CheckLib('gtest_main'):
+if conf.CheckLib('gtest_main'):
+        test_env.AppendUnique(CPPPATH = [lib_sysroot + '/include'])
+        test_env.AppendUnique(LIBPATH = [lib_sysroot + '/lib'])
+        test_env.Append(LIBS = ['gtest_main'])
+else:
         print "\tWARNING: libgtest_main not found."
         print "\t\tTesting will be disabled."
         print "\t\tTo enable it, install googletest from https://github.com/google/googletest"
         print "\t\tand set GTEST_DIR (in source.me)."
         Exit(2)
-test_env = conf.Finish()
+conf.Finish()
 
 # print test_env.Dump()
 
 Export('test_env')
 
-SConscript(os.path.join(bld_dir, 'resource', 'c_common', 'ocrandom', 'test', 'SConscript'))
-SConscript(os.path.join(bld_dir, 'resource', 'c_common', 'oic_string', 'test', 'SConscript'))
-SConscript(os.path.join(bld_dir, 'resource', 'c_common', 'oic_malloc', 'test', 'SConscript'))
-SConscript(os.path.join(bld_dir, 'resource', 'c_common', 'oic_time', 'test', 'SConscript'))
+SConscript(os.path.join('#resource', 'c_common', 'test', 'SConscript'),
+           variant_dir=build_sysroot + '/test/common',
+           duplicate=0)
 
-# # SConscript(os.path.join(bld_dir, 'plugins', 'unittests', 'SConscript'))
+# # SConscript(os.path.join(build_sysroot, 'plugins', 'unittests', 'SConscript'))
 
-SConscript(os.path.join(bld_dir, 'resource', 'csdk', 'stack', 'test', 'SConscript'))
-SConscript(os.path.join(bld_dir, 'resource', 'csdk', 'connectivity', 'test', 'SConscript'))
-SConscript(os.path.join(bld_dir, 'resource', 'csdk', 'security', 'unittest', 'SConscript'))
+SConscript(os.path.join('#resource', 'csdk', 'stack', 'test', 'SConscript'),
+           variant_dir=build_sysroot + '/test/stack',
+           duplicate=0)
+
+SConscript(os.path.join('#resource', 'csdk', 'connectivity', 'test', 'SConscript'),
+           variant_dir=build_sysroot + '/test/connectivity',
+           duplicate=0)
+
+SConscript(os.path.join('#resource', 'csdk', 'security', 'unittest', 'SConscript'),
+           variant_dir=build_sysroot + '/test/security',
+           duplicate=0)
+
 
 # # Build C++ unit tests
-SConscript(os.path.join(bld_dir, 'resource', 'unittests', 'SConscript'))
+#SConscript(os.path.join('#resource', 'unittests', 'SConscript'))
 
 # # Build Provisioning API unit test
 if test_env.get('SECURED') == '1':
-    SConscript(os.path.join(bld_dir, 'resource', 'csdk', 'security', 'provisioning', 'unittest', 'SConscript'))
-    SConscript(os.path.join(bld_dir, 'resource', 'provisioning', 'unittests', 'SConscript'))
+    SConscript(os.path.join('#resource', 'csdk', 'security', 'provisioning', 'unittest', 'SConscript'),
+               variant_dir=build_sysroot + '/test/provisioning',
+               duplicate=0)
+    # SConscript(os.path.join('#resource', 'provisioning', 'unittests', 'SConscript'))
 
     # elif target_os == 'windows':
-    #     SConscript(os.path.join(bld_dir, 'resource', 'csdk' 'stack' 'test' 'SConscript'))
+    #     SConscript(os.path.join(build_sysroot, 'resource', 'csdk' 'stack' 'test' 'SConscript'))
 
-    #     SConscript(os.path.join(bld_dir, 'resource', 'csdk', 'connectivity', 'test', 'SConscript'))
+    #     SConscript(os.path.join(build_sysroot, 'resource', 'csdk', 'connectivity', 'test', 'SConscript'))
 
-    #     SConscript(os.path.join(bld_dir, 'resource', 'csdk', 'security', 'unittest', 'SConscript'))
+    #     SConscript(os.path.join(build_sysroot, 'resource', 'csdk', 'security', 'unittest', 'SConscript'))
 
     #     if test_env.get('SECURED') == '1':
-    #         SConscript(os.path.join(bld_dir, 'resource', 'csdk', 'security', 'provisioning', 'unittest', 'SConscript'),
-    #                    variant_dir =  os.path.join(bld_dir, 'resource', 'csdk', 'security', 'provisioning', 'unittest'))
+    #         SConscript(os.path.join(build_sysroot, 'resource', 'csdk', 'security', 'provisioning', 'unittest', 'SConscript'),
+    #                    variant_dir =  os.path.join(build_sysroot, 'resource', 'csdk', 'security', 'provisioning', 'unittest'))
 
-    #         SConscript(os.path.join(bld_dir, 'resource', 'provisioning', 'unittests', 'SConscript'),
-    #                    variant_dir =  os.path.join(bld_dir, 'resource', 'provisioning', 'unittests'))
+    #         SConscript(os.path.join(build_sysroot, 'resource', 'provisioning', 'unittests', 'SConscript'),
+    #                    variant_dir =  os.path.join(build_sysroot, 'resource', 'provisioning', 'unittests'))

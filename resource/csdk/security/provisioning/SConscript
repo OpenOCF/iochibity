@@ -21,6 +21,7 @@
 
 Import('env')
 import os.path
+import build.utils
 
 src_dir = env.get('SRC_DIR')
 print "SRC DIR: ", src_dir
@@ -34,33 +35,34 @@ root_dir = Dir('#').abspath
 # Build flags
 ######################################################################
 provisioning_env.AppendUnique(CPPPATH = [
-		'./include',
-		os.path.join(src_dir,'resource','csdk','security','provisioning','include'),
-		os.path.join(src_dir,'resource','csdk','cbor'),
-		os.path.join(src_dir,'resource','csdk','cjson'),
-		'./include/internal',
-		'./include/oxm',
-		'./../../stack/include',
-		'./../../stack/include/internal',
-		'./../../../c_common/ocrandom/include',
-		'./../../logger/include',
-		'./../../../oc_logger/include',
-		'./../../ocmalloc/include',
-		'./../../resource/csdk/security/include',
-		'./../../../../extlibs/cjson/',
-		'./../../../../../extlibs/tinydtls/',
-		'./../../connectivity/inc',
-		'./../../connectivity/external/inc',
-		'./../../connectivity/common/inc',
-		'./../../connectivity/lib/libcoap-4.1.1',
-		'./../../connectivity/api',
-		'./../include',
-		'./../include/internal',
-		'./../../../../extlibs/tinydtls/ecc',
-		'./../../../../extlibs/tinydtls/sha2',
-		'./../../../../extlibs/asn1cert',
-		'./ck_manager/include'
+# 		'./include',
+ 		'#resource/csdk/security/provisioning/include',
+ 		'#resource/csdk/security/provisioning/include/internal',
+ 		'#resource/csdk/security/provisioning/include/oxm',
+ 		'#resource/csdk/stack',
+# 		'./../../stack/internal',
+ 		'#resource/c_common',
+ 		'#resource/csdk/logger',
+ 		'#resource/csdk/cbor',
+ 		'#resource/csdk/cjson',
+# 		'./../../../oc_logger/include',
+# 		'./../../ocmalloc/include',
+# 		'./../../resource/csdk/security/include',
+ 		'#extlibs/tinydtls',
+# 		'./../../connectivity/inc',
+# 		'./../../connectivity/external/inc',
+# 		'./../../connectivity/common/inc',
+ 		'#resource/csdk/connectivity/lib/libcoap-4.1.1',
+ 		'#resource/csdk/connectivity/api',
+# 		'../',
+ 		'#resource/csdk/security',
+ 		'#resource/csdk/security/ocsecurity',
+# 		'./../../../../extlibs/tinydtls/ecc',
+# 		'./../../../../extlibs/tinydtls/sha2',
+# 		'./../../../../extlibs/asn1cert',
+# 		'./ck_manager/include'
 		])
+
 if target_os not in ['tizen']:
 	provisioning_env.AppendUnique(CPPPATH = [root_dir +'/extlibs/sqlite3'])
 
@@ -71,8 +73,10 @@ if target_os not in ['windows']:
 if 'g++' in provisioning_env.get('CXX'):
     provisioning_env.AppendUnique(CXXFLAGS = ['-std=c++0x'])
 
-provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_DIR')])
-provisioning_env.PrependUnique(LIBS = ['oc', 'octbstack', 'oc_logger', 'connectivity_abstraction', 'coap'])
+provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('INSTALL_SYSROOT') + '/lib'])
+
+# 'oc', 'oc_logger',
+provisioning_env.PrependUnique(LIBS = ['octbstack', 'connectivity_abstraction', 'coap'])
 
 provisioning_env.AppendUnique(LIBS = ['tinydtls'])
 
@@ -129,8 +133,8 @@ if target_os == 'windows':
 else:
 	provisioningserver = provisioning_env.SharedLibrary('ocpmapi', provisioning_src)
 
-provisioning_env.InstallTarget(provisioningserver, 'ocpmapi')
-provisioning_env.UserInstallTargetLib(provisioningserver, 'ocpmapi')
+build.utils.install_lib(provisioning_env, provisioningserver, 'ocpmapi')
+# provisioning_env.UserInstallTargetLib(provisioningserver, 'ocpmapi')
 
 if provisioning_env.get('DTLS_WITH_X509') == '1':
 	SConscript('ck_manager/SConscript')

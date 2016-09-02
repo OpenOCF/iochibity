@@ -6,6 +6,16 @@ Resources:
 
 * https://github.com/mbr/scons-tools[scons-tools] - a collection of tools, to go in `site_scons/site_tools`
 
+=== targets
+
+the following put libs into INSTALL_SYSROOT:
+
+* connectivity/src -> libconnectivity_abstraction
+* connectivity/lib/libcoap-4.1.1  -> libcoap
+* security                => libocsrm
+* security/provisioning   => libocpmapi
+* security/provisioning/ck_manager   => libCKManager
+* csdk/tools                        =>  bin/json2cbor
 
 === security
 
@@ -30,6 +40,12 @@ TODO: replace all this with WITH_X509 param which is propagated.
 * eliminate platform defs, e.g. -D__darwin__, -D_DARWIN_C_SOURCE
 
 == cross-compiling
+
+=== flags
+
+Scons is somewhat lame when it comes to controlling linking.
+
+Do not put -shared in LINKFLAGS for executables.  That will prevent executables from being created.
 
 ==== osx to edison
 

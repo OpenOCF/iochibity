@@ -23,9 +23,9 @@
 
 Import('env')
 import os
+import build.utils
 
 lib_env = env.Clone()
-SConscript('#resource/third_party_libs.scons', 'lib_env')
 
 libocsrm_env = lib_env.Clone()
 
@@ -40,23 +40,23 @@ if target_os == 'arduino':
 # Build flags
 ######################################################################
 libocsrm_env.PrependUnique(CPPPATH = [
-		'../../../extlibs/tinydtls/',
-		'../logger/include',
-		'../../c_common/ocrandom/include',
-		'./../cbor',
-		'./../cjson',
-		'../stack/include',
-		'../stack/include/internal',
-		'../../oc_logger/include',
-		'../connectivity/lib/libcoap-4.1.1',
-		'../connectivity/external/inc',
-		'../connectivity/common/inc',
-		'../connectivity/inc',
-		'../connectivity/api',
-		'../security/include',
-		'../security/include/internal',
-		'../security/provisioning/include'
-		])
+ 	'#extlibs/tinydtls/',
+ 	'#resource/csdk/stack',
+ 	'#resource/csdk/logger',
+ 	'#resource/csdk/cjson',
+ 	'#resource/c_common',
+ 	'#resource/csdk/cbor',
+ 	'#resource/csdk/stack/internal',
+# 	'#resource/oc_logger/include',
+ 	'#resource/csdk/connectivity/lib/libcoap-4.1.1',
+# 	'#resource/csdk/connectivity/external/inc',
+ 	'#resource/csdk/connectivity/common',
+# 	'#resource/csdk/connectivity/inc',
+ 	'#resource/csdk/connectivity/api',
+# 	'#resource/csdk/security',
+ 	'#resource/csdk/security/ocsecurity',
+ 	'#resource/csdk/security/provisioning/include'
+])
 
 libocsrm_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 libocsrm_env.AppendUnique(LIBS = ['coap'])
@@ -79,45 +79,47 @@ if env.get('DTLS_WITH_X509') == '1':
 ######################################################################
 # Source files and Targets
 ######################################################################
-OCSRM_SRC = 'src/'
 libocsrm_src = [
-	OCSRM_SRC + 'secureresourcemanager.c',
-	OCSRM_SRC + 'resourcemanager.c',
-	OCSRM_SRC + 'aclresource.c',
-	OCSRM_SRC + 'verresource.c',
-	OCSRM_SRC + 'amaclresource.c',
-	OCSRM_SRC + 'amsmgr.c',
-	OCSRM_SRC + 'pstatresource.c',
-	OCSRM_SRC + 'doxmresource.c',
-	OCSRM_SRC + 'credresource.c',
-	OCSRM_SRC + 'svcresource.c',
-	OCSRM_SRC + 'pconfresource.c',
-	OCSRM_SRC + 'dpairingresource.c',
-	OCSRM_SRC + 'policyengine.c',
-	OCSRM_SRC + 'psinterface.c',
-	OCSRM_SRC + 'srmresourcestrings.c',
-	OCSRM_SRC + 'srmutility.c',
-	OCSRM_SRC + 'iotvticalendar.c',
-	OCSRM_SRC + 'base64.c',
-	OCSRM_SRC + 'directpairing.c'
+	'secureresourcemanager.c',
+	'resourcemanager.c',
+	'aclresource.c',
+	'verresource.c',
+	'amaclresource.c',
+	'amsmgr.c',
+	'pstatresource.c',
+	'doxmresource.c',
+	'credresource.c',
+	'svcresource.c',
+	'pconfresource.c',
+	'dpairingresource.c',
+	'policyengine.c',
+	'psinterface.c',
+	'srmresourcestrings.c',
+	'srmutility.c',
+	'iotvticalendar.c',
+	'base64.c',
+	'directpairing.c'
 	]
 
 if env.get('SECURED') == '1':
-	libocsrm_src  = libocsrm_src + [OCSRM_SRC + 'oxmpincommon.c', OCSRM_SRC + 'pbkdf2.c']
+	libocsrm_src  = libocsrm_src + ['oxmpincommon.c', 'pbkdf2.c']
+	libocsrm_env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
 
 if target_os in ['windows', 'msys_nt']:
-	libocsrm_src  = libocsrm_src + [OCSRM_SRC + 'strptime.c']
+	libocsrm_src  = libocsrm_src + ['strptime.c']
 
 if env.get('DTLS_WITH_X509') == '1' and env.get('SECURED') == '1':
-	crl_src = [OCSRM_SRC + 'crlresource.c']
+	crl_src = ['crlresource.c']
 	libocsrm_src  = libocsrm_src + crl_src
 
 libocsrm = libocsrm_env.StaticLibrary('ocsrm', libocsrm_src)
 
-libocsrm_env.InstallTarget(libocsrm, 'ocsrm')
+#libocsrm_env.Install(libocsrm_env, libocsrm, 'libocsrm')
+
+build.utils.install_lib(libocsrm_env, libocsrm, 'ocsrm')
 
 if env.get('SECURED') == '1':
-    if target_os in ['darwin', 'linux', 'android', 'tizen', 'msys_nt', 'windows']:
-            SConscript('provisioning/SConscript')
-    if target_os in ['darwin', 'linux']:
-        SConscript('tool/SConscript')
+        #    if target_os in ['darwin', 'linux', 'android', 'tizen', 'msys_nt', 'windows']:
+        SConscript('provisioning/SConscript',
+                   variant_dir=env.get('BUILD_SYSROOT') + '/provisioning',
+                   duplicate=0)

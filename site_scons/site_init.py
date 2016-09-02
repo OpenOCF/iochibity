@@ -1,6 +1,7 @@
 import sys
 import os
-from sys import platform as _platform
+import platform
+# from sys import platform as _platform
 from SCons.Script import *
 
 path = 'log'
@@ -10,7 +11,7 @@ except  OSError as e:
     if not os.path.isdir(path):
         raise
 
-print "ARGS: ", sys.argv
+# print "ARGS: ", sys.argv
 
 # argarray = sys.argv[1:]
 # if len(sys.argv) > 1:
@@ -36,20 +37,28 @@ logfile = path + "/build"
 
 logfile = logfile + ".log"
 
-if _platform == "linux" or _platform == "linux2" or _platform == "darwin":
+print "sys.platform:     " + sys.platform
+print "platform.architecture:  ", platform.architecture()
+print "platform.machine:  " + platform.machine()
+print "platform.processor:  " + platform.processor()
+print "platform.system:  " + platform.system()
+print "platform.release: " + platform.release()
+print "os.name:          " + os.name
+sys.stdout.flush()
+
+if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
     sys.stdout = os.popen("tee " + logfile, "w")
     sys.stderr = sys.stdout
-# elif _platform == "win32":
+# elif sys.platform == "win32":
 #     #  tee?
 
 print "SCons Initializing"
-# print "Target:", _platform, "release:", args.get('RELEASE','true'), " secured:", args.get('SECURED',1)
-
-print "Host:"
+# print "Target:", sys.platform, "release:", args.get('RELEASE','true'), " secured:", args.get('SECURED',1)
 
 # put this in gerrit?
 import subprocess
-if _platform == "darwin":
+if sys.platform.startswith('darwin'):
+    # Linux-specific code here...
     print  subprocess.Popen(["sw_vers"], stdout=subprocess.PIPE).communicate()[0]
     print "uname: " + subprocess.Popen(["uname", "-a"], stdout=subprocess.PIPE).communicate()[0]
     print "clang:"
@@ -58,9 +67,26 @@ if _platform == "darwin":
     print "gcc:"
     print subprocess.Popen(["gcc", "--version"], stdout=subprocess.PIPE).communicate()[0]
 
-if _platform == "linux" or _platform == "linux2":
+if sys.platform.startswith('linux'):
     print "uname: " + subprocess.Popen(["uname", "-a"], stdout=subprocess.PIPE).communicate()[0]
     print "gcc:"
     print subprocess.Popen(["gcc", "--version"], stdout=subprocess.PIPE).communicate()[0]
     print "cpp:"
     print subprocess.Popen(["gcc", "-dM", "-E", "site_scons/foo.h"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
+elif sys.platform.startswith('freebsd'):
+    pass
+elif sys.platform.startswith('win32'):
+    pass
+
+
+
+# System	platform value
+# Linux (2.x and 3.x)	'linux2'
+# Windows	'win32'
+# Windows/Cygwin	'cygwin'
+# Mac OS X	'darwin'
+# OS/2	'os2'
+# OS/2 EMX	'os2emx'
+# RiscOS	'riscos'
+# AtheOS	'atheos'
+

@@ -137,7 +137,7 @@ def config_transport(env):
 
         return env
 
-def host(env) :
+def host_features(env) :
         print "Running feature tests for host system..."
         # env = Environment()
         # if env.GetOption('clean'):
@@ -340,6 +340,24 @@ def host(env) :
         except KeyError:
                 env.Append(CPPDEFINES = ['NO_NFC_ADAPTER'])
 
+        try:
+                routing_mode = env['ENV']['ROUTING']
+                env.Replace(ROUTING = routing_mode)
+                if routing_mode == 'EP':
+                        env.Append(CPPDEFINES = ['ROUTING_EP'])
+                elif routing_mode == 'GW':
+                        env.Append(CPPDEFINES = ['ROUTING_GW'])
+        except KeyError:
+                env.Replace(ROUTING = 'EP')
+                env.Append(CPPDEFINES = ['ROUTING_EP'])
+
+        try:
+                sec = env['ENV']['SECURED']
+
+                if sec == 1:
+                        env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
+        except KeyError:
+                pass
 
         return env
 
@@ -421,20 +439,38 @@ def edison(env):
         print "SETUP.TARGET.EDISON()"
         #FIXME: currently this is just for POC.
         # TODO: elim hardcoded stuff, use sourced env vars to drive config
-        # TODO: get the versioning of the tools, needed for linking to crystax boost libs
 
         # env.Replace(IOTIVITY_HOST_OS = env['ENV']['IOTIVITY_HOST_OS'])
-        env.Replace(HOST_OS = env['ENV']['HOST_OS'])
-        env.Replace(HOST_ARCH = env['ENV']['HOST_ARCH'])
+        # env.Replace(HOST_OS = env['ENV']['HOST_OS'])
+        # env.Replace(HOST_ARCH = env['ENV']['HOST_ARCH'])
         env.Replace(TARGET_OS = env['ENV']['TARGET_OS'])
         env.Replace(TARGET_OS_VERSION = env['ENV']['TARGET_OS_VERSION'])
-        env.Replace(TARGET_ARCH = env['ENV']['TARGET_ARCH'])
+        # env.Replace(TARGET_ARCH = env['ENV']['TARGET_ARCH'])
+        try:
+                stage = env['ENV']['STAGE']
+                if stage == 'release':
+                        env.Replace(RELEASE = 1)
+                elif stage == 'debug':
+                        env.Replace(RELEASE = 0)
+        except:
+                env.Replace(RELEASE = 0)
+                pass
+
+        s = env['ENV']['TARGET_ARCH']
+        items = s.split()
+        for item in items:
+                env.AppendUnique(CPPFLAGS = [item])
+                env.AppendUnique(CFLAGS = [item])
+                env.AppendUnique(CCFLAGS = [item])
+                env.AppendUnique(CXXFLAGS = [item])
+                #env.AppendUnique(LINKFLAGS = [item])
 
         # tools
         try:
                 env.Replace(ADDR2LINE = env['ENV']['ADDR2LINE'])
         except:
                 pass
+
         try:
                 env.Replace(AR        = env['ENV']['AR'])
         except:
@@ -540,7 +576,6 @@ def edison(env):
         for item in items:
                 env.AppendUnique(CPPPATH = [item])
 
-        # env.Replace(CPPFLAGS  = env['ENV']['CPPFLAGS'])
         s = env['ENV']['CPPFLAGS']
         items = s.split()
         for item in items:
@@ -586,53 +621,8 @@ def edison(env):
         for item in items:
                 env.AppendUnique(CPPDEFINES = [item])
 
-        # target_sysroot
-        # sysroot = env['ENV']['TARGET_SYSROOT']
-        # env.AppendUnique(CPPFLAGS = ['-E',
-        #                              '-shared',
-        #                              '-m32', '-march=core2', '-mtune=core2',
-        #                              '-msse3', '-mfpmath=sse', '-mstackrealign',
-        #                              '-fno-omit-frame-pointer',
-        #                              '--sysroot=' + sysroot])
-
-        # env.AppendUnique(CFLAGS = ['-m32', '-march=core2', '-mtune=core2',
-        #                            '-msse3', '-mfpmath=sse', '-mstackrealign',
-        #                            '-fno-omit-frame-pointer',
-        #                            '-Wl,--no-undefined',
-        #                            '--sysroot=' + sysroot])
-
-        # env.AppendUnique(CXXFLAGS = ['-m32', '-march=core2', '-mtune=core2',
-        #                              '-msse3', '-mfpmath=sse', '-mstackrealign',
-        #                              '-fno-omit-frame-pointer',
-        #                              '--sysroot=' + sysroot])
-
-        # env.AppendUnique(LINKFLAGS = ['--sysroot=' + sysroot])
-
-        # CONFIGURE_FLAGS="--target=i586-poky-linux --host=i586-poky-linux --build=i386-linux --with-libtool-sysroot=$SDKTARGETSYSROOT"
-        # env.AppendUnique(CPPFLAGS = ['--target=i586-poky-linux',
-        #                               '--host=i586-poky-linux',
-        #                               '--build=i386-linux',
-        #                               '--with-libtool-sysroot=' + sysroot])
-
-        # CFLAGS=" -O2 -pipe -g -feliminate-unused-debug-types"
-        # env.AppendUnique(CFLAGS = ['-O2', '-pipe', '-g', '-feliminate-unused-debug-types', '-pie'])
-
-        # export CXXFLAGS=" -O2 -pipe -g -feliminate-unused-debug-types"
-        # env.AppendUnique(CXXFLAGS = ['-O2', '-pipe', '-g', '-feliminate-unused-debug-types'])
-        # env.AppendUnique(CPPPATH = [sysroot + '/usr/include/c++/4.9.1',
-        #                             sysroot + '/usr/include/c++/4.9.1/i586-poky-linux'])
-
-        # export LDFLAGS="-Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed"
-        #env.AppendUnique(LINKFLAGS = ['-Wl,-O1', '-Wl,--hash-style=gnu' '-Wl,--as-needed'])
-        # env.AppendUnique(LINKFLAGS = ['-O1', '--hash-style=gnu', '--as-needed'])
-
-        # env.AppendUnique(STATIC_AND_SHARED_OBJECTS_ARE_THE_SAME = 1)
-
-        # export CPPFLAGS=""
-        # export KCFLAGS="--sysroot=$SDKTARGETSYSROOT"
-
-        env.AppendUnique(CPPPATH = [env['ENV']['INSTALL_OUT'] + '/include'])
-        env.Append(LIBPATH = [env['ENV']['INSTALL_OUT'] + '/lib'])
+        env.AppendUnique(CPPPATH = [env['ENV']['INSTALL_SYSROOT'] + '/include'])
+        env.Append(LIBPATH = [env['ENV']['INSTALL_SYSROOT'] + '/lib'])
 
         # Then: transports
         try:
@@ -665,32 +655,61 @@ def edison(env):
         except KeyError:
                 env.Append(CPPDEFINES = ['NO_NFC_ADAPTER'])
 
+        env.AppendUnique(CPPDEFINES = ['HAVE_PTHREAD_H'])
+        env.AppendUnique(PTHREAD_CFLAGS = '-pthread')
+        env.AppendUnique(PTHREAD_LIB = 'pthread')
+
         #FIXME: put this stuff in CPPDEFINES env var?
-        # env.Append(CPPDEFINES = ['HAVE_ARPA_INET_H'])
-        # env.Append(CPPDEFINES = ['HAVE_ASSERT_H'])
-        # env.Append(CPPDEFINES = ['HAVE_FCNTL_H'])
-        # env.Append(CPPDEFINES = ['HAVE_LIMITS_H'])
-        # env.Append(CPPDEFINES = ['HAVE_NETDB_H'])
-        # env.Append(CPPDEFINES = ['HAVE_NETINET_IN_H'])
-        # env.Append(CPPDEFINES = ['HAVE_PTHREAD_CONDATTR_SETCLOCK'])
-        # env.Append(CPPDEFINES = ['HAVE_PTHREAD_H'])
-        # env.Append(CPPDEFINES = ['HAVE_STDLIB_H'])
-        # env.Append(CPPDEFINES = ['HAVE_STRING_H'])
-        # env.Append(CPPDEFINES = ['HAVE_SYS_SOCKET_H'])
-        # env.Append(CPPDEFINES = ['HAVE_SYS_TIME_H'])
-        # env.Append(CPPDEFINES = ['HAVE_SYS_TYPES_H'])
-        # env.Append(CPPDEFINES = ['HAVE_TIME_H'])
-        # env.Append(CPPDEFINES = ['HAVE_UNISTD_H'])
-        # env.Append(CPPDEFINES = ['WITH_POSIX'])
+        env.Append(CPPDEFINES = ['HAVE_ARPA_INET_H'])
+        env.Append(CPPDEFINES = ['HAVE_ASSERT_H'])
+        env.Append(CPPDEFINES = ['HAVE_FCNTL_H'])
+        env.Append(CPPDEFINES = ['HAVE_LIMITS_H'])
+        env.Append(CPPDEFINES = ['HAVE_NETDB_H'])
+        env.Append(CPPDEFINES = ['HAVE_NETINET_IN_H'])
+        env.Append(CPPDEFINES = ['HAVE_PTHREAD_CONDATTR_SETCLOCK'])
+        env.Append(CPPDEFINES = ['HAVE_PTHREAD_H'])
+        env.Append(CPPDEFINES = ['HAVE_STDLIB_H'])
+        env.Append(CPPDEFINES = ['HAVE_STRING_H'])
+        env.Append(CPPDEFINES = ['HAVE_SYS_SOCKET_H'])
+        env.Append(CPPDEFINES = ['HAVE_SYS_TIME_H'])
+        env.Append(CPPDEFINES = ['HAVE_SYS_TYPES_H'])
+        env.Append(CPPDEFINES = ['HAVE_TIME_H'])
+        env.Append(CPPDEFINES = ['HAVE_UNISTD_H'])
+        env.Append(CPPDEFINES = ['WITH_POSIX'])
 
         env.Append(LIBS = ['pthread'])
-        env.Append(LIBS = ['boost_date_time'])
-        env.Append(LIBS = ['boost_system'])
-        env.Append(LIBS = ['boost_thread'])
-        # env.AppendUnique(CXXFLAGS = ['-std=c++11'])
-        # env.AppendUnique(CFLAGS = ['-std=c11'])
+        # env.Append(LIBS = ['boost_date_time'])
+        # env.Append(LIBS = ['boost_system'])
+        # env.Append(LIBS = ['boost_thread'])
+        env.AppendUnique(CXXFLAGS = ['-std=c++11'])
+        env.AppendUnique(CFLAGS = ['-std=c11'])
         # env.AppendUnique(LINKFLAGS = ['-shared'])
-        # env.Replace(SHLIBSUFFIX = '.so')
+
+        try:
+                routing_mode = env['ENV']['ROUTING']
+                env.Replace(ROUTING = routing_mode)
+                if routing_mode == 'EP':
+                        env.Append(CPPDEFINES = ['ROUTING_EP'])
+                elif routing_mode == 'GW':
+                        env.Append(CPPDEFINES = ['ROUTING_GW'])
+        except KeyError:
+                env.Replace(ROUTING = 'EP')
+                env.Append(CPPDEFINES = ['ROUTING_EP'])
+
+        try:
+                sec = env['ENV']['SECURED']
+                if sec == 1:
+                        env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
+        except KeyError:
+                pass
+
+        try:
+                log = env['ENV']['LOGGING']
+                if log == 1:
+                        env.AppendUnique(CPPDEFINES = ['LOGGING'])
+                        # env.AppendUnique(CPPDEFINES = ['TB_LOG'])  # ??
+        except KeyError:
+                pass
 
         return env
 

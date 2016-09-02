@@ -21,6 +21,7 @@
 Import('test_env')
 import os
 import os.path
+import build.utils
 
 src_dir    = test_env.get('SRC_DIR')
 target_os  = test_env.get('TARGET_OS')
@@ -31,17 +32,15 @@ target_os  = test_env.get('TARGET_OS')
 test_env.PrependUnique(CPPPATH = ['../include',
 		                  '../../include',
 		                  '../include/internal',
-		                  '../../../stack/include',
+		                  '../../../stack',
 		                  '../../../ocrandom/include',
 		                  '../../../logger/include',
-		                  '../../../stack/include',
 		                  '../../../cjson',
 		                  '../../../timer',
 		                  '../../../security/include',
 		                  '../../../security/include/internal',
-		                  '../../../security/provisioning/include/internal',
-		                  '../../../../oc_logger/include',
-		                  '../include/oxm',
+		                  '#resource/csdk/security/provisioning/include/internal',
+		                  '#resource/csdk/security/provisioning/include/oxm',
 		                  '../../../../../extlibs/tinydtls',
 		                  '../../../../../extlibs/cjson',
 		                  '../../../../../extlibs/base64',
@@ -50,6 +49,7 @@ test_env.PrependUnique(CPPPATH = ['../include',
 		                  '../../../connectivity/lib/libcoap-4.1.1',
 		                  '../../../connectivity/api',
 		                  '../../../../../extlibs/tinydtls'])
+		                  # '../../../../oc_logger/include',
 
 test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_DIR')])
 test_env.PrependUnique(LIBS = ['ocpmapi',
@@ -99,9 +99,10 @@ if target_os not in ['windows']:
 
 Alias("test", [provisiontest])
 
-test_env.AppendTarget('test')
+# test_env.AppendTarget('test')
 
-test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  provisiontest)
+# test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  provisiontest)
+build.utils.install_bin(test_env, provisiontest, 'provisiontest')
 
 
 #FIXME: run tests from somewhere else, this script is for building

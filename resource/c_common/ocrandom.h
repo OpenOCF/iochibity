@@ -29,12 +29,7 @@
 extern "C" {
 #endif
 
-#ifdef ARDUINO
-// MEGA has 16 input pins whereas Due has only 12 input pins
-#define ANALOG_IN (10)
-#else
 #include <time.h>
-#endif
 
 /**
  * Seed the random number generator. Seeding depends on platform.

@@ -31,8 +31,8 @@
 #include "oic_string.h"
 #include "oic_malloc.h"
 #include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "ocstackinternal.h"
+#include "internal/ocpayloadcbor.h"
+#include "internal/ocstackinternal.h"
 #include "payload_logging.h"
 #include "platform_features.h"
 

@@ -7,53 +7,12 @@ import platform
 import setup.targets
 import build.utils
 
-hvars = build.utils.get_help_vars()
+Import('env')
+# env = Environment(variables = hvars,
+#       ENV = os.environ)
+# Help(hvars.GenerateHelpText(env))
 
-env = Environment(variables = hvars,
-      ENV = os.environ)
-Help(hvars.GenerateHelpText(env))
-
-host_os = env['ENV']['HOST_OS']
-host_arch = env['ENV']['HOST_ARCH']
-
-#FIXME: put this Replace stuff in a tool fn
-env.Replace(HOST_OS = host_os)
-env.Replace(HOST_ARCH = host_arch)
-
-try:
-    target_os = env['ENV']['TARGET_OS']
-except:
-    target_os = host_os
-env.Replace(TARGET_OS = target_os)
-
-try:
-    target_arch = env['ENV']['TARGET_ARCH']
-except:
-    target_arch = host_arch
-env.Replace(TARGET_ARCH = target_arch)
-
-#env.Replace(TARGET_OS_VERSION = env['ENV']['TARGET_OS_VERSION'])
-
-env.Replace(BUILD_SYSROOT = env['ENV']['BUILD_SYSROOT'])
-env.Replace(INSTALL_SYSROOT = env['ENV']['INSTALL_SYSROOT'])
-
-if host_os == target_os:
-        if host_arch == target_arch:
-                env = setup.targets.host(env)
-else:
-        # we're cross-compiling
-        print "CROSS COMPILING"
-	if target_os == 'android':
-		env = setup.targets.android(env)
-	elif target_os == 'edison':
-		env = setup.targets.edison(env)
-	else:
-	        env = setup.targets.generic(env)
-
-env = build.utils.print_config(env)
-
-print "CPPDEFINES", env['CPPDEFINES']
-print "SHLIBSUFFIX", env['SHLIBSUFFIX']
+target_os = env.get('TARGET_OS')
 
 from os.path import expanduser
 home = expanduser("~")
@@ -265,85 +224,7 @@ env.SConscriptChdir(1)
 #   env.get('SRC_DIR')
 #   env.get('BUILD_DIR')
 
-def __src_to_obj(env, src, home = ''):
-	obj = env.get('BUILD_DIR') + src.replace(home, '')
-	if env.get('OBJSUFFIX'):
-		obj += env.get('OBJSUFFIX')
-	return env.Object(obj, src)
-
-def __install(ienv, targets, name):
-	i_n = ienv.Install(env.get('BUILD_DIR'), targets)
-	Alias(name, i_n)
-	env.AppendUnique(TS = [name])
-
-def __installlib(ienv, targets, name):
-	user_prefix = env.get('PREFIX')
-	if user_prefix:
-		user_lib = env.get('LIB_INSTALL_DIR')
-		if user_lib:
-			i_n = ienv.Install(user_lib, targets)
-		else:
-			i_n = ienv.Install(user_prefix + '/lib', targets)
-		ienv.Alias("install", i_n)
-	else:
-		i_n = ienv.Install(env.get('BUILD_DIR'), targets)
-	ienv.Alias("install", i_n)
-
-def __installbin(ienv, targets, name):
-	user_prefix = env.get('PREFIX')
-	if user_prefix:
-		i_n = ienv.Install(user_prefix + '/bin', targets)
-		ienv.Alias("install", i_n)
-
-def __installheader(ienv, targets, dir, name):
-	user_prefix = env.get('PREFIX')
-	if user_prefix:
-		i_n = ienv.Install(user_prefix + '/include/' + dir ,targets)
-	else:
-		i_n = ienv.Install(os.path.join(env.get('BUILD_DIR'), 'include', dir), targets)
-	ienv.Alias("install", i_n)
-
-def __installpcfile(ienv, targets, name):
-	user_prefix = env.get('PREFIX')
-	if user_prefix:
-		user_lib = env.get('LIB_INSTALL_DIR')
-		if user_lib:
-			i_n = ienv.Install(user_lib + '/pkgconfig', targets)
-		else:
-			i_n = ienv.Install(user_prefix + '/lib/pkgconfig', targets)
-	else:
-		i_n = ienv.Install(env.get('BUILD_DIR') + 'lib/pkgconfig', targets)
-	ienv.Alias("install", i_n)
-
-def __append_target(ienv, name, targets = None):
-	if targets:
-		env.Alias(name, targets)
-	env.AppendUnique(TS = [name])
-
-def __print_targets(env):
-	Help('''
-===============================================================================
-Targets:\n    ''')
-	for t in env.get('TS'):
-		Help(t + ' ')
-	Help('''
-\nDefault all targets will be built. You can specify the target to build:
-
-    $ scons [options] [target]
-===============================================================================
-''')
-
-
-env.AddMethod(__print_targets, 'PrintTargets')
-env.AddMethod(__src_to_obj, 'SrcToObj')
-env.AddMethod(__append_target, 'AppendTarget')
-env.AddMethod(__install, 'InstallTarget')
-env.AddMethod(__installlib, 'UserInstallTargetLib')
-env.AddMethod(__installbin, 'UserInstallTargetBin')
-env.AddMethod(__installheader, 'UserInstallTargetHeader')
-env.AddMethod(__installpcfile, 'UserInstallTargetPCFile')
-
-build.utils.SetDir(env)
+env = build.utils.SetDir(env)
 
 env['ROOT_DIR']=env.GetLaunchDir()+'/..'
 

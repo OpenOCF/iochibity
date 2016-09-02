@@ -23,7 +23,7 @@ extern "C"
 {
     #include "ocstack.h"
     #include "ocpayload.h"
-    #include "ocpayloadcbor.h"
+    #include "internal/ocpayloadcbor.h"  // FIXME: internal -> ocstack
     #include "logger.h"
     #include "oic_malloc.h"
 }

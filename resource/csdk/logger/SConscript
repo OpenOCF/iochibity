@@ -1,16 +1,17 @@
 Import('env')
 import os
+import build.utils
 
-env.AppendUnique(CPPPATH = [os.path.join(Dir('.').abspath, 'include'),
-                            '../../c_common'
-    ])
+print "CSDK/LOGGER"
+
+env.AppendUnique(CPPPATH = ['#resource/c_common'])
 
 if env.get('TARGET_OS') in ['arduino']:
-	env.AppendUnique(CPPPATH = [os.path.join(env.get('BUILD_DIR'), 'resource/c_common/oic_string/include')])
+	env.AppendUnique(CPPPATH = [os.path.join(env.get('BUILD_DIR'), 'resource/c_common')])
 if env.get('TARGET_OS') == 'tizen':
 	env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-else:
-	env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource', 'csdk', 'logger')])
+# else:
+# 	env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'logger')])
 
 env.PrependUnique(LIBS = ['logger'])
 
@@ -25,11 +26,11 @@ local_env = env.Clone()
 # Therefore we copy it to a .cpp name so it is compiled correctly.
 
 if env.get('TARGET_OS') in ['arduino']:
-	Command("./src/logger.cpp", "./src/logger.c", Copy("$TARGET", "$SOURCE"))
-	logger_src = ['./src/logger.cpp']
+	Command("logger.cpp", "logger.c", Copy("$TARGET", "$SOURCE"))
+	logger_src = ['logger.cpp']
 else:
-	logger_src = ['./src/logger.c']
+	logger_src = ['logger.c']
 
-loggerlib = local_env.StaticLibrary('logger', logger_src)
-local_env.InstallTarget(loggerlib, 'logger')
-
+loggerlib = env.StaticLibrary('logger', logger_src)
+#env.Install(env.get('INSTALL_SYSROOT'), loggerlib)
+build.utils.install_lib(env, loggerlib, 'logger')

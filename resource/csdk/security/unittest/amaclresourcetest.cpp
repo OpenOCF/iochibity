@@ -31,7 +31,7 @@
 #include "srmresourcestrings.h"
 #include "srmutility.h"
 #include "amaclresource.h"
-#include "security_internals.h"
+#include "ocsecurity/security_internals.h"
 
 using namespace std;
 

@@ -1,6 +1,7 @@
 # SConscript file for Local PKI project
 
 Import('env')
+import build.utils
 
 x509_env = env.Clone()
 
@@ -26,7 +27,7 @@ INCLUDE_DIRS.append(src_dir + '/extlibs/cjson/');
 #OIC incude
 INCLUDE_DIRS.append(src_dir + '/resource/csdk/security/include/');
 INCLUDE_DIRS.append(src_dir + '/resource/csdk/security/include/internal/');
-INCLUDE_DIRS.append(src_dir + '/resource/csdk/stack/include/');
+INCLUDE_DIRS.append(src_dir + '/resource/csdk/stack/');
 
 DEFINES = ['WITH_SHA256', 'uECC_CURVE=uECC_secp256r1', 'X509_DEBUG']
 
@@ -39,7 +40,7 @@ ckmanager_src = Glob('src/*.c')
 #Build static libraries
 ckmStaticLib = x509_env.StaticLibrary('CKManager', ckmanager_src)
 
-x509_env.InstallTarget(ckmStaticLib, 'libCKManager')
+build.utils.install_lib(x509_env, ckmStaticLib, 'libCKManager')
 
 #x509_env.AppendUnique(LIBS = ['ocsrm'])
 x509_env.AppendUnique(LIBS = ['asn1'])

@@ -2,18 +2,18 @@
 #	Build IP adapter
 #######################################################
 
-Import('env')
+Import('local_env')
 import os.path
 
-target_os = env.get('TARGET_OS')
-secured = env.get('SECURED')
+target_os = local_env.get('TARGET_OS')
+secured = local_env.get('SECURED')
 src_dir = './ip_adapter/'
 
 
 # Source files to build common for all platforms
 common_files = None
 if target_os == 'arduino':
-    common_files = [ os.path.join(src_dir,
+    common_files = [os.path.join(src_dir,
                                   'caipadapter.c') ]
 else:
     common_files = [
@@ -33,7 +33,7 @@ target_sconscript = os.path.join(target_os, 'SConscript')
 # file warning platforms that don't provide one.
 target_sconscript_abspath = str(File(target_sconscript).srcnode().abspath)
 if os.path.exists(target_sconscript_abspath):
-        target_files = env.SConscript(target_sconscript, exports='src_dir')
+        target_files = local_env.SConscript(target_sconscript, exports='src_dir')
 
 # Now prepend the appropriate parent directories
 # (e.g. ./ip_adapter/android) to each of the target source files in
@@ -41,7 +41,7 @@ if os.path.exists(target_sconscript_abspath):
 target_files = [ os.path.join(src_dir, target_os, f) for f in target_files ]
 
 # Source files to build for Linux-like platforms
-if target_os in ['linux','darwin','ios']:
+if target_os in ['linux','darwin','ios', 'edison']:
     target_files += [ os.path.join(src_dir,
                                    'linux/caipnwmonitor.c') ]
 
@@ -50,4 +50,5 @@ if target_os in ['msys_nt']:
 
 # The list of BLE adapter source files is a combination of both the
 # common and target-specific source file lists.
-env.AppendUnique(CA_SRC = common_files + target_files)
+
+local_env.AppendUnique(CA_SRC = common_files + target_files)

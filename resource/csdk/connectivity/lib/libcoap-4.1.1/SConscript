@@ -3,6 +3,7 @@
 ##
 
 import os
+import build.utils
 
 Import('env')
 
@@ -79,6 +80,7 @@ libcoap_src = [
 	'block.c'
 	]
 
-libcoap = libcoap_env.StaticLibrary('coap', libcoap_src, OBJPREFIX='libcoap_')
+libcoap = libcoap_env.StaticLibrary('coap', libcoap_src)
 
-libcoap_env.InstallTarget([libcoap], 'coap')
+build.utils.install_lib(libcoap_env, libcoap, 'coap')
+

@@ -21,9 +21,9 @@
 #include <string.h>
 #include "ocstack.h"
 #include "ocstackconfig.h"
-#include "ocstackinternal.h"
+#include "internal/ocstackinternal.h"
 #include "ocobserve.h"
-#include "ocresourcehandler.h"
+#include "internal/ocresourcehandler.h"
 #include "ocrandom.h"
 #include "oic_malloc.h"
 #include "oic_string.h"

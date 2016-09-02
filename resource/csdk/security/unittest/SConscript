@@ -21,6 +21,7 @@
 Import('test_env')
 import os
 import os.path
+import build.utils
 
 src_dir = test_env.get('SRC_DIR')
 target_os = test_env.get('TARGET_OS')
@@ -31,31 +32,34 @@ target_os = test_env.get('TARGET_OS')
 home = os.environ['HOME']
 
 test_env.PrependUnique(CPPPATH = [
-		'../../../c_common/oic_malloc/include',
- 		'../../connectivity/inc',
-		'../../connectivity/api',
-		'../../connectivity/external/inc',
-		'../../connectivity/lib/libcoap-4.1.1',
-		'../include',
-		'../include/internal',
-		'../../logger/include',
-		'../../stack/include',
-		'../../stack/include/internal',
-		'../../../oc_logger/include',
-		'../../cbor/',
-                '../../cjson/',
-                '../../timer',
-                '../provisioning/include'
+		'#resource/c_common',
+		'#resource/csdk/security',
+		'#resource/csdk/security/ocsecurity',  #FIXME this is private
+		'#resource/csdk/security/provisioning/include',
+ 		'#resource/csdk/connectivity/api',
+ 		'#resource/csdk/connectivity/inc',
+		'#resource/csdk/connectivity/lib/libcoap-4.1.1',
+		Dir('.').abspath + '../include',
+		'#resource/csdk/logger',
+		'#resource/csdk/stack',
+		'#resource/csdk/cbor/',
+                '#resource/csdk/cjson/',
+                '#resource/csdk/timer'
 		])
+#		'../../../oc_logger/include',
+#		'../../stack/internal',
+#		'../include/internal',
+#		'../../connectivity/external/inc',
 
 test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_DIR')])
 test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_DIR')])
 
 test_env.PrependUnique(LIBS = ['ocsrm'
 			         ,'octbstack'
-				 ,'oc_logger'
 				 ,'connectivity_abstraction'
 				 ,'coap'])
+				 # ,'oc_logger'
+
 
 if target_os != 'darwin':
         test_env.PrependUnique(LIBS = ['uuid'])
@@ -90,8 +94,8 @@ securitytest = test_env.Program('securitytest', ['aclresourcetest.cpp',
                                             'svcresourcetest.cpp',
                                             'srmtestcommon.cpp',
                                             'directpairingtest.cpp',
-                                            'crlresourcetest.cpp',
-                                            os.path.join(src_dir, 'resource', 'csdk', 'timer', 'timer.c')])
+                                            'crlresourcetest.cpp'])
+                                            # os.path.join(src_dir, 'resource', 'csdk', 'timer', 'timer.c')])
 
 Alias("test", [securitytest])
 
@@ -122,22 +126,8 @@ test_env.Alias("install", test_env.Install( securitytest_build_dir,
 test_env.Alias("install", test_env.Install( securitytest_build_dir,
                                             securitytest_src_dir + 'oic_svr_db.dat'))
 
-test_env.AppendTarget('test')
-
-test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'), securitytest)
-
-#FIXME: run tests from somewhere else, this script is for building
-# out_dir = test_env.get('BUILD_DIR')
-# result_dir = os.path.join(test_env.get('BUILD_DIR'), 'test_out') + os.sep
-# if not os.path.isdir(result_dir):
-#     os.makedirs(result_dir)
-
-# test_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
-# #GAR FIXME darwin unittest ld path
-# test_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
-# test_env.AppendENVPath('PATH', [os.path.join(out_dir, 'resource', 'csdk')])
-
-
+#test_env.Install(os.path.join(test_env.get('INSTALL_SYSROOT'), 'test'), securitytest)
+build.utils.install_bin(test_env, securitytest, 'securitytest')
 
 # if test_env.get('WITH_VALGRIND'):
 #         valgrind_xml = 'ut'

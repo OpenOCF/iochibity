@@ -34,11 +34,12 @@
 #endif
 
 #include "ocresource.h"
-#include "ocresourcehandler.h"
+#include "internal/ocresourcehandler.h"
 #include "ocobserve.h"
 #include "occollection.h"
 #include "oic_malloc.h"
 #include "oic_string.h"
+#include "oc_uuid.h"
 #include "logger.h"
 #include "cJSON.h"
 #include "ocpayload.h"

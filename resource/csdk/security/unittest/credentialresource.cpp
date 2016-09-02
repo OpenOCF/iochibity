@@ -30,7 +30,7 @@
 #include "srmtestcommon.h"
 #include "srmutility.h"
 #include "psinterface.h"
-#include "security_internals.h"
+#include "ocsecurity/security_internals.h"
 
 #define TAG "SRM-CRED-UT"
 

@@ -8,23 +8,25 @@ ca_os = env.get('TARGET_OS')
 src_dir = env.get('SRC_DIR')
 root_dir = './../'
 
-ca_common_path = root_dir + 'common/'
-ca_common_src_path = ca_common_path + 'src/'
+print "CA COMMON SRC DIR:", src_dir
+# ca_common_path = root_dir + 'common/'
+# ca_common_src_path = ca_common_path
 
-ca_common_src = [ca_common_src_path + 'uarraylist.c'
-		,ca_common_src_path + 'ulinklist.c'
-		,ca_common_src_path + 'uqueue.c'
-		,ca_common_src_path + 'caremotehandler.c']
+here = Dir('.').abspath
+
+ca_common_src = [here + '/uarraylist.c',
+		 here + '/ulinklist.c',
+		 here + '/uqueue.c',
+		 here + '/caremotehandler.c']
+		 # env.get('BUILD_SYSROOT') + '/c_common/unix/ocrandom_seed.c']
+
+print "PTHREAD_LIB:", env.get('PTHREAD_LIB')
 
 if env.get('PTHREAD_LIB') == 'pthread':
-	platform_src = [
-	    ca_common_src_path + 'cathreadpool_pthreads.c',
-	    ca_common_src_path + 'camutex_pthreads.c'
-	    ]
+	platform_src = [here + '/cathreadpool_pthreads.c',
+	                here + '/camutex_pthreads.c']
 else:
-        platform_src = [
-	    ca_common_src_path + 'camutex_noop.c'
-	]
+        platform_src = [here + 'camutex_noop.c']
 
 env.AppendUnique(CA_SRC = ca_common_src)
 env.AppendUnique(CA_SRC = platform_src)

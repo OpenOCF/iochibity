@@ -26,9 +26,6 @@ import os
 
 lib_env = env.Clone()
 
-# Add third party libraries
-SConscript('#resource/third_party_libs.scons', 'lib_env')
-
 oclib_env = lib_env.Clone()
 secured = lib_env.get('SECURED')
 target_os = oclib_env.get('TARGET_OS')
@@ -38,7 +35,7 @@ target_os = oclib_env.get('TARGET_OS')
 ######################################################################
 oclib_env.AppendUnique(CPPPATH = [
 		'./../include/',
-		'./../csdk/stack/include',
+		'./../csdk/stack',
 		'./../c_common/ocrandom/include',
 		'./../csdk/logger/include',
 		'./../oc_logger/include',

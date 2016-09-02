@@ -18,7 +18,7 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "ocpayloadcbor.h"
+#include "internal/ocpayloadcbor.h"
 #include "platform_features.h"
 #include <stdlib.h>
 #include "oic_malloc.h"
@@ -26,7 +26,7 @@
 #include "logger.h"
 #include "ocpayload.h"
 #include "ocrandom.h"
-#include "ocresourcehandler.h"
+#include "internal/ocresourcehandler.h"
 #include "cbor.h"
 
 #if defined(RD_CLIENT) || defined(RD_SERVER)
