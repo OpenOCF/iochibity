@@ -48,8 +48,8 @@ using namespace std;
 #define TAG  "SRM-ACL-UT"
 
 // These paths match jenkins build configuration.
-const char* DEFAULT_ACL_FILE_NAME = "oic_unittest_default_acl.dat";
-const char* ACL1_FILE_NAME = "oic_unittest_acl1.dat";
+const char* DEFAULT_ACL_FILE_NAME = "/oic_unittest_default_acl.dat";
+const char* ACL1_FILE_NAME = "/oic_unittest_acl1.dat";
 
 #define NUM_ACE_FOR_WILDCARD_IN_ACL1_DAT (1)
 

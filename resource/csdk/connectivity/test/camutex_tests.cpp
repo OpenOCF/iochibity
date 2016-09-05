@@ -52,9 +52,11 @@
 #include <windows.h>
 #endif
 
+#include "oic_time.h"
+
 #define HNS_PER_US 10
 
-//#define DEBUG_VERBOSE 1
+#define DEBUG_VERBOSE 1
 
 // The debug print lines are left in for now since the output can be
 // helpful for developers trying to debug or extend the tests.
@@ -428,8 +430,10 @@ void timedFunc(void *context)
     uint64_t abs = USECS_PER_SEC / 2; // 1/2 seconds
 
     // test UTIMEDOUT
+    DBG_printf("Thread_%d: calling ca_cond_wait_for abstime %d\n", pData->id, abs);
     CAWaitResult_t ret = ca_cond_wait_for(pData->condition,
-                                          pData->mutex, abs);
+                                          pData->mutex,
+					  abs);
     EXPECT_EQ(CA_WAIT_TIMEDOUT, ret);
 
     pData->thread_up = true;
@@ -470,15 +474,16 @@ TEST(ConditionTests, TC_05_WAIT)
         EXPECT_EQ(CA_STATUS_OK,
                   ca_thread_pool_add_task(mythreadpool, timedFunc, &pData1));
 
-        DBG_printf("test    : waiting for thread to timeout once.\n");
+        DBG_printf("test %ld    : waiting for thread to timeout once.\n", pthread_self());
 
         while (!pData1.thread_up)
         {
+	  DBG_printf("GAR %ld looping: %ld\n", pthread_self(), OICGetCurrentTime(TIME_IN_US));
             // For test purposes only, use of condition variables is being
             // avoided, so a minor sleep is used.
-            usleep(MINIMAL_LOOP_SLEEP * USECS_PER_MSEC);
+            usleep(999999);
+            // usleep(MINIMAL_LOOP_SLEEP * USECS_PER_MSEC);
         }
-
 
         DBG_printf("test    : signaling first thread\n");
 

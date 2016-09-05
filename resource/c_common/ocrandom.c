@@ -39,14 +39,13 @@
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
-#endif
-#ifdef HAVE_TIME_H
+#elif defined(HAVE_TIME_H)
 #include <time.h>
 #endif
-#if defined(__ANDROID__)
-#include <ctype.h>
-#include <linux/time.h>
-#endif
+/*GAR #if defined(__ANDROID__) */
+/* #include <ctype.h> */
+/* #include <linux/time.h> */
+/* #endif */
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
 #endif

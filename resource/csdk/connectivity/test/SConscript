@@ -41,7 +41,7 @@ test_env.PrependUnique(CPPPATH = [
                 '#resource/oc_logger/include',
                ])
 
-test_env.AppendUnique(LIBPATH = [test_env.get('INSTALL_SYSROOT')])
+test_env.AppendUnique(LIBPATH = [test_env.get('INSTALL_SYSROOT') + '/lib'])
 # test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_SYSROOT')])
 
 #GAR: uuid not needed for darwin?  m only for linux?

@@ -43,8 +43,15 @@ env = Environment(variables = hvars,
                   ENV = os.environ)
 Help(hvars.GenerateHelpText(env))
 
-host_os        = sys.platform
-host_arch   = platform.machine
+# STEP 1: get host and target OS and ARCH
+if sys.platform.startswith('linux'):
+    host_os        = 'linux'
+elif sys.platform.startswith('darwin'):
+    host_os        = 'darwin'
+else:
+    host_os = sys.platform
+
+host_arch      = platform.machine()
 host_processor = platform.processor
 
 #FIXME: put this Replace stuff in a tool fn
@@ -69,8 +76,8 @@ build_sysroot = env['ENV']['BUILD_SYSROOT']
 env.Replace(BUILD_SYSROOT = build_sysroot)
 env.Replace(INSTALL_SYSROOT = env['ENV']['INSTALL_SYSROOT'])
 
-print "HOST ARCH:", host_arch
-print "TARGET ARCH:", target_arch
+print "HOST OS, ARCH:", host_os, host_arch
+print "TARGET OS, ARCH:", target_os, target_arch
 
 if host_os == target_os:
         if host_arch == target_arch:
@@ -81,6 +88,8 @@ else:
 	if target_os == 'android':
 		env = setup.targets.android(env)
 	elif target_os == 'edison':
+		env = setup.targets.edison(env)
+	elif target_os == 'linux':
 		env = setup.targets.edison(env)
 	else:
 	        env = setup.targets.generic(env)
@@ -117,21 +126,14 @@ src_dir = env.get('SRC_DIR')
 
 build_dir = env.get('BUILD_DIR')
 
-print "CL TARGETS:", COMMAND_LINE_TARGETS
-
 SConscript('resource/c_common/SConscript',
            variant_dir=build_sysroot + '/c_common',
            duplicate=0)
-
-print "CXX:", env.get('CXX')
-env.Program('hello', 'hello.cpp')
 
 if env.get('SECURED') == '1':
 	env.SConscript('extlibs/tinydtls/SConscript',
                        variant_dir=build_sysroot + '/tinydtls',
                        duplicate=0)
-
-print env.Dump()
 
 #GAR default: build the kernel
 SConscript('resource/csdk/SConscript',
@@ -174,3 +176,7 @@ SConscript('test/SConscript',
 
 # print "PRINTING TARGETS"
 # env.PrintTargets()
+
+# env.Replace(LIBS   = '')
+# env.Replace(LIBPATH   = '')
+# env.Program('hello', 'hello.c')

@@ -45,3 +45,13 @@ different.  Here is a list of the bits affecting Iotivity:
   rather than `libuuid` so there is no need to link (`-luuid`).
 * std c++ library: we use `-stdlib=libc++`, not `libstdc++`.
 
+
+=== time
+
+Pain in the neck: OS X does not provide clock_gettime
+
+see https://github.com/ThomasHabets/monotonic_clock
+
+http://stackoverflow.com/questions/5167269/clock-gettime-alternative-in-mac-os-x
+
+http://stackoverflow.com/questions/11680461/monotonic-clock-on-osx

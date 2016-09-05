@@ -51,10 +51,10 @@ test_env.PrependUnique(LIBS = ['octbstack',
                                'connectivity_abstraction',
                                'coap'])
 
-if target_os != 'darwin':
-        test_env.PrependUnique(LIBS = ['uuid'])
+# if target_os != 'darwin':
+#         test_env.PrependUnique(LIBS = ['uuid'])
 
-test_env.AppendUnique(LIBPATH = [test_env.get('INSTALL_SYSROOT')])
+test_env.AppendUnique(LIBPATH = [test_env.get('INSTALL_SYSROOT') + '/lib'])
 
 # test_env.PrependUnique(LIBS = ['oc_logger'])
 

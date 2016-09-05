@@ -36,7 +36,7 @@ conf = Configure(gt)
 if conf.CheckLib('gtest'):
         test_env.AppendUnique(CPPPATH = [lib_sysroot + '/include'])
         test_env.AppendUnique(LIBPATH = [lib_sysroot + '/lib'])
-        test_env.Append(LIBS = ['gtest'])
+        test_env.PrependUnique(LIBS = ['gtest'])
 else:
         print "\tWARNING: libgtest not found."
         print "\t\tTesting will be disabled."
@@ -46,7 +46,7 @@ else:
 if conf.CheckLib('gtest_main'):
         test_env.AppendUnique(CPPPATH = [lib_sysroot + '/include'])
         test_env.AppendUnique(LIBPATH = [lib_sysroot + '/lib'])
-        test_env.Append(LIBS = ['gtest_main'])
+        test_env.PrependUnique(LIBS = ['gtest_main'])
 else:
         print "\tWARNING: libgtest_main not found."
         print "\t\tTesting will be disabled."

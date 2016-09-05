@@ -57,7 +57,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <assert.h>
-#include <oic_malloc.h>
+#include "oic_malloc.h"
 #include "platform_features.h"
 #include "camutex.h"
 #include "oic_time.h"
@@ -342,6 +342,8 @@ void ca_cond_wait(ca_cond cond, ca_mutex mutex)
 
 CAWaitResult_t ca_cond_wait_for(ca_cond cond, ca_mutex mutex, uint64_t microseconds)
 {
+  /* OIC_LOG_V(ERROR, TAG, "GAR: %ld: %s %d microseconds", pthread_self(), __func__, microseconds); */
+
     CAWaitResult_t retVal = CA_WAIT_INVAL;
 
     ca_cond_internal *eventInfo = (ca_cond_internal*) cond;
@@ -392,10 +394,12 @@ CAWaitResult_t ca_cond_wait_for(ca_cond cond, ca_mutex mutex, uint64_t microseco
         {
             case 0:
                 // Success
+	/* OIC_LOG_V(ERROR, TAG, "GAR: CA_WAIT_SUCCESS\n", ret); */
                 retVal = CA_WAIT_SUCCESS;
                 break;
             case ETIMEDOUT:
                 retVal = CA_WAIT_TIMEDOUT;
+	/* OIC_LOG_V(ERROR, TAG, "GAR: CA_WAIT_TIMEDOUT\n", ret); */
                 break;
             case EINVAL:
                 OIC_LOG_V(ERROR, TAG, "%s: condition, mutex, or abstime is Invalid", __func__);
@@ -428,4 +432,3 @@ CAWaitResult_t ca_cond_wait_for(ca_cond cond, ca_mutex mutex, uint64_t microseco
     }
     return retVal;
 }
-

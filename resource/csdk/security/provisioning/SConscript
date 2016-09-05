@@ -67,11 +67,11 @@ if target_os not in ['tizen']:
 	provisioning_env.AppendUnique(CPPPATH = [root_dir +'/extlibs/sqlite3'])
 
 provisioning_env.AppendUnique(CPPDEFINES= ['__WITH_DTLS__'])
-if target_os not in ['windows']:
-	provisioning_env.AppendUnique(CFLAGS = ['-std=c99'])
+# if target_os not in ['windows']:
+# 	provisioning_env.AppendUnique(CFLAGS = ['-std=c99'])
 
-if 'g++' in provisioning_env.get('CXX'):
-    provisioning_env.AppendUnique(CXXFLAGS = ['-std=c++0x'])
+# if 'g++' in provisioning_env.get('CXX'):
+#     provisioning_env.AppendUnique(CXXFLAGS = ['-std=c++0x'])
 
 provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('INSTALL_SYSROOT') + '/lib'])
 

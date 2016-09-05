@@ -28,9 +28,10 @@
 #include <stdarg.h>
 #include "logger_types.h"
 
-#ifdef __ANDROID__
-#include <android/log.h>
-#elif defined(__TIZEN__)
+/* #ifdef __ANDROID__ */
+/* #include <android/log.h> */
+/* #elif defined(__TIZEN__) */
+#if defined(__TIZEN__)
 #include <dlog.h>
 #elif defined(ARDUINO)
 #include "Arduino.h"

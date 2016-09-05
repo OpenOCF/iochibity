@@ -443,9 +443,9 @@ def edison(env):
         # env.Replace(IOTIVITY_HOST_OS = env['ENV']['IOTIVITY_HOST_OS'])
         # env.Replace(HOST_OS = env['ENV']['HOST_OS'])
         # env.Replace(HOST_ARCH = env['ENV']['HOST_ARCH'])
-        env.Replace(TARGET_OS = env['ENV']['TARGET_OS'])
+        # env.Replace(TARGET_OS = env['ENV']['TARGET_OS'])
         env.Replace(TARGET_OS_VERSION = env['ENV']['TARGET_OS_VERSION'])
-        # env.Replace(TARGET_ARCH = env['ENV']['TARGET_ARCH'])
+
         try:
                 stage = env['ENV']['STAGE']
                 if stage == 'release':
@@ -767,13 +767,9 @@ def generic(env):
         env.Append(CPPDEFINES = ['HAVE_SYS_TYPES_H'])
         env.Append(CPPDEFINES = ['HAVE_TIME_H'])
         env.Append(CPPDEFINES = ['WITH_POSIX'])
-        env.Append(CPPDEFINES = ['__ANDROID__'])
-        env.Append(CPPDEFINES = ['__JAVA__'])
+        # env.Append(CPPDEFINES = ['__ANDROID__'])
+        # env.Append(CPPDEFINES = ['__JAVA__'])
         env.Append(CPPDEFINES = ['WITH_POSIX'])
-        #GAR FIXME
-        # env.Append(LIBPATH = ['/Users/gar/android/crystax-ndk-10.3.2/sources/boost/1.59/libs/armeabi-v7a/llvm-3.6/'])
-        env.Append(CPPPATH = ['/Users/gar/android/crystax-ndk-10.3.2/sources/boost/1.59.0/include'])
-        env.Append(LIBPATH = ['/Users/gar/android/crystax-ndk-10.3.2/sources/boost/1.59.0/libs/armeabi-v7a/gnu-4.9/'])
         env.Append(LIBS = ['boost_date_time'])
         env.Append(LIBS = ['boost_system'])
         env.Append(LIBS = ['boost_thread'])

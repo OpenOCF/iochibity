@@ -61,8 +61,8 @@ test_env.PrependUnique(LIBS = ['ocsrm'
 				 # ,'oc_logger'
 
 
-if target_os != 'darwin':
-        test_env.PrependUnique(LIBS = ['uuid'])
+# if target_os != 'darwin':
+#         test_env.PrependUnique(LIBS = ['uuid'])
 
 
 if test_env.get('SECURED') == '1':
@@ -101,8 +101,10 @@ Alias("test", [securitytest])
 
 securitytest_src_dir = os.path.join(src_dir,
                                     'resource', 'csdk', 'security', 'unittest') + os.sep
-securitytest_build_dir = os.path.join(test_env.get('BUILD_DIR'),
-                                      'resource', 'csdk', 'security', 'unittest') + os.sep
+# securitytest_build_dir = os.path.join(test_env.get('BUILD_DIR'),
+#                                       'resource', 'csdk', 'security', 'unittest') + os.sep
+securitytest_build_dir = os.path.join(test_env.get('INSTALL_SYSROOT') + '/bin')
+print "SECTEST BUILD DIR:", securitytest_build_dir
 
 test_env.AppendUnique(CPPDEFINES = ['SECURITY_BUILD_UNITTEST_DIR='+securitytest_build_dir.encode('string_escape')])
 

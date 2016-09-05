@@ -211,10 +211,9 @@ else:  #GAR why is linux static?
         print "CA SOURCES:", local_env.get('CA_SRC')
         #FIXME: don't hardcode .o
         lib_env.AppendUnique(CA_SRC = env.get('BUILD_SYSROOT') + '/c_common/unix/ocrandom_seed.o')
-        lib_env.AppendUnique(ARFLAGS = ['-llogger'])
+        # lib_env.AppendUnique(ARFLAGS = ['-llogger'])
 	calib = lib_env.StaticLibrary('connectivity_abstraction',
                                       lib_env.get('CA_SRC'))
 
 # build.utils.install_target(lib_env, calib, 'connectivity_abstraction')
 build.utils.install_lib(env, calib, 'connectivity')
-
