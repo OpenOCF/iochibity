@@ -93,6 +93,7 @@ tags
 GPATH
 GRTAGS
 GTAGS
+GSYMS
 
 # Ignore dependencies folder, which should be generated
 dependencies/
