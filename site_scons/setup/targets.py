@@ -246,8 +246,8 @@ def host_features(env) :
                 conf.env.Append(CPPDEFINES = ['HAVE_FCNTL_H'])
         if conf.CheckCHeader('grp.h'):
                 conf.env.Append(CPPDEFINES = ['HAVE_GRP_H'])
-        if conf.CheckCHeader('i6addr.h'):
-                conf.env.Append(CPPDEFINES = ['HAVE_I6ADDR_H'])
+        if conf.CheckCHeader('in6addr.h'):
+                conf.env.Append(CPPDEFINES = ['HAVE_IN6ADDR_H'])
         if conf.CheckCHeader('limits.h'):
                 conf.env.Append(CPPDEFINES = ['HAVE_LIMITS_H'])
         else:

@@ -47,7 +47,6 @@ test_env.PrependUnique(CPPPATH = [
 
 #GAR uuid
 test_env.PrependUnique(LIBS = ['octbstack',
-                               'ocsrm',
                                'connectivity_abstraction',
                                'coap'])
 
@@ -59,6 +58,7 @@ test_env.AppendUnique(LIBPATH = [test_env.get('INSTALL_SYSROOT') + '/lib'])
 # test_env.PrependUnique(LIBS = ['oc_logger'])
 
 if test_env.get('SECURED') == '1':
+    test_env.PrependUnique(LIBS = ['ocsrm'])
     test_env.AppendUnique(LIBS = ['tinydtls'])
 
 if test_env.get('LOGGING'):

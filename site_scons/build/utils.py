@@ -121,6 +121,31 @@ def src_to_obj(ienv, src, home = ''):
 # 	Alias(name, i_n)
 # 	ienv.AppendUnique(TS = [name])
 
+def install_bin(ienv, targets, name):
+	i_n = ienv.Install(ienv.get('INSTALL_SYSROOT') + '/bin', targets)
+	Alias(name, i_n)
+	ienv.AppendUnique(TS = [name])
+	# user_prefix = ienv.get('PREFIX')
+	# if user_prefix:
+	# 	i_n = ienv.Install(user_prefix + '/bin', targets)
+	# 	ienv.Alias("install", i_n)
+
+def install_header(ienv, targets, dir):  # , name):
+	# user_prefix = ienv.get('PREFIX')
+	# if user_prefix:
+	# 	i_n = ienv.Install(user_prefix + '/include/' + dir ,targets)
+	# else:
+	i_n = ienv.Install(os.path.join(ienv.get('INSTALL_SYSROOT'), 'include'), targets)
+	ienv.Alias("install", i_n)
+
+def install_shlib(ienv, targets, name):
+        idir = ienv.get('INSTALL_SYSROOT') + '/lib'
+        print "INSTALL_SHLIB", targets, " to ", idir
+        sys.stdout.flush()
+	i_n = ienv.Install(idir, targets)
+	Alias(name, i_n)
+	ienv.AppendUnique(TS = [name])
+
 def install_lib(ienv, targets, name):
         idir = ienv.get('INSTALL_SYSROOT') + '/lib'
         print "INSTALL_LIB", targets, " to ", idir
@@ -140,23 +165,6 @@ def install_lib(ienv, targets, name):
 	# else:
 	# 	i_n = ienv.Install(ienv.get('INSTALL_SYSROOT') + '/lib', targets)
 	# ienv.Alias("install", i_n)
-
-def install_bin(ienv, targets, name):
-	i_n = ienv.Install(ienv.get('INSTALL_SYSROOT') + '/bin', targets)
-	Alias(name, i_n)
-	ienv.AppendUnique(TS = [name])
-	# user_prefix = ienv.get('PREFIX')
-	# if user_prefix:
-	# 	i_n = ienv.Install(user_prefix + '/bin', targets)
-	# 	ienv.Alias("install", i_n)
-
-def install_header(ienv, targets, dir, name):
-	user_prefix = ienv.get('PREFIX')
-	if user_prefix:
-		i_n = ienv.Install(user_prefix + '/include/' + dir ,targets)
-	else:
-		i_n = ienv.Install(os.path.join(ienv.get('BUILD_SYSROOT'), 'include', dir), targets)
-	ienv.Alias("install", i_n)
 
 def install_pcfile(ienv, targets, name):
 	user_prefix = ienv.get('PREFIX')
@@ -197,4 +205,3 @@ Targets:\n    ''')
 # env.AddMethod(__installbin, 'UserInstallTargetBin')
 # env.AddMethod(__installheader, 'UserInstallTargetHeader')
 # env.AddMethod(__installpcfile, 'UserInstallTargetPCFile')
-

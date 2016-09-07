@@ -73,19 +73,18 @@ SConscript(os.path.join('#resource', 'csdk', 'connectivity', 'test', 'SConscript
            variant_dir=build_sysroot + '/test/connectivity',
            duplicate=0)
 
-SConscript(os.path.join('#resource', 'csdk', 'security', 'unittest', 'SConscript'),
-           variant_dir=build_sysroot + '/test/security',
-           duplicate=0)
-
-
 # # Build C++ unit tests
 #SConscript(os.path.join('#resource', 'unittests', 'SConscript'))
 
 # # Build Provisioning API unit test
 if test_env.get('SECURED') == '1':
-    SConscript(os.path.join('#resource', 'csdk', 'security', 'provisioning', 'unittest', 'SConscript'),
-               variant_dir=build_sysroot + '/test/provisioning',
-               duplicate=0)
+        SConscript(os.path.join('#resource', 'csdk', 'security', 'unittest', 'SConscript'),
+                   variant_dir=build_sysroot + '/test/security',
+                   duplicate=0)
+        SConscript(os.path.join('#resource', 'csdk', 'security', 'provisioning', 'unittest', 'SConscript'),
+                   variant_dir=build_sysroot + '/test/provisioning',
+                   duplicate=0)
+
     # SConscript(os.path.join('#resource', 'provisioning', 'unittests', 'SConscript'))
 
     # elif target_os == 'windows':

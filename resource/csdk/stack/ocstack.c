@@ -1282,11 +1282,14 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
             {
                 OCPayloadType type = PAYLOAD_TYPE_INVALID;
                 // check the security resource
+#ifdef SECURED
                 if (SRMIsSecurityResourceURI(cbNode->requestUri))
                 {
                     type = PAYLOAD_TYPE_SECURITY;
                 }
-                else if (cbNode->method == OC_REST_DISCOVER)
+                else
+#endif
+		if (cbNode->method == OC_REST_DISCOVER)
                 {
                     if (strncmp(OC_RSRVD_WELL_KNOWN_URI,cbNode->requestUri,
                                 sizeof(OC_RSRVD_WELL_KNOWN_URI) - 1) == 0)
@@ -2191,13 +2194,18 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
             OIC_LOG(INFO, TAG, "Client mode: CAStartDiscoveryServer");
             break;
         case OC_SERVER:
-            SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
-            result = CAResultToOCResult(CAStartListeningServer());
+            /* SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse); */
+            /* result = CAResultToOCResult(CAStartListeningServer()); */
             OIC_LOG(INFO, TAG, "Server mode: CAStartListeningServer");
-            break;
+	    /* GAR: why not CAStartDiscoveryServer()? */
+            /* break; */
         case OC_CLIENT_SERVER:
         case OC_GATEWAY:
+#ifdef SECURED
             SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+#else
+            CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+#endif
             result = CAResultToOCResult(CAStartListeningServer());
             if(result == OC_STACK_OK)
             {
@@ -2224,13 +2232,14 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
         result = initResources();
     }
 
+#ifdef SECURED
     // Initialize the SRM Policy Engine
     if(result == OC_STACK_OK)
     {
         result = SRMInitPolicyEngine();
         // TODO after BeachHead delivery: consolidate into single SRMInit()
     }
-
+#endif
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     RMSetStackMode(mode);
 #ifdef ROUTING_GATEWAY
@@ -2309,11 +2318,12 @@ OCStackResult OCStop()
     //GAR printf("**************** GAR: deleting callbacks...\n");
     DeleteClientCBList();
 
+#ifdef SECURED
     // De-init the SRM Policy Engine
     // TODO after BeachHead delivery: consolidate into single SRMDeInit()
     //GAR printf("**************** GAR: decommish SRM policy engine...\n");
     SRMDeInitPolicyEngine();
-
+#endif
 
     stackState = OC_STACK_UNINITIALIZED;
     //GAR printf("**************** GAR: Return from OCStop!\n");
@@ -2938,6 +2948,7 @@ OCStackResult OCCancel(OCDoHandle handle, OCQualityOfService qos, OCHeaderOption
     return ret;
 }
 
+#ifdef SECURED
 /**
  * @brief   Register Persistent storage callback.
  * @param   persistentStorageHandler [IN] Pointers to open, read, write, close & unlink handlers.
@@ -2967,6 +2978,7 @@ OCStackResult OCRegisterPersistentStorageHandler(OCPersistentStorage* persistent
     }
     return SRMRegisterPersistentStorageHandler(persistentStorageHandler);
 }
+#endif
 
 #ifdef WITH_PRESENCE
 
@@ -3249,7 +3261,7 @@ OCStackResult OCCreateResource(OCResourceHandle *handle,
     OCResource *pointer = NULL;
     OCStackResult result = OC_STACK_ERROR;
 
-    OIC_LOG_V(INFO, TAG, "Entering OCCreateResource for t %s, if %s", resourceTypeName, resourceInterfaceName); 
+    OIC_LOG_V(INFO, TAG, "Entering OCCreateResource for t %s, if %s", resourceTypeName, resourceInterfaceName);
 
     if(myStackMode == OC_CLIENT)
     {
@@ -4096,7 +4108,7 @@ OCStackResult OCDoResponse(OCEntityHandlerResponse *ehResponse)
     return result;
 }
 
-//#ifdef DIRECT_PAIRING
+#ifdef DIRECT_PAIRING		/* GAR */
 const OCDPDev_t* OCDiscoverDirectPairingDevices(unsigned short waittime)
 {
     OIC_LOG(INFO, TAG, "Start OCDiscoverDirectPairingDevices");
@@ -4132,7 +4144,7 @@ OCStackResult OCDoDirectPairing(void *ctx, OCDPDev_t* peer, OCPrm_t pmSel, char 
     return DPDirectPairing(ctx, (OCDirectPairingDev_t*)peer, (OicSecPrm_t)pmSel,
                                            pinNumber, (OCDirectPairingResultCB)resultCallback);
 }
-//#endif // DIRECT_PAIRING
+#endif // DIRECT_PAIRING
 
 //-----------------------------------------------------------------------------
 // Private internal function definitions
@@ -4199,15 +4211,19 @@ OCStackResult initResources()
             OC_ACTIVE, 0);
 #endif
 #ifndef WITH_ARDUINO
+#ifdef SECURED
     if (result == OC_STACK_OK)
     {
         result = SRMInitSecureResources();
     }
 #endif
+#endif
 
     if(result == OC_STACK_OK)
     {
+#ifdef SECURED
         CreateResetProfile();
+#endif
         result = OCCreateResource(&deviceResource,
                                   OC_RSRVD_RESOURCE_TYPE_DEVICE,
                                   OC_RSRVD_INTERFACE_DEFAULT,
@@ -4295,7 +4311,9 @@ void deleteAllResources()
     memset(&brokerResource, 0, sizeof(brokerResource));
 #endif
 
+#ifdef SECURED
     SRMDeInitSecureResources();
+#endif
 
 #ifdef WITH_PRESENCE
     // Ensure that the last resource to be deleted is the presence resource. This allows for all
@@ -4677,7 +4695,18 @@ static const OicUuid_t* OCGetServerInstanceID(void)
         return &sid;
     }
 
-    if (OC_STACK_OK != GetDoxmDeviceID(&sid))
+    OCStackResult result = OC_STACK_ERROR;
+#ifdef SECURED
+    result = GetDoxmDeviceID(&sid);
+#else
+    /* GAR FIXME: make sid a static global? */
+    if (OCGenerateUuid(sid.id) != RAND_UUID_OK)
+    {
+      OIC_LOG(FATAL, TAG, "Generate UUID for Server Instance failed!");
+      return NULL;
+    }
+#endif
+    if (OC_STACK_OK != result)
     {
         OIC_LOG(FATAL, TAG, "Generate UUID for Server Instance failed!");
         return NULL;

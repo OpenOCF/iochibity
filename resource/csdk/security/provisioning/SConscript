@@ -83,8 +83,8 @@ provisioning_env.AppendUnique(LIBS = ['tinydtls'])
 if provisioning_env.get('DTLS_WITH_X509') == '1':
 	provisioning_env.AppendUnique(LIBS = ['CKManager', 'asn1'])
 
-if target_os in ['linux', 'tizen']:
-	provisioning_env.ParseConfig('pkg-config --libs glib-2.0')
+# if target_os in ['linux', 'tizen']:
+# 	provisioning_env.ParseConfig('pkg-config --libs glib-2.0')
 
 if target_os in ['windows', 'msys_nt']:
 	provisioning_env.AppendUnique(LIBS = ['ws2_32', 'advapi32', 'iphlpapi', 'timer'])
@@ -135,6 +135,9 @@ else:
 
 build.utils.install_lib(provisioning_env, provisioningserver, 'ocpmapi')
 # provisioning_env.UserInstallTargetLib(provisioningserver, 'ocpmapi')
+
+provisioning_env.Install(provisioning_env.get('INSTALL_SYSROOT') + '/include',
+                         'include/ocprovisioningmanager.h')
 
 if provisioning_env.get('DTLS_WITH_X509') == '1':
 	SConscript('ck_manager/SConscript')

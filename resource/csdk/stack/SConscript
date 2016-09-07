@@ -94,7 +94,7 @@ liboctbstack_env.PrependUnique(LINKFLAGS = [build_sysroot + '/csdk/cJSON.o',
                                             build_sysroot + '/csdk/timer.o'])
 
 
-liboctbstack_env.PrependUnique(LIBS = ['coap', 'ocsrm'])
+liboctbstack_env.PrependUnique(LIBS = ['coap'])
 
 if target_os in ['android', 'darwin', 'linux', 'tizen', 'msys_nt', 'windows']:
 	liboctbstack_env.PrependUnique(LIBS = ['connectivity_abstraction'])
@@ -121,6 +121,7 @@ if target_os == 'android':
 
 if env.get('SECURED') == '1':
 	liboctbstack_env.AppendUnique(LIBS = ['tinydtls'])
+        liboctbstack_env.PrependUnique(LIBS = ['ocsrm'])
 
 if env.get('LOGGING'):
         liboctbstack_env.PrependUnique(LIBS = ['logger'])
@@ -187,7 +188,6 @@ if target_os == 'darwin':
 major_version = '1'
 liboctbstack_env.Replace(SHLIBVERSION='1.1.1')
 
-
 ##############################################
 ####  here are the actual build commands  ####
 
@@ -206,8 +206,8 @@ if target_os not in ['arduino', 'ios'] :
 	        shared_liboctbstack = liboctbstack_env.SharedLibrary(target='octbstack', # + major_version,
                                                                      source=liboctbstack_src)
 	# octbstack_libs += Flatten(shared_liboctbstack)
-	build.utils.install_header(liboctbstack_env, 'ocstack.h', '', 'ocstack.h')
-	build.utils.install_header(liboctbstack_env, 'ocpresence.h', '', 'ocpresence.h')
+	# build.utils.install_header(liboctbstack_env, 'ocstack.h', '', 'ocstack.h')
+	# build.utils.install_header(liboctbstack_env, 'ocpresence.h', '', 'ocpresence.h')
 
 # if env.get('SECURED') == '1':
 #         liboctbstack_env.Depends(shared_liboctbstack, install_sysroot +  '/libocsrm.a')
@@ -226,5 +226,10 @@ liboctbstack_env.InstallVersionedLib(target=env.get('INSTALL_SYSROOT') + '/lib',
 # liboctbstack_env.InstallTarget(octbstack_libs, 'octbstack')
 # liboctbstack_env.UserInstallTargetLib(octbstack_libs, 'octbstack')
 
-build.utils.install_header(liboctbstack_env, 'ocstackconfig.h', 'resource', 'ocstackconfig.h')
-build.utils.install_header(liboctbstack_env, 'octypes.h', 'resource', 'octypes.h')
+headers = ['ocstackconfig.h', 'octypes.h', 'ocstack.h', 'ocpresence.h', 'ocpayload.h']
+header_dir = install_sysroot + '/include'
+
+liboctbstack_env.Install(header_dir, headers)
+
+# build.utils.install_header(liboctbstack_env, 'ocstackconfig.h', 'resource', 'ocstackconfig.h')
+# build.utils.install_header(liboctbstack_env, 'octypes.h', 'resource', 'octypes.h')

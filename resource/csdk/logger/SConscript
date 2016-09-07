@@ -32,5 +32,5 @@ else:
 	logger_src = ['logger.c']
 
 loggerlib = env.StaticLibrary('logger', logger_src)
-#env.Install(env.get('INSTALL_SYSROOT'), loggerlib)
 build.utils.install_lib(env, loggerlib, 'logger')
+env.Install(env.get('INSTALL_SYSROOT') + '/include', ['logger.h', 'logger_types.h'])
