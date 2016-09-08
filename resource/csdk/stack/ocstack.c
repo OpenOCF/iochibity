@@ -4689,7 +4689,7 @@ OCStackResult getQueryFromUri(const char * uri, char** query, char ** uriWithout
 static const OicUuid_t* OCGetServerInstanceID(void)
 {
     static bool generated = false;
-    static OicUuid_t sid;
+    static OicUuid_t sid= {0};
     if (generated)
     {
         return &sid;
@@ -4702,8 +4702,10 @@ static const OicUuid_t* OCGetServerInstanceID(void)
     /* GAR FIXME: make sid a static global? */
     if (OCGenerateUuid(sid.id) != RAND_UUID_OK)
     {
-      OIC_LOG(FATAL, TAG, "Generate UUID for Server Instance failed!");
+      OIC_LOG(FATAL, TAG, "OCGenerateUuid for Server Instance failed!");
       return NULL;
+    } else {
+      result = OC_STACK_OK;
     }
 #endif
     if (OC_STACK_OK != result)
