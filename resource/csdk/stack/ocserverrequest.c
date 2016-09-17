@@ -29,9 +29,9 @@
 #include "internal/ocpayloadcbor.h"
 #include "logger.h"
 
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
 #include "routingutility.h"
-#endif
+/* #endif */
 
 #include "cacommon.h"
 #include "cainterface.h"
@@ -156,7 +156,7 @@ static void FindAndDeleteServerResponse(OCServerResponse * serverResponse)
  */
 static OCStackResult OCSendResponse(const CAEndpoint_t *object, CAResponseInfo_t *responseInfo)
 {
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
     // Add route info in RM option.
     OCStackResult rmResult = RMAddInfo(object->routeData, responseInfo, false, NULL);
     if(OC_STACK_OK != rmResult)
@@ -164,7 +164,7 @@ static OCStackResult OCSendResponse(const CAEndpoint_t *object, CAResponseInfo_t
         OIC_LOG(ERROR, TAG, "Add option failed");
         return rmResult;
     }
-#endif
+/* #endif */
 
     // Do not include the accept header option
     responseInfo->info.acceptFormat = CA_FORMAT_UNDEFINED;

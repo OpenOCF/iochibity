@@ -277,10 +277,10 @@ typedef struct
     uint16_t                port;       // for IP
     char                    addr[MAX_ADDR_STR_SIZE_CA]; // address for all
     uint32_t                ifindex;    // usually zero for default interface
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
     char                    routeData[MAX_ADDR_STR_SIZE_CA]; /**< GatewayId:ClientId of
                                                                     destination. **/
-#endif
+/* #endif */
 } CAEndpoint_t;
 
 /**

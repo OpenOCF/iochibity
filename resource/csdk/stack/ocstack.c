@@ -60,12 +60,12 @@
 #include "internal/ocpayloadcbor.h"
 #include "platform_features.h"
 
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
 #include "routingutility.h"
 #ifdef ROUTING_GATEWAY
 #include "routingmanager.h"
 #endif
-#endif
+/*GAR #endif */
 
 #ifdef TCP_ADAPTER
 #include "oickeepalive.h"
@@ -446,9 +446,9 @@ void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out)
     OICStrcpy(out->addr, sizeof(out->addr), in->addr);
     out->port = in->port;
     out->ifindex = in->ifindex;
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
     memcpy(out->routeData, in->routeData, sizeof(out->routeData));
-#endif
+/*GAR #endif */
 }
 
 void CopyDevAddrToEndpoint(const OCDevAddr *in, CAEndpoint_t *out)
@@ -459,9 +459,9 @@ void CopyDevAddrToEndpoint(const OCDevAddr *in, CAEndpoint_t *out)
     out->adapter = (CATransportAdapter_t)in->adapter;
     out->flags = OCToCATransportFlags(in->flags);
     OICStrcpy(out->addr, sizeof(out->addr), in->addr);
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
     memcpy(out->routeData, in->routeData, sizeof(out->routeData));
-#endif
+/*GAR #endif */
     out->port = in->port;
     out->ifindex = in->ifindex;
 }
@@ -480,14 +480,14 @@ static OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *
     VERIFY_NON_NULL(object, FATAL, OC_STACK_INVALID_PARAM);
     VERIFY_NON_NULL(requestInfo, FATAL, OC_STACK_INVALID_PARAM);
 
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
     OCStackResult rmResult = RMAddInfo(object->routeData, requestInfo, true, NULL);
     if (OC_STACK_OK != rmResult)
     {
         OIC_LOG(ERROR, TAG, "Add destination option failed");
         return rmResult;
     }
-#endif
+/* #endif */
 
     // OC stack prefer CBOR encoded payloads.
     requestInfo->info.acceptFormat = CA_FORMAT_APPLICATION_CBOR;
@@ -639,6 +639,7 @@ static OCStackResult CAResultToOCStackResult(CAResult_t caResult)
 
 OCStackResult CAResponseToOCStackResult(CAResponseResult_t caCode)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_ERROR;
     switch(caCode)
     {
@@ -676,6 +677,7 @@ OCStackResult CAResponseToOCStackResult(CAResponseResult_t caCode)
         default:
             break;
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -1229,6 +1231,7 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
     if(cbNode)
     {
         OIC_LOG(INFO, TAG, "There is a cbNode associated with the response token");
+        OIC_LOG_V(INFO, TAG, "\tcbNode->method: %x", cbNode->method);
         if(responseInfo->result == CA_EMPTY)
         {
             OIC_LOG(INFO, TAG, "Receiving A ACK/RESET for this token");
@@ -1244,7 +1247,7 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
         else if(responseInfo->result == CA_RETRANSMIT_TIMEOUT)
         {
             OIC_LOG(INFO, TAG, "Receiving A Timeout for this token");
-            OIC_LOG(INFO, TAG, "Calling into application address space");
+            OIC_LOG(INFO, TAG, "Calling into application address space on CA_RETRANSMIT_TIMEOUT");
 
             OCClientResponse response =
                 {.devAddr = {.adapter = OC_DEFAULT_ADAPTER}};
@@ -1263,7 +1266,6 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
         else
         {
             OIC_LOG(INFO, TAG, "This is a regular response, A client call back is found");
-            OIC_LOG(INFO, TAG, "Calling into application address space");
 
             OCClientResponse response =
                 {.devAddr = {.adapter = OC_DEFAULT_ADAPTER}};
@@ -1430,6 +1432,8 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
             }
             else
             {
+		OIC_LOG_V(INFO, TAG, "Invoking user callback with payload type %x",
+			  response.payload->type);
                 OCStackApplicationResult appFeedback = cbNode->callBack(cbNode->context,
                                                                         cbNode->handle,
                                                                         &response);
@@ -1458,7 +1462,7 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
         }
         return;
     }
-
+    /* else  not cbNode */
     if(observer)
     {
         OIC_LOG(INFO, TAG, "There is an observer associated with the response token");
@@ -1534,7 +1538,7 @@ void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* res
 
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
 #ifdef ROUTING_GATEWAY
     bool needRIHandling = false;
     /*
@@ -1560,7 +1564,7 @@ void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* res
     RMUpdateInfo((CAHeaderOption_t **) &(responseInfo->info.options),
                  (uint8_t *) &(responseInfo->info.numOptions),
                  (CAEndpoint_t *) endPoint);
-#endif
+/*GAR #endif */
 
     OCHandleResponse(endPoint, responseInfo);
 
@@ -1640,7 +1644,7 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
     respInfo.info.resourceUri = OICStrdup (resourceUri);
     respInfo.info.acceptFormat = CA_FORMAT_UNDEFINED;
 
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
     // Add the destination to route option from the endpoint->routeData.
     bool doPost = false;
     OCStackResult result = RMAddInfo(endPoint->routeData, &respInfo, false, &doPost);
@@ -1689,7 +1693,7 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
         }
     }
     else
-#endif
+/*GAR #endif */
     {
         CAResult_t caResult = CASendResponse(endPoint, &respInfo);
 
@@ -2002,7 +2006,7 @@ void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
         return;
     }
 
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
 #ifdef ROUTING_GATEWAY
     bool needRIHandling = false;
     bool isEmptyMsg = false;
@@ -2020,7 +2024,7 @@ void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
         OIC_LOG_V(INFO, TAG, "Routing status![%d]. Not forwarding to RI", ret);
         return;
     }
-#endif
+/*GAR #endif */
 
     /*
      * Put source in sender endpoint so that the next packet from application can be routed to
@@ -2240,7 +2244,7 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
         // TODO after BeachHead delivery: consolidate into single SRMInit()
     }
 #endif
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
     RMSetStackMode(mode);
 #ifdef ROUTING_GATEWAY
     if (OC_GATEWAY == myStackMode)
@@ -2248,7 +2252,7 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
         result = RMInitialize();
     }
 #endif
-#endif
+/*GAR #endif */
 
 #ifdef TCP_ADAPTER
     if (result == OC_STACK_OK)
@@ -2776,6 +2780,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
             OIC_LOG(ERROR, TAG, "Failed to create CBOR Payload");
             goto exit;
         }
+	OIC_LOG_V(INFO, TAG, "%s: PAYLOAD TYPE: %d", ((OCPayload*)requestInfo.info.payload)->type);
         requestInfo.info.payloadFormat = CA_FORMAT_APPLICATION_CBOR;
     }
     else
@@ -2960,7 +2965,7 @@ OCStackResult OCCancel(OCDoHandle handle, OCQualityOfService qos, OCHeaderOption
  */
 OCStackResult OCRegisterPersistentStorageHandler(OCPersistentStorage* persistentStorageHandler)
 {
-    OIC_LOG(INFO, TAG, "RegisterPersistentStorageHandler !!");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if(!persistentStorageHandler)
     {
         OIC_LOG(ERROR, TAG, "The persistent storage handler is invalid");
@@ -3171,7 +3176,7 @@ OCStackResult OCStopPresence()
 
     return SendStopNotification();
 }
-#endif
+#endif	/* WITH_PRESENCE */
 
 OCStackResult OCSetDefaultDeviceEntityHandler(OCDeviceEntityHandler entityHandler,
                                             void* callbackParameter)
@@ -3186,40 +3191,55 @@ OCStackResult OCSetPlatformInfo(OCPlatformInfo platformInfo)
 {
     OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
+    OCStackResult result = OC_STACK_ERROR;
+
+    /* GAR: this check is otiose? stack mode is check by Init1, better to check init status? */
     if(myStackMode ==  OC_SERVER || myStackMode == OC_CLIENT_SERVER || myStackMode == OC_GATEWAY)
     {
         if (validatePlatformInfo(platformInfo))
         {
-            return SavePlatformInfo(platformInfo);
+            result = SavePlatformInfo(platformInfo);
+	    if (result == OC_STACK_OK) {
+		OIC_LOG_V(INFO, TAG, "%s: OK", __func__);
+	    } else {
+		OIC_LOG_V(INFO, TAG, "%s: ERROR on SavePlatformInfo", __func__);
+	    }
         }
         else
         {
-            return OC_STACK_INVALID_PARAM;
+	    OIC_LOG_V(INFO, TAG, "%s: ERROR on validatePlatformInfo", __func__);
+            result = OC_STACK_INVALID_PARAM;
         }
     }
     else
     {
-        return OC_STACK_ERROR;
+	OIC_LOG_V(INFO, TAG, "%s: ERROR - bad stack mode", __func__);
     }
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
+    return result;
 }
 
 OCStackResult OCGetPlatformInfo(OCPlatformInfo** platformInfo)
 {
     OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
+    /* GAR: this check is otiose? stack mode is check by Init1, better to check init status? */
     if(myStackMode ==  OC_SERVER || myStackMode == OC_CLIENT_SERVER || myStackMode == OC_GATEWAY)
     {
 	if ( GetPlatformInfo(platformInfo) == OC_STACK_OK )
 	{
+	    OIC_LOG_V(INFO, TAG, "%s: EXIT OK", __func__);
 	    return OC_STACK_OK;
 	}
 	else
 	{
+	    OIC_LOG_V(INFO, TAG, "%s: ERROR - GetPlatformInfo", __func__);
 	    return OC_STACK_ERROR;
 	}
     }
     else
     {
+	OIC_LOG_V(INFO, TAG, "%s: ERROR - bad stack mode", __func__);
         return OC_STACK_ERROR;
     }
 }
@@ -3249,13 +3269,16 @@ OCStackResult OCSetDeviceInfo(OCDeviceInfo deviceInfo)
             type = type->next;
         }
     }
-    return SaveDeviceInfo(deviceInfo);
+    OCStackResult result = SaveDeviceInfo(deviceInfo);
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
+    return result;
 }
 
 OCStackResult OCCreateResource(OCResourceHandle *handle,
         const char *resourceTypeName,
         const char *resourceInterfaceName,
-        const char *uri, OCEntityHandler entityHandler,
+        const char *uri,
+        OCEntityHandler entityHandler,
         void* callbackParam,
         uint8_t resourceProperties)
 {
@@ -3264,7 +3287,9 @@ OCStackResult OCCreateResource(OCResourceHandle *handle,
     OCStackResult result = OC_STACK_ERROR;
 
     OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
-    OIC_LOG_V(INFO, TAG, "\tARGS: t %s, if %s", resourceTypeName, resourceInterfaceName);
+    OIC_LOG_V(INFO, TAG, "\turi:       %s", uri);
+    OIC_LOG_V(INFO, TAG, "\ttype:      %s", resourceTypeName);
+    OIC_LOG_V(INFO, TAG, "\tinterface: %s", resourceInterfaceName);
 
     if(myStackMode == OC_CLIENT)
     {
@@ -3311,7 +3336,7 @@ OCStackResult OCCreateResource(OCResourceHandle *handle,
     pointer = headResource;
     if (pointer)
     {
-        // At least one resources is in the resource list, so we need to search for
+        // At least one resource is in the resource list, so we need to search for
         // repeated URLs, which are not allowed.  If a repeat is found, exit with an error
         while (pointer)
         {
@@ -3394,6 +3419,7 @@ exit:
         // Deep delete of resource and other dynamic elements that it contains
         deleteResource(pointer);
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return result;
 }
 
@@ -3646,6 +3672,7 @@ exit:
 OCStackResult BindResourceInterfaceToResource(OCResource* resource,
         const char *resourceInterfaceName)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCResourceInterface *pointer = NULL;
     char *str = NULL;
     OCStackResult result = OC_STACK_ERROR;
@@ -3686,7 +3713,7 @@ OCStackResult BindResourceInterfaceToResource(OCResource* resource,
         OICFree(pointer);
         OICFree(str);
     }
-
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returing %x", __func__, result);
     return result;
 }
 
@@ -4193,6 +4220,7 @@ OCStackResult OCChangeResourceProperty(OCResourceProperty * inputProperty,
 
 OCStackResult initResources()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult result = OC_STACK_OK;
 
     headResource = NULL;
@@ -4257,6 +4285,7 @@ OCStackResult initResources()
         }
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return result;
 }
 
@@ -4691,6 +4720,7 @@ OCStackResult getQueryFromUri(const char * uri, char** query, char ** uriWithout
 
 static const OicUuid_t* OCGetServerInstanceID(void)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     static bool generated = false;
     static OicUuid_t sid= {0};
     if (generated)
@@ -4700,8 +4730,17 @@ static const OicUuid_t* OCGetServerInstanceID(void)
 
     OCStackResult result = OC_STACK_ERROR;
 #ifdef SECURED
+    OIC_LOG_V(INFO, TAG, "%s: SECURED", __func__);
     result = GetDoxmDeviceID(&sid);
+    if (OC_STACK_OK != result)
+    {
+	OIC_LOG_V(FATAL, TAG, "%s: GetDoxmDeviceID failure", __func__); // , result);
+        return NULL;
+    } else {
+	OIC_LOG_V(DEBUG, TAG, "%s: GetDoxmDeviceID sid OK", __func__); //, sid.id);
+    }
 #else
+    OIC_LOG_V(INFO, TAG, "%s: NOT SECURED", __func__);
     /* GAR FIXME: make sid a static global? */
     if (OCGenerateUuid(sid.id) != RAND_UUID_OK)
     {
@@ -4711,17 +4750,13 @@ static const OicUuid_t* OCGetServerInstanceID(void)
       result = OC_STACK_OK;
     }
 #endif
-    if (OC_STACK_OK != result)
-    {
-        OIC_LOG(FATAL, TAG, "Generate UUID for Server Instance failed!");
-        return NULL;
-    }
     generated = true;
     return &sid;
 }
 
 const char* OCGetServerInstanceIDString(void)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     static bool generated = false;
     static char sidStr[UUID_STRING_SIZE];
 
@@ -4733,11 +4768,12 @@ const char* OCGetServerInstanceIDString(void)
     const OicUuid_t *sid = OCGetServerInstanceID();
     if(OCConvertUuidToString(sid->id, sidStr) != RAND_UUID_OK)
     {
-        OIC_LOG(FATAL, TAG, "Generate UUID String for Server Instance failed!");
+	OIC_LOG_V(FATAL, TAG, "%s: OCConvertUuidToString failed for %s", __func__, sid->id);
         return NULL;
     }
 
     generated = true;
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
     return sidStr;
 }
 
