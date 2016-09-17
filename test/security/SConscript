@@ -1,0 +1,126 @@
+# //******************************************************************
+# //
+# // Copyright 2015 Intel Mobile Communications GmbH All Rights Reserved.
+# //
+# //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# //
+# // Licensed under the Apache License, Version 2.0 (the "License");
+# // you may not use this file except in compliance with the License.
+# // You may obtain a copy of the License at
+# //
+# //      http://www.apache.org/licenses/LICENSE-2.0
+# //
+# // Unless required by applicable law or agreed to in writing, software
+# // distributed under the License is distributed on an "AS IS" BASIS,
+# // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# // See the License for the specific language governing permissions and
+# // limitations under the License.
+# //
+# //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+Import('test_env')
+import os
+import os.path
+import build.utils
+
+target_os = test_env.get('TARGET_OS')
+
+######################################################################
+# Build flags
+######################################################################
+home = os.environ['HOME']
+
+test_env.PrependUnique(CPPPATH = [
+		'#resource/c_common',
+		'#resource/csdk/security',
+		'#resource/csdk/security/ocsecurity',  #FIXME this is private
+ 		'#resource/csdk/connectivity/api',
+ 		'#resource/csdk/connectivity/inc',
+		'#resource/csdk/connectivity/lib/libcoap-4.1.1',
+		Dir('.').abspath + '../include',
+		'#resource/csdk/logger',
+		'#resource/csdk/stack',
+		'#resource/csdk/cbor/',
+                '#resource/csdk/cjson/',
+                '#resource/csdk/timer'
+		])
+		# '#resource/csdk/security/provisioning/include',
+
+#		'../../../oc_logger/include',
+#		'../../stack/internal',
+#		'../include/internal',
+#		'../../connectivity/external/inc',
+
+test_env.PrependUnique(LIBS = ['chibity',
+                               'ocsrm',
+			       'connectivity_abstraction',
+			       'coap'])
+
+# if test_env.get('SECURED') == '1':
+#     test_env.AppendUnique(LIBS = ['tinydtls'])
+
+if test_env.get('LOGGING') == '1':
+	test_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+
+if target_os == 'windows':
+	test_env.AppendUnique(LINKFLAGS = ['/subsystem:CONSOLE'])
+	test_env.AppendUnique(LIBS = ['advapi32', 'kernel32', 'ws2_32', 'iphlpapi'])
+# else:
+# 	# TODO: Implement feature check.
+# 	test_env.AppendUnique(CPPDEFINES = ['HAVE_LOCALTIME_R'])
+
+######################################################################
+# Source files and Targets
+######################################################################
+securitytest = test_env.Program('securitytest', ['aclresourcetest.cpp',
+                                                 'amaclresourcetest.cpp',
+                                                 'pstatresource.cpp',
+                                                 'doxmresource.cpp',
+                                                 'policyengine.cpp',
+                                                 'securityresourcemanager.cpp',
+                                                 'credentialresource.cpp',
+                                                 'srmutility.cpp',
+                                                 'iotvticalendartest.cpp',
+                                                 'base64tests.cpp',
+                                                 'svcresourcetest.cpp',
+                                                 'srmtestcommon.cpp',
+                                                 'directpairingtest.cpp',
+                                                 'crlresourcetest.cpp'])
+
+######################################################################
+# ACL data files
+######################################################################
+#securitytest_src_dir = os.path.join(src_dir,
+# 'resource', 'csdk', 'security', 'unittest') + os.sep
+# securitytest_build_dir = os.path.join(test_env.get('BUILD_DIR'),
+#                                       'resource', 'csdk', 'security', 'unittest') + os.sep
+
+datadir = os.path.join(test_env.get('INSTALL_SYSROOT') + '/bin/data')
+
+test_env.AppendUnique(CPPDEFINES = ['SECURITY_BUILD_UNITTEST_DIR=data'])
+# + datadir.encode('string_escape')])
+
+test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest.json'))
+test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest_acl1.json'))
+test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest_default_acl.json'))
+test_env.Alias("tests", test_env.Install( datadir, 'data/oic_svr_db.json'))
+
+test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest.dat'))
+test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest_acl1.dat'))
+test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest_default_acl.dat'))
+test_env.Alias("tests", test_env.Install( datadir, 'data/oic_svr_db_prov.dat'))
+test_env.Alias("tests", test_env.Install( datadir, 'data/oic_svr_db.dat'))
+
+#test_env.Install(os.path.join(test_env.get('INSTALL_SYSROOT'), 'test'), securitytest)
+
+build.utils.install_bin(test_env, securitytest, 'tests')
+
+# if test_env.get('WITH_VALGRIND'):
+#         valgrind_xml = 'ut'
+# else:
+#         valgrind_xml = ''
+
+# import test_utils
+# test_utils.run_test(test_env,
+#                          valgrind_xml,
+#                          'resource/csdk/security/unittest/unittest')

@@ -1,0 +1,75 @@
+#******************************************************************
+#
+# Copyright 2014 Intel Mobile Communications GmbH All Rights Reserved.
+#
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+print "RANDOMTESTS"
+
+Import('test_env')
+import os
+import os.path
+import build.utils
+
+test_env = test_env.Clone()
+
+target_os = test_env.get('TARGET_OS')
+
+src_dir = test_env.get('SRC_DIR')
+
+######################################################################
+# Build flags
+######################################################################
+test_env.AppendUnique(LIBPATH = [os.path.join(test_env.get('BUILD_SYSROOT'), 'c_common')])
+#                    os.path.join(test_env.get('BUILD_SYSROOT')),
+#                    os.path.join(test_env.get('BUILD_SYSROOT'), 'logger'),
+#                    os.path.join(test_env.get('BUILD_SYSROOT'), 'XYZ'),
+# 	           os.path.join(test_env.get('INSTALL_SYSROOT'), 'lib')]
+# )
+
+test_env.PrependUnique(
+	LIBS = ['c_common']
+)
+
+if test_env.get('LOGGING'):
+	test_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+	test_env.PrependUnique(CPPPATH = ['#resource/csdk/logger'])
+
+
+######################################################################
+# Source files and Targets
+######################################################################
+malloctests = test_env.Program('malloctests', ['oic_malloc_tests.cpp'])
+randomtests = test_env.Program('randomtests', ['oic_random_tests.cpp'])
+stringtests = test_env.Program('stringtests', ['oic_string_tests.cpp'])
+timetests   = test_env.Program('timetests',   ['oic_time_tests.cpp'])
+
+build.utils.install_bin(test_env, malloctests, 'tests')
+build.utils.install_bin(test_env, randomtests, 'tests')
+build.utils.install_bin(test_env, stringtests, 'tests')
+build.utils.install_bin(test_env, timetests,   'tests')
+
+#FIXME: run tests from somewhere else, this script is for building
+# if env.get('WITH_VALGRIND'):
+#         valgrind_xml = 'resource_csdk_random_test.memcheck'
+# else:
+#         valgrind_xml = ''
+
+# import test_utils
+# test_utils.run_test(test_env,
+#                          valgrind_xml,
+#                          'resource/c_common/ocrandom/test/randomtests')

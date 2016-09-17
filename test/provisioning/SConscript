@@ -1,0 +1,130 @@
+# //******************************************************************
+# //
+# // Copyright 2015 Samsung Electronics All Rights Reserved.
+# //
+# //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# //
+# // Licensed under the Apache License, Version 2.0 (the "License");
+# // you may not use this file except in compliance with the License.
+# // You may obtain a copy of the License at
+# //
+# //      http://www.apache.org/licenses/LICENSE-2.0
+# //
+# // Unless required by applicable law or agreed to in writing, software
+# // distributed under the License is distributed on an "AS IS" BASIS,
+# // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# // See the License for the specific language governing permissions and
+# // limitations under the License.
+# //
+# //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+Import('test_env')
+import os
+import os.path
+import build.utils
+
+src_dir    = test_env.get('SRC_DIR')
+target_os  = test_env.get('TARGET_OS')
+
+######################################################################
+# Build flags
+######################################################################
+test_env.PrependUnique(CPPPATH = ['#resource/csdk/provisioning',
+		                  '#resource/csdk/provisioning/internal',
+		                  '#resource/stack',
+		                  '#resource/c_common',
+		                  '#resource/logger',
+		                  '#resource/csdk/cjson',
+		                  '#resource/csdk/timer',
+		                  '#resource/csdk/security',
+		                  '#resource/csdk/security/internal',
+		                  '#resource/extlibs/tinydtls',
+		                  '#resource/csdk/connectivity/inc',
+		                  '#resource/csdk/connectivity/common/inc',
+		                  '#resource/csdk/connectivity/lib/libcoap-4.1.1',
+		                  '#resource/csdk/connectivity/api',
+		                  '#resource/extlibs/tinydtls'])
+
+		                  # '../../../../oc_logger/include',
+
+test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_DIR')])
+test_env.PrependUnique(LIBS = ['ocpmapi',
+                               'ocsrm',
+                               'chibity',
+                               'connectivity_abstraction',
+                               'coap'])
+
+if target_os in ['poky-edison']:
+    test_env.AppendUnique(LIBS = ['dl'])
+
+if test_env.get('SECURED') == '1':
+    test_env.AppendUnique(LIBS = ['tinydtls'])
+
+if test_env.get('DTLS_WITH_X509') == '1':
+	test_env.AppendUnique(LIBS = ['CKManager'])
+	test_env.AppendUnique(LIBS = ['asn1'])
+
+if not test_env.get('RELEASE'):
+	test_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+
+if target_os in ['msys_nt', 'windows']:
+    test_env.AppendUnique(LINKFLAGS = ['/subsystem:CONSOLE'])
+    test_env.AppendUnique(LIBS = ['ws2_32',
+                                  'advapi32',
+                                  'iphlpapi'])
+
+######################################################################
+# Source files and Targets
+######################################################################
+provisiontest_src = ['pmutilitytest.cpp',
+                     'secureresourceprovider.cpp',
+                     'provisioningdatabasemanager.cpp',
+                     'ocprovisioningmanager.cpp',
+                     'credentialgeneratortest.cpp']
+# os.path.join(src_dir, 'resource', 'csdk', 'timer', 'timer.c')
+
+if target_os not in ['windows']:
+    provisiontest_src += [ 'otmunittest.cpp' ]
+
+provisiontest = test_env.Program('provisiontest', provisiontest_src)
+
+#GAR samples
+if target_os not in ['windows']:
+    sample_server1 = test_env.Program('sample_server1', ['sampleserver1.cpp'])
+    build.utils.install_bin(test_env, sample_server1, 'tests')
+    sample_server2 = test_env.Program('sample_server2', ['sampleserver2.cpp'])
+    build.utils.install_bin(test_env, sample_server2, 'tests')
+    Alias("tests", [sample_server1, sample_server2])
+
+# test_env.AppendTarget('test')
+
+# test_env.Install(os.path.join(test_env.get('BUILD_DIR'), 'test'),  provisiontest)
+build.utils.install_bin(test_env, provisiontest, 'tests')
+
+
+#FIXME: run tests from somewhere else, this script is for building
+# if test_env.get('WITH_VALGRIND'):
+#         valgrind_xml = 'plugins_unittests.memcheck'
+# else:
+#         valgrind_xml = ''
+
+# import runtest.RunTest
+
+# out_dir = test_env.get('BUILD_DIR')
+# result_dir = os.path.join(test_env.get('BUILD_DIR'), 'test_out') + os.sep
+
+
+# if not os.path.isdir(result_dir):
+#     os.makedirs(result_dir)
+# test_env.AppendENVPath('GTEST_OUTPUT', ['xml:'+ result_dir])
+
+# #GAR FIXME: gtest paths
+# if target_os == 'darwin':
+#     test_env.AppendENVPath('DYLD_LIBRARY_PATH', [out_dir])
+# elif target_os == 'linux':
+#     test_env.AppendENVPath('LD_LIBRARY_PATH', [out_dir])
+# test_env.AppendENVPath('PATH', test_env.get('BUILD_DIR'))
+
+# ut = test_env.Command ('ut', None, out_dir + '/resource/csdk/security/provisioning/unittest/unittest')
+# AlwaysBuild ('ut')
+

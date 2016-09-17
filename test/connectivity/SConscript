@@ -1,0 +1,122 @@
+#******************************************************************
+#
+# Copyright 2015 Samsung Electronics All Rights Reserved.
+#
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+Import('test_env')
+import os
+import os.path
+import build.utils
+
+target_os  = test_env.get('TARGET_OS')
+target_transport = test_env.get('TARGET_TRANSPORT')
+
+######################################################################
+# Build flags
+######################################################################
+test_env.PrependUnique(CPPPATH = [
+                '#resource/csdk/connectivity/api',
+                '#resource/csdk/connectivity/common',
+                '#resource/csdk/connectivity/inc',
+                '#resource/csdk/connectivity/lib/libcoap-4.1.1',
+                '#resource/c_common',
+                '#resource/csdk/logger',
+                '#resource/csdk/stack',
+                '#resource/csdk/cjson'
+               ])
+                # '#resource/oc_logger/include',
+
+test_env.AppendUnique(LIBPATH = [test_env.get('INSTALL_SYSROOT') + '/lib',
+			         test_env.get('BUILD_SYSROOT') + '/c_common',
+			         test_env.get('BUILD_SYSROOT') + '/csdk',
+			         test_env.get('BUILD_SYSROOT') + '/connectivity/core',
+			         test_env.get('BUILD_SYSROOT') + '/connectivity/coap'])
+
+			         # test_env.get('BUILD_SYSROOT') + '/logger'])
+
+# test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_SYSROOT')])
+
+#GAR: uuid not needed for darwin?  m only for linux?
+test_env.PrependUnique(LIBS = ['chibity',
+                               'connectivity_abstraction',
+                               'coap',
+                               'c_common',
+			       'csdk'])
+
+if target_os not in ['arduino', 'darwin', 'ios', 'msys_nt', 'windows']:
+	test_env.AppendUnique(LIBS=['rt'])
+
+if test_env.get('SECURED') == '1':
+	test_env.AppendUnique(CPPPATH = ['#resource/csdk/provisioning'])
+	test_env.AppendUnique(LIBS = ['ocpmapi'])
+	test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_SYSROOT') + '/provisioning'])
+	test_env.AppendUnique(LIBS = ['ocsrm'])
+	test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_SYSROOT') + '/security'])
+	test_env.AppendUnique(LIBS = ['tinydtls'])
+	test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_SYSROOT') + '/tinydtls'])
+
+if test_env.get('LOGGING'):
+	test_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+
+if target_os in ['msys_nt', 'windows']:
+	test_env.AppendUnique(LINKFLAGS = ['/subsystem:CONSOLE'])
+	test_env.AppendUnique(LIBS = ['ws2_32',
+                                      'advapi32',
+                                      'iphlpapi'])
+else:
+	test_env.AppendUnique(LIBS = ['m'])
+
+######################################################################
+# Source files and Targets
+######################################################################
+if (('IP' in target_transport) or ('ALL' in target_transport)):
+	if target_os not in ['arduino']:
+		catests = test_env.Program('catests', ['catests.cpp',
+		                                       'caprotocolmessagetest.cpp',
+		                                       'ca_api_unittest.cpp',
+		                                       'camutex_tests.cpp',
+		                                       'uarraylist_test.cpp',
+		                                       'ulinklist_test.cpp',
+		                                       'uqueue_test.cpp'])
+#GAR broken on darwin: 'cablocktransfertest.cpp',
+
+else:
+	# Include all unit test files
+	catests = test_env.Program('catests', ['catests.cpp',
+		                               'caprotocolmessagetest.cpp',
+		                               'ca_api_unittest.cpp',
+		                               'camutex_tests.cpp',
+		                               'uarraylist_test.cpp',
+		                               'ulinklist_test.cpp',
+		                               'uqueue_test.cpp'])
+
+#test_env.Install(os.path.join(test_env.get('INSTALL_SYSROOT'), 'test'),  catests)
+
+build.utils.install_bin(test_env, catests, 'tests')
+
+# test_env.AppendENVPath('PATH', test_env.get('BUILD_DIR'))
+
+# if env.get('WITH_VALGRIND'):
+#         valgrind_xml = 'plugins_unittests.memcheck'
+# else:
+#         valgrind_xml = ''
+
+# import test_utils
+# test_utils.run_test(test_env,
+#                          valgrind_xml,
+#                          'resource/csdk/connectivity/test/catests')
