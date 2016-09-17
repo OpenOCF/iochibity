@@ -224,7 +224,8 @@ CAResult_t CAInitializeIP(CARegisterConnectivityCallback registerCallback,
                           CAAdapterChangeCallback netCallback,
                           CAErrorHandleCallback errorCallback, ca_thread_pool_t handle)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
+
     VERIFY_NON_NULL(registerCallback, TAG, "registerCallback");
     VERIFY_NON_NULL(networkPacketCallback, TAG, "networkPacketCallback");
     VERIFY_NON_NULL(netCallback, TAG, "netCallback");

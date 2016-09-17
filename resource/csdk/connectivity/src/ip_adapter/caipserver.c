@@ -483,6 +483,8 @@ void CADeInitializeIPGlobals()
 
 static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s", __func__);
+
     char recvBuffer[COAP_MAX_PDU_SIZE] = {0};
 
     size_t len = 0;
@@ -642,8 +644,10 @@ static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
 
 void CAIPPullData()
 {
-    OIC_LOG(DEBUG, TAG, "IN");
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: OUT", __func__);
+    /* OIC_LOG(DEBUG, TAG, "IN"); */
+    /* OIC_LOG(DEBUG, TAG, "OUT"); */
 }
 
 static CASocketFd_t CACreateSocket(int family, uint16_t *port, bool isMulticast)
@@ -1197,7 +1201,7 @@ static void sendData(int fd, const CAEndpoint_t *endpoint,
                      const void *data, uint32_t dlen,
                      const char *cast, const char *fam)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
 
     if (!endpoint)
     {
@@ -1236,11 +1240,11 @@ static void sendData(int fd, const CAEndpoint_t *endpoint,
         {
             g_ipErrorHandler(endpoint, data, dlen, CA_SEND_FAILED);
         }
-        OIC_LOG_V(ERROR, TAG, "%s%s %s sendTo failed: %s", secure, cast, fam, strerror(errno));
+        OIC_LOG_V(ERROR, TAG, "%s%s %s %s sendto() failed: %s", __func__, secure, cast, fam, strerror(errno));
     }
     else
     {
-        OIC_LOG_V(INFO, TAG, "%s%s %s sendTo is successful: %zd bytes", secure, cast, fam, len);
+        OIC_LOG_V(INFO, TAG, "%s%s %s %s sendto() is successful: %zd bytes", __func__, secure, cast, fam, len);
     }
 #else
     int err = 0;
@@ -1259,7 +1263,7 @@ static void sendData(int fd, const CAEndpoint_t *endpoint,
                     g_ipErrorHandler(endpoint, data, dlen, CA_SEND_FAILED);
                 }
 
-                OIC_LOG_V(ERROR, TAG, "%s%s %s sendTo failed: %i", secure, cast, fam, err);
+                OIC_LOG_V(ERROR, TAG, "%s%s %s %s sendto() failed: %i", __func__, secure, cast, fam, err);
             }
         }
         else
@@ -1267,16 +1271,17 @@ static void sendData(int fd, const CAEndpoint_t *endpoint,
             sent += len;
             if (sent != len)
             {
-                OIC_LOG_V(DEBUG, TAG, "%s%s %s sendTo (Partial Send) is successful: "
+                OIC_LOG_V(DEBUG, TAG, "%s%s %s %s sendto() (Partial) is successful: "
                                       "currently sent: %ld bytes, "
                                       "total sent: %ld bytes, "
                                       "remaining: %ld bytes",
+			              __func__,
                                       secure, cast, fam, len, sent, dlen-sent);
             }
             else
             {
-                OIC_LOG_V(INFO, TAG, "%s%s %s sendTo is successful: %ld bytes",
-                                     secure, cast, fam, len);
+                OIC_LOG_V(INFO, TAG, "%s%s %s %s sendto() is successful: %ld bytes",
+			  __func__, secure, cast, fam, len);
             }
         }
     } while ((OC_SOCKET_ERROR == len) && ((WSAEWOULDBLOCK == err) || (WSAENOBUFS == err)) || (sent < dlen));

@@ -1211,7 +1211,7 @@ exit:
 
 void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
 {
-    OIC_LOG(DEBUG, TAG, "Enter OCHandleResponse");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     if(responseInfo->info.resourceUri &&
         strcmp(responseInfo->info.resourceUri, OC_RSRVD_PRESENCE_URI) == 0)
@@ -1524,7 +1524,7 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
         return;
     }
 
-    OIC_LOG(INFO, TAG, "Exit OCHandleResponse");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 
 void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
@@ -1532,7 +1532,7 @@ void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* res
     VERIFY_NON_NULL_NR(endPoint, FATAL);
     VERIFY_NON_NULL_NR(responseInfo, FATAL);
 
-    OIC_LOG(INFO, TAG, "Enter HandleCAResponses");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
 #ifdef ROUTING_GATEWAY
@@ -1564,7 +1564,7 @@ void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* res
 
     OCHandleResponse(endPoint, responseInfo);
 
-    OIC_LOG(INFO, TAG, "Exit HandleCAResponses");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 
 /*
@@ -1573,7 +1573,7 @@ void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* res
  */
 void HandleCAErrorResponse(const CAEndpoint_t *endPoint, const CAErrorInfo_t *errorInfo)
 {
-    OIC_LOG(INFO, TAG, "Enter HandleCAErrorResponse");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     if (NULL == endPoint)
     {
@@ -1604,7 +1604,7 @@ void HandleCAErrorResponse(const CAEndpoint_t *endPoint, const CAErrorInfo_t *er
         FindAndDeleteClientCB(cbNode);
     }
 
-    OIC_LOG(INFO, TAG, "Exit HandleCAErrorResponse");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 
 /*
@@ -1617,7 +1617,7 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
         const uint8_t numOptions, const CAHeaderOption_t *options,
         CAToken_t token, uint8_t tokenLength, const char *resourceUri)
 {
-    OIC_LOG(DEBUG, TAG, "Entering SendDirectStackResponse");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     CAResponseInfo_t respInfo = {
         .result = responseResult
     };
@@ -1703,13 +1703,13 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
             return CAResultToOCResult(caResult);
         }
     }
-    OIC_LOG(DEBUG, TAG, "Exit SendDirectStackResponse");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return OC_STACK_OK;
 }
 
 OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolRequest)
 {
-    OIC_LOG(INFO, TAG, "Entering HandleStackRequests (OCStack Layer)");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult result = OC_STACK_ERROR;
     if(!protocolRequest)
     {
@@ -1774,7 +1774,7 @@ OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolRequest)
 
 void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
 {
-    OIC_LOG(DEBUG, TAG, "Enter OCHandleRequests");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
 #ifdef TCP_ADAPTER
     if (requestInfo->info.resourceUri &&
@@ -1983,13 +1983,13 @@ void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
     // The token is copied in there, and is thus still owned by this function.
     OICFree(serverRequest.payload);
     OICFree(serverRequest.requestToken);
-    OIC_LOG(INFO, TAG, "Exit OCHandleRequests");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 
 //This function will be called back by CA layer when a request is received
 void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
 {
-    OIC_LOG(INFO, TAG, "Enter HandleCARequests");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     if(!endPoint)
     {
         OIC_LOG(ERROR, TAG, "endPoint is NULL");
@@ -2146,7 +2146,7 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
 #endif
 
     OCStackResult result = OC_STACK_ERROR;
-    OIC_LOG(INFO, TAG, "Entering OCInit");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     // Validate mode
     if (!((mode == OC_CLIENT) || (mode == OC_SERVER) || (mode == OC_CLIENT_SERVER)
@@ -2270,7 +2270,7 @@ exit:
 
 OCStackResult OCStop()
 {
-    OIC_LOG(INFO, TAG, "Entering OCStop");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     if (stackState == OC_STACK_UNINIT_IN_PROGRESS)
     {
@@ -2327,6 +2327,7 @@ OCStackResult OCStop()
 
     stackState = OC_STACK_UNINITIALIZED;
     //GAR printf("**************** GAR: Return from OCStop!\n");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return OC_STACK_OK;
 }
 
@@ -2621,7 +2622,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
                             OCHeaderOption *options,
                             uint8_t numOptions)
 {
-    OIC_LOG(INFO, TAG, "Entering OCDoResource");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     // Validate input parameters
     VERIFY_NON_NULL(cbData, FATAL, OC_STACK_INVALID_CALLBACK);
@@ -2846,6 +2847,7 @@ exit:
     OICFree(resourceUri);
     OICFree(resourceType);
     OICFree(requestInfo.info.options);
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return result;
 }
 
@@ -2988,7 +2990,7 @@ OCStackResult OCProcessPresence()
 
     // the following line floods the log with messages that are irrelevant
     // to most purposes.  Uncomment as needed.
-    //OIC_LOG(INFO, TAG, "Entering RequestPresence");
+    //OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     ClientCB* cbNode = NULL;
     OCClientResponse clientResponse;
     OCStackApplicationResult cbResult = OC_STACK_DELETE_TRANSACTION;
@@ -3182,7 +3184,7 @@ OCStackResult OCSetDefaultDeviceEntityHandler(OCDeviceEntityHandler entityHandle
 
 OCStackResult OCSetPlatformInfo(OCPlatformInfo platformInfo)
 {
-    OIC_LOG(INFO, TAG, "Entering OCSetPlatformInfo");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     if(myStackMode ==  OC_SERVER || myStackMode == OC_CLIENT_SERVER || myStackMode == OC_GATEWAY)
     {
@@ -3203,7 +3205,7 @@ OCStackResult OCSetPlatformInfo(OCPlatformInfo platformInfo)
 
 OCStackResult OCGetPlatformInfo(OCPlatformInfo** platformInfo)
 {
-    OIC_LOG(INFO, TAG, "Entering OCGetPlatformInfo");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     if(myStackMode ==  OC_SERVER || myStackMode == OC_CLIENT_SERVER || myStackMode == OC_GATEWAY)
     {
@@ -3224,7 +3226,7 @@ OCStackResult OCGetPlatformInfo(OCPlatformInfo** platformInfo)
 
 OCStackResult OCSetDeviceInfo(OCDeviceInfo deviceInfo)
 {
-    OIC_LOG(INFO, TAG, "Entering OCSetDeviceInfo");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     if (!deviceInfo.deviceName || deviceInfo.deviceName[0] == '\0')
     {
@@ -3261,7 +3263,8 @@ OCStackResult OCCreateResource(OCResourceHandle *handle,
     OCResource *pointer = NULL;
     OCStackResult result = OC_STACK_ERROR;
 
-    OIC_LOG_V(INFO, TAG, "Entering OCCreateResource for t %s, if %s", resourceTypeName, resourceInterfaceName);
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(INFO, TAG, "\tARGS: t %s, if %s", resourceTypeName, resourceInterfaceName);
 
     if(myStackMode == OC_CLIENT)
     {
@@ -3401,7 +3404,7 @@ OCStackResult OCBindResource(
     OCChildResource *tempChildResource = NULL;
     OCChildResource *newChildResource = NULL;
 
-    OIC_LOG(INFO, TAG, "Entering OCBindResource");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     // Validate parameters
     VERIFY_NON_NULL(collectionHandle, ERROR, OC_STACK_ERROR);
@@ -3472,7 +3475,7 @@ OCStackResult OCUnBindResource(
     OCChildResource *tempChildResource = NULL;
     OCChildResource *tempLastChildResource = NULL;
 
-    OIC_LOG(INFO, TAG, "Entering OCUnBindResource");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     // Validate parameters
     VERIFY_NON_NULL(collectionHandle, ERROR, OC_STACK_ERROR);
@@ -4062,7 +4065,7 @@ OCNotifyListOfObservers (OCResourceHandle handle,
                          const OCRepPayload       *payload,
                          OCQualityOfService qos)
 {
-    OIC_LOG(INFO, TAG, "Entering OCNotifyListOfObservers");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     OCResource *resPtr = NULL;
     //TODO: we should allow the server to define this
@@ -4090,7 +4093,7 @@ OCStackResult OCDoResponse(OCEntityHandlerResponse *ehResponse)
     OCStackResult result = OC_STACK_ERROR;
     OCServerRequest *serverRequest = NULL;
 
-    OIC_LOG(INFO, TAG, "Entering OCDoResponse");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     // Validate input parameters
     VERIFY_NON_NULL(ehResponse, ERROR, OC_STACK_INVALID_PARAM);

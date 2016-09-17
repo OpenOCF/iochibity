@@ -688,6 +688,7 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
     VERIFY_NON_NULL(endpoint, TAG, "endpoint");
     VERIFY_NON_NULL(outCode, TAG, "outCode");
     VERIFY_NON_NULL(outInfo, TAG, "outInfo");
+    OIC_LOG_V(DEBUG, TAG, "%s", __func__);
 
     coap_transport_type transport;
 #ifdef WITH_TCP
@@ -851,7 +852,7 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                 else
                 {
                     outInfo->payloadFormat = CA_FORMAT_UNSUPPORTED;
-                    OIC_LOG_V(DEBUG, TAG, "option[%d] has an unsupported format [%d]",
+                    OIC_LOG_V(DEBUG, TAG, "1. option[%d] has an unsupported format [%d]",
                               opt_iter.type, (uint8_t)buf[0]);
                 }
             }
@@ -865,7 +866,7 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                 {
                     outInfo->acceptFormat = CA_FORMAT_UNSUPPORTED;
                 }
-                OIC_LOG_V(DEBUG, TAG, "option[%d] has an unsupported format [%d]",
+                OIC_LOG_V(DEBUG, TAG, "2. option[%d] has an unsupported format [%d]",
                           opt_iter.type, (uint8_t)buf[0]);
             }
             else if (COAP_OPTION_URI_PORT == opt_iter.type ||
@@ -875,7 +876,7 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                     COAP_OPTION_PROXY_URI == opt_iter.type ||
                     COAP_OPTION_PROXY_SCHEME== opt_iter.type)
             {
-                OIC_LOG_V(INFO, TAG, "option[%d] has an unsupported format [%d]",
+                OIC_LOG_V(INFO, TAG, "3. option[%d] has an unsupported format [%d]",
                           opt_iter.type, (uint8_t)buf[0]);
             }
             else

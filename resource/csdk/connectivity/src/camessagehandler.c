@@ -712,7 +712,7 @@ static void CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
     VERIFY_NON_NULL_VOID(sep, TAG, "remoteEndpoint");
     VERIFY_NON_NULL_VOID(data, TAG, "data");
 
-    OIC_LOG(DEBUG, TAG, "received pdu data :");
+    OIC_LOG_V(DEBUG, TAG, "%s: received pdu data :", __func__);
     OIC_LOG_BUFFER(DEBUG, TAG,  data, dataLen);
 
     uint32_t code = CA_NOT_FOUND;
@@ -732,7 +732,7 @@ static void CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
         cadata = CAGenerateHandlerData(&(sep->endpoint), &(sep->identity), pdu, CA_REQUEST_DATA);
         if (!cadata)
         {
-            OIC_LOG(ERROR, TAG, "CAReceivedPacketCallback, CAGenerateHandlerData failed!");
+            OIC_LOG_V(ERROR, TAG, "%s: CAGenerateHandlerData failed!", __func__);
             coap_delete_pdu(pdu);
             return;
         }
