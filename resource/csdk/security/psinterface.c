@@ -64,6 +64,7 @@ const size_t DB_FILE_SIZE_BLOCK = 1023;
  */
 static size_t GetSVRDatabaseSize(const OCPersistentStorage *ps)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (!ps)
     {
         return 0;
@@ -71,6 +72,7 @@ static size_t GetSVRDatabaseSize(const OCPersistentStorage *ps)
     size_t size = 0;
     char buffer[DB_FILE_SIZE_BLOCK];  // can not initialize with declaration
                                       // but maybe not needed to initialize
+    OIC_LOG_V(DEBUG, TAG, "%s: opening %s", __func__, SVR_DB_DAT_FILE_NAME);
     FILE *fp = ps->open(SVR_DB_DAT_FILE_NAME, "rb");
     if (fp)
     {
@@ -96,7 +98,7 @@ static size_t GetSVRDatabaseSize(const OCPersistentStorage *ps)
  */
 OCStackResult GetSecureVirtualDatabaseFromPS(const char *rsrcName, uint8_t **data, size_t *size)
 {
-    OIC_LOG(DEBUG, TAG, "GetSecureVirtualDatabaseFromPS IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (!data || *data || !size)
     {
         return OC_STACK_INVALID_PARAM;
@@ -157,7 +159,6 @@ OCStackResult GetSecureVirtualDatabaseFromPS(const char *rsrcName, uint8_t **dat
             }
         }
     }
-    OIC_LOG(DEBUG, TAG, "GetSecureVirtualDatabaseFromPS OUT");
 
 exit:
     if (fp)
@@ -165,6 +166,7 @@ exit:
         ps->close(fp);
     }
     OICFree(fsData);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -588,7 +590,7 @@ exit:
  */
 OCStackResult CreateResetProfile(void)
 {
-    OIC_LOG(DEBUG, TAG, "CreateResetProfile IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     size_t dbSize = 0;
     uint8_t *dbData = NULL;
@@ -706,5 +708,6 @@ exit:
     OICFree(pstatCbor);
     OICFree(doxmCbor);
     OICFree(resetPfCbor);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }

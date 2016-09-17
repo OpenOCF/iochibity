@@ -1042,6 +1042,7 @@ OCStackResult CreateDoxmResource()
  */
 static OCStackResult CheckDeviceID()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_ERROR;
     bool validId = false;
     for (uint8_t i = 0; i < UUID_LENGTH; i++)
@@ -1059,7 +1060,9 @@ static OCStackResult CheckDeviceID()
         {
             OIC_LOG(FATAL, TAG, "Generate UUID for Server Instance failed!");
             return ret;
-        }
+        } else {
+            OIC_LOG_V(FATAL, TAG, "%s: OCGenerateUuid: %s", gDoxm->deviceID.id);
+	}
         ret = OC_STACK_OK;
 
         if (!UpdatePersistentStorage(gDoxm))
@@ -1072,6 +1075,7 @@ static OCStackResult CheckDeviceID()
     {
         ret = OC_STACK_OK;
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT: %x", __func__, ret);
     return ret;
 }
 
@@ -1093,6 +1097,8 @@ const OicSecDoxm_t* GetDoxmResourceData()
 
 OCStackResult InitDoxmResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+
     OCStackResult ret = OC_STACK_ERROR;
 
     //Read DOXM resource from PS
@@ -1102,7 +1108,7 @@ OCStackResult InitDoxmResource()
     // If database read failed
     if (OC_STACK_OK != ret)
     {
-       OIC_LOG (DEBUG, TAG, "ReadSVDataFromPS failed");
+	OIC_LOG_V(DEBUG, TAG, "%s: ReadSVDataFromPS failed", __func__);
     }
     if (data)
     {
@@ -1129,7 +1135,7 @@ OCStackResult InitDoxmResource()
     ret = CheckDeviceID();
     if (ret == OC_STACK_OK)
     {
-        OIC_LOG_V(DEBUG, TAG, "Initial Doxm Owned = %d", gDoxm->owned);
+        OIC_LOG_V(DEBUG, TAG, "Initial Doxm Owned = %x", gDoxm->owned);
         //Instantiate 'oic.sec.doxm'
         ret = CreateDoxmResource();
     }
@@ -1138,6 +1144,7 @@ OCStackResult InitDoxmResource()
         OIC_LOG (ERROR, TAG, "CheckDeviceID failed");
     }
     OICFree(data);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -1162,6 +1169,7 @@ OCStackResult DeInitDoxmResource()
 
 OCStackResult GetDoxmDeviceID(OicUuid_t *deviceID)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (deviceID && gDoxm)
     {
        *deviceID = gDoxm->deviceID;

@@ -70,6 +70,7 @@ OCStackResult SendSRMResponse(const OCEntityHandlerRequest *ehRequest,
 
 OCStackResult InitSecureResources( )
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret;
 
     /*
@@ -124,11 +125,13 @@ OCStackResult InitSecureResources( )
         //TODO: Update the default behavior if one of the SVR fails
         DestroySecureResources();
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
 OCStackResult DestroySecureResources( )
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     DeInitACLResource();
     DeInitCredResource();
     DeInitDoxmResource();
@@ -144,5 +147,6 @@ OCStackResult DestroySecureResources( )
 //#endif // DIRECT_PAIRING
     DeInitVerResource();
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return OC_STACK_OK;
 }

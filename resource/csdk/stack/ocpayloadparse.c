@@ -53,14 +53,14 @@ static OCStackResult OCParseSecurityPayload(OCPayload **outPayload, const uint8_
 OCStackResult OCParsePayload(OCPayload **outPayload, OCPayloadType payloadType,
         const uint8_t *payload, size_t payloadSize)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY; payload type: %x", __func__, payloadType);
     OCStackResult result = OC_STACK_MALFORMED_RESPONSE;
     CborError err;
 
     VERIFY_PARAM_NON_NULL(TAG, outPayload, "Conversion of outPayload failed");
     VERIFY_PARAM_NON_NULL(TAG, payload, "Invalid cbor payload value");
 
-    OIC_LOG_V(INFO, TAG, "CBOR Parsing size: %zu of Payload Type: %d, Payload:",
-            payloadSize, payloadType);
+    OIC_LOG_V(INFO, TAG, "CBOR Parsing size: %zu; Payload dump:");
     OIC_LOG_BUFFER(DEBUG, TAG, payload, payloadSize);
 
     CborParser parser;
@@ -100,9 +100,8 @@ OCStackResult OCParsePayload(OCPayload **outPayload, OCPayloadType payloadType,
             break;
     }
 
-    OIC_LOG_V(INFO, TAG, "Finished parse payload, result is %d", result);
-
 exit:
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, result);
     return result;
 }
 
@@ -186,6 +185,7 @@ exit:
 
 static OCStackResult OCParseDiscoveryPayload(OCPayload **outPayload, CborValue *rootValue)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     OCResourcePayload *resource = NULL;
     OCDiscoveryPayload *temp = NULL;
@@ -395,11 +395,13 @@ static OCStackResult OCParseDiscoveryPayload(OCPayload **outPayload, CborValue *
 exit:
     OCDiscoveryResourceDestroy(resource);
     OCDiscoveryPayloadDestroy(rootPayload);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
 static OCStackResult OCParseDevicePayload(OCPayload **outPayload, CborValue *rootValue)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     CborError err = CborNoError;
     OCDevicePayload *out = NULL;
@@ -487,6 +489,7 @@ static OCStackResult OCParseDevicePayload(OCPayload **outPayload, CborValue *roo
 
 exit:
     OCDevicePayloadDestroy(out);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 

@@ -1300,6 +1300,7 @@ OCStackResult CreateCredResource()
 
 OCStackResult InitCredResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     //Read Cred resource from PS
@@ -1309,7 +1310,7 @@ OCStackResult InitCredResource()
     // If database read failed
     if (ret != OC_STACK_OK)
     {
-        OIC_LOG (DEBUG, TAG, "ReadSVDataFromPS failed");
+        OIC_LOG_V(DEBUG, TAG, "%s: ReadSVDataFromPS failed", __func__);
     }
     if (data)
     {
@@ -1329,6 +1330,7 @@ OCStackResult InitCredResource()
     //Instantiate 'oic.sec.cred'
     ret = CreateCredResource();
     OICFree(data);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 

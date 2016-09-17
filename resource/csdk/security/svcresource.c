@@ -440,7 +440,7 @@ OCStackResult InitSVCResource()
     // If database read failed
     if (ret != OC_STACK_OK)
     {
-        OIC_LOG (DEBUG, TAG, "ReadSVDataFromPS failed");
+        OIC_LOG_V(DEBUG, TAG, "%s: ReadSVDataFromPS failed", __func__);
     }
 
     if (data)

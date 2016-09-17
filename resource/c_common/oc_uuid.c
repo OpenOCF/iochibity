@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "logger.h"
+
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -57,6 +59,7 @@
 
 OCRandomUuidResult OCGenerateUuid(uint8_t uuid[UUID_SIZE])
 {
+    /* printf("GAR: %s ENTRY", __func__); */
     if (!uuid)
     {
         return RAND_UUID_INVALID_PARAM;

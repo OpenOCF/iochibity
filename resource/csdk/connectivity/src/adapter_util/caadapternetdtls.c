@@ -658,9 +658,9 @@ void CADTLSSetHandshakeCallback(CAErrorCallback dtlsHandshakeCallback)
 void CADTLSSetCredentialsCallback(CAGetDTLSPskCredentialsHandler credCallback)
 {
     // TODO Does this method needs protection of DtlsContextMutex ?
-    OIC_LOG(DEBUG, NET_DTLS_TAG, "IN");
+    OIC_LOG_V(DEBUG, NET_DTLS_TAG, "%s: ENTRY", __func__);
     g_getCredentialsCallback = credCallback;
-    OIC_LOG(DEBUG, NET_DTLS_TAG, "OUT");
+    OIC_LOG_V(DEBUG, NET_DTLS_TAG, "%s: EXIT", __func__);
 }
 
 #ifdef __WITH_X509__

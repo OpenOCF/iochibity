@@ -135,8 +135,7 @@ CAResult_t CAStartDiscoveryServer()
 void CARegisterHandler(CARequestCallback ReqHandler, CAResponseCallback RespHandler,
                        CAErrorCallback ErrorHandler)
 {
-    OIC_LOG(DEBUG, TAG, "CARegisterHandler");
-
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (!g_isInitialized)
     {
         OIC_LOG(DEBUG, TAG, "CA is not initialized");
@@ -163,7 +162,7 @@ CAResult_t CARegisterDTLSHandshakeCallback(CAErrorCallback dtlsHandshakeCallback
 
 CAResult_t CARegisterDTLSCredentialsHandler(CAGetDTLSPskCredentialsHandler GetDTLSCredentialsHandler)
 {
-    OIC_LOG(DEBUG, TAG, "CARegisterDTLSCredentialsHandler");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     if (!g_isInitialized)
     {

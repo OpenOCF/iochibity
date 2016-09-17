@@ -277,7 +277,7 @@ OCStackResult SRMRegisterHandler(CARequestCallback reqHandler,
                                  CAResponseCallback respHandler,
                                  CAErrorCallback errHandler)
 {
-    OIC_LOG(DEBUG, TAG, "SRMRegisterHandler !!");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if( !reqHandler || !respHandler || !errHandler)
     {
         OIC_LOG(ERROR, TAG, "Callback handlers are invalid");
@@ -293,12 +293,13 @@ OCStackResult SRMRegisterHandler(CARequestCallback reqHandler,
 #else
     CARegisterHandler(reqHandler, respHandler, errHandler);
 #endif /* __WITH_DTLS__ */
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return OC_STACK_OK;
 }
 
 OCStackResult SRMRegisterPersistentStorageHandler(OCPersistentStorage* persistentStorageHandler)
 {
-    OIC_LOG(DEBUG, TAG, "SRMRegisterPersistentStorageHandler !!");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     /* //GAR initResources */
     /* void* callstack[128]; */
@@ -326,6 +327,7 @@ OCPersistentStorage* SRMGetPersistentStorageHandler()
 
 OCStackResult SRMInitSecureResources()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     // TODO: temporarily returning OC_STACK_OK every time until default
     // behavior (for when SVR DB is missing) is settled.
     InitSecureResources();
@@ -343,6 +345,7 @@ OCStackResult SRMInitSecureResources()
     CARegisterDTLSCrlHandler(GetDerCrl);
 #endif // (__WITH_X509__)
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 

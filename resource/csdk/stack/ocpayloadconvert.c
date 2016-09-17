@@ -68,6 +68,7 @@ static int64_t ConditionalAddTextStringToMap(CborEncoder *map, const char *key, 
 
 OCStackResult OCConvertPayload(OCPayload* payload, uint8_t** outPayload, size_t* size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     // TinyCbor Version 47a78569c0 or better on master is required for the re-allocation
     // strategy to work.  If you receive the following assertion error, please do a git-pull
     // from the extlibs/tinycbor/tinycbor directory
@@ -129,7 +130,9 @@ OCStackResult OCConvertPayload(OCPayload* payload, uint8_t** outPayload, size_t*
 
         *size = curSize;
         *outPayload = out;
-        OIC_LOG_V(DEBUG, TAG, "Payload Size: %zd Payload : ", *size);
+        OIC_LOG_V(DEBUG, TAG, "Payload Size: %zd, type %d, Payload : ",
+		  *size,
+		  ((OCPayload*)*outPayload)->type);
         OIC_LOG_BUFFER(DEBUG, TAG, *outPayload, *size);
         return OC_STACK_OK;
     }
@@ -144,6 +147,7 @@ exit:
 
 static int64_t OCConvertPayloadHelper(OCPayload* payload, uint8_t* outPayload, size_t* size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     switch(payload->type)
     {
         case PAYLOAD_TYPE_DISCOVERY:
@@ -224,6 +228,7 @@ static int64_t OCStringLLJoin(CborEncoder *map, char *type, OCStringLL *val)
 static int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, uint8_t *outPayload,
                                          size_t *size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     CborEncoder encoder;
     int64_t err = CborNoError;
 
@@ -402,6 +407,7 @@ exit:
 static int64_t OCConvertDevicePayload(OCDevicePayload *payload, uint8_t *outPayload,
         size_t *size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (!payload)
     {
         return CborUnknownError;
@@ -469,6 +475,7 @@ exit:
 static int64_t OCConvertPlatformPayload(OCPlatformPayload *payload, uint8_t *outPayload,
         size_t *size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     int64_t err = CborNoError;
     CborEncoder encoder;
 

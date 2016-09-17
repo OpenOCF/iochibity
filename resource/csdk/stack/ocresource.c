@@ -615,6 +615,7 @@ OCStackResult SendNonPersistantDiscoveryResponse(OCServerRequest *request, OCRes
 
 static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resource)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (!request || !resource)
     {
         return OC_STACK_INVALID_PARAM;
@@ -622,8 +623,6 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
 
     OCStackResult discoveryResult = OC_STACK_ERROR;
     OCPayload* payload = NULL;
-
-    OIC_LOG(INFO, TAG, "Entering HandleVirtualResource");
 
     OCVirtualResources virtualUriInRequest = GetTypeOfVirtualURI (request->resourceUrl);
 
@@ -1229,6 +1228,7 @@ static OCStackResult DeepCopyPlatFormInfo(OCPlatformInfo info)
 
 OCStackResult SavePlatformInfo(OCPlatformInfo info)
 {
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     DeletePlatformInfo();
 
     OCStackResult res = DeepCopyPlatFormInfo(info);
@@ -1242,6 +1242,7 @@ OCStackResult SavePlatformInfo(OCPlatformInfo info)
         OIC_LOG(INFO, TAG, "Platform info saved.");
     }
 
+    OIC_LOG_V(INFO, TAG, "%s: EXIT res %s", __func__, res);
     return res;
 }
 
@@ -1253,7 +1254,7 @@ OCStackResult GetPlatformInfo(OCPlatformInfo** pi)
 
 void DeleteDeviceInfo()
 {
-    OIC_LOG(INFO, TAG, "Deleting device info.");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     OICFree(savedDeviceInfo.deviceName);
     OCFreeOCStringLL(savedDeviceInfo.types);
@@ -1262,10 +1263,13 @@ void DeleteDeviceInfo()
     savedDeviceInfo.deviceName = NULL;
     savedDeviceInfo.specVersion = NULL;
     savedDeviceInfo.dataModelVersions = NULL;
+
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
 }
 
 static OCStackResult DeepCopyDeviceInfo(OCDeviceInfo info)
 {
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     savedDeviceInfo.deviceName = OICStrdup(info.deviceName);
 
     if(!savedDeviceInfo.deviceName && info.deviceName)
@@ -1355,30 +1359,31 @@ static OCStackResult DeepCopyDeviceInfo(OCDeviceInfo info)
         }
     }
 
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return OC_STACK_OK;
 }
 
 OCStackResult SaveDeviceInfo(OCDeviceInfo info)
 {
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
+
+    DeleteDeviceInfo();
+
     OCStackResult res = OC_STACK_OK;
-
-    DeleteDeviceInfo();
-
     res = DeepCopyDeviceInfo(info);
-
-    VERIFY_SUCCESS(res, OC_STACK_OK);
-
-    if (OCGetServerInstanceIDString() == NULL)
-    {
-        OIC_LOG(INFO, TAG, "Device ID generation failed");
-        res =  OC_STACK_ERROR;
-        goto exit;
+    if (res == OC_STACK_OK) {
+	char* sid = OCGetServerInstanceIDString();
+	if (sid == NULL) {
+	    /* OIC_LOG(INFO, TAG, "Device ID generation failed"); */
+	    res =  OC_STACK_ERROR;
+	    OIC_LOG_V(INFO, TAG, "%s: ERROR on OCGetServerInstanceIDString", __func__);
+	} else {
+	    OIC_LOG_V(INFO, TAG, "%s: EXIT OK, sid = %s", __func__, sid);
+	}
+    } else {
+	OIC_LOG_V(INFO, TAG, "%s: ERROR on DeepCopyDeviceInfo, %s", __func__, res);
+	DeleteDeviceInfo();
     }
-
-    OIC_LOG(INFO, TAG, "Device initialized successfully.");
-    return OC_STACK_OK;
-
-exit:
-    DeleteDeviceInfo();
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return res;
 }

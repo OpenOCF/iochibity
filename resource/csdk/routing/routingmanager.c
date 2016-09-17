@@ -144,13 +144,13 @@ void RMSendDeleteToNeighbourNodes();
 
 void RMGenerateGatewayID(uint8_t *id, size_t idLen)
 {
-    OIC_LOG(DEBUG, TAG, "RMGenerateGatewayID IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     OCFillRandomMem(id, idLen);
-    OIC_LOG(DEBUG, TAG, "RMGenerateGatewayID OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
 }
 OCStackResult RMInitialize()
 {
-    OIC_LOG(DEBUG, TAG, "RMInitialize IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     if (g_isRMInitialized)
     {
         OIC_LOG(DEBUG, TAG, "RM already initialized");
@@ -193,13 +193,13 @@ OCStackResult RMInitialize()
     g_aliveTime = OICGetCurrentTime(TIME_IN_US);
     g_refreshTableTime = g_aliveTime;
 
-    OIC_LOG(DEBUG, TAG, "RMInitialize OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return result;
 }
 
 OCStackResult RMTerminate()
 {
-    OIC_LOG(DEBUG, TAG, "RMTerminate IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     if (!g_isRMInitialized)
     {
         OIC_LOG(ERROR, TAG, "RM not initialized");
@@ -215,13 +215,13 @@ OCStackResult RMTerminate()
         return result;
     }
     g_isRMInitialized = false;
-    OIC_LOG(DEBUG, TAG, "RMTerminate OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return result;
 }
 
 OCStackResult RMHandleGatewayRequest(OCServerRequest *request, const OCResource *resource)
 {
-    OIC_LOG(DEBUG, TAG, "RMHandleGatewayRequest IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     if (!g_isRMInitialized)
     {
@@ -259,14 +259,14 @@ OCStackResult RMHandleGatewayRequest(OCServerRequest *request, const OCResource 
         OIC_LOG(DEBUG, TAG, "Received a Delete request");
         RMHandleDELETERequest(request, resource);
     }
-    OIC_LOG(DEBUG, TAG, "RMHandleGatewayRequest OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return OC_STACK_OK;
 }
 
 OCStackResult RMHandleRequestPayload(OCDevAddr devAddr, const uint8_t *reqPayload,
                                      size_t payloadSize)
 {
-    OIC_LOG(DEBUG, TAG, "RMHandleRequestPayload IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     RM_NULL_CHECK_WITH_RET(reqPayload, TAG, "reqPayload");
 
     uint32_t gatewayId = 0;
@@ -330,13 +330,13 @@ OCStackResult RMHandleRequestPayload(OCDevAddr devAddr, const uint8_t *reqPayloa
 
 exit:
     u_linklist_free(&updatedTableList);
-    OIC_LOG(DEBUG, TAG, "RMHandleRequestPayload OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return result;
 }
 
 OCStackResult RMHandleResponsePayload(const OCDevAddr *devAddr, const OCRepPayload *respPayload)
 {
-    OIC_LOG(DEBUG, TAG, "RMHandleResponsePayload IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     RM_NULL_CHECK_WITH_RET(respPayload, TAG, "respPayload");
 
     // Parse the Payload to get the Gateway ID of neighbouring node.
@@ -533,13 +533,13 @@ exit:
     RTMFreeGatewayRouteTable(&gatewayTableList);
     u_linklist_free(&updatedTableList);
     u_linklist_free(&alternativeRouteList);
-    OIC_LOG(DEBUG, TAG, "RMHandleResponsePayload OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return OC_STACK_OK;
 }
 
 OCStackResult RMHandleGETRequest(const OCServerRequest *request, const OCResource *resource)
 {
-    OIC_LOG(DEBUG, TAG, "RMHandleGETRequest IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     RM_NULL_CHECK_WITH_RET(request, TAG, "request");
     RM_NULL_CHECK_WITH_RET(resource, TAG, "resource");
 
@@ -555,7 +555,7 @@ OCStackResult RMHandleGETRequest(const OCServerRequest *request, const OCResourc
     result = RMSendResponse(request, resource, payload);
     if (OC_STACK_OK != result)
     {
-        OIC_LOG_V(DEBUG, TAG, "Send response failed[%d]", result);
+        OIC_LOG_V(DEBUG, TAG, "RMSendResponse failed[%d]", result);
         RMPFreePayload(payload);
         return result;
     }
@@ -565,15 +565,15 @@ OCStackResult RMHandleGETRequest(const OCServerRequest *request, const OCResourc
     result = RMSendObserveRequest(&(request->devAddr), NULL);
     if (OC_STACK_OK != result)
     {
-        OIC_LOG_V(DEBUG, TAG, "Send response failed[%d]", result);
+        OIC_LOG_V(DEBUG, TAG, "RMSendObserveRequest failed[%d]", result);
     }
-    OIC_LOG(DEBUG, TAG, "RMHandleGETRequest OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return result;
 }
 
 OCStackResult RMHandleOBSERVERequest(OCServerRequest *request, const OCResource *resource)
 {
-    OIC_LOG(DEBUG, TAG, "RMHandleOBSERVERequest IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     RM_NULL_CHECK_WITH_RET(request, TAG, "request");
     RM_NULL_CHECK_WITH_RET(resource, TAG, "resource");
 
@@ -608,13 +608,13 @@ OCStackResult RMHandleOBSERVERequest(OCServerRequest *request, const OCResource 
     RMPFreePayload(payload);
     RM_VERIFY_SUCCESS(result, OC_STACK_OK);
 exit:
-    OIC_LOG(DEBUG, TAG, "RMHandleOBSERVERequest OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return result;
 }
 
 OCStackResult RMHandleDELETERequest(const OCServerRequest *request, const OCResource *resource)
 {
-    OIC_LOG(DEBUG, TAG, "RMHandleDELETERequest IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     RM_NULL_CHECK_WITH_RET(request, TAG, "request");
     RM_NULL_CHECK_WITH_RET(resource, TAG, "resource");
 
@@ -650,13 +650,13 @@ OCStackResult RMHandleDELETERequest(const OCServerRequest *request, const OCReso
 
 exit:
     RTMFreeGatewayRouteTable(&removedGatewayNodes);
-    OIC_LOG(DEBUG, TAG, "RMHandleDELETERequest OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return result;
 }
 
 OCStackResult RMAddObserver(OCServerRequest *request, OCObservationId *obsID)
 {
-    OIC_LOG(DEBUG, TAG, "RMAddObserverForGateway OUT");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     RM_NULL_CHECK_WITH_RET(request, TAG, "request");
     RM_NULL_CHECK_WITH_RET(obsID, TAG, "obsID");
 
@@ -685,13 +685,13 @@ OCStackResult RMAddObserver(OCServerRequest *request, OCObservationId *obsID)
             OIC_LOG_V(DEBUG, TAG, "RMAddObserver failed[%d]", result);
         }
     }
-    OIC_LOG(DEBUG, TAG, "RMAddObserverForGateway OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return result;
 }
 
 OCStackResult RMSendNotificationToAll(const OCRepPayload *payload)
 {
-    OIC_LOG(DEBUG, TAG, "RMSendNotificationToAll IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     RM_NULL_CHECK_WITH_RET(payload, TAG, "payload");
 
     OCObservationId *obsList = NULL;
@@ -711,7 +711,7 @@ OCStackResult RMSendNotificationToAll(const OCRepPayload *payload)
 
 exit:
     OICFree(obsList);
-    OIC_LOG(DEBUG, TAG, "RMSendNotificationToAll OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return result;
 }
 
@@ -808,16 +808,16 @@ exit:
 
 OCStackResult RMGetGatewayPayload(OCRepPayload **payload)
 {
-    OIC_LOG(DEBUG, TAG, "RMGetGatewayPayload IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     OCStackResult result = RMPConstructGatewayPayload(g_GatewayID, payload);
     OIC_LOG_V(DEBUG, TAG, "RMPConstructDiscoverPayload result is %d", result);
-    OIC_LOG(DEBUG, TAG, "RMGetGatewayPayload OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return result;
 }
 
 void RMSendDeleteToNeighbourNodes()
 {
-    OIC_LOG(DEBUG, TAG, "RMSendDeleteToNeighbourNodes IN");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     u_linklist_t *neighbourNodes = NULL;
     RTMGetNeighbours(&neighbourNodes, g_routingGatewayTable);
 
@@ -866,7 +866,7 @@ void RMSendDeleteToNeighbourNodes()
     }
 
     u_linklist_free(&neighbourNodes);
-    OIC_LOG(DEBUG, TAG, "RMSendDeleteToNeighbourNodes OUT");
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
 }
 
 uint32_t RMGetGatewayId()
@@ -909,6 +909,7 @@ uint16_t RMGetMcastSeqNumber()
 OCStackResult RMHandlePacket(bool isRequest, void *message, const CAEndpoint_t *sender,
                              bool *selfDestination, bool *isEmptyMsg)
 {
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     RM_NULL_CHECK_WITH_RET(message, RM_TAG, "message");
     RM_NULL_CHECK_WITH_RET(sender, RM_TAG, "sender");
     RM_NULL_CHECK_WITH_RET(selfDestination, RM_TAG, "selfDestination");
@@ -1234,6 +1235,7 @@ rewriteandexit:
     }
 
     OIC_LOG_V(INFO, RM_TAG, "Sender: [%u] Destination: [%u]", routeOption.srcGw, routeOption.destGw);
+    OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return OC_STACK_OK;
 }
 

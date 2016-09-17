@@ -719,6 +719,7 @@ static OicSecPstat_t* GetPstatDefault()
 
 OCStackResult InitPstatResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     // Read Pstat resource from PS
@@ -729,7 +730,7 @@ OCStackResult InitPstatResource()
     // If database read failed
     if (OC_STACK_OK != ret)
     {
-        OIC_LOG (DEBUG, TAG, "ReadSVDataFromPS failed");
+        OIC_LOG_V(DEBUG, TAG, "%s: ReadSVDataFromPS failed", __func__);
     }
     if (data)
     {
@@ -766,6 +767,7 @@ exit:
     {
         DeInitPstatResource();
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 

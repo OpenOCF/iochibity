@@ -434,6 +434,7 @@ static OicSecCrl_t *GetCrlDefault()
  */
 OCStackResult InitCRLResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_ERROR;
     // Read Crl resource from PS
     uint8_t *data = NULL;
@@ -442,7 +443,7 @@ OCStackResult InitCRLResource()
     // If database read failed
     if (OC_STACK_OK != ret)
     {
-        OIC_LOG (DEBUG, TAG, "ReadSVDataFromPS failed");
+        OIC_LOG_V(DEBUG, TAG, "%s: ReadSVDataFromPS failed", __func__);
     }
     if (data)
     {
@@ -462,6 +463,7 @@ OCStackResult InitCRLResource()
 
     ret = CreateCRLResource();
     OICFree(data);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 

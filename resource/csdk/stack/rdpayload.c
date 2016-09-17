@@ -515,6 +515,7 @@ exit:
 OCRDPayload *OCRDPublishPayloadCreate(OCResourceHandle resourceHandles[], uint8_t nHandles,
                                       uint64_t ttl)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCTagsPayload *tagsPayload = NULL;
     OCLinksPayload *linksPayload = NULL;
     OCStringLL *rt = NULL;

@@ -82,6 +82,7 @@ OCStackResult OCRDDelete(const char *host, OCConnectivityType connectivityType,
                          OCResourceHandle resourceHandles[], uint8_t nHandles,
                          OCCallbackData *cbData, OCQualityOfService qos)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     // Validate input parameters
     if (!host || !cbData || !cbData->cb)
     {
