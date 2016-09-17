@@ -67,10 +67,10 @@ typedef enum
     /** "/oic/gateway" .*/
     OC_GATEWAY_URI,
 #endif
-    #ifdef WITH_PRESENCE
+#ifdef WITH_PRESENCE
     /** "/oic/ad" .*/
     OC_PRESENCE,
-    #endif
+#endif
 
 #ifdef MQ_BROKER
     /** "/oic/ps" .*/
