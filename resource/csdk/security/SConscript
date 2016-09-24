@@ -55,11 +55,11 @@ libocsrm_env.PrependUnique(CPPPATH = [
  	'#resource/csdk/connectivity/api',
 # 	'#resource/csdk/security',
  	'#resource/csdk/security/ocsecurity',
- 	'#resource/csdk/security/provisioning/include'
+ 	'#resource/csdk/provisioning'
 ])
 
-libocsrm_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
 libocsrm_env.AppendUnique(LIBS = ['coap'])
+libocsrm_env.AppendUnique(LIBPATH = [env.get('BUILD_SYSROOT') + '/connectivity/coap'])
 
 if target_os == 'arduino':
 	libocsrm_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
@@ -67,8 +67,8 @@ if target_os == 'arduino':
 if target_os in ['windows', 'msys_nt']:
 	libocsrm_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'resource', 'oc_logger')])
 
-if target_os in ['darwin', 'ios']:
-	libocsrm_env.AppendUnique(LIBS = ['coap'])
+# if target_os in ['darwin', 'ios']:
+# 	libocsrm_env.AppendUnique(LIBS = ['coap'])
 
 if env.get('LOGGING'):
 	libocsrm_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
@@ -101,9 +101,11 @@ libocsrm_src = [
 	'directpairing.c'
 	]
 
-if env.get('SECURED') == '1':
+if env.get('SECURED'):
 	libocsrm_src  = libocsrm_src + ['oxmpincommon.c', 'pbkdf2.c']
 	libocsrm_env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
+	libocsrm_env.AppendUnique(LIBS = ['ocpmapi'])
+	libocsrm_env.AppendUnique(LIBPATH = [env.get('BUILD_SYSROOT') + '/security/pm'])
 
 if target_os in ['windows', 'msys_nt']:
 	libocsrm_src  = libocsrm_src + ['strptime.c']
@@ -114,12 +116,8 @@ if env.get('DTLS_WITH_X509') == '1' and env.get('SECURED') == '1':
 
 libocsrm = libocsrm_env.StaticLibrary('ocsrm', libocsrm_src)
 
+Alias('security', libocsrm)
+
 #libocsrm_env.Install(libocsrm_env, libocsrm, 'libocsrm')
 
-build.utils.install_lib(libocsrm_env, libocsrm, 'ocsrm')
-
-if env.get('SECURED') == '1':
-        #    if target_os in ['darwin', 'linux', 'android', 'tizen', 'msys_nt', 'windows']:
-        SConscript('provisioning/SConscript',
-                   variant_dir=env.get('BUILD_SYSROOT') + '/provisioning',
-                   duplicate=0)
+#build.utils.install_lib(libocsrm_env, libocsrm, 'ocsrm')

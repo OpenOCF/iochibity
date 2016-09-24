@@ -39,9 +39,6 @@ else:
 	# --coverage = -fprofile-arcs -ftest-coverage (when compiling) and -lgcov (when linking). 
         env.PrependUnique(LIBS = ['gcov'])
 
-if env.get('LOGGING'):
-	env.AppendUnique(CPPDEFINES = ['-DTB_LOG'])
-
 env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__'])
 env.AppendUnique(CPPFLAGS = ['-Wall', '-Wextra', '-fPIC'])
 env.AppendUnique(CFLAGS = ['-std=c11'])

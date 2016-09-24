@@ -19,15 +19,15 @@ home = expanduser("~")
 
 # Map of host os and allowed target os (host: allowed target os)
 host_target_map = {
-		'linux': ['edison', 'linux', 'android', 'arduino', 'yocto', 'tizen'],
+		'linux': ['android', 'arduino', 'poky-edison', 'linux', 'tizen','yocto'],
 		'windows': ['windows', 'android', 'arduino'],
-		'darwin': ['darwin', 'ios', 'android', 'arduino', 'edison'],
+		'darwin': ['darwin', 'ios', 'android', 'arduino', 'poky-edison'],
 		'msys_nt' :['msys_nt'],
 		}
 
 # Map of os and allowed archs (os: allowed archs)
 os_arch_map = {
-		'edison': ['i686'],
+		'poky-edison': ['x86', 'i686'],
 		'linux': ['x86', 'x86_64', 'arm', 'arm-v7a', 'arm64'],
 		'tizen': ['x86', 'x86_64', 'arm', 'arm-v7a', 'armeabi-v7a', 'arm64'],
 		'android': ['x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'armeabi-v7a-hard', 'arm64-v8a'],

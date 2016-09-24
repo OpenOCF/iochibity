@@ -26,7 +26,7 @@ if env.get('PTHREAD_LIB') == 'pthread':
 	platform_src = [here + '/cathreadpool_pthreads.c',
 	                here + '/camutex_pthreads.c']
 else:
-        platform_src = [here + 'camutex_noop.c']
+        platform_src = [here + '/camutex_noop.c']
 
 env.AppendUnique(CA_SRC = ca_common_src)
 env.AppendUnique(CA_SRC = platform_src)

@@ -41,8 +41,7 @@ tools_env.PrependUnique(CPPPATH = [src_dir + '/cjson',
 
 tools_env.AppendUnique(LIBPATH = [install_sysroot])
 tools_env.AppendUnique(RPATH = [env.get('BUILD_DIR')])
-# tools_env.PrependUnique(LIBS = ['oc', 'octbstack'])
-tools_env.PrependUnique(LIBS = ['octbstack'])
+tools_env.PrependUnique(LIBS = ['chibity'])
 
 ######################################################################
 # Source files and Targets

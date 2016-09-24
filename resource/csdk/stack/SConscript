@@ -30,10 +30,11 @@ lib_env = env.Clone()
 
 build_sysroot = env.get('BUILD_SYSROOT')
 install_sysroot = env.get('INSTALL_SYSROOT')
-liboctbstack_env = lib_env.Clone()
+local_env = lib_env.Clone()
 
 target_os = env.get('TARGET_OS')
 rd_mode = env.get('RD_MODE')
+
 with_ra = env.get('WITH_RA')
 with_ra_ibb = env.get('WITH_RA_IBB')
 with_tcp = env.get('WITH_TCP')
@@ -41,13 +42,13 @@ with_mq = env.get('WITH_MQ')
 # As in the source code, it includes arduino Time library (C++)
 # It requires compile the .c with g++
 if target_os == 'arduino':
-	liboctbstack_env.Replace(CC = env.get('CXX'))
-	liboctbstack_env.Replace(CFLAGS = env.get('CXXFLAGS'))
+	local_env.Replace(CC = env.get('CXX'))
+	local_env.Replace(CFLAGS = env.get('CXXFLAGS'))
 
 ######################################################################
 # Build flags
 ######################################################################
-liboctbstack_env.PrependUnique(CPPPATH = [
+local_env.PrependUnique(CPPPATH = [
 	'#resource/c_common',
 	'#resource/csdk/cbor/',
 	'#resource/csdk/cjson/',
@@ -62,7 +63,7 @@ liboctbstack_env.PrependUnique(CPPPATH = [
 	'#resource/csdk/connectivity/external/inc',
 	'#resource/csdk/security',
 	'#resource/csdk/security/ocsecurity',
-	'#resource/csdk/security/provisioning/include',
+	'#resource/csdk/provisioning',
 ])
 	# './../oc_logger/include',
 
@@ -70,78 +71,81 @@ liboctbstack_env.PrependUnique(CPPPATH = [
 		# 'stack/include/internal',
 
 if 'SUB' in with_mq:
-	liboctbstack_env.AppendUnique(CPPDEFINES = ['MQ_SUBSCRIBER', 'WITH_MQ'])
+	local_env.AppendUnique(CPPDEFINES = ['MQ_SUBSCRIBER', 'WITH_MQ'])
 if 'PUB' in with_mq:
-	liboctbstack_env.AppendUnique(CPPDEFINES = ['MQ_PUBLISHER', 'WITH_MQ'])
+	local_env.AppendUnique(CPPDEFINES = ['MQ_PUBLISHER', 'WITH_MQ'])
 if 'BROKER' in with_mq:
-	liboctbstack_env.AppendUnique(CPPDEFINES = ['MQ_BROKER', 'WITH_MQ'])
+	local_env.AppendUnique(CPPDEFINES = ['MQ_BROKER', 'WITH_MQ'])
 
 if target_os not in ['arduino', 'windows']:
-	liboctbstack_env.AppendUnique(CPPDEFINES  = ['WITH_POSIX'])
+	local_env.AppendUnique(CPPDEFINES  = ['WITH_POSIX'])
 
-if liboctbstack_env.get('ROUTING') == 'GW':
-	liboctbstack_env.AppendUnique(CPPDEFINES = ['ROUTING_GATEWAY'])
-elif liboctbstack_env.get('ROUTING') == 'EP':
-	liboctbstack_env.AppendUnique(CPPDEFINES = ['ROUTING_EP'])
+if local_env.get('ROUTING') == 'GW':
+	local_env.AppendUnique(CPPDEFINES = ['ROUTING_GATEWAY'])
+elif local_env.get('ROUTING') == 'EP':
+	local_env.AppendUnique(CPPDEFINES = ['ROUTING_EP'])
 
-liboctbstack_env.AppendUnique(LIBPATH = [install_sysroot + '/lib',
-                                         build_sysroot,
-                                         build_sysroot + '/csdk'])
-liboctbstack_env.PrependUnique(LINKFLAGS = [build_sysroot + '/csdk/cJSON.o',
-                                            build_sysroot + '/csdk/cborencoder.o',
-                                            build_sysroot + '/csdk/cborerrorstrings.o',
-                                            build_sysroot + '/csdk/cborparser.o',
-                                            build_sysroot + '/csdk/timer.o'])
+local_env.AppendUnique(LIBPATH = [install_sysroot + '/lib',
+                                  build_sysroot + '/c_common',
+                                  build_sysroot + '/connectivity/coap',
+                                  build_sysroot + '/connectivity/core',
+                                  build_sysroot + '/csdk',
+                                  build_sysroot + '/routing'])
 
+local_env.PrependUnique(LIBS = ['c_common', 'coap', 'csdk'])
 
-liboctbstack_env.PrependUnique(LIBS = ['coap'])
-
-if target_os in ['android', 'darwin', 'linux', 'tizen', 'msys_nt', 'windows']:
-	liboctbstack_env.PrependUnique(LIBS = ['connectivity_abstraction'])
+if target_os in ['android', 'darwin', 'linux', 'poky-edison', 'tizen', 'msys_nt', 'windows']:
+	local_env.PrependUnique(LIBS = ['connectivity_abstraction'])
 
 	if with_ra_ibb:
-		liboctbstack_env.AppendUnique(LIBS = liboctbstack_env['RALIBS'],
-                                              LIBPATH = liboctbstack_env['RALIBPATH'],
-                                              RPATH = liboctbstack_env['RARPATH'])
+		local_env.AppendUnique(LIBS = local_env['RALIBS'],
+                                              LIBPATH = local_env['RALIBPATH'],
+                                              RPATH = local_env['RARPATH'])
 	else :
 		if with_ra:
-			liboctbstack_env.AppendUnique(LIBS = ['ra_xmpp'])
+			local_env.AppendUnique(LIBS = ['ra_xmpp'])
 
 if target_os in ['windows', 'msys_nt']:
-	liboctbstack_env.AppendUnique(CPPDEFINES  = ['OC_EXPORT_DLL'])
-	liboctbstack_env.AppendUnique(LIBS = ['ws2_32', 'advapi32', 'iphlpapi'])
+	local_env.AppendUnique(CPPDEFINES  = ['OC_EXPORT_DLL'])
+	local_env.AppendUnique(LIBS = ['ws2_32', 'advapi32', 'iphlpapi'])
 else:
-	liboctbstack_env.AppendUnique(LIBS = ['m'])
+	local_env.AppendUnique(LIBS = ['m'])
 
 if target_os == 'arduino':
-	liboctbstack_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
+	local_env.AppendUnique(CPPDEFINES = ['NDEBUG', 'WITH_ARDUINO'])
 
 if target_os == 'android':
-    liboctbstack_env.AppendUnique(LINKFLAGS = ['-Wl,-soname,liboctbstack.so'])
+    local_env.AppendUnique(LINKFLAGS = ['-Wl,-soname,liboctbstack.so'])
 
-if env.get('SECURED') == '1':
-	liboctbstack_env.AppendUnique(LIBS = ['tinydtls'])
-        liboctbstack_env.PrependUnique(LIBS = ['ocsrm'])
+if env.get('SECURED'):
+	local_env.AppendUnique(CPPDEFINES = ['SECURED'])
+	local_env.AppendUnique(LIBS = ['ocpmapi'])
+        local_env.AppendUnique(LIBPATH = [build_sysroot + '/provisioning'])
+	local_env.AppendUnique(LIBS = ['ocsrm'])
+        local_env.AppendUnique(LIBPATH = [build_sysroot + '/security'])
+	local_env.AppendUnique(LIBS = ['tinydtls'])
+        local_env.AppendUnique(LIBPATH = [build_sysroot + '/tinydtls'])
 
 if env.get('LOGGING'):
-        liboctbstack_env.PrependUnique(LIBS = ['logger'])
-	liboctbstack_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+        local_env.PrependUnique(LIBS = ['logger'])
+	local_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+	local_env.AppendUnique(LIBPATH = [build_sysroot + '/logger'])
 
 if env.get('DTLS_WITH_X509') == '1':
-	liboctbstack_env.AppendUnique(CPPDEFINES = ['__WITH_X509__'])
+	local_env.AppendUnique(CPPDEFINES = ['__WITH_X509__'])
 
-liboctbstack_env.Append(LIBS = ['c_common'])
+#local_env.Append(LIBS = ['c_common'])
 
-if liboctbstack_env.get('ROUTING') in ['GW', 'EP']:
-#	liboctbstack_env.Prepend(LIBPATH = [env.get('INSTALL_SYSROOT')])
-	liboctbstack_env.Prepend(LIBS = ['routingmanager'])
+if local_env.get('ROUTING') in ['GW', 'EP']:
+#	local_env.Prepend(LIBPATH = [env.get('INSTALL_SYSROOT')])
+	local_env.Prepend(LIBS = ['routingmanager'])
 
 ######################################################################
 # Source files and Targets
 ######################################################################
 
 CSDKSTACK_SRC = '#resource/csdk'
-liboctbstack_src = [
+lib_src = [
         'ocstack.c',
 	'ocpayload.c',
 	'ocpayloadparse.c',
@@ -160,76 +164,67 @@ liboctbstack_src = [
 	# CSDKSTACK_SRC + "/cbor/cborparser.c"
 
 if 'CLIENT' in rd_mode or 'SERVER' in rd_mode:
-	liboctbstack_src.append('rdpayload.c')
-	liboctbstack_src.append('oicresourcedirectory.c')
+	lib_src.append('rdpayload.c')
+	lib_src.append('oicresourcedirectory.c')
 	if 'CLIENT' in rd_mode:
-		liboctbstack_env.AppendUnique(CPPDEFINES = ['RD_CLIENT'])
+		local_env.AppendUnique(CPPDEFINES = ['RD_CLIENT'])
 	if 'SERVER' in rd_mode:
-		liboctbstack_env.AppendUnique(CPPDEFINES = ['RD_SERVER'])
+		local_env.AppendUnique(CPPDEFINES = ['RD_SERVER'])
 
 if with_tcp == True:
-	liboctbstack_src.append('oickeepalive.c')
+	lib_src.append('oickeepalive.c')
 
-# liboctbstack_src.extend(env['cbor_files'])
+# lib_src.extend(env['cbor_files'])
 
 if target_os == 'windows':
-	liboctbstack_env.AppendUnique(CPPDEFINES = ['CBOR_API=__declspec(dllexport)',
-	                                            'CBOR_PRIVATE_API=__declspec(dllexport)'
-    ])
-
-if target_os == 'darwin':
- 	liboctbstack_env.AppendUnique(LINKFLAGS = ['-install_name', install_sysroot + '/liboctbstack.dylib'])
-# 	liboctbstack_env.AppendUnique(LINKFLAGS = ['-install_name', '/usr/local/lib/liboctbstack.dylib'])
-
-
-# static_liboctbstack = liboctbstack_env.StaticLibrary('octbstack', liboctbstack_src)
-# octbstack_libs = Flatten(static_liboctbstack)
-
-major_version = '1'
-liboctbstack_env.Replace(SHLIBVERSION='1.1.1')
+	local_env.AppendUnique(CPPDEFINES = ['CBOR_API=__declspec(dllexport)',
+	                                     'CBOR_PRIVATE_API=__declspec(dllexport)'])
 
 ##############################################
 ####  here are the actual build commands  ####
 
-print "LIBCSTACK"
-libcstack = liboctbstack_env.StaticLibrary('cstack', liboctbstack_src)
-build.utils.install_lib(liboctbstack_env, libcstack, 'octbstack')
+if target_os == 'darwin':
+ 	local_env.AppendUnique(LINKFLAGS = ['-install_name', install_sysroot + '/lib/libchibity.dylib'])
+
+major_version = '1'
+local_env.Replace(SHLIBVERSION='1.1.1')
+
+libchibity = local_env.StaticLibrary('chibity', lib_src)
+#build.utils.install_lib(local_env, libchibity, 'chibity')
+# #GAR: InstallVersionedLib broken on OS X, no symlinks created
+staticlib = local_env.InstallVersionedLib(target=env.get('INSTALL_SYSROOT') + '/lib',
+                                          source=libchibity)
+Alias('chibity', staticlib)
 
 if target_os not in ['arduino', 'ios'] :
-        if target_os in ['edison', 'linux']:
-	        shared_liboctbstack = liboctbstack_env.SharedLibrary(target='octbstack',
-                                                                     source=liboctbstack_src,
-                                                                     SHLIBVERSION='1.1.2')
+        if target_os in ['poky-edison', 'linux']:
+	        sharedlib = local_env.SharedLibrary(target='chibity',
+                                                    source=lib_src,
+                                                    SHLIBVERSION='1.1.1')
         elif target_os == 'darwin':
-                liboctbstack_env.PrependUnique(LINKFLAGS = ['-current_version', '1.1.1'])
-                liboctbstack_env.Prepend(LINKFLAGS = ['-compatibility_version', '1.1.1'])
-	        shared_liboctbstack = liboctbstack_env.SharedLibrary(target='octbstack', # + major_version,
-                                                                     source=liboctbstack_src)
-	# octbstack_libs += Flatten(shared_liboctbstack)
-	# build.utils.install_header(liboctbstack_env, 'ocstack.h', '', 'ocstack.h')
-	# build.utils.install_header(liboctbstack_env, 'ocpresence.h', '', 'ocpresence.h')
+                local_env.PrependUnique(LINKFLAGS = ['-current_version', '1.1.1'])
+                local_env.Prepend(LINKFLAGS = ['-compatibility_version', '1.1.1'])
+	        sharedlib = local_env.SharedLibrary(target='chibity',
+                                                    source=lib_src)
+	# octbstack_libs += Flatten(sharedlib)
+	# build.utils.install_header(local_env, ['ocstack.h', 'ocpresence.h'], '')
+	# build.utils.install_header(local_env, 'ocpresence.h', '')
 
-# if env.get('SECURED') == '1':
-#         liboctbstack_env.Depends(shared_liboctbstack, install_sysroot +  '/libocsrm.a')
-liboctbstack_env.Depends(shared_liboctbstack, build_sysroot +  '/csdk/cJSON.o')
-liboctbstack_env.Depends(shared_liboctbstack, build_sysroot +  '/csdk/cborencoder.o')
-liboctbstack_env.Depends(shared_liboctbstack, build_sysroot +  '/csdk/cborerrorstrings.o')
-liboctbstack_env.Depends(shared_liboctbstack, build_sysroot +  '/csdk/cborparser.o')
-liboctbstack_env.Depends(shared_liboctbstack, build_sysroot +  '/csdk/timer.o')
-
-# liboctbstack_env.Replace(SHLIBVERSION = '1.1.1')
+# local_env.Replace(SHLIBVERSION = '1.1.1')
 
 # #GAR: InstallVersionedLib broken on OS X, no symlinks created
-liboctbstack_env.InstallVersionedLib(target=env.get('INSTALL_SYSROOT') + '/lib',
-                                     source=shared_liboctbstack)
+dylib = local_env.InstallVersionedLib(target=env.get('INSTALL_SYSROOT') + '/lib',
+                                      source=sharedlib)
+Alias('chibity', dylib)
 
-# liboctbstack_env.InstallTarget(octbstack_libs, 'octbstack')
-# liboctbstack_env.UserInstallTargetLib(octbstack_libs, 'octbstack')
+# local_env.InstallTarget(octbstack_libs, 'octbstack')
+# local_env.UserInstallTargetLib(octbstack_libs, 'octbstack')
 
 headers = ['ocstackconfig.h', 'octypes.h', 'ocstack.h', 'ocpresence.h', 'ocpayload.h']
-header_dir = install_sysroot + '/include'
+# header_dir = install_sysroot + '/include'
 
-liboctbstack_env.Install(header_dir, headers)
+# local_env.Install(header_dir, headers)
 
-# build.utils.install_header(liboctbstack_env, 'ocstackconfig.h', 'resource', 'ocstackconfig.h')
-# build.utils.install_header(liboctbstack_env, 'octypes.h', 'resource', 'octypes.h')
+build.utils.install_headers(local_env, headers, '', 'chibity')
+
+# build.utils.install_header(local_env, 'octypes.h', 'resource', 'octypes.h')

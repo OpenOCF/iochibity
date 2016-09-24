@@ -20,7 +20,6 @@
 
 # prevent accidentally building all. to intentionally build all:
 # $ scons .
-# Default(None)
 
 print "BUILD_TARGETS is", map(str, BUILD_TARGETS)
 
@@ -28,6 +27,7 @@ print "BUILD_TARGETS is", map(str, BUILD_TARGETS)
 # The main build script
 #
 ##
+import SCons
 import os
 import sys
 import platform
@@ -36,6 +36,8 @@ import build.utils
 
 print "CL TARGETS: ", COMMAND_LINE_TARGETS
 print "BUILD_TARGETS is", map(str, BUILD_TARGETS)
+
+print "WITH_PRESENCE", os.environ.get('WITH_PRESENCE')
 
 hvars = build.utils.get_help_vars()
 
@@ -87,7 +89,7 @@ else:
         print "CROSS COMPILING"
 	if target_os == 'android':
 		env = setup.targets.android(env)
-	elif target_os == 'edison':
+	elif target_os == 'poky-edison':
 		env = setup.targets.edison(env)
 	elif target_os == 'linux':
 		env = setup.targets.edison(env)
@@ -180,3 +182,22 @@ SConscript('test/SConscript',
 # env.Replace(LIBS   = '')
 # env.Replace(LIBPATH   = '')
 # env.Program('hello', 'hello.c')
+
+print "BUILD_TARGETS is", map(str, BUILD_TARGETS)
+#if GetOption('aliases'):
+
+print 'Available Target Aliases:'
+
+print '-----'
+
+aliases = SCons.Node.Alias.default_ans.keys()
+
+aliases.sort()
+
+for x in aliases:
+
+    print '\t', x
+
+Default(None)
+
+#print env.Dump()

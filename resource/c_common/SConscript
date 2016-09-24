@@ -23,13 +23,17 @@ Import('env')
 import os
 import build.utils
 
-target_os = env.get('TARGET_OS')
+local_env = env.Clone()
+
+target_os = local_env.get('TARGET_OS')
+
+build_sysroot = local_env.get('BUILD_SYSROOT')
 
 # Add platform-specific helper library
 if target_os in ['windows', 'msys_nt']:
 	SConscript('windows/SConscript')
 
-# env.AppendUnique(CPPPATH = [
+# local_env.AppendUnique(CPPPATH = ['#resource/c_common'])
 #             os.path.join(Dir('.').abspath),
 #             os.path.join(Dir('.').abspath, 'oic_malloc', 'include'),
 #             os.path.join(Dir('.').abspath, 'oic_string', 'include'),
@@ -38,14 +42,15 @@ if target_os in ['windows', 'msys_nt']:
 #         ])
 
 if target_os == 'tizen':
-	env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
+	local_env.AppendUnique(LIBPATH = [build_sysroot])
 else:
-	env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'c_common')])
+	local_env.AppendUnique(LIBPATH = [os.path.join(build_sysroot, 'c_common')])
 
-common_env = env.Clone()
-common_env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'))])
+if local_env.get('TB_LOG'):
+	local_env.AppendUnique(LIBS = 'logger')
+	local_env.AppendUnique(CPPPATH = ['#resource/csdk/logger'])
 
-build_sysroot = env.get('BUILD_SYSROOT')
+local_env.AppendUnique(LIBPATH = [build_sysroot + '/lib'])
 
 ######################################################################
 # Source files and Targets
@@ -58,15 +63,15 @@ common_src = [
 	'oc_uuid.c'
 	]
 
-if target_os in ['darwin', 'edison', 'linux']:
+if target_os in ['darwin', 'poky-edison', 'linux']:
    common_src = common_src + ['unix/ocrandom_seed.c']
 
-commonlib = common_env.StaticLibrary('c_common', common_src)
-# common_env.InstallTarget(commonlib, 'c_common')
-# common_env.Install(build_sysroot, commonlib)
-# common_env.UserInstallTargetLib(commonlib, 'c_common')
+commonlib = local_env.StaticLibrary('c_common', common_src)
+# local_env.InstallTarget(commonlib, 'c_common')
+# local_env.Install(build_sysroot, commonlib)
+# local_env.UserInstallTargetLib(commonlib, 'c_common')
 
-build.utils.install_header(common_env, 'platform_features.h', '')
-build.utils.install_lib(common_env, commonlib, 'c_common')
+build.utils.install_headers(local_env, 'platform_features.h', '', 'headers')
+# build.utils.install_lib(local_env, commonlib, 'c_common')
 
-env.PrependUnique(LIBS = ['c_common'])
+# env.PrependUnique(LIBS = ['c_common'])

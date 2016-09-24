@@ -4,8 +4,6 @@
 
 import os
 
-print "LIBCONNECTIVITY"
-
 Import('env')
 
 local_env = env.Clone()
@@ -33,22 +31,22 @@ if target_os in targets_disallow_multitransport:
         print "%s disallowed until testing can validate use of multiple transports on %s %d" % (transport, target_os, len(transport))
         Exit(1)
 
-# Getting common source files
+# # Getting common source files
 local_env.SConscript(os.path.join('common', 'SConscript'),
-                     variant_dir=build_sysroot + '/ca/common',
+                     variant_dir='common_',
                      duplicate=0)
 
-# Getting util source files
+# # Getting util source files
 local_env.SConscript(os.path.join('util', 'SConscript'),
-                     variant_dir=build_sysroot + '/ca/util',
-                     duplicate=0)
-
-# Build libcoap
-local_env.SConscript('lib/libcoap-4.1.1/SConscript',
-                     variant_dir=build_sysroot + '/coap',
+                     variant_dir='util_',
                      duplicate=0)
 
 local_env.SConscript('src/SConscript',
-                     variant_dir=build_sysroot + '/conn',
+                     variant_dir='core',
+                     duplicate=0)
+
+# Build libcoap
+local_env.SConscript(os.path.join('lib', 'libcoap-4.1.1', 'SConscript'),
+                     variant_dir='coap',
                      duplicate=0)
 

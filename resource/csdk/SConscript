@@ -36,11 +36,14 @@ lib_env.PrependUnique(CPPPATH = ['#resource/c_common',
                                  CSDKSTACK_SRC + '/cbor',
 	                         CSDKSTACK_SRC + '/cjson',
 	                         CSDKSTACK_SRC + '/timer'])
-lib_env.Object('cborencoder.o',      'cbor/cborencoder.c')
-lib_env.Object('cborerrorstrings.o', 'cbor/cborerrorstrings.c'),
-lib_env.Object('cborparser.o',       'cbor/cborparser.c')
-lib_env.Object('cJSON.o',            'cjson/cJSON.c')
-lib_env.Object('timer.o',            'timer/timer.c')
+
+o1 = lib_env.Object('cborencoder.o',      'cbor/cborencoder.c')
+o2 = lib_env.Object('cborerrorstrings.o', 'cbor/cborerrorstrings.c'),
+o3 = lib_env.Object('cborparser.o',       'cbor/cborparser.c')
+o4 = lib_env.Object('cJSON.o',            'cjson/cJSON.c')
+o5 = lib_env.Object('timer.o',            'timer/timer.c')
+
+lib_env.StaticLibrary('csdk', [o1, o2, o3, o4, o5])
 
 if env.get('ROUTING') in ['GW', 'EP']:
         print "ROUTING: ", env.get('ROUTING')
@@ -49,17 +52,19 @@ if env.get('ROUTING') in ['GW', 'EP']:
                    variant_dir=build_sysroot + '/routing',
                    duplicate=0)
 
-# Build connectivity
-SConscript('connectivity/SConscript',
-	   variant_dir=build_sysroot + '/connectivity',
-           duplicate=0)
-
 # if target_os in ['darwin', 'linux']:
 #         SConscript('tools/SConscript',
 #                    variant_dir=build_sysroot + '/bin',
 #                    duplicate=0)
 
-if env.get('SECURED') == '1':
+if env.get('SECURED'):
+        #    if target_os in ['darwin', 'linux', 'poky-edison', 'android', 'tizen', 'msys_nt', 'windows']:
+	SConscript('#extlibs/tinydtls/SConscript',
+		   variant_dir=build_sysroot + '/tinydtls',
+		   duplicate=0)
+        SConscript('provisioning/SConscript',
+                   variant_dir=build_sysroot + '/provisioning',
+                   duplicate=0)
         SConscript('security/SConscript',
                    variant_dir=build_sysroot + '/security',
                    duplicate=0)
@@ -67,6 +72,11 @@ if env.get('SECURED') == '1':
 # # Build liboctbstack
 SConscript('stack/SConscript',
            variant_dir=build_sysroot + '/stack',
+           duplicate=0)
+
+# Build connectivity
+SConscript('connectivity/SConscript',
+	   variant_dir=build_sysroot + '/connectivity',
            duplicate=0)
 
 # Build liblogger

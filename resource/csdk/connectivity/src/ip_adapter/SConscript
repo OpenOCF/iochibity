@@ -41,7 +41,7 @@ if os.path.exists(target_sconscript_abspath):
 target_files = [ os.path.join(src_dir, target_os, f) for f in target_files ]
 
 # Source files to build for Linux-like platforms
-if target_os in ['linux','darwin','ios', 'edison']:
+if target_os in ['linux','darwin','ios', 'poky-edison']:
     target_files += [ os.path.join(src_dir,
                                    'linux/caipnwmonitor.c') ]
 

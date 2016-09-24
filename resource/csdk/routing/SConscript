@@ -11,12 +11,13 @@ if env.get('TARGET_OS') == 'tizen':
 # else:
 # 	env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_SYSROOT'), 'routing')])
 
-env.AppendUnique(LIBS = ['routingmanager'])
+# env.AppendUnique(LIBS = ['routingmanager'])
+# env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_SYSROOT'), 'routing')])
 
 local_env = env.Clone()
 
-print "routing ROUTING MODE:", local_env.get('ROUTING')
-print "routing ROUTING CPPPATH", local_env.get('CPPPATH')
+# print "routing ROUTING MODE:", local_env.get('ROUTING')
+# print "routing ROUTING CPPPATH", local_env.get('CPPPATH')
 
 local_env.AppendUnique(CPPPATH = ['#resource/c_common',
 				  '#resource/csdk/stack',
@@ -43,17 +44,17 @@ if env.get('LOGGING') == '1':
 ######################################################################
 
 if env.get('ROUTING') == 'GW':
-	routing_src = [
-		'routingutility.c',
-		'routingmanager.c',
-		'routingtablemanager.c',
-		'routingmanagerinterface.c',
-		'routingmessageparser.c',
-    ]
+	routing_src = ['routingutility.c',
+		       'routingmanager.c',
+		       'routingtablemanager.c',
+		       'routingmanagerinterface.c',
+		       'routingmessageparser.c']
+
 elif env.get('ROUTING') == 'EP':
 	routing_src = [
 		'routingutility.c',
     ]
 
 routinglib = local_env.StaticLibrary('routingmanager', routing_src)
-build.utils.install_lib(local_env, routinglib, 'routingmanager')
+
+# build.utils.install_lib(local_env, routinglib, 'routingmanager')
