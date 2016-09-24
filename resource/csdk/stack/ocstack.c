@@ -2126,6 +2126,7 @@ OCStackResult OCInit(const char *ipAddr, uint16_t port, OCMode mode)
 
 OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlags clientFlags)
 {
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     if(stackState == OC_STACK_INITIALIZED)
     {
         OIC_LOG(INFO, TAG, "Subsequent calls to OCInit() without calling \
@@ -2150,7 +2151,6 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
 #endif
 
     OCStackResult result = OC_STACK_ERROR;
-    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     // Validate mode
     if (!((mode == OC_CLIENT) || (mode == OC_SERVER) || (mode == OC_CLIENT_SERVER)
@@ -2192,6 +2192,8 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
 
     switch (myStackMode)
     {
+	/* GAR TODO: verify that clients need not use SRM, but servers and gateways always do */
+	/* GAR TODO: what's the diff betwwen discovery server and listener server? */
         case OC_CLIENT:
             CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
             result = CAResultToOCResult(CAStartDiscoveryServer());
@@ -2205,11 +2207,11 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
             /* break; */
         case OC_CLIENT_SERVER:
         case OC_GATEWAY:
-#ifdef SECURED
+/*GAR servers and gateways ALWAYS use SRM */
             SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
-#else
-            CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
-#endif
+/* #else */
+/*             CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse); */
+/* #endif */
             result = CAResultToOCResult(CAStartListeningServer());
             if(result == OC_STACK_OK)
             {
@@ -2231,19 +2233,22 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
     stackState = OC_STACK_INITIALIZED;
 
     // Initialize resource
-    if(myStackMode != OC_CLIENT)
-    {
+    /* if(myStackMode != OC_CLIENT) */
+    /* { */
         result = initResources();
-    }
+    /* } else { */
+    /*     /\* result = SRMInit(OC_CLIENT); *\/ */
+    /* 	/\* Or:  SRMInit(myStackMode) *\/ */
+    /*     result = SRMInitSecureResources(); */
+    /* } */
 
-#ifdef SECURED
     // Initialize the SRM Policy Engine
     if(result == OC_STACK_OK)
     {
         result = SRMInitPolicyEngine();
         // TODO after BeachHead delivery: consolidate into single SRMInit()
     }
-#endif
+
 /*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
     RMSetStackMode(mode);
 #ifdef ROUTING_GATEWAY
@@ -3282,19 +3287,22 @@ OCStackResult OCCreateResource(OCResourceHandle *handle,
         void* callbackParam,
         uint8_t resourceProperties)
 {
-
-    OCResource *pointer = NULL;
-    OCStackResult result = OC_STACK_ERROR;
-
     OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     OIC_LOG_V(INFO, TAG, "\turi:       %s", uri);
     OIC_LOG_V(INFO, TAG, "\ttype:      %s", resourceTypeName);
     OIC_LOG_V(INFO, TAG, "\tinterface: %s", resourceInterfaceName);
+    OIC_LOG_V(INFO, TAG, "\tproperties: 0x%02x", resourceProperties);
 
-    if(myStackMode == OC_CLIENT)
-    {
-        return OC_STACK_INVALID_PARAM;
-    }
+    OCResource *pointer = NULL;
+    OCStackResult result = OC_STACK_ERROR;
+
+    /*GAR: clients need resources too! */
+    /* if(myStackMode == OC_CLIENT) */
+    /* { */
+    /*     OIC_LOG(ERROR, TAG, "Stack Mode == OC_CLIENT; clients do not create resources"); */
+    /*     return OC_STACK_INVALID_PARAM; */
+    /* } */
+
     // Validate parameters
     if(!uri || uri[0]=='\0' || strlen(uri)>=MAX_URI_LENGTH )
     {
@@ -4218,6 +4226,41 @@ OCStackResult OCChangeResourceProperty(OCResourceProperty * inputProperty,
 }
 #endif
 
+/* GAR resources required for both server and client */
+OCStackResult initMandatoryResources()
+{
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OCStackResult result = OC_STACK_OK;
+
+    CreateResetProfile();
+    result = OCCreateResource(&deviceResource,
+			      OC_RSRVD_RESOURCE_TYPE_DEVICE,
+			      OC_RSRVD_INTERFACE_DEFAULT,
+			      OC_RSRVD_DEVICE_URI,
+			      NULL,
+			      NULL,
+			      OC_DISCOVERABLE);
+    if(result == OC_STACK_OK) {
+            result = BindResourceInterfaceToResource((OCResource *)deviceResource,
+                                                     OC_RSRVD_INTERFACE_READ);
+    }
+
+    if(result == OC_STACK_OK) {
+	    result = OCCreateResource(&platformResource,
+				      OC_RSRVD_RESOURCE_TYPE_PLATFORM,
+				      OC_RSRVD_INTERFACE_DEFAULT,
+				      OC_RSRVD_PLATFORM_URI,
+				      NULL,
+				      NULL,
+				      OC_DISCOVERABLE);
+	    if(result == OC_STACK_OK) {
+		    result = BindResourceInterfaceToResource((OCResource *)platformResource,
+							     OC_RSRVD_INTERFACE_READ);
+	    }
+    }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, result);
+}
+
 OCStackResult initResources()
 {
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
@@ -4236,25 +4279,31 @@ OCStackResult initResources()
             NULL,
             NULL,
             OC_OBSERVABLE);
-    //make resource inactive
-    result = OCChangeResourceProperty(
-            &(((OCResource *) presenceResource.handle)->resourceProperties),
-            OC_ACTIVE, 0);
-#endif
+
+    if (result == OC_STACK_OK)
+    {
+	//make resource inactive
+	result = OCChangeResourceProperty(
+					  &(((OCResource *) presenceResource.handle)->resourceProperties),
+					  OC_ACTIVE, 0);
+    } else {
+	OIC_LOG_V(FATAL, TAG, "%s: ERROR on Create presence resource: %x", __func__, result);
+    }
+#endif /* WITH_PRESENCE */
 #ifndef WITH_ARDUINO
-#ifdef SECURED
+/*GAR #ifdef SECURED */
     if (result == OC_STACK_OK)
     {
         result = SRMInitSecureResources();
     }
-#endif
+/* #endif */
 #endif
 
     if(result == OC_STACK_OK)
     {
-#ifdef SECURED
+/*GAR #ifdef SECURED */
         CreateResetProfile();
-#endif
+/* #endif */
         result = OCCreateResource(&deviceResource,
                                   OC_RSRVD_RESOURCE_TYPE_DEVICE,
                                   OC_RSRVD_INTERFACE_DEFAULT,
@@ -4466,6 +4515,7 @@ void deleteResourceInterface(OCResourceInterface *resourceInterface)
 
 void insertResourceType(OCResource *resource, OCResourceType *resourceType)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCResourceType *pointer = NULL;
     OCResourceType *previous = NULL;
     if (!resource || !resourceType)
@@ -4502,6 +4552,7 @@ void insertResourceType(OCResource *resource, OCResourceType *resourceType)
     resourceType->next = NULL;
 
     OIC_LOG_V(INFO, TAG, "Added type %s to %s", resourceType->resourcetypename, resource->uri);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 
 OCResourceType *findResourceTypeAtIndex(OCResourceHandle handle, uint8_t index)
