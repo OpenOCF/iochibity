@@ -351,13 +351,58 @@ def host_features(env) :
                 env.Replace(ROUTING = 'EP')
                 env.Append(CPPDEFINES = ['ROUTING_EP'])
 
-        try:
-                sec = env['ENV']['SECURED']
+        # try:
+        #         sec = env.get('SECURED')
+        #         if sec == 1:
+        env.AppendUnique(CPPDEFINES = ['SECURED'])
+        env.AppendUnique(SECURED = '1')
+        env.AppendUnique(CPPDEFINES = ['WITH_SECURITY'])
+        env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
+        # except KeyError:
+        #         pass
 
-                if sec == 1:
-                        env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
+        try:
+                log = env.get('LOGGING') # not an env var
+                if log == 1:
+                        env.AppendUnique(CPPDEFINES = ['LOGGING'])
+                        env.AppendUnique(TB_LOG = 1)  # ??
         except KeyError:
                 pass
+
+        try:
+                s = env['ENV']['TARGET_ARCH']
+                items = s.split()
+                for item in items:
+                        env.AppendUnique(CPPFLAGS = [item])
+                        env.AppendUnique(CFLAGS = [item])
+                        env.AppendUnique(CCFLAGS = [item])
+                        env.AppendUnique(CXXFLAGS = [item])
+                        #env.AppendUnique(LINKFLAGS = [item])
+        except KeyError:
+                pass
+
+        s = env['ENV']['CPPFLAGS']
+        items = s.split()
+        for item in items:
+                env.AppendUnique(CPPFLAGS = [item])
+
+        # env.Replace(CFLAGS    = env['ENV']['CFLAGS'])
+        s = env['ENV']['CFLAGS']
+        items = s.split()
+        for item in items:
+                env.AppendUnique(CFLAGS = [item])
+
+        # env.Replace(CXXFLAGS  = env['ENV']['CXXFLAGS'])
+        s = env['ENV']['CXXFLAGS']
+        items = s.split()
+        for item in items:
+                env.AppendUnique(CXXFLAGS = [item])
+
+        # env.Replace(LDFLAGS   = env['ENV']['LDFLAGS'])
+        s = env['ENV']['LDFLAGS']
+        items = s.split()
+        for item in items:
+                env.AppendUnique(LDFLAGS = [item])
 
         return env
 
@@ -420,7 +465,6 @@ def android(env):
         env.Append(CPPDEFINES = ['WITH_POSIX'])
         env.Append(CPPDEFINES = ['__ANDROID__'])
         env.Append(CPPDEFINES = ['__JAVA__'])
-        env.Append(CPPDEFINES = ['WITH_POSIX'])
         #GAR FIXME
         # env.Append(LIBPATH = ['/Users/gar/android/crystax-ndk-10.3.2/sources/boost/1.59/libs/armeabi-v7a/llvm-3.6/'])
         env.Append(CPPPATH = ['/Users/gar/android/crystax-ndk-10.3.2/sources/boost/1.59.0/include'])
@@ -697,17 +741,10 @@ def edison(env):
                 env.Append(CPPDEFINES = ['ROUTING_EP'])
 
         try:
-                sec = env['ENV']['SECURED']
-                if sec == 1:
-                        env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
-        except KeyError:
-                pass
-
-        try:
                 log = env['ENV']['LOGGING']
                 if log == 1:
                         env.AppendUnique(CPPDEFINES = ['LOGGING'])
-                        # env.AppendUnique(CPPDEFINES = ['TB_LOG'])  # ??
+                        env.AppendUnique(CPPDEFINES = ['TB_LOG'])  # ??
         except KeyError:
                 pass
 

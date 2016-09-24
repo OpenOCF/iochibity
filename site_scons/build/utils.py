@@ -130,13 +130,16 @@ def install_bin(ienv, targets, name):
 	# 	i_n = ienv.Install(user_prefix + '/bin', targets)
 	# 	ienv.Alias("install", i_n)
 
-def install_header(ienv, targets, dir):  # , name):
+def install_headers(ienv, headers, dir, name):
 	# user_prefix = ienv.get('PREFIX')
 	# if user_prefix:
 	# 	i_n = ienv.Install(user_prefix + '/include/' + dir ,targets)
 	# else:
-	i_n = ienv.Install(os.path.join(ienv.get('INSTALL_SYSROOT'), 'include'), targets)
-	ienv.Alias("install", i_n)
+	i_n = ienv.Install(os.path.join(ienv.get('INSTALL_SYSROOT'),
+                                        'include',
+                                        dir),
+                           headers)
+	ienv.Alias(name, i_n)
 
 def install_shlib(ienv, targets, name):
         idir = ienv.get('INSTALL_SYSROOT') + '/lib'

@@ -37,7 +37,15 @@ logfile = path + "/build"
 
 logfile = logfile + ".log"
 
+if sys.platform.startswith('linux'):
+    sys_platform = 'linux'
+elif sys.platform.startswith('darwin'):
+    sys_platform = 'darwin'
+else:
+    sys_platform = sys.platform
+
 print "sys.platform:     " + sys.platform
+print "sys.platform normalized:     " + sys_platform
 print "platform.architecture:  ", platform.architecture()
 print "platform.machine:  " + platform.machine()
 print "platform.processor:  " + platform.processor()
