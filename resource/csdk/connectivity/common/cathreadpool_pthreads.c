@@ -143,7 +143,7 @@ exit:
 CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool, ca_thread_func method,
                                     void *data)
 {
-    OIC_LOG(DEBUG, TAG, "IN: ca_thread_pool_add_task");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     if(NULL == thread_pool || NULL == method)
     {
@@ -179,7 +179,7 @@ CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool, ca_thread_func 
         return CA_STATUS_FAILED;
     }
 
-    OIC_LOG(DEBUG, TAG, "OUT: ca_thread_pool_add_task");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return CA_STATUS_OK;
 }
 

@@ -711,6 +711,7 @@ OCEntityHandlerResult DpairingEntityHandler (OCEntityHandlerFlag flag,
  */
 OCStackResult CreateDpairingResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret;
 
     ret = OCCreateResource(&gDpairHandle,
@@ -726,6 +727,7 @@ OCStackResult CreateDpairingResource()
         OIC_LOG (ERROR, TAG, "Unable to instantiate Dpairing resource");
         DeInitDpairingResource();
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -736,6 +738,7 @@ OCStackResult CreateDpairingResource()
  */
 OCStackResult InitDpairingResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     // Instantiate 'oic.sec.dpairing'
@@ -744,6 +747,7 @@ OCStackResult InitDpairingResource()
     {
         DeInitDpairingResource();
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 

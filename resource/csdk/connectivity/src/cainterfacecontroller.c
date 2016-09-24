@@ -159,7 +159,7 @@ static void CAAdapterErrorHandleCallback(const CAEndpoint_t *endpoint,
 
 void CAInitializeAdapters(ca_thread_pool_t handle)
 {
-    OIC_LOG(DEBUG, TAG, "initialize adapters..");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     // Initialize adapters and register callback.
 #ifdef IP_ADAPTER
@@ -568,6 +568,7 @@ CAResult_t CAStopListeningServerAdapters()
 
 CAResult_t CAStartDiscoveryServerAdapters()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     CAResult_t result = CA_STATUS_FAILED;
 
     u_arraylist_t *list = CAGetSelectedNetworkList();
@@ -610,6 +611,7 @@ CAResult_t CAStartDiscoveryServerAdapters()
         }
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, result);
     return result;
 }
 

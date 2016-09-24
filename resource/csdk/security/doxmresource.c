@@ -866,7 +866,7 @@ static OCEntityHandlerResult HandleDoxmPostRequest(const OCEntityHandlerRequest 
                             OIC_LOG(ERROR, TAG, "Failed to update DOXM in persistent storage");
                             ehRet = OC_EH_ERROR;
                         }
-#endif
+#endif //__WITH_DTLS__
                     }
                 }
             }
@@ -1056,14 +1056,15 @@ static OCStackResult CheckDeviceID()
 
     if (!validId)
     {
-        if (OCGenerateUuid(gDoxm->deviceID.id) != RAND_UUID_OK)
+	OCRandomUuidResult res = OCGenerateUuid(gDoxm->deviceID.id);
+        if (res == RAND_UUID_OK)
         {
-            OIC_LOG(FATAL, TAG, "Generate UUID for Server Instance failed!");
-            return ret;
+            OIC_LOG_V(DEBUG, TAG, "%s: OCGenerateUuid: %s", __func__, (char*)gDoxm->deviceID.id);
+            ret = OC_STACK_OK;
         } else {
-            OIC_LOG_V(FATAL, TAG, "%s: OCGenerateUuid: %s", gDoxm->deviceID.id);
+            OIC_LOG_V(FATAL, TAG, "%s: OCGenerateUuid failed with %", __func__, res);
+	    res = OC_STACK_ERROR;
 	}
-        ret = OC_STACK_OK;
 
         if (!UpdatePersistentStorage(gDoxm))
         {
@@ -1086,7 +1087,8 @@ static OCStackResult CheckDeviceID()
  */
 static OicSecDoxm_t* GetDoxmDefault()
 {
-    OIC_LOG(DEBUG, TAG, "GetDoxmToDefault");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning: %x", __func__, &gDefaultDoxm);
     return &gDefaultDoxm;
 }
 
@@ -1104,7 +1106,7 @@ OCStackResult InitDoxmResource()
     //Read DOXM resource from PS
     uint8_t *data = NULL;
     size_t size = 0;
-    ret = GetSecureVirtualDatabaseFromPS(OIC_JSON_DOXM_NAME, &data, &size);
+    ret = GetSecureVirtualResourceFromPS(OIC_JSON_DOXM_NAME, &data, &size);
     // If database read failed
     if (OC_STACK_OK != ret)
     {

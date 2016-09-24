@@ -53,14 +53,14 @@ static OCStackResult OCParseSecurityPayload(OCPayload **outPayload, const uint8_
 OCStackResult OCParsePayload(OCPayload **outPayload, OCPayloadType payloadType,
         const uint8_t *payload, size_t payloadSize)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY; payload type: %x", __func__, payloadType);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY; payload size: %zu, type: %d", __func__, payloadSize, payloadType);
     OCStackResult result = OC_STACK_MALFORMED_RESPONSE;
     CborError err;
 
     VERIFY_PARAM_NON_NULL(TAG, outPayload, "Conversion of outPayload failed");
     VERIFY_PARAM_NON_NULL(TAG, payload, "Invalid cbor payload value");
 
-    OIC_LOG_V(INFO, TAG, "CBOR Parsing size: %zu; Payload dump:");
+    OIC_LOG_V(INFO, TAG, "Payload dump:");
     OIC_LOG_BUFFER(DEBUG, TAG, payload, payloadSize);
 
     CborParser parser;

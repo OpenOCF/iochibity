@@ -122,7 +122,7 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
                                        const CARemoteId_t *identity,
                                        const void *data, CADataType_t dataType)
 {
-    OIC_LOG(DEBUG, TAG, "CAGenerateHandlerData IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     CAInfo_t *info = NULL;
     CAData_t *cadata = (CAData_t *) OICCalloc(1, sizeof(CAData_t));
     if (!cadata)
@@ -229,12 +229,13 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
     cadata->remoteEndpoint = ep;
     cadata->dataType = dataType;
 
-    OIC_LOG(DEBUG, TAG, "CAGenerateHandlerData OUT");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning cadata %x", __func__, cadata);
     return cadata;
 
 exit:
     OICFree(cadata);
     CAFreeEndpoint(ep);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT, failing", __func__);
     return NULL;
 }
 
@@ -398,6 +399,7 @@ static void CAReceiveThreadProcess(void *threadData)
 
 static CAResult_t CAProcessMulticastData(const CAData_t *data)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL(data, TAG, "data");
     VERIFY_NON_NULL(data->remoteEndpoint, TAG, "remoteEndpoint");
 
@@ -475,6 +477,7 @@ exit:
 
 static CAResult_t CAProcessSendData(const CAData_t *data)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL(data, TAG, "data");
     VERIFY_NON_NULL(data->remoteEndpoint, TAG, "remoteEndpoint");
 
@@ -1189,6 +1192,7 @@ void CATerminateMessageHandler()
 
 void CALogPDUInfo(coap_pdu_t *pdu, const CAEndpoint_t *endpoint)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL_VOID(pdu, TAG, "pdu");
     VERIFY_NON_NULL_VOID(endpoint, TAG, "endpoint");
 
@@ -1212,6 +1216,7 @@ void CALogPDUInfo(coap_pdu_t *pdu, const CAEndpoint_t *endpoint)
         OIC_LOG_BUFFER(DEBUG, TAG, pdu->hdr->coap_hdr_udp_t.token,
                        pdu->hdr->coap_hdr_udp_t.token_length);
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 
 static void CALogPayloadInfo(CAInfo_t *info)

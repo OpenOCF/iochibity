@@ -726,7 +726,7 @@ OCStackResult InitPstatResource()
     uint8_t *data = NULL;
     size_t size = 0;
     OicUuid_t emptyUuid = {.id={0}};
-    ret = GetSecureVirtualDatabaseFromPS(OIC_JSON_PSTAT_NAME, &data, &size);
+    ret = GetSecureVirtualResourceFromPS(OIC_JSON_PSTAT_NAME, &data, &size);
     // If database read failed
     if (OC_STACK_OK != ret)
     {

@@ -75,6 +75,7 @@ void DeleteVerBinData(OicSecVer_t* ver)
 
 OCStackResult VerToCBORPayload(const OicSecVer_t *ver, uint8_t **payload, size_t *size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == ver || NULL == payload || NULL != *payload || NULL == size)
     {
         return OC_STACK_INVALID_PARAM;
@@ -155,6 +156,7 @@ exit:
        ret = OC_STACK_ERROR;
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -313,6 +315,7 @@ const OicSecVer_t* GetVerResourceData()
 
 OCStackResult InitVerResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     OICStrcpy(gVer.secv, MAX_VERSION_LEN, SECURITY_VERSION);
@@ -334,6 +337,7 @@ OCStackResult InitVerResource()
         OIC_LOG(ERROR, TAG, "Error while creating VER resource");
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 

@@ -72,7 +72,7 @@ static size_t GetSVRDatabaseSize(const OCPersistentStorage *ps)
     size_t size = 0;
     char buffer[DB_FILE_SIZE_BLOCK];  // can not initialize with declaration
                                       // but maybe not needed to initialize
-    OIC_LOG_V(DEBUG, TAG, "%s: opening %s", __func__, SVR_DB_DAT_FILE_NAME);
+    OIC_LOG_V(DEBUG, TAG, "%s: opening %s, mode rb", __func__, SVR_DB_DAT_FILE_NAME);
     FILE *fp = ps->open(SVR_DB_DAT_FILE_NAME, "rb");
     if (fp)
     {
@@ -96,9 +96,9 @@ static size_t GetSVRDatabaseSize(const OCPersistentStorage *ps)
  *
  * @return OCStackResult - result of getting Secure Virtual Resource(s)
  */
-OCStackResult GetSecureVirtualDatabaseFromPS(const char *rsrcName, uint8_t **data, size_t *size)
+OCStackResult GetSecureVirtualResourceFromPS(const char *rsrcName, uint8_t **data, size_t *size)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, rsrcName: %s", __func__, rsrcName);
     if (!data || *data || !size)
     {
         return OC_STACK_INVALID_PARAM;
@@ -129,6 +129,7 @@ OCStackResult GetSecureVirtualDatabaseFromPS(const char *rsrcName, uint8_t **dat
         fsData = (uint8_t *) OICCalloc(1, fileSize);
         VERIFY_NON_NULL(TAG, fsData, ERROR);
 
+	OIC_LOG_V(DEBUG, TAG, "%s: opening %s, mode rb", __func__, SVR_DB_DAT_FILE_NAME);
         fp = ps->open(SVR_DB_DAT_FILE_NAME, "rb");
         VERIFY_NON_NULL(TAG, fp, ERROR);
         if (ps->read(fsData, 1, fileSize, fp) == fileSize)
@@ -147,6 +148,10 @@ OCStackResult GetSecureVirtualDatabaseFromPS(const char *rsrcName, uint8_t **dat
                     ret = OC_STACK_OK;
                 }
                 // in case of |else (...)|, svr_data not found
+		else
+		{
+		    OIC_LOG_V(FATAL, TAG, "%s: svr_data not found", __func__);
+		}
             }
             // return everything in case rsrcName is NULL
             else
@@ -158,6 +163,10 @@ OCStackResult GetSecureVirtualDatabaseFromPS(const char *rsrcName, uint8_t **dat
                 ret = OC_STACK_OK;
             }
         }
+	else
+	{
+	    OIC_LOG_V(FATAL, TAG, "%s: file read fail", __func__);
+	}
     }
 
 exit:
@@ -204,7 +213,7 @@ OCStackResult UpdateSecureResourceInPS(const char *rsrcName, const uint8_t *psPa
     uint8_t *resetPfCbor = NULL;
 
     int64_t cborEncoderResult = CborNoError;
-    OCStackResult ret = GetSecureVirtualDatabaseFromPS(NULL, &dbData, &dbSize);
+    OCStackResult ret = GetSecureVirtualResourceFromPS(NULL, &dbData, &dbSize);
     if (dbData && dbSize)
     {
         size_t aclCborLen = 0;
@@ -449,7 +458,7 @@ OCStackResult ResetSecureResourceInPS(void)
     uint8_t *resetPfCbor = NULL;
 
     int64_t cborEncoderResult = CborNoError;
-    OCStackResult ret = GetSecureVirtualDatabaseFromPS(NULL, &dbData, &dbSize);
+    OCStackResult ret = GetSecureVirtualResourceFromPS(NULL, &dbData, &dbSize);
 
     if(dbData && dbSize)
     {
@@ -602,7 +611,7 @@ OCStackResult CreateResetProfile(void)
 
     OCStackResult ret = OC_STACK_ERROR;
     int64_t cborEncoderResult = CborNoError;
-    ret = GetSecureVirtualDatabaseFromPS(NULL, &dbData, &dbSize);
+    ret = GetSecureVirtualResourceFromPS(NULL, &dbData, &dbSize);
     if (dbData && dbSize)
     {
         size_t aclCborLen = 0;

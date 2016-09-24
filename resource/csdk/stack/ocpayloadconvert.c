@@ -132,7 +132,7 @@ OCStackResult OCConvertPayload(OCPayload* payload, uint8_t** outPayload, size_t*
         *outPayload = out;
         OIC_LOG_V(DEBUG, TAG, "Payload Size: %zd, type %d, Payload : ",
 		  *size,
-		  ((OCPayload*)*outPayload)->type);
+		  payload->type);
         OIC_LOG_BUFFER(DEBUG, TAG, *outPayload, *size);
         return OC_STACK_OK;
     }
@@ -147,7 +147,7 @@ exit:
 
 static int64_t OCConvertPayloadHelper(OCPayload* payload, uint8_t* outPayload, size_t* size)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY; type: %d", __func__, payload->type);
     switch(payload->type)
     {
         case PAYLOAD_TYPE_DISCOVERY:
@@ -194,6 +194,7 @@ static int64_t checkError(int64_t err, CborEncoder* encoder, uint8_t* outPayload
 static int64_t OCConvertSecurityPayload(OCSecurityPayload* payload, uint8_t* outPayload,
         size_t* size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     memcpy(outPayload, payload->securityData, payload->payloadSize);
     *size = payload->payloadSize;
 

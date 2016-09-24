@@ -58,7 +58,7 @@ OCStackResult UpdateSVRDatabase(const char* rsrcName, cJSON* jsonObj);
  *
  * @return ::OC_STACK_OK for Success, otherwise some error value
  */
-OCStackResult GetSecureVirtualDatabaseFromPS(const char *rsrcName, uint8_t **data, size_t *size);
+OCStackResult GetSecureVirtualResourceFromPS(const char *rsrcName, uint8_t **data, size_t *size);
 
 /**
  * This method converts updates the persistent storage.

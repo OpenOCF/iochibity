@@ -189,6 +189,7 @@ exit:
 OCStackResult CBORPayloadToSVC(const uint8_t *cborPayload, size_t size,
                                OicSecSvc_t **secSvc)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == cborPayload || NULL == secSvc || NULL != *secSvc || 0 == size)
     {
         return OC_STACK_INVALID_PARAM;
@@ -308,6 +309,7 @@ exit:
         *secSvc = NULL;
         ret = OC_STACK_ERROR;
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -430,17 +432,18 @@ static OCStackResult CreateSVCResource()
 
 OCStackResult InitSVCResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     OIC_LOG_V(DEBUG, TAG, "Begin %s ", __func__ );
 
     uint8_t *data = NULL;
     size_t size = 0;
-    ret = GetSecureVirtualDatabaseFromPS(OIC_JSON_SVC_NAME, &data, &size);
+    ret = GetSecureVirtualResourceFromPS(OIC_JSON_SVC_NAME, &data, &size);
     // If database read failed
     if (ret != OC_STACK_OK)
     {
-        OIC_LOG_V(DEBUG, TAG, "%s: ReadSVDataFromPS failed", __func__);
+        OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS failed for %s", __func__, OIC_JSON_SVC_NAME);
     }
 
     if (data)

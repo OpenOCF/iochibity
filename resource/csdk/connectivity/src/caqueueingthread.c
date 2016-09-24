@@ -38,7 +38,8 @@
 
 static void CAQueueingThreadBaseRoutine(void *threadValue)
 {
-    OIC_LOG_V(DEBUG, TAG, "message handler main thread %d start..", pthread_self());
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, thread %d", __func__, pthread_self());
+    /* OIC_LOG_V(DEBUG, TAG, "message handler main thread %d start..", pthread_self()); */
 
     CAQueueingThread_t *thread = (CAQueueingThread_t *) threadValue;
 
@@ -107,6 +108,7 @@ static void CAQueueingThreadBaseRoutine(void *threadValue)
 CAResult_t CAQueueingThreadInitialize(CAQueueingThread_t *thread, ca_thread_pool_t handle,
                                       CAThreadTask task, CADataDestroyFunction destroy)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == thread)
     {
         OIC_LOG(ERROR, TAG, "thread instance is empty..");
@@ -118,8 +120,6 @@ CAResult_t CAQueueingThreadInitialize(CAQueueingThread_t *thread, ca_thread_pool
         OIC_LOG(ERROR, TAG, "thread pool handle is empty..");
         return CA_STATUS_INVALID_PARAM;
     }
-
-    OIC_LOG(DEBUG, TAG, "thread initialize..");
 
     // set send thread data
     thread->threadPool = handle;
@@ -134,6 +134,7 @@ CAResult_t CAQueueingThreadInitialize(CAQueueingThread_t *thread, ca_thread_pool
         goto ERROR_MEM_FAILURE;
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
     return CA_STATUS_OK;
 
 ERROR_MEM_FAILURE:
@@ -152,11 +153,13 @@ ERROR_MEM_FAILURE:
         ca_cond_free(thread->threadCond);
         thread->threadCond = NULL;
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT ALLOC FAILED", __func__);
     return CA_MEMORY_ALLOC_FAILED;
 }
 
 CAResult_t CAQueueingThreadStart(CAQueueingThread_t *thread)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == thread)
     {
         OIC_LOG(ERROR, TAG, "thread instance is empty..");
@@ -188,6 +191,7 @@ CAResult_t CAQueueingThreadStart(CAQueueingThread_t *thread)
         OIC_LOG(ERROR, TAG, "thread pool add task error(send thread).");
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, res);
     return res;
 }
 

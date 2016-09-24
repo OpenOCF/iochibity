@@ -224,7 +224,7 @@ CAResult_t CAInitializeIP(CARegisterConnectivityCallback registerCallback,
                           CAAdapterChangeCallback netCallback,
                           CAErrorHandleCallback errorCallback, ca_thread_pool_t handle)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     VERIFY_NON_NULL(registerCallback, TAG, "registerCallback");
     VERIFY_NON_NULL(networkPacketCallback, TAG, "networkPacketCallback");
@@ -267,7 +267,7 @@ CAResult_t CAInitializeIP(CARegisterConnectivityCallback registerCallback,
         };
     registerCallback(ipHandler);
 
-    OIC_LOG(INFO, TAG, "OUT IntializeIP is Success");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning CA_STATUS_OK", __func__);
     return CA_STATUS_OK;
 }
 
@@ -435,6 +435,7 @@ void CATerminateIP()
 
 void CAIPSendDataThread(void *threadData)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     CAIPData_t *ipData = (CAIPData_t *) threadData;
     if (!ipData)
     {

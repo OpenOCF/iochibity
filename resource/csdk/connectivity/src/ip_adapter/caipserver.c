@@ -483,7 +483,7 @@ void CADeInitializeIPGlobals()
 
 static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     char recvBuffer[COAP_MAX_PDU_SIZE] = {0};
 
@@ -638,6 +638,7 @@ static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
         }
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return CA_STATUS_OK;
 
 }
@@ -1201,7 +1202,7 @@ static void sendData(int fd, const CAEndpoint_t *endpoint,
                      const void *data, uint32_t dlen,
                      const char *cast, const char *fam)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     if (!endpoint)
     {
@@ -1246,7 +1247,7 @@ static void sendData(int fd, const CAEndpoint_t *endpoint,
     {
         OIC_LOG_V(INFO, TAG, "%s%s %s %s sendto() is successful: %zd bytes", __func__, secure, cast, fam, len);
     }
-#else
+#else /* WIN32: */
     int err = 0;
     int len = 0;
     int sent = 0;
@@ -1285,7 +1286,8 @@ static void sendData(int fd, const CAEndpoint_t *endpoint,
             }
         }
     } while ((OC_SOCKET_ERROR == len) && ((WSAEWOULDBLOCK == err) || (WSAENOBUFS == err)) || (sent < dlen));
-#endif
+#endif /* WIN32 */
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 
 static void sendMulticastData6(const u_arraylist_t *iflist,

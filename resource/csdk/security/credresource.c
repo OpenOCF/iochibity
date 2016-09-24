@@ -412,6 +412,7 @@ exit:
 OCStackResult CBORPayloadToCred(const uint8_t *cborPayload, size_t size,
                                 OicSecCred_t **secCred)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == cborPayload || NULL == secCred || NULL != *secCred || 0 == size)
     {
         return OC_STACK_INVALID_PARAM;
@@ -692,6 +693,7 @@ exit:
         ret = OC_STACK_ERROR;
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -1306,11 +1308,12 @@ OCStackResult InitCredResource()
     //Read Cred resource from PS
     uint8_t *data = NULL;
     size_t size = 0;
-    ret = GetSecureVirtualDatabaseFromPS(OIC_JSON_CRED_NAME, &data, &size);
+    ret = GetSecureVirtualResourceFromPS(OIC_JSON_CRED_NAME, &data, &size);
     // If database read failed
     if (ret != OC_STACK_OK)
     {
-        OIC_LOG_V(DEBUG, TAG, "%s: ReadSVDataFromPS failed", __func__);
+        OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS failed for %s", __func__, OIC_JSON_CRED_NAME);
+        OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS data %x", __func__, data);
     }
     if (data)
     {

@@ -239,6 +239,7 @@ exit:
 OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
                                  OicSecAmacl_t **secAmacl)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == cborPayload || NULL == secAmacl || NULL != *secAmacl || 0 == size)
     {
         return OC_STACK_INVALID_PARAM;
@@ -432,6 +433,7 @@ exit:
         *secAmacl = NULL;
         ret = OC_STACK_ERROR;
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -562,12 +564,12 @@ OCStackResult InitAmaclResource()
 
     uint8_t *data = NULL;
     size_t size = 0;
-    ret = GetSecureVirtualDatabaseFromPS(OIC_JSON_AMACL_NAME, &data, &size);
+    ret = GetSecureVirtualResourceFromPS(OIC_JSON_AMACL_NAME, &data, &size);
 
     // If database read failed
     if (OC_STACK_OK != ret)
     {
-        OIC_LOG_V(DEBUG, TAG, "%s: ReadSVDataFromPS failed", __func__);
+        OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS failed for %s", __func__, OIC_JSON_AMACL_NAME);
     }
     if (data)
     {

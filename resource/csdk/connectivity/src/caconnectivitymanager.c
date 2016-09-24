@@ -122,7 +122,7 @@ CAResult_t CAStopListeningServer()
 
 CAResult_t CAStartDiscoveryServer()
 {
-    OIC_LOG(DEBUG, TAG, "CAStartDiscoveryServer");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     if (!g_isInitialized)
     {
@@ -143,6 +143,7 @@ void CARegisterHandler(CARequestCallback ReqHandler, CAResponseCallback RespHand
     }
 
     CASetInterfaceCallbacks(ReqHandler, RespHandler, ErrorHandler);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 
 #ifdef __WITH_DTLS__

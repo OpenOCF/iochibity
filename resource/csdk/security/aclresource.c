@@ -1602,6 +1602,7 @@ OCStackResult SetDefaultACL(OicSecAcl_t *acl)
 
 OCStackResult GetDefaultACL(OicSecAcl_t** defaultAcl)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_ERROR;
     OicUuid_t ownerId = { .id = { 0 } };
     OicSecAcl_t *acl = NULL;
@@ -1773,6 +1774,7 @@ exit:
         acl = NULL;
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT, returning %x", __func__, ret);
     return ret;
 }
 
@@ -1783,11 +1785,12 @@ OCStackResult InitACLResource()
 
     uint8_t *data = NULL;
     size_t size = 0;
-    ret = GetSecureVirtualDatabaseFromPS(OIC_JSON_ACL_NAME, &data, &size);
+    ret = GetSecureVirtualResourceFromPS(OIC_JSON_ACL_NAME, &data, &size);
     // If database read failed
     if (OC_STACK_OK != ret)
     {
-        OIC_LOG_V(DEBUG, TAG, "%s: ReadSVDataFromPS failed", __func__);
+        OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS failed for %s", __func__, OIC_JSON_ACL_NAME);
+        OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS data %x", __func__, data);
     }
     if (data)
     {

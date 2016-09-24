@@ -1051,16 +1051,17 @@ const OicSecPconf_t* GetPconfResourceData()
  */
 OCStackResult InitPconfResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     uint8_t *data = NULL;
     size_t size = 0;
 
-    ret = GetSecureVirtualDatabaseFromPS(OIC_JSON_PCONF_NAME, &data, &size);
+    ret = GetSecureVirtualResourceFromPS(OIC_JSON_PCONF_NAME, &data, &size);
     // If database read failed
     if (ret != OC_STACK_OK)
     {
-        OIC_LOG(DEBUG, TAG, "ReadSVDataFromPS failed");
+        OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS failed for %s", __func__, OIC_JSON_PCONF_NAME);
     }
     if (data)
     {
@@ -1088,6 +1089,7 @@ exit:
         DeInitPconfResource();
     }
     OICFree(data);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
