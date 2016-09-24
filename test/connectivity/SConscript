@@ -61,7 +61,7 @@ test_env.PrependUnique(LIBS = ['chibity',
 if target_os not in ['arduino', 'darwin', 'ios', 'msys_nt', 'windows']:
 	test_env.AppendUnique(LIBS=['rt'])
 
-if test_env.get('SECURED') == '1':
+if test_env.get('SECURED'):
 	test_env.AppendUnique(CPPPATH = ['#resource/csdk/provisioning'])
 	test_env.AppendUnique(LIBS = ['ocpmapi'])
 	test_env.AppendUnique(LIBPATH = [test_env.get('BUILD_SYSROOT') + '/provisioning'])

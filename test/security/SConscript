@@ -95,25 +95,28 @@ securitytest = test_env.Program('securitytest', ['aclresourcetest.cpp',
 # securitytest_build_dir = os.path.join(test_env.get('BUILD_DIR'),
 #                                       'resource', 'csdk', 'security', 'unittest') + os.sep
 
-datadir = os.path.join(test_env.get('INSTALL_SYSROOT') + '/bin/data')
+datadir = 'security.d'
+datadirpath = os.path.join(test_env.get('INSTALL_SYSROOT') + '/bin/' + datadir)
 
-test_env.AppendUnique(CPPDEFINES = ['SECURITY_BUILD_UNITTEST_DIR=data'])
-# + datadir.encode('string_escape')])
+test_env.AppendUnique(CPPDEFINES = ['SECURITY_BUILD_UNITTEST_DIR=' + datadirpath])
 
-test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest.json'))
-test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest_acl1.json'))
-test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest_default_acl.json'))
-test_env.Alias("tests", test_env.Install( datadir, 'data/oic_svr_db.json'))
+test_env.Alias("tests", test_env.Install( datadirpath, 'security.d/oic_unittest.json'))
+test_env.Alias("tests", test_env.Install( datadirpath, datadir + '/oic_unittest_acl1.json'))
+test_env.Alias("tests", test_env.Install( datadirpath, datadir + '/oic_unittest_default_acl.json'))
+test_env.Alias("tests", test_env.Install( datadirpath, datadir + '/oic_svr_db.json'))
 
-test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest.dat'))
-test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest_acl1.dat'))
-test_env.Alias("tests", test_env.Install( datadir, 'data/oic_unittest_default_acl.dat'))
-test_env.Alias("tests", test_env.Install( datadir, 'data/oic_svr_db_prov.dat'))
-test_env.Alias("tests", test_env.Install( datadir, 'data/oic_svr_db.dat'))
+test_env.Alias("tests", test_env.Install( datadirpath, datadir + '/oic_unittest.dat'))
+test_env.Alias("tests", test_env.Install( datadirpath, datadir + '/oic_unittest_acl1.dat'))
+test_env.Alias("tests", test_env.Install( datadirpath, datadir + '/oic_unittest_default_acl.dat'))
+test_env.Alias("tests", test_env.Install( datadirpath, datadir + '/oic_svr_db_prov.dat'))
+test_env.Alias("tests", test_env.Install( datadirpath, datadir + '/oic_svr_db.dat'))
 
 #test_env.Install(os.path.join(test_env.get('INSTALL_SYSROOT'), 'test'), securitytest)
 
 build.utils.install_bin(test_env, securitytest, 'tests')
+
+Import('env')
+env.Alias("securitytest", securitytest)
 
 # if test_env.get('WITH_VALGRIND'):
 #         valgrind_xml = 'ut'

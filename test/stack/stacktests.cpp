@@ -1718,7 +1718,7 @@ TEST(PODTests, OCCallbackData)
 #endif
 
 
-#ifdef SECURED
+#ifdef DIRECT_PAIRING /* GAR */
 TEST(OCDoDirectPairingTests, Nullpeer)
 {
     EXPECT_EQ(OC_STACK_INVALID_PARAM,OCDoDirectPairing(NULL, NULL, pmSel, &pinNumber, &resultCallback));
@@ -1733,7 +1733,7 @@ TEST(OCDoDirectPairingTests, NullpinNumber)
 {
     EXPECT_EQ(OC_STACK_INVALID_PARAM,OCDoDirectPairing(NULL, &peer, pmSel, NULL, &resultCallback));
 }
-#endif
+#endif  /* DIRECT_PAIRING */
 
 #ifndef __APPLE__  //GAR temporary until valgrind bug on El Capitan is fixed
 TEST(StackResource, MultipleResourcesDiscovery)

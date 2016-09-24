@@ -86,8 +86,12 @@ if target_os in ['msys_nt', 'windows']:
 # Source files and Targets
 ######################################################################
 stacktests = test_env.Program(target='stacktests', source=['./stacktests.cpp'])
+Alias('stacktest', stacktests)
+
 test_env.Decider('timestamp-newer')
 cbortests = test_env.Program('cbortests', ['cbortests.cpp'])
+Alias('cbortest', cbortests)
+Alias('tests', cbortests)
 
 #test_env.Install(os.path.join(test_env.get('INSTALL_SYSROOT'), 'test'),  stacktests)
 
