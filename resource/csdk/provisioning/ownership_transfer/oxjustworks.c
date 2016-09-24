@@ -28,9 +28,10 @@
 #include "logger.h"
 #include "global.h"
 #include "pmtypes.h"
-#include "ownershiptransfermanager.h"
+#include "oxjustworks.h"
+#include "oxmgr.h"
 
-#define TAG "OXM_JustWorks"
+#define TAG "OX_JustWorks"
 
 OCStackResult CreateJustWorksSelectOxmPayload(OTMContext_t *otmCtx, uint8_t **payload, size_t *size)
 {

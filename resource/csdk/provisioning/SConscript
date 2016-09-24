@@ -38,17 +38,12 @@ root_dir = Dir('#').abspath
 ######################################################################
 provisioning_env.AppendUnique(CPPPATH = [
  		'./',
- 		'./internal',
- 		'./include/oxm',
+ 		'ownership_transfer',
  		'#resource/csdk/stack',
-# 		'./../../stack/internal',
  		'#resource/c_common',
  		'#resource/csdk/logger',
  		'#resource/csdk/cbor',
  		'#resource/csdk/cjson',
-# 		'./../../../oc_logger/include',
-# 		'./../../ocmalloc/include',
-# 		'./../../resource/csdk/security/include',
  		'#extlibs/tinydtls',
 # 		'./../../connectivity/inc',
 # 		'./../../connectivity/external/inc',
@@ -83,12 +78,11 @@ provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') +
 provisioning_env.PrependUnique(LIBS = ['connectivity_abstraction'])
 provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') + '/connectivity/core'])
 
-if provisioning_env.get('SECURED') == '1':
+if provisioning_env.get('SECURED'):
         provisioning_env.PrependUnique(LIBS = ['ocsrm'])
         provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') + '/security'])
-
-provisioning_env.AppendUnique(LIBS = ['tinydtls'])
-provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') + '/tinydtls'])
+	provisioning_env.AppendUnique(LIBS = ['tinydtls'])
+	provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') + '/tinydtls'])
 
 if provisioning_env.get('DTLS_WITH_X509') == '1':
 	provisioning_env.AppendUnique(LIBS = ['CKManager', 'asn1'])
@@ -117,11 +111,11 @@ if target_os in ['darwin', 'ios']:
 provisioning_src = [
 	'pmutility.c',
 	'credentialgenerator.c',
-	'ownershiptransfermanager.c',
 	'secureresourceprovider.c',
-	'ocprovisioningmanager.c',
-	'oxmjustworks.c',
-	'oxmrandompin.c',
+	'provisioning_manager.c',
+	'ownership_transfer/oxmgr.c',
+	'ownership_transfer/oxjustworks.c',
+	'ownership_transfer/oxrandompin.c',
 	'provisioningdatabasemanager.c']
 
 print "YYYYYYYYYYYYYYYY pm src:", provisioning_src
@@ -146,13 +140,13 @@ else:
 	provisioningserver = provisioning_env.StaticLibrary('ocpmapi', provisioning_src)
 	# provisioningserver = provisioning_env.SharedLibrary('ocpmapi', provisioning_src)
 
-Alias('secure', provisioningserver)
+Alias('pdm', provisioningserver)
 
 # build.utils.install_lib(provisioning_env, provisioningserver, 'ocpmapi')
 # provisioning_env.UserInstallTargetLib(provisioningserver, 'ocpmapi')
 
 provisioning_env.Install(provisioning_env.get('INSTALL_SYSROOT') + '/include',
-                         'ocprovisioningmanager.h')
+                         'provisioning_manager.h')
 
 if provisioning_env.get('DTLS_WITH_X509') == '1':
 	SConscript('ck_manager/SConscript')

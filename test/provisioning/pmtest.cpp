@@ -18,7 +18,7 @@
  *
  * *****************************************************************/
 #include "gtest/gtest.h"
-#include "ocprovisioningmanager.h"
+#include "provisioning_manager.h"
 
 static OicSecAcl_t acl1;
 static OicSecAcl_t acl2;

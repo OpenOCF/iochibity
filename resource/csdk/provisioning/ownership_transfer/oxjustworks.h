@@ -23,7 +23,7 @@
 
 #include "ocstack.h"
 #include "securevirtualresourcetypes.h"
-#include "ownershiptransfermanager.h"
+#include "oxmgr.h"
 
 #ifdef __cplusplus
 extern "C" {

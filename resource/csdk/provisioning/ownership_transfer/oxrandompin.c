@@ -32,8 +32,8 @@
 #include "pbkdf2.h"
 #include "global.h"
 #include "base64.h"
-#include "oxmrandompin.h"
-#include "ownershiptransfermanager.h"
+#include "oxrandompin.h"
+#include "oxmgr.h"
 #include "pinoxmcommon.h"
 
 #define TAG "OXM_RandomPIN"

@@ -20,10 +20,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "ocprovisioningmanager.h"
+#include "provisioning_manager.h"
 #include "pmutility.h"
 #include "srmutility.h"
-#include "ownershiptransfermanager.h"
+#include "oxmgr.h"
 #include "oic_malloc.h"
 #include "logger.h"
 #include "secureresourceprovider.h"

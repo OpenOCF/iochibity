@@ -1,0 +1,17 @@
+= provisioning
+
+* pm = provisioning manager
+
+* pdm = provisioning database manager, used by PM
+
+* credentialgenerator - used by PM
+
+* ckm = certificate/key(?) manager (x.509?)
+
+* ox = ownership transfer
+
+* srp = secure resource provider
+
+* pki = public key infrastructure
+
+* psk = pre-shared key

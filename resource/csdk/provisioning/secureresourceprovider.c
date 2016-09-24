@@ -24,7 +24,7 @@
 #include <unistd.h>
 #endif
 
-#include "ocprovisioningmanager.h"
+#include "provisioning_manager.h"
 #include "secureresourceprovider.h"
 #include "logger.h"
 #include "oic_malloc.h"

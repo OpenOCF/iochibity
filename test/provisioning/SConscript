@@ -30,7 +30,7 @@ target_os  = test_env.get('TARGET_OS')
 # Build flags
 ######################################################################
 test_env.PrependUnique(CPPPATH = ['#resource/csdk/provisioning',
-		                  '#resource/csdk/provisioning/internal',
+		                  '#resource/csdk/provisioning/ownership_transfer',
 		                  '#resource/stack',
 		                  '#resource/c_common',
 		                  '#resource/logger',
@@ -77,16 +77,18 @@ if target_os in ['msys_nt', 'windows']:
 # Source files and Targets
 ######################################################################
 provisiontest_src = ['pmutilitytest.cpp',
-                     'secureresourceprovider.cpp',
-                     'provisioningdatabasemanager.cpp',
-                     'ocprovisioningmanager.cpp',
+                     'srptest.cpp',
+                     'pdmtest.cpp',
+                     'pmtest.cpp',
                      'credentialgeneratortest.cpp']
 # os.path.join(src_dir, 'resource', 'csdk', 'timer', 'timer.c')
 
 if target_os not in ['windows']:
-    provisiontest_src += [ 'otmunittest.cpp' ]
+    provisiontest_src += [ 'oxtest.cpp' ]
 
 provisiontest = test_env.Program('provisiontest', provisiontest_src)
+Alias("tests", [provisiontest])
+Alias("pmtest", [provisiontest])
 
 #GAR samples
 if target_os not in ['windows']:
