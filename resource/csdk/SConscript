@@ -40,10 +40,18 @@ lib_env.PrependUnique(CPPPATH = ['#resource/c_common',
 o1 = lib_env.Object('cborencoder.o',      'cbor/cborencoder.c')
 o2 = lib_env.Object('cborerrorstrings.o', 'cbor/cborerrorstrings.c'),
 o3 = lib_env.Object('cborparser.o',       'cbor/cborparser.c')
-o4 = lib_env.Object('cJSON.o',            'cjson/cJSON.c')
-o5 = lib_env.Object('timer.o',            'timer/timer.c')
+o4 = lib_env.Object('cbortojson.o',       'cbor/cbortojson.c')
+o5 = lib_env.Object('cborpretty.o',       'cbor/cborpretty.c')
+o6 = lib_env.Object('cJSON.o',            'cjson/cJSON.c')
+o7 = lib_env.Object('timer.o',            'timer/timer.c')
+o8 = lib_env.Object('open_memstream.o',   'cbor/open_memstream.c')
+o9 = lib_env.Object('cborencoder_close_container_checked',   'cbor/cborencoder_close_container_checked.c')
 
-lib_env.StaticLibrary('csdk', [o1, o2, o3, o4, o5])
+if env.get('LOGGING'):
+	lib_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+	lib_env.AppendUnique(CPPPATH = [CSDKSTACK_SRC + '/logger'])
+
+lib_env.StaticLibrary('csdk', [o1, o2, o3, o4, o5, o6, o7, o8, o9])
 
 if env.get('ROUTING') in ['GW', 'EP']:
         print "ROUTING: ", env.get('ROUTING')
