@@ -58,14 +58,16 @@ static CABlockWiseContext_t g_context = { .sendThreadFunc = NULL,
                                           .receivedThreadFunc = NULL,
                                           .dataList = NULL };
 
-static bool CACheckPayloadLength(const CAData_t *sendData)
+/*GAR static bool CACheckPayloadLength(const CAData_t *sendData) */
+static bool CAIsBlockwiseData(const CAData_t *sendData)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     size_t payloadLen = 0;
     CAGetPayloadInfo(sendData, &payloadLen);
 
     // check if message has to be transfered to a block
     size_t maxBlockSize = BLOCK_SIZE(CA_DEFAULT_BLOCK_SIZE);
-    OIC_LOG_V(DEBUG, TAG, "payloadLen=%zu, maxBlockSize=%zu", payloadLen, maxBlockSize);
+    OIC_LOG_V(DEBUG, TAG, "%s: payloadLen=%zu, maxBlockSize=%zu", __func__, payloadLen, maxBlockSize);
 
     if (payloadLen <= maxBlockSize)
     {
@@ -165,6 +167,7 @@ void CATerminateBlockWiseMutexVariables()
 
 CAResult_t CASendBlockWiseData(const CAData_t *sendData)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL(sendData, TAG, "sendData");
 
     // check if message type is CA_MSG_RESET
@@ -172,7 +175,7 @@ CAResult_t CASendBlockWiseData(const CAData_t *sendData)
     {
         if (CA_MSG_RESET == sendData->requestInfo->info.type)
         {
-            OIC_LOG(DEBUG, TAG, "reset message can't be sent to the block");
+            OIC_LOG(DEBUG, TAG, "reset message can't be sent block-wise");
             return CA_NOT_SUPPORTED;
         }
 
@@ -182,7 +185,7 @@ CAResult_t CASendBlockWiseData(const CAData_t *sendData)
          */
         if (sendData->requestInfo->isMulticast)
         {
-            OIC_LOG(DEBUG, TAG, "multicast message can't be sent to the block");
+            OIC_LOG(DEBUG, TAG, "multicast message can't be sent block-wise");
             return CA_NOT_SUPPORTED;
         }
     }
@@ -190,12 +193,12 @@ CAResult_t CASendBlockWiseData(const CAData_t *sendData)
     {
         if (CA_MSG_RESET == sendData->responseInfo->info.type)
         {
-            OIC_LOG(DEBUG, TAG, "reset message can't be sent to the block");
+            OIC_LOG(DEBUG, TAG, "reset message can't be sent block-wise");
             return CA_NOT_SUPPORTED;
         }
         if (sendData->responseInfo->isMulticast)
         {
-            OIC_LOG(DEBUG, TAG, "multicast message can't be sent to the block");
+            OIC_LOG(DEBUG, TAG, "multicast message can't be sent block-wise");
             return CA_NOT_SUPPORTED;
         }
     }
@@ -208,27 +211,30 @@ CAResult_t CASendBlockWiseData(const CAData_t *sendData)
         // #2. if it is not included, add the data into list
         if (!currData)
         {
-            OIC_LOG(DEBUG, TAG, "There is no block data");
+            OIC_LOG_V(DEBUG, TAG, "%s: no block data", __func__);
 
-            bool isBlock = CACheckPayloadLength(sendData);
-            if (!isBlock)
-            {
+            bool isBlock = CAIsBlockwiseData(sendData);
+            if (isBlock) {
+		currData = CACreateNewBlockData(sendData);
+		if (!currData)
+		    {
+			OIC_LOG(ERROR, TAG, "failed to create block data");
+			return CA_MEMORY_ALLOC_FAILED;
+		    }
+	    } else {
                 if (sendData->requestInfo)
                 {
+		    /* GAR: what is the point of this if we're going to return NOT_SUPPORTED? */
                     currData = CACreateNewBlockData(sendData);
                     if (!currData)
                     {
-                        OIC_LOG(ERROR, TAG, "failed to create block data");
+			OIC_LOG_V(ERROR, TAG, "%s: CACreateNewBlockData FAILURE", __func__);
                         return CA_MEMORY_ALLOC_FAILED;
-                    }
+                    } else {
+			OIC_LOG_V(DEBUG, TAG, "%s: CACreateNewBlockData success", __func__);
+		    }
                 }
                 return CA_NOT_SUPPORTED;
-            }
-            currData = CACreateNewBlockData(sendData);
-            if (!currData)
-            {
-                OIC_LOG(ERROR, TAG, "failed to create block data");
-                return CA_MEMORY_ALLOC_FAILED;
             }
         }
     }
@@ -248,6 +254,7 @@ CAResult_t CASendBlockWiseData(const CAData_t *sendData)
         }
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning 0x%X", __func__, res);
     return res;
 }
 
@@ -282,7 +289,7 @@ CAResult_t CACheckBlockOptionType(CABlockData_t *currData)
     VERIFY_NON_NULL(currData, TAG, "currData");
     VERIFY_NON_NULL(currData->sentData, TAG, "currData->sentData");
 
-    bool isBlock = CACheckPayloadLength(currData->sentData);
+    bool isBlock = CAIsBlockwiseData(currData->sentData);
     if (!isBlock)
     {
         return CA_NOT_SUPPORTED;
@@ -1376,7 +1383,7 @@ CAResult_t CAUpdateMessageId(coap_pdu_t *pdu, const CABlockDataID_t *blockID)
 CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
                             const CAEndpoint_t *endpoint, coap_list_t **options)
 {
-    OIC_LOG(DEBUG, TAG, "IN-AddBlockOption");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL(pdu, TAG, "pdu");
     VERIFY_NON_NULL((*pdu), TAG, "(*pdu)");
     VERIFY_NON_NULL((*pdu)->hdr, TAG, "(*pdu)->hdr");
@@ -1414,6 +1421,7 @@ CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
     uint8_t blockType = CAGetBlockOptionType(blockDataID);
     if (COAP_OPTION_BLOCK2 == blockType)
     {
+        OIC_LOG_V(DEBUG, TAG, "%s: Block option: Block2");
         res = CAAddBlockOption2(pdu, info, dataLength, blockDataID, options);
         if (CA_STATUS_OK != res)
         {
@@ -1423,6 +1431,7 @@ CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
     }
     else if (COAP_OPTION_BLOCK1 == blockType)
     {
+        OIC_LOG_V(DEBUG, TAG, "%s: Block option: Block1");
         res = CAAddBlockOption1(pdu, info, dataLength, blockDataID, options);
         if (CA_STATUS_OK != res)
         {
@@ -1432,17 +1441,18 @@ CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
     }
     else
     {
-        OIC_LOG(DEBUG, TAG, "no BLOCK option");
+        OIC_LOG_V(DEBUG, TAG, "%s: Block option: none", __func__);
 
         // in case it is not large data, add option list to pdu.
         if (*options)
         {
             for (coap_list_t *opt = *options; opt; opt = opt->next)
             {
-                OIC_LOG_V(DEBUG, TAG, "[%s] opt will be added.",
-                          COAP_OPTION_DATA(*(coap_option *) opt->data));
+                OIC_LOG_V(DEBUG, TAG, "pdu length: %d", (*pdu)->length);
+                OIC_LOG_V(DEBUG, TAG, "adding option \"%s\" ([1] = 0x%X)",
+                          COAP_OPTION_DATA(*(coap_option *) opt->data),
+                          *(COAP_OPTION_DATA(*(coap_option *) opt->data)));
 
-                OIC_LOG_V(DEBUG, TAG, "[%d] pdu length", (*pdu)->length);
                 coap_add_option(*pdu, COAP_OPTION_KEY(*(coap_option *) opt->data),
                                 COAP_OPTION_LENGTH(*(coap_option *) opt->data),
                                 COAP_OPTION_DATA(*(coap_option *) opt->data), coap_udp);
@@ -1454,13 +1464,13 @@ CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
         // if response data is so large. it have to send as block transfer
         if (!coap_add_data(*pdu, dataLength, (const unsigned char *) info->payload))
         {
-            OIC_LOG(INFO, TAG, "it have to use block");
+	    OIC_LOG_V(ERROR, TAG, "%s: pdu too large, must use block transfer", __func__);
             res = CA_STATUS_FAILED;
             goto exit;
         }
         else
         {
-            OIC_LOG(INFO, TAG, "not Blockwise Transfer");
+	    OIC_LOG_V(DEBUG, TAG, "%s: block-wise transfer not used", __func__);
         }
     }
 
@@ -1483,7 +1493,7 @@ CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
 
 exit:
     CADestroyBlockID(blockDataID);
-    OIC_LOG(DEBUG, TAG, "OUT-AddBlockOption");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
     return res;
 }
 
@@ -1706,7 +1716,7 @@ exit:
 CAResult_t CAAddBlockOptionImpl(coap_block_t *block, uint8_t blockType,
                                 coap_list_t **options)
 {
-    OIC_LOG(DEBUG, TAG, "IN-AddBlockOptionImpl");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL(block, TAG, "block");
     VERIFY_NON_NULL(options, TAG, "options");
 
@@ -1724,12 +1734,13 @@ CAResult_t CAAddBlockOptionImpl(coap_block_t *block, uint8_t blockType,
         return CA_STATUS_INVALID_PARAM;
     }
 
-    OIC_LOG(DEBUG, TAG, "OUT-AddBlockOptionImpl");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
     return CA_STATUS_OK;
 }
 
 CAResult_t CAAddOptionToPDU(coap_pdu_t *pdu, coap_list_t **options)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     // after adding the block option to option list, add option list to pdu.
     if (*options)
     {
@@ -1751,6 +1762,7 @@ CAResult_t CAAddOptionToPDU(coap_pdu_t *pdu, coap_list_t **options)
 
     OIC_LOG_V(DEBUG, TAG, "[%d] pdu length after option", pdu->length);
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
     return CA_STATUS_OK;
 }
 
@@ -2247,7 +2259,7 @@ CAResult_t CAUpdateBlockOptionType(const CABlockDataID_t *blockID, uint8_t block
 
 uint8_t CAGetBlockOptionType(const CABlockDataID_t *blockID)
 {
-    OIC_LOG(DEBUG, TAG, "IN-GetBlockOptionType");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL_RET(blockID, TAG, "blockID", 0);
 
     ca_mutex_lock(g_context.blockDataListMutex);
@@ -2259,13 +2271,13 @@ uint8_t CAGetBlockOptionType(const CABlockDataID_t *blockID)
         if (CABlockidMatches(currData, blockID))
         {
             ca_mutex_unlock(g_context.blockDataListMutex);
-            OIC_LOG(DEBUG, TAG, "OUT-GetBlockOptionType");
+	    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning type 0x%X", __func__, currData->type);
             return currData->type;
         }
     }
     ca_mutex_unlock(g_context.blockDataListMutex);
 
-    OIC_LOG(DEBUG, TAG, "OUT-GetBlockOptionType");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning type 0", __func__);
     return 0;
 }
 
@@ -2344,6 +2356,7 @@ CAResult_t CAGetTokenFromBlockDataList(const coap_pdu_t *pdu, const CAEndpoint_t
 
 CAResult_t CACheckBlockDataValidation(const CAData_t *sendData, CABlockData_t **blockData)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL(sendData, TAG, "sendData");
     VERIFY_NON_NULL(blockData, TAG, "blockData");
 
@@ -2355,8 +2368,8 @@ CAResult_t CACheckBlockDataValidation(const CAData_t *sendData, CABlockData_t **
                 sendData->remoteEndpoint->port);
         if (NULL == blockDataID || blockDataID->idLength < 1)
         {
-            OIC_LOG(ERROR, TAG, "blockId is null");
             CADestroyBlockID(blockDataID);
+	    OIC_LOG_V(DEBUG, TAG, "%s: EXIT FAILED, blockId is null", __func__);
             return CA_STATUS_FAILED;
         }
 
@@ -2372,11 +2385,13 @@ CAResult_t CACheckBlockDataValidation(const CAData_t *sendData, CABlockData_t **
             storedData->sentData = CACloneCAData(sendData);
             *blockData = storedData;
             CADestroyBlockID(blockDataID);
+	    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
             return CA_STATUS_OK;
         }
         CADestroyBlockID(blockDataID);
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT FAILED", __func__);
     return CA_STATUS_FAILED;
 }
 
@@ -2461,7 +2476,7 @@ CAPayload_t CAGetPayloadFromBlockDataList(const CABlockDataID_t *blockID,
 
 CABlockData_t *CACreateNewBlockData(const CAData_t *sendData)
 {
-    OIC_LOG(DEBUG, TAG, "IN-CACreateNewBlockData");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL_RET(sendData, TAG, "sendData", NULL);
 
     // create block data
@@ -2530,7 +2545,7 @@ CABlockData_t *CACreateNewBlockData(const CAData_t *sendData)
     }
     ca_mutex_unlock(g_context.blockDataListMutex);
 
-    OIC_LOG(DEBUG, TAG, "OUT-CreateBlockData");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning data", __func__);
     return data;
 }
 
@@ -2609,6 +2624,7 @@ void CADestroyDataSet(CAData_t* data)
 CABlockDataID_t* CACreateBlockDatablockId(const CAToken_t token, uint8_t tokenLength,
                                           uint16_t portNumber)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     char port[PORT_LENGTH] = { 0, };
     port[0] = (char) ((portNumber >> 8) & 0xFF);
     port[1] = (char) (portNumber & 0xFF);
@@ -2635,9 +2651,8 @@ CABlockDataID_t* CACreateBlockDatablockId(const CAToken_t token, uint8_t tokenLe
 
     memcpy(blockDataID->id + tokenLength, port, sizeof(port));
 
-    OIC_LOG(DEBUG, TAG, "BlockID is ");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT, block id is:", __func__);
     OIC_LOG_BUFFER(DEBUG, TAG, (const uint8_t *)blockDataID->id, blockDataID->idLength);
-
     return blockDataID;
 }
 
