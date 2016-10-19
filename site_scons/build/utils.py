@@ -53,7 +53,7 @@ def get_help_vars():
         help_vars.Add(EnumVariable('TEST', 'Run unit tests', '0', allowed_values=('0', '1')))
         help_vars.Add(BoolVariable('LOGGING', 'Enable stack logging', False)) # logging_default))
         # help_vars.Add(BoolVariable('UPLOAD', 'Upload binary ? (For Arduino)', require_upload))
-        help_vars.Add(EnumVariable('ROUTING', 'Enable routing', 'EP', allowed_values=('GW', 'EP')))
+        help_vars.Add(EnumVariable('ROUTING', 'Enable routing', '', allowed_values=('', 'GW', 'EP')))
         help_vars.Add(EnumVariable('BUILD_SAMPLE', 'Build with sample', 'ON', allowed_values=('ON', 'OFF')))
         # help_vars.AddVariables(('DEVICE_NAME', 'Network display name for device (For Arduino)', device_name, None, None),)
         help_vars.Add(PathVariable('ANDROID_NDK', 'Android NDK path', None, PathVariable.PathAccept))

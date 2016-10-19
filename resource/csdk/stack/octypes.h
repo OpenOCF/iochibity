@@ -65,10 +65,10 @@ extern "C" {
 /** Resource Type.*/
 #define OC_RSRVD_RESOURCE_TYPES_URI           "/oic/res/types/d"
 /* GAR: one or the other must be defined, so there is no point to this test: */
-/* #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
 /** Gateway URI.*/
 #define OC_RSRVD_GATEWAY_URI                  "/oic/gateway"
-/* #endif */
+#endif
 
 #ifdef WITH_MQ
 /** MQ Broker URI.*/
@@ -536,10 +536,10 @@ typedef struct
 
     /** usually zero for default interface.*/
     uint32_t                ifindex;
-/* GAR: one or the other must be defined, so there is no point to this test: */
-/* #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+/* GAR: FIXME: this allows stack and app code to differ */
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     char                    routeData[MAX_ADDR_STR_SIZE]; //destination GatewayID:ClientId
-/* #endif */
+#endif
 } OCDevAddr;
 
 /**

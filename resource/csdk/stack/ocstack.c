@@ -60,12 +60,12 @@
 #include "internal/ocpayloadcbor.h"
 #include "platform_features.h"
 
-/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
 #include "routingutility.h"
 #ifdef ROUTING_GATEWAY
 #include "routingmanager.h"
 #endif
-/*GAR #endif */
+#endif
 
 #ifdef TCP_ADAPTER
 #include "oickeepalive.h"
@@ -446,9 +446,13 @@ void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out)
     OICStrcpy(out->addr, sizeof(out->addr), in->addr);
     out->port = in->port;
     out->ifindex = in->ifindex;
-/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+    /* This assert is to prevent accidental mismatch between address size macros defined in
+     * RI and CA and cause crash here. */
+    OC_STATIC_ASSERT(MAX_ADDR_STR_SIZE_CA == MAX_ADDR_STR_SIZE,
+                                        "Address size mismatch between RI and CA");
     memcpy(out->routeData, in->routeData, sizeof(out->routeData));
-/*GAR #endif */
+#endif
 }
 
 void CopyDevAddrToEndpoint(const OCDevAddr *in, CAEndpoint_t *out)
@@ -459,9 +463,13 @@ void CopyDevAddrToEndpoint(const OCDevAddr *in, CAEndpoint_t *out)
     out->adapter = (CATransportAdapter_t)in->adapter;
     out->flags = OCToCATransportFlags(in->flags);
     OICStrcpy(out->addr, sizeof(out->addr), in->addr);
-/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+    /* This assert is to prevent accidental mismatch between address size macros defined in
+     * RI and CA and cause crash here. */
+    OC_STATIC_ASSERT(MAX_ADDR_STR_SIZE_CA == MAX_ADDR_STR_SIZE,
+                                        "Address size mismatch between RI and CA");
     memcpy(out->routeData, in->routeData, sizeof(out->routeData));
-/*GAR #endif */
+#endif
     out->port = in->port;
     out->ifindex = in->ifindex;
 }
@@ -477,17 +485,18 @@ void FixUpClientResponse(OCClientResponse *cr)
 
 static OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *requestInfo)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL(object, FATAL, OC_STACK_INVALID_PARAM);
     VERIFY_NON_NULL(requestInfo, FATAL, OC_STACK_INVALID_PARAM);
 
-/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     OCStackResult rmResult = RMAddInfo(object->routeData, requestInfo, true, NULL);
     if (OC_STACK_OK != rmResult)
     {
         OIC_LOG(ERROR, TAG, "Add destination option failed");
         return rmResult;
     }
-/* #endif */
+#endif
 
     // OC stack prefer CBOR encoded payloads.
     requestInfo->info.acceptFormat = CA_FORMAT_APPLICATION_CBOR;
@@ -497,6 +506,7 @@ static OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *
         OIC_LOG_V(ERROR, TAG, "CASendRequest failed with CA error %u", result);
         return CAResultToOCResult(result);
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
     return OC_STACK_OK;
 }
 //-----------------------------------------------------------------------------
@@ -639,7 +649,7 @@ static OCStackResult CAResultToOCStackResult(CAResult_t caResult)
 
 OCStackResult CAResponseToOCStackResult(CAResponseResult_t caCode)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, caCode %d", __func__, caCode);
     OCStackResult ret = OC_STACK_ERROR;
     switch(caCode)
     {
@@ -1215,6 +1225,11 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
 {
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
+    /* if(responseInfo->result >= CA_BAD_REQ) { */
+    /* 	OIC_LOG_V(FATAL, TAG, "%s: BAD REQUEST, CA Response status code: %d", __func__, responseInfo->result); */
+    /* 	return; */
+    /* } */
+
     if(responseInfo->info.resourceUri &&
         strcmp(responseInfo->info.resourceUri, OC_RSRVD_PRESENCE_URI) == 0)
     {
@@ -1265,7 +1280,7 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
         }
         else
         {
-            OIC_LOG(INFO, TAG, "This is a regular response, A client call back is found");
+            OIC_LOG_V(INFO, TAG, "%s: This is a regular response, A client call back is found", __func__);
 
             OCClientResponse response =
                 {.devAddr = {.adapter = OC_DEFAULT_ADAPTER}};
@@ -1278,20 +1293,18 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
             response.identity.id_length = responseInfo->info.identity.id_length;
 
             response.result = CAResponseToOCStackResult(responseInfo->result);
+	    OIC_LOG_V(DEBUG, TAG, "%s: response result %x", __func__, response.result);
 
             if(responseInfo->info.payload &&
                responseInfo->info.payloadSize)
             {
                 OCPayloadType type = PAYLOAD_TYPE_INVALID;
                 // check the security resource
-#ifdef SECURED
                 if (SRMIsSecurityResourceURI(cbNode->requestUri))
                 {
                     type = PAYLOAD_TYPE_SECURITY;
                 }
-                else
-#endif
-		if (cbNode->method == OC_REST_DISCOVER)
+                else if (cbNode->method == OC_REST_DISCOVER)
                 {
                     if (strncmp(OC_RSRVD_WELL_KNOWN_URI,cbNode->requestUri,
                                 sizeof(OC_RSRVD_WELL_KNOWN_URI) - 1) == 0)
@@ -1422,18 +1435,18 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
                 }
             }
 
+	    OIC_LOG_V(DEBUG, TAG, "%s: FOO A", __func__);
             if (cbNode->method == OC_REST_OBSERVE &&
                 response.sequenceNumber > OC_OFFSET_SEQUENCE_NUMBER &&
                 cbNode->sequenceNumber <=  MAX_SEQUENCE_NUMBER &&
                 response.sequenceNumber <= cbNode->sequenceNumber)
             {
-                OIC_LOG_V(INFO, TAG, "Received stale notification. Number :%d",
+                OIC_LOG_V(INFO, TAG, "%s: Received stale notification. Number :%d", __func__,
                                                  response.sequenceNumber);
             }
             else
             {
-		OIC_LOG_V(INFO, TAG, "Invoking user callback with payload type %x",
-			  response.payload->type);
+		OIC_LOG_V(INFO, TAG, "%s: Invoking user callback", __func__);
                 OCStackApplicationResult appFeedback = cbNode->callBack(cbNode->context,
                                                                         cbNode->handle,
                                                                         &response);
@@ -1454,8 +1467,9 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
             //Need to send ACK when the response is CON
             if(responseInfo->info.type == CA_MSG_CONFIRM)
             {
+		OIC_LOG_V(DEBUG, TAG, "%s: Sending ACK for confirmable msg", __func__);
                 SendDirectStackResponse(endPoint, responseInfo->info.messageId, CA_EMPTY,
-                        CA_MSG_ACKNOWLEDGE, 0, NULL, NULL, 0, NULL);
+					CA_MSG_ACKNOWLEDGE, 0, NULL, NULL, 0, NULL);
             }
 
             OCPayloadDestroy(response.payload);
@@ -1537,8 +1551,9 @@ void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* res
     VERIFY_NON_NULL_NR(responseInfo, FATAL);
 
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "\tendpoint addr:port %s:%d", endPoint->addr, endPoint->port);
 
-/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
 #ifdef ROUTING_GATEWAY
     bool needRIHandling = false;
     /*
@@ -1564,7 +1579,7 @@ void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* res
     RMUpdateInfo((CAHeaderOption_t **) &(responseInfo->info.options),
                  (uint8_t *) &(responseInfo->info.numOptions),
                  (CAEndpoint_t *) endPoint);
-/*GAR #endif */
+#endif
 
     OCHandleResponse(endPoint, responseInfo);
 
@@ -1621,7 +1636,7 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
         const uint8_t numOptions, const CAHeaderOption_t *options,
         CAToken_t token, uint8_t tokenLength, const char *resourceUri)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, msg type %d", __func__, type);
     CAResponseInfo_t respInfo = {
         .result = responseResult
     };
@@ -1644,7 +1659,7 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
     respInfo.info.resourceUri = OICStrdup (resourceUri);
     respInfo.info.acceptFormat = CA_FORMAT_UNDEFINED;
 
-/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     // Add the destination to route option from the endpoint->routeData.
     bool doPost = false;
     OCStackResult result = RMAddInfo(endPoint->routeData, &respInfo, false, &doPost);
@@ -1693,7 +1708,7 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
         }
     }
     else
-/*GAR #endif */
+#endif
     {
         CAResult_t caResult = CASendResponse(endPoint, &respInfo);
 
@@ -1776,6 +1791,7 @@ OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolRequest)
     return result;
 }
 
+/* incoming requests */
 void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
@@ -2006,7 +2022,7 @@ void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
         return;
     }
 
-/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
 #ifdef ROUTING_GATEWAY
     bool needRIHandling = false;
     bool isEmptyMsg = false;
@@ -2024,7 +2040,7 @@ void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
         OIC_LOG_V(INFO, TAG, "Routing status![%d]. Not forwarding to RI", ret);
         return;
     }
-/*GAR #endif */
+#endif
 
     /*
      * Put source in sender endpoint so that the next packet from application can be routed to
@@ -2195,23 +2211,20 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
 	/* GAR TODO: verify that clients need not use SRM, but servers and gateways always do */
 	/* GAR TODO: what's the diff betwwen discovery server and listener server? */
         case OC_CLIENT:
+	    /*GAR: originally: */
             CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+            /* SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse); */
             result = CAResultToOCResult(CAStartDiscoveryServer());
             OIC_LOG(INFO, TAG, "Client mode: CAStartDiscoveryServer");
             break;
         case OC_SERVER:
-            /* SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse); */
-            /* result = CAResultToOCResult(CAStartListeningServer()); */
+            SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+            result = CAResultToOCResult(CAStartListeningServer());
             OIC_LOG(INFO, TAG, "Server mode: CAStartListeningServer");
-	    /* GAR: why not CAStartDiscoveryServer()? */
-            /* break; */
+            break;
         case OC_CLIENT_SERVER:
         case OC_GATEWAY:
-/*GAR servers and gateways ALWAYS use SRM */
             SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
-/* #else */
-/*             CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse); */
-/* #endif */
             result = CAResultToOCResult(CAStartListeningServer());
             if(result == OC_STACK_OK)
             {
@@ -2243,13 +2256,14 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
     /* } */
 
     // Initialize the SRM Policy Engine
+    // GAR: only for servers?
     if(result == OC_STACK_OK)
     {
         result = SRMInitPolicyEngine();
         // TODO after BeachHead delivery: consolidate into single SRMInit()
     }
 
-/*GAR #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     RMSetStackMode(mode);
 #ifdef ROUTING_GATEWAY
     if (OC_GATEWAY == myStackMode)
@@ -2257,7 +2271,7 @@ OCStackResult OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlag
         result = RMInitialize();
     }
 #endif
-/*GAR #endif */
+#endif
 
 #ifdef TCP_ADAPTER
     if (result == OC_STACK_OK)
@@ -2312,30 +2326,22 @@ OCStackResult OCStop()
 #endif
 
     // Free memory dynamically allocated for resources
-    //GAR printf("**************** GAR: deleting all resources...\n");
     deleteAllResources();
-    //GAR printf("**************** GAR: deleting device info...\n");
     DeleteDeviceInfo();
-    //GAR printf("**************** GAR: deleting platform info...\n");
     DeletePlatformInfo();
-    //GAR printf("**************** GAR: terminating ca...\n");
     CATerminate();
     // Remove all observers
-    //GAR printf("**************** GAR: removing observers...\n");
     DeleteObserverList();
     // Remove all the client callbacks
-    //GAR printf("**************** GAR: deleting callbacks...\n");
     DeleteClientCBList();
 
-#ifdef SECURED
+/* #ifdef SECURED */
     // De-init the SRM Policy Engine
     // TODO after BeachHead delivery: consolidate into single SRMDeInit()
-    //GAR printf("**************** GAR: decommish SRM policy engine...\n");
     SRMDeInitPolicyEngine();
-#endif
+/* #endif */
 
     stackState = OC_STACK_UNINITIALIZED;
-    //GAR printf("**************** GAR: Return from OCStop!\n");
     OIC_LOG_V(INFO, TAG, "%s: EXIT", __func__);
     return OC_STACK_OK;
 }
@@ -2765,7 +2771,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
         }
         requestInfo.info.numOptions = numOptions + 1;
     }
-    else
+    else if (numOptions > 0)
     {
         requestInfo.info.numOptions = numOptions;
         requestInfo.info.options =
@@ -2785,7 +2791,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
             OIC_LOG(ERROR, TAG, "Failed to create CBOR Payload");
             goto exit;
         }
-	OIC_LOG_V(INFO, TAG, "%s: PAYLOAD TYPE: %d", ((OCPayload*)requestInfo.info.payload)->type);
+	OIC_LOG_V(INFO, TAG, "%s: PAYLOAD TYPE: %d", __func__, ((OCPayload*)requestInfo.info.payload)->type);
         requestInfo.info.payloadFormat = CA_FORMAT_APPLICATION_CBOR;
     }
     else
@@ -2960,7 +2966,7 @@ OCStackResult OCCancel(OCDoHandle handle, OCQualityOfService qos, OCHeaderOption
     return ret;
 }
 
-#ifdef SECURED
+/* #ifdef SECURED */
 /**
  * @brief   Register Persistent storage callback.
  * @param   persistentStorageHandler [IN] Pointers to open, read, write, close & unlink handlers.
@@ -2990,7 +2996,7 @@ OCStackResult OCRegisterPersistentStorageHandler(OCPersistentStorage* persistent
     }
     return SRMRegisterPersistentStorageHandler(persistentStorageHandler);
 }
-#endif
+/* #endif */
 
 #ifdef WITH_PRESENCE
 
@@ -4291,19 +4297,15 @@ OCStackResult initResources()
     }
 #endif /* WITH_PRESENCE */
 #ifndef WITH_ARDUINO
-/*GAR #ifdef SECURED */
     if (result == OC_STACK_OK)
     {
         result = SRMInitSecureResources();
     }
-/* #endif */
 #endif
 
     if(result == OC_STACK_OK)
     {
-/*GAR #ifdef SECURED */
         CreateResetProfile();
-/* #endif */
         result = OCCreateResource(&deviceResource,
                                   OC_RSRVD_RESOURCE_TYPE_DEVICE,
                                   OC_RSRVD_INTERFACE_DEFAULT,
@@ -4392,9 +4394,9 @@ void deleteAllResources()
     memset(&brokerResource, 0, sizeof(brokerResource));
 #endif
 
-#ifdef SECURED
+/* #ifdef SECURED */
     SRMDeInitSecureResources();
-#endif
+/* #endif */
 
 #ifdef WITH_PRESENCE
     // Ensure that the last resource to be deleted is the presence resource. This allows for all
@@ -4780,7 +4782,7 @@ static const OicUuid_t* OCGetServerInstanceID(void)
     }
 
     OCStackResult result = OC_STACK_ERROR;
-#ifdef SECURED
+/* #ifdef SECURED */
     OIC_LOG_V(INFO, TAG, "%s: SECURED", __func__);
     result = GetDoxmDeviceID(&sid);
     if (OC_STACK_OK != result)
@@ -4790,17 +4792,17 @@ static const OicUuid_t* OCGetServerInstanceID(void)
     } else {
 	OIC_LOG_V(DEBUG, TAG, "%s: GetDoxmDeviceID sid OK", __func__); //, sid.id);
     }
-#else
-    OIC_LOG_V(INFO, TAG, "%s: NOT SECURED", __func__);
-    /* GAR FIXME: make sid a static global? */
-    if (OCGenerateUuid(sid.id) != RAND_UUID_OK)
-    {
-      OIC_LOG(FATAL, TAG, "OCGenerateUuid for Server Instance failed!");
-      return NULL;
-    } else {
-      result = OC_STACK_OK;
-    }
-#endif
+/* #else */
+/*     OIC_LOG_V(INFO, TAG, "%s: NOT SECURED", __func__); */
+/*     /\* GAR FIXME: make sid a static global? *\/ */
+/*     if (OCGenerateUuid(sid.id) != RAND_UUID_OK) */
+/*     { */
+/*       OIC_LOG(FATAL, TAG, "OCGenerateUuid for Server Instance failed!"); */
+/*       return NULL; */
+/*     } else { */
+/*       result = OC_STACK_OK; */
+/*     } */
+/* #endif */
     generated = true;
     return &sid;
 }

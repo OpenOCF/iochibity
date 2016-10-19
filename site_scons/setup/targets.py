@@ -147,6 +147,16 @@ def host_features(env) :
         env.Replace(BUILD_SYSROOT   = env['ENV']['BUILD_SYSROOT'])
         env.Replace(INSTALL_SYSROOT = env['ENV']['INSTALL_SYSROOT'])
 
+        try:
+                stage = env['ENV']['STAGE']
+                if stage == 'release':
+                        env.Replace(RELEASE = 1)
+                elif stage == 'debug':
+                        env.Replace(RELEASE = 0)
+        except:
+                env.Replace(RELEASE = 0)
+                pass
+
         #FIXME: put this in a fn:
         try:
                 ip_api = env['ENV']['IOTIVITY_IP_API']
@@ -348,8 +358,9 @@ def host_features(env) :
                 elif routing_mode == 'GW':
                         env.Append(CPPDEFINES = ['ROUTING_GW'])
         except KeyError:
-                env.Replace(ROUTING = 'EP')
-                env.Append(CPPDEFINES = ['ROUTING_EP'])
+                pass
+                # env.Replace(ROUTING = 'EP')
+                # env.Append(CPPDEFINES = ['ROUTING_EP'])
 
         # try:
         #         sec = env.get('SECURED')
@@ -737,8 +748,9 @@ def edison(env):
                 elif routing_mode == 'GW':
                         env.Append(CPPDEFINES = ['ROUTING_GW'])
         except KeyError:
-                env.Replace(ROUTING = 'EP')
-                env.Append(CPPDEFINES = ['ROUTING_EP'])
+                pass
+                # env.Replace(ROUTING = 'EP')
+                # env.Append(CPPDEFINES = ['ROUTING_EP'])
 
         try:
                 log = env['ENV']['LOGGING']
