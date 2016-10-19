@@ -81,8 +81,7 @@ ca_common_src = None
 
 if local_env.get('ROUTING') == 'GW':
 	local_env.AppendUnique(CPPDEFINES = ['ROUTING_GATEWAY'])
-#elif local_env.get('ROUTING') == 'EP':
-else:
+elif local_env.get('ROUTING') == 'EP':
 	local_env.AppendUnique(CPPDEFINES = ['ROUTING_EP'])
 
 ca_common_src = ['caconnectivitymanager.c',
@@ -184,7 +183,7 @@ lib_env.AppendUnique(LIBPATH = ['/c_common',
 lib_env.AppendUnique(LIBS = ['c_common', 'coap', 'csdk'])
 
 if target_os in ['android']:
-	if lib_env.get('SECURED') == '1':
+	if lib_env.get('SECURED'):
 		lib_env.AppendUnique(LIBS = ['tinydtls'])
 		# lib_env.AppendUnique(LIBS = ['timer'])
 	#GAR FIXME: put the build dir on libpath at startup
@@ -195,7 +194,7 @@ if target_os in ['android']:
 
 elif target_os in ['tizen']:
 	lib_env.AppendUnique(LIBS = ['coap'])
-	if lib_env.get('SECURED') == '1':
+	if lib_env.get('SECURED'):
 		lib_env.AppendUnique(LIBS = ['tinydtls'])
 		lib_env.AppendUnique(LIBS = ['timer'])
 	lib_env.AppendUnique(LIBS = ['rt'])
@@ -203,7 +202,7 @@ elif target_os in ['tizen']:
 
 elif target_os in ['msys_nt', 'windows']:
 	lib_env.AppendUnique(LIBS = ['coap', 'mswsock', 'ws2_32', 'iphlpapi', 'logger'])
-	if lib_env.get('SECURED') == '1':
+	if lib_env.get('SECURED'):
 		lib_env.AppendUnique(LIBS = ['tinydtls'])
 		lib_env.AppendUnique(LIBS = ['timer'])
 	calib = lib_env.StaticLibrary('connectivity_abstraction', env.get('CA_SRC'))
