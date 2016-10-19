@@ -110,7 +110,7 @@ if env.get('SECURED'):
 if target_os in ['windows', 'msys_nt']:
 	libocsrm_src  = libocsrm_src + ['strptime.c']
 
-if env.get('DTLS_WITH_X509') == '1' and env.get('SECURED') == '1':
+if env.get('DTLS_WITH_X509') == '1' and env.get('SECURED'):
 	crl_src = ['crlresource.c']
 	libocsrm_src  = libocsrm_src + crl_src
 
