@@ -4,7 +4,7 @@ import build.utils
 
 print "CSDK/LOGGER"
 
-env.AppendUnique(CPPPATH = ['#resource/c_common'])
+env.AppendUnique(CPPPATH = ['#resource/c_common', '#resource/csdk/security/ocsecurity'])
 
 if env.get('TARGET_OS') in ['arduino']:
 	env.AppendUnique(CPPPATH = [os.path.join(env.get('BUILD_DIR'), 'resource/c_common')])
@@ -13,8 +13,8 @@ if env.get('TARGET_OS') == 'tizen':
 # else:
 # 	env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_DIR'), 'logger')])
 
-# env.PrependUnique(LIBS = ['logger'])
-# env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_SYSROOT'), 'logger')])
+env.PrependUnique(LIBS = ['ocsrm'])
+env.AppendUnique(LIBPATH = [os.path.join(env.get('BUILD_SYSROOT'), 'security')])
 
 local_env = env.Clone()
 

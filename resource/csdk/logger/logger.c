@@ -52,6 +52,8 @@
 #include "logger.h"
 #include "string.h"
 #include "logger_types.h"
+#include "securevirtualresourcetypes.h"
+#include "oc_uuid.h"
 #include "platform_features.h"
 
 #ifndef __TIZEN__
@@ -154,6 +156,32 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
         OCLogv(level, tag, "%s", lineBuffer);
     }
 }
+
+/**
+ * Log a security credential
+ *
+ * @param level      - DEBUG, INFO, WARNING, ERROR, FATAL
+ * @param tag        - Module name
+ * @param cred     - pointer to credential
+ */
+ void OCLogCredential(LogLevel level, const char * tag, void* cred)
+ {
+    if (!tag) {
+        return;
+    }
+    OicSecCred_t* credential = (OicSecCred_t*) cred;
+    char buffer[MAX_LOG_V_BUFFER_SIZE] = {0};
+    static char subject[UUID_STRING_SIZE];
+    if(OCConvertUuidToString( credential->subject.id, subject) != RAND_UUID_OK)
+    {
+	/* printf("XXXXXXXXXXXXXXXX TEST OCConvertUuidToString failure"); */
+	/* OIC_LOG_V(FATAL, TAG, "%s: OCConvertUuidToString failed for subject", __func__); */
+        /* return NULL; */
+    }
+    snprintf(buffer, sizeof buffer - 1, "Logging Credential:\n\tsubject: %s", &subject);
+    OCLog(level, tag, buffer);
+ }
+
 #ifndef __TIZEN__
 void OCLogConfig(oc_log_ctx_t *ctx)
 {
@@ -343,6 +371,17 @@ void OCLogString(LogLevel level, PROGMEM const char * tag, const char * logStr)
      {
          OCLogString(level, tag, lineBuffer);
      }
+ }
+
+/**
+ * Log a security credential
+ *
+ * @param level      - DEBUG, INFO, WARNING, ERROR, FATAL
+ * @param tag        - Module name
+ * @param cred       - pointer to credential
+ */
+ void OCLogCredential(LogLevel level, PROGMEM const char * tag, void* cred)
+ {
  }
 
 /**

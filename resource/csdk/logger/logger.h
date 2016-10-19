@@ -149,6 +149,16 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
      * @param bufferSize - max number of byte in buffer
      */
     void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint16_t bufferSize);
+
+    /**
+     * Log a security credential
+     *
+     * @param level      - DEBUG, INFO, WARNING, ERROR, FATAL
+     * @param tag        - Module name
+     * @param cred     - pointer to credential
+     */
+    void OCLogCredential(LogLevel level, const char * tag, void* cred);
+
 #else  // For arduino platforms
     /**
      * Initialize the serial logger for Arduino
@@ -179,6 +189,15 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
     void OCLogBuffer(LogLevel level, const char *tag, const uint8_t *buffer, size_t bufferSize);
 
     /**
+     * Log a security credential
+     *
+     * @param level      - DEBUG, INFO, WARNING, ERROR, FATAL
+     * @param tag        - Module name
+     * @param cred       - pointer to credential
+     */
+    void OCLogCredential(LogLevel level, PROGMEM const char * tag, void* cred);
+
+    /**
      * Output a variable argument list log string with the specified priority level.
      *
      * @param level  - DEBUG, INFO, WARNING, ERROR, FATAL
@@ -202,6 +221,8 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 #define OIC_LOG_V(level,tag,fmt,args...) LOG_(LOG_ID_MAIN, level, tag, fmt, ##args)
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)\
     OCLogBuffer((level), (tag), (buffer), (bufferSize))
+#define OIC_LOG_CRED(level, tag, cred)\
+    OCLogCredential((level), (tag), (cred))
 
 #else // These macros are defined for Linux, Android, Win32, and Arduino
 
@@ -210,6 +231,7 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 #ifdef ARDUINO
 
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)  OCLogBuffer((level), PCF(tag), (buffer), (bufferSize))
+#define OIC_LOG_CRED(level, tag, cred)  OCLogCredential((level), PCF(tag), (cred))
 // Don't define variable argument log function for Arduino
 #define OIC_LOG_V(level, tag, format, ...) OCLogv((level), PCF(tag), __LINE__, PCF(format),__VA_ARGS__)
 
@@ -221,6 +243,7 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 #else
 
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)  OCLogBuffer((level), (tag), (buffer), (bufferSize))
+#define OIC_LOG_CRED(level, tag, cred)  OCLogCredential((level), (tag), (cred))
 #define OIC_LOG_CONFIG(ctx)    OCLogConfig((ctx))
 #define OIC_LOG_SHUTDOWN()     OCLogShutdown()
 #define OIC_LOG(level, tag, logStr)  OCLog((level), (tag), (logStr))
@@ -237,6 +260,7 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 #define OIC_LOG(level, tag, logStr)
 #define OIC_LOG_V(level, tag, ...)
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)
+#define OIC_LOG_CRED(level, tag, cred)
 #define OIC_LOG_INIT()
 #endif
 
