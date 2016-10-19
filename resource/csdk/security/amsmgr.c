@@ -266,7 +266,7 @@ exit:
 static OCStackApplicationResult AmsMgrAclReqCallback(void *ctx, OCDoHandle handle,
     OCClientResponse * clientResponse)
 {
-    OIC_LOG_V(INFO, TAG, "%s Begin", __func__ );
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     (void)handle;
     PEContext_t *context = (PEContext_t *) ctx;

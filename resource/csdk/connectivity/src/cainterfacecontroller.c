@@ -44,7 +44,7 @@
 #include "catcpadapter.h"
 #endif
 
-#define TAG "OIC_CA_INF_CTR"
+#define TAG "OIC_CA_IF_CTRL"
 
 #define CA_MEMORY_ALLOC_CHECK(arg) {if (arg == NULL) \
     {OIC_LOG(ERROR, TAG, "memory error");goto memory_error_exit;} }
@@ -75,6 +75,7 @@ static int CAGetAdapterIndex(CATransportAdapter_t cType)
 
 static void CARegisterCallback(CAConnectivityHandler_t handler)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (handler.startAdapter == NULL ||
         handler.startListenServer == NULL ||
         handler.stopListenServer == NULL ||
@@ -101,7 +102,19 @@ static void CARegisterCallback(CAConnectivityHandler_t handler)
     g_numberOfAdapters = numberofAdapters;
     g_adapterHandler[g_numberOfAdapters-1] = handler;
 
-    OIC_LOG_V(DEBUG, TAG, "%d type adapter, register complete!", handler.cType);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK, handler type %d (%s)", __func__,
+	      handler.cType,
+	      (handler.cType == CA_DEFAULT_ADAPTER)? "CA_DEFAULT_ADAPTER"
+	      :(handler.cType == CA_ADAPTER_IP)? "CA_ADAPTER_IP"
+	      :(handler.cType == CA_ADAPTER_GATT_BTLE)? "CA_ADAPTER_GATT_BTLE"
+	      :(handler.cType == CA_ADAPTER_RFCOMM_BTEDR)? "CA_ADAPTER_RFCOMM_BTEDR"
+#ifdef RA_ADAPTER
+	      :(handler.cType == CA_ADAPTER_REMOTE_ACCESS)? "CA_ADAPTER_REMOTE_ACCESS"
+#endif
+	      :(handler.cType == CA_ADAPTER_TCP)? "CA_ADAPTER_TCP"
+	      :(handler.cType == CA_ADAPTER_NFC)? "CA_ADAPTER_NFC"
+	      :(handler.cType == CA_ALL_ADAPTERS)? "CA_ALL_ADAPTERS"
+	      : "UNKNOWN");
 }
 
 #ifdef RA_ADAPTER
@@ -217,7 +230,7 @@ void CASetErrorHandleCallback(CAErrorHandleCallback errorCallback)
 
 CAResult_t CAStartAdapter(CATransportAdapter_t transportType)
 {
-    OIC_LOG_V(DEBUG, TAG, "Start the adapter of CAConnectivityType[%d]", transportType);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, adapter type: %d", __func__, transportType);
 
     int index = CAGetAdapterIndex(transportType);
     if (0 > index)
@@ -232,6 +245,7 @@ CAResult_t CAStartAdapter(CATransportAdapter_t transportType)
         res = g_adapterHandler[index].startAdapter();
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, res);
     return res;
 }
 
@@ -363,6 +377,7 @@ memory_error_exit:
 
 CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uint32_t length)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, endpoint: %s:%d", __func__, endpoint->addr, endpoint->port);
     if (endpoint == NULL)
     {
         OIC_LOG(DEBUG, TAG, "Invalid endpoint");
@@ -405,7 +420,7 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
 
         if (NULL != g_adapterHandler[index].sendData)
         {
-            OIC_LOG(DEBUG, TAG, "unicast message to adapter");
+            OIC_LOG_V(DEBUG, TAG, "%s: invoking sendData() on adapterHandler", __func__);
             sentDataLen = g_adapterHandler[index].sendData(endpoint, data, length);
         }
 
@@ -419,7 +434,7 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
         }
 
     }
-
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning CA_STATUS_OK", __func__);
     return CA_STATUS_OK;
 }
 
@@ -486,6 +501,7 @@ CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, u
 
 CAResult_t CAStartListeningServerAdapters()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     CAResult_t result = CA_STATUS_FAILED;
 
     u_arraylist_t *list = CAGetSelectedNetworkList();
@@ -572,7 +588,6 @@ CAResult_t CAStartDiscoveryServerAdapters()
     CAResult_t result = CA_STATUS_FAILED;
 
     u_arraylist_t *list = CAGetSelectedNetworkList();
-
     if (!list)
     {
         OIC_LOG(ERROR, TAG, "No selected network");

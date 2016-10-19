@@ -188,6 +188,7 @@ void CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_t sock
 
 void CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_storage *sockaddr)
 {
+    OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "%s: ENTRY, host %s, port %d", __func__, host, port);
     VERIFY_NON_NULL_VOID(host, CA_ADAPTER_UTILS_TAG, "host is null");
     VERIFY_NON_NULL_VOID(sockaddr, CA_ADAPTER_UTILS_TAG, "sockaddr is null");
 

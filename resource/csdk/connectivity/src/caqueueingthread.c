@@ -54,15 +54,12 @@ static void CAQueueingThreadBaseRoutine(void *threadValue)
         // mutex lock
         ca_mutex_lock(thread->threadMutex);
 
-        // if queue is empty, thread will wait
         if (!thread->isStop && u_queue_get_size(thread->dataQueue) <= 0)
         {
-            OIC_LOG(DEBUG, TAG, "wait..");
-
-            // wait
+	    // if queue is empty, thread will wait
+            OIC_LOG_V(DEBUG, TAG, "%s: ca_cond_wait blocking, on thread %d", __func__, pthread_self());
             ca_cond_wait(thread->threadCond, thread->threadMutex);
-
-            OIC_LOG_V(DEBUG, TAG, "wake up thread %d..", pthread_self());
+            OIC_LOG_V(DEBUG, TAG, "%s: ca_cond_wait unblocked, on thread %d..", __func__, pthread_self());
         }
 
         // check stop flag
@@ -83,6 +80,7 @@ static void CAQueueingThreadBaseRoutine(void *threadValue)
         }
 
         // process data
+	OIC_LOG_V(DEBUG, TAG, "%s: process thread task", __func__);
         thread->threadTask(message->msg);
 
         // free
@@ -102,7 +100,8 @@ static void CAQueueingThreadBaseRoutine(void *threadValue)
     ca_cond_signal(thread->threadCond);
     ca_mutex_unlock(thread->threadMutex);
 
-    OIC_LOG(DEBUG, TAG, "message handler main thread end..");
+    OIC_LOG(DEBUG, TAG, "message handler main thread ending");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 
 CAResult_t CAQueueingThreadInitialize(CAQueueingThread_t *thread, ca_thread_pool_t handle,
@@ -197,6 +196,7 @@ CAResult_t CAQueueingThreadStart(CAQueueingThread_t *thread)
 
 CAResult_t CAQueueingThreadAddData(CAQueueingThread_t *thread, void *data, uint32_t size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == thread)
     {
         OIC_LOG(ERROR, TAG, "thread instance is empty..");
@@ -229,11 +229,13 @@ CAResult_t CAQueueingThreadAddData(CAQueueingThread_t *thread, void *data, uint3
     u_queue_add_element(thread->dataQueue, message);
 
     // notity the thread
+    OIC_LOG_V(DEBUG, TAG, "%s: Signal waiting thread", __func__);
     ca_cond_signal(thread->threadCond);
 
     // mutex unlock
     ca_mutex_unlock(thread->threadMutex);
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning OK", __func__);
     return CA_STATUS_OK;
 }
 

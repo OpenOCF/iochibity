@@ -35,10 +35,15 @@
 #include "amaclresource.h"
 #include "credresource.h"
 
+#ifndef NDEBUG
+#include "oc_uuid.h"
+#endif
+
 #define TAG "SRM-PE"
 
 uint16_t GetPermissionFromCAMethod_t(const CAMethod_t method)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     uint16_t perm = 0;
     switch (method)
     {
@@ -60,7 +65,7 @@ uint16_t GetPermissionFromCAMethod_t(const CAMethod_t method)
 }
 
 /**
- * Compares two OicUuid_t structs.
+ * Compares two OicUuid_t structs.  GAR: put this in uuid utils!
  *
  * @return true if the two OicUuid_t structs are equal, else false.
  */
@@ -122,6 +127,7 @@ void SetPolicyEngineState(PEContext_t *context, const PEState_t state)
  */
 static bool IsRequestFromDevOwner(PEContext_t *context)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     bool retVal = false;
     OicUuid_t ownerid;
 
@@ -141,8 +147,17 @@ static bool IsRequestFromDevOwner(PEContext_t *context)
     OicSecDoxm_t* doxm = (OicSecDoxm_t*) GetDoxmResourceData();
     if (doxm)
     {
+#ifndef NDEBUG
+	char sidStr[UUID_STRING_SIZE];
+	if(OCConvertUuidToString(doxm->owner.id, sidStr) == RAND_UUID_OK) {
+	    OIC_LOG_V(DEBUG, TAG, "%s: local doxm owner: %s", __func__, sidStr);
+	} else {
+	    OIC_LOG_V(FATAL, TAG, "%s: OCConvertUuidToString failed", __func__);
+	}
+#endif
         retVal = UuidCmp(&doxm->owner, &context->subject);
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, retVal);
     return retVal;
 }
 
@@ -192,6 +207,7 @@ static GetSvrRownerId_t GetSvrRownerId[OIC_SEC_SVR_TYPE_COUNT] = {
  */
 bool IsRequestFromResourceOwner(PEContext_t *context)
 {
+    /* OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__); */
     bool retVal = false;
     OicUuid_t resourceOwner;
 
@@ -209,15 +225,7 @@ bool IsRequestFromResourceOwner(PEContext_t *context)
         }
     }
 
-    if(true == retVal)
-    {
-        OIC_LOG(INFO, TAG, "PE.IsRequestFromResourceOwner(): returning true");
-    }
-    else
-    {
-        OIC_LOG(INFO, TAG, "PE.IsRequestFromResourceOwner(): returning false");
-    }
-
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %d", __func__, retVal);
     return retVal;
 }
 
@@ -390,8 +398,25 @@ static bool IsAccessWithinValidTime(const OicSecAce_t *ace)
  */
 static void ProcessAccessRequest(PEContext_t *context)
 {
-    OIC_LOG(DEBUG, TAG, "Entering ProcessAccessRequest()");
-    if (NULL != context)
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s:   resource: %s", __func__, context->resource);
+    OIC_LOG_V(DEBUG, TAG, "%s:   rtype:    %d", __func__, context->resourceType);
+    OIC_LOG_V(DEBUG, TAG, "%s:   subject", __func__);
+	    /*GAR*/
+	    printf("\t Context subject ID: ");
+	    for (int i = 0; i < UUID_LENGTH; i++)
+	    	{
+	    	    if (i > 0) printf(":");
+	    	    printf("%02X", context->subject.id[i]);
+	    	}
+	    printf("\n");
+	    /*GAR*/
+
+    if (NULL == context)
+    {
+        OIC_LOG_V(ERROR, TAG, "%s: EXIT (context is NULL)", __func__);
+    }
+    else
     {
         const OicSecAce_t *currentAce = NULL;
         OicSecAce_t *savePtr = NULL;
@@ -403,20 +428,20 @@ static void ProcessAccessRequest(PEContext_t *context)
         // ACL for this request.
         do
         {
-            OIC_LOG_V(DEBUG, TAG, "%s: getting ACE..." ,__func__);
+            OIC_LOG_V(DEBUG, TAG, "%s: getting ACE for subject: %s" ,__func__, context->subject.id );
             currentAce = GetACLResourceData(&context->subject, &savePtr);
 
             if (NULL != currentAce)
             {
                 // Found the subject, so how about resource?
-                OIC_LOG_V(DEBUG, TAG, "%s:found ACE matching subject" ,__func__);
+                OIC_LOG_V(DEBUG, TAG, "%s: found ACE for subject" ,__func__);
 
                 // Subject was found, so err changes to Rsrc not found for now.
                 context->retVal = ACCESS_DENIED_RESOURCE_NOT_FOUND;
-                OIC_LOG_V(DEBUG, TAG, "%s:Searching for resource..." ,__func__);
+                OIC_LOG_V(DEBUG, TAG, "%s: Searching for resource..." ,__func__);
                 if (IsResourceInAce(context->resource, currentAce))
                 {
-                    OIC_LOG_V(INFO, TAG, "%s:found matching resource in ACE" ,__func__);
+                    OIC_LOG_V(INFO, TAG, " %s: found matching resource in ACE" ,__func__);
                     context->matchingAclFound = true;
 
                     // Found the resource, so it's down to valid period & permission.
@@ -429,26 +454,24 @@ static void ProcessAccessRequest(PEContext_t *context)
                             context->retVal = ACCESS_GRANTED;
                         }
                     }
-                }
+                } else {
+                    OIC_LOG_V(INFO, TAG, " %s: no matching resource found in ACE" ,__func__);
+		}
             }
             else
             {
-                OIC_LOG_V(INFO, TAG, "%s:no ACL found matching subject for resource %s",__func__, context->resource);
+                OIC_LOG_V(INFO, TAG, " %s: no ACE found for subject: %s",__func__, context->subject.id);
             }
         } while ((NULL != currentAce) && (false == context->matchingAclFound));
 
         if (IsAccessGranted(context->retVal))
         {
-            OIC_LOG_V(INFO, TAG, "%s:Leaving ProcessAccessRequest(ACCESS_GRANTED)", __func__);
+            OIC_LOG_V(DEBUG, TAG, "%s: EXIT with ACCESS_GRANTED", __func__);
         }
         else
         {
-            OIC_LOG_V(INFO, TAG, "%s:Leaving ProcessAccessRequest(ACCESS_DENIED)", __func__);
+            OIC_LOG_V(DEBUG, TAG, "%s: EXIT with ACCESS_DENIED", __func__);
         }
-    }
-    else
-    {
-        OIC_LOG_V(ERROR, TAG, "%s:Leaving ProcessAccessRequest(context is NULL)", __func__);
     }
 }
 
@@ -457,6 +480,24 @@ SRMAccessResponse_t CheckPermission(PEContext_t     *context,
                                     const char      *resource,
                                     const uint16_t  requestedPermission)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, resource: %s", __func__, resource);
+	    /*GAR*/
+	    printf("\t Subject ID: ");
+	    for (int i = 0; i < UUID_LENGTH; i++)
+	    	{
+	    	    if (i > 0) printf(":");
+	    	    printf("%02X", subjectId->id[i]);
+	    	}
+	    printf("\n");
+	    printf("\t Context subject ID: ");
+	    for (int i = 0; i < UUID_LENGTH; i++)
+	    	{
+	    	    if (i > 0) printf(":");
+	    	    printf("%02X", context->subject.id[i]);
+	    	}
+	    printf("\n");
+	    /*GAR*/
+
     SRMAccessResponse_t retVal = ACCESS_DENIED_POLICY_ENGINE_ERROR;
 
     VERIFY_NON_NULL(TAG, context, ERROR);
@@ -490,6 +531,7 @@ SRMAccessResponse_t CheckPermission(PEContext_t     *context,
         {
             OicUuid_t saveSubject = {.id={0}};
             bool isSubEmpty = IsRequestSubjectEmpty(context);
+	    OIC_LOG_V(DEBUG, TAG, "%s: IsRequestSubjectEmpty? %x", __func__, isSubEmpty);
 
             ProcessAccessRequest(context);
 
@@ -545,6 +587,7 @@ SRMAccessResponse_t CheckPermission(PEContext_t     *context,
     }
 
 exit:
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, retVal);
     return retVal;
 }
 

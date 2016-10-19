@@ -262,7 +262,7 @@ CAResult_t CAGetNetworkInformation(CAEndpoint_t **info, uint32_t *size)
 static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *object, const void *sendMsg,
                                             CADataType_t dataType)
 {
-    OIC_LOG(DEBUG, TAG, "CASendMessageMultipleAdapter");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     CATransportAdapter_t connTypes[] = {
             CA_ADAPTER_IP
@@ -299,6 +299,7 @@ static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *object, const vo
         ret = CADetachSendMessage(cloneEp, sendMsg, dataType);
     }
     CAFreeEndpoint(cloneEp);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -324,7 +325,7 @@ CAResult_t CASendRequest(const CAEndpoint_t *object, const CARequestInfo_t *requ
 
 CAResult_t CASendResponse(const CAEndpoint_t *object, const CAResponseInfo_t *responseInfo)
 {
-    OIC_LOG(DEBUG, TAG, "CASendResponse");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     if (!g_isInitialized)
     {
@@ -466,8 +467,7 @@ CAResult_t CAHandleRequestResponse()
 #ifdef __WITH_DTLS__
 CAResult_t CASelectCipherSuite(const uint16_t cipher)
 {
-    OIC_LOG_V(DEBUG, TAG, "CASelectCipherSuite");
-
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     return CADtlsSelectCipherSuite(cipher);
 }
 

@@ -112,6 +112,7 @@ void DeleteDoxmBinData(OicSecDoxm_t* doxm)
 OCStackResult DoxmToCBORPayload(const OicSecDoxm_t *doxm, uint8_t **payload, size_t *size,
                                 bool rwOnly)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == doxm || NULL == payload || NULL != *payload || NULL == size)
     {
         return OC_STACK_INVALID_PARAM;
@@ -318,6 +319,7 @@ exit:
        ret = OC_STACK_ERROR;
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -330,8 +332,10 @@ OCStackResult CBORPayloadToDoxm(const uint8_t *cborPayload, size_t size,
 static OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t size,
                                 OicSecDoxm_t **secDoxm, bool *roParsed)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == cborPayload || NULL == secDoxm || NULL != *secDoxm || 0 == size)
     {
+	OIC_LOG_V(ERROR, TAG, "%s: EXIT invalid param", __func__);
         return OC_STACK_INVALID_PARAM;
     }
 
@@ -408,6 +412,12 @@ static OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t siz
     }
     else
     {
+	if (CborNoError != cborFindResult) {
+	    OIC_LOG_V(ERROR, TAG, "%s: OXMS NOT FOUND", __func__);
+	}
+	if (!cbor_value_is_array(&doxmMap)) {
+	    OIC_LOG_V(ERROR, TAG, "%s: OXMS NOT ARRAY", __func__);
+	}
         VERIFY_NON_NULL(TAG, gDoxm, ERROR);
         doxm->oxm = (OicSecOxm_t *) OICCalloc(gDoxm->oxmLen, sizeof(*doxm->oxm));
         VERIFY_NON_NULL(TAG, doxm->oxm, ERROR);
@@ -537,6 +547,7 @@ exit:
         *secDoxm = NULL;
         ret = OC_STACK_ERROR;
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -546,6 +557,7 @@ exit:
  */
 static bool UpdatePersistentStorage(OicSecDoxm_t * doxm)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, doxm: %x", __func__, doxm);
     bool bRet = false;
 
     if (NULL != doxm)
@@ -563,12 +575,14 @@ static bool UpdatePersistentStorage(OicSecDoxm_t * doxm)
     }
     else
     {
+	OIC_LOG_V(DEBUG, TAG, "%s: creating new SVR db", __func__);
         if (OC_STACK_OK == UpdateSecureResourceInPS(OIC_JSON_DOXM_NAME, NULL, 0))
         {
                 bRet = true;
         }
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, bRet);
     return bRet;
 }
 
@@ -644,6 +658,7 @@ static bool ValidateQuery(const char * query)
 
 static OCEntityHandlerResult HandleDoxmGetRequest (const OCEntityHandlerRequest * ehRequest)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCEntityHandlerResult ehRet = OC_EH_OK;
 
     OIC_LOG(DEBUG, TAG, "Doxm EntityHandle processing GET request");
@@ -788,7 +803,7 @@ static OCEntityHandlerResult HandleDoxmPostRequest(const OCEntityHandlerRequest 
                         OIC_LOG(INFO, TAG, "ECDH_ANON CipherSuite is DISABLED");
 
 #ifdef __WITH_X509__
-#define TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 0xC0AE
+#define TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 0xC0AE /* GAR: this is defined in tinydtls/global.h! */
                         CASelectCipherSuite(TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8);
 #endif //__WITH_X509__
 #endif //__WITH_DTLS__
@@ -984,6 +999,7 @@ OCEntityHandlerResult DoxmEntityHandler(OCEntityHandlerFlag flag,
                                         OCEntityHandlerRequest * ehRequest,
                                         void* callbackParam)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     (void)callbackParam;
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
 
@@ -1060,6 +1076,15 @@ static OCStackResult CheckDeviceID()
         if (res == RAND_UUID_OK)
         {
             OIC_LOG_V(DEBUG, TAG, "%s: OCGenerateUuid: %s", __func__, (char*)gDoxm->deviceID.id);
+	    /*GAR*/
+	    printf("\t UUID: ");
+	    for (int i = 0; i < UUID_LENGTH; i++)
+	    	{
+	    	    if (i > 0) printf(":");
+	    	    printf("%02X", gDoxm->deviceID.id[i]);
+	    	}
+	    printf("\n");
+	    /*GAR*/
             ret = OC_STACK_OK;
         } else {
             OIC_LOG_V(FATAL, TAG, "%s: OCGenerateUuid failed with %", __func__, res);
@@ -1088,7 +1113,7 @@ static OCStackResult CheckDeviceID()
 static OicSecDoxm_t* GetDoxmDefault()
 {
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
-    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning: %x", __func__, &gDefaultDoxm);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning gDefaultDoxm at %x", __func__, &gDefaultDoxm);
     return &gDefaultDoxm;
 }
 
@@ -1110,12 +1135,14 @@ OCStackResult InitDoxmResource()
     // If database read failed
     if (OC_STACK_OK != ret)
     {
-	OIC_LOG_V(DEBUG, TAG, "%s: ReadSVDataFromPS failed", __func__);
+	OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS for %s failed", __func__, OIC_JSON_DOXM_NAME);
     }
     if (data)
     {
        // Read DOXM resource from PS
        ret = CBORPayloadToDoxm(data, size, &gDoxm);
+    } else {
+	OIC_LOG_V(DEBUG, TAG, "%s: NO DATA", __func__);
     }
     /*
      * If SVR database in persistent storage got corrupted or

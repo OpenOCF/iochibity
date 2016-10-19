@@ -662,6 +662,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
                 VERIFY_NON_NULL(discPayload->sid, ERROR, OC_STACK_NO_MEMORY);
 
                 const char* uid = OCGetServerInstanceIDString();
+		OIC_LOG_V(DEBUG, TAG, "%s: sid ", __func__, uid);
                 if (uid)
                 {
                     memcpy(discPayload->sid, uid, UUID_STRING_SIZE);
@@ -926,11 +927,7 @@ HandleResourceWithEntityHandler (OCServerRequest *request,
     OCPayloadType type = PAYLOAD_TYPE_REPRESENTATION;
     // check the security resource
     //GAR bugfix: request->resourceUrl always true
-    if (request && request->resourceUrl[0]
-#ifdef SECURED						   /* GAR */
-	&& SRMIsSecurityResourceURI(request->resourceUrl)
-#endif
-	)
+    if (request && request->resourceUrl[0] && SRMIsSecurityResourceURI(request->resourceUrl))
     {
         type = PAYLOAD_TYPE_SECURITY;
 

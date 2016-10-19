@@ -90,6 +90,7 @@ CAResult_t CAGetErrorInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endp
 coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_t *endpoint,
                           coap_list_t **optlist, coap_transport_type *transport)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, code (method): %x", __func__, code);
     VERIFY_NON_NULL_RET(info, TAG, "info", NULL);
     VERIFY_NON_NULL_RET(endpoint, TAG, "endpoint", NULL);
     VERIFY_NON_NULL_RET(optlist, TAG, "optlist", NULL);
@@ -102,17 +103,17 @@ coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_
     {
         if (CA_EMPTY != code)
         {
-            OIC_LOG(ERROR, TAG, "reset is not empty message");
+            OIC_LOG_V(ERROR, TAG, "%s: CA_MSG_RESET may not be empty", __func__);
             return NULL;
         }
 
         if (info->payloadSize > 0 || info->payload || info->token || info->tokenLength > 0)
         {
-            OIC_LOG(ERROR, TAG, "Empty message has unnecessary data after messageID");
+            OIC_LOG_V(ERROR, TAG, "%s: Empty message has unnecessary data after messageID", __func__);
             return NULL;
         }
 
-        OIC_LOG(DEBUG, TAG, "code is empty");
+        OIC_LOG_V(DEBUG, TAG, "%s: code == CA_EMPTY", __func__);
         if (!(pdu = CAGeneratePDUImpl((code_t) code, info, endpoint, NULL, transport)))
         {
             OIC_LOG(ERROR, TAG, "pdu NULL");
@@ -121,6 +122,13 @@ coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_
     }
     else
     {
+	OIC_LOG_V(DEBUG, TAG, "%s: generating PDU for method %s", __func__,
+		  (code == CA_GET)? "CA_GET"
+		  :(code == CA_POST)? "CA_POST"
+		  :(code == CA_PUT)? "CA_PUT"
+		  :(code == CA_DELETE)? "CA_DELETE"
+		  : "UNKNOWN");
+
         if (info->resourceUri)
         {
             uint32_t length = strlen(info->resourceUri);
@@ -166,12 +174,14 @@ coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_
     }
 
     // pdu print method : coap_show_pdu(pdu);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return pdu;
 }
 
 coap_pdu_t *CAParsePDU(const char *data, uint32_t length, uint32_t *outCode,
                        const CAEndpoint_t *endpoint)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL_RET(data, TAG, "data", NULL);
     VERIFY_NON_NULL_RET(endpoint, TAG, "endpoint", NULL);
 
@@ -194,13 +204,12 @@ coap_pdu_t *CAParsePDU(const char *data, uint32_t length, uint32_t *outCode,
         return NULL;
     }
 
-    OIC_LOG_V(DEBUG, TAG, "pdu parse-transport type : %d", transport);
+    OIC_LOG_V(DEBUG, TAG, "%s: pdu parse-transport type : %d", __func__, transport);
 
     int ret = coap_pdu_parse((unsigned char *) data, length, outpdu, transport);
-    OIC_LOG_V(DEBUG, TAG, "pdu parse ret: %d", ret);
     if (0 >= ret)
     {
-        OIC_LOG(ERROR, TAG, "pdu parse failed");
+        OIC_LOG_V(ERROR, TAG, "%s pdu parse failed with ret %d", __func__, ret);
         goto exit;
     }
 
@@ -214,7 +223,7 @@ coap_pdu_t *CAParsePDU(const char *data, uint32_t length, uint32_t *outCode,
     {
         if (outpdu->hdr->coap_hdr_udp_t.version != COAP_DEFAULT_VERSION)
         {
-            OIC_LOG_V(ERROR, TAG, "coap version is not available : %d",
+            OIC_LOG_V(ERROR, TAG, "%s: coap version %d is not available", __func__,
                       outpdu->hdr->coap_hdr_udp_t.version);
             goto exit;
         }
@@ -242,6 +251,7 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
                               const CAEndpoint_t *endpoint, coap_list_t *options,
                               coap_transport_type *transport)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL_RET(info, TAG, "info", NULL);
     VERIFY_NON_NULL_RET(endpoint, TAG, "endpoint", NULL);
     VERIFY_NON_NULL_RET(transport, TAG, "transport", NULL);
@@ -491,10 +501,9 @@ CAResult_t CAParseUriPartial(const unsigned char *str, size_t length, int target
 
 CAResult_t CAParseHeadOption(uint32_t code, const CAInfo_t *info, coap_list_t **optlist)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, code (unused): %d, num options %d", __func__, code, info->numOptions);
     (void)code;
     VERIFY_NON_NULL_RET(info, TAG, "info", CA_STATUS_INVALID_PARAM);
-
-    OIC_LOG_V(DEBUG, TAG, "parse Head Opt: %d", info->numOptions);
 
     if (!optlist)
     {
@@ -684,11 +693,11 @@ uint32_t CAGetOptionCount(coap_opt_iterator_t opt_iter)
 CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                             uint32_t *outCode, CAInfo_t *outInfo)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s", __func__);
     VERIFY_NON_NULL(pdu, TAG, "pdu");
     VERIFY_NON_NULL(endpoint, TAG, "endpoint");
     VERIFY_NON_NULL(outCode, TAG, "outCode");
     VERIFY_NON_NULL(outInfo, TAG, "outInfo");
-    OIC_LOG_V(DEBUG, TAG, "%s", __func__);
 
     coap_transport_type transport;
 #ifdef WITH_TCP

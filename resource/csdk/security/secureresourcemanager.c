@@ -136,7 +136,7 @@ exit:
  */
 void SRMRequestHandler(const CAEndpoint_t *endPoint, const CARequestInfo_t *requestInfo)
 {
-    OIC_LOG(DEBUG, TAG, "Received request from remote device");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     if (!endPoint || !requestInfo)
     {
@@ -174,8 +174,14 @@ void SRMRequestHandler(const CAEndpoint_t *endPoint, const CARequestInfo_t *requ
     //New request are only processed if the policy engine state is AWAITING_REQUEST.
     if (AWAITING_REQUEST == g_policyEngineContext.state)
     {
-        OIC_LOG_V(DEBUG, TAG, "Processing request with uri, %s for method, %d",
-                requestInfo->info.resourceUri, requestInfo->method);
+        OIC_LOG_V(DEBUG, TAG, "%s: Processing %s request for uri %s",
+		  __func__,
+		  (requestInfo->method == CA_GET)? "GET"
+		  :(requestInfo->method == CA_POST)? "POST"
+		  :(requestInfo->method == CA_PUT)? "PUT"
+		  :"DELETE",
+		  requestInfo->info.resourceUri);
+
         response = CheckPermission(&g_policyEngineContext, &subjectId, newUri,
                 GetPermissionFromCAMethod_t(requestInfo->method));
     }
@@ -238,6 +244,7 @@ exit:
  */
 void SRMResponseHandler(const CAEndpoint_t *endPoint, const CAResponseInfo_t *responseInfo)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OIC_LOG(DEBUG, TAG, "Received response from remote device");
 
     // isProvResponse flag is to check whether response is catered by provisioning APIs or not.
@@ -301,22 +308,13 @@ OCStackResult SRMRegisterPersistentStorageHandler(OCPersistentStorage* persisten
 {
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
-    /* //GAR initResources */
-    /* void* callstack[128]; */
-    /* int i, frames = backtrace(callstack, 128); */
-    /* char** strs = backtrace_symbols(callstack, frames); */
-    /* for (i = 0; i < frames; ++i) { */
-    /*   printf("%s\n", strs[i]); */
-    /* } */
-    /* free(strs); */
-    /* //GAR */
-
     if(!persistentStorageHandler)
     {
         OIC_LOG(ERROR, TAG, "The persistent storage handler is invalid");
         return OC_STACK_INVALID_PARAM;
     }
     gPersistentStorageHandler = persistentStorageHandler;
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning OK", __func__);
     return OC_STACK_OK;
 }
 

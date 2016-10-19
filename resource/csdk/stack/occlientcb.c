@@ -148,6 +148,7 @@ exit:
 
 void DeleteClientCB(ClientCB * cbNode)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (cbNode)
     {
         LL_DELETE(cbList, cbNode);
@@ -299,6 +300,7 @@ void DeleteClientCBList()
 
 void FindAndDeleteClientCB(ClientCB * cbNode)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     ClientCB* tmp;
     if (cbNode)
     {

@@ -539,7 +539,7 @@ OCStackResult CBORPayloadToCred(const uint8_t *cborPayload, size_t size,
                                     }
                                     if (privname)
                                     {
-                                        // PrivateData::privdata -- Mandatory
+                                        // PrivateData::data -- Mandatory
                                         if (strcmp(privname, OIC_JSON_DATA_NAME) == 0)
                                         {
                                             if(cbor_value_is_byte_string(&privateMap))
@@ -773,6 +773,7 @@ exit:
 
 static bool UpdatePersistentStorage(const OicSecCred_t *cred)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     bool ret = false;
 
     // Convert Cred data into JSON for update to persistent storage
@@ -798,6 +799,7 @@ static bool UpdatePersistentStorage(const OicSecCred_t *cred)
             ret = true;
         }
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__);
     return ret;
 }
 
@@ -1188,7 +1190,7 @@ static OCEntityHandlerResult HandlePostRequest(const OCEntityHandlerRequest * eh
  */
 static OCEntityHandlerResult HandleGetRequest (const OCEntityHandlerRequest * ehRequest)
 {
-    OIC_LOG(INFO, TAG, "HandleGetRequest  processing GET request");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     // Convert Cred data into CBOR for transmission
     size_t size = 0;
@@ -1206,6 +1208,7 @@ static OCEntityHandlerResult HandleGetRequest (const OCEntityHandlerRequest * eh
     ehRet = ((SendSRMResponse(ehRequest, ehRet, payload, size)) == OC_STACK_OK) ?
                        OC_EH_OK : OC_EH_ERROR;
     OICFree(payload);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ehRet);
     return ehRet;
 }
 
@@ -1250,6 +1253,7 @@ OCEntityHandlerResult CredEntityHandler(OCEntityHandlerFlag flag,
                                         OCEntityHandlerRequest * ehRequest,
                                         void* callbackParameter)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     (void)callbackParameter;
     OCEntityHandlerResult ret = OC_EH_ERROR;
 
@@ -1279,11 +1283,13 @@ OCEntityHandlerResult CredEntityHandler(OCEntityHandlerFlag flag,
                 break;
         }
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
 OCStackResult CreateCredResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OCCreateResource(&gCredHandle,
                                          OIC_RSRC_TYPE_SEC_CRED,
                                          OC_RSRVD_INTERFACE_DEFAULT,
@@ -1297,6 +1303,7 @@ OCStackResult CreateCredResource()
         OIC_LOG (FATAL, TAG, "Unable to instantiate Cred resource");
         DeInitCredResource();
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -1317,7 +1324,7 @@ OCStackResult InitCredResource()
     }
     if (data)
     {
-        // Read ACL resource from PS
+        // Read Credential resource from PS
         ret = CBORPayloadToCred(data, size, &gCred);
     }
 
@@ -1370,6 +1377,14 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
               const uint8_t *desc, size_t desc_len,
               uint8_t *result, size_t result_length)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, type %d = %s, desc: %s", __func__,
+	      type,
+	      (type == CA_DTLS_PSK_HINT)? "CA_DTLS_PSK_HINT"
+	      :(type == CA_DTLS_PSK_IDENTITY)? "CA_DTLS_PSK_IDENTITY"
+	      :(type == CA_DTLS_PSK_KEY)? "CA_DTLS_PSK_KEY"
+	      : "UNKNOWN",
+	      desc);
+
     int32_t ret = -1;
 
     if (NULL == result)
@@ -1386,16 +1401,19 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
                 // Retrieve Device ID from doxm resource
                 if ( OC_STACK_OK != GetDoxmDeviceID(&deviceID) )
                 {
-                    OIC_LOG (ERROR, TAG, "Unable to retrieve doxm Device ID");
+                    OIC_LOG_V(ERROR, TAG, "%s: Unable to retrieve doxm Device ID", __func__);
                     return ret;
-                }
+                } else {
+		    OIC_LOG_V(DEBUG, TAG, "%s: GetDoxmDeviceID OK", __func__);
+		}
 
                 if (result_length < sizeof(deviceID.id))
                 {
-                    OIC_LOG (ERROR, TAG, "Wrong value for result_length");
+                    OIC_LOG_V(ERROR, TAG, "%s: Wrong value for result_length", __func__);
                     return ret;
                 }
                 memcpy(result, deviceID.id, sizeof(deviceID.id));
+		OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning sizeof(deviceID.id)", __func__);
                 return (sizeof(deviceID.id));
             }
             break;
@@ -1405,6 +1423,12 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
                 OicSecCred_t *cred = NULL;
                 LL_FOREACH(gCred, cred)
                 {
+		    OIC_LOG_V(DEBUG, TAG, "%s: Processing credential", __func__);
+		    OIC_LOG_CRED(DEBUG, TAG, cred);
+/* OCConvertUuidToString(const uint8_t uuid[UUID_SIZE], */
+/*         char uuidString[UUID_STRING_SIZE]) */
+
+
                     if (cred->credType != SYMMETRIC_PAIR_WISE_KEY)
                     {
                         continue;
@@ -1421,7 +1445,7 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
                         {
                             if(IOTVTICAL_VALID_ACCESS != IsRequestWithinValidTime(cred->period, NULL))
                             {
-                                OIC_LOG (INFO, TAG, "Credentials are expired.");
+                                OIC_LOG_V(INFO, TAG, "%s: Credentials are expired.", __func__);
                                 return ret;
                             }
                         }
@@ -1440,7 +1464,7 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
                             uint32_t outKeySize;
                             if(NULL == outKey)
                             {
-                                OIC_LOG (ERROR, TAG, "Failed to memoray allocation.");
+                                OIC_LOG_V(ERROR, TAG, "%s: Failed to memoray allocation.", __func__);
                                 return ret;
                             }
 
@@ -1451,12 +1475,13 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
                             }
                             else
                             {
-                                OIC_LOG (ERROR, TAG, "Failed to base64 decoding.");
+                                OIC_LOG_V(ERROR, TAG, "%s: Failed to base64 decoding.", __func__);
                             }
 
                             OICFree(outKey);
                         }
 
+			OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning 0x%X", __func__, ret);
                         return ret;
                     }
                 }
@@ -1470,6 +1495,7 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
             break;
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT fall-through, returning %x", __func__, ret);
     return ret;
 }
 

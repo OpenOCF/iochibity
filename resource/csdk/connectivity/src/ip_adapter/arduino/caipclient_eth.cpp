@@ -74,6 +74,7 @@ void CAIPSetUnicastPort(uint16_t port)
 void CAIPSendData(CAEndpoint_t *endpoint, const void *buf,
                   uint32_t bufLen, bool isMulticast)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (!isMulticast && 0 == g_unicastPort)
     {
         OIC_LOG(ERROR, TAG, "port 0");
@@ -141,6 +142,6 @@ void CAIPSendData(CAEndpoint_t *endpoint, const void *buf,
         close(socketID);
     }
 
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 

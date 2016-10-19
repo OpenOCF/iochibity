@@ -435,7 +435,7 @@ void CATerminateIP()
 
 void CAIPSendDataThread(void *threadData)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, thread %d", __func__, pthread_self());
     CAIPData_t *ipData = (CAIPData_t *) threadData;
     if (!ipData)
     {
@@ -446,7 +446,7 @@ void CAIPSendDataThread(void *threadData)
     if (ipData->isMulticast)
     {
         //Processing for sending multicast
-        OIC_LOG(DEBUG, TAG, "Send Multicast Data is called");
+        OIC_LOG_V(DEBUG, TAG, "%s: multicasting...", __func__);
         CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, true);
     }
     else
@@ -455,19 +455,18 @@ void CAIPSendDataThread(void *threadData)
 #ifdef __WITH_DTLS__
         if (ipData->remoteEndpoint && ipData->remoteEndpoint->flags & CA_SECURE)
         {
-            OIC_LOG(DEBUG, TAG, "CAAdapterNetDtlsEncrypt called!");
+            OIC_LOG_V(DEBUG, TAG, "%s: unicasting to secure remote EP", __func__);
             CAResult_t result = CAAdapterNetDtlsEncrypt(ipData->remoteEndpoint,
                                                ipData->data, ipData->dataLen);
             if (CA_STATUS_OK != result)
             {
-                OIC_LOG(ERROR, TAG, "CAAdapterNetDtlsEncrypt failed!");
+                OIC_LOG_V(ERROR, TAG, "%s: CAAdapterNetDtlsEncrypt failed!", __func__);
             }
-            OIC_LOG_V(DEBUG, TAG,
-                      "CAAdapterNetDtlsEncrypt returned with result[%d]", result);
+            OIC_LOG_V(DEBUG, TAG, "%s: CAAdapterNetDtlsEncrypt returned with result: %d", __func__, result);
         }
         else
         {
-            OIC_LOG(DEBUG, TAG, "Send Unicast Data is called");
+            OIC_LOG_V(DEBUG, TAG, "%s: unicasting to NON-secure remote EP", __func__);
             CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, false);
         }
 #else

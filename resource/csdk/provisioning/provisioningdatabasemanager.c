@@ -160,6 +160,7 @@ void errLogCallback(void *pArg, int iErrCode, const char *zMsg)
 
 OCStackResult PDMInit(const char *path)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     int rc;
     const char *dbPath = NULL;
     if (SQLITE_OK !=  sqlite3_config(SQLITE_CONFIG_LOG, errLogCallback, NULL))
@@ -182,12 +183,14 @@ OCStackResult PDMInit(const char *path)
         return createDB(dbPath);
     }
     gInit = true;
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning OK", __func__);
     return OC_STACK_OK;
 }
 
 
 OCStackResult PDMAddDevice(const OicUuid_t *UUID)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     CHECK_PDM_INIT(TAG);
     if (NULL == UUID)
     {
@@ -351,6 +354,7 @@ static OCStackResult addlink(int id1, int id2)
 
 OCStackResult PDMLinkDevices(const OicUuid_t *UUID1, const OicUuid_t *UUID2)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     CHECK_PDM_INIT(TAG);
     if (NULL == UUID1 || NULL == UUID2)
     {
@@ -552,6 +556,7 @@ OCStackResult PDMSetLinkStale(const OicUuid_t* uuidOfDevice1, const OicUuid_t* u
 
 OCStackResult PDMGetOwnedDevices(OCUuidList_t **uuidList, size_t *numOfDevices)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     CHECK_PDM_INIT(TAG);
     if (NULL != *uuidList)
     {

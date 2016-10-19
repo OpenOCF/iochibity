@@ -230,7 +230,7 @@ OCStackResult RMUpdateInfo(CAHeaderOption_t **options, uint8_t *numOptions,
 
     if (0 >= *numOptions)
     {
-        OIC_LOG(ERROR, TAG, "Invalid arguement: numOptions");
+        OIC_LOG(ERROR, TAG, "Invalid argument: numOptions");
         return OC_STACK_ERROR;
     }
 
@@ -336,17 +336,17 @@ OCStackResult RMCreateRouteOption(const RMRouteOption_t *optValue, CAHeaderOptio
 
         if (ACK == optValue->msgType)
         {
-            OIC_LOG(DEBUG, RM_TAG, "OptValue ACK Message Type");
+            OIC_LOG(DEBUG, RM_TAG, "00 OptValue ACK Message Type");
             memset(tempData, ACK_MESSAGE_TYPE, DEFAULT_ROUTE_OPTION_LEN);
         }
         else if (RST == optValue->msgType)
         {
-            OIC_LOG(DEBUG, RM_TAG, "OptValue RST Message Type");
+            OIC_LOG(DEBUG, RM_TAG, "00 OptValue RST Message Type");
             memset(tempData, RST_MESSAGE_TYPE, DEFAULT_ROUTE_OPTION_LEN);
         }
         else
         {
-            OIC_LOG(DEBUG, RM_TAG, "OptValue NOR Message Type");
+            OIC_LOG(DEBUG, RM_TAG, "00 OptValue NOR (normal) Message Type");
             memset(tempData, NORMAL_MESSAGE_TYPE, DEFAULT_ROUTE_OPTION_LEN);
         }
     }
@@ -362,17 +362,17 @@ OCStackResult RMCreateRouteOption(const RMRouteOption_t *optValue, CAHeaderOptio
 
         if (ACK == optValue->msgType)
         {
-            OIC_LOG(DEBUG, RM_TAG, "OptValue ACK Message Type");
+            OIC_LOG(DEBUG, RM_TAG, "01 OptValue ACK Message Type");
             memset(tempData, ACK_MESSAGE_TYPE, DEFAULT_ROUTE_OPTION_LEN);
         }
         else if (RST == optValue->msgType)
         {
-            OIC_LOG(DEBUG, RM_TAG, "OptValue RST Message Type");
+            OIC_LOG(DEBUG, RM_TAG, "10 OptValue RST Message Type");
             memset(tempData, RST_MESSAGE_TYPE, DEFAULT_ROUTE_OPTION_LEN);
         }
         else
         {
-            OIC_LOG(DEBUG, RM_TAG, "OptValue NOR Message Type");
+            OIC_LOG(DEBUG, RM_TAG, "11 OptValue NOR (normal) Message Type");
             memset(tempData, NORMAL_MESSAGE_TYPE, DEFAULT_ROUTE_OPTION_LEN);
         }
 

@@ -102,6 +102,7 @@ static uint64_t CAGetTimeoutValue()
 
 CAResult_t CARetransmissionStart(CARetransmission_t *context)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == context)
     {
         OIC_LOG(ERROR, TAG, "context is empty");
@@ -123,6 +124,7 @@ CAResult_t CARetransmissionStart(CARetransmission_t *context)
         return res;
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, res);
     return res;
 }
 #endif
@@ -238,11 +240,11 @@ static void CACheckRetransmissionList(CARetransmission_t *context)
 
 void CARetransmissionBaseRoutine(void *threadValue)
 {
-    OIC_LOG(DEBUG, TAG, "retransmission main thread start");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, thread %d", __func__, pthread_self());
 
-    CARetransmission_t *context = (CARetransmission_t *) threadValue;
+    CARetransmission_t *thread = (CARetransmission_t *) threadValue;
 
-    if (NULL == context)
+    if (NULL == thread)
     {
         OIC_LOG(ERROR, TAG, "thread data passing error");
 
@@ -250,38 +252,36 @@ void CARetransmissionBaseRoutine(void *threadValue)
     }
 
 #ifdef SINGLE_THREAD
-    if (true == context->isStop)
+    if (true == thread->isStop)
     {
         OIC_LOG(DEBUG, TAG, "thread stopped");
         return;
     }
-    CACheckRetransmissionList(context);
+    CACheckRetransmissionList(thread);
 #else
 
-    while (!context->isStop)
+    while (!thread->isStop)
     {
         // mutex lock
-        ca_mutex_lock(context->threadMutex);
+        ca_mutex_lock(thread->threadMutex);
 
-        if (!context->isStop && u_arraylist_length(context->dataList) <= 0)
+        if (!thread->isStop && u_arraylist_length(thread->dataList) <= 0)
         {
             // if list is empty, thread will wait
-            OIC_LOG(DEBUG, TAG, "wait..there is no retransmission data.");
-
-            // wait
-            ca_cond_wait(context->threadCond, context->threadMutex);
-
-            OIC_LOG(DEBUG, TAG, "wake up..");
+            OIC_LOG_V(DEBUG, TAG, "%s: blocking on ca_cond_wait on thread %d with no retransmission data.", __func__);
+            ca_cond_wait(thread->threadCond, thread->threadMutex);
+            OIC_LOG_V(DEBUG, TAG, "%s: ca_cond_wait unblocked, on thread %d..", __func__, pthread_self());
         }
-        else if (!context->isStop)
+
+        else if (!thread->isStop)
         {
             // check each RETRANSMISSION_CHECK_PERIOD_SEC time.
-            OIC_LOG_V(DEBUG, TAG, "wait..(%lld)microseconds",
+            OIC_LOG_V(DEBUG, TAG, "wait..(%lld) microseconds",
                       RETRANSMISSION_CHECK_PERIOD_SEC * (uint64_t) USECS_PER_SEC);
 
             // wait
             uint64_t absTime = RETRANSMISSION_CHECK_PERIOD_SEC * (uint64_t) USECS_PER_SEC;
-            ca_cond_wait_for(context->threadCond, context->threadMutex, absTime );
+            ca_cond_wait_for(thread->threadCond, thread->threadMutex, absTime );
         }
         else
         {
@@ -289,20 +289,20 @@ void CARetransmissionBaseRoutine(void *threadValue)
         }
 
         // mutex unlock
-        ca_mutex_unlock(context->threadMutex);
+        ca_mutex_unlock(thread->threadMutex);
 
         // check stop flag
-        if (context->isStop)
+        if (thread->isStop)
         {
             continue;
         }
 
-        CACheckRetransmissionList(context);
+        CACheckRetransmissionList(thread);
     }
 
-    ca_mutex_lock(context->threadMutex);
-    ca_cond_signal(context->threadCond);
-    ca_mutex_unlock(context->threadMutex);
+    ca_mutex_lock(thread->threadMutex);
+    ca_cond_signal(thread->threadCond);
+    ca_mutex_unlock(thread->threadMutex);
 
 #endif
     OIC_LOG(DEBUG, TAG, "retransmission main thread end");
@@ -315,6 +315,7 @@ CAResult_t CARetransmissionInitialize(CARetransmission_t *context,
                                       CATimeoutCallback_t timeoutCallback,
                                       CARetransmissionConfig_t* config)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == context)
     {
         OIC_LOG(ERROR, TAG, "thread instance is empty");
@@ -349,6 +350,7 @@ CAResult_t CARetransmissionInitialize(CARetransmission_t *context,
     context->isStop = false;
     context->dataList = u_arraylist_create();
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
     return CA_STATUS_OK;
 }
 
@@ -356,6 +358,16 @@ CAResult_t CARetransmissionSentData(CARetransmission_t *context,
                                     const CAEndpoint_t *endpoint,
                                     const void *pdu, uint32_t size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, thread %x", __func__, pthread_self());
+    /* //GAR initResources */
+    /* void* callstack[128]; */
+    /* int frames = backtrace(callstack, 128); */
+    /* char** strs = backtrace_symbols(callstack, frames); */
+    /* for (int ix = 0; ix < frames; ++ix) { */
+    /* 	OIC_LOG_V(DEBUG, TAG, "%s callstack:  %s\n", __func__, strs[ix]); */
+    /* } */
+    /* free(strs); */
+    /* //GAR */
     if (NULL == context || NULL == endpoint || NULL == pdu)
     {
         OIC_LOG(ERROR, TAG, "invalid parameter");
@@ -375,9 +387,9 @@ CAResult_t CARetransmissionSentData(CARetransmission_t *context,
 
     OIC_LOG_V(DEBUG, TAG, "sent pdu, msgtype=%d, msgid=%d", type, messageId);
 
-    if (CA_MSG_CONFIRM != type)
+    if ((CA_MSG_CONFIRM != type) && (CA_MSG_ACKNOWLEDGE != type))
     {
-        OIC_LOG(DEBUG, TAG, "not supported message type");
+        OIC_LOG_V(DEBUG, TAG, "%s: message type %d not supported", __func__, type);
         return CA_NOT_SUPPORTED;
     }
 
@@ -474,7 +486,7 @@ CAResult_t CARetransmissionReceivedData(CARetransmission_t *context,
                                         const CAEndpoint_t *endpoint, const void *pdu,
                                         uint32_t size, void **retransmissionPdu)
 {
-    OIC_LOG(DEBUG, TAG, "CARetransmissionReceivedData IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == context || NULL == endpoint || NULL == pdu || NULL == retransmissionPdu)
     {
         OIC_LOG(ERROR, TAG, "invalid parameter");
@@ -500,6 +512,7 @@ CAResult_t CARetransmissionReceivedData(CARetransmission_t *context,
     if (((CA_MSG_ACKNOWLEDGE != type) && (CA_MSG_RESET != type))
         || (CA_MSG_RESET == type && CA_EMPTY != code))
     {
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning OK w/out retrans", __func__);
         return CA_STATUS_OK;
     }
 
@@ -579,7 +592,7 @@ CAResult_t CARetransmissionReceivedData(CARetransmission_t *context,
     // mutex unlock
     ca_mutex_unlock(context->threadMutex);
 
-    OIC_LOG(DEBUG, TAG, "CARetransmissionReceivedData OUT");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning CA_STATUS_OK", __func__);
     return CA_STATUS_OK;
 }
 

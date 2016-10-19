@@ -483,7 +483,7 @@ void CADeInitializeIPGlobals()
 
 static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY ****************\n", __func__);
 
     char recvBuffer[COAP_MAX_PDU_SIZE] = {0};
 
@@ -625,7 +625,6 @@ static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
     {
 #ifdef __WITH_DTLS__
         int ret = CAAdapterNetDtlsDecrypt(&sep, (uint8_t *)recvBuffer, recvLen);
-        OIC_LOG_V(DEBUG, TAG, "CAAdapterNetDtlsDecrypt returns [%d]", ret);
 #else
         OIC_LOG(ERROR, TAG, "Encrypted message but no DTLS");
 #endif
@@ -638,7 +637,7 @@ static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
         }
     }
 
-    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT ****************\n", __func__);
     return CA_STATUS_OK;
 
 }
@@ -1202,7 +1201,7 @@ static void sendData(int fd, const CAEndpoint_t *endpoint,
                      const void *data, uint32_t dlen,
                      const char *cast, const char *fam)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, thread %x", __func__, pthread_self());
 
     if (!endpoint)
     {
@@ -1388,6 +1387,7 @@ static void sendMulticastData4(const u_arraylist_t *iflist,
 void CAIPSendData(CAEndpoint_t *endpoint, const void *data, uint32_t datalen,
                   bool isMulticast)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL_VOID(endpoint, TAG, "endpoint is NULL");
     VERIFY_NON_NULL_VOID(data, TAG, "data is NULL");
 
@@ -1440,6 +1440,7 @@ void CAIPSendData(CAEndpoint_t *endpoint, const void *data, uint32_t datalen,
             sendData(fd, endpoint, data, datalen, "unicast", "ipv4");
         }
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
 }
 
 CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, uint32_t *size)

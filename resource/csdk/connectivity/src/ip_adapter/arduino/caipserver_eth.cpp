@@ -120,7 +120,7 @@ CAResult_t CAIPStartUnicastServer(const char *localAddress, uint16_t *port,
 CAResult_t CAIPStartMulticastServer(const char *localAddress, const char *multicastAddress,
                                     uint16_t multicastPort)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (g_isMulticastServerStarted == true)
     {
         OIC_LOG(ERROR, TAG, "Already Started!");
@@ -139,7 +139,7 @@ CAResult_t CAIPStartMulticastServer(const char *localAddress, const char *multic
 
     OIC_LOG_V(DEBUG, TAG, "gMulticastPort: %d", multicastPort);
     OIC_LOG_V(DEBUG, TAG, "g_multicastSocket: %d", g_multicastSocket);
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
     return CA_STATUS_OK;
 }
 
@@ -182,13 +182,13 @@ CAResult_t CAIPStopMulticastServer()
 
 CAResult_t CAIPStartListenServer()
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     CAResult_t ret = CAIPStartMulticastServer("0.0.0.0", IPv4_MULTICAST, IPv4_MULTICAST_PORT);
     if (CA_STATUS_OK != ret)
     {
         OIC_LOG_V(ERROR, TAG, "Start multicast failed[%d]", ret);
     }
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
     return CA_STATUS_OK;
 }
 

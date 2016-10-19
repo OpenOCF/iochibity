@@ -288,6 +288,7 @@ void ca_cond_free(ca_cond cond)
 
 void ca_cond_signal(ca_cond cond)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     ca_cond_internal *eventInfo = (ca_cond_internal*) cond;
     if (eventInfo != NULL)
     {
@@ -342,6 +343,7 @@ void ca_cond_wait(ca_cond cond, ca_mutex mutex)
 
 CAWaitResult_t ca_cond_wait_for(ca_cond cond, ca_mutex mutex, uint64_t microseconds)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
   /* OIC_LOG_V(ERROR, TAG, "GAR: %ld: %s %d microseconds", pthread_self(), __func__, microseconds); */
 
     CAWaitResult_t retVal = CA_WAIT_INVAL;

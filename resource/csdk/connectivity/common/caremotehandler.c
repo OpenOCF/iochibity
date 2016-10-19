@@ -49,6 +49,7 @@ CAEndpoint_t *CACloneEndpoint(const CAEndpoint_t *rep)
 
 CARequestInfo_t *CACloneRequestInfo(const CARequestInfo_t *rep)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (NULL == rep)
     {
         OIC_LOG(ERROR, TAG, "parameter is null");

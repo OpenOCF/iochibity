@@ -52,7 +52,7 @@ void CAIPSetUnicastPort(uint16_t port)
 void CAIPSendData(CAEndpoint_t *endpoint,
                   const void *data, uint32_t dataLength, bool isMulticast)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     VERIFY_NON_NULL_VOID(data, TAG, "data");
     VERIFY_NON_NULL_VOID(endpoint, TAG, "endpoint");
@@ -96,7 +96,7 @@ void CAIPSendData(CAEndpoint_t *endpoint,
         OIC_LOG(ERROR, TAG, "Failed to send");
         return;
     }
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK", __func__);
     return;
 }
 
