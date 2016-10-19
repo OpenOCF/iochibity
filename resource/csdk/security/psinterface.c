@@ -72,7 +72,7 @@ static size_t GetSVRDatabaseSize(const OCPersistentStorage *ps)
     size_t size = 0;
     char buffer[DB_FILE_SIZE_BLOCK];  // can not initialize with declaration
                                       // but maybe not needed to initialize
-    OIC_LOG_V(DEBUG, TAG, "%s: opening %s, mode rb", __func__, SVR_DB_DAT_FILE_NAME);
+    OIC_LOG_V(DEBUG, TAG, "%s: opening svr db, mode rb", __func__);
     FILE *fp = ps->open(SVR_DB_DAT_FILE_NAME, "rb");
     if (fp)
     {
@@ -90,34 +90,22 @@ static size_t GetSVRDatabaseSize(const OCPersistentStorage *ps)
 /**
  * Gets the Secure Virtual Database from the Persistent Storage
  *
- * @param rsrcName - pointer of character string for the SVR name (e.g. "acl")
- * @param data - pointer of the returned Secure Virtual Resource(s)
- * @param size - pointer of the returned size of Secure Virtual Resource(s)
+ * @param data - pointer of the returned SVR database
+ * @param size - pointer of the returned size of SVR database
  *
- * @return OCStackResult - result of getting Secure Virtual Resource(s)
+ * @return OCStackResult - result of getting SVR database
  */
-OCStackResult GetSecureVirtualResourceFromPS(const char *rsrcName, uint8_t **data, size_t *size)
+OCStackResult GetSVRDatabaseFromPS(uint8_t **data, size_t *size)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, rsrcName: %s", __func__, rsrcName);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (!data || *data || !size)
     {
         return OC_STACK_INVALID_PARAM;
     }
-
     FILE *fp = NULL;
     uint8_t *fsData = NULL;
     size_t fileSize = 0;
     OCStackResult ret = OC_STACK_ERROR;
-
-    /* //GAR */
-    /* void* callstack[128]; */
-    /* int i, frames = backtrace(callstack, 128); */
-    /* char** strs = backtrace_symbols(callstack, frames); */
-    /* for (i = 0; i < frames; ++i) { */
-    /*   printf("%s\n", strs[i]); */
-    /* } */
-    /* free(strs); */
-    /* //GAR */
 
     OCPersistentStorage *ps = SRMGetPersistentStorageHandler();
     VERIFY_NON_NULL(TAG, ps, ERROR);
@@ -129,33 +117,94 @@ OCStackResult GetSecureVirtualResourceFromPS(const char *rsrcName, uint8_t **dat
         fsData = (uint8_t *) OICCalloc(1, fileSize);
         VERIFY_NON_NULL(TAG, fsData, ERROR);
 
-	OIC_LOG_V(DEBUG, TAG, "%s: opening %s, mode rb", __func__, SVR_DB_DAT_FILE_NAME);
+	OIC_LOG_V(DEBUG, TAG, "%s: opening svr db, mode rb", __func__, SVR_DB_DAT_FILE_NAME);
+        fp = ps->open(SVR_DB_DAT_FILE_NAME, "rb");
+        VERIFY_NON_NULL(TAG, fp, ERROR);
+        if (ps->read(fsData, 1, fileSize, fp) == fileSize)
+        {
+	    *size = fileSize;
+	    *data = (uint8_t *) OICCalloc(1, fileSize);
+	    VERIFY_NON_NULL(TAG, *data, ERROR);
+	    memcpy(*data, fsData, fileSize);
+	    ret = OC_STACK_OK;
+	}
+    }
+exit:
+    if (fp)
+    {
+        ps->close(fp);
+    }
+    OICFree(fsData);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
+    return ret;
+}
+
+/**
+ * Gets a resource from the Secure Virtual Database from the Persistent Storage
+ *
+ * @param rsrcName - pointer of character string for the SVR name (e.g. "acl")
+ * @param data - pointer of the returned Secure Virtual Resource(s)
+ * @param size - pointer of the returned size of Secure Virtual Resource(s)
+ *
+ * @return OCStackResult - result of getting Secure Virtual Resource(s)
+ */
+OCStackResult GetSecureVirtualResourceFromPS(const char *rsrcName, uint8_t **data, size_t *size)
+{
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, resource: %s", __func__, rsrcName);
+    if (!data || *data || !size)
+    {
+        return OC_STACK_INVALID_PARAM;
+    }
+
+    FILE *fp = NULL;
+    uint8_t *fsData = NULL;
+    size_t fileSize = 0;
+    OCStackResult ret = OC_STACK_ERROR;
+
+    OCPersistentStorage *ps = SRMGetPersistentStorageHandler();
+    VERIFY_NON_NULL(TAG, ps, ERROR);
+
+    fileSize = GetSVRDatabaseSize(ps);
+    OIC_LOG_V(DEBUG, TAG, "File Read Size: %zu", fileSize);
+    if (fileSize)
+    {
+        fsData = (uint8_t *) OICCalloc(1, fileSize);
+        VERIFY_NON_NULL(TAG, fsData, ERROR);
+
+	OIC_LOG_V(DEBUG, TAG, "%s: opening svr db, mode rb", __func__, SVR_DB_DAT_FILE_NAME);
         fp = ps->open(SVR_DB_DAT_FILE_NAME, "rb");
         VERIFY_NON_NULL(TAG, fp, ERROR);
         if (ps->read(fsData, 1, fileSize, fp) == fileSize)
         {
             if (rsrcName)
             {
+		OIC_LOG_V(DEBUG, TAG, "%s: searching svr db for resource: %s", __func__, rsrcName);
                 CborParser parser;  // will be initialized in |cbor_parser_init|
                 CborValue cbor;     // will be initialized in |cbor_parser_init|
                 cbor_parser_init(fsData, fileSize, 0, &parser, &cbor);
                 CborValue cborValue = { .parser = 0 };
                 CborError cborFindResult = cbor_value_map_find_value(&cbor, rsrcName, &cborValue);
-                if (CborNoError == cborFindResult && cbor_value_is_byte_string(&cborValue))
-                {
-                    cborFindResult = cbor_value_dup_byte_string(&cborValue, data, size, NULL);
-                    VERIFY_SUCCESS(TAG, CborNoError==cborFindResult, ERROR);
-                    ret = OC_STACK_OK;
-                }
-                // in case of |else (...)|, svr_data not found
-		else
-		{
-		    OIC_LOG_V(FATAL, TAG, "%s: svr_data not found", __func__);
+                if (CborNoError == cborFindResult) {
+		    OIC_LOG_V(DEBUG, TAG, "%s: svr data for %s found, type is %x",
+			      __func__, rsrcName, cborValue.type);
+		    if (cbor_value_is_byte_string(&cborValue)) {
+			cborFindResult = cbor_value_dup_byte_string(&cborValue, data, size, NULL);
+			VERIFY_SUCCESS(TAG, CborNoError==cborFindResult, ERROR);
+			ret = OC_STACK_OK;
+		    } else if (cbor_value_is_map(&cborValue)) {
+			OIC_LOG_V(ERROR, TAG, "%s: svr data type is map (expected byte_string)", __func__);
+			/* *size = sizeof(CborValue); */
+			/* *data = (uint8_t *) OICCalloc(1, sizeof(CborValue)); */
+			/* VERIFY_NON_NULL(TAG, *data, ERROR); */
+			/* memcpy(*data, &cborValue, sizeof(CborValue)); */
+			/* ret = OC_STACK_OK; */
+		    } else {
+			OIC_LOG_V(FATAL, TAG, "%s: svr data for %s malformed", __func__, rsrcName);
+		    }
+		} else {
+		    OIC_LOG_V(FATAL, TAG, "%s: svr data for %s not found", __func__, rsrcName);
 		}
-            }
-            // return everything in case rsrcName is NULL
-            else
-            {
+	    } else {// return everything in case rsrcName is NULL
                 *size = fileSize;
                 *data = (uint8_t *) OICCalloc(1, fileSize);
                 VERIFY_NON_NULL(TAG, *data, ERROR);
@@ -192,7 +241,7 @@ exit:
  */
 OCStackResult UpdateSecureResourceInPS(const char *rsrcName, const uint8_t *psPayload, size_t psSize)
 {
-    OIC_LOG(DEBUG, TAG, "UpdateSecureResourceInPS IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY for '%s', payload: %x", __func__, rsrcName, psPayload);
     if (!rsrcName)
     {
         return OC_STACK_INVALID_PARAM;
@@ -213,9 +262,11 @@ OCStackResult UpdateSecureResourceInPS(const char *rsrcName, const uint8_t *psPa
     uint8_t *resetPfCbor = NULL;
 
     int64_t cborEncoderResult = CborNoError;
-    OCStackResult ret = GetSecureVirtualResourceFromPS(NULL, &dbData, &dbSize);
+    /* OCStackResult ret = GetSecureVirtualResourceFromPS(NULL, &dbData, &dbSize); */
+    OCStackResult ret = GetSVRDatabaseFromPS(&dbData, &dbSize);
     if (dbData && dbSize)
     {
+	OIC_LOG_V(DEBUG, TAG, "%s: readed SVR DB, size = %d", __func__, dbSize);
         size_t aclCborLen = 0;
         size_t pstatCborLen = 0;
         size_t doxmCborLen = 0;
@@ -237,9 +288,12 @@ OCStackResult UpdateSecureResourceInPS(const char *rsrcName, const uint8_t *psPa
             cborFindResult = cbor_value_map_find_value(&cbor, OIC_JSON_ACL_NAME, &curVal);
             if (CborNoError == cborFindResult && cbor_value_is_byte_string(&curVal))
             {
+		OIC_LOG_V(DEBUG, TAG, "%s: acl byte string found", __func__);
                 cborFindResult = cbor_value_dup_byte_string(&curVal, &aclCbor, &aclCborLen, NULL);
                 VERIFY_CBOR_SUCCESS(TAG, cborFindResult, "Failed Finding ACL Name Value.");
-            }
+            } else {
+		OIC_LOG_V(DEBUG, TAG, "%s: acl byte string NOT FOUND", __func__);
+	    }
             cborFindResult = cbor_value_map_find_value(&cbor, OIC_JSON_PSTAT_NAME, &curVal);
             if (CborNoError == cborFindResult && cbor_value_is_byte_string(&curVal))
             {
@@ -249,9 +303,12 @@ OCStackResult UpdateSecureResourceInPS(const char *rsrcName, const uint8_t *psPa
             cborFindResult = cbor_value_map_find_value(&cbor, OIC_JSON_DOXM_NAME, &curVal);
             if (CborNoError == cborFindResult && cbor_value_is_byte_string(&curVal))
             {
+		OIC_LOG_V(DEBUG, TAG, "%s: doxm byte string found", __func__);
                 cborFindResult = cbor_value_dup_byte_string(&curVal, &doxmCbor, &doxmCborLen, NULL);
                 VERIFY_CBOR_SUCCESS(TAG, cborFindResult,  "Failed Finding DOXM Name Value.");
-            }
+            } else {
+		OIC_LOG_V(DEBUG, TAG, "%s: doxm byte string NOT FOUND", __func__);
+	    }
             cborFindResult = cbor_value_map_find_value(&cbor, OIC_JSON_AMACL_NAME, &curVal);
             if (CborNoError == cborFindResult && cbor_value_is_byte_string(&curVal))
             {
@@ -394,7 +451,7 @@ OCStackResult UpdateSecureResourceInPS(const char *rsrcName, const uint8_t *psPa
 
     if (outPayload && outSize)
     {
-        OIC_LOG_V(DEBUG, TAG, "Writing in the file: %zu", outSize);
+        OIC_LOG_V(DEBUG, TAG, "%s: writing in the file: %zu", __func__, outSize);
         OCPersistentStorage* ps = SRMGetPersistentStorageHandler();
         if (ps)
         {
