@@ -536,7 +536,7 @@ OCNotifyListOfObservers (OCResourceHandle handle,
  */
 OC_EXPORT OCStackResult OCDoResponse(OCEntityHandlerResponse *response);
 
-#ifdef DIRECT_PAIRING		/* GAR */
+// #ifdef DIRECT_PAIRING		/* GAR */
 /**
  * The function is responsible for discovery of direct-pairing device is current subnet. It will list
  * all the device in subnet which support direct-pairing.
@@ -570,7 +570,7 @@ OC_EXPORT const OCDPDev_t* OCGetDirectPairedDevices();
 OC_EXPORT OCStackResult OCDoDirectPairing(void *ctx, OCDPDev_t* peer, OCPrm_t pmSel, char *pinNumber,
                                                      OCDirectPairingCB resultCallback);
 
-#endif // DIRECT_PAIRING
+// #endif // DIRECT_PAIRING
 
 #if defined(RD_CLIENT) || defined(RD_SERVER)
 /**

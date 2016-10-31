@@ -144,6 +144,8 @@ static const char CORESPEC[] = "core";
 //-----------------------------------------------------------------------------
 // Macros
 //-----------------------------------------------------------------------------
+
+/*GAR: FIXME! this code REQUIRES that logging be turned on! */
 #define TAG  "OIC_RI_STACK"
 #define VERIFY_SUCCESS(op, successCode) { if ((op) != (successCode)) \
             {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} }
@@ -4152,7 +4154,7 @@ OCStackResult OCDoResponse(OCEntityHandlerResponse *ehResponse)
     return result;
 }
 
-#ifdef DIRECT_PAIRING		/* GAR */
+// #ifdef DIRECT_PAIRING		/* GAR */
 const OCDPDev_t* OCDiscoverDirectPairingDevices(unsigned short waittime)
 {
     OIC_LOG(INFO, TAG, "Start OCDiscoverDirectPairingDevices");
@@ -4188,7 +4190,7 @@ OCStackResult OCDoDirectPairing(void *ctx, OCDPDev_t* peer, OCPrm_t pmSel, char 
     return DPDirectPairing(ctx, (OCDirectPairingDev_t*)peer, (OicSecPrm_t)pmSel,
                                            pinNumber, (OCDirectPairingResultCB)resultCallback);
 }
-#endif // DIRECT_PAIRING
+// #endif // DIRECT_PAIRING
 
 //-----------------------------------------------------------------------------
 // Private internal function definitions
