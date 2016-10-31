@@ -71,7 +71,7 @@ commonlib = local_env.StaticLibrary('c_common', common_src)
 # local_env.Install(build_sysroot, commonlib)
 # local_env.UserInstallTargetLib(commonlib, 'c_common')
 
-build.utils.install_headers(local_env, 'platform_features.h', '', 'headers')
+build.utils.install_headers(local_env, ['platform_features.h'], '', 'chibity')
 # build.utils.install_lib(local_env, commonlib, 'c_common')
 
 # env.PrependUnique(LIBS = ['c_common'])

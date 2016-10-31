@@ -94,6 +94,8 @@ local_env.AppendUnique(LIBPATH = [install_sysroot + '/lib',
 
 local_env.PrependUnique(LIBS = ['c_common', 'coap', 'csdk'])
 
+
+
 if target_os in ['android', 'darwin', 'linux', 'poky-edison', 'tizen', 'msys_nt', 'windows']:
 	local_env.PrependUnique(LIBS = ['connectivity_abstraction'])
 
@@ -126,7 +128,7 @@ if env.get('SECURED'):
 	local_env.AppendUnique(LIBS = ['tinydtls'])
         local_env.AppendUnique(LIBPATH = [build_sysroot + '/tinydtls'])
 
-if env.get('LOGGING'):
+if local_env.get('LOGGING'):
         local_env.PrependUnique(LIBS = ['logger'])
 	local_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 	local_env.AppendUnique(LIBPATH = [build_sysroot + '/logger'])
@@ -220,7 +222,11 @@ Alias('chibity', dylib)
 # local_env.InstallTarget(octbstack_libs, 'octbstack')
 # local_env.UserInstallTargetLib(octbstack_libs, 'octbstack')
 
-headers = ['ocstackconfig.h', 'octypes.h', 'ocstack.h', 'ocpresence.h', 'ocpayload.h']
+headers = ['ocstackconfig.h',
+           'octypes.h',
+           'ocstack.h',
+           'ocpresence.h',
+           'ocpayload.h',]
 # header_dir = install_sysroot + '/include'
 
 # local_env.Install(header_dir, headers)

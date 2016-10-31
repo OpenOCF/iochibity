@@ -31,6 +31,8 @@ dtls_env = env.Clone()
 
 target_os = env.get('TARGET_OS')
 
+install_sysroot = env.get('INSTALL_SYSROOT')
+
 if(target_os) == 'arduino':
 	dtls_env.Replace(CFLAGS = env.get('CXXFLAGS'))
 
@@ -99,3 +101,4 @@ libtinydtls = dtls_env.StaticLibrary('tinydtls', tinydtls_src) #, OBJPREFIX='lib
 
 # build.utils.install_lib(dtls_env, libtinydtls, 'tinydtls')
 
+dtls_env.Install(install_sysroot + '/lib', libtinydtls)
