@@ -901,7 +901,7 @@ OCPresenceTrigger convertTriggerStringToEnum(const char * triggerStr)
     {
         OIC_LOG_V(ERROR, TAG,
                   "encodeAddressForRFC6874 failed: "
-                  "outputSize (%d) < inputSize (%d)",
+                  "outputSize (%ld) < inputSize (%ld)",
                   outputSize, inputSize);
 
         return OC_STACK_ERROR;
@@ -1240,7 +1240,7 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
     }
 
     ClientCB *cbNode = GetClientCB(responseInfo->info.token,
-            responseInfo->info.tokenLength, NULL, NULL);
+				   responseInfo->info.tokenLength, NULL, NULL);
 
     ResourceObserver * observer = GetObserverUsingToken (responseInfo->info.token,
             responseInfo->info.tokenLength);
@@ -1437,7 +1437,6 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
                 }
             }
 
-	    OIC_LOG_V(DEBUG, TAG, "%s: FOO A", __func__);
             if (cbNode->method == OC_REST_OBSERVE &&
                 response.sequenceNumber > OC_OFFSET_SEQUENCE_NUMBER &&
                 cbNode->sequenceNumber <=  MAX_SEQUENCE_NUMBER &&
@@ -1454,12 +1453,16 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
                                                                         &response);
                 cbNode->sequenceNumber = response.sequenceNumber;
 
-                if (appFeedback == OC_STACK_DELETE_TRANSACTION)
+                /* if (appFeedback == OC_STACK_DELETE_TRANSACTION) */
+		// GAR MULTICAST
+		if ( (((responseInfo->info.token)[0]) & 1) == 0 )
                 {
+		    printf("XXXXXXXXXXXXXXXX:  UNICAST\n");
                     FindAndDeleteClientCB(cbNode);
                 }
                 else
                 {
+		    printf("XXXXXXXXXXXXXXXX:  MULTICAST\n");
                     // To keep discovery callbacks active.
                     cbNode->TTL = GetTicks(MAX_CB_TIMEOUT_SECONDS *
                                             MILLISECONDS_PER_SECOND);
@@ -2749,7 +2752,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
         goto exit;
     }
 
-    caResult = CAGenerateToken(&token, tokenLength);
+    caResult = CAGenerateToken(&token, tokenLength, requestInfo.isMulticast);
     if (caResult != CA_STATUS_OK)
     {
         OIC_LOG(ERROR, TAG, "CAGenerateToken error");
@@ -2873,7 +2876,7 @@ OCStackResult OCCancel(OCDoHandle handle, OCQualityOfService qos, OCHeaderOption
         uint8_t numOptions)
 {
     /*
-     * This ftn is implemented one of two ways in the case of observation:
+     * This fn is implemented one of two ways in the case of observation:
      *
      * 1. qos == OC_NON_CONFIRMABLE. When observe is unobserved..
      *      Remove the callback associated on client side.
@@ -3145,7 +3148,7 @@ OCStackResult OCStartPresence(const uint32_t ttl)
         OCDevAddr devAddr = { .adapter = OC_DEFAULT_ADAPTER };
 
         CAToken_t caToken = NULL;
-        CAResult_t caResult = CAGenerateToken(&caToken, tokenLength);
+        CAResult_t caResult = CAGenerateToken(&caToken, tokenLength, false); /* GAR MULTICAST */
         if (caResult != CA_STATUS_OK)
         {
             OIC_LOG(ERROR, TAG, "CAGenerateToken error");

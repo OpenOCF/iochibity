@@ -34,9 +34,10 @@ SConscript('../external_libs.scons')
 if env.get('RELEASE'):
 	env.AppendUnique(CCFLAGS = ['-Os'])
 	env.AppendUnique(CPPDEFINES = ['NDEBUG'])
-else:
+
+if env.get('PROFILING'):
 	env.AppendUnique(CPPFLAGS = ['-g', '--coverage'])
-	# --coverage = -fprofile-arcs -ftest-coverage (when compiling) and -lgcov (when linking). 
+	# --coverage = -fprofile-arcs -ftest-coverage (when compiling) and -lgcov (when linking).
         env.PrependUnique(LIBS = ['gcov'])
 
 env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__'])

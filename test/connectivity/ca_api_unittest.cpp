@@ -240,7 +240,7 @@ TEST_F(CATests, CreateRemoteEndpointTestValues)
 // CAGerateToken TC
 TEST_F(CATests, GenerateTokenTestGood)
 {
-    EXPECT_EQ(CA_STATUS_OK, CAGenerateToken(&tempToken, tokenLength));
+    EXPECT_EQ(CA_STATUS_OK, CAGenerateToken(&tempToken, tokenLength, false));
 
     CADestroyToken(tempToken);
 }
@@ -248,14 +248,14 @@ TEST_F(CATests, GenerateTokenTestGood)
 // check return value when CAGenerateToken is passed a NULL instead a valid pointer
 TEST_F(CATests, GenerateTokenTestBad)
 {
-    EXPECT_EQ(CA_STATUS_INVALID_PARAM, CAGenerateToken(NULL, tokenLength));
+    EXPECT_EQ(CA_STATUS_INVALID_PARAM, CAGenerateToken(NULL, tokenLength, false));
 }
 
 // CADestroyToken TC
 // check destroyed token
 TEST_F(CATests, DestroyTokenTest)
 {
-    CAGenerateToken(&tempToken, tokenLength);
+    CAGenerateToken(&tempToken, tokenLength, false);
     CADestroyToken(tempToken);
 
     char * check = (char *) "destroy success";
@@ -270,7 +270,7 @@ TEST_F(CATests, SendRequestTestWithInvalidAddress)
     CACreateEndpoint(CA_DEFAULT_FLAGS, CA_ADAPTER_IP, "10.11.13.13.14", PORT, &tempRep);
 
     memset(&requestData, 0, sizeof(CAInfo_t));
-    CAGenerateToken(&tempToken, tokenLength);
+    CAGenerateToken(&tempToken, tokenLength, false);
     requestData.token = tempToken;
     requestData.tokenLength = tokenLength;
     requestData.type = CA_MSG_CONFIRM;
@@ -294,7 +294,7 @@ TEST(SendRequestTest, DISABLED_TC_16_Positive_01)
     CACreateEndpoint(CA_DEFAULT_FLAGS, CA_ADAPTER_IP, addr, PORT, &tempRep);
 
     memset(&requestData, 0, sizeof(CAInfo_t));
-    CAGenerateToken(&tempToken, tokenLength);
+    CAGenerateToken(&tempToken, tokenLength, false);
     requestData.token = tempToken;
     requestData.tokenLength = tokenLength;
 
@@ -349,7 +349,7 @@ TEST_F(CATests, SendResponseTestWithInvalidCode)
 
     if (responseData.payload)
     {
-        CAGenerateToken(&tempToken, tokenLength);
+        CAGenerateToken(&tempToken, tokenLength, false);
         requestData.token = tempToken;
         requestData.tokenLength = tokenLength;
 
@@ -387,7 +387,7 @@ TEST(SendResponseTest, DISABLED_TC_19_Positive_01)
     memcpy(responseData.payload, "response payload", sizeof("response payload"));
     responseData.payloadSize = sizeof("response payload");
 
-    CAGenerateToken(&tempToken, tokenLength);
+    CAGenerateToken(&tempToken, tokenLength, false);
     requestData.token = tempToken;
     requestData.tokenLength = tokenLength;
 
@@ -424,7 +424,7 @@ TEST(SendResponseTest, DISABLED_TC_20_Negative_01)
     memcpy(responseData.payload, "response payload", sizeof("response payload"));
     responseData.payloadSize = sizeof("response payload");
 
-    CAGenerateToken(&tempToken, tokenLength);
+    CAGenerateToken(&tempToken, tokenLength, false);
     requestData.token = tempToken;
     requestData.tokenLength = tokenLength;
 

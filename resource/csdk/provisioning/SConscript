@@ -19,7 +19,7 @@
 # //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 #
 
-print "XXXXXXXXXXXXXXXX Provisioning"
+# print "XXXXXXXXXXXXXXXX Provisioning"
 
 Import('env')
 import os.path
@@ -118,7 +118,7 @@ provisioning_src = [
 	'ownership_transfer/oxrandompin.c',
 	'provisioningdatabasemanager.c']
 
-print "YYYYYYYYYYYYYYYY pm src:", provisioning_src
+# print "YYYYYYYYYYYYYYYY pm src:", provisioning_src
 
 # if target_os == 'darwin':  #FIXME: if HAS_GETTIMEOFDAY
 #    provisioning_src = provisioning_src + ['compat/darwin.c']

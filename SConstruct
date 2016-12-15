@@ -146,6 +146,10 @@ SConscript('test/SConscript',
            variant_dir=build_sysroot + '/test',
            duplicate=0)
 
+SConscript('tools/json2cbor/SConscript',
+           variant_dir=build_sysroot + '/tools',
+           duplicate=0)
+
 # Build 'resource' sub-project
 #SConscript('resource/SConscript')
 

@@ -359,7 +359,7 @@ CAResult_t CARetransmissionSentData(CARetransmission_t *context,
                                     const void *pdu, uint32_t size)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, thread %x", __func__, pthread_self());
-    /* //GAR initResources */
+    /* //GAR */
     /* void* callstack[128]; */
     /* int frames = backtrace(callstack, 128); */
     /* char** strs = backtrace_symbols(callstack, frames); */

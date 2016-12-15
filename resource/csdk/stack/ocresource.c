@@ -915,6 +915,7 @@ HandleResourceWithEntityHandler (OCServerRequest *request,
     {
         return OC_STACK_INVALID_PARAM;
     }
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
 
     OCStackResult result = OC_STACK_ERROR;
     OCEntityHandlerResult ehResult = OC_EH_ERROR;
@@ -923,7 +924,7 @@ HandleResourceWithEntityHandler (OCServerRequest *request,
 
     OCEntityHandlerRequest ehRequest = { .resource = 0 };
 
-    OIC_LOG(INFO, TAG, "Entering HandleResourceWithEntityHandler");
+    /* OIC_LOG(INFO, TAG, "Entering HandleResourceWithEntityHandler"); */
     OCPayloadType type = PAYLOAD_TYPE_REPRESENTATION;
     // check the security resource
     //GAR bugfix: request->resourceUrl always true
@@ -1062,6 +1063,7 @@ HandleResourceWithEntityHandler (OCServerRequest *request,
     result = EntityHandlerCodeToOCStackCode(ehResult);
 exit:
     OCPayloadDestroy(ehRequest.payload);
+    OIC_LOG_V(INFO, TAG, "%s: EXIT res %s", __func__, result);
     return result;
 }
 
@@ -1103,6 +1105,7 @@ HandleCollectionResourceDefaultEntityHandler (OCServerRequest *request,
 OCStackResult
 ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerRequest *request)
 {
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     OCStackResult ret = OC_STACK_OK;
 
     switch (resHandling)
@@ -1148,6 +1151,7 @@ ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerReque
             return OC_STACK_ERROR;
         }
     }
+    OIC_LOG_V(INFO, TAG, "%s: EXIT res %s", __func__, ret);
     return ret;
 }
 

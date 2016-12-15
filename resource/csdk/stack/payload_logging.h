@@ -115,10 +115,10 @@ INLINE_API void OCLinksLog(const LogLevel level, const OCLinksPayload *links)
         }
         if (links->type)
         {
-            OIC_LOG_V(level, PL_TAG, "   %s", links->type);
+            OIC_LOG_V(level, PL_TAG, "   %s", (char*)links->type);
         }
         OIC_LOG_V(level, PL_TAG, "   INS: %d", links->ins);
-        OIC_LOG_V(level, PL_TAG, "   TTL: %d", links->ttl);
+        OIC_LOG_V(level, PL_TAG, "   TTL: %lld", links->ttl);
         OIC_LOG_V(level, PL_TAG, "   P: %d", links->p);
         if (links->rel)
         {
@@ -173,7 +173,7 @@ INLINE_API void OCPayloadLogRep(LogLevel level, OCRepPayload* payload)
                     OIC_LOG_V(level, PL_TAG, "\t\t%s: NULL", val->name);
                     break;
                 case OCREP_PROP_INT:
-                    OIC_LOG_V(level, PL_TAG, "\t\t%s(int):%zd", val->name, val->i);
+                    OIC_LOG_V(level, PL_TAG, "\t\t%s(int): %lld", val->name, val->i);
                     break;
                 case OCREP_PROP_DOUBLE:
                     OIC_LOG_V(level, PL_TAG, "\t\t%s(double):%f", val->name, val->d);

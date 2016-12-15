@@ -18,13 +18,13 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-print "LIBCSDKSTACK"
-
 ##
 # libcsckstack (static library) build script
 ##
 Import('env')
 import build.utils
+
+print "LIBCSDKSTACK LIBS:", env.get('LIBS')
 
 lib_env = env.Clone()
 
@@ -84,6 +84,8 @@ if local_env.get('ROUTING') == 'GW':
 	local_env.AppendUnique(CPPDEFINES = ['ROUTING_GATEWAY'])
 elif local_env.get('ROUTING') == 'EP':
 	local_env.AppendUnique(CPPDEFINES = ['ROUTING_EP'])
+
+print "STACK BUILD SYSROOT:", build_sysroot
 
 local_env.AppendUnique(LIBPATH = [install_sysroot + '/lib',
                                   build_sysroot + '/c_common',

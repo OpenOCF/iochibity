@@ -43,6 +43,8 @@ if target_os in ['windows', 'msys_nt']:
 
 if target_os == 'tizen':
 	local_env.AppendUnique(LIBPATH = [build_sysroot])
+elif target_os == 'linux':
+	local_env.AppendUnique(LIBS = ['m', 'uuid'])
 else:
 	local_env.AppendUnique(LIBPATH = [os.path.join(build_sysroot, 'c_common')])
 

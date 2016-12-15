@@ -50,7 +50,7 @@ TEST_F(CABlockTransferTests, CACreateNewDataSetTest)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     memset(&requestData, 0, sizeof(CAInfo_t));
@@ -103,7 +103,7 @@ TEST_F(CABlockTransferTests, CARemoveBlockDataFromListWithSeed)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     memset(&requestData, 0, sizeof(CAInfo_t));
@@ -154,7 +154,7 @@ TEST_F(CABlockTransferTests, CAGetBlockDataFromBlockDataListTest)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     memset(&requestData, 0, sizeof(CAInfo_t));
@@ -197,7 +197,7 @@ TEST_F(CABlockTransferTests, CAGetPayloadFromBlockDataListTest)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     memset(&requestData, 0, sizeof(CAInfo_t));
@@ -245,7 +245,7 @@ TEST_F(CABlockTransferTests, CAAddBlockOptionTest)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     memset(&requestData, 0, sizeof(CAInfo_t));
@@ -285,7 +285,7 @@ TEST_F(CABlockTransferTests, CAAddBlockOption1InRequest)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     memset(&requestData, 0, sizeof(CAInfo_t));
@@ -396,7 +396,7 @@ TEST_F(CABlockTransferTests, CAAddBlockOption2InResponse)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t responseData;
     memset(&responseData, 0, sizeof(CAInfo_t));
@@ -452,7 +452,7 @@ TEST_F(CABlockTransferTests, CAAddBlockOption2InRequest)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     memset(&requestData, 0, sizeof(CAInfo_t));
@@ -506,7 +506,7 @@ TEST_F(CABlockTransferTests, CAGetBlockSizeOptionFromPduTest)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     memset(&requestData, 0, sizeof(CAInfo_t));
@@ -538,7 +538,7 @@ TEST_F(CABlockTransferTests, CASetNextBlockOption1WithRequest)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     memset(&requestData, 0, sizeof(CAInfo_t));
@@ -576,7 +576,7 @@ TEST_F(CABlockTransferTests, CASetNextBlockOption1WithResponse)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t responseData;
     memset(&responseData, 0, sizeof(CAInfo_t));
@@ -615,7 +615,7 @@ TEST_F(CABlockTransferTests, CASetNextBlockOption2WithRequest)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     memset(&requestData, 0, sizeof(CAInfo_t));
@@ -653,7 +653,7 @@ TEST_F(CABlockTransferTests, CASetNextBlockOption2WithResponse)
     coap_transport_type transport = coap_udp;
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t responseData;
     memset(&responseData, 0, sizeof(CAInfo_t));
@@ -688,7 +688,7 @@ TEST_F(CABlockTransferTests, CAUpdatePayloadToCADataWithRequest)
     CACreateEndpoint(CA_DEFAULT_FLAGS, CA_ADAPTER_IP, "127.0.0.1", 5683, &tempRep);
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t requestData;
     requestData.type = CA_MSG_NONCONFIRM;
@@ -723,7 +723,7 @@ TEST_F(CABlockTransferTests, CAUpdatePayloadToCADataWithResponse)
     CACreateEndpoint(CA_DEFAULT_FLAGS, CA_ADAPTER_IP, "127.0.0.1", 5683, &tempRep);
 
     CAToken_t tempToken = NULL;
-    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN);
+    CAGenerateToken(&tempToken, CA_MAX_TOKEN_LEN, false);
 
     CAInfo_t responseData;
     responseData.type = CA_MSG_NONCONFIRM;

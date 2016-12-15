@@ -222,15 +222,15 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
 
     if (token && tokenLength <= CA_MAX_TOKEN_LEN && tokenLength > 0)
     {
-        OIC_LOG (INFO, TAG,  "Looking for token");
+        OIC_LOG (INFO, TAG,  "Looking for token in client cblist: [");
         OIC_LOG_BUFFER(INFO, TAG, (const uint8_t *)token, tokenLength);
-        OIC_LOG(INFO, TAG, "\tFound in callback list");
+        OIC_LOG (INFO, TAG,  "]");
         LL_FOREACH(cbList, out)
         {
             OIC_LOG_BUFFER(INFO, TAG, (const uint8_t *)out->token, tokenLength);
-
             if (memcmp(out->token, token, tokenLength) == 0)
             {
+		OIC_LOG(INFO, TAG, "\tFound in callback list");
                 return out;
             }
             CheckAndDeleteTimedOutCB(out);
@@ -301,6 +301,17 @@ void DeleteClientCBList()
 void FindAndDeleteClientCB(ClientCB * cbNode)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+/*     //GAR */
+/* #include <execinfo.h> */
+/*     void* callstack[128]; */
+/*     int frames = backtrace(callstack, 128); */
+/*     char** strs = backtrace_symbols(callstack, frames); */
+/*     for (int ix = 0; ix < frames; ++ix) { */
+/*     	OIC_LOG_V(DEBUG, TAG, "%s callstack:  %s\n", __func__, strs[ix]); */
+/*     } */
+/*     free(strs); */
+/*     //GAR */
+
     ClientCB* tmp;
     if (cbNode)
     {

@@ -231,11 +231,11 @@ void CADestroyEndpoint(CAEndpoint_t *rep)
     CAFreeEndpoint(rep);
 }
 
-CAResult_t CAGenerateToken(CAToken_t *token, uint8_t tokenLength)
+CAResult_t CAGenerateToken(CAToken_t *token, uint8_t tokenLength, bool isMulticast)
 {
     OIC_LOG(DEBUG, TAG, "CAGenerateToken");
 
-    return CAGenerateTokenInternal(token, tokenLength);
+    return CAGenerateTokenInternal(token, tokenLength, isMulticast);
 }
 
 void CADestroyToken(CAToken_t token)

@@ -204,8 +204,9 @@ def host_features(env) :
         # only check for libs you want included in every compile
         #GAR FIXME: check for boost libs UNLESS build target is c kernel
 
-        if conf.CheckLib('uuid'):
-                env.AppendUnique(CPPDEFINES = ['HAVE_UUID'])
+        # WARNING: this won't work for OS X! there is no libuuid, the uuid fns are in a syslib!
+        # if conf.CheckLib('uuid'):
+        #         env.AppendUnique(CPPDEFINES = ['HAVE_UUID'])
 
 # from build_common/SConscript:
 # if target_os == 'msys_nt':

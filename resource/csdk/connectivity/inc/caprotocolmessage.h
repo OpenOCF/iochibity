@@ -208,7 +208,7 @@ CAResult_t CAGetTokenFromPDU(const coap_hdr_t *pdu_hdr, CAInfo_t *outInfo,
  * @param[in]    tokenLength     length of the token.
  * @return  CA_STATUS_OK or ERROR CODES (CAResult_t error codes in cacommon.h).
  */
-CAResult_t CAGenerateTokenInternal(CAToken_t *token, uint8_t tokenLength);
+CAResult_t CAGenerateTokenInternal(CAToken_t *token, uint8_t tokenLength, bool isMulticast);
 
 /**
  * destroys the token.

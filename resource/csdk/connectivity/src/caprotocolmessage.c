@@ -1001,7 +1001,7 @@ CAResult_t CAGetTokenFromPDU(const coap_hdr_t *pdu_hdr, CAInfo_t *outInfo,
     return CA_STATUS_OK;
 }
 
-CAResult_t CAGenerateTokenInternal(CAToken_t *token, uint8_t tokenLength)
+CAResult_t CAGenerateTokenInternal(CAToken_t *token, uint8_t tokenLength, bool isMulticast)
 {
     VERIFY_NON_NULL(token, TAG, "token");
 
@@ -1020,7 +1020,12 @@ CAResult_t CAGenerateTokenInternal(CAToken_t *token, uint8_t tokenLength)
     }
 
     OCFillRandomMem((uint8_t *)temp, tokenLength);
-
+    // GAR MULTICAST
+    if (isMulticast) {
+	temp[0] |= 1 << 0;		/* set first bit */
+    }else {
+	temp[0] &= ~(1 << 0);	/* clear first bit */
+    }
     // save token
     *token = temp;
 
