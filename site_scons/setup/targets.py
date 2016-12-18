@@ -153,6 +153,8 @@ def host_features(env) :
                         env.Replace(RELEASE = 1)
                 elif stage == 'debug':
                         env.Replace(RELEASE = 0)
+                        env.AppendUnique(CPPDEFINES = ['LOGGING'])
+                        env.AppendUnique(TB_LOG = 1)  # ??
         except:
                 env.Replace(RELEASE = 0)
                 pass
@@ -204,9 +206,16 @@ def host_features(env) :
         # only check for libs you want included in every compile
         #GAR FIXME: check for boost libs UNLESS build target is c kernel
 
+        try:
+                target_os = os.environ['TARGET_OS']
+        except KeyError:
+                target_os = os.environ['HOST_OS']
+
         # WARNING: this won't work for OS X! there is no libuuid, the uuid fns are in a syslib!
-        # if conf.CheckLib('uuid'):
-        #         env.AppendUnique(CPPDEFINES = ['HAVE_UUID'])
+        if target_os == 'linux':
+                env.Append(LIBS = ['dl'])
+                if conf.CheckLib('uuid'):
+                        env.AppendUnique(CPPDEFINES = ['HAVE_UUID'])
 
 # from build_common/SConscript:
 # if target_os == 'msys_nt':

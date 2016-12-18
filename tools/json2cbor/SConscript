@@ -31,7 +31,7 @@ target_os = tools_env.get('TARGET_OS')
 
 src_dir = tools_env.get('SRC_DIR')
 
-flavor = env['ENV']['IOTIVITY_FLAVOR']
+flavor = env['ENV']['IOTIVITY_IMPLEMENTATION']
 
 ######################################################################
 # Build flags
