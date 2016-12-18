@@ -1,33 +1,131 @@
 = iochibity
 
 NOTE: This is a spork ('sperimental fork) derived from the official
-Gerrit repo, created for experimentation.  If you want the real thing,
-you can obtain it from the official https://www.iotivity.org/[Iotivity
-site].
+https://www.iotivity.org/[Iotivity] 1.1.1 distribution, created for
+experimentation.
+.
 
-Status: Compiled on OS X 10.11.5, Ubuntu 14.04, Wind River Linux (a
-Dell 3298 IoT Gateway) and the Intel Edison.  The sample code we have
-tried runs on all four platforms.
+*Goals*
 
-WARNING: Java support has been split off into an independent project,
-https://github.com/iotk/iotivity-java[iotk/iotivity-java].
+* Minimal - support for Iotivity C kernel only: no C++ and no extras (e.g. nothing from the `services` directory of the official distribution)
+* 100% C11
+* Darwin support
+* Cross-platform build support (e.g. Darwin->Edison, Darwin->Linux, Linux->Edison, etc.)
+* Bring some sanity to the build system and source code organization
 
-Plans: Once the patches for Darwin/Java have been integrated into the
-official repo (which may take a long time), this repo will (probably)
-go away.
+*Status* as of Dec 2016: Tested on OS X 10.11.6, Ubuntu 14.04, Wind
+River Linux (a Dell 3298 IoT Gateway) and the Intel Edison.  The
+sample code we have tried runs on all four platforms.  Cross-building
+from OS X to Edison has been tested.
+
+WARNING: Based on Iotivity version 1.1.1.  Support for 1.2.1 is
+expected but not yet scheduled.
+
+NOTE: Sample programs have been moved to a separate repository:
+https://github.com/iotk/iochibity-c[iochibity-c].
+
+NOTE: Java support has been split off into an independent project,
+https://github.com/iotk/iotivity-java[iotivity-java].
+
 
 To build: `$ scons VERBOSE=true 2>&1 | tee build.log`
 
-If you run into trouble like missing libs (e.g. libssl), go with http://brew.sh/[homebrew].
+On OS X, if you run into trouble like missing libs (e.g. libssl), go
+with http://brew.sh/[homebrew].
 
-== status
 
-* all work has been done on El Capitan (10.11.5)
-* passes most of the tests (build with TEST=1), but valgrind crashes
-  on many stacktests and a few others.  This seems to be due to
-  problems Valgrind has on El Capitan.  At least some of the crashes
-  occur when pthread_join is called in OCStop.  So it looks like the
-  tests are passed but crashes occur on thread shutdown or sth.
+== building
+
+The build mechanism is designed to work with the set of environment
+variables as defined in https://github.com/iotk/xc[xc].  Follow the
+instructions in https://github.com/iotk/xc[xc README] and then run
+scons to build.
+
+WARNING: Building with SECURED=0 is disallowed - only secured builds
+are supported.
+
+Cross-platform compilation is partially supported: you can target the
+Intel Edison from an OS X development environment.  The plan is to
+support Linux as the development host.
+
+NOTE: Unfortunately I do not have Tizen or Windows development
+environments so Iochibity has not been tried on either of those.  It
+should not be too difficult to make it work, though.
+
+== security
+
+Only secure builds are supported.  This means you must configure
+("provision") security to do anything useful.  You have two options:
+
+==== Static provisioning
+
+You will need to write JSON files specifying credential and ACL
+information for both client and server.  For an example, see the files
+`ocftestclient.json` and `ocftestserver.json` in
+https://github.com/iotk/iochibity-java/tree/master/jni-c/example/src/main/resources.
+
+The critical point is that you need to specify a PreShared Key (PSK)
+for both client and server.  In the sample files this is done using
+the following parts of the "creds" stanza:
+
+[source,json]
+----
+                "credtype": 1,
+                "privatedata": {
+                    "data": "AAAAAAAAAAAAAAAA",
+                    "encoding": "oic.sec.encoding.raw"
+                }
+----
+
+The information in the "creds" stanza will be used to set the
+credential resource, `oic/sec/cred`, as documented starting on page 86
+of the OIC Security Specification (version 1.1).  Here the JSON
+"credtype" entry corresponds to the "credtype" resource property; the
+value `1` means "Symmetric pair-wise key".  The "privatedata" entry
+also corresponds directly to a resource property called "privatedata";
+its value, however, has type "oic.sec.privdatatype", which in turn has
+properties "encoding" and "data" (see page 90 of the
+Spec). `"encoding": "oic.sec.encoding.raw"` means the data field value
+is raw hex-encoded data; the `data` field thus specifies the PSK as a
+raw hex value.
+
+Both the client and server config files must specify credentials for
+both client and server _subject id_ s.
+
+IMPORTANT: The PSK must actually be _shared_ by client and server;
+that is, the PSK specified for the _client_ subjectuuid in the client's
+config file must be specified as the PSK for the _server_ subjectuuid
+in the server's config file, and similarly the other way around.
+
+Use `json2cbor` to generate CBOR files from the JSON files.  Use the
+`tools` target to generate the tool: `$ scons tools` will install
+`json2cbor` (and `cbordump`) to `${INSTALL_SYSROOT}/bin`.
+
+== tests
+
+All googletest tests have been moved out of the source tree to the
+`test` subdirectory.  To build the tests just use the `tests` target:
+
+[source,sh]
+----
+$ scons tests
+----
+
+The resulting executables will be places in `${INSTALL_SYSROOT}/bin`.
+
+Profiling has been removed from the tests.  This is because Valgrind
+was causing problems on OS X, but more fundamentally because testing
+and performance profiling are completely separate concerns.  Profiling
+will be added back as a build option sometime in the future.
+
+
+* tested on OS X 10.11.6, Ubuntu 14.04, and the Intel Edison (Yocto Linux)
+* passes most of the tests, but on OS X valgrind
+  crashes on many stacktests and a few others.  This seems to be due
+  to problems Valgrind has on El Capitan.  At least some of the
+  crashes occur when pthread_join is called in OCStop.  So it looks
+  like the tests are passed but crashes occur on thread shutdown
+  or sth.
 * I've built the stack and run a few of the test apps on OS X 10.11.5,
   Ubuntu 14.04, Wind River Linux on a Dell 3298 gateway, and the Intel
   Edison (latest version, June 2016).
@@ -39,11 +137,12 @@ passes with flying colors on the mac.
 === differences from official iotivity codebase
 
 The code is essentially the same, except for the stuff needed to make
-it go on Darwin.  However, I've done quite a bit of rearranging.  In
-particular I've migrated a bunch of stuff to external projects, since
-I don't think they belong in Iochibity kernel, and this simplifies and
-speeds things up in various ways.
+it go on Darwin.  However, I've done quite a bit of rearranging,
+including some renaming.  I've also migrated a bunch of stuff to
+external projects, since I don't think it belongs in the Iochibity
+kernel, and this simplifies and speeds things up in various ways.
 
+* C++ code
 * android
 * cloud
 * java
@@ -56,6 +155,10 @@ Test] and installing it in the standard location (/usr/local/lib).
 Iochibity will feature test for it.  If this causes you trouble please
 let me know, it's only been tested on my Mac and Linux systems.
 
+To build and install gtest, follow the instructions at
+https://github.com/iotk/xc/tree/master/gtest[googletest for
+cross-compiling].
+
 Some other extlibs have been migrated to `resource`: tinycbor, cjson,
 timer.  These are essential to the Iotivity kernel but not really
 treated as libs, so I see no point in treating them as external libs.
@@ -64,15 +167,15 @@ any trouble keeping them up to date.
 
 == java status
 
-The original build system carries out various java and android related
-tasks (like downloading gradle) even if the user has no intention of
-using either.  Furthermore the build system for these is far more
-complicated than it needs to be.  For example, the build code for
-compiling the Java bits involves a more or less opaque construction of
-a more or less complex gradle instruction, etc.  In fact the Java code
-can be compiled and jarred up with two simple commands.  You hardly
-even need a makefile.  Gradle may be necessary for Android, but not
-for Java.
+The original build system carries out various Java- and Android-related
+tasks (like downloading gradle, the Android SDK, etc.) even if the
+user has no intention of using either.  Furthermore the build system
+for these is far more complicated than it needs to be.  For example,
+the build code for compiling the Java bits involves a more or less
+opaque construction of a more or less complex gradle instruction, etc.
+In fact the Java code can be compiled and jarred up with two simple
+commands.  You hardly even need a makefile.  Gradle may be necessary
+for Android, but not for Java.
 
 Therefore Java support has been removed from the main repo and
 migrated to a separate, independent API/SDK project at
@@ -81,12 +184,19 @@ https://github.com/iotk/iotivity-java[iotivity-java].
 
 == build system status
 
+NOTE: You may notice some ld warnings in the build output, complaining
+about directories not being found for some -L options.  This is
+broken-by-design SCons behavior; you can ignore it.
 
 * android and java code has been removed and migrated to separate independent SDK projects
 * lots of clean up of SConscripts.  for example flags like `-Wall` can be set once and for all, no need to set it all over the place.
-* gtest has been removed; it is now treated like any other system dependency for which we do a feature test.  It's up to the user to install it, just like e.g. libuuid and all the other deps.
-* only the kernel (resource/) is built by default. at the moment I do not need the services so it's a waste of time to build them.
-* feature tests are done once, before the build proper begins, in `site_scons/build/utils.py`.
+* gtest has been removed; it is now treated like any other system
+  dependency for which we do a feature test.  It's up to the user to
+  install it, just like e.g. libuuid and all the other deps.
+* only the kernel (resource/) is built by default. at the moment I do
+  not need the services so it's a waste of time to build them.
+* feature tests are done once, before the build proper begins, in
+  `site_scons/build/utils.py`.
 * output has been relativized to host.  this makes it possible to use
   virtual machines to develop for multiple hosts using a single
   codebase on a single machine.  For example, on OS X with parallels,
