@@ -205,7 +205,7 @@ static void CAInitializeIPGlobals()
     caglobals.ip.m4.port  = CA_COAP;
     caglobals.ip.m4s.port = CA_SECURE_COAP;
 
-    CATransportFlags_t flags = 0;
+    CATransportFlags_t flags = CA_SECURE;  /* GAR; was 0; */
     if (caglobals.client)
     {
         flags |= caglobals.clientFlags;
@@ -452,7 +452,7 @@ void CAIPSendDataThread(void *threadData)
     else
     {
         //Processing for sending unicast
-#ifdef __WITH_DTLS__
+/* GAR #ifdef __WITH_DTLS__ */
         if (ipData->remoteEndpoint && ipData->remoteEndpoint->flags & CA_SECURE)
         {
             OIC_LOG_V(DEBUG, TAG, "%s: unicasting to secure remote EP", __func__);
@@ -469,9 +469,9 @@ void CAIPSendDataThread(void *threadData)
             OIC_LOG_V(DEBUG, TAG, "%s: unicasting to NON-secure remote EP", __func__);
             CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, false);
         }
-#else
-        CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, false);
-#endif
+/* GAR #else */
+/*         CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, false); */
+/* #endif */
     }
 }
 

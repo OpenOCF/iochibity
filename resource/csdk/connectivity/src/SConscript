@@ -51,8 +51,8 @@ local_env.AppendUnique(CPPPATH = [ os.path.join(conn_path, 'inc'), # os.path.joi
 # if target_os in ['darwin','ios']:
 # 	local_env.AppendUnique(CPPDEFINES = ['_DARWIN_C_SOURCE'])
 
-if local_env.get('SECURED'):
-        local_env.AppendUnique(CPPPATH = ['#extlibs/tinydtls'])
+#if local_env.get('SECURED'):
+local_env.AppendUnique(CPPPATH = ['#extlibs/tinydtls'])
 
 # 	#GAR timer migrated to csdk
 # 	##local_env.SConscript(build_dir + '/extlibs/timer/SConscript')
@@ -64,11 +64,11 @@ if target_os in ['linux', 'poky-edison']:  #GAR NOTE: not for 'darwin'!
 
 local_env.AppendUnique(CA_SRC = [os.path.join(ca_path, 'adapter_util/caadapterutils.c')])
 
-if local_env.get('SECURED'):
-	local_env.AppendUnique(CA_SRC = [os.path.join(ca_path,
-                                                'adapter_util/caadapternetdtls.c')])
-	local_env.AppendUnique(CPPPATH = [os.path.join(root_dir,
-                                                 'external/inc')])
+#if local_env.get('SECURED'):
+local_env.AppendUnique(CA_SRC = [os.path.join(ca_path,
+                                              'adapter_util/caadapternetdtls.c')])
+local_env.AppendUnique(CPPPATH = [os.path.join(root_dir,
+                                               'external/inc')])
 if local_env.get('DTLS_WITH_X509') == '1':
 	local_env.AppendUnique(CPPPATH = [src_dir + '/resource/csdk/connectivity/inc/pkix'])
 	local_env.AppendUnique(CPPPATH = [src_dir + '/extlibs/tinydtls/ecc/'])
@@ -103,13 +103,14 @@ else:
 	if (('IP' in ca_transport) or ('ALL' in ca_transport)):
 		local_env.AppendUnique(CA_SRC = [os.path.join(ca_path, 'cablockwisetransfer.c') ])
 		local_env.AppendUnique(CPPDEFINES = ['WITH_BWT'])
-	if secured == '1':
-		local_env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
-		if target_os == 'tizen' and os.path.exists(root_dir + '/extlibs/tinydtls'):
-			local_env.AppendUnique(CPPPATH = [os.path.join(root_dir, 'extlibs/tinydtls')])
-		else:
-			local_env.AppendUnique(CPPPATH = ['#extlibs/tinydtls'])
-			local_env.AppendUnique(LIBPATH = [local_env.get('INSTALL_SYSROOT') + '/lib'])
+
+#	if secured == '1':
+local_env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
+if target_os == 'tizen' and os.path.exists(root_dir + '/extlibs/tinydtls'):
+    local_env.AppendUnique(CPPPATH = [os.path.join(root_dir, 'extlibs/tinydtls')])
+else:
+    local_env.AppendUnique(CPPPATH = ['#extlibs/tinydtls'])
+    local_env.AppendUnique(LIBPATH = [local_env.get('INSTALL_SYSROOT') + '/lib'])
 
 ca_common_src = [
         os.path.join(ca_path, d) for d in ca_common_src ]

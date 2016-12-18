@@ -65,17 +65,17 @@ if env.get('ROUTING') in ['GW', 'EP']:
 #                    variant_dir=build_sysroot + '/bin',
 #                    duplicate=0)
 
-if env.get('SECURED'):
-        #    if target_os in ['darwin', 'linux', 'poky-edison', 'android', 'tizen', 'msys_nt', 'windows']:
-	SConscript('#extlibs/tinydtls/SConscript',
-		   variant_dir=build_sysroot + '/tinydtls',
-		   duplicate=0)
-        SConscript('provisioning/SConscript',
-                   variant_dir=build_sysroot + '/provisioning',
-                   duplicate=0)
-        SConscript('security/SConscript',
-                   variant_dir=build_sysroot + '/security',
-                   duplicate=0)
+#if env.get('SECURED'):
+#    if target_os in ['darwin', 'linux', 'poky-edison', 'android', 'tizen', 'msys_nt', 'windows']:
+SConscript('#extlibs/tinydtls/SConscript',
+	   variant_dir=build_sysroot + '/tinydtls',
+	   duplicate=0)
+SConscript('provisioning/SConscript',
+           variant_dir=build_sysroot + '/provisioning',
+           duplicate=0)
+SConscript('security/SConscript',
+           variant_dir=build_sysroot + '/security',
+           duplicate=0)
 
 # # Build liboctbstack
 SConscript('stack/SConscript',

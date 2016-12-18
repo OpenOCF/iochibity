@@ -54,11 +54,8 @@ test_env.PrependUnique(LIBS = ['ocpmapi',
                                'connectivity_abstraction',
                                'coap'])
 
-if target_os in ['poky-edison']:
-    test_env.AppendUnique(LIBS = ['dl'])
-
-if test_env.get('SECURED') == '1':
-    test_env.AppendUnique(LIBS = ['tinydtls'])
+## if test_env.get('SECURED') == '1':
+test_env.AppendUnique(LIBS = ['tinydtls'])
 
 if test_env.get('DTLS_WITH_X509') == '1':
 	test_env.AppendUnique(LIBS = ['CKManager'])
@@ -85,6 +82,11 @@ provisiontest_src = ['pmutilitytest.cpp',
 
 if target_os not in ['windows']:
     provisiontest_src += [ 'oxtest.cpp' ]
+
+## NOTE:  -ldl must come LAST, for some reason, for some linkers; see:
+## http://www.ryanchapin.com/fv-b-4-715/Fixing-Compile-Error--undefined-reference-to--dclose---dlopen--dlsym--and-or-dlerror--.html
+if target_os in ['linux', 'poky-edison']:
+    test_env.Append(LIBS = ['dl'])
 
 provisiontest = test_env.Program('provisiontest', provisiontest_src)
 Alias("tests", [provisiontest])

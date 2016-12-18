@@ -6,7 +6,7 @@ Import('local_env')
 import os.path
 
 target_os = local_env.get('TARGET_OS')
-secured = local_env.get('SECURED')
+# secured = local_env.get('SECURED')
 src_dir = './ip_adapter/'
 
 

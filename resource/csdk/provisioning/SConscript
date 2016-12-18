@@ -78,11 +78,11 @@ provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') +
 provisioning_env.PrependUnique(LIBS = ['connectivity_abstraction'])
 provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') + '/connectivity/core'])
 
-if provisioning_env.get('SECURED'):
-        provisioning_env.PrependUnique(LIBS = ['ocsrm'])
-        provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') + '/security'])
-	provisioning_env.AppendUnique(LIBS = ['tinydtls'])
-	provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') + '/tinydtls'])
+#if provisioning_env.get('SECURED'):
+provisioning_env.PrependUnique(LIBS = ['ocsrm'])
+provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') + '/security'])
+provisioning_env.AppendUnique(LIBS = ['tinydtls'])
+provisioning_env.AppendUnique(LIBPATH = [provisioning_env.get('BUILD_SYSROOT') + '/tinydtls'])
 
 if provisioning_env.get('DTLS_WITH_X509') == '1':
 	provisioning_env.AppendUnique(LIBS = ['CKManager', 'asn1'])

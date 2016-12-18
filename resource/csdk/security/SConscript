@@ -101,16 +101,16 @@ libocsrm_src = [
 	'directpairing.c'
 	]
 
-if env.get('SECURED'):
-	libocsrm_src  = libocsrm_src + ['oxmpincommon.c', 'pbkdf2.c']
-	libocsrm_env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
-	libocsrm_env.AppendUnique(LIBS = ['ocpmapi'])
-	libocsrm_env.AppendUnique(LIBPATH = [env.get('BUILD_SYSROOT') + '/security/pm'])
+#if env.get('SECURED'):
+libocsrm_src  = libocsrm_src + ['oxmpincommon.c', 'pbkdf2.c']
+libocsrm_env.AppendUnique(CPPDEFINES = ['__WITH_DTLS__'])
+libocsrm_env.AppendUnique(LIBS = ['ocpmapi'])
+libocsrm_env.AppendUnique(LIBPATH = [env.get('BUILD_SYSROOT') + '/security/pm'])
 
 if target_os in ['windows', 'msys_nt']:
 	libocsrm_src  = libocsrm_src + ['strptime.c']
 
-if env.get('DTLS_WITH_X509') == '1' and env.get('SECURED'):
+if env.get('DTLS_WITH_X509') == '1':  # and env.get('SECURED'):
 	crl_src = ['crlresource.c']
 	libocsrm_src  = libocsrm_src + crl_src
 

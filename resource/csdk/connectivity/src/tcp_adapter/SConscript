@@ -9,7 +9,7 @@ print "Reading TCP adapter script"
 
 target_os = env.get('TARGET_OS')
 inc_files = env.get('CPPPATH')
-secured = env.get('SECURED')
+#secured = env.get('SECURED')
 src_dir = './tcp_adapter/'
 
 
