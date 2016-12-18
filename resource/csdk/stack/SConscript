@@ -63,8 +63,8 @@ local_env.PrependUnique(CPPPATH = [
 	'#resource/csdk/connectivity/external/inc',
 	'#resource/csdk/security',
 	'#resource/csdk/security/ocsecurity',
-	'#resource/csdk/provisioning',
-])
+	'#resource/csdk/provisioning'])
+
 	# './../oc_logger/include',
 
 # 'stack/include',
@@ -94,6 +94,8 @@ local_env.AppendUnique(LIBPATH = [install_sysroot + '/lib',
                                   build_sysroot + '/csdk',
                                   build_sysroot + '/routing'])
 
+print local_env.Dump()
+
 local_env.PrependUnique(LIBS = ['c_common', 'coap', 'csdk'])
 
 
@@ -121,14 +123,14 @@ if target_os == 'arduino':
 if target_os == 'android':
     local_env.AppendUnique(LINKFLAGS = ['-Wl,-soname,liboctbstack.so'])
 
-if env.get('SECURED'):
-	local_env.AppendUnique(CPPDEFINES = ['SECURED'])
-	local_env.AppendUnique(LIBS = ['ocpmapi'])
-        local_env.AppendUnique(LIBPATH = [build_sysroot + '/provisioning'])
-	local_env.AppendUnique(LIBS = ['ocsrm'])
-        local_env.AppendUnique(LIBPATH = [build_sysroot + '/security'])
-	local_env.AppendUnique(LIBS = ['tinydtls'])
-        local_env.AppendUnique(LIBPATH = [build_sysroot + '/tinydtls'])
+#if env.get('SECURED'):
+local_env.AppendUnique(CPPDEFINES = ['SECURED'])
+local_env.AppendUnique(LIBS = ['ocpmapi'])
+local_env.AppendUnique(LIBPATH = [build_sysroot + '/provisioning'])
+local_env.AppendUnique(LIBS = ['ocsrm'])
+local_env.AppendUnique(LIBPATH = [build_sysroot + '/security'])
+local_env.AppendUnique(LIBS = ['tinydtls'])
+local_env.AppendUnique(LIBPATH = [build_sysroot + '/tinydtls'])
 
 if local_env.get('LOGGING'):
         local_env.PrependUnique(LIBS = ['logger'])
@@ -183,6 +185,8 @@ if with_tcp == True:
 if target_os == 'windows':
 	local_env.AppendUnique(CPPDEFINES = ['CBOR_API=__declspec(dllexport)',
 	                                     'CBOR_PRIVATE_API=__declspec(dllexport)'])
+
+print "STACK LIBPATH 2: ", env.get('LIBPATH')
 
 ##############################################
 ####  here are the actual build commands  ####
