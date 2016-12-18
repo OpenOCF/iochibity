@@ -203,7 +203,7 @@ static void CAInitializeTCPGlobals()
     caglobals.tcp.listenBacklog = CA_TCP_LISTEN_BACKLOG;
     caglobals.tcp.svrlist = NULL;
 
-    CATransportFlags_t flags = 0;
+    CATransportFlags_t flags = CA_SECURE /* GAR SECURITY: was 0; */
     if (caglobals.client)
     {
         flags |= caglobals.clientFlags;
