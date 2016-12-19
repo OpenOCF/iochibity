@@ -36,9 +36,10 @@ if env.get('RELEASE'):
 	env.AppendUnique(CPPDEFINES = ['NDEBUG'])
 
 if env.get('PROFILING'):
-	env.AppendUnique(CPPFLAGS = ['-g', '--coverage'])
-	# --coverage = -fprofile-arcs -ftest-coverage (when compiling) and -lgcov (when linking).
-        env.PrependUnique(LIBS = ['gcov'])
+   printf "PROFILING XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+   env.AppendUnique(CPPFLAGS = ['-g', '--coverage'])
+   # --coverage = -fprofile-arcs -ftest-coverage (when compiling) and -lgcov (when linking).
+   env.PrependUnique(LIBS = ['gcov'])
 
 env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__'])
 env.AppendUnique(CPPFLAGS = ['-Wall', '-Wextra', '-fPIC'])

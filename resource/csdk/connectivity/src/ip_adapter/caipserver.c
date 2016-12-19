@@ -483,7 +483,8 @@ void CADeInitializeIPGlobals()
 
 static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY ****************\n", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY ****************", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: Transport flags: 0x%08X", __func__, flags);
 
     char recvBuffer[COAP_MAX_PDU_SIZE] = {0};
 

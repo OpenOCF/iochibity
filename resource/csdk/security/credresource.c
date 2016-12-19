@@ -799,7 +799,7 @@ static bool UpdatePersistentStorage(const OicSecCred_t *cred)
             ret = true;
         }
     }
-    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, ret);
     return ret;
 }
 
@@ -875,6 +875,9 @@ static OicSecCred_t* GetCredDefault()
 
 OCStackResult AddCredential(OicSecCred_t * newCred)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_CRED(DEBUG, TAG, newCred);
+
     OCStackResult ret = OC_STACK_ERROR;
     VERIFY_SUCCESS(TAG, NULL != newCred, ERROR);
 
@@ -896,6 +899,9 @@ exit:
 
 OCStackResult RemoveCredential(const OicUuid_t *subject)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_CRED(DEBUG, TAG, subject);
+
     OCStackResult ret = OC_STACK_ERROR;
     OicSecCred_t *cred = NULL;
     OicSecCred_t *tempCred = NULL;
@@ -1320,7 +1326,7 @@ OCStackResult InitCredResource()
     if (ret != OC_STACK_OK)
     {
         OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS failed for %s", __func__, OIC_JSON_CRED_NAME);
-        OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS data %x", __func__, data);
+        OIC_LOG_V(DEBUG, TAG, "%s: GetSecureVirtualResourceFromPS ret: 0x%04X", __func__, ret);
     }
     if (data)
     {
@@ -1354,6 +1360,9 @@ OCStackResult DeInitCredResource()
 
 const OicSecCred_t* GetCredResourceData(const OicUuid_t* subject)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_CRED(DEBUG, TAG, subject);
+
     OicSecCred_t *cred = NULL;
 
    if ( NULL == subject)
@@ -1405,6 +1414,17 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
                     return ret;
                 } else {
 		    OIC_LOG_V(DEBUG, TAG, "%s: GetDoxmDeviceID OK", __func__);
+		    /* GAR DEBUGGING */
+    char buffer[MAX_LOG_V_BUFFER_SIZE] = {0};
+    static char subject[UUID_STRING_SIZE];
+    if(OCConvertUuidToString( deviceID.id, subject) != RAND_UUID_OK)
+    {
+	printf("XXXXXXXXXXXXXXXX TEST OCConvertUuidToString failure: desc");
+	OIC_LOG_V(FATAL, TAG, "%s: OCConvertUuidToString failed for desc", __func__);
+    }
+    snprintf(buffer, sizeof buffer - 1, "\tdesc: %s", (char*)&subject);
+    OIC_LOG(DEBUG, TAG, buffer);
+    /* GAR DEBUGGING*/
 		}
 
                 if (result_length < sizeof(deviceID.id))
@@ -1420,10 +1440,23 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
 
         case CA_DTLS_PSK_KEY:
             {
+		    /* GAR DEBUGGING */
+    char buffer[MAX_LOG_V_BUFFER_SIZE] = {0};
+    static char subject[UUID_STRING_SIZE];
+    if(OCConvertUuidToString( desc, subject) != RAND_UUID_OK)
+    {
+	printf("XXXXXXXXXXXXXXXX TEST OCConvertUuidToString failure: desc");
+	OIC_LOG_V(FATAL, TAG, "%s: OCConvertUuidToString failed for desc", __func__);
+    }
+    snprintf(buffer, sizeof buffer - 1, "\tdesc: %s", (char*)&subject);
+    OIC_LOG(DEBUG, TAG, buffer);
+    /* GAR DEBUGGING*/
+
+
                 OicSecCred_t *cred = NULL;
                 LL_FOREACH(gCred, cred)
                 {
-		    OIC_LOG_V(DEBUG, TAG, "%s: Processing credential", __func__);
+		    OIC_LOG_V(DEBUG, TAG, "%s: Processing PSK_KEY credential", __func__);
 		    OIC_LOG_CRED(DEBUG, TAG, cred);
 /* OCConvertUuidToString(const uint8_t uuid[UUID_SIZE], */
 /*         char uuidString[UUID_STRING_SIZE]) */

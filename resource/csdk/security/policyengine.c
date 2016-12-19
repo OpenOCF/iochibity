@@ -49,18 +49,24 @@ uint16_t GetPermissionFromCAMethod_t(const CAMethod_t method)
     {
         case CA_GET:
             perm = (uint16_t)PERMISSION_READ;
+	    OIC_LOG(DEBUG, TAG, "PERMISSION_READ");
             break;
         case CA_POST: // For now we treat all PUT & POST as Write
+	    OIC_LOG(DEBUG, TAG, "PERMISSION_POST");
         case CA_PUT:  // because we don't know if resource exists yet.
             perm = (uint16_t)PERMISSION_WRITE;
+	    OIC_LOG(DEBUG, TAG, "PERMISSION_WRITE");
             break;
         case CA_DELETE:
             perm = (uint16_t)PERMISSION_DELETE;
+	    OIC_LOG(DEBUG, TAG, "PERMISSION_DELETE");
             break;
         default: // if not recognized, must assume requesting full control
             perm = (uint16_t)PERMISSION_FULL_CONTROL;
+	    OIC_LOG(DEBUG, TAG, "PERMISSION_FULL_CONTROL");
             break;
     }
+    OIC_LOG_V(DEBUG, TAG, "%s: method %d = perm %d", __func__, method, perm);
     return perm;
 }
 
@@ -402,14 +408,14 @@ static void ProcessAccessRequest(PEContext_t *context)
     OIC_LOG_V(DEBUG, TAG, "%s:   resource: %s", __func__, context->resource);
     OIC_LOG_V(DEBUG, TAG, "%s:   rtype:    %d", __func__, context->resourceType);
     OIC_LOG_V(DEBUG, TAG, "%s:   subject", __func__);
-	    /*GAR*/
-	    printf("\t Context subject ID: ");
-	    for (int i = 0; i < UUID_LENGTH; i++)
-	    	{
-	    	    if (i > 0) printf(":");
-	    	    printf("%02X", context->subject.id[i]);
-	    	}
-	    printf("\n");
+	    /*GAR DEBUG*/
+	    /* printf("\t Context subject ID: "); */
+	    /* for (int i = 0; i < UUID_LENGTH; i++) */
+	    /* 	{ */
+	    /* 	    if (i > 0) printf(":"); */
+	    /* 	    printf("%02X", context->subject.id[i]); */
+	    /* 	} */
+	    /* printf("\n"); */
 	    /*GAR*/
 
     if (NULL == context)
@@ -481,21 +487,21 @@ SRMAccessResponse_t CheckPermission(PEContext_t     *context,
                                     const uint16_t  requestedPermission)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, resource: %s", __func__, resource);
-	    /*GAR*/
-	    printf("\t Subject ID: ");
-	    for (int i = 0; i < UUID_LENGTH; i++)
-	    	{
-	    	    if (i > 0) printf(":");
-	    	    printf("%02X", subjectId->id[i]);
-	    	}
-	    printf("\n");
-	    printf("\t Context subject ID: ");
-	    for (int i = 0; i < UUID_LENGTH; i++)
-	    	{
-	    	    if (i > 0) printf(":");
-	    	    printf("%02X", context->subject.id[i]);
-	    	}
-	    printf("\n");
+	    /*GAR DEBUG*/
+	    /* printf("\t Subject ID: "); */
+	    /* for (int i = 0; i < UUID_LENGTH; i++) */
+	    /* 	{ */
+	    /* 	    if (i > 0) printf(":"); */
+	    /* 	    printf("%02X", subjectId->id[i]); */
+	    /* 	} */
+	    /* printf("\n"); */
+	    /* printf("\t Context subject ID: "); */
+	    /* for (int i = 0; i < UUID_LENGTH; i++) */
+	    /* 	{ */
+	    /* 	    if (i > 0) printf(":"); */
+	    /* 	    printf("%02X", context->subject.id[i]); */
+	    /* 	} */
+	    /* printf("\n"); */
 	    /*GAR*/
 
     SRMAccessResponse_t retVal = ACCESS_DENIED_POLICY_ENGINE_ERROR;

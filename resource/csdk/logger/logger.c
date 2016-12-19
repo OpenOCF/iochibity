@@ -170,15 +170,23 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
         return;
     }
     OicSecCred_t* credential = (OicSecCred_t*) cred;
+    OIC_LOG_V(level, tag, "Logging Credential id: 0x%04X", credential->credId);
     char buffer[MAX_LOG_V_BUFFER_SIZE] = {0};
     static char subject[UUID_STRING_SIZE];
     if(OCConvertUuidToString( credential->subject.id, subject) != RAND_UUID_OK)
     {
-	/* printf("XXXXXXXXXXXXXXXX TEST OCConvertUuidToString failure"); */
-	/* OIC_LOG_V(FATAL, TAG, "%s: OCConvertUuidToString failed for subject", __func__); */
-        /* return NULL; */
+	printf("XXXXXXXXXXXXXXXX TEST OCConvertUuidToString failure: subject id");
+	OIC_LOG_V(FATAL, tag, "%s: OCConvertUuidToString failed for subject", __func__);
     }
-    snprintf(buffer, sizeof buffer - 1, "Logging Credential:\n\tsubject: %s", &subject);
+    snprintf(buffer, sizeof buffer - 1, "\tsubject id: %s", (char*)&subject);
+    OCLog(level, tag, buffer);
+    OIC_LOG_V(level, tag, "\t cred type: 0x%08X", credential->credType);
+    if(OCConvertUuidToString( credential->rownerID.id, subject) != RAND_UUID_OK)
+    {
+	printf("XXXXXXXXXXXXXXXX TEST OCConvertUuidToString failure: rownderID");
+	OIC_LOG_V(FATAL, tag, "%s: OCConvertUuidToString failed for subject", __func__);
+    }
+    snprintf(buffer, sizeof buffer - 1, "\trowner id: %s", (char*)&subject);
     OCLog(level, tag, buffer);
  }
 

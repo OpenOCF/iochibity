@@ -1188,6 +1188,18 @@ CAResult_t CAAdapterNetDtlsEncrypt(const CAEndpoint_t *endpoint,
 {
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
+    /* GAR DEBUG */
+    /* #include <execinfo.h> */
+    /* void* callstack[128]; */
+    /* int i, frames = backtrace(callstack, 128); */
+    /* char** strs = backtrace_symbols(callstack, frames); */
+    /* for (i = 0; i < frames; ++i) { */
+    /*   printf("%s\n", strs[i]); */
+    /* } */
+    /* free(strs); */
+    /* GAR */
+
+
     VERIFY_NON_NULL_RET(endpoint, TAG,"Param remoteAddress is NULL",
                         CA_STATUS_INVALID_PARAM);
     VERIFY_NON_NULL_RET(data, TAG, "Param data is NULL" ,

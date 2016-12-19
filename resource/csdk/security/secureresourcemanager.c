@@ -144,6 +144,17 @@ void SRMRequestHandler(const CAEndpoint_t *endPoint, const CARequestInfo_t *requ
         return;
     }
 
+    	    /*GAR DEBUG*/
+    /* printf("\t Incoming subject ID len = %d; content: ", */
+    /* 	   requestInfo->info.identity.id_length); */
+    /* 	    for (int i = 0; i < requestInfo->info.identity.id_length; i++) */
+    /* 	    	{ */
+    /* 	    	    if (i > 0) printf(":"); */
+    /* 	    	    printf("%02X", requestInfo->info.identity.id); */
+    /* 	    	} */
+    /* 	    printf("\n"); */
+	    /*GAR*/
+
     // Copy the subjectID
     OicUuid_t subjectId = {.id = {0}};
     memcpy(subjectId.id, requestInfo->info.identity.id, sizeof(subjectId.id));

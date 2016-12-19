@@ -4497,7 +4497,7 @@ dtls_handle_message(dtls_context_t *ctx,
     }
 
     dtls_debug_hexdump("receive header", msg, sizeof(dtls_record_header_t));
-    dtls_debug_hexdump("receive unencrypted", data, data_length);
+    dtls_debug_hexdump("receive decrypted", data, data_length);
 
     /* Handle received record according to the first byte of the
      * message, i.e. the subprotocol. We currently do not support
