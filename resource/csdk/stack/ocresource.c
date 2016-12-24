@@ -1001,8 +1001,12 @@ HandleResourceWithEntityHandler (OCServerRequest *request,
         {
             // The error in observeResult for the request will be used when responding to this
             // request by omitting the observation option/sequence number.
-            request->observeResult = OC_STACK_ERROR;
-            OIC_LOG(ERROR, TAG, "Observer Addition failed");
+            OIC_LOG_V(ERROR, TAG, "%s: AddObserver failed with result %d", __func__, result);
+	    if (result == OC_STACK_RESOURCE_UNOBSERVABLE) {
+		request->observeResult = result;
+	    } else {
+		request->observeResult = OC_STACK_OBSERVER_REGISTRATION_FAILURE;  /* OC_STACK_ERROR; */
+	    }
             ehFlag = OC_REQUEST_FLAG;
             FindAndDeleteServerRequest(request);
             goto exit;
@@ -1063,7 +1067,7 @@ HandleResourceWithEntityHandler (OCServerRequest *request,
     result = EntityHandlerCodeToOCStackCode(ehResult);
 exit:
     OCPayloadDestroy(ehRequest.payload);
-    OIC_LOG_V(INFO, TAG, "%s: EXIT res %s", __func__, result);
+    OIC_LOG_V(INFO, TAG, "%s: EXIT res %d", __func__, result);
     return result;
 }
 
@@ -1151,7 +1155,7 @@ ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerReque
             return OC_STACK_ERROR;
         }
     }
-    OIC_LOG_V(INFO, TAG, "%s: EXIT res %s", __func__, ret);
+    OIC_LOG_V(INFO, TAG, "%s: EXIT res %d", __func__, ret);
     return ret;
 }
 
@@ -1243,7 +1247,7 @@ OCStackResult SavePlatformInfo(OCPlatformInfo info)
         OIC_LOG(INFO, TAG, "Platform info saved.");
     }
 
-    OIC_LOG_V(INFO, TAG, "%s: EXIT res %s", __func__, res);
+    OIC_LOG_V(INFO, TAG, "%s: EXIT res %d", __func__, res);
     return res;
 }
 

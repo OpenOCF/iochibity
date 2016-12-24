@@ -338,10 +338,10 @@ OCStackResult SendListObserverNotification (OCResource * resource,
 
 OCStackResult GenerateObserverId (OCObservationId *observationId)
 {
-    ResourceObserver *resObs = NULL;
-
-    OIC_LOG(INFO, TAG, "Entering GenerateObserverId");
+    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     VERIFY_NON_NULL (observationId);
+
+    ResourceObserver *resObs = NULL;
 
     do
     {
@@ -374,7 +374,7 @@ OCStackResult AddObserver (const char         *resUri,
     }
     if (!(resHandle->resourceProperties & OC_OBSERVABLE))
     {
-        return OC_STACK_RESOURCE_ERROR;
+        return OC_STACK_RESOURCE_UNOBSERVABLE;
     }
 
     if (!resUri || !token)
@@ -439,7 +439,7 @@ ResourceObserver* GetObserverUsingId (const OCObservationId observeId)
             }
         }
     }
-    OIC_LOG(INFO, TAG, "Observer node not found!!");
+    OIC_LOG(INFO, TAG, "Observer node not found for observation Id!!");
     return NULL;
 }
 
@@ -449,15 +449,15 @@ ResourceObserver* GetObserverUsingToken (const CAToken_t token, uint8_t tokenLen
 
     if (token)
     {
-        OIC_LOG(INFO, TAG, "Looking for token");
+        OIC_LOG(INFO, TAG, "Looking for token:");
         OIC_LOG_BUFFER(INFO, TAG, (const uint8_t *)token, tokenLength);
-        OIC_LOG(INFO, TAG, "\tFound token:");
 
         LL_FOREACH (g_serverObsList, out)
         {
-            OIC_LOG_BUFFER(INFO, TAG, (const uint8_t *)out->token, tokenLength);
             if ((memcmp(out->token, token, tokenLength) == 0))
             {
+		OIC_LOG(INFO, TAG, "\tFound token:");
+		OIC_LOG_BUFFER(INFO, TAG, (const uint8_t *)out->token, tokenLength);
                 return out;
             }
         }
@@ -467,7 +467,7 @@ ResourceObserver* GetObserverUsingToken (const CAToken_t token, uint8_t tokenLen
         OIC_LOG(ERROR, TAG, "Passed in NULL token");
     }
 
-    OIC_LOG(INFO, TAG, "Observer node not found!!");
+    OIC_LOG(INFO, TAG, "Observer node not found for token!!");
     return NULL;
 }
 
