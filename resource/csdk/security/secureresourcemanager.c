@@ -136,7 +136,8 @@ exit:
  */
 void SRMRequestHandler(const CAEndpoint_t *endPoint, const CARequestInfo_t *requestInfo)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s | %s: ENTRY on thread %d",
+	      __FILE__, __func__, pthread_self());
 
     if (!endPoint || !requestInfo)
     {

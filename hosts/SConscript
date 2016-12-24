@@ -225,8 +225,9 @@ Export('env')
 ######################################################################
 env.AppendUnique(CPPFLAGS = ['-fPIC', '-Wall', '-Wextra', '-Wpedantic']) #, '-Wno-unused'])
 
-# if target_os == 'darwin':
-#     env.AppendUnique(CPPFLAGS = ['-Wl,--undefined,error'])
+if target_os == 'darwin':
+        # env.AppendUnique(CPPFLAGS = ['-Wl,--undefined,error', '-Wno-missing-braces'])
+        env.AppendUnique(CPPFLAGS = ['-Wno-missing-braces'])
 # else:
 #     env.AppendUnique(CPPFLAGS = ['-Wl,--no-undefined'])
 

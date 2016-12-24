@@ -42,7 +42,7 @@ if env.get('PROFILING'):
    env.PrependUnique(LIBS = ['gcov'])
 
 env.AppendUnique(CPPDEFINES = ['WITH_POSIX', '__linux__'])
-env.AppendUnique(CPPFLAGS = ['-Wall', '-Wextra', '-fPIC'])
+env.AppendUnique(CPPFLAGS = ['-Wall', '-Wextra', '-Wno-missing-braces' '-fPIC'])
 env.AppendUnique(CFLAGS = ['-std=c11'])
 env.AppendUnique(CXXFLAGS = ['-Wnoexcept', '-std=c++11'])
 env.AppendUnique(LIBS = ['dl', 'pthread'])  # , 'uuid'])

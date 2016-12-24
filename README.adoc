@@ -148,6 +148,10 @@ kernel, and this simplifies and speeds things up in various ways.
 * java
 * sample/example code
 
+Improved error reporting.  For example, trying to observe a resource
+whose policy does not permit that results in
+OC_STACK_METHOD_NOT_ALLOWED instead of the opaque OC_STACK_ERROR.
+
 I also eliminated the dependency on gtest (google test).  Iochibity
 treats this just like any other system dependency.  The user is
 responsible for obtaining https://github.com/google/googletest[Google
