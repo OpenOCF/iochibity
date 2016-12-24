@@ -40,6 +40,11 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifdef LOGGING
+#include <pthread.h>
+#endif
+
+
 #include "ocstack.h"
 #include "internal/ocstackinternal.h"
 #include "internal/ocresourcehandler.h"
@@ -677,6 +682,9 @@ OCStackResult CAResponseToOCStackResult(CAResponseResult_t caCode)
         case CA_BAD_OPT:
             ret = OC_STACK_INVALID_OPTION;
             break;
+        case CA_METHOD_NOT_ALLOWED:
+            ret = OC_STACK_METHOD_NOT_ALLOWED;
+            break;
         case CA_NOT_FOUND:
             ret = OC_STACK_NO_RESOURCE;
             break;
@@ -744,6 +752,9 @@ CAResponseResult_t OCToCAStackResult(OCStackResult ocCode, OCMethod method)
             break;
         case OC_STACK_UNAUTHORIZED_REQ:
             ret = CA_UNAUTHORIZED_REQ;
+            break;
+        case OC_STACK_RESOURCE_UNOBSERVABLE:
+            ret = CA_METHOD_NOT_ALLOWED;
             break;
         default:
             break;
@@ -1451,18 +1462,19 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
                 OCStackApplicationResult appFeedback = cbNode->callBack(cbNode->context,
                                                                         cbNode->handle,
                                                                         &response);
+		OC_UNUSED(appFeedback);
                 cbNode->sequenceNumber = response.sequenceNumber;
 
                 /* if (appFeedback == OC_STACK_DELETE_TRANSACTION) */
 		// GAR MULTICAST
 		if ( (((responseInfo->info.token)[0]) & 1) == 0 )
                 {
-		    printf("XXXXXXXXXXXXXXXX:  UNICAST\n");
+		    /* printf("GAR XXXXXXXXXXXXXXXX:  UNICAST\n"); */
                     FindAndDeleteClientCB(cbNode);
                 }
                 else
                 {
-		    printf("XXXXXXXXXXXXXXXX:  MULTICAST\n");
+		    /* printf("GAR XXXXXXXXXXXXXXXX:  MULTICAST\n"); */
                     // To keep discovery callbacks active.
                     cbNode->TTL = GetTicks(MAX_CB_TIMEOUT_SECONDS *
                                             MILLISECONDS_PER_SECOND);
@@ -2014,7 +2026,8 @@ void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
 //This function will be called back by CA layer when a request is received
 void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
 {
-    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(INFO, TAG, "%s | %s: ENTRY on thread %d",
+	      __FILE__, __func__, (int)pthread_self());
     if(!endPoint)
     {
         OIC_LOG(ERROR, TAG, "endPoint is NULL");
@@ -4270,6 +4283,7 @@ OCStackResult initMandatoryResources()
 	    }
     }
     OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, result);
+    return result;
 }
 
 OCStackResult initResources()
