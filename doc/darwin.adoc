@@ -8,7 +8,7 @@ port is to have a pure Darwin development environment, with minimal
 dependency on OS X and as little difference from the vanilla Unix
 build as possible.
 
-= status
+== status
 
 Failing tests have been disabled:
 
@@ -38,12 +38,28 @@ different.  Here is a list of the bits affecting Iotivity:
 * etc.
 
 
-=== libraries
+=== prerequisits
+
+==== libraries
 
 * gcov.  Not available on OS X; use `clang_rt.profile_osx` instead (see below)
 * uuid.  The functions are available but they are in system libraries
   rather than `libuuid` so there is no need to link (`-luuid`).
 * std c++ library: we use `-stdlib=libc++`, not `libstdc++`.
+
+Xcode and xcode command line tools are required:
+
+** run `$ xcodebuild -showsdks`.  if you don't see something like the following you probably need to install Xcode.
+
+iOS SDKs:
+	iOS 10.2                      	-sdk iphoneos10.2
+
+iOS Simulator SDKs:
+	Simulator - iOS 10.2          	-sdk iphonesimulator10.2
+
+macOS SDKs:
+	macOS 10.12                   	-sdk macosx10.12
+...etc...
 
 
 === linking
