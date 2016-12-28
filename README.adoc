@@ -34,6 +34,11 @@ On OS X, if you run into trouble like missing libs (e.g. libssl), go
 with http://brew.sh/[homebrew].
 
 
+== prerequisites
+
+* googletest
+* etc.
+
 == building
 
 The build mechanism is designed to work with the set of environment
