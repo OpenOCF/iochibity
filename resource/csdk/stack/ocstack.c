@@ -2656,6 +2656,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
                             uint8_t numOptions)
 {
     OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
+    printf("DESTINATION == NULL?: %d\n", (destination == NULL));
 
     // Validate input parameters
     VERIFY_NON_NULL(cbData, FATAL, OC_STACK_INVALID_CALLBACK);
@@ -2736,6 +2737,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
 #endif
     default:
         result = OC_STACK_INVALID_METHOD;
+        OIC_LOG_V(DEBUG, TAG, "%s: invalid method: %s", __func__, requestUri);
         goto exit;
     }
 
@@ -2753,6 +2755,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
         if (!devAddr)
         {
             result = OC_STACK_NO_MEMORY;
+	    OIC_LOG_V(DEBUG, TAG, "%s: no memory for OCDevAddr", __func__);
             goto exit;
         }
         *devAddr = *destination;
@@ -2762,6 +2765,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
     if (!resHandle)
     {
         result = OC_STACK_NO_MEMORY;
+	OIC_LOG_V(DEBUG, TAG, "%s: no memory for InvocationHandle", __func__);
         goto exit;
     }
 
@@ -2785,6 +2789,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
                                     options, numOptions, OC_OBSERVE_REGISTER);
         if (result != OC_STACK_OK)
         {
+	  OIC_LOG_V(DEBUG, TAG, "%s: ERROR in CreateObserveHeaderOption", __func__);
             goto exit;
         }
         requestInfo.info.numOptions = numOptions + 1;
@@ -2827,6 +2832,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
         result = OCPreparePresence(&endpoint, resourceUri, &presenceUri);
         if (OC_STACK_OK != result)
         {
+	  OIC_LOG_V(DEBUG, TAG, "%s: ERROR in OCPreparePresence", __func__);
             goto exit;
         }
 
@@ -2842,6 +2848,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
                             method, devAddr, resourceUri, resourceType, ttl);
     if (OC_STACK_OK != result)
     {
+      OIC_LOG_V(DEBUG, TAG, "%s: ERROR in AddClientCB", __func__);
         goto exit;
     }
 
@@ -2853,6 +2860,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
     result = OCSendRequest(&endpoint, &requestInfo);
     if (OC_STACK_OK != result)
     {
+      OIC_LOG_V(DEBUG, TAG, "%s: ERROR in OCSendRequest", __func__);
         goto exit;
     }
 
