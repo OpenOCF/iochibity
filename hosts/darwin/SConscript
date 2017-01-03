@@ -50,8 +50,6 @@ if len(sdks) > 0:
 if env.get('RELEASE'):
 	env.AppendUnique(CPPFLAGS = ['-Os'])
 	env.AppendUnique(CPPDEFINES = ['NDEBUG'])
-else:
-	env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 if env.get('PROFILING'):
 	# no gcov, instead: http://llvm.org/docs/CommandGuide/llvm-cov.html

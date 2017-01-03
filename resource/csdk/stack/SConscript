@@ -132,10 +132,13 @@ local_env.AppendUnique(LIBPATH = [build_sysroot + '/security'])
 local_env.AppendUnique(LIBS = ['tinydtls'])
 local_env.AppendUnique(LIBPATH = [build_sysroot + '/tinydtls'])
 
+# we always need liblogger, for e.g. VERIFY_NON_NULL_NR
+local_env.AppendUnique(LIBPATH = [build_sysroot + '/logger'])
+local_env.PrependUnique(LIBS = ['logger'])
+
+# but we do not always need logging (OIC_LOG_foo)
 if local_env.get('LOGGING'):
-        local_env.PrependUnique(LIBS = ['logger'])
-	local_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
-	local_env.AppendUnique(LIBPATH = [build_sysroot + '/logger'])
+        local_env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 if env.get('DTLS_WITH_X509') == '1':
 	local_env.AppendUnique(CPPDEFINES = ['__WITH_X509__'])

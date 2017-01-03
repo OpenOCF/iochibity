@@ -2428,6 +2428,10 @@ static OCStackResult ParseRequestUri(const char *fullUri,
 {
     VERIFY_NON_NULL(fullUri, FATAL, OC_STACK_INVALID_CALLBACK);
 
+    printf("%s: uri     = %s\n", __func__, fullUri);
+    printf("%s: adapter = %d\n", __func__, adapter);
+    printf("%s: flags   = %d\n", __func__, flags);
+
     OCStackResult result = OC_STACK_OK;
     OCDevAddr *da = NULL;
     char *colon = NULL;
@@ -2477,6 +2481,7 @@ static OCStackResult ParseRequestUri(const char *fullUri,
     // port
     uint16_t port = 0;
     size_t len = 0;
+    printf("%s: url len %zu\n", __func__, urlLen);
     if (urlLen && devAddr)
     {   // construct OCDevAddr
         if (start[0] == '[')
@@ -2657,6 +2662,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
 {
     OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
     printf("DESTINATION == NULL?: %d\n", (destination == NULL));
+    printf("CONTYPE: 0x%08X\n", connectivityType);
 
     // Validate input parameters
     VERIFY_NON_NULL(cbData, FATAL, OC_STACK_INVALID_CALLBACK);
@@ -2743,7 +2749,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
 
     if (!devAddr && !destination)
     {
-        OIC_LOG(DEBUG, TAG, "no devAddr and no destination");
+        OIC_LOG_V(ERROR, TAG, "%s: for GET, if requestUri starts with '/', then destination must not be null; if requestUri includes IP address, connType will be used", __func__);
         result = OC_STACK_INVALID_PARAM;
         goto exit;
     }
@@ -2789,7 +2795,7 @@ OCStackResult OCDoResource(OCDoHandle *handle,
                                     options, numOptions, OC_OBSERVE_REGISTER);
         if (result != OC_STACK_OK)
         {
-	  OIC_LOG_V(DEBUG, TAG, "%s: ERROR in CreateObserveHeaderOption", __func__);
+	    OIC_LOG_V(ERROR, TAG, "%s: CreateObserveHeaderOption returned %d", __func__, result);
             goto exit;
         }
         requestInfo.info.numOptions = numOptions + 1;

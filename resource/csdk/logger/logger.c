@@ -56,6 +56,23 @@
 #include "oc_uuid.h"
 #include "platform_features.h"
 
+
+#ifdef __TIZEN__
+/* FIXME tizen support */
+#else
+static LogLevel maxlog = WARNING; /* default maximum log level */
+
+LogLevel oic_get_log_level()
+{
+    return maxlog;
+}
+
+void oic_set_log_level(LogLevel level)
+{
+    maxlog = level;
+}
+#endif
+
 #ifndef __TIZEN__
 static oc_log_ctx_t *logCtx = 0;
 #endif
@@ -126,6 +143,8 @@ static oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO,
  */
 void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint16_t bufferSize)
 {
+    if (level < maxlog) return;
+
     if (!buffer || !tag || (bufferSize == 0))
     {
         return;
@@ -166,6 +185,8 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
  */
  void OCLogCredential(LogLevel level, const char * tag, void* cred)
  {
+    if (level < maxlog) return;
+
     if (!tag) {
         return;
     }
@@ -175,7 +196,6 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
     static char subject[UUID_STRING_SIZE];
     if(OCConvertUuidToString( credential->subject.id, subject) != RAND_UUID_OK)
     {
-	printf("XXXXXXXXXXXXXXXX TEST OCConvertUuidToString failure: subject id");
 	OIC_LOG_V(FATAL, tag, "%s: OCConvertUuidToString failed for subject", __func__);
     }
     snprintf(buffer, sizeof buffer - 1, "\tsubject id: %s", (char*)&subject);
@@ -183,11 +203,23 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
     OIC_LOG_V(level, tag, "\t cred type: 0x%08X", credential->credType);
     if(OCConvertUuidToString( credential->rownerID.id, subject) != RAND_UUID_OK)
     {
-	printf("XXXXXXXXXXXXXXXX TEST OCConvertUuidToString failure: rownderID");
 	OIC_LOG_V(FATAL, tag, "%s: OCConvertUuidToString failed for subject", __func__);
     }
     snprintf(buffer, sizeof buffer - 1, "\trowner id: %s", (char*)&subject);
     OCLog(level, tag, buffer);
+ }
+
+/**
+ * Log OCDoHandle
+ *
+ * @param level      - DEBUG, INFO, WARNING, ERROR, FATAL
+ * @param tag        - Module name
+ * @param token      - pointer to doHandle
+ */
+void OCLogDoHandle(LogLevel level, const char * tag, void* token)
+ {
+    if (level < maxlog) return;
+
  }
 
 #ifndef __TIZEN__
@@ -221,6 +253,8 @@ void OCLogShutdown()
  */
 void OCLogv(LogLevel level, const char * tag, const char * format, ...)
 {
+    if (level < maxlog) return;
+
     if (!format || !tag) {
         return;
     }
@@ -242,6 +276,8 @@ void OCLogv(LogLevel level, const char * tag, const char * format, ...)
  */
 void OCLog(LogLevel level, const char * tag, const char * logStr)
 {
+    if (level < maxlog) return;
+
     if (!logStr || !tag)
     {
        return;
@@ -320,6 +356,8 @@ void OCLogInit()
  */
 void OCLogString(LogLevel level, PROGMEM const char * tag, const char * logStr)
 {
+    if (level < maxlog) return;
+
     if (!logStr || !tag)
     {
       return;
@@ -354,6 +392,8 @@ void OCLogString(LogLevel level, PROGMEM const char * tag, const char * logStr)
  void OCLogBuffer(LogLevel level, PROGMEM const char * tag,
                   const uint8_t * buffer, size_t bufferSize)
  {
+    if (level < maxlog) return;
+
      if (!buffer || !tag || (bufferSize == 0))
      {
          return;
@@ -390,6 +430,21 @@ void OCLogString(LogLevel level, PROGMEM const char * tag, const char * logStr)
  */
  void OCLogCredential(LogLevel level, PROGMEM const char * tag, void* cred)
  {
+    if (level < maxlog) return;
+
+ }
+
+/**
+ * Log OCDoHandle
+ *
+ * @param level      - DEBUG, INFO, WARNING, ERROR, FATAL
+ * @param tag        - Module name
+ * @param token      - pointer to doHandle
+ */
+ void OCLogDoHandle(LogLevel level, PROGMEM const char * tag, void* token)
+ {
+    if (level < maxlog) return;
+
  }
 
 /**
@@ -403,6 +458,8 @@ void OCLogString(LogLevel level, PROGMEM const char * tag, const char * logStr)
 void OCLog(LogLevel level, PROGMEM const char *tag, const int lineNum,
            PROGMEM const char *logStr)
 {
+    if (level < maxlog) return;
+
     if (!logStr || !tag)
     {
         return;
@@ -439,6 +496,8 @@ void OCLog(LogLevel level, PROGMEM const char *tag, const int lineNum,
 void OCLogv(LogLevel level, PROGMEM const char *tag, const int lineNum,
                 PROGMEM const char *format, ...)
 {
+    if (level < maxlog) return;
+
     char buffer[LINE_BUFFER_SIZE];
     va_list ap;
     va_start(ap, format);
@@ -483,6 +542,8 @@ void OCLogv(LogLevel level, PROGMEM const char *tag, const int lineNum,
  */
 void OCLogv(LogLevel level, const char *tag, const __FlashStringHelper *format, ...)
 {
+    if (level < maxlog) return;
+
     char buffer[LINE_BUFFER_SIZE];
     va_list ap;
     va_start(ap, format);

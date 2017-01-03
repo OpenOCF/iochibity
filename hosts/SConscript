@@ -155,8 +155,8 @@ if target_os in targets_support_cc:
 	if prefix or tc_path:
 		print tc_set_msg
 
-if not env.get('RELEASE'):
-	env.AppendUnique(CPPDEFINES = ['TB_LOG'])
+# if not env.get('RELEASE'):
+# 	env.AppendUnique(CPPDEFINES = ['TB_LOG'])
 
 # If cross-compiling, honor environment settings for toolchain to avoid picking up native tools
 if os.environ.get('PKG_CONFIG') != None:

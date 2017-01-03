@@ -153,8 +153,6 @@ def host_features(env) :
                         env.Replace(RELEASE = 1)
                 elif stage == 'debug':
                         env.Replace(RELEASE = 0)
-                        env.AppendUnique(CPPDEFINES = ['LOGGING'])
-                        env.AppendUnique(TB_LOG = 1)  # ??
         except:
                 env.Replace(RELEASE = 0)
                 pass
@@ -385,8 +383,7 @@ def host_features(env) :
         try:
                 log = env.get('LOGGING') # not an env var
                 if log == 1:
-                        env.AppendUnique(CPPDEFINES = ['LOGGING'])
-                        env.AppendUnique(TB_LOG = 1)  # ??
+                        env.AppendUnique(CPPDEFINES = ['LOGGING', 'TB_LOG'])
         except KeyError:
                 pass
 

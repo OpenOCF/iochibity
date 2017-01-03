@@ -83,6 +83,12 @@ typedef enum {
 } LogLevel;
 #endif
 
+    // GAR: NOTE that the log levels are upside down, so setting (max)
+    // log level will omit levels < maxlevel
+    LogLevel oic_get_log_level();
+    void oic_set_log_level(LogLevel level);
+
+
 #ifdef __TIZEN__
 /**
  * Output the contents of the specified buffer (in hex) with the specified priority level.
@@ -221,8 +227,8 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 #define OIC_LOG_V(level,tag,fmt,args...) LOG_(LOG_ID_MAIN, level, tag, fmt, ##args)
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)\
     OCLogBuffer((level), (tag), (buffer), (bufferSize))
-#define OIC_LOG_CRED(level, tag, cred)\
-    OCLogCredential((level), (tag), (cred))
+#define OIC_LOG_CRED(level, tag, cred) OCLogCredential((level), (tag), (cred))
+#define OIC_LOG_DOHANDLE(level, tag, handle) OCLogDoHandle((level), (tag), (handle))
 
 #else // These macros are defined for Linux, Android, Win32, and Arduino
 
@@ -232,6 +238,7 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)  OCLogBuffer((level), PCF(tag), (buffer), (bufferSize))
 #define OIC_LOG_CRED(level, tag, cred)  OCLogCredential((level), PCF(tag), (cred))
+#define OIC_LOG_DOHANDLE(level, tag, handle)  OCLogOdHandle((level), PCF(tag), (cred))
 // Don't define variable argument log function for Arduino
 #define OIC_LOG_V(level, tag, format, ...) OCLogv((level), PCF(tag), __LINE__, PCF(format),__VA_ARGS__)
 
@@ -244,6 +251,7 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)  OCLogBuffer((level), (tag), (buffer), (bufferSize))
 #define OIC_LOG_CRED(level, tag, cred)  OCLogCredential((level), (tag), (cred))
+#define OIC_LOG_DOHANDLE(level, tag, handle)  OCLogDoHandle((level), (tag), (handle))
 #define OIC_LOG_CONFIG(ctx)    OCLogConfig((ctx))
 #define OIC_LOG_SHUTDOWN()     OCLogShutdown()
 #define OIC_LOG(level, tag, logStr)  OCLog((level), (tag), (logStr))
