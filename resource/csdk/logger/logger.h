@@ -26,6 +26,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdarg.h>
+
+#include "octypes.h"
 #include "logger_types.h"
 
 /* #ifdef __ANDROID__ */
@@ -165,6 +167,15 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
      */
     void OCLogCredential(LogLevel level, const char * tag, void* cred);
 
+    /**
+     * Log OCDiscoveryResponse
+     *
+     * @param level      - DEBUG, INFO, WARNING, ERROR, FATAL
+     * @param tag        - Module name
+     * @param rsp        - pointer to OCClientResponse
+     */
+    void OCLogDiscoveryResponse(LogLevel level, const char * tag, OCClientResponse* rsp);
+
 #else  // For arduino platforms
     /**
      * Initialize the serial logger for Arduino
@@ -202,6 +213,15 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
      * @param cred       - pointer to credential
      */
     void OCLogCredential(LogLevel level, PROGMEM const char * tag, void* cred);
+
+    /**
+     * Log OCDiscoveryResponse
+     *
+     * @param level      - DEBUG, INFO, WARNING, ERROR, FATAL
+     * @param tag        - Module name
+     * @param rsp        - pointer to OCClientResponse
+     */
+    void OCLogDiscoveryResponse(LogLevel level, const char * tag, OCClientResponse* rsp);
 
     /**
      * Output a variable argument list log string with the specified priority level.

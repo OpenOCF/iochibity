@@ -49,7 +49,6 @@
 #include <windows.h>
 #endif
 
-#include "octypes.h"
 #include "logger.h"
 #include "string.h"
 #include "logger_types.h"
@@ -219,10 +218,86 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
  */
 void OCLogDiscoveryResponse(LogLevel level, const char * tag, OCClientResponse* rsp)
 {
-    if (level < maxlog) return;
-    if (!tag || !rsp) return;
-    OIC_LOG_V(level, tag, "%s: ENTRY", __func__);
-}
+    if (level < maxlog) {
+	return;
+    }
+    /* if (!tag || !rsp) return; */
+    if (rsp->payload->type != PAYLOAD_TYPE_DISCOVERY) return;
+
+    OCLog(level, tag, "Logging Discovery Response:");
+    OCLogv(level, tag, "\tResponse uri path: %s", rsp->resourceUri);
+    OCLogv(level, tag, "\tResponse sec id:");
+    OCLogBuffer(level, tag, rsp->identity.id, rsp->identity.id_length);
+
+    /* remote device address */
+    OCLogv(level, tag, "\tResponse Device Address:");
+    OCLogv(level, tag, "\t\t adapter:\t0x%08X", rsp->devAddr.adapter);
+    OCLogv(level, tag, "\t\t flags:\t\t0x%08X", rsp->devAddr.flags);
+    OCLogv(level, tag, "\t\t port:\t\t%d", rsp->devAddr.port);
+    OCLogv(level, tag, "\t\t addr:\t\t%s", rsp->devAddr.addr);
+    OCLogv(level, tag, "\t\t ifindex:\t%d", rsp->devAddr.ifindex);
+
+    /* payload */
+    OCDiscoveryPayload* p = (OCDiscoveryPayload*)rsp->payload;
+    /* Discovery payload contains a list of Resource payloads */
+    OCResourcePayload* rp;
+    OCStringLL* sll;
+
+    int i = 1, j = 1, k = 1;
+
+    OCLogv(level, tag, "\tDiscovery Payloads:");
+    while(p) {
+	OCLogv(level, tag, "\t%d. sid: %s", i, p->sid);
+	OCLogv(level, tag, "\t   base uri: %s", p->baseURI);
+	OCLogv(level, tag, "\t   name: %s", p->name);
+	OCLogv(level, tag, "\t   uri path: %s", p->uri);
+
+	/* OCLog(level, tag, ""); */
+	OCLogv(level, tag, "\t   child Resource Payloads:");
+	rp = p->resources;
+	j = 1;
+	while(rp) {
+	    OCLogv(level, tag, "\t\t%d. %s", j, rp->uri);
+	    /* types */
+	    k = 1;
+	    sll = rp->types;
+	    while(sll) {
+		if (k == 1) {
+		    OCLogv(level, tag, "\t\t   types:\t\t%s", sll->value);
+		} else {
+		    OCLogv(level, tag, "\t\t           \t\t%s", sll->value);
+		}
+		sll = sll->next;
+		k++;
+	    }
+	    /* interfaces */
+	    k = 1;
+	    sll = rp->interfaces;
+	    while(sll) {
+		if (k == 1) {
+		    OCLogv(level, tag, "\t\t   interfaces:\t\t%s", sll->value);
+		} else {
+		    OCLogv(level, tag, "\t\t              \t\t%s", sll->value);
+		}
+		sll = sll->next;
+		k++;
+	    }
+	    /* policy bitmask */
+	    OCLogv(level, tag, "\t\t   policy bitmask:\t0x%02X", rp->bitmap);
+	    /* security flag */
+	    OCLogv(level, tag, "\t\t   security flag:\t%d", rp->secure);
+	    /* port */
+	    OCLogv(level, tag, "\t\t   port:\t\t%d", rp->port);
+	    /* tcp port */
+	    OCLog(level, tag, "");
+	    rp = rp->next;
+	    j++;
+	}
+
+	p = p->next;
+	i++;
+    }
+ }
 
 #ifndef __TIZEN__
 void OCLogConfig(oc_log_ctx_t *ctx)

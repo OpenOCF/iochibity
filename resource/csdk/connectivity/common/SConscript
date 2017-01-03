@@ -14,6 +14,8 @@ print "CA COMMON SRC DIR:", src_dir
 
 here = Dir('.').abspath
 
+env.PrependUnique(CPPPATH = [src_dir + '/resource/csdk/stack'])
+
 ca_common_src = [here + '/uarraylist.c',
 		 here + '/ulinklist.c',
 		 here + '/uqueue.c',
