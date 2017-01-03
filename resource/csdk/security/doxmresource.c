@@ -422,7 +422,7 @@ static OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t siz
         doxm->oxm = (OicSecOxm_t *) OICCalloc(gDoxm->oxmLen, sizeof(*doxm->oxm));
         VERIFY_NON_NULL(TAG, doxm->oxm, ERROR);
         doxm->oxmLen = gDoxm->oxmLen;
-        int i;
+        size_t i;
         for (i = 0; i < gDoxm->oxmLen; i++)
         {
             doxm->oxm[i] = gDoxm->oxm[i];
