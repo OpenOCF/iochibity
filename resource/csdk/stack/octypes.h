@@ -438,7 +438,7 @@ typedef enum
  *  Enum layout assumes some targets have 16-bit integer (e.g., Arduino).
  */
 typedef enum
-{
+p{
     /** default flag is 0*/
     OC_DEFAULT_FLAGS = 0,
 
@@ -556,10 +556,10 @@ typedef enum
     CT_DEFAULT = 0,
 
     /** IPv4 and IPv6, including 6LoWPAN.*/
-    CT_ADAPTER_IP           = (1 << 16),
+    CT_ADAPTER_IP           = (1 << 16), /* GAR: this really means UDP over IP */
 
     /** GATT over Bluetooth LE.*/
-    CT_ADAPTER_GATT_BTLE    = (1 << 17),
+    CT_ADAPTER_GATT_BTLE    = (1 << 17), /* GAR: the transport is ATT, not GATT */
 
     /** RFCOMM over Bluetooth EDR.*/
     CT_ADAPTER_RFCOMM_BTEDR = (1 << 18),
@@ -569,7 +569,7 @@ typedef enum
     CT_ADAPTER_REMOTE_ACCESS = (1 << 19),
 #endif
     /** CoAP over TCP.*/
-    CT_ADAPTER_TCP     = (1 << 20),
+    CT_ADAPTER_TCP     = (1 << 20), /* GAR: i.e. TCP/IP */
 
     /** NFC Transport.*/
     CT_ADAPTER_NFC     = (1 << 21),
@@ -1186,7 +1186,7 @@ typedef struct OCResourcePayload
     char* uri;
     OCStringLL* types;
     OCStringLL* interfaces;
-    uint8_t bitmap;
+    uint8_t bitmap;		/* GAR: policy bitmask, not bitmap!!! */
     bool secure;
     uint16_t port;
 #ifdef TCP_ADAPTER
