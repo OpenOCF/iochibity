@@ -49,6 +49,7 @@
 #include <windows.h>
 #endif
 
+#include "octypes.h"
 #include "logger.h"
 #include "string.h"
 #include "logger_types.h"
@@ -210,17 +211,18 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
  }
 
 /**
- * Log OCDoHandle
+ * Log OCDiscoveryResponse
  *
  * @param level      - DEBUG, INFO, WARNING, ERROR, FATAL
  * @param tag        - Module name
- * @param token      - pointer to doHandle
+ * @param rsp        - pointer to OCClientResponse
  */
-void OCLogDoHandle(LogLevel level, const char * tag, void* token)
- {
+void OCLogDiscoveryResponse(LogLevel level, const char * tag, OCClientResponse* rsp)
+{
     if (level < maxlog) return;
-
- }
+    if (!tag || !rsp) return;
+    OIC_LOG_V(level, tag, "%s: ENTRY", __func__);
+}
 
 #ifndef __TIZEN__
 void OCLogConfig(oc_log_ctx_t *ctx)
@@ -435,16 +437,16 @@ void OCLogString(LogLevel level, PROGMEM const char * tag, const char * logStr)
  }
 
 /**
- * Log OCDoHandle
+ * Log OCDiscoveryResponse
  *
  * @param level      - DEBUG, INFO, WARNING, ERROR, FATAL
  * @param tag        - Module name
- * @param token      - pointer to doHandle
+ * @param rsp        - pointer to OCClientResponse
  */
- void OCLogDoHandle(LogLevel level, PROGMEM const char * tag, void* token)
+ void OCLogDiscoveryResponse(LogLevel level, PROGMEM const char * tag, OCClientResponse* rsp)
  {
     if (level < maxlog) return;
-
+    OIC_LOG_V(level, tag, "%s: ENTRY", __func__);
  }
 
 /**

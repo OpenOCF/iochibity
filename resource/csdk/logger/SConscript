@@ -4,7 +4,9 @@ import build.utils
 
 print "CSDK/LOGGER"
 
-env.AppendUnique(CPPPATH = ['#resource/c_common', '#resource/csdk/security/ocsecurity'])
+env.AppendUnique(CPPPATH = ['#resource/c_common',
+                            '#resource/csdk/security/ocsecurity',
+                            '#resource/csdk/stack'])
 
 if env.get('TARGET_OS') in ['arduino']:
 	env.AppendUnique(CPPPATH = [os.path.join(env.get('BUILD_DIR'), 'resource/c_common')])

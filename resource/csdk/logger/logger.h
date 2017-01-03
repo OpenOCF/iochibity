@@ -228,9 +228,9 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)\
     OCLogBuffer((level), (tag), (buffer), (bufferSize))
 #define OIC_LOG_CRED(level, tag, cred) OCLogCredential((level), (tag), (cred))
-#define OIC_LOG_DOHANDLE(level, tag, handle) OCLogDoHandle((level), (tag), (handle))
+#define OIC_LOG_DISCOVERY_RESPONSE(level, tag, rsp) OCLogDiscoveryResponse((level), (tag), (rsp))
 
-#else // These macros are defined for Linux, Android, Win32, and Arduino
+#else // These macros are defined for Linux, Darwin, Android, Win32, and Arduino
 
 #define OIC_LOG_INIT()    OCLogInit()
 
@@ -238,7 +238,7 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)  OCLogBuffer((level), PCF(tag), (buffer), (bufferSize))
 #define OIC_LOG_CRED(level, tag, cred)  OCLogCredential((level), PCF(tag), (cred))
-#define OIC_LOG_DOHANDLE(level, tag, handle)  OCLogOdHandle((level), PCF(tag), (cred))
+#define OIC_LOG_DISCOVERY_RESPONSE(level, tag, rsp)  OCLogDiscoveryResponse((level), PCF(tag), (cred))
 // Don't define variable argument log function for Arduino
 #define OIC_LOG_V(level, tag, format, ...) OCLogv((level), PCF(tag), __LINE__, PCF(format),__VA_ARGS__)
 
@@ -251,7 +251,7 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)  OCLogBuffer((level), (tag), (buffer), (bufferSize))
 #define OIC_LOG_CRED(level, tag, cred)  OCLogCredential((level), (tag), (cred))
-#define OIC_LOG_DOHANDLE(level, tag, handle)  OCLogDoHandle((level), (tag), (handle))
+#define OIC_LOG_DISCOVERY_RESPONSE(level, tag, rsp)  OCLogDiscoveryResponse((level), (tag), (rsp))
 #define OIC_LOG_CONFIG(ctx)    OCLogConfig((ctx))
 #define OIC_LOG_SHUTDOWN()     OCLogShutdown()
 #define OIC_LOG(level, tag, logStr)  OCLog((level), (tag), (logStr))
@@ -263,12 +263,13 @@ void OCLogBuffer(LogLevel level, const char * tag, const uint8_t * buffer, uint1
 
 #else //TB_LOG
 
+#define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)
+#define OIC_LOG_CRED(level, tag, cred)
+#define OIC_LOG_DISCOVERY_RESPONSE(level, tag, rsp)
 #define OIC_LOG_CONFIG(ctx)
 #define OIC_LOG_SHUTDOWN()
 #define OIC_LOG(level, tag, logStr)
 #define OIC_LOG_V(level, tag, ...)
-#define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)
-#define OIC_LOG_CRED(level, tag, cred)
 #define OIC_LOG_INIT()
 #endif
 
