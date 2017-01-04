@@ -224,7 +224,7 @@ void OCLogDiscoveryResponse(LogLevel level, const char * tag, OCClientResponse* 
     /* if (!tag || !rsp) return; */
     if (rsp->payload->type != PAYLOAD_TYPE_DISCOVERY) return;
 
-    OCLog(level, tag, "Logging Discovery Response:");
+    OCLog(level, tag, "Logging OCClientResponse to discovery request:");
     OCLogv(level, tag, "\tResponse uri path: %s", rsp->resourceUri);
     OCLogv(level, tag, "\tResponse sec id:");
     OCLogBuffer(level, tag, rsp->identity.id, rsp->identity.id_length);
@@ -245,15 +245,40 @@ void OCLogDiscoveryResponse(LogLevel level, const char * tag, OCClientResponse* 
 
     int i = 1, j = 1, k = 1;
 
-    OCLogv(level, tag, "\tDiscovery Payloads:");
+    OCLogv(level, tag, "\tOCDiscoveryPayloads:");
     while(p) {
-	OCLogv(level, tag, "\t%d. sid: %s", i, p->sid);
-	OCLogv(level, tag, "\t   base uri: %s", p->baseURI);
-	OCLogv(level, tag, "\t   name: %s", p->name);
-	OCLogv(level, tag, "\t   uri path: %s", p->uri);
+	OCLogv(level, tag, "\t%d. sid:\t%s", i, p->sid);
+	OCLogv(level, tag, "\t   base uri:\t%s", p->baseURI);
+	OCLogv(level, tag, "\t   name:\t%s", p->name);
+	OCLogv(level, tag, "\t   uri path:\t%s", p->uri);
+
+	/* DP types, interfaces */
+	k = 1;
+	sll = p->type;
+	while(sll) {
+	    if (k == 1) {
+		OCLogv(level, tag, "\t   types:\t%s", sll->value);
+	    } else {
+		OCLogv(level, tag, "\t         \t%s", sll->value);
+	    }
+	    sll = sll->next;
+	    k++;
+	}
+	/* interfaces */
+	k = 1;
+	sll = p->iface;
+	while(sll) {
+	    if (k == 1) {
+		OCLogv(level, tag, "\t   interfaces:\t%s", sll->value);
+	    } else {
+		OCLogv(level, tag, "\t              \t%s", sll->value);
+	    }
+	    sll = sll->next;
+	    k++;
+	}
 
 	/* OCLog(level, tag, ""); */
-	OCLogv(level, tag, "\t   child Resource Payloads:");
+	OCLogv(level, tag, "\t   resources (OCResourcePayloads):");
 	rp = p->resources;
 	j = 1;
 	while(rp) {
