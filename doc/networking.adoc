@@ -1,0 +1,54 @@
+= iotivity networking
+
+Some of the names used in the Iotivity stack are very misleading.
+This is an attempt to straighten things out.
+
+CT_ADAPTER_foo, OC_ADAPTER_foo: really means TRANSPORT_PROTOCOL, not ADAPTER
+
+* CT_ADAPTER_x : what this really means is CT_TRANSPORT_x.
+** CT_ADAPTER_IP : means UDP transport
+** CT_ADAPTER_GATT_BTLE : GATT is a profile; the transport is ATT (Attribute Protocol)
+** CT_ADAPTER_RFCOMM_BTEDR : RFCOMM is a transport protocol (http://www.amd.e-technik.uni-rostock.de/ma/gol/lectures/wirlec/bluetooth_info/rfcomm.html#RFCOMM Overview/Service_
+** CT_ADAPTER_TCP : obviously TCP is a transport protocol
+** CT_ADAPTER_NFC : not sure, assuming this really refers to a transport protocol, at least roughly
+
+NOTE: this flags from OCConnectivityType are mirrored by OC_ consts from OCTransportAdapter
+
+Then we have OC_IP_USE_V4 and OC_IP_USE_V6 (and their CT_
+counterparts).  These are obviously about the network protocol layer:
+
+* xx_IP_USE_Vn => xx_NETWORK_PROTOCOL_IPVn
+
+In general, the networking protocol is implied by the transport
+protocol; in the specific case of UDP and TCP, the implied networking
+protocol is IP, but since there are two versions of IP we need to say
+which.
+
+    // NOTE: OCDoResource needs a DevAddr and a ConnectivityType,
+    // giving redundant networking params.  Why? Maybe so
+    // ConnectivityType can be used when DevAddr is NULL (multicast)?
+
+    // // OCDevAddr
+    // native public DeviceAddress   coAddress(); // ??
+
+    // public  DeviceAddress          getCoAddress() {
+    // 	if (_destination == null) {
+    // 	    return coAddress();
+    // 	} else {
+    // 	    return _destination;
+    // 	}
+    // }
+
+    // OCDoResources takes an OCConnectivityType arg, in addition to
+    // the OCDevAddr arg which contains the same type of data as
+    // OCConnectivityType.
+
+    // Why is this? Maybe: if the OCDevAddr* arg is NULL, it's a multicast,
+    // and can use the OCConnectivityType params.  Otherwise, it's a
+    // unicast targeting the OCDevAddr, whose parameters should be
+    // used.
+
+    // If that's right, these should pull data from the device address
+    // if we have one, otherwise from connectivityType
+
+    // also OCClientResponse contains an OCConnectivityType member.
