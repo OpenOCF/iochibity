@@ -1465,8 +1465,7 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
 		OC_UNUSED(appFeedback);
                 cbNode->sequenceNumber = response.sequenceNumber;
 
-                /* if (appFeedback == OC_STACK_DELETE_TRANSACTION) */
-		// GAR MULTICAST
+                /* GAR: if (appFeedback == OC_STACK_DELETE_TRANSACTION) */
 		if ( (((responseInfo->info.token)[0]) & 1) == 0 )
                 {
 		    /* printf("GAR XXXXXXXXXXXXXXXX:  UNICAST\n"); */
