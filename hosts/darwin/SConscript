@@ -80,6 +80,10 @@ env.AppendUnique(CFLAGS = ['-std=c11'])
 # in case of ld: symbol(s) not found for architecture x86_64
 # -Wl,-undefined -Wl,dynamic_lookup
 
+env.AppendUnique(CCFLAGS = ['-m64'])
+env.AppendUnique(LINKFLAGS = ['-m64'])
+
+
 # # Set arch flags that match best TARGET_ARCH variable
 # target_arch = env.get('TARGET_ARCH')
 # if target_arch in ['x86']:

@@ -50,6 +50,7 @@
 #endif
 
 #include "logger.h"
+#include "payload_logging.h"
 #include "string.h"
 #include "logger_types.h"
 #include "securevirtualresourcetypes.h"
@@ -221,8 +222,9 @@ void OCLogDiscoveryResponse(LogLevel level, const char * tag, OCClientResponse* 
     if (level < maxlog) {
 	return;
     }
+
     /* if (!tag || !rsp) return; */
-    if (rsp->payload->type != PAYLOAD_TYPE_DISCOVERY) return;
+    /* if (rsp->payload->type != PAYLOAD_TYPE_DISCOVERY) return; */
 
     OCLog(level, tag, "Logging OCClientResponse to discovery request:");
     OCLogv(level, tag, "\tResponse uri path: %s", rsp->resourceUri);
@@ -238,90 +240,93 @@ void OCLogDiscoveryResponse(LogLevel level, const char * tag, OCClientResponse* 
     OCLogv(level, tag, "\t\t ifindex:\t%d", rsp->devAddr.ifindex);
 
     /* payload */
-    OCDiscoveryPayload* p = (OCDiscoveryPayload*)rsp->payload;
+    /* OCDiscoveryPayload* p = (OCDiscoveryPayload*)rsp->payload; */
+    OCPayload* p = (OCPayload*)rsp->payload;
     /* Discovery payload contains a list of Resource payloads */
-    OCResourcePayload* rp;
-    OCStringLL* sll;
+    OIC_LOG_PAYLOAD(DEBUG, p);
 
-    int i = 1, j = 1, k = 1;
+    /* OCResourcePayload* rp; */
+    /* OCStringLL* sll; */
 
-    OCLogv(level, tag, "\tOCDiscoveryPayloads:");
-    while(p) {
-	OCLogv(level, tag, "\t%d. sid:\t%s", i, p->sid);
-	OCLogv(level, tag, "\t   base uri:\t%s", p->baseURI);
-	OCLogv(level, tag, "\t   name:\t%s", p->name);
-	OCLogv(level, tag, "\t   uri path:\t%s", p->uri);
+    /* int i = 1, j = 1, k = 1; */
 
-	/* DP types, interfaces */
-	k = 1;
-	sll = p->type;
-	while(sll) {
-	    if (k == 1) {
-		OCLogv(level, tag, "\t   types:\t%s", sll->value);
-	    } else {
-		OCLogv(level, tag, "\t         \t%s", sll->value);
-	    }
-	    sll = sll->next;
-	    k++;
-	}
-	/* interfaces */
-	k = 1;
-	sll = p->iface;
-	while(sll) {
-	    if (k == 1) {
-		OCLogv(level, tag, "\t   interfaces:\t%s", sll->value);
-	    } else {
-		OCLogv(level, tag, "\t              \t%s", sll->value);
-	    }
-	    sll = sll->next;
-	    k++;
-	}
+    /* OCLogv(level, tag, "\tOCDiscoveryPayloads:"); */
+    /* while(p) { */
+    /* 	OCLogv(level, tag, "\t%d. sid:\t%s", i, p->sid); */
+    /* 	OCLogv(level, tag, "\t   base uri:\t%s", p->baseURI); */
+    /* 	OCLogv(level, tag, "\t   name:\t%s", p->name); */
+    /* 	OCLogv(level, tag, "\t   uri path:\t%s", p->uri); */
 
-	/* OCLog(level, tag, ""); */
-	OCLogv(level, tag, "\t   resources (OCResourcePayloads):");
-	rp = p->resources;
-	j = 1;
-	while(rp) {
-	    OCLogv(level, tag, "\t\t%d. %s", j, rp->uri);
-	    /* types */
-	    k = 1;
-	    sll = rp->types;
-	    while(sll) {
-		if (k == 1) {
-		    OCLogv(level, tag, "\t\t   types:\t\t%s", sll->value);
-		} else {
-		    OCLogv(level, tag, "\t\t           \t\t%s", sll->value);
-		}
-		sll = sll->next;
-		k++;
-	    }
-	    /* interfaces */
-	    k = 1;
-	    sll = rp->interfaces;
-	    while(sll) {
-		if (k == 1) {
-		    OCLogv(level, tag, "\t\t   interfaces:\t\t%s", sll->value);
-		} else {
-		    OCLogv(level, tag, "\t\t              \t\t%s", sll->value);
-		}
-		sll = sll->next;
-		k++;
-	    }
-	    /* policy bitmask */
-	    OCLogv(level, tag, "\t\t   policy bitmask:\t0x%02X", rp->bitmap);
-	    /* security flag */
-	    OCLogv(level, tag, "\t\t   security flag:\t%d", rp->secure);
-	    /* port */
-	    OCLogv(level, tag, "\t\t   port:\t\t%d", rp->port);
-	    /* tcp port */
-	    OCLog(level, tag, "");
-	    rp = rp->next;
-	    j++;
-	}
+    /* 	/\* DP types, interfaces *\/ */
+    /* 	k = 1; */
+    /* 	sll = p->type; */
+    /* 	while(sll) { */
+    /* 	    if (k == 1) { */
+    /* 		OCLogv(level, tag, "\t   types:\t%s", sll->value); */
+    /* 	    } else { */
+    /* 		OCLogv(level, tag, "\t         \t%s", sll->value); */
+    /* 	    } */
+    /* 	    sll = sll->next; */
+    /* 	    k++; */
+    /* 	} */
+    /* 	/\* interfaces *\/ */
+    /* 	k = 1; */
+    /* 	sll = p->iface; */
+    /* 	while(sll) { */
+    /* 	    if (k == 1) { */
+    /* 		OCLogv(level, tag, "\t   interfaces:\t%s", sll->value); */
+    /* 	    } else { */
+    /* 		OCLogv(level, tag, "\t              \t%s", sll->value); */
+    /* 	    } */
+    /* 	    sll = sll->next; */
+    /* 	    k++; */
+    /* 	} */
 
-	p = p->next;
-	i++;
-    }
+    /* 	/\* OCLog(level, tag, ""); *\/ */
+    /* 	OCLogv(level, tag, "\t   resources (OCResourcePayloads):"); */
+    /* 	rp = p->resources; */
+    /* 	j = 1; */
+    /* 	while(rp) { */
+    /* 	    OCLogv(level, tag, "\t\t%d. %s", j, rp->uri); */
+    /* 	    /\* types *\/ */
+    /* 	    k = 1; */
+    /* 	    sll = rp->types; */
+    /* 	    while(sll) { */
+    /* 		if (k == 1) { */
+    /* 		    OCLogv(level, tag, "\t\t   types:\t\t%s", sll->value); */
+    /* 		} else { */
+    /* 		    OCLogv(level, tag, "\t\t           \t\t%s", sll->value); */
+    /* 		} */
+    /* 		sll = sll->next; */
+    /* 		k++; */
+    /* 	    } */
+    /* 	    /\* interfaces *\/ */
+    /* 	    k = 1; */
+    /* 	    sll = rp->interfaces; */
+    /* 	    while(sll) { */
+    /* 		if (k == 1) { */
+    /* 		    OCLogv(level, tag, "\t\t   interfaces:\t\t%s", sll->value); */
+    /* 		} else { */
+    /* 		    OCLogv(level, tag, "\t\t              \t\t%s", sll->value); */
+    /* 		} */
+    /* 		sll = sll->next; */
+    /* 		k++; */
+    /* 	    } */
+    /* 	    /\* policy bitmask *\/ */
+    /* 	    OCLogv(level, tag, "\t\t   policy bitmask:\t0x%02X", rp->bitmap); */
+    /* 	    /\* security flag *\/ */
+    /* 	    OCLogv(level, tag, "\t\t   security flag:\t%d", rp->secure); */
+    /* 	    /\* port *\/ */
+    /* 	    OCLogv(level, tag, "\t\t   port:\t\t%d", rp->port); */
+    /* 	    /\* tcp port *\/ */
+    /* 	    OCLog(level, tag, ""); */
+    /* 	    rp = rp->next; */
+    /* 	    j++; */
+    /* 	} */
+
+    /* 	p = p->next; */
+    /* 	i++; */
+    /* } */
  }
 
 #ifndef __TIZEN__

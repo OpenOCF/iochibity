@@ -33,6 +33,11 @@ build_sysroot = local_env.get('BUILD_SYSROOT')
 if target_os in ['windows', 'msys_nt']:
 	SConscript('windows/SConscript')
 
+# local_env.AppendUnique(CPPDEFINES = ['ENABLE_MALLOC_DEBUG'])
+# local_env.AppendUnique(CPPPATH = ['#resource/csdk/logger'])
+# local_env.AppendUnique(CPPPATH = ['#resource/csdk/stack'])
+# local_env.AppendUnique(CPPPATH = ['#resource/c_common'])
+
 # local_env.AppendUnique(CPPPATH = ['#resource/c_common'])
 #             os.path.join(Dir('.').abspath),
 #             os.path.join(Dir('.').abspath, 'oic_malloc', 'include'),

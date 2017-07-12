@@ -21,7 +21,7 @@
 #ifndef PAYLOAD_LOGGING_H_
 #define PAYLOAD_LOGGING_H_
 
-#include "logger.h"
+/* #include "logger.h" */
 #ifdef __TIZEN__
 #include <dlog.h>
 #endif
@@ -41,7 +41,7 @@ extern "C"
 #endif
 
 // PL_TAG is made as generic predefined tag because of build problems in arduino for using logging
-#define PL_TAG "PayloadLog"
+#define PL_TAG "Payload_Logging"
 
 #ifdef TB_LOG
     #define OIC_LOG_PAYLOAD(level, payload) OCPayloadLog((level),(payload))

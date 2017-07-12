@@ -151,7 +151,7 @@ static const char CORESPEC[] = "core";
 //-----------------------------------------------------------------------------
 
 /*GAR: FIXME! this code REQUIRES that logging be turned on! */
-#define TAG  "OIC_RI_STACK"
+#define TAG  "ocstack.c"
 #define VERIFY_SUCCESS(op, successCode) { if ((op) != (successCode)) \
             {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} }
 #define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \
@@ -1258,24 +1258,24 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
 
     if(cbNode)
     {
-        OIC_LOG(INFO, TAG, "There is a cbNode associated with the response token");
-        OIC_LOG_V(INFO, TAG, "\tcbNode->method: %x", cbNode->method);
+        OIC_LOG(DEBUG, TAG, "There is a cbNode associated with the response token");
+        OIC_LOG_V(DEBUG, TAG, "\tcbNode->method: %x", cbNode->method);
         if(responseInfo->result == CA_EMPTY)
         {
-            OIC_LOG(INFO, TAG, "Receiving A ACK/RESET for this token");
+            OIC_LOG(DEBUG, TAG, "Receiving A ACK/RESET for this token");
             // We do not have a case for the client to receive a RESET
             if(responseInfo->info.type == CA_MSG_ACKNOWLEDGE)
             {
                 //This is the case of receiving an ACK on a request to a slow resource!
-                OIC_LOG(INFO, TAG, "This is a pure ACK");
+                OIC_LOG(DEBUG, TAG, "This is a pure ACK");
                 //TODO: should we inform the client
                 //      app that at least the request was received at the server?
             }
         }
         else if(responseInfo->result == CA_RETRANSMIT_TIMEOUT)
         {
-            OIC_LOG(INFO, TAG, "Receiving A Timeout for this token");
-            OIC_LOG(INFO, TAG, "Calling into application address space on CA_RETRANSMIT_TIMEOUT");
+            OIC_LOG(DEBUG, TAG, "Receiving A Timeout for this token");
+            OIC_LOG(DEBUG, TAG, "Calling into application address space on CA_RETRANSMIT_TIMEOUT");
 
             OCClientResponse response =
                 {.devAddr = {.adapter = OC_DEFAULT_ADAPTER}};
@@ -1293,7 +1293,7 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
         }
         else
         {
-            OIC_LOG_V(INFO, TAG, "%s: This is a regular response, A client call back is found", __func__);
+            OIC_LOG_V(DEBUG, TAG, "%s: This is a regular response, A client call back is found", __func__);
 
             OCClientResponse response =
                 {.devAddr = {.adapter = OC_DEFAULT_ADAPTER}};
@@ -1385,7 +1385,7 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
                     }
                     if (type == PAYLOAD_TYPE_INVALID)
                     {
-                        OIC_LOG_V(INFO, TAG, "Assuming PAYLOAD_TYPE_REPRESENTATION: %d %s",
+                        OIC_LOG_V(DEBUG, TAG, "Assuming PAYLOAD_TYPE_REPRESENTATION: %d %s",
                                 cbNode->method, cbNode->requestUri);
                         type = PAYLOAD_TYPE_REPRESENTATION;
                     }
@@ -1453,12 +1453,12 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
                 cbNode->sequenceNumber <=  MAX_SEQUENCE_NUMBER &&
                 response.sequenceNumber <= cbNode->sequenceNumber)
             {
-                OIC_LOG_V(INFO, TAG, "%s: Received stale notification. Number :%d", __func__,
+                OIC_LOG_V(DEBUG, TAG, "%s: Received stale notification. Number :%d", __func__,
                                                  response.sequenceNumber);
             }
             else
             {
-		OIC_LOG_V(INFO, TAG, "%s: Invoking user callback", __func__);
+		OIC_LOG_V(DEBUG, TAG, "%s: Invoking user callback", __func__);
                 OCStackApplicationResult appFeedback = cbNode->callBack(cbNode->context,
                                                                         cbNode->handle,
                                                                         &response);
@@ -1495,26 +1495,26 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
     /* else  not cbNode */
     if(observer)
     {
-        OIC_LOG(INFO, TAG, "There is an observer associated with the response token");
+        OIC_LOG(DEBUG, TAG, "There is an observer associated with the response token");
         if(responseInfo->result == CA_EMPTY)
         {
-            OIC_LOG(INFO, TAG, "Receiving A ACK/RESET for this token");
+            OIC_LOG(DEBUG, TAG, "Receiving A ACK/RESET for this token");
             if(responseInfo->info.type == CA_MSG_RESET)
             {
-                OIC_LOG(INFO, TAG, "This is a RESET");
+                OIC_LOG(DEBUG, TAG, "This is a RESET");
                 OCStackFeedBack(responseInfo->info.token, responseInfo->info.tokenLength,
                         OC_OBSERVER_NOT_INTERESTED);
             }
             else if(responseInfo->info.type == CA_MSG_ACKNOWLEDGE)
             {
-                OIC_LOG(INFO, TAG, "This is a pure ACK");
+                OIC_LOG(DEBUG, TAG, "This is a pure ACK");
                 OCStackFeedBack(responseInfo->info.token, responseInfo->info.tokenLength,
                         OC_OBSERVER_STILL_INTERESTED);
             }
         }
         else if(responseInfo->result == CA_RETRANSMIT_TIMEOUT)
         {
-            OIC_LOG(INFO, TAG, "Receiving Time Out for an observer");
+            OIC_LOG(DEBUG, TAG, "Receiving Time Out for an observer");
             OCStackFeedBack(responseInfo->info.token, responseInfo->info.tokenLength,
                     OC_OBSERVER_FAILED_COMM);
         }
@@ -1526,14 +1526,14 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
         if(myStackMode == OC_CLIENT || myStackMode == OC_CLIENT_SERVER
            || myStackMode == OC_GATEWAY)
         {
-            OIC_LOG(INFO, TAG, "This is a client, but no cbNode was found for token");
+            OIC_LOG(DEBUG, TAG, "This is a client, but no cbNode was found for token");
             if(responseInfo->result == CA_EMPTY)
             {
-                OIC_LOG(INFO, TAG, "Receiving CA_EMPTY in the ocstack");
+                OIC_LOG(DEBUG, TAG, "Receiving CA_EMPTY in the ocstack");
             }
             else
             {
-                OIC_LOG(INFO, TAG, "Received a message without callbacks. Sending RESET");
+                OIC_LOG(DEBUG, TAG, "Received a message without callbacks. Sending RESET");
                 SendDirectStackResponse(endPoint, responseInfo->info.messageId, CA_EMPTY,
                                         CA_MSG_RESET, 0, NULL, NULL, 0, NULL);
             }
@@ -1542,15 +1542,15 @@ void OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* resp
         if(myStackMode == OC_SERVER || myStackMode == OC_CLIENT_SERVER
            || myStackMode == OC_GATEWAY)
         {
-            OIC_LOG(INFO, TAG, "This is a server, but no observer was found for token");
+            OIC_LOG(DEBUG, TAG, "This is a server, but no observer was found for token");
             if (responseInfo->info.type == CA_MSG_ACKNOWLEDGE)
             {
-                OIC_LOG_V(INFO, TAG, "Received ACK at server for messageId : %d",
+                OIC_LOG_V(DEBUG, TAG, "Received ACK at server for messageId : %d",
                                             responseInfo->info.messageId);
             }
             if (responseInfo->info.type == CA_MSG_RESET)
             {
-                OIC_LOG_V(INFO, TAG, "Received RESET at server for messageId : %d",
+                OIC_LOG_V(DEBUG, TAG, "Received RESET at server for messageId : %d",
                                             responseInfo->info.messageId);
             }
         }

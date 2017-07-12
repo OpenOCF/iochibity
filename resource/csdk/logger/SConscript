@@ -5,6 +5,8 @@ import build.utils
 print "CSDK/LOGGER"
 
 env.AppendUnique(CPPPATH = ['#resource/c_common',
+                            '#resource/csdk/cbor',
+                            '#resource/csdk/logger',
                             '#resource/csdk/security/ocsecurity',
                             '#resource/csdk/stack'])
 
