@@ -1,8 +1,8 @@
 cc_library(
-    name = "ppl",
-    deps = ["//:logger",
-    	    "//:util"],
-#    copts = ["-I../util"],
+    name = "portability",
+    deps = ["//src:config",
+    	    "//src/util"],
+    copts = ["-Isrc", "-Isrc/util"],
     srcs = ["iotivity_commontypes.h",
     	    "oic_malloc.c",
             "oic_malloc.h",
@@ -18,8 +18,8 @@ cc_library(
             "oic_time.h",
             "oc_uuid.c",
             "oc_uuid.h",
-            "platform_features.h",
-    	    "//:util/iotivity_debug.h"]
+            "platform_features.h"]
+    	    # "//:util/iotivity_debug.h"]
 	    # "//:iotivity_config.h"]
     + select({
                 ":windows": ["getopt.c",
@@ -37,7 +37,8 @@ cc_library(
 			     "noop/octhread.c"],
                 "//conditions:default": ["gcc/ocatomic.c",
 					 "gcc/ocevent.c",
-					 "posix/octhread.c"]})
+					 "posix/octhread.c"]}),
+    visibility = ["//src:__subpackages__"]
  )
 
 config_setting(
