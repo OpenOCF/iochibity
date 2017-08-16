@@ -1,0 +1,34 @@
+##
+# CA build script
+##
+
+Import('env')
+
+ca_os = env.get('TARGET_OS')
+src_dir = env.get('SRC_DIR')
+root_dir = './../'
+
+print "CA COMMON SRC DIR:", src_dir
+# ca_common_path = root_dir + 'common/'
+# ca_common_src_path = ca_common_path
+
+here = Dir('.').abspath
+
+env.PrependUnique(CPPPATH = [src_dir + '/resource/csdk/stack'])
+
+ca_common_src = [here + '/uarraylist.c',
+		 here + '/ulinklist.c',
+		 here + '/uqueue.c',
+		 here + '/caremotehandler.c']
+		 # env.get('BUILD_SYSROOT') + '/c_common/unix/ocrandom_seed.c']
+
+print "PTHREAD_LIB:", env.get('PTHREAD_LIB')
+
+if env.get('PTHREAD_LIB') == 'pthread':
+	platform_src = [here + '/cathreadpool_pthreads.c',
+	                here + '/camutex_pthreads.c']
+else:
+        platform_src = [here + '/camutex_noop.c']
+
+env.AppendUnique(CA_SRC = ca_common_src)
+env.AppendUnique(CA_SRC = platform_src)

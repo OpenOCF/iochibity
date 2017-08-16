@@ -1,0 +1,18 @@
+#######################################################
+#       Build BLE adapter for Tizen
+#######################################################
+
+Import('env', 'src_dir')
+import os.path
+
+root_dir = os.pardir
+env.PrependUnique(CPPPATH = [ os.path.join(src_dir, 'tizen')])
+
+env.ParseConfig("pkg-config --cflags --libs capi-network-bluetooth")
+
+src_files = [ 'caleclient.c',
+              'caleserver.c',
+              'caleutil.c',
+              'calenwmonitor.c']
+
+Return('src_files')
