@@ -1,0 +1,21 @@
+cc_library(
+    name = "util",
+    copts = ["-std=c11",
+    	     "-Isrc",
+    	     "-Isrc/portability", "-Iutil",
+             "-Isrc/comm", "-Isrc/comm/api", "-Isrc/comm/util", "-Isrc/comm/common",
+             "-Ithird_party/coap",
+	     "-Isrc/util"],
+    deps = ["//src:config",
+    	    "//src/comm:cacommon",
+    	    "//src/portability", "//third_party/coap", "//src/util"],
+    srcs = [# "api/cacommon.h",
+            # "caadapterutils.h",
+            "util/uarraylist.c",
+            "util/uarraylist.h",
+            "util/ulinklist.c",
+            "util/ulinklist.h",
+            "util/uqueue.c",
+            "util/uqueue.h"],
+    visibility = ["//src/comm:__subpackages__"]
+)

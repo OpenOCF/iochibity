@@ -1,0 +1,71 @@
+Acronyms
+
+ACL:  Access Control List (local)
+
+AMACL:  /oic/r/amacl Managed ACL (Access Mgr ACL?)
+
+SACL:  /oic/r/sacl - Signed ACL?
+
+AMS:  Access Manager Service
+
+CRL: Certificate Revocation List
+
+CSR: Certificate Signing Request
+
+DOXM:  Device(?) Ownership Transfer Method
+
+DPairing: direct pairing  (DEPRECATED)
+
+PBKDF2 - Password-Based Key Derivation Function 2 (https://en.wikipedia.org/wiki/PBKDF2P)
+
+PConf - ?
+
+PD - paired device? (DEPRECATED)
+
+PDM?
+
+PKIX - Public Key Infrastructure (X.509)
+
+PS - persistent storage
+
+PSK - preshared key
+
+PStat - Provisioning Status
+
+RBAC - Roll-Based Access Control
+
+SRM - Secure Resource Manager?
+
+SVR - Secure Virtual Resource?
+
+VER - (security) version?  oic.sec.ver? (Obsolete?)
+
+================================================================
+Modules/Components
+
+* base?
+
+* policy engine
+
+* provisioning manager
+
+* resource manager
+
+* secure resource manager
+
+* ams mgr ?
+
+================================================================
+TODO:
+
+1.  Separate concerns, e.g.:
+
+    a. doxm stuff is separate from base security
+
+    b. split out key derivation target (pbkdf2, ???)
+
+    c. direct pairing - migrate to provisioning?  not basic security?
+
+2.  Get rid of icalendar stuff, does not belong in OCF kernel
+
+3.  move PkiInfo_t typedef from //comm casecurityinterface.h to somewhere in //sec

@@ -1,0 +1,1 @@
+According the the SConscript this dir is only for cloud/tcp or android or tizen

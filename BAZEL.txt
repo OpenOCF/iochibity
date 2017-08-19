@@ -1,0 +1,15 @@
+Bazel Notes
+
+
+================================================================
+Circular deps:
+
+example:  //src/ocf depends on //src/sec, but the latter needs ocstack.h
+
+solution:  split modules into interface (public) and implementation (private) targets
+
+
+================================================================
+code reorg:
+
+csdk/connectivity/api/casecurityinterface.h - why is this not in security?
