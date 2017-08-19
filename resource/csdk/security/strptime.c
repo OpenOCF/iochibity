@@ -1,3 +1,5 @@
+/*GAR: todo: migrate to //src/portability?
+
 /** @todo: Add Microsoft copyright */
 #include <stdio.h>
 #include <ctype.h>

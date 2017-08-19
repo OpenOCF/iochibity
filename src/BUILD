@@ -1,4 +1,6 @@
 cc_library(
     name = "config",
-    srcs = ["iotivity_config.h"],
+    hdrs = ["iotivity_config.h",
+            "iotivity_debug.h",
+            "platform_features.h"],
     visibility = ["//visibility:public"])

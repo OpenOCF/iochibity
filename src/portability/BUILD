@@ -1,8 +1,9 @@
 cc_library(
     name = "portability",
-    deps = ["//src:config",
-    	    "//src/util"],
+    deps = ["//src:config"],
+    	    #"//src/util"],
     copts = ["-Isrc", "-Isrc/util"],
+    hdrs = ["platform_features.h"],
     srcs = ["iotivity_commontypes.h",
     	    "oic_malloc.c",
             "oic_malloc.h",
@@ -11,14 +12,15 @@ cc_library(
             "ocrandom.c",
             "ocrandom.h",
             "ocrandom_seed.c",
+	    "octimer.c",
+	    "octimer.h",
 	    "octhread.h",
             "oic_string.c",
             "oic_string.h",
             "oic_time.c",
             "oic_time.h",
             "oc_uuid.c",
-            "oc_uuid.h",
-            "platform_features.h"]
+            "oc_uuid.h"]
     	    # "//:util/iotivity_debug.h"]
 	    # "//:iotivity_config.h"]
     + select({
@@ -38,7 +40,8 @@ cc_library(
                 "//conditions:default": ["gcc/ocatomic.c",
 					 "gcc/ocevent.c",
 					 "posix/octhread.c"]}),
-    visibility = ["//src:__subpackages__"]
+    visibility = ["//src:__subpackages__",
+                  "//third_party:__subpackages__"]
  )
 
 config_setting(
