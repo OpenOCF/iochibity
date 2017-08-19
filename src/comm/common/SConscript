@@ -1,34 +1,34 @@
 ##
 # CA build script
 ##
+import os
 
-Import('env')
+Import('connectivity_env')
 
-ca_os = env.get('TARGET_OS')
-src_dir = env.get('SRC_DIR')
-root_dir = './../'
+print "Reading common folder script"
 
-print "CA COMMON SRC DIR:", src_dir
-# ca_common_path = root_dir + 'common/'
-# ca_common_src_path = ca_common_path
+target_os = connectivity_env.get('TARGET_OS')
+src_dir = os.path.abspath(os.curdir)
 
-here = Dir('.').abspath
+connectivity_env.AppendUnique(CPPPATH=[
+    '#/resource/c_common/octhread/include/',
+    '#/resource/csdk/connectivity/common/inc/',
+    '#/resource/csdk/logger/include/',
+])
 
-env.PrependUnique(CPPPATH = [src_dir + '/resource/csdk/stack'])
+######################################################################
+# Source files
+######################################################################
+ca_common_src_path = os.path.join(src_dir, 'src')
+ca_common_src = [
+    os.path.join(ca_common_src_path, 'uarraylist.c'),
+    os.path.join(ca_common_src_path, 'ulinklist.c'),
+    os.path.join(ca_common_src_path, 'uqueue.c'),
+    os.path.join(ca_common_src_path, 'caremotehandler.c')
+]
 
-ca_common_src = [here + '/uarraylist.c',
-		 here + '/ulinklist.c',
-		 here + '/uqueue.c',
-		 here + '/caremotehandler.c']
-		 # env.get('BUILD_SYSROOT') + '/c_common/unix/ocrandom_seed.c']
+if connectivity_env['POSIX_SUPPORTED'] or target_os in ['windows']:
+    ca_common_src.append(
+        os.path.join(ca_common_src_path, 'cathreadpool_pthreads.c'))
 
-print "PTHREAD_LIB:", env.get('PTHREAD_LIB')
-
-if env.get('PTHREAD_LIB') == 'pthread':
-	platform_src = [here + '/cathreadpool_pthreads.c',
-	                here + '/camutex_pthreads.c']
-else:
-        platform_src = [here + '/camutex_noop.c']
-
-env.AppendUnique(CA_SRC = ca_common_src)
-env.AppendUnique(CA_SRC = platform_src)
+connectivity_env.AppendUnique(CA_SRC=ca_common_src)

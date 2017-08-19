@@ -23,21 +23,25 @@
 #include <string.h>
 #include <inttypes.h>
 
+#include "platform_features.h"
 #include "logger.h"
 #include "oic_malloc.h"
 #include "caadapterutils.h"
 #include "canetworkconfigurator.h"
 #include "cainterfacecontroller.h"
-
+#include "caedradapter.h"
+#include "caleadapter.h"
+#include "canfcadapter.h"
+#include "caremotehandler.h"
 #include "cathreadpool.h"
-
-/* #include "caedradapter.h" */
-/* #include "caleadapter.h" */
-/* #include "canfcadapter.h" */
-/* #include "caremotehandler.h" */
-
 #include "caipadapter.h"
 #include "cainterface.h"
+#include <coap/utlist.h>
+
+#ifndef SINGLE_THREAD
+#include <assert.h>
+#include "caqueueingthread.h"
+#endif
 
 #ifdef RA_ADAPTER
 #include "caraadapter.h"
@@ -47,38 +51,114 @@
 #include "catcpadapter.h"
 #endif
 
-#define TAG "OIC_CA_IF_CTRL"
+#define TAG "OIC_CA_INF_CTR"
+
+#if defined(TCP_ADAPTER) || defined(EDR_ADAPTER) || defined(LE_ADAPTER)
+#define STATEFUL_PROTOCOL_SUPPORTED
+#endif
 
 #define CA_MEMORY_ALLOC_CHECK(arg) {if (arg == NULL) \
     {OIC_LOG(ERROR, TAG, "memory error");goto memory_error_exit;} }
 
 static CAConnectivityHandler_t *g_adapterHandler = NULL;
 
-static uint32_t g_numberOfAdapters = 0;
+static size_t g_numberOfAdapters = 0;
 
 static CANetworkPacketReceivedCallback g_networkPacketReceivedCallback = NULL;
 
-static CAAdapterChangeCallback g_adapterChangeCallback = NULL;
-
-static CAConnectionChangeCallback g_connChangeCallback = NULL;
-
 static CAErrorHandleCallback g_errorHandleCallback = NULL;
 
-static int CAGetAdapterIndex(CATransportAdapter_t cType)
+static struct CANetworkCallback_t *g_networkChangeCallbackList = NULL;
+
+#ifndef SINGLE_THREAD
+static CAQueueingThread_t g_networkChangeCallbackThread;
+#endif
+
+/**
+ * network callback structure is handling
+ * for adapter state changed and connection state changed event.
+ */
+typedef struct CANetworkCallback_t
 {
-    for (uint32_t index=0 ; index < g_numberOfAdapters ; index++)
+
+    /** Linked list; for multiple callback list.*/
+    struct CANetworkCallback_t *next;
+
+    /** Adapter state changed event callback. */
+    CAAdapterStateChangedCB adapter;
+
+    /** Connection state changed event callback. */
+    CAConnectionStateChangedCB conn;
+
+} CANetworkCallback_t;
+
+#ifndef SINGLE_THREAD
+/**
+ * struct to wrap the network change callback info.
+ */
+typedef struct CANetworkCallbackThreadInfo_t
+{
+    CAAdapterStateChangedCB adapterCB;
+    CATransportAdapter_t adapter;
+    bool isInterfaceUp;
+
+#ifdef STATEFUL_PROTOCOL_SUPPORTED
+    CAConnectionStateChangedCB connectionCB;
+    CAEndpoint_t *endpoint;
+    bool isConnected;
+#endif
+} CANetworkCallbackThreadInfo_t;
+
+static void CANetworkChangeCallbackThreadProcess(void *threadData)
+{
+    assert(threadData);
+
+    CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *) threadData;
+    if (info->adapterCB)
+    {
+        info->adapterCB(info->adapter, info->isInterfaceUp);
+    }
+#ifdef STATEFUL_PROTOCOL_SUPPORTED
+    else if(info->connectionCB)
+    {
+        info->connectionCB(info->endpoint, info->isConnected);
+    }
+#endif
+}
+
+static void CADestroyNetworkChangeCallbackData(void *data, uint32_t size)
+{
+    assert(data);
+    OC_UNUSED(size);
+
+    CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *) data;
+#ifdef STATEFUL_PROTOCOL_SUPPORTED
+    if (info->endpoint)
+    {
+        CAFreeEndpoint(info->endpoint);
+        info->endpoint = NULL;
+    }
+#endif
+    OICFree(info);
+    info = NULL;
+}
+#endif // SINGLE_THREAD
+
+static CAResult_t CAGetAdapterIndex(CATransportAdapter_t cType, size_t *adapterIndex)
+{
+    for (size_t index = 0 ; index < g_numberOfAdapters ; index++)
     {
         if (cType == g_adapterHandler[index].cType )
-         {
-             return index;
-         }
+        {
+            *adapterIndex = index;
+            return CA_STATUS_OK;
+        }
     }
-    return -1;
+    return CA_STATUS_FAILED;
 }
 
 static void CARegisterCallback(CAConnectivityHandler_t handler)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (handler.startAdapter == NULL ||
         handler.startListenServer == NULL ||
         handler.stopListenServer == NULL ||
@@ -93,9 +173,9 @@ static void CARegisterCallback(CAConnectivityHandler_t handler)
         OIC_LOG(ERROR, TAG, "connectivity handler is not enough to be used!");
         return;
     }
-    uint32_t numberofAdapters = g_numberOfAdapters + 1;
+    size_t numberofAdapters = g_numberOfAdapters + 1;
     CAConnectivityHandler_t *adapterHandler = OICRealloc(g_adapterHandler,
-                                   (numberofAdapters) * sizeof(*adapterHandler));
+            (numberofAdapters) * sizeof(*adapterHandler));
     if (NULL == adapterHandler)
     {
         OIC_LOG(ERROR, TAG, "Memory allocation failed during registration");
@@ -103,21 +183,110 @@ static void CARegisterCallback(CAConnectivityHandler_t handler)
     }
     g_adapterHandler = adapterHandler;
     g_numberOfAdapters = numberofAdapters;
-    g_adapterHandler[g_numberOfAdapters-1] = handler;
+    g_adapterHandler[g_numberOfAdapters - 1] = handler;
 
-    OIC_LOG_V(DEBUG, TAG, "%s: EXIT OK, handler type %d (%s)", __func__,
-	      handler.cType,
-	      (handler.cType == CA_DEFAULT_ADAPTER)? "CA_DEFAULT_ADAPTER"
-	      :(handler.cType == CA_ADAPTER_IP)? "CA_ADAPTER_IP"
-	      :(handler.cType == CA_ADAPTER_GATT_BTLE)? "CA_ADAPTER_GATT_BTLE"
-	      :(handler.cType == CA_ADAPTER_RFCOMM_BTEDR)? "CA_ADAPTER_RFCOMM_BTEDR"
-#ifdef RA_ADAPTER
-	      :(handler.cType == CA_ADAPTER_REMOTE_ACCESS)? "CA_ADAPTER_REMOTE_ACCESS"
+    OIC_LOG_V(DEBUG, TAG, "%d type adapter, register complete!", handler.cType);
+}
+
+/**
+ * Add a network callback from caller to the network callback list
+ *
+ * @param adapterCB  adapter state changed callback
+ * @param connCB     connection state changed callback
+ *
+ * @return
+ *     CAResult_t
+ */
+static CAResult_t AddNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
+        CAConnectionStateChangedCB connCB)
+{
+    OIC_LOG(DEBUG, TAG, "Add NetworkStateChanged Callback");
+
+    if (!adapterCB)
+    {
+        OIC_LOG(ERROR, TAG, "adapterCB is null");
+        return CA_STATUS_INVALID_PARAM;
+    }
+
+#ifdef STATEFUL_PROTOCOL_SUPPORTED
+    if (!connCB)
+    {
+        OIC_LOG(ERROR, TAG, "connCB is null");
+        return CA_STATUS_INVALID_PARAM;
+    }
 #endif
-	      :(handler.cType == CA_ADAPTER_TCP)? "CA_ADAPTER_TCP"
-	      :(handler.cType == CA_ADAPTER_NFC)? "CA_ADAPTER_NFC"
-	      :(handler.cType == CA_ALL_ADAPTERS)? "CA_ALL_ADAPTERS"
-	      : "UNKNOWN");
+
+    CANetworkCallback_t *callback = NULL;
+    LL_FOREACH(g_networkChangeCallbackList, callback)
+    {
+        if (callback && adapterCB == callback->adapter && connCB == callback->conn)
+        {
+            OIC_LOG(DEBUG, TAG, "this callback is already added");
+            return CA_STATUS_OK;
+        }
+    }
+
+    callback = (CANetworkCallback_t *) OICCalloc(1, sizeof(CANetworkCallback_t));
+    if (NULL == callback)
+    {
+        OIC_LOG(ERROR, TAG, "Memory allocation failed during registration");
+        return CA_MEMORY_ALLOC_FAILED;
+    }
+
+    callback->adapter = adapterCB;
+#ifdef STATEFUL_PROTOCOL_SUPPORTED
+    // Since IP adapter(UDP) is the Connectionless Protocol, it doesn't need.
+    callback->conn = connCB;
+#endif
+    LL_APPEND(g_networkChangeCallbackList, callback);
+    return CA_STATUS_OK;
+}
+
+/**
+ * Remove a network callback from the network callback list
+ *
+ * @param adapterCB  adapter state changed callback
+ * @param connCB     connection state changed callback
+ *
+ * @return
+ *     CAResult_t
+ */
+static CAResult_t RemoveNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
+        CAConnectionStateChangedCB connCB)
+{
+    OIC_LOG(DEBUG, TAG, "Remove NetworkStateChanged Callback");
+
+    CANetworkCallback_t *callback = NULL;
+    LL_FOREACH(g_networkChangeCallbackList, callback)
+    {
+        if (callback && adapterCB == callback->adapter && connCB == callback->conn)
+        {
+            OIC_LOG(DEBUG, TAG, "remove specific callback");
+            LL_DELETE(g_networkChangeCallbackList, callback);
+            OICFree(callback);
+            callback = NULL;
+            return CA_STATUS_OK;
+        }
+    }
+    return CA_STATUS_OK;
+}
+
+/**
+ * Remove all network callback from the network callback list
+ */
+static void RemoveAllNetworkStateChangedCallback()
+{
+    OIC_LOG(DEBUG, TAG, "Remove All NetworkStateChanged Callback");
+
+    CANetworkCallback_t *callback = NULL;
+    CANetworkCallback_t *tmp = NULL;
+    LL_FOREACH_SAFE(g_networkChangeCallbackList, callback, tmp)
+    {
+        LL_DELETE(g_networkChangeCallbackList, callback);
+        OICFree(callback);
+        callback = NULL;
+    }
+    g_networkChangeCallbackList = NULL;
 }
 
 #ifdef RA_ADAPTER
@@ -128,7 +297,7 @@ CAResult_t CASetAdapterRAInfo(const CARAInfo_t *caraInfo)
 #endif
 
 static void CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
-                                     const void *data, uint32_t dataLen)
+                                     const void *data, size_t dataLen)
 {
     if (g_networkPacketReceivedCallback != NULL)
     {
@@ -142,27 +311,88 @@ static void CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
 
 static void CAAdapterChangedCallback(CATransportAdapter_t adapter, CANetworkStatus_t status)
 {
+    OIC_LOG_V(DEBUG, TAG, "[%d] adapter state is changed to [%d]", adapter, status);
+
     // Call the callback.
-    if (g_adapterChangeCallback != NULL)
+    CANetworkCallback_t *callback  = NULL;
+    LL_FOREACH(g_networkChangeCallbackList, callback)
     {
-        g_adapterChangeCallback(adapter, status);
+        if (callback && callback->adapter)
+        {
+#ifndef SINGLE_THREAD
+            CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
+                                        OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
+            if (!info)
+            {
+                OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
+                return;
+            }
+
+            info->adapterCB = callback->adapter;
+            info->adapter = adapter;
+            info->isInterfaceUp = (CA_INTERFACE_UP == status);
+
+            CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
+                                    sizeof(CANetworkCallbackThreadInfo_t));
+#else
+            if (CA_INTERFACE_UP == status)
+            {
+                callback->adapter(adapter, true);
+            }
+            else if (CA_INTERFACE_DOWN == status)
+            {
+                callback->adapter(adapter, false);
+            }
+#endif //SINGLE_THREAD
+        }
     }
-    OIC_LOG_V(DEBUG, TAG, "[%d]adapter status is changed to [%d]", adapter, status);
 }
 
-static void CAConnectionChangedCallback(const CAEndpoint_t *info, bool isConnected)
+#ifdef STATEFUL_PROTOCOL_SUPPORTED
+static void CAConnectionChangedCallback(const CAEndpoint_t *endpoint, bool isConnected)
 {
+    OIC_LOG_V(DEBUG, TAG, "[%s] connection state is changed to [%d]", endpoint->addr, isConnected);
+
     // Call the callback.
-    if (g_connChangeCallback != NULL)
+    CANetworkCallback_t *callback = NULL;
+    LL_FOREACH(g_networkChangeCallbackList, callback)
     {
-        g_connChangeCallback(info, isConnected);
+        if (callback && callback->conn)
+        {
+#ifndef SINGLE_THREAD
+            CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
+                                        OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
+            if (!info)
+            {
+                OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
+                return;
+            }
+
+            CAEndpoint_t *cloneEp = CACloneEndpoint(endpoint);
+            if (!cloneEp)
+            {
+                OIC_LOG(ERROR, TAG, "CACloneEndpoint failed!");
+                OICFree(info);
+                return;
+            }
+
+            info->connectionCB = callback->conn;
+            info->endpoint = cloneEp;
+            info->isConnected = isConnected;
+
+            CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
+                                    sizeof(CANetworkCallbackThreadInfo_t));
+#else
+            callback->conn(endpoint, isConnected);
+#endif //SINGLE_THREAD
+        }
     }
-    OIC_LOG_V(DEBUG, TAG, "[%s] connection status is changed to [%d]", info->addr, isConnected);
 }
+#endif //STATEFUL_PROTOCOL_SUPPORTED
 
 static void CAAdapterErrorHandleCallback(const CAEndpoint_t *endpoint,
-                                         const void *data, uint32_t dataLen,
-                                         CAResult_t result)
+        const void *data, size_t dataLen,
+        CAResult_t result)
 {
     OIC_LOG(DEBUG, TAG, "received error from adapter in interfacecontroller");
 
@@ -173,40 +403,81 @@ static void CAAdapterErrorHandleCallback(const CAEndpoint_t *endpoint,
     }
 }
 
-void CAInitializeAdapters(ca_thread_pool_t handle)
+CAResult_t CAInitializeAdapters(ca_thread_pool_t handle, CATransportAdapter_t transportType)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "initialize adapters %d", transportType);
 
     // Initialize adapters and register callback.
 #ifdef IP_ADAPTER
-    CAInitializeIP(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
-                   CAAdapterErrorHandleCallback, handle);
+    if ((transportType & CA_ADAPTER_IP) || (CA_DEFAULT_ADAPTER == transportType))
+    {
+        CAInitializeIP(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
+                       CAAdapterErrorHandleCallback, handle);
+    }
 #endif /* IP_ADAPTER */
 
 #ifdef EDR_ADAPTER
-    CAInitializeEDR(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
-                    CAConnectionChangedCallback, CAAdapterErrorHandleCallback, handle);
+    if ((transportType & CA_ADAPTER_RFCOMM_BTEDR) || (CA_DEFAULT_ADAPTER == transportType))
+    {
+        CAInitializeEDR(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
+                        CAConnectionChangedCallback, CAAdapterErrorHandleCallback, handle);
+    }
 #endif /* EDR_ADAPTER */
 
 #ifdef LE_ADAPTER
-    CAInitializeLE(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
-                   CAConnectionChangedCallback, CAAdapterErrorHandleCallback, handle);
+    if ((transportType & CA_ADAPTER_GATT_BTLE) || (CA_DEFAULT_ADAPTER == transportType))
+    {
+        CAInitializeLE(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
+                       CAConnectionChangedCallback, CAAdapterErrorHandleCallback, handle);
+    }
 #endif /* LE_ADAPTER */
 
 #ifdef RA_ADAPTER
-    CAInitializeRA(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
-                   handle);
+    if ((transportType & CA_ADAPTER_REMOTE_ACCESS) || (CA_DEFAULT_ADAPTER == transportType))
+    {
+        CAInitializeRA(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
+                       handle);
+    }
 #endif /* RA_ADAPTER */
 
 #ifdef TCP_ADAPTER
-    CAInitializeTCP(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
-                    CAConnectionChangedCallback, CAAdapterErrorHandleCallback, handle);
+    if ((transportType & CA_ADAPTER_TCP) || (CA_DEFAULT_ADAPTER == transportType))
+    {
+        CAInitializeTCP(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
+                        CAConnectionChangedCallback, CAAdapterErrorHandleCallback, handle);
+    }
 #endif /* TCP_ADAPTER */
 
 #ifdef NFC_ADAPTER
-    CAInitializeNFC(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
-                    CAAdapterErrorHandleCallback, handle);
+    if ((transportType & CA_ADAPTER_NFC) || (CA_DEFAULT_ADAPTER == transportType))
+    {
+        CAInitializeNFC(CARegisterCallback, CAReceivedPacketCallback, CAAdapterChangedCallback,
+                        CAAdapterErrorHandleCallback, handle);
+    }
 #endif /* NFC_ADAPTER */
+
+#ifndef SINGLE_THREAD
+    CAResult_t res = CA_STATUS_OK;
+
+    // Initialize & Start network-change-callback-thread.
+    res = CAQueueingThreadInitialize(&g_networkChangeCallbackThread, handle,
+                                     CANetworkChangeCallbackThreadProcess,
+                                     CADestroyNetworkChangeCallbackData);
+    if (CA_STATUS_OK != res)
+    {
+        OIC_LOG(ERROR, TAG, "Failed to Initialize callback queue thread");
+        return res;
+    }
+
+    res = CAQueueingThreadStart(&g_networkChangeCallbackThread);
+    if (CA_STATUS_OK != res)
+    {
+        OIC_LOG(ERROR, TAG, "thread start error(callback thread).");
+        return res;
+    }
+#endif //SINGLE_THREAD
+
+    return CA_STATUS_OK;
 }
 
 void CASetPacketReceivedCallback(CANetworkPacketReceivedCallback callback)
@@ -216,13 +487,30 @@ void CASetPacketReceivedCallback(CANetworkPacketReceivedCallback callback)
     g_networkPacketReceivedCallback = callback;
 }
 
-void CASetNetworkMonitorCallbacks(CAAdapterChangeCallback adapterCB,
-                                  CAConnectionChangeCallback connCB)
+CAResult_t CASetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
+                                        CAConnectionStateChangedCB connCB)
 {
     OIC_LOG(DEBUG, TAG, "Set network monitoring callback");
+    CAResult_t res = AddNetworkStateChangedCallback(adapterCB, connCB);
+    if (CA_STATUS_OK != res)
+    {
+        OIC_LOG(ERROR, TAG, "AddNetworkStateChangedCallback has failed");
+        return CA_STATUS_FAILED;
+    }
+    return CA_STATUS_OK;
+}
 
-    g_adapterChangeCallback = adapterCB;
-    g_connChangeCallback = connCB;
+CAResult_t CAUnsetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
+        CAConnectionStateChangedCB connCB)
+{
+    OIC_LOG(DEBUG, TAG, "Unset network monitoring callback");
+    CAResult_t res = RemoveNetworkStateChangedCallback(adapterCB, connCB);
+    if (CA_STATUS_OK != res)
+    {
+        OIC_LOG(ERROR, TAG, "RemoveNetworkStateChangedCallback has failed");
+        return CA_STATUS_FAILED;
+    }
+    return CA_STATUS_OK;
 }
 
 void CASetErrorHandleCallback(CAErrorHandleCallback errorCallback)
@@ -233,31 +521,35 @@ void CASetErrorHandleCallback(CAErrorHandleCallback errorCallback)
 
 CAResult_t CAStartAdapter(CATransportAdapter_t transportType)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, adapter type: %d", __func__, transportType);
+    size_t index = 0;
+    CAResult_t res = CA_STATUS_FAILED;
 
-    int index = CAGetAdapterIndex(transportType);
-    if (0 > index)
+    OIC_LOG_V(DEBUG, TAG, "Start the adapter of CAConnectivityType[%d]", transportType);
+
+    res = CAGetAdapterIndex(transportType, &index);
+    if (CA_STATUS_OK != res)
     {
         OIC_LOG(ERROR, TAG, "unknown connectivity type!");
         return CA_STATUS_FAILED;
     }
 
-    CAResult_t res = CA_STATUS_FAILED;
     if (g_adapterHandler[index].startAdapter != NULL)
     {
         res = g_adapterHandler[index].startAdapter();
     }
 
-    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, res);
     return res;
 }
 
 void CAStopAdapter(CATransportAdapter_t transportType)
 {
+    size_t index = 0;
+    CAResult_t res = CA_STATUS_FAILED;
+
     OIC_LOG_V(DEBUG, TAG, "Stop the adapter of CATransportType[%d]", transportType);
 
-    int index = CAGetAdapterIndex(transportType);
-    if (0 > index)
+    res = CAGetAdapterIndex(transportType, &index);
+    if (CA_STATUS_OK != res)
     {
         OIC_LOG(ERROR, TAG, "unknown transport type!");
         return;
@@ -269,20 +561,42 @@ void CAStopAdapter(CATransportAdapter_t transportType)
     }
 }
 
-CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, uint32_t *size)
+#ifndef SINGLE_THREAD
+void CAStopAdapters()
 {
-    if (info == NULL || size == NULL)
+    CATransportAdapter_t connType;
+    u_arraylist_t *list = CAGetSelectedNetworkList();
+    size_t length = u_arraylist_length(list);
+
+    for (size_t i = 0; i < length; i++)
     {
-        return CA_STATUS_INVALID_PARAM;
+        void* ptrType = u_arraylist_get(list, i);
+
+        if (NULL == ptrType)
+        {
+            continue;
+        }
+
+        connType = *(CATransportAdapter_t *)ptrType;
+        CAStopAdapter(connType);
     }
 
-    CAEndpoint_t **tempInfo = (CAEndpoint_t**) OICCalloc(g_numberOfAdapters, sizeof(*tempInfo));
+    CAQueueingThreadStop(&g_networkChangeCallbackThread);
+}
+#endif //SINGLE_THREAD
+
+CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
+{
+    VERIFY_NON_NULL(info, TAG, "info is null");
+    VERIFY_NON_NULL(size, TAG, "size is null");
+
+    CAEndpoint_t **tempInfo = (CAEndpoint_t **) OICCalloc(g_numberOfAdapters, sizeof(*tempInfo));
     if (!tempInfo)
     {
         OIC_LOG(ERROR, TAG, "Out of memory!");
         return CA_MEMORY_ALLOC_FAILED;
     }
-    uint32_t *tempSize =(uint32_t*) OICCalloc(g_numberOfAdapters, sizeof(*tempSize));
+    size_t *tempSize = (size_t *)OICCalloc(g_numberOfAdapters, sizeof(*tempSize));
     if (!tempSize)
     {
         OIC_LOG(ERROR, TAG, "Out of memory!");
@@ -292,13 +606,13 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, uint32_t *size)
 
     CAResult_t res = CA_STATUS_FAILED;
     size_t resSize = 0;
-    for (uint32_t index = 0; index < g_numberOfAdapters; index++)
+    for (size_t index = 0; index < g_numberOfAdapters; index++)
     {
         if (g_adapterHandler[index].GetnetInfo != NULL)
         {
             // #1. get information for each adapter
             res = g_adapterHandler[index].GetnetInfo(&tempInfo[index],
-                                                     &tempSize[index]);
+                    &tempSize[index]);
 
             // #2. total size
             if (res == CA_STATUS_OK)
@@ -308,27 +622,20 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, uint32_t *size)
 
             OIC_LOG_V(DEBUG,
                       TAG,
-                      "%zu adapter network info size is %" PRIu32 " res:%d",
+                      "%" PRIuPTR " adapter network info size is %" PRIuPTR " res:%u",
                       index,
                       tempSize[index],
                       res);
         }
     }
 
-    OIC_LOG_V(DEBUG, TAG, "network info total size is %zu!", resSize);
+    OIC_LOG_V(DEBUG, TAG, "network info total size is %" PRIuPTR "!", resSize);
 
     if (resSize == 0)
     {
         OICFree(tempInfo);
         OICFree(tempSize);
-        if (res == CA_ADAPTER_NOT_ENABLED || res == CA_NOT_SUPPORTED)
-        {
-            return res;
-        }
-        else
-        {
-            return CA_STATUS_FAILED;
-        }
+        return res;
     }
 
     // #3. add data into result
@@ -340,7 +647,7 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, uint32_t *size)
     *info = resInfo;
     *size = resSize;
 
-    for (uint32_t index = 0; index < g_numberOfAdapters; index++)
+    for (size_t index = 0; index < g_numberOfAdapters; index++)
     {
         // check information
         if (tempSize[index] == 0)
@@ -367,7 +674,7 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, uint32_t *size)
     // memory error label.
 memory_error_exit:
 
-    for (uint32_t index = 0; index < g_numberOfAdapters; index++)
+    for (size_t index = 0; index < g_numberOfAdapters; index++)
     {
         OICFree(tempInfo[index]);
         tempInfo[index] = NULL;
@@ -378,15 +685,13 @@ memory_error_exit:
     return CA_MEMORY_ALLOC_FAILED;
 }
 
-CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uint32_t length)
+CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uint32_t length,
+                             CADataType_t dataType)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY, endpoint: %s:%d", __func__, endpoint->addr, endpoint->port);
-    if (endpoint == NULL)
-    {
-        OIC_LOG(DEBUG, TAG, "Invalid endpoint");
-        return CA_STATUS_INVALID_PARAM;
-    }
+    size_t index = 0;
+    CAResult_t res = CA_STATUS_FAILED;
 
+    VERIFY_NON_NULL(endpoint, TAG, "endpoint is null");
 
     u_arraylist_t *list = CAGetSelectedNetworkList();
     if (!list)
@@ -396,9 +701,9 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
     }
     CATransportAdapter_t requestedAdapter = endpoint->adapter ? endpoint->adapter : CA_ALL_ADAPTERS;
 
-    for (uint32_t i = 0; i < u_arraylist_length(list); i++)
+    for (size_t i = 0; i < u_arraylist_length(list); i++)
     {
-        void* ptrType = u_arraylist_get(list, i);
+        void *ptrType = u_arraylist_get(list, i);
 
         if (NULL == ptrType)
         {
@@ -411,9 +716,8 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
             continue;
         }
 
-        int index = CAGetAdapterIndex(connType);
-
-        if (-1 == index)
+        res = CAGetAdapterIndex(connType, &index);
+        if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "unknown transport type!");
             return CA_STATUS_INVALID_PARAM;
@@ -423,13 +727,13 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
 
         if (NULL != g_adapterHandler[index].sendData)
         {
-            OIC_LOG_V(DEBUG, TAG, "%s: invoking sendData() on adapterHandler", __func__);
-            sentDataLen = g_adapterHandler[index].sendData(endpoint, data, length);
+            OIC_LOG(DEBUG, TAG, "unicast message to adapter");
+            sentDataLen = g_adapterHandler[index].sendData(endpoint, data, length, dataType);
         }
 
-        if (sentDataLen != (int32_t)length)
+        if ((0 > sentDataLen) || ((uint32_t)sentDataLen != length))
         {
-            OIC_LOG(ERROR, TAG, "error in sending data. Error will be reported in adapter");
+            OIC_LOG(ERROR, TAG, "Error sending data. The error will be reported in adapter.");
 #ifdef SINGLE_THREAD
             //in case of single thread, no error handler. Report error immediately
             return CA_SEND_FAILED;
@@ -437,12 +741,18 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
         }
 
     }
-    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning CA_STATUS_OK", __func__);
+
     return CA_STATUS_OK;
 }
 
-CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, uint32_t length)
+CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, uint32_t length,
+                               CADataType_t dataType)
 {
+    size_t index = 0;
+    CAResult_t res = CA_STATUS_FAILED;
+
+    VERIFY_NON_NULL(endpoint, TAG, "endpoint is null");
+
     u_arraylist_t *list = CAGetSelectedNetworkList();
     if (!list)
     {
@@ -454,7 +764,7 @@ CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, u
     size_t selectedLength = u_arraylist_length(list);
     for (size_t i = 0; i < selectedLength; i++)
     {
-        void* ptrType = u_arraylist_get(list, i);
+        void *ptrType = u_arraylist_get(list, i);
 
         if (NULL == ptrType)
         {
@@ -467,8 +777,8 @@ CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, u
             continue;
         }
 
-        int index = CAGetAdapterIndex(connType);
-        if (0 > index)
+        res = CAGetAdapterIndex(connType, &index);
+        if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "unknown connectivity type!");
             continue;
@@ -485,7 +795,7 @@ CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, u
                 return CA_MEMORY_ALLOC_FAILED;
             }
             memcpy(payload, data, length);
-            sentDataLen = g_adapterHandler[index].sendDataToAll(endpoint, payload, length);
+            sentDataLen = g_adapterHandler[index].sendDataToAll(endpoint, payload, length, dataType);
             OICFree(payload);
         }
 
@@ -504,7 +814,7 @@ CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, u
 
 CAResult_t CAStartListeningServerAdapters()
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    size_t index = 0;
     CAResult_t result = CA_STATUS_FAILED;
 
     u_arraylist_t *list = CAGetSelectedNetworkList();
@@ -517,17 +827,16 @@ CAResult_t CAStartListeningServerAdapters()
     size_t length = u_arraylist_length(list);
     for (size_t i = 0; i < length; i++)
     {
-        void* ptrType = u_arraylist_get(list, i);
+        void *ptrType = u_arraylist_get(list, i);
 
-        if(ptrType == NULL)
+        if (ptrType == NULL)
         {
             continue;
         }
 
         CATransportAdapter_t connType = *(CATransportAdapter_t *)ptrType;
 
-        int index = CAGetAdapterIndex(connType);
-        if (0 > index)
+        if (CA_STATUS_OK != CAGetAdapterIndex(connType, &index))
         {
             OIC_LOG(ERROR, TAG, "unknown connectivity type!");
             continue;
@@ -551,6 +860,8 @@ CAResult_t CAStartListeningServerAdapters()
 
 CAResult_t CAStopListeningServerAdapters()
 {
+    size_t index = 0;
+    CAResult_t res = CA_STATUS_FAILED;
     u_arraylist_t *list = CAGetSelectedNetworkList();
     if (!list)
     {
@@ -561,16 +872,16 @@ CAResult_t CAStopListeningServerAdapters()
     size_t length = u_arraylist_length(list);
     for (size_t i = 0; i < length; i++)
     {
-        void* ptrType = u_arraylist_get(list, i);
-        if(ptrType == NULL)
+        void *ptrType = u_arraylist_get(list, i);
+        if (ptrType == NULL)
         {
             continue;
         }
 
         CATransportAdapter_t connType = *(CATransportAdapter_t *)ptrType;
 
-        int index = CAGetAdapterIndex(connType);
-        if (0 > index)
+        res = CAGetAdapterIndex(connType, &index);
+        if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "unknown connectivity type!");
             continue;
@@ -587,10 +898,11 @@ CAResult_t CAStopListeningServerAdapters()
 
 CAResult_t CAStartDiscoveryServerAdapters()
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    size_t index = 0;
     CAResult_t result = CA_STATUS_FAILED;
 
     u_arraylist_t *list = CAGetSelectedNetworkList();
+
     if (!list)
     {
         OIC_LOG(ERROR, TAG, "No selected network");
@@ -600,17 +912,16 @@ CAResult_t CAStartDiscoveryServerAdapters()
     size_t length = u_arraylist_length(list);
     for (size_t i = 0; i < length; i++)
     {
-        void* ptrType = u_arraylist_get(list, i);
+        void *ptrType = u_arraylist_get(list, i);
 
-        if(ptrType == NULL)
+        if (ptrType == NULL)
         {
             continue;
         }
 
         CATransportAdapter_t connType = *(CATransportAdapter_t *)ptrType;
 
-        int index = CAGetAdapterIndex(connType);
-        if (0 > index)
+        if (CA_STATUS_OK != CAGetAdapterIndex(connType, &index))
         {
             OIC_LOG(DEBUG, TAG, "unknown connectivity type!");
             continue;
@@ -629,13 +940,27 @@ CAResult_t CAStartDiscoveryServerAdapters()
         }
     }
 
-    OIC_LOG_V(DEBUG, TAG, "%s: EXIT returning %x", __func__, result);
     return result;
+}
+
+bool CAIsLocalEndpoint(const CAEndpoint_t *ep)
+{
+    VERIFY_NON_NULL_RET(ep, TAG, "ep is null", false);
+
+#ifdef IP_ADAPTER
+    if (ep->adapter & CA_ADAPTER_IP)
+    {
+        return CAIPIsLocalEndpoint(ep);
+    }
+#endif /* IP_ADAPTER */
+
+    //TODO: implement for the other adapters(EDR/LE/NFC)
+    return false;
 }
 
 void CATerminateAdapters()
 {
-    for (uint32_t index = 0; index < g_numberOfAdapters; index++)
+    for (size_t index = 0; index < g_numberOfAdapters; index++)
     {
         if (g_adapterHandler[index].terminate != NULL)
         {
@@ -646,11 +971,19 @@ void CATerminateAdapters()
     OICFree(g_adapterHandler);
     g_adapterHandler = NULL;
     g_numberOfAdapters = 0;
+
+#ifndef SINGLE_THREAD
+    CAQueueingThreadDestroy(&g_networkChangeCallbackThread);
+#endif //SINGLE_THREAD
+
+    RemoveAllNetworkStateChangedCallback();
 }
 
 #ifdef SINGLE_THREAD
 CAResult_t CAReadData()
 {
+    size_t index = 0;
+    CAResult_t res = CA_STATUS_FAILED;
     u_arraylist_t *list = CAGetSelectedNetworkList();
 
     if (!list)
@@ -658,7 +991,7 @@ CAResult_t CAReadData()
         return CA_STATUS_FAILED;
     }
 
-    uint8_t i = 0;
+    size_t i = 0;
     for (i = 0; i < u_arraylist_length(list); i++)
     {
         void *ptrType = u_arraylist_get(list, i);
@@ -670,8 +1003,8 @@ CAResult_t CAReadData()
 
         CATransportAdapter_t connType = *(CATransportAdapter_t *) ptrType;
 
-        int index = CAGetAdapterIndex(connType);
-        if (0 > index)
+        res = CAGetAdapterIndex(connType, &index);
+        if (CA_STATUS_OK != res)
         {
             OIC_LOG(DEBUG, TAG, "unknown connectivity type!");
             continue;
@@ -686,4 +1019,3 @@ CAResult_t CAReadData()
     return CA_STATUS_OK;
 }
 #endif
-

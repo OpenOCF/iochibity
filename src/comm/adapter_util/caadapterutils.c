@@ -18,12 +18,7 @@
  *
  ******************************************************************/
 
-#ifdef  _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE_BACKUP _POSIX_C_SOURCE
-#undef  _POSIX_C_SOURCE
-#endif
-#define _POSIX_C_SOURCE 200809L	/* == #define _XOPEN_SOURCE 700 */
-
+#include "iotivity_config.h"
 #include "caadapterutils.h"
 
 #include <string.h>
@@ -31,6 +26,7 @@
 #include "oic_string.h"
 #include "oic_malloc.h"
 #include <errno.h>
+#include <inttypes.h>
 
 #ifdef HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
@@ -48,21 +44,16 @@
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
-
-/* #undef  _POSIX_C_SOURCE */
-
-/* #ifdef  _POSIX_C_SOURCE_BACKUP */
-/* #define _POSIX_C_SOURCE _POSIX_C_SOURCE_BACKUP */
-/* #undef  _POSIX_C_SOURCE_BACKUP */
-/* #endif */
-
-#if defined(__ANDROID__) || defined(__JAVA__)
-#include <jni.h>
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_IN6ADDR_H
+#include <in6addr.h>
 #endif
 
-#define CA_ADAPTER_UTILS_TAG "OIC_CA_ADAP_UTILS"
+#ifdef __JAVA__
+#include <jni.h>
 
-#if defined(__ANDROID__) || defined(__JAVA__)
 /**
  * @var g_jvm
  * @brief pointer to store JavaVM
@@ -78,6 +69,8 @@ static jobject g_Context = NULL;
 static jobject g_Activity = NULL;
 #endif
 #endif
+
+#define CA_ADAPTER_UTILS_TAG "OIC_CA_ADAP_UTILS"
 
 #ifdef WITH_ARDUINO
 CAResult_t CAParseIPv4AddressInternal(const char *ipAddrStr, uint8_t *ipAddr,
@@ -145,16 +138,13 @@ CAResult_t CAParseIPv4AddressInternal(const char *ipAddrStr, uint8_t *ipAddr,
 }
 
 #else // not with_arduino
-/*
- * These two conversion functions return void because errors can't happen
- * (because of NI_NUMERIC), and there's nothing to do if they do happen.
- */
-void CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_t sockAddrLen,
-                         char *host, uint16_t *port)
+CAResult_t CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_t sockAddrLen,
+                               char *host, uint16_t *port)
 {
-    VERIFY_NON_NULL_VOID(sockAddr, CA_ADAPTER_UTILS_TAG, "sockAddr is null");
-    VERIFY_NON_NULL_VOID(host, CA_ADAPTER_UTILS_TAG, "host is null");
-    VERIFY_NON_NULL_VOID(port, CA_ADAPTER_UTILS_TAG, "port is null");
+    VERIFY_NON_NULL_RET(sockAddr, CA_ADAPTER_UTILS_TAG, "sockAddr is null",
+                        CA_STATUS_INVALID_PARAM);
+    VERIFY_NON_NULL_RET(host, CA_ADAPTER_UTILS_TAG, "host is null", CA_STATUS_INVALID_PARAM);
+    VERIFY_NON_NULL_RET(port, CA_ADAPTER_UTILS_TAG, "port is null", CA_STATUS_INVALID_PARAM);
 
     int r = getnameinfo((struct sockaddr *)sockAddr,
                         sockAddrLen,
@@ -181,25 +171,29 @@ void CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_t sock
         OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG,
                             "getnameinfo failed: %s", gai_strerror(r));
 #endif
-        return;
+        return CA_STATUS_FAILED;
     }
     *port = ntohs(((struct sockaddr_in *)sockAddr)->sin_port); // IPv4 and IPv6
+    return CA_STATUS_OK;
 }
 
-void CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_storage *sockaddr)
+CAResult_t CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_storage *sockaddr)
 {
-    OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "%s: ENTRY, host %s, port %d", __func__, host, port);
-    VERIFY_NON_NULL_VOID(host, CA_ADAPTER_UTILS_TAG, "host is null");
-    VERIFY_NON_NULL_VOID(sockaddr, CA_ADAPTER_UTILS_TAG, "sockaddr is null");
+    VERIFY_NON_NULL_RET(host, CA_ADAPTER_UTILS_TAG, "host is null", CA_STATUS_INVALID_PARAM);
+    VERIFY_NON_NULL_RET(sockaddr, CA_ADAPTER_UTILS_TAG, "sockaddr is null",
+                        CA_STATUS_INVALID_PARAM);
 
     struct addrinfo *addrs = NULL;
     struct addrinfo hints = { .ai_family = AF_UNSPEC,
-                              .ai_socktype = SOCK_DGRAM,
                               .ai_flags = AI_NUMERICHOST };
 
     int r = getaddrinfo(host, NULL, &hints, &addrs);
     if (r)
     {
+        if (NULL != addrs)
+        {
+            freeaddrinfo(addrs);
+        }
 #if defined(EAI_SYSTEM)
         if (EAI_SYSTEM == r)
         {
@@ -218,7 +212,7 @@ void CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_storag
         OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG,
                             "getaddrinfo failed: %s", gai_strerror(r));
 #endif
-        return;
+        return CA_STATUS_FAILED;
     }
     // assumption: in this case, getaddrinfo will only return one addrinfo
     // or first is the one we want.
@@ -233,10 +227,11 @@ void CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_storag
         ((struct sockaddr_in *)sockaddr)->sin_port = htons(port);
     }
     freeaddrinfo(addrs);
+    return CA_STATUS_OK;
 }
 #endif // WITH_ARDUINO
 
-#if defined(__ANDROID__) || defined(__JAVA__)
+#ifdef __JAVA__
 void CANativeJNISetJavaVM(JavaVM *jvm)
 {
     OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "CANativeJNISetJavaVM");
@@ -250,6 +245,7 @@ JavaVM *CANativeJNIGetJavaVM()
 
 void CADeleteGlobalReferences(JNIEnv *env)
 {
+    OC_UNUSED(env);
 #ifdef __ANDROID__
     if (g_Context)
     {
@@ -262,7 +258,7 @@ void CADeleteGlobalReferences(JNIEnv *env)
         (*env)->DeleteGlobalRef(env, g_Activity);
         g_Activity = NULL;
     }
-#endif
+#endif //__ANDROID__
 }
 
 jmethodID CAGetJNIMethodID(JNIEnv *env, const char* className,
@@ -278,6 +274,7 @@ jmethodID CAGetJNIMethodID(JNIEnv *env, const char* className,
     if (!jni_cid)
     {
         OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG, "jni_cid [%s] is null", className);
+        CACheckJNIException(env);
         return NULL;
     }
 
@@ -285,12 +282,24 @@ jmethodID CAGetJNIMethodID(JNIEnv *env, const char* className,
     if (!jni_midID)
     {
         OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG, "jni_midID [%s] is null", methodName);
+        CACheckJNIException(env);
         (*env)->DeleteLocalRef(env, jni_cid);
         return NULL;
     }
 
     (*env)->DeleteLocalRef(env, jni_cid);
     return jni_midID;
+}
+
+bool CACheckJNIException(JNIEnv *env)
+{
+    if ((*env)->ExceptionCheck(env))
+    {
+        (*env)->ExceptionDescribe(env);
+        (*env)->ExceptionClear(env);
+        return true;
+    }
+    return false;
 }
 
 #ifdef __ANDROID__
@@ -343,5 +352,118 @@ jobject *CANativeGetActivity()
 {
     return g_Activity;
 }
+#endif //__ANDROID__
+#endif //JAVA__
+
+#ifndef WITH_ARDUINO
+void CALogAdapterStateInfo(CATransportAdapter_t adapter, CANetworkStatus_t state)
+{
+    OIC_LOG(DEBUG, CA_ADAPTER_UTILS_TAG, "CALogAdapterStateInfo");
+    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
+    CALogAdapterTypeInfo(adapter);
+    if (CA_INTERFACE_UP == state)
+    {
+        OIC_LOG(DEBUG, ANALYZER_TAG, "adapter status is changed to CA_INTERFACE_UP");
+    }
+    else
+    {
+        OIC_LOG(DEBUG, ANALYZER_TAG, "adapter status is changed to CA_INTERFACE_DOWN");
+    }
+    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
+}
+
+void CALogSendStateInfo(CATransportAdapter_t adapter,
+                        const char *addr, uint16_t port, ssize_t sentLen,
+                        bool isSuccess, const char* message)
+{
+#ifndef TB_LOG
+    OC_UNUSED(addr);
+    OC_UNUSED(port);
+    OC_UNUSED(sentLen);
+    OC_UNUSED(message);
 #endif
+
+    OIC_LOG(DEBUG, CA_ADAPTER_UTILS_TAG, "CALogSendStateInfo");
+    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
+
+    if (true == isSuccess)
+    {
+        OIC_LOG_V(DEBUG, ANALYZER_TAG, "Send Success, sent length = [%" PRIdPTR "]", sentLen);
+    }
+    else
+    {
+        OIC_LOG_V(DEBUG, ANALYZER_TAG, "Send Failure, error message  = [%s]",
+                  message != NULL ? message : "no message");
+    }
+
+    CALogAdapterTypeInfo(adapter);
+    OIC_LOG_V(DEBUG, ANALYZER_TAG, "Address = [%s]:[%d]", addr, port);
+    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
+}
+
+void CALogAdapterTypeInfo(CATransportAdapter_t adapter)
+{
+    switch(adapter)
+    {
+        case CA_ADAPTER_IP:
+            OIC_LOG(DEBUG, ANALYZER_TAG, "Transport Type = [OC_ADAPTER_IP]");
+            break;
+        case CA_ADAPTER_TCP:
+            OIC_LOG(DEBUG, ANALYZER_TAG, "Transport Type = [OC_ADAPTER_TCP]");
+            break;
+        case CA_ADAPTER_GATT_BTLE:
+            OIC_LOG(DEBUG, ANALYZER_TAG, "Transport Type = [OC_ADAPTER_GATT_BTLE]");
+            break;
+        case CA_ADAPTER_RFCOMM_BTEDR:
+            OIC_LOG(DEBUG, ANALYZER_TAG, "Transport Type = [OC_ADAPTER_RFCOMM_BTEDR]");
+            break;
+        default:
+            OIC_LOG_V(DEBUG, ANALYZER_TAG, "Transport Type = [%d]", adapter);
+            break;
+    }
+}
+
+CAResult_t CAGetIpv6AddrScopeInternal(const char *addr, CATransportFlags_t *scopeLevel)
+{
+    if (!addr || !scopeLevel)
+    {
+        return CA_STATUS_INVALID_PARAM;
+    }
+    // check addr is ipv6
+    struct in6_addr inAddr6;
+    if (1 == inet_pton(AF_INET6, addr, &inAddr6))
+    {
+        // check addr is multicast
+        if (IN6_IS_ADDR_MULTICAST(&inAddr6))
+        {
+            *scopeLevel = (CATransportFlags_t)(inAddr6.s6_addr[1] & 0xf);
+            return CA_STATUS_OK;
+        }
+        else
+        {
+            // check addr is linklocal or loopback
+            if (IN6_IS_ADDR_LINKLOCAL(&inAddr6) || IN6_IS_ADDR_LOOPBACK(&inAddr6))
+            {
+                *scopeLevel = CA_SCOPE_LINK;
+                return CA_STATUS_OK;
+            }
+            // check addr is sitelocal
+            else if (IN6_IS_ADDR_SITELOCAL(&inAddr6))
+            {
+                *scopeLevel = CA_SCOPE_SITE;
+                return CA_STATUS_OK;
+            }
+            else
+            {
+                *scopeLevel = CA_SCOPE_GLOBAL;
+                return CA_STATUS_OK;
+            }
+        }
+    }
+    else
+    {
+        OIC_LOG(ERROR, CA_ADAPTER_UTILS_TAG, "Failed at parse ipv6 address using inet_pton");
+        return CA_STATUS_FAILED;
+    }
+}
 #endif

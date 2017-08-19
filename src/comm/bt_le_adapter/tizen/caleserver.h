@@ -78,7 +78,17 @@ CAResult_t CAInitGattServerMutexVariables();
  * @retval  ::CA_STATUS_INVALID_PARAM  Invalid input arguments.
  * @retval  ::CA_STATUS_FAILED Operation failed.
  */
-CAResult_t CALEStartAdvertise(const char *serviceUUID);
+CAResult_t CALEStartAdvertise();
+
+/**
+ * Used to start advertising with service UUID.
+ *
+ * @return  ::CA_STATUS_OK or Appropriate error code.
+ * @retval  ::CA_STATUS_OK  Successful.
+ * @retval  ::CA_STATUS_INVALID_PARAM  Invalid input arguments.
+ * @retval  ::CA_STATUS_FAILED Operation failed.
+ */
+CAResult_t CALEStartAdvertiseImpl(const char *serviceUUID);
 
 /**
  * Used to stop advertising.
@@ -137,23 +147,51 @@ CAResult_t CAAddNewCharacteristicsToGattServer(const bt_gatt_h svcPath, const ch
 /**
  * This is the callback which will be called when client update one of the characteristics
  * with data.
- * @param[in] remote_address The address of the remote device which requests a change
- * @param[in] server         The GATT server handle
- * @param[in] gatt_handle    The characteristic or descriptor's GATT handle which has an old value
- * @param[in] offset         The requested offset from where the @a gatt_handle value will be updated
- * @param[in] value          The new value
- * @param[in] len            The length of @a value
- * @param[in] user_data      The user data passed from the registration function
+ * @param[in] remote_address    The address of the remote device which requests a change
+ * @param[in] request_id        The identification of this request. It will be used to send a response.
+ * @param[in] server            The GATT server handle
+ * @param[in] gatt_handle       The characteristic or descriptor's GATT handle which has an old value
+ * @param[in] response_needed   Indicates whether a response is required by the remote device -
+ *                              true if required, false if not
+ * @param[in] offset            The requested offset from where the @a gatt_handle value will be updated
+ * @param[in] value             The new value
+ * @param[in] len               The length of @a value
+ * @param[in] user_data         The user data passed from the registration function
  */
-void CALEGattRemoteCharacteristicWriteCb(char *remoteAddress, bt_gatt_server_h server,
-                                         bt_gatt_h charPath, int offset, char *charValue,
-                                         int charValueLen, void *userData);
+void CALEGattRemoteCharacteristicWriteCb(const char *remoteAddress, int request_id,
+                                         bt_gatt_server_h server, bt_gatt_h gatt_handle,
+                                         bool response_needed, int offset, const char *charValue,
+                                         int charLen, void *userData);
 
 /**
  * Setting the connection state changed callback.
  * @param[in] connStateCb      callback for receiving the changed network info.
  */
 void CASetLEConnectionStateChangedCallback(CALEConnectionStateChangedCallback connStateCb);
+
+/**
+ * Used to start advertising (for use in LE connection manager)
+ */
+void CAStartServerLEAdvertising();
+
+/**
+ * Used to stop advertising (for use in LE connection manager)
+ */
+void CAStopServerLEAdvertising();
+
+/**
+ * check connection status.
+ * @param[in] address      the address of the remote device.
+ * @return  true or false.
+ */
+bool CALEServerIsConnected(const char* address);
+
+/**
+ * get MTU size.
+ * @param[in] address      the address of the remote device.
+ * @return  mtu size negotiated from remote device.
+ */
+uint16_t CALEServerGetMtuSize(const char* address);
 
 #endif /* TZ_BLE_SERVER_H_ */
 
