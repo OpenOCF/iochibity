@@ -272,11 +272,11 @@ void OCLog(int level, const char * tag, const char * logStr)
 
     switch(level)
     {
-        case DEBUG_LITE:
-            level = DEBUG;
+        case LL_DEBUG_LITE:
+            level = LL_DEBUG;
             break;
-        case INFO_LITE:
-            level = INFO;
+        case LL_INFO_LITE:
+            level = LL_INFO;
             break;
         default:
             break;

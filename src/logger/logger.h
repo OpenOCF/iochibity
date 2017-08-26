@@ -86,25 +86,25 @@ typedef enum {
 #endif
 
 typedef enum {
-    DEBUG = 0,
-    INFO,
-    WARNING,
-    ERROR,
-    FATAL,
-    DEBUG_LITE,       // The DEBUG log for Lite device
-    INFO_LITE,        // The INFO log for Lite device
+    LL_DEBUG = 0,
+    LL_INFO,
+    LL_WARNING,
+    LL_ERROR,
+    LL_FATAL,
+    LL_DEBUG_LITE,       // The DEBUG log for Lite device
+    LL_INFO_LITE,        // The INFO log for Lite device
 } LogLevel;
 
 #endif // __TIZEN__
 
-#define DEBUG_PRIVATE       ((OC_LOG_PRIVATE_DATA) | (DEBUG))
-#define INFO_PRIVATE        ((OC_LOG_PRIVATE_DATA) | (INFO))
-#define WARNING_PRIVATE     ((OC_LOG_PRIVATE_DATA) | (WARNING))
-#define ERROR_PRIVATE       ((OC_LOG_PRIVATE_DATA) | (ERROR))
-#define FATAL_PRIVATE       ((OC_LOG_PRIVATE_DATA) | (FATAL))
+#define DEBUG_PRIVATE       ((OC_LOG_PRIVATE_DATA) | (LL_DEBUG))
+#define INFO_PRIVATE        ((OC_LOG_PRIVATE_DATA) | (LL_INFO))
+#define WARNING_PRIVATE     ((OC_LOG_PRIVATE_DATA) | (LL_WARNING))
+#define ERROR_PRIVATE       ((OC_LOG_PRIVATE_DATA) | (LL_ERROR))
+#define FATAL_PRIVATE       ((OC_LOG_PRIVATE_DATA) | (LL_FATAL))
 
 #ifndef OC_LOG_LEVEL
-#define OC_MINIMUM_LOG_LEVEL    (DEBUG)
+#define OC_MINIMUM_LOG_LEVEL    (LL_DEBUG)
 #else
 #define OC_MINIMUM_LOG_LEVEL    (OC_LOG_LEVEL)
 #endif
