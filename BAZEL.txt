@@ -1,5 +1,17 @@
 Bazel Notes
 
+print predefined macros: http://nadeausoftware.com/articles/2011/12/c_c_tip_how_list_compiler_predefined_macros
+
+Compiler	C macros	C++ macros
+Clang/LLVM	clang -dM -E -x c /dev/null	clang++ -dM -E -x c++ /dev/null
+GNU GCC/G++     gcc   -dM -E -x c /dev/null	g++     -dM -E -x c++ /dev/null
+Hewlett-Packard C/aC++	cc    -dM -E -x c /dev/null	aCC     -dM -E -x c++ /dev/null
+IBM XL C/C++	xlc   -qshowmacros -E /dev/null	xlc++   -qshowmacros -E /dev/null
+Intel ICC/ICPC	icc   -dM -E -x c /dev/null	icpc    -dM -E -x c++ /dev/null
+Microsoft Visual Studio	(none)	(none)
+Oracle Solaris Studio	cc    -xdumpmacros -E /dev/null	CC      -xdumpmacros -E /dev/null
+Portland Group PGCC/PGCPP	pgcc  -dM -E	(none)
+
 
 ================================================================
 Circular deps:
@@ -13,3 +25,81 @@ solution:  split modules into interface (public) and implementation (private) ta
 code reorg:
 
 csdk/connectivity/api/casecurityinterface.h - why is this not in security?
+
+
+================================================================
+windows:
+
+_WIN32 indicates the TARGET is windows; not to be confused with
+MSC_VER (since msvc can apparently cross-compile to linux)
+
+Problem: autoconf by default uses the mingw64 toolchain, but bazel
+uses the MVSC toolchain.  This actually works for lots of stuff, since
+the mingw toolchains contain Windows native headers etc., but they
+also contain some stuff not found in the MSVC toolchain.  For example,
+the mingw toolchain includes sys/time.h, the msvc one does not. We
+address this by running configure, and then undefining macros known to
+be specific to mingw.
+
+visual studio: older versions do not support c99 (e.g. lack stdbool.h
+and sys/time.h, etc.)
+
+macros:
+
+_WIN32:
+
+	comm/adapter_util/caadapterutils.c
+	comm/api/cacommon.h
+	comm/network/ip_adapter/caipserver.c
+	comm/test/octhread_tests.cpp
+	comm/test/ssladapter_test.cpp
+	ocf/oicgroup.c
+	portability/platform_features.h
+	sec/psinterface.c
+	util/logger.c
+
+HAVE_WINDOWS_H:
+
+	comm/test/octhread_tests.cpp
+	comm/test/ssladapter_test.cpp
+	ocf/oicgroup.c
+	portability/ocrandom.c
+	portability/octimer.c
+	portability/oc_uuid.c
+	portability/oic_time.c
+	sec/credresource.c
+	sec/rolesresource.c
+	util/logger.c
+
+HAVE_WINSOCK2_H:
+
+	comm/adapter_util/caadapterutils.c
+	comm/api/cacommon.h
+	comm/common/cathreadpool_pthreads.c
+	comm/network/ip_adapter/caipserver.c
+	comm/test/ssladapter_test.cpp
+	portability/platform_features.h
+
+WS2TCPIP_H
+
+	comm/adapter_util/caadapterutils.c
+
+================================================================
+Autoconf
+
+MSVC:  toolchain is in
+
+ /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Tools/MSVC/14.11.25503/
+
+
+MSYS etc.
+
+Installation: follow the instructions at http://www.msys2.org/.  Use
+pacman to install required packages:
+
+       git, curl, zip, unzip, tar, zlib-devel, autotools, autogen
+
+Autoconf cross-compile: $ ./configure --host=x86_64-w64-mingw32
+
+The toolchain is in /mingw64, under dir x86_64-w64-mingw32.  For 32 bit, the toolchaing is in /mingw32
+
