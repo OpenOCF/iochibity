@@ -1,6 +1,26 @@
 
 == iotivity_config.h
 
+Steps:
+
+1. `automake --add-missing`.  This will add missing files like `config.guess` and `config.sub`
+
+NOTE:  You will see the following error:
+
+`configure.ac: error: no proper invocation of AM_INIT_AUTOMAKE was found.`
+
+You can safely ignore this - we are not generating a makefile, so our `configure.ac` omits `AC_INIT_AUTOMAKE`
+
+2.  autoheader - generates `src/iotivity_config.h.in` from `configure.ac`
+
+3. edit `src/iotivity_config.h.in` as directed below.
+
+4.  autoconf - generates `configure` from `configure.ac`
+
+5.  ./configure - generates `src/iotivity_config.h`
+
+== iotivity_config.h.in
+
 If you regenerate iotivity_config.h.in using `autoheader`, you must
 modify the result as described below.  This is because ...
 
@@ -20,6 +40,9 @@ TODO: add --enable-logging
 
 
 * add:
+
+>>>>>>>>>>>>>>>>
+
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
 #if defined AC_APPLE_UNIVERSAL_BUILD
@@ -32,7 +55,9 @@ TODO: add --enable-logging
 # endif
 #endif
 
-* add  `#include "system.h"`
+#include "system.h"
+
+>>>>>>>>>>>>>>>>
 
 
 Other ifdefs (e.g. octypes.h, ocresource.c):
