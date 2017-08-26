@@ -41,7 +41,7 @@ typedef enum
     OIC_PLATFORM_NOTIMPL,	/* errno: ENOSYS */
 
     /** Generic ERROR.*/
-    OIC_PLATFORM_ERROR = 255	/* disallow? */
+    OIC_PLATFORM_ERROR = 255	/* GAR disallow? */
     /** Error status code - END HERE.*/
 } OICPlatformResult_t;
 

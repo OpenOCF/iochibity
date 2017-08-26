@@ -13,3 +13,5 @@
 todo:
 
 	extract persistent storage mgr from secureresourcemanager
+
+	this will make it possible to remove the dependency of ocstack.h on the latter+

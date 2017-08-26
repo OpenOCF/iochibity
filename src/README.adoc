@@ -1,0 +1,55 @@
+
+== iotivity_config.h
+
+If you regenerate iotivity_config.h using `autoheader`, you must
+modify the result as described below.  This is because ...
+
+
+* bracket the following feature tests with `#ifndef _MSC_VER`, e.g.
+```
+/* Define to 1 if you have the <unistd.h> header file. */
+#ifndef _MSC_VER /* mingw has it, msvc does not */
+#undef HAVE_UNISTD_H
+#endif
+```
+     headers:  unistd.h, sys/time.h, strings.h
+     function: strptime 
+
+
+TODO: add --enable-logging
+
+
+* add:
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
+
+* add  `#include "system.h"`
+
+
+Other ifdefs (e.g. octypes.h, ocresource.c):
+
+      WITH_MQ, MQ_BROKER, WITH_PRESENCE,
+
+      TCP_ADAPTER, HTTP_ADAPTER, EDR_ADAPTER RA_ADAPTER,
+      LE_ADAPTER, NFC_ADAPTER
+
+      ROUTING_GATEWAY
+
+      RD_SERVER
+
+      DIRECT_PAIRING (deprecated)
+
+ifdefs in ocstack.c:
+
+   UWP_APP - Universal Windows Platform?
+
+   WITH_CLOUD, ROUTING_EP, RD_CLIENT, MQ_PUBLISHER
