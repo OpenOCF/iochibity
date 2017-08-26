@@ -1,14 +1,24 @@
+config_setting(
+    name = "windows",
+    values = { "define": "platform=windows" }
+)
+
 cc_library(
     name = "util",
+    alwayslink = True,
     copts = ["-Isrc",
-             "-Isrc/portability"],
+             "-Isrc/logger",
+             "-Isrc/portability"]
+    + select({"windows": [],
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
+            "//src/logger",
             "//src/portability"],
-    hdrs = ["logger.h"],
-    srcs = ["logger.c",
-    	    "logger.h",
-	    "logger_types.h",
-	    "trace.c",
+    hdrs = ["base64.h",
+            "byte_array.h",
+            "utlist.h"],
+    srcs = ["base64.c",
+            "trace.c",
 	    "trace.h",
             "uarraylist.c",
             "uarraylist.h"],
