@@ -22,7 +22,8 @@
 #include "ulinklist.h"
 #include "logger.h"
 #include "oic_malloc.h"
-#include "caadapterutils.h"
+//GAR avoid circular deps #include "caadapterutils.h"
+#include "cacommonutil.h" //GAR
 
 /**
  * Logging tag for module name.

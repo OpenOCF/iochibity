@@ -23,7 +23,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include "platform_features.h"
+#include "iotivity_config.h"
 #include "logger.h"
 #include "oic_malloc.h"
 #include "caadapterutils.h"

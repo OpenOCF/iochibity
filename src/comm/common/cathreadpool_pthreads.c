@@ -37,7 +37,7 @@
 #include "oic_malloc.h"
 #include "uarraylist.h"
 #include "octhread.h"
-#include "platform_features.h"
+/*GAR  #include "platform_features.h" */
 
 #define TAG PCF("OIC_CA_UTHREADPOOL")
 

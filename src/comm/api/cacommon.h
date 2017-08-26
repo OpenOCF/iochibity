@@ -28,6 +28,8 @@
 
 #include "iotivity_config.h"
 
+#include "transport_types.h"
+
 #include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -67,14 +69,15 @@ extern "C"
  */
 #define CA_MACADDR_SIZE 18
 
-/**
- * Max header options data length.
- */
-#ifdef ARDUINO
-#define CA_MAX_HEADER_OPTION_DATA_LENGTH 20
-#else
-#define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024
-#endif
+/* /\** */
+/*  * Max header options data length. */
+/*  *\/ */
+// GAR: to transport_types.h
+/* #ifdef ARDUINO */
+/* #define CA_MAX_HEADER_OPTION_DATA_LENGTH 20 */
+/* #else */
+/* #define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024 */
+/* #endif */
 
 /**
 * Max token length.
@@ -113,7 +116,7 @@ extern "C"
  */
 #define CA_MAX_IDENTITY_SIZE (37)
 
-/**
+  /**
  * option types - the highest option number 63.
  */
 #define CA_OPTION_IF_MATCH 1
@@ -161,10 +164,10 @@ typedef uint8_t *CAPayload_t;
  */
 typedef char *CAURI_t;
 
-/**
- * Token information for mapping the request and responses by resource model.
- */
-typedef char *CAToken_t;
+/* /\** */
+/*  * Token information for mapping the request and responses by resource model. */
+/*  *\/ */
+/* typedef char *CAToken_t; */
 
 /*
  * Socket types and error definitions.
@@ -179,22 +182,24 @@ typedef SOCKET CASocketFd_t;
 typedef int    CASocketFd_t;
 #endif
 
-/*
+/* GAR: moved to src/iotivity_constants.h to avoid circular refs 
  * The following flags are the same as the equivalent OIC values in
  * octypes.h, allowing direct copying with slight fixup.
  * The CA layer should used the OC types when build allows that.
  */
-#ifdef RA_ADAPTER
-#define MAX_ADDR_STR_SIZE_CA (256)
-#else
-/*
- * Max Address could be "coaps+tcp://[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:yyy.yyy.yyy.yyy]:xxxxx"
- * Which is 65, +1 for null terminator => 66
- * OCDevAddr (defined in OCTypes.h) must be the same
- * as CAEndpoint_t (defined here)
- */
-#define MAX_ADDR_STR_SIZE_CA (66)
-#endif
+/* #ifdef RA_ADAPTER */
+/* #define MAX_ADDR_STR_SIZE_CA (256) */
+/* #else */
+/* /\* */
+/*  * Max Address could be "coaps+tcp://[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:yyy.yyy.yyy.yyy]:xxxxx" */
+/*  * Which is 65, +1 for null terminator => 66 */
+/*  * OCDevAddr (defined in OCTypes.h) must be the same */
+/*  * as CAEndpoint_t (defined here) */
+/*  *\/ */
+/* #define MAX_ADDR_STR_SIZE_CA (66) */
+/* #endif */
+
+//GAR: CATransportAdapter_t, CATransportFlags_t moved to commtypes.h
 
 typedef enum
 {
@@ -416,14 +421,15 @@ typedef enum
     CA_RESPONSE_FOR_RES
 } CADataType_t;
 
-/**
- * Transport Protocol IDs for additional options.
- */
-typedef enum
-{
-    CA_INVALID_ID = (1 << 0),   /**< Invalid ID */
-    CA_COAP_ID = (1 << 1)       /**< COAP ID */
-} CATransportProtocolID_t;
+/* /\** */
+/*  * Transport Protocol IDs for additional options. */
+/*  *\/ */
+// GAR: to transport_types.h
+/* typedef enum */
+/* { */
+/*     CA_INVALID_ID = (1 << 0),   /\**< Invalid ID *\/ */
+/*     CA_COAP_ID = (1 << 1)       /\**< COAP ID *\/ */
+/* } CATransportProtocolID_t; */
 
 /**
  * Adapter State to indicate the network changed notifications.
@@ -461,19 +467,20 @@ typedef enum
     CA_HEADER_OPTION_ID_LOCATION_QUERY = 20
 } CAHeaderOptionId_t;
 
-/**
- * Header options structure to be filled.
- *
- * This structure is used to hold header information.
- */
-typedef struct
-{
-    CATransportProtocolID_t protocolID;                     /**< Protocol ID of the Option */
-    uint16_t optionID;                                      /**< The header option ID which will be
-                                                            added to communication packets */
-    uint16_t optionLength;                                  /**< Option Length **/
-    char optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];      /**< Optional data values**/
-} CAHeaderOption_t;
+/* /\** */
+/*  * Header options structure to be filled. */
+/*  * */
+/*  * This structure is used to hold header information. */
+/*  *\/ */
+// GAR: migrated to transport_types.h
+/* typedef struct */
+/* { */
+/*     CATransportProtocolID_t protocolID;                     /\**< Protocol ID of the Option *\/ */
+/*     uint16_t optionID;                                      /\**< The header option ID which will be */
+/*                                                             added to communication packets *\/ */
+/*     uint16_t optionLength;                                  /\**< Option Length **\/ */
+/*     char optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];      /\**< Optional data values**\/ */
+/* } CAHeaderOption_t; */
 
 /**
  * Base Information received.

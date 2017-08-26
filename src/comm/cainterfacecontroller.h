@@ -29,7 +29,8 @@
 
 #include "caadapterinterface.h"
 #include "cainterface.h"
-#include "cautilinterface.h"
+
+#include "commdefs.h"		/* replacing cautilinterface.h */
 
 #ifndef SINGLE_THREAD
 #include "cathreadpool.h" /* for thread pool */

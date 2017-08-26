@@ -30,7 +30,11 @@
 #ifndef CA_UTILS_INTERFACE_H_
 #define CA_UTILS_INTERFACE_H_
 
+#include "iotivity_config.h"
+
 #include "cacommon.h"
+#include "commdefs.h"
+
 #ifdef __JAVA__
 #include "jni.h"
 #endif
@@ -60,20 +64,6 @@ typedef struct
     CATransportBTFlags_t bleFlags;
     CAConnectUserPref_t connUserPref;
 } CAUtilConfig_t;
-
-/**
- * Callback function type for connection status changes delivery.
- * @param[out]   info           Remote endpoint information.
- * @param[out]   isConnected    Current connection status info.
- */
-typedef void (*CAConnectionStateChangedCB)(const CAEndpoint_t *info, bool isConnected);
-
-/**
- * Callback function type for adapter status changes delivery.
- * @param[out]   adapter    Transport type information.
- * @param[out]   enabled    Current adapter status info.
- */
-typedef void (*CAAdapterStateChangedCB)(CATransportAdapter_t adapter, bool enabled);
 
 /**
  * Register network monitoring callback.

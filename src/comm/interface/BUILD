@@ -1,0 +1,21 @@
+config_setting(
+    name = "windows",
+    values = { "define": "platform=windows" }
+)
+
+
+cc_library(
+    name = "interface",
+    copts = ["-Isrc/comm/util",
+             "-Ithird_party/coap/include"]
+    + select({"windows": [],
+              "//conditions:default": ["-std=c11"]}),
+    deps = ["//third_party/coap"],
+    hdrs  = ["caadapterinterface.h",
+             "caipinterface.h",
+             "caprotocolmessage.h"],
+    visibility = ["//src/comm:__subpackages__",
+                  "//src/ocf:__pkg__",
+                  "//src/sec:__subpackages__",
+                  "//src/provisioning:__subpackages__"]
+)

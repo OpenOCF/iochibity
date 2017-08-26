@@ -19,10 +19,12 @@
  ******************************************************************/
 
 #include "caadapterutils.h"
+
+/*GAR FIXME: conditionalize on --with-ble etc. */
 #include "camanagerleinterface.h"
 #include "cabtpairinginterface.h"
 #include "cautilinterface.h"
-#include "cainterfacecontroller.h"
+// GAR  #include "cainterfacecontroller.h"
 #include "cacommon.h"
 #include "logger.h"
 

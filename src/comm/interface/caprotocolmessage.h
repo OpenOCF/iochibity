@@ -25,11 +25,13 @@
 #ifndef CA_PROTOCOL_MESSAGE_H_
 #define CA_PROTOCOL_MESSAGE_H_
 
+#include "iotivity_config.h"
+
 #include "cacommon.h"
 #ifndef WITH_UPSTREAM_LIBCOAP
 #include "coap/config.h"
 #endif
-#include <coap/coap.h>
+#include "coap/coap.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -59,8 +61,11 @@ static const uint8_t PAYLOAD_MARKER = 1;
  * @param[in]   endpoint             endpoint information.
  * @return  generated pdu.
  */
-coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_t *endpoint,
-                          coap_list_t **optlist, coap_transport_t *transport);
+coap_pdu_t *CAGeneratePDU(uint32_t code,
+			  const CAInfo_t *info,
+			  const CAEndpoint_t *endpoint,
+                          coap_list_t **optlist,
+			  coap_transport_t *transport);
 
 /**
  * extracts request information from received pdu.
