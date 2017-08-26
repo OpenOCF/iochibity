@@ -28,7 +28,7 @@
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
 #endif
-#ifdef HAVE_PTHREAD_H
+#ifdef HAVE_LIBPTHREAD
 #include <pthread.h>
 #else
 #include "windows/pthread_create.h"
