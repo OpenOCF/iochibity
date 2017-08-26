@@ -22,7 +22,9 @@ AC_PROG_LN_S
 # FIXME: Replace `main' with a function in `-lm':
 #AC_CHECK_LIB([m], [main])
 
-AC_CHECK_LIB(pthread, pthread_create, [PTHREAD_LIBS+=-lpthread])
+AC_CHECK_LIB(pthread, pthread_create)
+		      dnl [PTHREAD_LIBS+=-lpthread],
+		      dnl [)
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h assert.h fcntl.h float.h inttypes.h limits.h malloc.h memory.h netdb.h netinet/in.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/socket.h sys/statvfs.h sys/time.h sys/timeb.h termios.h, time.h unistd.h utime.h windows.h winsock2.h ws2tcpip.h])
@@ -84,7 +86,7 @@ dnl                    third_party/tinydtls])
 
 
 dnl TODO: for consistency with autotools, change __WITH_DTLS__ to ENABLE_DTLS, etc.
-DTLS is on by default
+dnl DTLS is on by default
 AC_ARG_ENABLE([dtls],
     AS_HELP_STRING([--disable-dtls], [Disable DTLS]))
 
