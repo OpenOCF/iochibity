@@ -30,21 +30,31 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
-#include "platform_features.h"
+#include "iotivity_config.h"
 
 #include <fcntl.h>
+
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
 #ifndef _POSIX_TIMERS
-#include <sys/time.h>
-#elif  _POSIX_TIMERS <= 0
+#ifdef _HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-/* #ifdef HAVE_TIME_H */
-/* #include <time.h> */
-/* #endif */
+#elif  _POSIX_TIMERS <= 0
+#ifdef _HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#endif
+
+#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
+
 /* #if defined(__ANDROID__) */
 /* #include <ctype.h> */
 /* #include <linux/time.h> */
@@ -54,9 +64,11 @@
 
 #define NANO_SEC 1000000000
 
+//GAR: TODO: fix this crap!
 // this is only used once, in rsource/connectivity/src/caconnectivitymanager.c:CAInitialize()
 // NB: this is too trivial to merit platform-specific files; select on a macro:
 #ifdef WINDOWS			/* FIXME: HAVE_WINDOWS_H? */
+#include <Windows.h>
 int8_t OCSeedRandom()
 {
 #ifdef HAVE_ARC4RANDOM_STIR_FN

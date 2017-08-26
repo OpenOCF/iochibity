@@ -19,8 +19,13 @@
 #ifndef OC_ATOMIC_H
 #define OC_ATOMIC_H
 
+#include "iotivity_config.h"
+
 #include <stdint.h>
+
+#ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"

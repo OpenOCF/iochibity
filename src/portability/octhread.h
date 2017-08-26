@@ -28,7 +28,11 @@
 #define OC_THREAD_H_
 
 #include "iotivity_commontypes.h"
+
+#ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
+#endif
+
 #include <stdlib.h>
 #include <stdint.h>
 

@@ -1,3 +1,4 @@
+
 //******************************************************************
 //
 // Copyright 2014 Intel Mobile Communications GmbH All Rights Reserved.
@@ -30,10 +31,14 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
-#include "platform_features.h"
+#include "iotivity_config.h"
 
 #include <fcntl.h>
+
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 

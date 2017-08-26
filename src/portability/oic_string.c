@@ -26,14 +26,17 @@
 #define TAG "OIC_STRING"
 char *OICStrdup(const char *str)
 {
+    size_t length;
+    char *dup;
+
     if(!str)
     {
         return NULL;
     }
 
     // Allocate memory for original string length and 1 extra byte for '\0'
-    size_t length = strlen(str);
-    char *dup = (char *)OICMalloc(length + 1);
+    length = strlen(str);
+    dup = (char *)OICMalloc(length + 1);
     if (NULL != dup)
     {
         memcpy(dup, str, length + 1);
@@ -77,6 +80,8 @@ char* OICStrcpyPartial(char* dest, size_t destSize, const char* source, size_t s
 
 char* OICStrcatPartial(char* dest, size_t destSize, const char* source, size_t sourceLen)
 {
+    size_t destLen;
+
     if (!dest || !source)
     {
         return NULL;
@@ -87,7 +92,7 @@ char* OICStrcatPartial(char* dest, size_t destSize, const char* source, size_t s
         return dest;
     }
 
-    size_t destLen = strlen(dest);
+    destLen = strlen(dest);
 
     if(destLen >= destSize)
     {

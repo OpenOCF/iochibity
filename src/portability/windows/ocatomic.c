@@ -22,7 +22,7 @@
  * This file implements APIs related to atomic operations for Windows.
  */
 
-#include "../ocatomic.h"
+#include "ocatomic.h"
 #include <windows.h>
 
 int32_t oc_atomic_increment(volatile int32_t *addend)

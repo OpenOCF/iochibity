@@ -30,87 +30,376 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
-#include "platform_features.h"
+#include "iotivity_config.h"
+#include "logger.h"
 
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#elif defined(HAVE_TIME_H)
-#include <time.h>
 #endif
-/*GAR #if defined(__ANDROID__) */
-/* #include <ctype.h> */
-/* #include <linux/time.h> */
-/* #endif */
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#elif defined(HAVE_STRINGS_H)
+#include <strings.h>
+#endif
+#if defined(__ANDROID__)
+#include <ctype.h>
+#endif
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
 #endif
 
 #include "ocrandom.h"
+#include <stdio.h>
+#include <stdbool.h>
+#include <assert.h>
+#include <ctype.h>
 
-#define NANO_SEC 1000000000
+#define OC_MIN(A,B) ((A)<(B)?(A):(B))
 
-void OCFillRandomMem(uint8_t * location, uint16_t len)
-{
-#ifdef HAVE_ARC4RANDOM_BUF_FN
-    arc4random_buf((void*)location, (size_t)len);
+#define OC_UUID_HYPHEN_1 9
+#define OC_UUID_HYPHEN_2 14
+#define OC_UUID_HYPHEN_3 19
+#define OC_UUID_HYPHEN_4 24
+#define OC_UUID_HYPHEN_COUNT 4
+
+/**
+* @def OCRANDOM_TAG
+* @brief Logging tag for module name
+*/
+#define OCRANDOM_TAG "OIC_OCRANDOM"
+
+#ifdef ARDUINO
+#include "Arduino.h"
+
+/*
+ * ARM GCC compiler doesnt define random/srandom functions, fallback to
+ * rand/srand.
+ */
+#if !defined(ARDUINO_ARCH_SAM)
+#define OC_arduino_srandom_function srandom
+#define OC_arduino_random_function random
 #else
-    if (!location)
+#define OC_arduino_srandom_function srand
+#define OC_arduino_random_function rand
+#endif
+
+uint8_t GetRandomBitRaw()
+{
+    return analogRead((uint8_t)ANALOG_IN) & 0x1;
+}
+
+uint8_t GetRandomBitRaw2()
+{
+    int a = 0;
+    for (;;)
+    {
+        a = GetRandomBitRaw() | (GetRandomBitRaw()<<1);
+        if (a==1)
+        {
+            return 0; // 1 to 0 transition: log a zero bit
+        }
+        if (a==2)
+        {
+            return 1;// 0 to 1 transition: log a one bit
+        }
+        // For other cases, try again.
+    }
+}
+
+uint8_t GetRandomBit()
+{
+    int a = 0;
+    for (;;)
+    {
+        a = GetRandomBitRaw2() | (GetRandomBitRaw2()<<1);
+        if (a==1)
+        {
+            return 0; // 1 to 0 transition: log a zero bit
+        }
+        if (a==2)
+        {
+            return 1;// 0 to 1 transition: log a one bit
+        }
+        // For other cases, try again.
+    }
+}
+
+/*
+ * Currently, only the Arduino platform requires seeding. It's done
+ * automatically on the first call to OCGetRandomBytes.
+ */
+uint8_t g_isSeeded = 0;
+static void OCSeedRandom()
+{
+    if (g_isSeeded)
     {
         return;
     }
-    for (; len--;)
+
+    uint32_t result =0;
+    uint8_t i;
+    for (i=32; i--;)
     {
-        *location++ = OCGetRandomByte();
+        result += result + GetRandomBit();
     }
+    OC_arduino_srandom_function(result);
+
+    g_isSeeded = 1;
+    return;
+}
+
+#endif /* ARDUINO */
+
+bool OCGetRandomBytes(uint8_t * output, size_t len)
+{
+    if ( (output == NULL) || (len == 0) )
+    {
+        return false;
+    }
+
+#if defined(__unix__) || defined(__APPLE__)
+    FILE* urandom = fopen("/dev/urandom", "r");
+    if (urandom == NULL)
+    {
+        OIC_LOG(FATAL, OCRANDOM_TAG, "Failed open /dev/urandom!");
+        assert(false);
+        return false;
+    }
+
+    if (fread(output, sizeof(uint8_t), len, urandom) != len)
+    {
+        OIC_LOG(FATAL, OCRANDOM_TAG, "Failed while reading /dev/urandom!");
+        assert(false);
+        fclose(urandom);
+        return false;
+    }
+    fclose(urandom);
+
+#elif defined(_WIN32)
+    /*
+     * size_t may be 64 bits, but ULONG is always 32.
+     * If len is larger than the maximum for ULONG, just fail.
+     * It's unlikely anything ever will want to ask for this much randomness.
+     */
+    if (len > 0xFFFFFFFFULL)
+    {
+        OIC_LOG(FATAL, OCRANDOM_TAG, "Requested number of bytes too large for ULONG");
+        assert(false);
+        return false;
+    }
+
+    NTSTATUS status = BCryptGenRandom(NULL, output, (ULONG)len, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+    if (!BCRYPT_SUCCESS(status))
+    {
+        OIC_LOG_V(FATAL, OCRANDOM_TAG, "BCryptGenRandom failed (%X)!", status);
+        assert(false);
+        return false;
+    }
+
+#elif defined(ARDUINO)
+    if (!g_isSeeded)
+    {
+        OCSeedRandom();
+    }
+
+    size_t i;
+    for (i = 0; i < len; i++)
+    {
+        output[i] = OC_arduino_random_function() & 0x00ff;
+    }
+
+#else
+    #error Unrecognized platform
 #endif
+
+    return true;
 }
 
 uint32_t OCGetRandom()
 {
-#ifdef HAVE_ARC4RANDOM_FN
-    return arc4random();
-#else
     uint32_t result = 0;
-    OCFillRandomMem((uint8_t*) &result, 4);
+    if (!OCGetRandomBytes((uint8_t*)&result, sizeof(result)))
+    {
+        OIC_LOG(FATAL, OCRANDOM_TAG, "OCGetRandom failed!");
+        assert(false);
+    }
     return result;
-#endif
 }
 
-uint8_t OCGetRandomByte(void)
+/* Return the number of leading zeroes in x.
+ * Binary search algorithm from Section 5-3 of:
+ *     H.S. Warren Jr. Hacker's Delight. Addison-Wesley. 2003.
+ */
+static int nlz(uint32_t x)
 {
-#ifdef HAVE_ARC4RANDOM_FN
-    return arc4random() & 0x00FF;
-#elif HAVE_SRANDOM
-    return random() & 0x00FF;
-#else
-    return rand() & 0x00FF;
-#endif
+    if (x == 0)
+    {
+        return 32;
+    }
+
+    int n = 0;
+    if (x <= 0x0000FFFF) { n = n + 16; x = x << 16;}
+    if (x <= 0x00FFFFFF) { n = n + 8;  x = x << 8; }
+    if (x <= 0x0FFFFFFF) { n = n + 4;  x = x << 4; }
+    if (x <= 0x3FFFFFFF) { n = n + 2;  x = x << 2; }
+    if (x <= 0x7FFFFFFF) { n = n + 1;}
+
+    return n;
 }
 
 uint32_t OCGetRandomRange(uint32_t firstBound, uint32_t secondBound)
 {
-    uint32_t base;
-    uint32_t diff;
-    uint32_t result;
-    if (firstBound > secondBound)
-    {
-        base = secondBound;
-        diff = firstBound - secondBound;
-    }
-    else if (firstBound < secondBound)
-    {
-        base = firstBound;
-        diff = secondBound - firstBound;
-    }
-    else
+    if (firstBound == secondBound)
     {
         return secondBound;
     }
-    result = ((float)OCGetRandom()/((float)(0xFFFFFFFF))*(float)diff) + (float) base;
-    return result;
+
+    uint32_t rangeBase = OC_MIN(firstBound, secondBound);
+    uint32_t rangeWidth = (firstBound > secondBound) ? (firstBound - secondBound) : (secondBound - firstBound);
+
+    /*
+     * Compute a random number between 0 and rangeWidth. Avoid using floating
+     * point types to avoid overflow when rangeWidth is large. The condition
+     * in the while loop will be false with probability at least 1/2.
+     */
+    uint32_t rangeMask = 0xFFFFFFFF >> nlz(rangeWidth);
+    uint32_t offset = 0;
+    do
+    {
+        if(!OCGetRandomBytes((uint8_t*)&offset, sizeof(offset)))
+        {
+            OIC_LOG(FATAL, OCRANDOM_TAG, "OCGetRandomBytes failed");
+            assert(false);
+            return rangeBase;
+        }
+        offset = offset & rangeMask;
+    }
+    while (offset > rangeWidth);
+
+    return rangeBase + offset;
 }
+
+bool OCGenerateUuid(uint8_t uuid[UUID_SIZE])
+{
+    if (!uuid)
+    {
+        OIC_LOG(ERROR, OCRANDOM_TAG, "Invalid parameter");
+        return false;
+    }
+
+    return OCGetRandomBytes(uuid, UUID_SIZE);
+}
+
+bool OCConvertUuidToString(const uint8_t uuid[UUID_SIZE],
+                                         char uuidString[UUID_STRING_SIZE])
+{
+    if (uuid == NULL || uuidString == NULL)
+    {
+        OIC_LOG(ERROR, OCRANDOM_TAG, "Invalid parameter");
+        return false;
+    }
+
+
+    int ret = snprintf(uuidString, UUID_STRING_SIZE,
+            "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+            uuid[0], uuid[1], uuid[2], uuid[3],
+            uuid[4], uuid[5], uuid[6], uuid[7],
+            uuid[8], uuid[9], uuid[10], uuid[11],
+            uuid[12], uuid[13], uuid[14], uuid[15]
+            );
+
+    if (ret != UUID_STRING_SIZE - 1)
+    {
+        OIC_LOG(ERROR, OCRANDOM_TAG, "snprintf failed");
+        return false;
+    }
+
+    return true;
+}
+
+bool OCConvertStringToUuid(const char uuidString[UUID_STRING_SIZE],
+                                         uint8_t uuid[UUID_SIZE])
+{
+    if(NULL == uuidString || NULL == uuid)
+    {
+        OIC_LOG(ERROR, OCRANDOM_TAG, "Invalid parameter");
+        return false;
+    }
+
+    size_t urnIdx = 0;
+    size_t uuidIdx = 0;
+    size_t strUuidLen = 0;
+    char convertedUuid[UUID_SIZE * 2] = {0};
+
+    strUuidLen = strlen(uuidString);
+    if((UUID_STRING_SIZE - 1) == strUuidLen)
+    {
+        for(uuidIdx=0, urnIdx=0; uuidIdx < UUID_SIZE ; uuidIdx++, urnIdx+=2)
+        {
+            if(*(uuidString + urnIdx) == '-')
+            {
+                urnIdx++;
+            }
+            sscanf(uuidString + urnIdx, "%2hhx", &convertedUuid[uuidIdx]);
+        }
+    }
+    else
+    {
+        OIC_LOG(ERROR, OCRANDOM_TAG, "unexpected string length");
+        return false;
+    }
+
+    memcpy(uuid, convertedUuid, UUID_SIZE);
+
+    return true;
+}
+
+bool OCIsUUID(const char *uuid)
+{
+    size_t hyphens[OC_UUID_HYPHEN_COUNT] = {OC_UUID_HYPHEN_1, OC_UUID_HYPHEN_2,
+                                            OC_UUID_HYPHEN_3, OC_UUID_HYPHEN_4};
+    if (strlen(uuid) != UUID_STRING_SIZE -1)
+    {
+        //The length doesn't match
+        return false;
+    }
+
+    for (size_t i = 0, counter = 0; i < (UUID_STRING_SIZE - 1); i++)
+    {
+        char var = uuid[i];
+
+        //Check if a hyphen is expected here.
+        if (i == (hyphens[counter] - 1))
+        {
+            //We need a hyphen here.
+            if ('-' != var)
+            {
+                //The character is not a hyphen.
+                return false;
+            }
+            else
+            {
+                //Move on to the next expected hyphen position.
+                counter++;
+            }
+        }
+        else
+        {
+            //The character here should be a simple xdigit
+            if (0 == isxdigit(var))
+            {
+                //The current character is not a xdigit.
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+

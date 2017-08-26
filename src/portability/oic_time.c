@@ -30,6 +30,8 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
+#include "iotivity_config.h"
+
 #include <stddef.h>        /* For NULL */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>	   /* for _POSIX_TIMERS */

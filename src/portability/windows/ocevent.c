@@ -28,7 +28,10 @@
 #include "iotivity_debug.h"
 
 #include <assert.h>
+#ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
+#endif
+
 #include <stdlib.h>
 #include <windows.h>
 

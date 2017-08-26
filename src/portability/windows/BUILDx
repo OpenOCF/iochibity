@@ -1,0 +1,23 @@
+cc_library(
+    name = "windows",
+    deps = ["//src:config"],
+    copts = ["-Isrc",
+             "-Isrc/portability",
+	     "-Isrc/portability/windows",
+    	     "-Isrc/util"],
+    # hdrs = ["platform_features.h"],
+    srcs = ["getopt.c",
+            "getopt.h",
+            "memmem.c",
+            "memmem.h",
+	    "ocatomic.c",
+	    "ocevent.c",
+	    "octhread.c",
+            "pthread_create.c",
+            "pthread_create.h",
+            "snprintf.c",
+            "vs12_snprintf.h",
+            "win_sleep.c",
+            "win_sleep.h"],
+    visibility = ["//src/platform:__pkg__"]
+ )

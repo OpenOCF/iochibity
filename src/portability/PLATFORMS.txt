@@ -1,0 +1,48 @@
+
+gcc predefined macros:  $ ./gcc -dM -E -x c /dev/null | sort
+
+g++ predefined macros:  $ ./g+ -dM -E -x c++ /dev/null | sort
+
+================================================================
+MSYS - MINGW - CYGWIN
+
+mingw32:
+
+/mingw32/bin $ ./gcc --version
+gcc.exe (Rev1, Built by MSYS2 project) 7.2.0
+
+defines:  __MINGW32__ = 1, _WIN32 = 1, _STDC_VERSION__ = 201112L
+
+/mingw32/bin$ ./g++ --version
+g++.exe (Rev1, Built by MSYS2 project) 7.2.0
+
+defines:  __MINGW32__ = 1, _WIN32 = 1, _STDC_ = 1,  __cplusplus = 201402L
+
+
+mingw64:
+
+/mingw64/bin $ gcc --version
+gcc.exe (Rev1, Built by MSYS2 project) 7.2.0
+
+defines:  __MINGW32__ = 1, __MINGW64__ = 1, _WIN32 = 1, _WIN64 = 1, _STDC_VERSION__ = 201112L
+
+
+/mingw64/bin $ g++ --version
+g++.exe (Rev1, Built by MSYS2 project) 7.2.0
+
+defines:  __MINGW32__ = 1, __MINGW64__ = 1, _WIN32 = 1, _WIN64 = 1, _STDC_ = 1,  __cplusplus = 201402L
+
+
+================================================================
+Microsoft
+
+MSVC Community edition:
+
+$ /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/x64/cl.exe /?
+Microsoft (R) C/C++ Optimizing Compiler Version 19.11.25506 for x64
+
+defines:  _MSC_VER - compiler version number, e.g. 1700 for version 17.00.51106.1
+
+	  _WIN32, _WIN64 - defined for applications (targets), not the
+	  compiler! other compilers may also define this, so it's no
+	  good for checking compiler features

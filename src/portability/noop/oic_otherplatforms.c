@@ -1,6 +1,6 @@
 /* *****************************************************************
 *
-* Copyright 2016 Intel Corporation
+* Copyright 2017 Microsoft
 *
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,26 +16,25 @@
 * limitations under the License.
 *
 ******************************************************************/
+#include "iotivity_config.h"
+#include "iotivity_debug.h"
+#include "logger.h"
+#include "oic_platform.h"
 
-#include "vs12_snprintf.h"
-#include <stdio.h>
-#include <stdarg.h>
+#define TAG "OIC_PLATFORM"
 
-int vs12_snprintf(char *buffer, size_t count, const char *format, ...)
+OICPlatformResult_t OICGetLocalAppDataPath(char* buffer, size_t* bufferLen)
 {
-    va_list args;
-
-    va_start(args, format);
-
-    int length = _vsnprintf(buffer, count, format, args);
-
-    va_end(args);
-
-    if (length > count)
-    {
-        buffer[count - 1] = '\0';
-    }
-
-    return length;
+    OIC_LOG(INFO, TAG, "OICGetLocalAppDataPath: Unsupported platform.");
+    OC_UNUSED(buffer);
+    OC_UNUSED(bufferLen);
+    return OIC_PLATFORM_NOTIMPL;
 }
 
+OICPlatformResult_t OICGetTempAppDataPath(char* buffer, size_t* bufferLen)
+{
+    OIC_LOG(INFO, TAG, "OICGetTempAppDataPath: Unsupported platform.");
+    OC_UNUSED(buffer);
+    OC_UNUSED(bufferLen);
+    return OIC_PLATFORM_NOTIMPL;
+}
