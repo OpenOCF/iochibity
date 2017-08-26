@@ -21,10 +21,12 @@
 #ifndef IOTVT_SRM_ROLESR_H
 #define IOTVT_SRM_ROLESR_H
 
+#include "iotivity_config.h"
+
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 
 #include "cainterface.h"
-#include "experimental/securevirtualresourcetypes.h"
+#include "securevirtualresourcetypes.h"
 #include "octypes.h"
 
 #ifdef __cplusplus

@@ -17,11 +17,12 @@
 // limitations under the License.
 //
 //******************************************************************
-
-#if defined(__WITH_TLS__) || defined(__WITH_DTLS__)
-
 #ifndef OCSECURITY_H_
 #define OCSECURITY_H_
+
+#include "iotivity_config.h"
+
+#if defined(__WITH_TLS__) || defined(__WITH_DTLS__)
 
 #include "cacommon.h"
 #include "octypes.h"

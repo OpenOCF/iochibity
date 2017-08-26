@@ -30,8 +30,7 @@
 #include "logger.h"
 #include "utlist.h"
 
-/* DP is DEPRECATED */
-/* //#ifdef DIRECT_PAIRING */
+/* DEPRECATED //#ifdef DIRECT_PAIRING */
 /* #include "pconfresource.h" */
 /* #include "dpairingresource.h" */
 /* //#endif // DIRECT_PAIRING */
@@ -114,16 +113,16 @@ OCStackResult InitSecureResources( )
         ret = InitAmaclResource();
     }
 #endif // AMACL_RESOURCE_IMPLEMENTATION_COMPLETE
-//#ifdef DIRECT_PAIRING
-    if(OC_STACK_OK == ret)
-    {
-        ret = InitPconfResource();
-    }
-    if(OC_STACK_OK == ret)
-    {
-        ret = InitDpairingResource();
-    }
-//#endif // DIRECT_PAIRING
+/* DEPRECATED //#ifdef DIRECT_PAIRING */
+/*     if(OC_STACK_OK == ret) */
+/*     { */
+/*         ret = InitPconfResource(); */
+/*     } */
+/*     if(OC_STACK_OK == ret) */
+/*     { */
+/*         ret = InitDpairingResource(); */
+/*     } */
+/* //#endif // DIRECT_PAIRING */
     if(OC_STACK_OK != ret)
     {
         //TODO: Update the default behavior if one of the SVR fails
@@ -144,10 +143,10 @@ OCStackResult DestroySecureResources( )
     DeInitRolesResource();
 #endif // __WITH_DTLS__ || __WITH_TLS__
     DeInitAmaclResource();
-//#ifdef DIRECT_PAIRING
-    DeInitPconfResource();
-    DeInitDpairingResource();
-//#endif // DIRECT_PAIRING
+/* DEPRECATED //#ifdef DIRECT_PAIRING */
+/*     DeInitPconfResource(); */
+/*     DeInitDpairingResource(); */
+/* //#endif // DIRECT_PAIRING */
 
     return OC_STACK_OK;
 }

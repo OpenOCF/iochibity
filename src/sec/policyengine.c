@@ -224,7 +224,7 @@ static GetSvrRownerId_t GetSvrRownerId[OIC_SEC_SVR_TYPE_COUNT + 1] = {
     GetCredRownerId,
     NULL,               // crl doesn't have rowneruuid.
     GetDoxmRownerId,
-    GetDpairingRownerId,
+    /* DEPRECATED GetDpairingRownerId, */
     GetPconfRownerId,
     GetPstatRownerId,
     NULL,               // sacl is not implemented yet.

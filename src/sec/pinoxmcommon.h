@@ -21,7 +21,7 @@
 #ifndef PIN_CALLBACK_DEF_H_
 #define PIN_CALLBACK_DEF_H_
 
-#include "experimental/securevirtualresourcetypes.h"
+#include "securevirtualresourcetypes.h"
 #include "casecurityinterface.h"
 
 #ifdef __cplusplus

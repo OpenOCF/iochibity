@@ -21,7 +21,9 @@
 #ifndef IOTVT_SRM_RSRC_STRINGS_H
 #define IOTVT_SRM_RSRC_STRINGS_H
 
-#include "experimental/securevirtualresourcetypes.h"
+#include "iotivity_config.h"
+
+#include "securevirtualresourcetypes.h"
 
 #ifdef __cplusplus
 extern "C" {

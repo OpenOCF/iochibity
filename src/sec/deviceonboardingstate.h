@@ -22,7 +22,7 @@
 #define DEVICEONBOARDINGSTATE_H_
 
 #include "octypes.h"
-#include "experimental/securevirtualresourcetypes.h"
+#include "securevirtualresourcetypes.h"
 
 #ifdef __cplusplus
 extern "C" {

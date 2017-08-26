@@ -1,0 +1,15 @@
+= sec implementation
+
+
+* SRM - secure resource manager
+
+* psm - persistent storage manager
+
+* doxm - device ownership transfer manager/method
+
+
+================
+
+todo:
+
+	extract persistent storage mgr from secureresourcemanager

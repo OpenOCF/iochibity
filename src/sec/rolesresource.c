@@ -18,8 +18,9 @@
 //
 //******************************************************************
 
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 #include "iotivity_config.h"
+
+#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 #include <stdlib.h>
 #ifdef HAVE_STRING_H
 #include <string.h>

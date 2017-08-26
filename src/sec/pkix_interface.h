@@ -22,39 +22,6 @@
 #define PKIX_INTERFACE_H
 
 #include "cainterface.h"
-#include "experimental/byte_array.h" /* FIXME: mv to //src/util? */
-
-/*GAR TMP - from casecurityinterface.h */
-/**
- * @enum CADtlsPskCredType_t
- * Type of PSK credential required during DTLS handshake
- * It does not make much sense in bringing in all definitions from dtls.h into here.
- * Therefore, redefining them here.
- */
-typedef enum
-{
-    CA_DTLS_PSK_HINT,
-    CA_DTLS_PSK_IDENTITY,
-    CA_DTLS_PSK_KEY
-} CADtlsPskCredType_t;
-
-/**
- * Binary structure containing PKIX related info
- * own certificate chain, public key, CA's and CRL's
- * The data member of each ByteArray_t must be allocated with OICMalloc or OICCalloc.
- * The SSL adapter takes ownership of this memory and will free it internally after use.
- * Callers should not reference this memory after it has been provided to the SSL adapter via the
- * callback.
- */
-typedef struct
-{
-    ByteArray_t crt;    /**< own certificate chain as a null-terminated PEM string of certificates */
-    ByteArray_t key;    /**< own private key as binary-encoded DER */
-    ByteArray_t ca;     /**< trusted CAs as a null-terminated PEM string of certificates */
-    ByteArray_t crl;    /**< trusted CRLs as binary-encoded DER */
-} PkiInfo_t;
-
-
 
 #ifdef __cplusplus
 extern "C" {

@@ -55,6 +55,8 @@ Modules/Components
 
 * ams mgr ?
 
+* credential mgr?
+
 ================================================================
 TODO:
 
@@ -69,3 +71,4 @@ TODO:
 2.  Get rid of icalendar stuff, does not belong in OCF kernel
 
 3.  move PkiInfo_t typedef from //comm casecurityinterface.h to somewhere in //sec
+

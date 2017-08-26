@@ -39,7 +39,7 @@
 #include "srmutility.h"
 #include "pstatresource.h"
 #include "doxmresource.h"
-// #include "ocresourcehandler.h"	/* ocf/internal */
+#include "ocresourcehandler.h"
 
 #define TAG  "OIC_SRM_PSI"
 

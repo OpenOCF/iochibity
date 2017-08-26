@@ -56,7 +56,7 @@
 #include "certhelpers.h"
 #include "cacommon.h"
 #include "secureresourcemanager.h"
-/*GAR #include "ocstackinternal.h" */
+#include "ocstackinternal.h"
 #include "deviceonboardingstate.h"
 
 #ifdef __unix__

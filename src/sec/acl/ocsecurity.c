@@ -18,9 +18,9 @@
 *
 * *****************************************************************/
 
-#if defined(__WITH_TLS__) || defined(__WITH_DTLS__)
-
 #include "iotivity_config.h"
+
+#if defined(__WITH_TLS__) || defined(__WITH_DTLS__)
 
 #include "logger.h"
 #include <stddef.h>

@@ -25,7 +25,7 @@
 #include "oic_malloc.h"
 #include "ocrandom.h"
 #include "utlist.h"
-#include "experimental/securevirtualresourcetypes.h"
+#include "securevirtualresourcetypes.h"
 
 #ifdef __cplusplus
 extern "C"

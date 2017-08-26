@@ -22,7 +22,7 @@
 #define IOTVT_SRM_UTILITY_H
 
 #include "ocstack.h"
-#include "experimental/securevirtualresourcetypes.h"
+#include "securevirtualresourcetypes.h"
 #ifdef __cplusplus
 extern "C"
 {
