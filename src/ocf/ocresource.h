@@ -31,6 +31,7 @@
 
 #include "ocstackconfig.h"
 #include "occlientcb.h"
+#include "ocobserve.h"
 
 /** Macro Definitions for observers */
 
@@ -54,24 +55,17 @@ typedef struct PRESENCERESOURCE{
 } PresenceResource;
 #endif
 
+/** Introspection URI.*/
+#define OC_RSRVD_INTROSPECTION_URI_PATH            "/introspection"
+
+/** Introspection payload URI.*/
+#define OC_RSRVD_INTROSPECTION_PAYLOAD_URI_PATH    "/introspection/payload"
+
 /**
  * Forward declarations
  */
 
 struct rsrc_t;
-
-/**
- * Typedefs for stack interface
- * IF here stands for Interface
- */
-
-typedef enum {
-    STACK_IF_DEFAULT = 0,
-    STACK_IF_LL,
-    STACK_IF_BATCH,
-    STACK_IF_GROUP,
-    STACK_IF_INVALID
-} OCStackIfTypes;
 
 /**
  * following structure will be created in occollection.
@@ -155,10 +149,10 @@ typedef struct attr_t {
     /** The name of the attribute; used to look up the attribute in list.
      *  for a given attribute SHOULD not be changed once assigned.
      */
-    const char *attrName;
+    char *attrName;
 
-    /** value of the attribute as string.*/
-    char *attrValue;
+    /** value of the attribute as void. To support both string and ::OCStringLL value*/
+    void *attrValue;
 } OCAttribute;
 
 /**
@@ -208,7 +202,7 @@ typedef struct OCResource {
     /** Resource interface(s); linked list.*/
     OCResourceInterface *rsrcInterface;
 
-    /** Resource interface(s); linked list.*/
+    /** Resource attributes; linked list.*/
     OCAttribute *rsrcAttributes;
 
     /** Array of pointers to resources; can be used to represent a container of resources.
@@ -234,6 +228,8 @@ typedef struct OCResource {
      * place holder for the note above.*/
     /* method_t methods; */
 
+    /** Observer(s); linked list.*/
+    ResourceObserver *observersHead;
 
     /** Sequence number for observable resources. Per the CoAP standard it is a 24 bit value.*/
     uint32_t sequenceNum;
@@ -245,14 +241,45 @@ typedef struct OCResource {
     union
     {
         /** An ordinal number that is not repeated - must be unique in the collection context. */
-        uint8_t ins;
+        int64_t ins;
         /** Any unique string including a URI. */
         char *uniqueStr;
         /** Use UUID for universal uniqueness - used in /oic/res to identify the device. */
         OCIdentity uniqueUUID;
     };
+
+    /** Resource endpoint type(s). */
+    OCTpsSchemeFlags endpointType;
 } OCResource;
 
+/**
+ * Checks if an observation Id already exists among the resources.
+ *
+ * @param[in]  observationId        Observation Id to check.
+ *
+ * @return true if it exists, false if not.
+ */
+bool IsObservationIdExisting(const OCObservationId observationId);
 
+/**
+ * Search the list of resource for an observer that has the specified token.
+ *
+ * @param[out] outResource          Resource pointer that the observer belong to.
+ * @param[out] outObserver          Observer pointer that is associated with the token.
+ * @param[in]  token                Token to search for.
+ * @param[in]  tokenLength          Length of token.
+ *
+ * @return true if the resource and the observer are found, false if not.
+ */
+bool GetObserverFromResourceList(OCResource **outResource, ResourceObserver **outObserver,
+                                 const CAToken_t token, uint8_t tokenLength);
+
+/**
+ * Give a stack feedback so that entityHandler gets called with an observe de-register option
+ * and it will delete all observers associated with the specified device's address.
+ *
+ * @param[in]  devAddr              Device's address.
+ */
+void GiveStackFeedBackObserverNotInterested(const OCDevAddr *devAddr);
 
 #endif /* OCRESOURCE_H_ */

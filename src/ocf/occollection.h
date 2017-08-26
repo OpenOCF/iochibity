@@ -22,11 +22,14 @@
 #define OC_COLLECTION_H
 
 #include "ocstack.h"
-#include "internal/ocresourcehandler.h"
+#include "ocresourcehandler.h"
 
-uint8_t GetNumOfResourcesInCollection (OCResource *resource);
+uint8_t GetNumOfResourcesInCollection(const OCResource *resource);
 
 OCStackResult DefaultCollectionEntityHandler (OCEntityHandlerFlag flag,
                                               OCEntityHandlerRequest *entityHandlerRequest);
+
+OCStackResult BuildCollectionLinksPayloadValue(const char* resourceUri,
+                           OCRepPayloadValue** linksRepPayloadValue, OCDevAddr* devAddr);
 
 #endif //OC_COLLECTION_H

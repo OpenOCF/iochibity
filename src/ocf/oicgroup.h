@@ -21,7 +21,7 @@
 #ifndef OIC_GROUP_H
 #define OIC_GROUP_H
 
-#include "internal/ocstackinternal.h"
+#include "ocstackinternal.h"
 #include "ocstack.h"
 #include "ocresource.h"
 
@@ -41,8 +41,6 @@ void DeleteAction(OCAction** action);
 
 void DeleteActionSet(OCActionSet** actionset);
 
-OCStackResult DeleteActionSets(OCResource** resource);
-
 OCStackResult FindAndDeleteActionSet(OCResource **resource, const char * actionsetName);
 
 OCStackResult ExtractKeyValueFromRequest(OCEntityHandlerRequest *ehRequest, char **key, char **value);
@@ -56,6 +54,9 @@ OCStackApplicationResult ActionSetCB(void* context, OCDoHandle handle,
 
 void ActionSetCD(void *context);
 
+OCStackResult InitializeScheduleResourceList();
+
+void TerminateScheduleResourceList();
 
 OCStackResult
 BuildCollectionGroupActionCBORResponse(OCMethod method/*OCEntityHandlerFlag flag*/,
