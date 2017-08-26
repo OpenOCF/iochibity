@@ -18,6 +18,18 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+# autotools
+autom4te*
+config*
+
+# bazel
+# tmp dirs:
+bazel-*
+# query results
+graph.in
+# test code
+hello.cc
+
 # Ignore output dirs
 build/
 lib/
