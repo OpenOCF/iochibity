@@ -16,3 +16,16 @@ cc_binary(
     srcs = ["occlient.c"]
 )
 
+cc_binary(
+    name = "server",
+    linkstatic = 1,
+    copts = ["-Isrc",
+             "-Isrc/comm",
+             "-Isrc/logger",
+             "-Isrc/ocf"],
+    # 	     "-Isrc/util"],
+    deps = ["//src:config",
+            "//src/ocf"],
+    srcs = ["ocserver.c"]
+)
+
