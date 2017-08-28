@@ -1,8 +1,8 @@
-new_local_repository(
-  name = "toolchain_mingw64_7_2_0",
-  build_file = "compilers/mingw64_7_2_0.BUILD",
-  path = "c:/tools/msys64/mingw64"
-)
+# new_local_repository(
+#   name = "toolchain_mingw64_7_2_0",
+#   build_file = "compilers/mingw64_7_2_0.BUILD",
+#   path = "c:/tools/msys64/mingw64"
+# )
 
 # new_http_archive(
 #     name = "libcoap",
