@@ -20,7 +20,7 @@ cc_library(
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
-            "//src/comm/adapter_util:utils",
+            "//src/comm/adapter_util",
     	    "//src/comm/common",
     	    "//src/comm/interface",
             "//src/logger",

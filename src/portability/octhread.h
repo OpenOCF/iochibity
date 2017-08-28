@@ -27,6 +27,7 @@
 #ifndef OC_THREAD_H_
 #define OC_THREAD_H_
 
+#include "iotivity_config.h"
 #include "iotivity_commontypes.h"
 
 #ifdef HAVE_STDBOOL_H

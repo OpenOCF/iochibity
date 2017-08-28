@@ -25,8 +25,8 @@
  * This file contains the definitions, types and APIs for resources to be implemented.
  */
 
-#ifndef OCTYPES_H_
-#define OCTYPES_H_
+#ifndef PAYLOAD_H_
+#define PAYLOAD_H_
 
 #include "iotivity_config.h"
 #include "iotivity_constants.h"
@@ -1355,4 +1355,4 @@ typedef enum
 }
 #endif // __cplusplus
 
-#endif /* OCTYPES_H_ */
+#endif /* PAYLOAD_H_ */

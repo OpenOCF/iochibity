@@ -21,9 +21,13 @@
 #ifndef _OTM_CONTEXT_LIST_H_
 #define _OTM_CONTEXT_LIST_H_
 
+#include "iotivity_config.h"
+
+#include "openocf.h"
+
 #include "pmtypes.h"
-#include "ocstack.h"
-#include "octypes.h"
+/* #include "ocstack.h" */
+/* #include "octypes.h" */
 #include "securevirtualresourcetypes.h"
 #include "ownershiptransfermanager.h"
 

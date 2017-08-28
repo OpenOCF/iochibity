@@ -51,12 +51,7 @@ typedef bool _Bool;
 # define __bool_true_false_are_defined 1
 #endif
 
-
-
-// posix
-// #define HAVE_PTHREAD_H
-
-/* for libcoap-4.1.1 (protocol/coap) */
+/* for libcoap-4.1.1 (protocol/coap): WITH_POSIX == HAVE_LIBPTHREAD? */
 
 #define WITH_POSIX 1
 
@@ -172,5 +167,6 @@ typedef bool _Bool;
  * Mark a parameter as unused. Used to prevent unused variable compiler warnings.
  */
 #define OC_UNUSED(x) (void)(x)
+
 
 #endif /* SYSTEM_H */

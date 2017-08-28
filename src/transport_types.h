@@ -3,6 +3,8 @@
 
 #include "iotivity_config.h"
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus

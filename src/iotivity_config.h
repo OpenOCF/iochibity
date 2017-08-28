@@ -5,26 +5,29 @@
 #define HAVE_ALARM 1
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
-/* #undef HAVE_ARPA_INET_H */
+#define HAVE_ARPA_INET_H 1
 
 /* Define to 1 if you have the <assert.h> header file. */
 #define HAVE_ASSERT_H 1
 
 /* Define to 1 if you have the `bzero' function. */
-/* #undef HAVE_BZERO */
+#define HAVE_BZERO 1
 
 /* Define to 1 if you have the `clock_gettime' function. */
 #define HAVE_CLOCK_GETTIME 1
 
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
    don't. */
-#define HAVE_DECL_STRERROR_R 0
+#define HAVE_DECL_STRERROR_R 1
+
+/* Define to 1 if you have the <errno.h> header file. */
+#define HAVE_ERRNO_H 1
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H 1
 
 /* Define to 1 if you have the `fdatasync' function. */
-/* #undef HAVE_FDATASYNC */
+#define HAVE_FDATASYNC 1
 
 /* Define to 1 if you have the <float.h> header file. */
 #define HAVE_FLOAT_H 1
@@ -33,7 +36,7 @@
 #define HAVE_FLOOR 1
 
 /* Define to 1 if you have the `fork' function. */
-/* #undef HAVE_FORK */
+#define HAVE_FORK 1
 
 /* Define to 1 if you have the `getcwd' function. */
 #define HAVE_GETCWD 1
@@ -47,18 +50,21 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
+/* Define to 1 if you have the `pthread' library (-lpthread). */
+#define HAVE_LIBPTHREAD 1
+
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
 
 /* Define to 1 if you have the `localtime_r' function. */
-/* #undef HAVE_LOCALTIME_R */
+#define HAVE_LOCALTIME_R 1
 
 /* Define to 1 if your system has a GNU libc compatible `malloc' function, and
    to 0 otherwise. */
 #define HAVE_MALLOC 1
 
 /* Define to 1 if you have the <malloc.h> header file. */
-#define HAVE_MALLOC_H 1
+/* #undef HAVE_MALLOC_H */
 
 /* Define to 1 if you have the `memmove' function. */
 #define HAVE_MEMMOVE 1
@@ -70,32 +76,38 @@
 #define HAVE_MEMSET 1
 
 /* Define to 1 if you have the <netdb.h> header file. */
-/* #undef HAVE_NETDB_H */
+#define HAVE_NETDB_H 1
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
-/* #undef HAVE_NETINET_IN_H */
+#define HAVE_NETINET_IN_H 1
+
+/* Define to 1 if you have the <net/if.h> header file. */
+#define HAVE_NET_IF_H 1
 
 /* Define to 1 if you have the `pow' function. */
 #define HAVE_POW 1
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#define HAVE_PTHREAD_H 1
 
 /* Define to 1 if the system has the type `ptrdiff_t'. */
 #define HAVE_PTRDIFF_T 1
 
 /* Define to 1 if you have the `QueryPerformanceCounter' function. */
-#define HAVE_QUERYPERFORMANCECOUNTER 1
+/* #undef HAVE_QUERYPERFORMANCECOUNTER */
 
 /* Define to 1 if you have the `QueryPerformanceFrequency' function. */
-#define HAVE_QUERYPERFORMANCEFREQUENCY 1
+/* #undef HAVE_QUERYPERFORMANCEFREQUENCY */
 
 /* Define to 1 if your system has a GNU libc compatible `realloc' function,
    and to 0 otherwise. */
 #define HAVE_REALLOC 1
 
 /* Define to 1 if you have the `select' function. */
-/* #undef HAVE_SELECT */
+#define HAVE_SELECT 1
 
 /* Define to 1 if you have the `socket' function. */
-/* #undef HAVE_SOCKET */
+#define HAVE_SOCKET 1
 
 /* Define to 1 if you have the <stdbool.h> header file. */
 #define HAVE_STDBOOL_H 1
@@ -119,12 +131,10 @@
 #define HAVE_STRERROR 1
 
 /* Define to 1 if you have the `strerror_r' function. */
-/* #undef HAVE_STRERROR_R */
+#define HAVE_STRERROR_R 1
 
 /* Define to 1 if you have the <strings.h> header file. */
-#ifndef _MSC_VER /* mingw has it, msvc does not */
 #define HAVE_STRINGS_H 1
-#endif
 
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
@@ -133,12 +143,13 @@
 #define HAVE_STRNCASECMP 1
 
 /* Define to 1 if you have the `strndup' function. */
-/* #undef HAVE_STRNDUP */
+#define HAVE_STRNDUP 1
+
+/* Define to 1 if you have the `strnlen' function. */
+#define HAVE_STRNLEN 1
 
 /* Define to 1 if you have the `strptime' function. */
-#ifndef _MSC_VER /* mingw has it, msvc does not */
-/* #undef HAVE_STRPTIME */
-#endif
+#define HAVE_STRPTIME 1
 
 /* Define to 1 if you have the `strrchr' function. */
 #define HAVE_STRRCHR 1
@@ -150,7 +161,7 @@
 #define HAVE_STRTOK_R 1
 
 /* Define to 1 if you have the `strtok_s' function. */
-#define HAVE_STRTOK_S 1
+/* #undef HAVE_STRTOK_S */
 
 /* Define to 1 if you have the `strtol' function. */
 #define HAVE_STRTOL 1
@@ -159,25 +170,25 @@
 #define HAVE_STRTOUL 1
 
 /* Define to 1 if `st_blksize' is a member of `struct stat'. */
-/* #undef HAVE_STRUCT_STAT_ST_BLKSIZE */
+#define HAVE_STRUCT_STAT_ST_BLKSIZE 1
 
 /* Define to 1 if you have the <sys/file.h> header file. */
 #define HAVE_SYS_FILE_H 1
 
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
-/* #undef HAVE_SYS_IOCTL_H */
+#define HAVE_SYS_IOCTL_H 1
 
 /* Define to 1 if you have the <sys/mount.h> header file. */
-/* #undef HAVE_SYS_MOUNT_H */
+#define HAVE_SYS_MOUNT_H 1
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #define HAVE_SYS_PARAM_H 1
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
-/* #undef HAVE_SYS_SOCKET_H */
+#define HAVE_SYS_SOCKET_H 1
 
 /* Define to 1 if you have the <sys/statvfs.h> header file. */
-/* #undef HAVE_SYS_STATVFS_H */
+#define HAVE_SYS_STATVFS_H 1
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
@@ -186,15 +197,16 @@
 #define HAVE_SYS_TIMEB_H 1
 
 /* Define to 1 if you have the <sys/time.h> header file. */
-#ifndef _MSC_VER /* mingw has it, msvc does not */
 #define HAVE_SYS_TIME_H 1
-#endif
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <termios.h,> header file. */
 /* #undef HAVE_TERMIOS_H_ */
+
+/* Define to 1 if you have the `time' function. */
+#define HAVE_TIME 1
 
 /* Define to 1 if you have the <time.h> header file. */
 #define HAVE_TIME_H 1
@@ -203,9 +215,7 @@
 #define HAVE_TZSET 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
-#ifndef _MSC_VER /* mingw has it, msvc does not */
 #define HAVE_UNISTD_H 1
-#endif
 
 /* Define to 1 if you have the `utime' function. */
 #define HAVE_UTIME 1
@@ -214,35 +224,44 @@
 #define HAVE_UTIME_H 1
 
 /* Define to 1 if you have the `vfork' function. */
-/* #undef HAVE_VFORK */
+#define HAVE_VFORK 1
 
 /* Define to 1 if you have the <vfork.h> header file. */
 /* #undef HAVE_VFORK_H */
 
 /* Define to 1 if you have the <windows.h> header file. */
-#define HAVE_WINDOWS_H 1
+/* #undef HAVE_WINDOWS_H */
 
 /* Define to 1 if you have the <winsock2.h> header file. */
-#define HAVE_WINSOCK2_H 1
+/* #undef HAVE_WINSOCK2_H */
 
 /* Define to 1 if `fork' works. */
-/* #undef HAVE_WORKING_FORK */
+#define HAVE_WORKING_FORK 1
 
 /* Define to 1 if `vfork' works. */
-/* #undef HAVE_WORKING_VFORK */
+#define HAVE_WORKING_VFORK 1
 
 /* Define to 1 if you have the <ws2tcpip.h> header file. */
-#define HAVE_WS2TCPIP_H 1
+/* #undef HAVE_WS2TCPIP_H */
 
 /* Define to 1 if the system has the type `_Bool'. */
 #define HAVE__BOOL 1
 
 /* Define to 1 if you have the `_strnicmp' function. */
-#define HAVE__STRNICMP 1
+/* #undef HAVE__STRNICMP */
+
+/* Enable IP_ADAPTER */
+#define IP_ADAPTER /**/
 
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
 /* #undef LSTAT_FOLLOWS_SLASHED_SYMLINK */
+
+/* mbedtls: system has time.h and time() */
+#define MBEDTLS_HAVE_TIME 1
+
+/* mbedtls: system has time.h, time(), gmtime() */
+#define MBEDTLS_HAVE_TIME_DATE 1
 
 /* Multiple ownership */
 /* #undef MULTIPLE_OWNER */
@@ -272,7 +291,7 @@
 /* #undef STRERROR_R_CHAR_P */
 
 /* Logging */
-/* #undef TB_LOG */
+#define TB_LOG /**/
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #define TIME_WITH_SYS_TIME 1
@@ -334,7 +353,7 @@
 /* #undef __WITH_TLS__ */
 
 /* Define to `int' if <sys/types.h> doesn't define. */
-#define gid_t int
+/* #undef gid_t */
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
@@ -380,7 +399,7 @@
 /* #undef ssize_t */
 
 /* Define to `int' if <sys/types.h> doesn't define. */
-#define uid_t int
+/* #undef uid_t */
 
 /* Define to the type of an unsigned integer type of width exactly 16 bits if
    such a type exists and the standard includes do not define it. */
@@ -399,6 +418,19 @@
 /* #undef uint8_t */
 
 /* Define as `fork' if `vfork' does not work. */
-#define vfork fork
+/* #undef vfork */
+
+
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+/* #  undef WORDS_BIGENDIAN */
+# endif
+#endif
 
 #include "system.h"

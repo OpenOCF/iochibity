@@ -58,8 +58,11 @@ OCStackResult CreateSecureSessionRandomPinCallback(OTMContext_t *otmCtx);
  * @param cborSize is the size of the cborPayload.
  *
  * @return ::OC_STACK_OK in case of success and other value otherwise.
+ * @return ::OC_RC_SUCCESS/OC_RC_FAILURE, with error code in errno
+ *   errors: EINVAL invalid argument
  */
-OCStackResult CreatePinBasedSelectOxmPayload(OTMContext_t *otmCtx, uint8_t **cborPayload,
+/* OCStackResult */
+int CreatePinBasedSelectOxmPayload(OTMContext_t *otmCtx, uint8_t **cborPayload,
                                              size_t *cborSize);
 
 /**

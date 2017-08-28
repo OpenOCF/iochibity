@@ -19,7 +19,7 @@ cc_library(
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
-            "//src/comm/adapter_util:utils",
+            "//src/comm/adapter_util",
             "//src/comm/api",
             "//src/comm/common",
             "//src/comm/interface",
@@ -30,12 +30,14 @@ cc_library(
             "//third_party/coap"],
     srcs  = ["cainterfacecontroller.c",
 	     "cainterfacecontroller.h",
+             "caipnwmonitor.h",
              "caedradapter.h",
              "caleadapter.h",
              "canfcadapter.h",
              "caipadapter.h",
              "caqueueingthread.h",
-             "canetworkconfigurator.h"]
+             "canetworkconfigurator.h"],
+    visibility = ["//src/comm/network:__pkg__"]
 )
 
 cc_library(
@@ -61,13 +63,12 @@ cc_library(
     deps = ["//src:config",
             "//src/logger",
     	    "//src/portability",
-            "//src/comm/adapter_util:utils",
+            "//src/comm/adapter_util",
 	    "//src/comm/common",
 	    "//src/comm:ifcontrol",
 	    "//src/comm/interface",
 	    # "//src/comm:shared",
-            #"//src/comm:util",
-            #"//src/comm/network:ip",
+            "//src/comm/network:ip",
             "//third_party/coap",
             "//third_party/mbedtls",
             "//third_party/mbedtls:mbedtls-crypto",

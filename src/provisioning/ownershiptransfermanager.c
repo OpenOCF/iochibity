@@ -44,6 +44,10 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 #include "logger.h"
 #include "oic_malloc.h"
 #include "oic_string.h"

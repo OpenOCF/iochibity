@@ -35,7 +35,7 @@
 #include "ocpayloadcbor.h"
 #include "cainterface.h"
 #include "ocserverrequest.h"
-#include "resourcemanager.h"
+#include "resourcemanager.h"	/* for SendSRMResponse */
 #include "doxmresource.h"
 #include "pstatresource.h"
 #include "deviceonboardingstate.h"

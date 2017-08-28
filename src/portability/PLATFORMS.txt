@@ -1,3 +1,4 @@
+No Arduino; for now we only support windows and posix (pthreads) systems
 
 gcc predefined macros:  $ ./gcc -dM -E -x c /dev/null | sort
 

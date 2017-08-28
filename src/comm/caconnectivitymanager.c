@@ -250,6 +250,7 @@ CAResult_t CACreateEndpoint(CATransportFlags_t flags,
 {
     if (!object)
     {
+	/* errno = EINVAL; */
         OIC_LOG(ERROR, TAG, "Invalid Parameter");
         return CA_STATUS_INVALID_PARAM;
     }

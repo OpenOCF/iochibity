@@ -20,7 +20,17 @@
 
 #include <memory.h>
 
-#include "ocstack.h"
+#include "openocf.h"
+
+#include "iotivity_config.h"
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#else
+#error "errno.h required, not found"
+#endif
+
+/* #include "ocstack.h" */
 #include "securevirtualresourcetypes.h"
 #include "doxmresource.h"
 #include "credresource.h"
@@ -39,11 +49,13 @@
 
 #define TAG "OIC_OXM_RandomPIN"
 
-OCStackResult CreatePinBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
+int CreatePinBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
 {
     if(!otmCtx || !otmCtx->selectedDeviceInfo || !payload || *payload || !size)
     {
-        return OC_STACK_INVALID_PARAM;
+	errno = EINVAL;
+	return OC_RC_FAILURE;
+        /* return OC_STACK_INVALID_PARAM; */
     }
 
     bool propertiesToInclude[DOXM_PROPERTY_COUNT];

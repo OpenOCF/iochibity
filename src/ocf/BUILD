@@ -2,22 +2,35 @@ cc_library(
     name = "ocf",
     #linkstatic = 1,
     deps = ["//src/ocf:interface",
+            "//src/ocf:hdrs",
             "//src/ocf:impl",
             "//src/comm",
             "//src/provisioning",
-            #"//src/sec"
+            "//src/sec"
     ],
     visibility = ["//visibility:public"]
 )
 
 cc_library(
-    name = "types",
+    name = "hdrs",
     copts = ["-Isrc"
     ],
     deps = ["//src:config"
     ],
-    hdrs = ["octypes.h"],
-    srcs = ["octypes.h"],
+    hdrs = ["octypes.h",
+            "ocstack.h",
+            "ocpayload.h",
+            "ocpayloadcbor.h",
+            "ocpresence.h",
+            "payload_logging.h"],
+    srcs = ["ocserverrequest.h",
+            "ocstackinternal.h", # included by sec/doxmresource.c
+            "ocstackconfig.h",   # included by ocstackinternal.h
+            "occlientcb.h",      # included by ocstackinternal.h
+            "ocresource.h",      # included by occlientcb.h
+            "ocobserve.h",       # included by ocobserve.h
+            "ocresourcehandler.h", # included by sec/secureresourcemanager.c
+            "tree.h"],
     visibility = ["//src/sec:__pkg__",
                   "//src/ocf/stack:__pkg__",
                   "//src/provisioning:__pkg__",
@@ -60,7 +73,8 @@ cc_library(
             "ocresource.h",
             "ocresourcehandler.h",
             "ocserverrequest.h", # sec/aclresource.c
-            # "ocstackinternal.h",
+            "ocstack.h",
+            "ocstackinternal.h",
             "octypes.h",
             "tree.h"],
     visibility = ["//src/sec:__pkg__",
@@ -98,7 +112,7 @@ cc_library(
             # "//src/sec/aclroles",
             # "//src/sec:doxm",
             # "//src/sec:interface",
-            #"//src/sec",
+            "//src/sec",
             "//src/util",       # c_common
             "//third_party/tinycbor",
             "//third_party/cjson",
@@ -124,8 +138,8 @@ cc_library(
             "ocresource.c",
             "ocserverrequest.c",
             #"ocserverrequest.h",
-            # "ocstack.c",
-            #"ocstack.h",
+            "ocstack.c",
+            "ocstack.h",
             #"octypes.h",
             "oicgroup.c",
             "oicgroup.h",

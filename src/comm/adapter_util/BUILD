@@ -1,5 +1,5 @@
 cc_library(
-    name = "utils",
+    name = "adapter_util",
     alwayslink = True,
     copts = ["-Isrc",
              "-Isrc/comm/api",  # cacommon.h
@@ -11,7 +11,7 @@ cc_library(
              # "-Ithird_party/coap",
              "-Ithird_party/coap/include",
              #"-Ithird_party/coap/include/coap",
-             "-Ithird_party/mbedtls",
+             # "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include"]
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),

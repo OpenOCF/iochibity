@@ -24,7 +24,7 @@
 #include "camanagerleinterface.h"
 #include "cabtpairinginterface.h"
 #include "cautilinterface.h"
-// GAR  #include "cainterfacecontroller.h"
+// GAR needed for fn prototypes:  #include "cainterfacecontroller.h"
 #include "cacommon.h"
 #include "logger.h"
 
@@ -432,7 +432,7 @@ void CAUtilSetLogLevel(CAUtilLogLevel_t level, bool hidePrivateLogEntries)
             break;
         case CA_LOG_LEVEL_ALL:
         default:
-            logLevel = DEBUG;
+            logLevel = LL_DEBUG;
             break;
     }
 

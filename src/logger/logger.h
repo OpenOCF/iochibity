@@ -87,12 +87,12 @@ typedef enum {
 
 typedef enum {
     LL_DEBUG = 0,
-    LL_INFO,
-    LL_WARNING,
-    LL_ERROR,
-    LL_FATAL,
-    LL_DEBUG_LITE,       // The DEBUG log for Lite device
-    LL_INFO_LITE,        // The INFO log for Lite device
+    INFO,
+    WARNING,
+    ERROR,
+    FATAL,
+    DEBUG_LITE,       // The DEBUG log for Lite device
+    INFO_LITE,        // The INFO log for Lite device
 } LogLevel;
 
 #endif // __TIZEN__

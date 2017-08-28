@@ -1,35 +1,39 @@
 config_setting(
     name = "windows",
     values = { "define": "platform=windows" }
+    # default: posix
 )
 
 cc_library(
     name = "hdrs",
-    # deps = ["//src:config",
-    #         "//src/logger"],
-    # copts = ["-Isrc",
-    #          "-Isrc/logger",
-    #          "-Isrc/portability",
-    #          "-Isrc/portability/windows",
-    # 	     "-Isrc/util"],
     hdrs = ["ocatomic.h",
             "ocevent.h",
+            "ocrandom.h",
             "octhread.h",
             "oic_malloc.h",
+            "oic_platform.h",
+            "oic_string.h",
+            "oic_time.h",
             "iotivity_commontypes.h"]
 )
 
+# if platform != windows and defined(HAVE_LIBPTHREAD)
+# NB: for now we ignore platforms lacking pthreads
 cc_library(
     name = "posix",
-    deps = ["//src:config",
-            "//src/logger",
-            "//src/portability:hdrs"],
     copts = ["-Isrc",
              "-Isrc/logger",
-             "-Isrc/portability"]
+             "-Isrc/portability",
+             "-Ithird_party/mbedtls/include"]
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),
-    srcs = ["octhread.h",
+    deps = ["//src:config",
+            "//src/logger",
+            "//src/portability:hdrs",
+            "//third_party/mbedtls"],
+    srcs = ["oic_platform.c",
+            "posix/ocatomic.c",
+            "posix/ocevent.c",
             "posix/octhread.c"]
 )
 
@@ -64,7 +68,6 @@ cc_library(
             "ocrandom.h",
 
             "oic_platform.c",
-            "oic_platform.h",
             # FIXME: convert to c11
             "windows/oic_winplatform.cpp",
 
@@ -79,13 +82,11 @@ cc_library(
     linkstatic = 1,
     deps = ["//src:config",
             "//src/logger"]
-    + select({":windows": ["//src/portability:win",],
+    + select({":windows": ["//src/portability:win"],
+              "//conditions:default": ["//src/portability:posix"]}),
               # ":gcc": ["//src/portability:gcc"],
               # ":posix": ["//src/portability:posix"],
-    #             "//conditions:default": ["gcc/ocatomic.c",
-    # 					 "gcc/ocevent.c",
-    # 					 "posix/octhread.c"]}),
-              "//conditions:default": []}),
+              # "//conditions:default": []}),
     copts = ["-Isrc",
              "-Isrc/logger",
              "-Isrc/portability",
