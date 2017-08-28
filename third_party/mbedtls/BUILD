@@ -3,11 +3,15 @@ licenses(["notice"])
 cc_library(
     name = "mbedtls",
     alwayslink=True,
-    copts = ["-Ithird_party/mbedtls/include",
+    copts = ["-Isrc",
+             "-Ithird_party/mbedtls/include",
              "-Ithird_party/mbedtls/include/mbedtls"],
-    deps = ["mbedtls-crypto", "mbedtls-x509"],
+    deps = ["//src:config",
+            "mbedtls-crypto",
+            "mbedtls-x509"],
     linkstatic = 1,
     srcs = ["include/mbedtls/config.h",
+            "include/mbedtls/config_mbedtls.h",
             "include/mbedtls/check_config.h",
 
             "library/debug.c",
@@ -40,9 +44,12 @@ cc_library(
 cc_library(
     name = "mbedtls-crypto",
     alwayslink=True,
-    copts = ["-Ithird_party/mbedtls/include",
+    copts = ["-Isrc",
+             "-Ithird_party/mbedtls/include",
              "-Ithird_party/mbedtls/include/mbedtls"],
+    deps = ["//src:config"],
     srcs = ["include/mbedtls/config.h",
+            "include/mbedtls/config_mbedtls.h",
             "include/mbedtls/check_config.h",
 
             "library/aes.c",
@@ -208,9 +215,12 @@ cc_library(
 cc_library(
     name = "mbedtls-x509",
     alwayslink=True,
-    copts = ["-Ithird_party/mbedtls/include",
+    copts = ["-Isrc",
+             "-Ithird_party/mbedtls/include",
              "-Ithird_party/mbedtls/include/mbedtls"],
+    deps = ["//src:config"],
     srcs = ["include/mbedtls/config.h",
+            "include/mbedtls/config_mbedtls.h",
             "include/mbedtls/check_config.h",
 
             "library/certs.c",

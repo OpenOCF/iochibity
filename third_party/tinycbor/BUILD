@@ -1,3 +1,5 @@
+package(default_visibility = ["//visibility:public"])
+
 licenses(["notice"])
 
 config_setting(
@@ -26,10 +28,10 @@ cc_library(
         "src/extract_number_p.h",
         #"src/math_support_p.h",
         #"src/open_memstream.c"
-    ],
-    visibility = ["//src/ocf:__pkg__",
-                  "//src/ocf/stack:__pkg__",
-                  "//src/sec:__pkg__",
-                  "//src/sec/acl:__pkg__",
-                  "//src/provisioning:__pkg__"]
+    ]
+    # visibility = ["//src/ocf:__pkg__",
+    #               "//src/ocf/stack:__pkg__",
+    #               "//src/sec:__pkg__",
+    #               "//src/sec/acl:__pkg__",
+    #               "//src/provisioning:__pkg__"]
 )
