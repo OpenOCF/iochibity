@@ -33,7 +33,9 @@ modify the result as described below.  This is because ...
 #endif
 ```
      headers:  unistd.h, sys/time.h, strings.h
-     function: strptime 
+     function: strptime
+
+Also, windows has libpthread, but we use native threads, so we need to undef HAVE_LIBPTHREAD
 
 
 TODO: add --enable-logging
