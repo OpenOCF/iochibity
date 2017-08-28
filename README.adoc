@@ -3,6 +3,8 @@
 
 Experimenting with bazel build of iotivity 1.3.0
 
+The source is in `src/` and `third_party`.
+
 WARNING:  The source tree has been reorganized substantially:
 
 * csdk -> //src
@@ -21,11 +23,19 @@ WARNING:  The source tree has been reorganized substantially:
 
 Building:
 
-`$ bazel build <target>` where targets are defined by BUILD files.  Examples:
+[source,sh]
+----
+$ autoheader && autoconf && ./configure --enable-logging
+$ bazel build <target>`
+----
+
+where targets are defined by BUILD files.  Examples:
 
 * `$ bazel build src/provisioning`
 * `$ bazel build src/comm`
 * etc
+
+Run `./configure --help` to see the `--enable-feature` and `--with-lib` options.
 
 Test app:
 
