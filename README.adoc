@@ -25,6 +25,7 @@ Building:
 
 [source,sh]
 ----
+$ automake --add-missing  # generates config.guess, config.sub (both required)
 $ autoheader && autoconf && ./configure --enable-logging
 $ bazel build <target>`
 ----
