@@ -1,0 +1,53 @@
+= refactoring
+
+=== circularities
+
+* doxmresource.c calls SendSRMResponse from resourcemanager;
+  resourcemanager.c calls InitDoxmResource
+
+doxmresource.c:
+	static OCEntityHandlerResult HandleDoxmGetRequest (const OCEntityHandlerRequest * ehRequest)
+	static OCEntityHandlerResult HandleDoxmPostRequest(OCEntityHandlerRequest * ehRequest)
+	OCEntityHandlerResult DoxmEntityHandler(OCEntityHandlerFlag flag, ...
+
+	    all call sec/resourcemanager.SendSRMResponse
+
+
+== misc
+
+* ocf/stackinternal.h - not really internal, directly included by provisioning/oxmjustworks.c
+
+* UUID
+
+  //src/sec/securevirtualresourcetypes.h: move these to //src/util?
+
+  typedef struct OicUuid OicUuid_t; //TODO is UUID type defined elsewhere?
+  struct OicUuid
+  {
+    // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
+    //TODO fill in unless this is defined elsewhere?
+    uint8_t             id[UUID_LENGTH];
+    };
+
+=== payload
+
+ move all to //src/payload?
+
+== resources
+
+refactor securevirtualresourcetypes.h?  currently all resource types
+are glommed into this one header; e.g. OicSecDoxm, OicSecPstat, OicSecRole, etc.
+
+split these out?  why isn't e.g. OiCSecDoxm in doxmresource.h?
+
+srmresourcestrings.[ch] - contains constants like
+
+extern const char * OIC_RSRC_TYPE_SEC_ACL2;
+const char * OIC_RSRC_TYPE_SEC_ACL2 = "oic.r.acl2";
+
+move these to e.g. iotivity_constants? or better, refactor.  Some of
+these constants are internal only, specific to one source file, e.g.
+OIC_RSRC_TYPE_SEC_ACL2 is only used in acl/aclresource.c
+OIC_RSRC_TYPE_SEC_DXOM is only used in acl/aclresource.c and doxmresource.c
+
+OIC_JSON_* are used in multiple files
