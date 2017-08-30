@@ -66,7 +66,7 @@
 
 #define TAG "OIC_PLATFORM"
 
-#if defined(__unix__) || defined(_WIN32)
+/*GAR #if defined(__unix__) || defined(_WIN32) */
 // Create a UUID for using the "Name-Based UUID" mechanism specified in
 // RFC 4122 section 4.3 (see http://tools.ietf.org/html/rfc4122#section-4.3).
 bool HashStrToUuid(const char* str, size_t len, uint8_t platformUuid[OIC_UUID_LENGTH])
@@ -107,7 +107,7 @@ bool HashStrToUuid(const char* str, size_t len, uint8_t platformUuid[OIC_UUID_LE
 
     return true;
 }
-#endif
+/* #endif */
 
 // Buffer size for computer name.
 #define MAX_COMPUTER_NAME_LENGTH 256
@@ -115,7 +115,7 @@ bool HashStrToUuid(const char* str, size_t len, uint8_t platformUuid[OIC_UUID_LE
 // This functions returns UUID generated from host name.
 bool OICGetPlatformUuid(uint8_t platformUuid[OIC_UUID_LENGTH])
 {
-#if defined(__unix__) || defined(_WIN32)
+/* #if defined(__unix__) || defined(_WIN32) */
     // Get host name.
     char hostname[MAX_COMPUTER_NAME_LENGTH] = { 0 };
     if (gethostname(hostname, MAX_COMPUTER_NAME_LENGTH) != 0)
@@ -130,7 +130,10 @@ bool OICGetPlatformUuid(uint8_t platformUuid[OIC_UUID_LENGTH])
     struct addrinfo hints = { .ai_family = AF_UNSPEC,
                               .ai_socktype = SOCK_STREAM,
                               .ai_flags = AI_CANONNAME };
-    if (getaddrinfo(hostname, NULL, &hints, &addrInfo) == 0)
+    /* NB: on OS X local hostnames like "foo.local" will fail with
+       'nodename nor servername provided, or not known' */
+    int rc = getaddrinfo(hostname, NULL, &hints, &addrInfo);
+    if (rc == 0)
     {
         for(struct addrinfo* iter = addrInfo; iter != NULL; iter = iter->ai_next)
         {
@@ -149,7 +152,8 @@ bool OICGetPlatformUuid(uint8_t platformUuid[OIC_UUID_LENGTH])
     }
     else
     {
-        OIC_LOG_V(WARNING, TAG, "Failed getaddrinfo() errno: %s, use hostname.", strerror(errno));
+        OIC_LOG_V(WARNING, TAG, "Failed getaddrinfo() errcode %d: '%s'; using hostname: %s.",
+		  rc, gai_strerror(rc), hostname);
 
         // Use hostname as getaddrinfo() failed.
         OICStrcpy(fqdnComputerName, MAX_COMPUTER_NAME_LENGTH, hostname);
@@ -162,8 +166,8 @@ bool OICGetPlatformUuid(uint8_t platformUuid[OIC_UUID_LENGTH])
     }
 
     return true;
-#else
-    OIC_LOG_V(WARNING, TAG, "Unsupported platform.");
-    return false;
-#endif
+/* #else */
+/*     OIC_LOG_V(WARNING, TAG, "Unsupported platform."); */
+/*     return false; */
+/* #endif */
 }
