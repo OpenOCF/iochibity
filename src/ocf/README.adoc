@@ -9,3 +9,8 @@
   globals
 
 * in general octypes.h is a global kitchen sink.  wouldn't it be better to partition?  for example, some of the conditionals like WITH_PRESENCE, RA_ADAPTER
+
+
+== TODO
+
+* rename payload_logging  ->  ocpayload_loggin

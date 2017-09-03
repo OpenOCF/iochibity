@@ -1,5 +1,18 @@
-= sec implementation
+= security
 
+Components:
+
+* Persistent store
+* Security resources (oic/sec/acl etc.)
+* Security Resource Manager
+* Policy Engine
+* OnBoarding Tool
+* Device Ownership Tranfer Service (DOXS)
+
+
+=== abbrevs & acronynms
+
+* AMS - ACL Mgmt Service
 
 * SRM - secure resource manager
 
@@ -8,10 +21,65 @@
 * doxm - device ownership transfer manager/method
 
 
-================
+=== security resources
 
-todo:
+URLs and types (OCF 1.3 draft, summary at p 120-)
 
-	extract persistent storage mgr from secureresourcemanager
+oic/sec/acl	    oic.r.acl	p. 143
+  oic.r.ace
+  oic.sec.crudntype
+  etc.
 
-	this will make it possible to remove the dependency of ocstack.h on the latter+
+oic/sec/acl2   	    oic.r.acl2  p. 148
+		    oic.sec.acl2
+		    oic.sec.ace2
+		    oic.sec.ace2.resource-ref
+		    oic.sec.conntype
+		    oic.sec.roletype
+		    etc.
+
+oic/sec/amacl	    oic.r.amacl	Access Manager ACL p. 153
+
+oic/sec/sacl	    oic.r.sacl	Secure ACL p. 153
+		    oic.sec.sigtype
+
+oic/sec/doxm	    oic.r.doxm
+		    oic.sec.doxmtype
+oic/sec/didtype	    oic.sec.didtype?  a property resource on doxm
+
+oic/sec/cred	    oic.r.cred	      p. 128
+  credential usage (p. 137)
+		    oic.sec.cred.trustca
+		    oic.sec.cred.cert
+		    etc.
+
+	    oic.sec.pubdatatype	p. 133
+	    oic.sec.privdatatype
+	    oic.sec.optdatatype
+	    oic.sec.roletype	p. 135
+
+  Credential Refresh Method p. 136
+	    oic.sec.crm
+	    oic.sec.crm.pro
+	    etc.
+
+oic/sec/crl	oic.r.crl	Certificate Revocation List, p. 141
+
+
+oic/sec/pstat	    oic.r.pstat	Provisioning Status, p. 155
+		    oic.sec.dostype	     Device Onboarding State, p. 159
+		    oic.sec.dpmtype	     Device Provisioning Mode p. 162
+		    oic.sec.pomtype	     Provisioning Operation Mode, p. 162
+
+oic/sec/csr	    oic.r.csr		     Certificate Signing Request, p. 163
+
+oic.r.roles	    oic.r.roles		     p. 164
+
+
+=== TODO
+
+* extract persistent storage mgr from secureresourcemanager
+
+* this will make it possible to remove the dependency of ocstack.h on the latter+
+
+* security_internals.h - why isn't this stuff distributed to the resource headers?

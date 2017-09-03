@@ -14,6 +14,8 @@ CSR: Certificate Signing Request
 
 DOXM:  Device(?) Ownership Transfer Method
 
+DOXS:  Device(?) Ownership Transfer Service
+
 DPairing: direct pairing  (DEPRECATED)
 
 PBKDF2 - Password-Based Key Derivation Function 2 (https://en.wikipedia.org/wiki/PBKDF2P)
@@ -72,3 +74,7 @@ TODO:
 
 3.  move PkiInfo_t typedef from //comm casecurityinterface.h to somewhere in //sec
 
+4.  rename ocsecurity.[ch] -> rolesassert.[ch]
+
+5.   Use NDEBUG correctly (e.g. in doxmresource.c)
+     use #ifdef OC_DEBUG instead of #ifndef NDEBUG
