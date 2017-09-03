@@ -83,11 +83,14 @@ const char * OIC_RSRC_TYPE_SEC_SACL = "oic.r.sacl";
 const char * OIC_RSRC_SACL_URI =  "/oic/sec/sacl";
 const char * OIC_JSON_SACL_NAME = "sacl";
 
+/*
 //svc - removed from the OCF 1.0 Security spec and from IoTivity
 const char * OIC_RSRC_TYPE_SEC_SVC = "oic.r.svc";
 const char * OIC_RSRC_SVC_URI =  "/oic/sec/svc";
 const char * OIC_JSON_SVC_NAME = "svc";
+*/
 
+/* PAIRING DEPRECATED
 //pconf
 const char * OIC_RSRC_TYPE_SEC_PCONF = "oic.r.pconf";
 const char * OIC_RSRC_PCONF_URI =  "/oic/sec/pconf";
@@ -97,6 +100,7 @@ const char * OIC_JSON_PCONF_NAME = "pconf";
 const char * OIC_RSRC_TYPE_SEC_DPAIRING = "oic.r.dpairing";
 const char * OIC_RSRC_DPAIRING_URI =  "/oic/sec/dpairing";
 const char * OIC_JSON_DPAIRING_NAME = "dpairing";
+*/
 
 //version
 const char * OIC_RSRC_TYPE_SEC_VER = "oic.r.ver";

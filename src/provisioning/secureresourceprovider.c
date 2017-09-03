@@ -37,7 +37,7 @@
 #include "csrresource.h"
 #include "rolesresource.h"
 #include "doxmresource.h"
-#include "pconfresource.h"
+/* PAIRING DEPRECATED #include "pconfresource.h" */
 #include "credentialgenerator.h"
 #include "cainterface.h"
 #include "oic_string.h"

@@ -41,8 +41,10 @@
 #include "deviceonboardingstate.h"
 #include "aclresource.h"
 #include "amaclresource.h"
+/* DPAIRING DEPRECATED
 #include "pconfresource.h"
-/* DEPRECATED #include "dpairingresource.h" */
+#include "dpairingresource.h"
+*/
 #include "psinterface.h"
 #include "srmresourcestrings.h"
 #include "credresource.h"

@@ -34,7 +34,7 @@
 #include "credresource.h"
 #include "utlist.h"
 #include "aclresource.h" //Note: SRM internal header
-#include "pconfresource.h"
+/* PAIRING DEPRECATED #include "pconfresource.h" */
 #include "psinterface.h"
 #include "ocstackinternal.h"
 

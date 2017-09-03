@@ -30,7 +30,8 @@
 #include "logger.h"
 #include "utlist.h"
 
-/* DEPRECATED //#ifdef DIRECT_PAIRING */
+/* PAIRING DEPRECATED */
+ //#ifdef DIRECT_PAIRING */
 /* #include "pconfresource.h" */
 /* #include "dpairingresource.h" */
 /* //#endif // DIRECT_PAIRING */
