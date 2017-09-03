@@ -20,7 +20,7 @@
 
 # autotools
 autom4te*
-config*
+config.status
 
 # bazel
 # tmp dirs:
