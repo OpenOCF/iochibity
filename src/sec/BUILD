@@ -228,7 +228,6 @@ cc_library(
 
             "doxmresource.c",
             "doxmresource.h",
-            "pconfresource.h",   # included by doxmresource.c
             "pinoxmcommon.h",    # included by doxmresource.c
             "oxmverifycommon.h", # included by doxmresource.c
 
@@ -331,8 +330,8 @@ cc_library(
             "pbkdf2.c",         # SECURED=1
             "pbkdf2.h",        # SECURED=1
 
-	    "pconfresource.c",
-	    "pconfresource.h",
+	    #DEPRECATED "pconfresource.c",  # pairing config
+	    #DEPRECATED "pconfresource.h",
 
             "pinoxmcommon.h",
 
