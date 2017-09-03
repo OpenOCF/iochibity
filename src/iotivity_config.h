@@ -184,6 +184,9 @@
 /* Define to 1 if you have the <sys/param.h> header file. */
 #define HAVE_SYS_PARAM_H 1
 
+/* Define to 1 if you have the <sys/select.h> header file. */
+#define HAVE_SYS_SELECT_H 1
+
 /* Define to 1 if you have the <sys/socket.h> header file. */
 #define HAVE_SYS_SOCKET_H 1
 
@@ -265,6 +268,9 @@
 
 /* Multiple ownership */
 /* #undef MULTIPLE_OWNER */
+
+/* Debugging */
+#define OC_DEBUG /**/
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT "dev@mobileink.com"

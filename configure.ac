@@ -167,6 +167,14 @@ AS_IF([test "x$enable_multiple_owners" = "xyes"], [
   AC_DEFINE([MULTIPLE_OWNER], [], [Multiple ownership])
 ])
 
+dnl debugging is OFF by default
+AC_ARG_ENABLE([debugging],
+    AS_HELP_STRING([--enable-debugging], [Enable debugging]))
+
+AS_IF([test "x$enable_debugging" = "xyes"], [
+  AC_DEFINE([OC_DEBUG], [], [Debugging])
+])
+
 dnl logging is OFF by default
 AC_ARG_ENABLE([logging],
     AS_HELP_STRING([--enable-logging], [Enable logging]))
