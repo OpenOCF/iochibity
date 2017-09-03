@@ -61,6 +61,7 @@ cc_library(
             "windows/memmem.c",
             "windows/memmem.h",
             "windows/snprintf.c",
+            "windows/strptime.c",
             "windows/vs12_snprintf.h",
             "windows/win_sleep.c",
             "windows/win_sleep.h",
