@@ -975,7 +975,9 @@ OCStackResult DoxmUpdateWriteableProperty(const OicSecDoxm_t* src, OicSecDoxm_t*
 
         // Update devowneruuid
         memcpy(&(dst->owner), &(src->owner), sizeof(OicUuid_t));
-#ifndef NDEBUG // if debug build, log the new uuid
+//GAR: don't use NDEBUG as debug/release flag:
+//#ifndef NDEBUG // if debug build, log the new uuid
+#ifdef OC_DEBUG
         char uuidString[UUID_STRING_SIZE] = { 0 };
         bool convertedUUID = OCConvertUuidToString(dst->owner.id, uuidString);
         if (convertedUUID)
