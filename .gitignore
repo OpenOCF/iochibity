@@ -20,7 +20,9 @@
 
 # autotools
 autom4te*
+config.guess
 config.status
+config.sub
 
 # bazel
 # tmp dirs:
