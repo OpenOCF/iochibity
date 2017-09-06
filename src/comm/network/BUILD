@@ -16,7 +16,8 @@ cc_library(
             "//src/logger",
             "//src/util",
     	    "//src/comm/adapter_util",
-    	    "//src/comm:ifcontrol",
+    	    "//src/comm:hdrs",
+    	    # "//src/comm:ifcontrol",
             # "//src/comm:util",
             "//src/portability",
 	    "//third_party/coap"],
@@ -28,4 +29,3 @@ cc_library(
     ],
     visibility = ["//src/comm:__pkg__"]
 )
-

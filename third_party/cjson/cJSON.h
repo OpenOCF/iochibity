@@ -80,6 +80,7 @@ typedef struct cJSON_Hooks
       void (*free_fn)(void *ptr);
 } cJSON_Hooks;
 
+  //FIXME: use std bool if available?
 typedef int cJSON_bool;
 
 #if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
@@ -92,7 +93,7 @@ typedef int cJSON_bool;
 CJSON_HIDE_SYMBOLS - Define this in the case where you don't want to ever dllexport symbols
 CJSON_EXPORT_SYMBOLS - Define this on library build when you want to dllexport symbols
 
-For *nix builds that support visibility attribute, you can define similar behavior by 
+For *nix builds that support visibility attribute, you can define similar behavior by
 
 setting default visibility to hidden by adding
 -fvisibility=hidden (for gcc)

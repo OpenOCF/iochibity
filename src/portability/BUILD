@@ -31,6 +31,8 @@ cc_library(
             "//src/logger",
             "//src/portability:hdrs",
             "//third_party/mbedtls"],
+    linkopts = select({"windows": [],
+                       "//conditions:default": ["-lpthread"]}),
     srcs = ["oic_platform.c",
             "posix/ocatomic.c",
             "posix/ocevent.c",
@@ -114,4 +116,3 @@ cc_library(
     visibility = ["//src:__subpackages__",
                   "//third_party:__subpackages__"]
  )
-

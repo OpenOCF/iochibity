@@ -41,6 +41,7 @@
 
 #include "cJSON.h"
 
+//FIXME: only if not HAVE_STDBOOL???
 /* define our own boolean type */
 #define true ((cJSON_bool)1)
 #define false ((cJSON_bool)0)

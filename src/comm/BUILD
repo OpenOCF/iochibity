@@ -5,8 +5,24 @@ config_setting(
 
 
 cc_library(
+    name = "hdrs",
+    alwayslink = True,
+    linkstatic = True,
+    copts = ["-Isrc"]
+    + select({"windows": [],
+              "//conditions:default": ["-std=c11"]}),
+    hdrs = ["caipadapter.h",
+    "caipnwmonitor.h",
+    "caqueueingthread.h"],
+    visibility = ["//src/comm/network:__pkg__"]
+)
+
+cc_library(
     name = "ifcontrol",
+    alwayslink = True,
+    linkstatic = True,
     copts = ["-Isrc",
+             "-Isrc/comm",
              "-Isrc/comm/adapter_util",
              "-Isrc/comm/api",
              "-Isrc/comm/common",
@@ -22,6 +38,7 @@ cc_library(
             "//src/comm/adapter_util",
             "//src/comm/api",
             "//src/comm/common",
+            "//src/comm:hdrs",
             "//src/comm/interface",
             "//src/comm/util",
             "//src/logger",
@@ -30,12 +47,12 @@ cc_library(
             "//third_party/coap"],
     srcs  = ["cainterfacecontroller.c",
 	     "cainterfacecontroller.h",
-             "caipnwmonitor.h",
+             # "caipnwmonitor.h",
              "caedradapter.h",
              "caleadapter.h",
              "canfcadapter.h",
-             "caipadapter.h",
-             "caqueueingthread.h",
+             # "caipadapter.h",
+             # "caqueueingthread.h",
              "canetworkconfigurator.h"],
     visibility = ["//src/comm/network:__pkg__"]
 )
@@ -43,6 +60,7 @@ cc_library(
 cc_library(
     name = "comm",
     alwayslink = True,
+    linkstatic = True,
     copts = ["-Isrc",
              "-Isrc/comm",
              "-Isrc/comm/api",
@@ -110,4 +128,3 @@ cc_library(
                   "//src/sec:__pkg__",
                   "//src/provisioning:__pkg__"]
 )
-

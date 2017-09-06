@@ -1,6 +1,9 @@
 /* src/iotivity_config.h.  Generated from iotivity_config.h.in by configure.  */
 /* src/iotivity_config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* GAR: tmp */
+#define DEBUG 1
+
 /* Define to 1 if you have the `alarm' function. */
 #define HAVE_ALARM 1
 
@@ -33,7 +36,7 @@
 #define HAVE_FLOAT_H 1
 
 /* Define to 1 if you have the `floor' function. */
-#define HAVE_FLOOR 1
+/* #undef HAVE_FLOOR */
 
 /* Define to 1 if you have the `fork' function. */
 #define HAVE_FORK 1
@@ -64,7 +67,7 @@
 #define HAVE_MALLOC 1
 
 /* Define to 1 if you have the <malloc.h> header file. */
-/* #undef HAVE_MALLOC_H */
+#define HAVE_MALLOC_H 1
 
 /* Define to 1 if you have the `memmove' function. */
 #define HAVE_MEMMOVE 1
@@ -85,7 +88,7 @@
 #define HAVE_NET_IF_H 1
 
 /* Define to 1 if you have the `pow' function. */
-#define HAVE_POW 1
+/* #undef HAVE_POW */
 
 /* Define to 1 if you have the <pthread.h> header file. */
 #define HAVE_PTHREAD_H 1
@@ -258,7 +261,7 @@
 
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
-/* #undef LSTAT_FOLLOWS_SLASHED_SYMLINK */
+#define LSTAT_FOLLOWS_SLASHED_SYMLINK 1
 
 /* mbedtls: system has time.h and time() */
 #define MBEDTLS_HAVE_TIME 1

@@ -43,9 +43,9 @@ cc_library(
             "//third_party/coap",
             "//third_party/mbedtls",
             "//third_party/tinycbor",
-    ]
-    + select({"windows": ["//third_party/sqlite3"],
-              "//conditions:default": []}),
+    ],
+    # + select({"windows": ["//third_party/sqlite3"],
+    #           "//conditions:default": []}),
     hdrs = ["include/pmtypes.h",
             "include/pmutility.h"],
     srcs = [
@@ -121,9 +121,10 @@ cc_library(
             "//third_party/coap",
             "//third_party/mbedtls",
             "//third_party/tinycbor",
-    ]
-    + select({"windows": ["//third_party/sqlite3"],
-              "//conditions:default": []}),
+	    "//third_party/sqlite3"
+    ],
+    # + select({"windows": ["//third_party/sqlite3"],
+    #           "//conditions:default": []}),
     hdrs = ["include/pmtypes.h",
             "include/pmutility.h"],
     srcs = ["credentialgenerator.c",

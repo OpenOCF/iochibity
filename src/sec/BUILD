@@ -11,20 +11,18 @@ cc_library(
 
 cc_library(
     name = "strings",
+    alwayslink = 1,
+    linkstatic = True,
     copts = ["-Isrc",
-             # "-Isrc/logger",
-             # "-Isrc/ocf",
-             # "-Isrc/sec/acl",
+             "-Isrc/sec",
              "-Isrc/util"],
     deps = ["//src:config",
-    #         "//src/logger",
-    #         "//src/ocf:hdrs",
-    #         "//src/sec/acl",
             "//src/util"],
-    srcs = ["srmresourcestrings.c",
+    srcs = [# "srmresourcestrings.c",
             "srmresourcestrings.h",
             "securevirtualresourcetypes.h"],
-    visibility = ["//src/provisioning:__pkg__"]
+    visibility = ["//src/provisioning:__pkg__",
+    "//src/sec:__pkg__"]
 )
 
 # cc_library(
@@ -165,7 +163,6 @@ cc_library(
             "//src/logger",
             "//src/ocf:hdrs",
             "//src/portability",
-            #"//src/provisioning:utility",
             "//src/sec:strings",
             "//src/util",
             "//third_party/mbedtls",
@@ -207,8 +204,8 @@ cc_library(
             "//src/logger",
             "//src/ocf:hdrs",
             "//src/portability",
-            #"//src/sec/doxm",
             "//src/sec:helpers",
+            "//src/sec:strings",
             "//src/util",
             "//third_party/mbedtls",
             "//third_party/mbedtls:mbedtls-crypto",
@@ -241,6 +238,8 @@ cc_library(
 
 	    "pstatresource.c",
 	    "pstatresource.h",
+
+            "deviceonboardingstate.c",
             "deviceonboardingstate.h",
 
             "rolesresource.c",
@@ -253,6 +252,8 @@ cc_library(
             "secureresourcemanager.h",
             "policyengine.h",   # included by secureresourcemanager.c
             "policyengine.c",
+            "srmresourcestrings.c",
+            "srmresourcestrings.h",
 
             # "iotvticalendar.c",
             "iotvticalendar.h",
@@ -261,8 +262,7 @@ cc_library(
             "srmutility.h",
             "pbkdf2.h",
             "pkix_interface.h",
-            "security_internals.h",
-            "srmresourcestrings.h"
+            "security_internals.h"
     ],
     visibility = ["//src/sec:__pkg__",
                   "//src/ocf:__pkg__",
@@ -305,6 +305,7 @@ cc_library(
             #"//src/sec/doxm",
             "//src/sec:interface",
             "//src/sec:resources",
+            # "//src/sec:strings",
             "//src/util",
             "//third_party/tinycbor",
             "//third_party/cjson",
@@ -356,10 +357,10 @@ cc_library(
             # "secureresourcemanager.c",
             # "secureresourcemanager.h",
 
-            "security_internals.h",
+            "security_internals.h"]
 
-	    "srmresourcestrings.c",
-	    "srmresourcestrings.h"]
+	    # "srmresourcestrings.c",
+	    # "srmresourcestrings.h"]
     + select({"windows": ["strptime.c"],
               "//conditions:default": []}),
     visibility = ["//src/ocf:__pkg__",

@@ -6,4 +6,3 @@ Release tag when files were last copied (if applicable):
 
 With the following changes:
 * b0db7a6 cJSON_ParseWidthOpts: Fix -Wmissing-field-initializers
-
