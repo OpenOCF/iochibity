@@ -477,7 +477,7 @@ bool SRMIsSecurityResourceURI(const char* uri)
 #pragma warning(disable:4204)
 #endif
     const char *rsrcs[] = {
-        OIC_RSRC_SVC_URI,
+        /*GAR OBSOLETE, not in OCF 1.3  OIC_RSRC_SVC_URI, */
         OIC_RSRC_AMACL_URI,
         OIC_RSRC_CRL_URI,
         OIC_RSRC_CRED_URI,
@@ -486,8 +486,10 @@ bool SRMIsSecurityResourceURI(const char* uri)
         OIC_RSRC_ACL2_URI,
         OIC_RSRC_DOXM_URI,
         OIC_RSRC_PSTAT_URI,
-        OIC_RSRC_PCONF_URI,
+        /* PAIRING DEPRECATED
+	OIC_RSRC_PCONF_URI,
         OIC_RSRC_DPAIRING_URI,
+	*/
         OIC_RSRC_VER_URI,
         OIC_RSRC_ROLES_URI,
         OC_RSRVD_PROV_CRL_URL
@@ -606,6 +608,7 @@ OicSecSvrType_t GetSvrTypeFromUri(const char* uri)
         }
     }
 
+    /* PAIRING DEPRECATED
     svrLen = strlen(OIC_RSRC_DPAIRING_URI);
     if (uriLen == svrLen)
     {
@@ -623,7 +626,7 @@ OicSecSvrType_t GetSvrTypeFromUri(const char* uri)
             return OIC_R_PCONF_TYPE;
         }
     }
-
+    */
     svrLen = strlen(OIC_RSRC_PSTAT_URI);
     if (uriLen == svrLen)
     {
@@ -642,6 +645,7 @@ OicSecSvrType_t GetSvrTypeFromUri(const char* uri)
         }
     }
 
+    /*GAR OBSOLETE removed in OCF 1.3
     svrLen = strlen(OIC_RSRC_SVC_URI);
     if (uriLen == svrLen)
     {
@@ -650,6 +654,7 @@ OicSecSvrType_t GetSvrTypeFromUri(const char* uri)
             return OIC_R_SVC_TYPE;
         }
     }
+    */
 
     svrLen = strlen(OIC_RSRC_SACL_URI);
     if (uriLen == svrLen)

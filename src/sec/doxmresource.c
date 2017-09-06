@@ -1633,18 +1633,20 @@ static OCEntityHandlerResult HandleDoxmPostRequest(OCEntityHandlerRequest * ehRe
                     ehRet = OC_EH_ERROR;
                     goto exit;
                 }
-                /* DEPRECATED ownerRes = SetDpairingRownerId(&gDoxm->owner); */
-                /* if(OC_STACK_OK != ownerRes && OC_STACK_NO_RESOURCE != ownerRes) */
-                /* { */
-                /*     ehRet = OC_EH_ERROR; */
-                /*     goto exit; */
-                /* } */
+                /* PAIRING DEPRECATED
+		ownerRes = SetDpairingRownerId(&gDoxm->owner);
+                if(OC_STACK_OK != ownerRes && OC_STACK_NO_RESOURCE != ownerRes)
+                {
+                    ehRet = OC_EH_ERROR;
+                    goto exit;
+                }
                 ownerRes = SetPconfRownerId(&gDoxm->owner);
                 if(OC_STACK_OK != ownerRes && OC_STACK_NO_RESOURCE != ownerRes)
                 {
                     ehRet = OC_EH_ERROR;
                     goto exit;
                 }
+		*/
 
                 gDoxm->owned = true;
                 memcpy(&gDoxm->rownerID, &gDoxm->owner, sizeof(OicUuid_t));
