@@ -424,7 +424,7 @@ CAResult_t CAGetIpv6AddrScope(const char *addr, CATransportFlags_t *scopeLevel)
 void CAUtilSetLogLevel(CAUtilLogLevel_t level, bool hidePrivateLogEntries)
 {
     OIC_LOG(DEBUG, TAG, "CAUtilSetLogLevel");
-    LogLevel logLevel = DEBUG;
+    LogLevel logLevel = LL_DEBUG;
     switch(level)
     {
         case CA_LOG_LEVEL_INFO:

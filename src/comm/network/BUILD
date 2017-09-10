@@ -1,7 +1,11 @@
+config_setting(
+    name = "windows",
+    values = { "define": "platform=windows" }
+)
+
 cc_library(
     name = "ip",
-    copts = ["-std=c11",
-             "-Isrc",
+    copts = ["-Isrc",
              "-Isrc/util",
     	     "-Isrc/comm",
     	     "-Isrc/comm/adapter_util",
@@ -11,7 +15,9 @@ cc_library(
 	     "-Isrc/comm/util",
              "-Isrc/logger",
 	     "-Isrc/portability",
-	     "-Ithird_party/coap/include"],
+	     "-Ithird_party/coap/include"]
+    + select({"windows": [],
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/logger",
             "//src/util",
@@ -23,9 +29,8 @@ cc_library(
 	    "//third_party/coap"],
     # hdrs = ["caipadapter.h"],
     srcs = ["ip_adapter/caipadapter.c",
-            "ip_adapter/caipserver.c",
-            #GAR FIXME: select by platform
-            "ip_adapter/linux/caipnwmonitor.c"
-    ],
+            "ip_adapter/caipserver.c"]
+    + select({"windows": ["ip_adapter/windows/caipnwmonitor.c"],
+              "//conditions:default": ["ip_adapter/linux/caipnwmonitor.c"]}),
     visibility = ["//src/comm:__pkg__"]
 )

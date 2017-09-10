@@ -41,8 +41,8 @@ cc_library(
 
 cc_library(
     name = "win",
-    alwayslink = True,
-    linkstatic = 1,
+    # alwayslink = True,
+    # linkstatic = 1,
     copts = ["-Isrc",
              "-Isrc/logger",
              "-Isrc/portability",
@@ -53,6 +53,7 @@ cc_library(
             "//src/logger",
             "//src/portability:hdrs",
             "//third_party/mbedtls"],
+    # linkopts = ["-W,crypt32.lib"],
     srcs = ["windows/ocatomic.c",
             "windows/ocevent.c",
             "windows/octhread.c",

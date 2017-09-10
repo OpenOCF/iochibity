@@ -989,7 +989,8 @@ OCStackResult DoxmUpdateWriteableProperty(const OicSecDoxm_t* src, OicSecDoxm_t*
 
         // Update rowneruuid
         memcpy(&(dst->rownerID), &(src->rownerID), sizeof(OicUuid_t));
-#ifndef NDEBUG // if debug build, log the new uuid
+/* #ifndef NDEBUG // if debug build, log the new uuid */
+#ifdef OC_DEBUG
         convertedUUID = OCConvertUuidToString(dst->rownerID.id, uuidString);
         if (convertedUUID)
         {
@@ -1000,7 +1001,8 @@ OCStackResult DoxmUpdateWriteableProperty(const OicSecDoxm_t* src, OicSecDoxm_t*
 
         // Update deviceuuid
         memcpy(&(dst->deviceID), &(src->deviceID), sizeof(OicUuid_t));
-#ifndef NDEBUG // if debug build, log the new uuid
+/* #ifndef NDEBUG // if debug build, log the new uuid */
+#ifdef OC_DEBUG
         convertedUUID = OCConvertUuidToString(dst->deviceID.id, uuidString);
         if (convertedUUID)
         {

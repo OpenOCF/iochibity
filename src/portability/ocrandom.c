@@ -52,6 +52,7 @@
 #endif
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
+#include <bcrypt.h>		//GAR ???
 #endif
 
 #include "ocrandom.h"

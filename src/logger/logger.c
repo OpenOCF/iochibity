@@ -56,7 +56,7 @@
 #include "logger_types.h"
 
 // log level
-static int g_level = DEBUG;
+static int g_level = LL_DEBUG;
 // private log messages are not logged unless they have been explicitly enabled by calling OCSetLogLevel().
 static bool g_hidePrivateLogEntries = true;
 

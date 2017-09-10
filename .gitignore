@@ -24,6 +24,8 @@ config.guess
 config.status
 config.sub
 
+src/iotivity_config.h
+
 # bazel
 # tmp dirs:
 bazel-*

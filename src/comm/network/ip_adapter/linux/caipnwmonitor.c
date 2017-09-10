@@ -23,7 +23,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
 #include <sys/select.h>
 #include <ifaddrs.h>
 #include <unistd.h>

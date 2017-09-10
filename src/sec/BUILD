@@ -357,12 +357,12 @@ cc_library(
             # "secureresourcemanager.c",
             # "secureresourcemanager.h",
 
-            "security_internals.h"]
+            "security_internals.h"],
 
 	    # "srmresourcestrings.c",
 	    # "srmresourcestrings.h"]
-    + select({"windows": ["strptime.c"],
-              "//conditions:default": []}),
+    # + select({"windows": ["strptime.c"],
+    #           "//conditions:default": []}),
     visibility = ["//src/ocf:__pkg__",
                   "//src/provisioning:__pkg__"]
     )

@@ -147,9 +147,6 @@
 /* Define to 1 if you have the `strnlen' function. */
 #undef HAVE_STRNLEN
 
-/* Define to 1 if you have the `strptime' function. */
-#undef HAVE_STRPTIME
-
 /* Define to 1 if you have the `strrchr' function. */
 #undef HAVE_STRRCHR
 
@@ -424,6 +421,12 @@
 
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
+
+
+#ifdef _MSC_VER
+#include "msvc_config.h"
+#endif
+
 
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most

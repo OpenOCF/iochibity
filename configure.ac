@@ -32,16 +32,7 @@ dnl if platform != windows and HAVE_LIBPTHREAD:
 AC_CHECK_HEADERS([pthread.h])
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h assert.h fcntl.h errno.h float.h inttypes.h limits.h malloc.h memory.h net/if.h netdb.h netinet/in.h stdbool.h stddef.h stdint.h stdlib.h string.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/select.h sys/socket.h sys/statvfs.h sys/timeb.h termios.h, time.h utime.h windows.h winsock2.h ws2tcpip.h])
-
-dnl AS_IF([test "x$_MSC_VER == x"],
-dnl #ifndef _MSC_VER /* mingw has it, msvc does not */
-dnl #undef HAVE_UNISTD_H
-AC_CHECK_HEADER(unistd.h)
-AC_CHECK_HEADER(sys/time.h)
-AC_CHECK_HEADER(strings.h)
-AC_CHECK_FUNCS([strptime])
-dnl #endif
+AC_CHECK_HEADERS([arpa/inet.h assert.h fcntl.h errno.h float.h inttypes.h limits.h malloc.h memory.h net/if.h netdb.h netinet/in.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/select.h sys/socket.h sys/statvfs.h sys/time.h sys/timeb.h termios.h, time.h unistd.h utime.h windows.h winsock2.h ws2tcpip.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -191,6 +182,22 @@ AS_IF([test "x$enable_ipadapter" != "xno"], [
   AC_DEFINE([IP_ADAPTER], [], [Enable IP_ADAPTER])
 ])
 
+dnl AC_ARG_WITH([msvc],
+dnl             [AS_HELP_STRING([--with-msvc],
+dnl               [enable support for msvc toolchain])],
+dnl             [with_msvc=yes],
+dnl             [with_msvc=no])
+          
+dnl AS_IF([test "x$with_msvc" != xyes], [
+dnl   AC_CHECK_HEADER(sys/time.h)
+dnl   AC_CHECK_HEADER(foo.h)
+dnl ])
+
+AH_BOTTOM([
+#ifdef _MSC_VER
+#include "msvc_config.h"
+#endif
+])
 
 AH_BOTTOM([
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most

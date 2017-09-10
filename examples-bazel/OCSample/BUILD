@@ -18,7 +18,7 @@ cc_binary(
 
 cc_binary(
     name = "server",
-    linkstatic = 1,
+    # linkstatic = 1,
     copts = ["-Isrc",
              "-Isrc/comm",
              "-Isrc/logger",

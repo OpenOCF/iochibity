@@ -6,9 +6,13 @@
 /* #define VALUE(x) VALUE_TO_STRING(x) */
 /* #define VAR_NAME_VALUE(var) #var "="  VALUE(var) */
 
-// undo mingw-based autoconf stuff if using ms compiler for win
+/* undo mingw-based autoconf stuff if using ms toolchain for win */
 #ifdef _MSC_VER
+#undef HAVE_LIBPTHREAD
+#undef HAVE_PTHREAD_H
+#undef HAVE_STRINGS_H
 #undef HAVE_SYS_TIME_H
+#undef TIME_WITH_SYS_TIME
 #undef HAVE_UNISTD_H
 #endif
 
