@@ -32,7 +32,7 @@ dnl if platform != windows and HAVE_LIBPTHREAD:
 AC_CHECK_HEADERS([pthread.h])
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h assert.h fcntl.h errno.h float.h inttypes.h limits.h malloc.h memory.h net/if.h netdb.h netinet/in.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/select.h sys/socket.h sys/statvfs.h sys/time.h sys/timeb.h termios.h, time.h unistd.h utime.h windows.h winsock2.h ws2tcpip.h])
+AC_CHECK_HEADERS([arpa/inet.h assert.h fcntl.h errno.h float.h inttypes.h limits.h malloc.h memory.h net/if.h netdb.h netinet/in.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/select.h sys/socket.h sys/statvfs.h sys/time.h sys/timeb.h syslog.h termios.h, time.h unistd.h utime.h windows.h winsock2.h ws2tcpip.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -163,7 +163,24 @@ AC_ARG_ENABLE([debugging],
     AS_HELP_STRING([--enable-debugging], [Enable debugging]))
 
 AS_IF([test "x$enable_debugging" = "xyes"], [
-  AC_DEFINE([OC_DEBUG], [], [Debugging])
+  AC_DEFINE([DEBUG], [], [Debugging])
+  AC_DEFINE([OC_DEBUG], [], [OC Debugging])
+])
+
+dnl mbedtls debugging is OFF by default
+AC_ARG_ENABLE([mbedtls-debugging],
+    AS_HELP_STRING([--enable-mbedtls-debugging], [Enable mbedtls debugging]))
+
+AS_IF([test "x$enable_mbedtls_debugging" = "xyes"], [
+  AC_DEFINE([MBEDTLS_DEBUG_C], [], [MBEDTLS Debugging])
+])
+
+dnl libcoap debugging is OFF by default
+AC_ARG_ENABLE([coap-debugging],
+    AS_HELP_STRING([--enable-coap-debugging], [Enable coap debugging]))
+
+AS_IF([test "x$enable_coap_debugging" = "xyes"], [
+  AC_DEFINE([COAP_DEBUG_C], [], [COAP Debugging])
 ])
 
 dnl logging is OFF by default

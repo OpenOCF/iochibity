@@ -691,6 +691,7 @@ enable_tls
 enable_bwt
 enable_multiple_owners
 enable_debugging
+enable_mbedtls_debugging
 enable_logging
 enable_ipadapter
 '
@@ -1322,6 +1323,8 @@ Optional Features:
   --enable-multiple-owners
                           Enable Multiple Ownership
   --enable-debugging      Enable debugging
+  --enable-mbedtls-debugging
+                          Enable mbedtls debugging
   --enable-logging        Enable logging
   --disable-ipadapter     Disable IP adapter
 
@@ -3683,7 +3686,7 @@ done
 
 
 # Checks for header files.
-for ac_header in arpa/inet.h assert.h fcntl.h errno.h float.h inttypes.h limits.h malloc.h memory.h net/if.h netdb.h netinet/in.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/select.h sys/socket.h sys/statvfs.h sys/time.h sys/timeb.h termios.h, time.h unistd.h utime.h windows.h winsock2.h ws2tcpip.h
+for ac_header in arpa/inet.h assert.h fcntl.h errno.h float.h inttypes.h limits.h malloc.h memory.h net/if.h netdb.h netinet/in.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/select.h sys/socket.h sys/statvfs.h sys/time.h sys/timeb.h syslog.h termios.h, time.h unistd.h utime.h windows.h winsock2.h ws2tcpip.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -5304,6 +5307,20 @@ if test "x$enable_debugging" = "xyes"; then :
 
 
 $as_echo "#define OC_DEBUG /**/" >>confdefs.h
+
+
+fi
+
+# Check whether --enable-mbedtls-debugging was given.
+if test "${enable_mbedtls_debugging+set}" = set; then :
+  enableval=$enable_mbedtls_debugging;
+fi
+
+
+if test "x$enable_mbedtls_debugging" = "xyes"; then :
+
+
+$as_echo "#define MBEDTLS_DEBUG_C /**/" >>confdefs.h
 
 
 fi
