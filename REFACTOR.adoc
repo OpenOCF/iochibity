@@ -15,6 +15,10 @@ doxmresource.c:
 
 == misc
 
+ * split ocstack.c into service_provider and co_service_provider? no
+   need for cosp to include e.g. resource registration,handlerequest
+   code, etc.
+
 * ocf/stackinternal.h - not really internal, directly included by provisioning/oxmjustworks.c
 
 * UUID

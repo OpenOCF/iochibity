@@ -1,3 +1,57 @@
+UPGRADING:
+
+The source structure has been rearranged. To merge updates from master:
+
+1. Pull to master-git
+
+2. Branch openocf
+
+3. Copy from master-git to openocf branch
+
+   a. resource/ to src/
+   b. java to openocf-java repo
+
+4. Merge openocf branch
+
+Mapping from master-git/resource to openocf/src:
+
+    * ignore all arduino
+    * ignore tizen for now
+    * android?
+    * IPCA - ignore
+    * c_common => src/portability
+    * csdk/connectivity -> src/conn
+    * csdk/include -> src/ocf (for now)
+    * csdk/logger -> src/logger
+    * csdk/resource-directory - ignore for now
+    * csdk/routing - ignore? or src/routing
+    * csdk/security -> src/sec
+    * csdk/security/provisioning -> src/provisioning
+    * csdk/stack -> src/ocf
+
+Notification service - this is a non-OCF add-on?
+    OIC 1.0 supported oic/ad for presence; this has been removed
+     source is C, but located in service/
+    * service/notification -> src/notification?
+
+Ignore:
+    * resource/include - ignore (C++)
+    * resource/provisioning - ignore (C++)
+    * resource/src - ignore (C++)
+    * service - ignore (C++)
+
+Easy Setup - service/easy-setup mixes C and C++ - deal with this later
+
+All test/ stuff to openocf/test
+
+All samples to openocf/examples-bazel
+
+================================================================
+TODO:
+
+ * support --enable-coap-debugging, --enable-mbedtls-debugging, etc.
+
+================================================================
 Bazel Notes
 
 print predefined macros: http://nadeausoftware.com/articles/2011/12/c_c_tip_how_list_compiler_predefined_macros
