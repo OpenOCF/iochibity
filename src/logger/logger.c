@@ -56,7 +56,7 @@
 #include "logger_types.h"
 
 // log level
-static int g_level = LL_DEBUG;
+static int g_level = DEBUG;
 // private log messages are not logged unless they have been explicitly enabled by calling OCSetLogLevel().
 static bool g_hidePrivateLogEntries = true;
 
@@ -273,7 +273,7 @@ void OCLog(int level, const char * tag, const char * logStr)
     switch(level)
     {
         case DEBUG_LITE:
-            level = LL_DEBUG;
+            level = DEBUG;
             break;
         case INFO_LITE:
             level = INFO;
@@ -328,7 +328,9 @@ void OCLog(int level, const char * tag, const char * logStr)
                ms = now.tv_usec * 1000;
            }
    #endif
-           printf("%02d:%02d.%03d %s: %s: %s\n", min, sec, ms, LEVEL[level], tag, logStr);
+	   /* GAR FIXME: make a separate Log fn for timestamped msgs */
+           /* printf("%02d:%02d.%03d %s: %s: %s\n", min, sec, ms, LEVEL[level], tag, logStr); */
+           printf("%s %s: %s\n", LEVEL[level], tag, logStr);
        }
    #endif
    }
