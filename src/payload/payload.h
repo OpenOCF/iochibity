@@ -1,3 +1,5 @@
+//GAR: extracted from ocf/octypes.h
+
 //******************************************************************
 //
 // Copyright 2014 Intel Mobile Communications GmbH All Rights Reserved.
