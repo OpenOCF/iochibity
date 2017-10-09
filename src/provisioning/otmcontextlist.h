@@ -23,7 +23,7 @@
 
 #include "iotivity_config.h"
 
-#include "openocf.h"
+/* #include "openocf.h" */
 
 #include "pmtypes.h"
 /* #include "ocstack.h" */
