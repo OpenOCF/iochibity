@@ -20,7 +20,7 @@
 
 #include <memory.h>
 
-#include "openocf.h"
+/* #include "openocf.h" */
 
 #include "iotivity_config.h"
 
@@ -49,13 +49,14 @@
 
 #define TAG "OIC_OXM_RandomPIN"
 
-int CreatePinBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
+/*GAR int */
+OCStackResult CreatePinBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
 {
     if(!otmCtx || !otmCtx->selectedDeviceInfo || !payload || *payload || !size)
     {
 	errno = EINVAL;
-	return OC_RC_FAILURE;
-        /* return OC_STACK_INVALID_PARAM; */
+	/*GAR FIXME: return OC_RC_FAILURE; */
+        return OC_STACK_INVALID_PARAM;
     }
 
     bool propertiesToInclude[DOXM_PROPERTY_COUNT];

@@ -61,8 +61,8 @@ OCStackResult CreateSecureSessionRandomPinCallback(OTMContext_t *otmCtx);
  * @return ::OC_RC_SUCCESS/OC_RC_FAILURE, with error code in errno
  *   errors: EINVAL invalid argument
  */
-/* OCStackResult */
-int CreatePinBasedSelectOxmPayload(OTMContext_t *otmCtx, uint8_t **cborPayload,
+/* int */
+OCStackResult CreatePinBasedSelectOxmPayload(OTMContext_t *otmCtx, uint8_t **cborPayload,
                                              size_t *cborSize);
 
 /**

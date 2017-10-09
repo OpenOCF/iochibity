@@ -91,6 +91,7 @@ TEST(RandomPinOxMTest, NullParam)
     EXPECT_TRUE(OC_STACK_INVALID_PARAM == res);
 
     res = CreatePinBasedSelectOxmPayload(otmCtx, &payloadRes, &size);
+    //GAR: EXPECT_TRUE(errno == EINVAL);
     EXPECT_TRUE(OC_STACK_INVALID_PARAM == res);
 
     res = CreatePinBasedOwnerTransferPayload(otmCtx, &payloadRes, &size);
