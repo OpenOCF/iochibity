@@ -1167,8 +1167,15 @@ typedef enum
     /** Make no more calls to the callback and call the OCClientContextDeleter for this callback */
     OC_STACK_DELETE_TRANSACTION = 0,
     /** Keep this callback registered and call it if an apropriate event occurs */
-    OC_STACK_KEEP_TRANSACTION
+    OC_STACK_KEEP_TRANSACTION,
+    OC_STACK_KEEP_PAYLOAD	/* GAR client responsible for freeing payload */
 } OCStackApplicationResult;
+
+/* struct */
+/* { */
+/*     unsigned int retain_transaction: 1; */
+/*     unsigned int retain_payload    : 1; */
+/* } OCStackApplicationResult; */
 
 
 //#ifdef DIRECT_PAIRING

@@ -1745,8 +1745,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
 
             if(responseInfo->info.payload &&
                responseInfo->info.payloadSize)
-            {
-                // check the security resource
+            {   /* infer payload type from uri */
                 if (SRMIsSecurityResourceURI(cbNode->requestUri))
                 {
                     type = PAYLOAD_TYPE_SECURITY;
@@ -1966,26 +1965,29 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                         }
 #endif
                     }
-                }
+                } /* FIXME: else error? */
                 if (response->payload && response->payload->type == PAYLOAD_TYPE_REPRESENTATION)
                 {
                     HandleBatchResponse(cbNode->requestUri, (OCRepPayload **)&response->payload);
                 }
 
-                OCStackApplicationResult appFeedback = cbNode->callBack(cbNode->context,
-                                                                        cbNode->handle,
-                                                                        response);
+		OIC_LOG_V(INFO, __FILE__, "[%d] %s: calling user CB", __LINE__, __func__);
+		appFeedback = cbNode->callBack(cbNode->context,
+					       cbNode->handle,
+					       response);
                 cbNode->sequenceNumber = response->sequenceNumber;
 
-                if (appFeedback == OC_STACK_DELETE_TRANSACTION)
+                if (appFeedback & OC_STACK_KEEP_TRANSACTION) /* GAR */
                 {
-                    DeleteClientCB(cbNode);
-                }
-                else
-                {
+		    OIC_LOG_V(INFO, __FILE__, "[%d] %s: retaining user CB", __LINE__, __func__);
                     // To keep discovery callbacks active.
                     cbNode->TTL = GetTicks(MAX_CB_TIMEOUT_SECONDS *
                                             MILLISECONDS_PER_SECOND);
+                }
+		else
+                {
+		    OIC_LOG_V(INFO, __FILE__, "[%d] %s: removing user CB", __LINE__, __func__);
+                    DeleteClientCB(cbNode);
                 }
             }
 
@@ -1995,8 +1997,12 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                 SendDirectStackResponse(endPoint, responseInfo->info.messageId, CA_EMPTY,
                         CA_MSG_ACKNOWLEDGE, 0, NULL, NULL, 0, NULL, CA_RESPONSE_FOR_RES);
             }
-
-            OCPayloadDestroy(response->payload);
+	    if (appFeedback & OC_STACK_KEEP_PAYLOAD) { /* GAR */
+		OIC_LOG_V(INFO, __FILE__, "[%d] %s: retaining OCPayload", __LINE__, __func__);
+	    } else {
+		OIC_LOG_V(INFO, __FILE__, "[%d] %s: removing OCPayload", __LINE__, __func__);
+		OCPayloadDestroy(response->payload);
+	    }
             OICFree(response);
         }
         return;
