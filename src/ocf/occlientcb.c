@@ -322,6 +322,7 @@ exit:
 
 void DeleteClientCB(ClientCB * cbNode)
 {
+    OIC_LOG_V(INFO, __FILE__, "[%d] %s: ENTRY", __LINE__, __func__);
     if (cbNode)
     {
         ClientCB* out = NULL;
@@ -335,6 +336,7 @@ void DeleteClientCB(ClientCB * cbNode)
             }
         }
     }
+    OIC_LOG_V(INFO, __FILE__, "[%d] %s: EXIT", __LINE__, __func__);
 }
 
 void DeleteClientCBList()

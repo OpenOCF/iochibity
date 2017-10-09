@@ -824,6 +824,7 @@ static OCStackResult ReadDevicePropertiesFromDatabase(OCDeviceProperties **devic
     uint8_t *data = NULL;
     size_t size = 0;
 
+    OIC_LOG_V(INFO, TAG, "Reading DEVICE_PROPS_FILE: %s", OC_DEVICE_PROPS_FILE_NAME); /* GAR */
     OCStackResult result = ReadDatabaseFromPS(OC_DEVICE_PROPS_FILE_NAME, OC_JSON_DEVICE_PROPS_NAME, &data, &size);
     if (OC_STACK_OK == result)
     {

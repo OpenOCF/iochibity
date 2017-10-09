@@ -42,6 +42,7 @@ static void OCFreeRepPayloadValueContents(OCRepPayloadValue* val);
 
 void OC_CALL OCPayloadDestroy(OCPayload* payload)
 {
+    OIC_LOG_V(INFO, __FILE__, "[%d] %s: ENTRY", __LINE__, __func__);
     if (!payload)
     {
         return;
@@ -72,6 +73,7 @@ void OC_CALL OCPayloadDestroy(OCPayload* payload)
             OICFree(payload);
             break;
     }
+    OIC_LOG_V(INFO, __FILE__, "[%d] %s: EXIT", __LINE__, __func__);
 }
 
 OCRepPayload* OC_CALL OCRepPayloadCreate()
