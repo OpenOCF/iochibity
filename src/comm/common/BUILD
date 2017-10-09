@@ -7,11 +7,17 @@ cc_library(
     name = "common",
     alwayslink = True,
     copts = ["-Isrc",
+             "-Iexternal/openocf/src",
              "-Isrc/comm",
+             "-Iexternal/openocf/src/comm",
              "-Isrc/comm/api",
+             "-Iexternal/openocf/src/comm/api",
              "-Isrc/logger",
+             "-Iexternal/openocf/src/logger",
              "-Isrc/portability",
-             "-Isrc/util"]
+             "-Iexternal/openocf/src/portability",
+             "-Isrc/util",
+             "-Iexternal/openocf/src/util"]
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),
     deps  = ["//src:config",

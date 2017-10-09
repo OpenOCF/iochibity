@@ -9,9 +9,11 @@ cc_library(
     name = "coap",
     alwayslink = True,
     copts = ["-Isrc",
-             "-Ithird_party/coap",
+             "-Iexternal/openocf/src",
              "-Ithird_party/coap/include",
-             "-Ithird_party/coap/include/coap"]
+             "-Iexternal/openocf/third_party/coap/include",
+             "-Ithird_party/coap/include/coap",
+             "-Iexternal/openocf/third_party/coap/include/coap"]
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),
     defines = ["WITH_POSIX"],
@@ -19,7 +21,9 @@ cc_library(
     hdrs = ["include/coap/coap.h",
             "include/coap/config.h",
             "include/coap/uri.h",
-            "include/coap/pdu.h"
+            "include/coap/pdu.h",
+            # if DEBUG_COAP
+            "include/coap/debug.h"
     ],
     srcs = ["include/coap/address.h",
             "async.c",
@@ -34,8 +38,11 @@ cc_library(
             #"config.h",
             #config.h.in
             #configure.in
+
+            #FIXME: only if --enable-debug flag:
             "debug.c",
             "include/coap/debug.h",
+
             "encode.c",
             "include/coap/encode.h",
             #examples

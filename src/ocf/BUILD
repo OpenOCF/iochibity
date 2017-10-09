@@ -13,8 +13,10 @@ cc_library(
 
 cc_library(
     name = "hdrs",
-    copts = ["-Isrc"
-    ],
+    copts = ["-Isrc",
+             "-Iexternal/openocf/src",
+             "-Isrc/ocf",
+             "-Iexternal/openocf/src/ocf",],
     deps = ["//src:config"
     ],
     hdrs = ["octypes.h",
@@ -31,10 +33,11 @@ cc_library(
             "ocobserve.h",       # included by ocobserve.h
             "ocresourcehandler.h", # included by sec/secureresourcemanager.c
             "tree.h"],
-    visibility = ["//src/sec:__pkg__",
-                  "//src/ocf/stack:__pkg__",
-                  "//src/provisioning:__pkg__",
-                  "//src/sec:__subpackages__"]
+    visibility = ["//visibility:public"]
+    # visibility = ["//src/sec:__pkg__",
+    #               "//src/ocf/stack:__pkg__",
+    #               "//src/provisioning:__pkg__",
+    #               "//src/sec:__subpackages__"]
 )
 
 cc_library(
@@ -87,21 +90,33 @@ cc_library(
     name = "impl",
     alwayslink = True,
     copts = ["-Isrc",
+             "-Iexternal/openocf/src",
              "-Isrc/portability",
+             "-Iexternal/openocf/src/portability",
              "-Isrc/comm/api",
+             "-Iexternal/openocf/src/comm/api",
              "-Isrc/comm/common",
+             "-Iexternal/openocf/src/comm/common",
              "-Isrc/comm/include",
+             "-Iexternal/openocf/src/comm/include",
              "-Isrc/comm/interface",
+             "-Iexternal/openocf/src/comm/interface",
              "-Isrc/comm/util",
+             "-Iexternal/openocf/src/comm/util",
              "-Isrc/logger",
+             "-Iexternal/openocf/src/logger",
              "-Isrc/ocf",
+             "-Iexternal/openocf/src/ocf",
              "-Isrc/sec",
+             "-Iexternal/openocf/src/sec",
              "-Isrc/sec/aclroles",
-             "-Isrc/sec/security",
+             "-Iexternal/openocf/src/sec/aclroles",
              "-Isrc/util",
-             #"-Isrc/sec/ocsecurity",
+             "-Iexternal/openocf/src/util",
              "-Ithird_party/coap/include",
-             "-Ithird_party/tinycbor/src"],
+             "-Iexternal/openocf/third_party/coap/include",
+             "-Ithird_party/tinycbor/src",
+             "-Iexternal/openocf/third_party/tinycbor/src"],
     deps = ["//src:config",
             "//src/ocf:interface",
             "//src/comm/api",
@@ -140,7 +155,6 @@ cc_library(
             #"ocserverrequest.h",
             "ocstack.c",
             "ocstack.h",
-            #"octypes.h",
             "oicgroup.c",
             "oicgroup.h",
             "oickeepalive.c",

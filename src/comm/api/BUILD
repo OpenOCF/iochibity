@@ -1,7 +1,8 @@
 cc_library(
     name = "api",
     copts = ["-std=c11",
-             "-Isrc/comm/common"],
+             "-Isrc/comm/common",
+             "-Iexternal/openocf/src/comm/common"],
     deps  = ["//src:config",
              "//src/portability"],
     hdrs  = ["cacommon.h",

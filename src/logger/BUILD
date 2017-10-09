@@ -1,12 +1,12 @@
 cc_library(
     name = "logger",
-    copts = ["-Isrc"]
+    copts = ["-Isrc",
+             "-Iexternal/openocf/src"]
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config"],
     hdrs = ["logger.h"],
     srcs = ["logger.c",
-    	    #"logger.h",
 	    "logger_types.h",
             "trace.c",
             "trace.h"],

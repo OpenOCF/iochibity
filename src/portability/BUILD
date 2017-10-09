@@ -22,9 +22,11 @@ cc_library(
 cc_library(
     name = "posix",
     copts = ["-Isrc",
+             "-Iexternal/openocf/src",
              "-Isrc/logger",
-             "-Isrc/portability",
-             "-Ithird_party/mbedtls/include"]
+             "-Iexternal/openocf/src/logger",
+             "-Isrc/portability"]
+             # "-Ithird_party/mbedtls/include"]
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
@@ -92,28 +94,33 @@ cc_library(
               # ":posix": ["//src/portability:posix"],
               # "//conditions:default": []}),
     copts = ["-Isrc",
+             "-Iexternal/openocf/src",
              "-Isrc/logger",
+             "-Iexternal/openocf/src/logger",
              "-Isrc/portability",
+             "-Iexternal/openocf/src/portability",
 	     "-Isrc/portability/windows",
-    	     "-Isrc/util"]
+    	     "-Isrc/util",
+             "-Iexternal/openocf/src/util"]
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),
+    hdrs = glob(["*.h"]),
     srcs = ["iotivity_commontypes.h",
     	    "oic_malloc.c",
-            "oic_malloc.h",
-	    "ocatomic.h",
-	    "ocevent.h",
+	    # "ocatomic.h",
+	    # "ocevent.h",
             "ocrandom.c",
-            "ocrandom.h",
+            # "ocrandom.h",
             # "ocrandom_seed.c",
 	    "octimer.c",
-	    "octimer.h",
-	    "octhread.h",
+	    # "octimer.h",
+	    # "octhread.h",
             "oic_string.c",
-            "oic_string.h",
+            # "oic_string.h",
             "oic_time.c",
-            "oic_time.h",
-            "oic_platform.h"],
+            # "oic_time.h",
+            # "oic_platform.h"
+    ],
     visibility = ["//src:__subpackages__",
                   "//third_party:__subpackages__"]
  )

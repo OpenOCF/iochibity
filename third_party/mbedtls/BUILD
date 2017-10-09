@@ -1,9 +1,16 @@
 licenses(["notice"])
 
 cc_library(
+    name = "mbedtls_hdrs",
+    hdrs = glob(["include/mbedtls/*.h"]),
+)
+
+cc_library(
     name = "mbedtls",
     alwayslink=True,
     copts = ["-Isrc",
+             "-Iexternal/openocf/src",
+             "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include",
              "-Ithird_party/mbedtls/include/mbedtls"],
     deps = ["//src:config",
@@ -45,10 +52,15 @@ cc_library(
     name = "mbedtls-crypto",
     alwayslink=True,
     copts = ["-Isrc",
+             "-Iexternal/openocf/src",
+             "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include",
              "-Ithird_party/mbedtls/include/mbedtls"],
-    deps = ["//src:config"],
-    srcs = ["include/mbedtls/config.h",
+    deps = ["//src:config",
+            ":mbedtls_hdrs"],
+    strip_include_prefix = "include",
+    hdrs = glob(["include/mbedtls/*.h"]),
+    srcs = [#"include/mbedtls/config.h",
             "include/mbedtls/config_mbedtls.h",
             "include/mbedtls/check_config.h",
 
@@ -216,12 +228,14 @@ cc_library(
     name = "mbedtls-x509",
     alwayslink=True,
     copts = ["-Isrc",
+             "-Iexternal/openocf/src",
              "-Ithird_party/mbedtls/include",
              "-Ithird_party/mbedtls/include/mbedtls"],
-    deps = ["//src:config"],
-    srcs = ["include/mbedtls/config.h",
-            "include/mbedtls/config_mbedtls.h",
-            "include/mbedtls/check_config.h",
+    deps = ["//src:config",
+            ":mbedtls_hdrs"],
+    strip_include_prefix = "include",
+    hdrs = glob(["include/mbedtls/*.h"]),
+    srcs = [# "include/mbedtls/config.h",
 
             "library/certs.c",
             "include/mbedtls/certs.h",

@@ -8,7 +8,9 @@ config_setting(
 cc_library(
     name = "cjson",
     copts = ["-Isrc",
-             "-Isrc/portability"]
+             "-Iexternal/openocf/src",
+             "-Isrc/portability",
+             "-Iexternal/openocf/src/portability"]
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",

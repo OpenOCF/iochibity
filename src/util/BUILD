@@ -5,10 +5,15 @@ config_setting(
 
 cc_library(
     name = "util",
-    alwayslink = True,
+    # alwayslink = True,
     copts = ["-Isrc",
+             "-Iexternal/openocf/src",
              "-Isrc/logger",
-             "-Isrc/portability"]
+             "-Iexternal/openocf/src/logger",
+             "-Isrc/portability",
+             "-Iexternal/openocf/src/portability",
+             "-Isrc/util",
+             "-Iexternal/openocf/src/util"]
     + select({"windows": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
