@@ -49,39 +49,8 @@ cc_library(
     hdrs = ["include/pmtypes.h",
             "include/pmutility.h"],
     srcs = [
-        # "credentialgenerator.c",
-        # "credentialgenerator.h",
-        # "ocprovisioningmanager.c",
-        # "ocprovisioningmanager.h",
-        # "otmcontextlist.c",
-        # "otmcontextlist.h",
-        # "ownershiptransfermanager.c",
-        # "ownershiptransfermanager.h",
-        # "oxmjustworks.c",
-        # "oxmjustworks.h",
-        # "oxmmanufacturercert.c",
-        # "oxmmanufacturercert.h",
-        # "oxmrandompin.c",
-        # "oxmrandompin.h",
         "pmutility.c",
         "pmutilityinternal.h",
-        # "provisioningdatabasemanager.c",
-        # "provisioningdatabasemanager.h",
-        # "secureresourceprovider.c",
-        # "secureresourceprovider.h",
-
-            # if MULTIPLE_OWNER
-        #"multipleownershiptransfermanager.c",
-        #"multipleownershiptransfermanager.h",
-        #"oxmpreconfpin.c"
-
-            # if WITH_TCP
-        # "cloud/utils.c",
-        # "cloud/crl.c",
-        # "cloud/aclgroup.c",
-        # "cloud/aclinvite.c",
-        # "cloud/aclid.c",
-        # "cloud/csr.c"
     ],
     visibility = ["//src/ocf:__pkg__",
                   "//src/sec:__pkg__"]
