@@ -1,0 +1,3 @@
+TODO:
+
+    * src/comm/adapter_util/caadapterutils.[ch] - extract JNI stuff to separate files
