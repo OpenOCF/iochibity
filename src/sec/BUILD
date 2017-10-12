@@ -72,75 +72,6 @@ cc_library(
                   "//src/provisioning:__pkg__"]
 )
 
-# cc_library(
-#     name = "aclx",
-#     alwayslink = 1,
-#     linkstatic = True,
-#     copts = ["-Isrc",
-#              "-Isrc/comm",
-#              "-Isrc/comm/adapter_util",
-#              "-Isrc/comm/api",
-#              "-Isrc/comm/common",
-#              "-Isrc/comm/include",
-#              "-Isrc/logger",
-#              "-Isrc/ocf",
-#              "-Isrc/ocf/internal",
-#              "-Isrc/portability",
-#              "-Isrc/sec",
-#              "-Isrc/sec/security",
-#              "-Isrc/util",
-#              "-Ithird_party/cjson",
-#              "-Ithird_party/coap/include",
-#              "-Ithird_party/mbedtls/include",
-#              "-Ithird_party/tinycbor/src"]
-#                  + select({"windows": [],
-#                            "//conditions:default": ["-std=c11"]}),
-#     deps = ["//src:config",
-#             "//src/comm",
-#             "//src/comm/adapter_util",
-#             "//src/comm/api",
-#             "//src/logger",
-#             "//src/ocf:interface",
-#             "//src/portability",
-#             #"//src/provisioning",
-#             "//src/util",
-#             "//third_party/tinycbor",
-#             "//third_party/cjson",
-#             "//third_party/coap",
-#             "//third_party/mbedtls",
-#             "//third_party/mbedtls:mbedtls-crypto",
-#             "//third_party/mbedtls:mbedtls-x509"],
-#     srcs = [#"aclresource.c",
-#             # "aclresource.h",
-#             # "acl_logging.h",
-#             "doxmresource.h",
-
-#             "rolesresource.c",
-#             "rolesresource.h",
-#             "certhelpers.h",
-
-#             "secureresourcemanager.h",
-#             "deviceonboardingstate.h",
-#             "security_internals.h",
-
-# 	    "amaclresource.c",
-# 	    "amaclresource.h",
-
-#     	    "psinterface.h",
-# 	    "resourcemanager.c",
-# 	    "resourcemanager.h",
-#             "pstatresource.h",
-#             "credresource.h",
-# 	    "crlresource.h",    # SECURED=1
-#             "csrresource.h",
-
-#             "securevirtualresourcetypes.h",
-#             "srmresourcestrings.h",
-#             "srmutility.h"
-#     ],
-#     visibility = ["//src/sec:__subpackages__"]
-# )
-
 cc_library(
     name = "helpers",
     alwayslink = 1,
@@ -205,6 +136,8 @@ cc_library(
              "-Iexternal/openocf/src/comm/api",
              "-Isrc/comm/common",
              "-Iexternal/openocf/src/comm/common",
+             "-Isrc/comm/interface",
+             "-Iexternal/openocf/src/comm/interface",
              "-Isrc/logger",
              "-Iexternal/openocf/src/logger",
              "-Isrc/ocf",
@@ -224,6 +157,7 @@ cc_library(
             "//src/comm/adapter_util",
             "//src/comm/api",
             "//src/comm/common",
+            "//src/comm/interface",
             "//src/logger",
             "//src/ocf:hdrs",
             "//src/portability",
