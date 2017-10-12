@@ -54,19 +54,7 @@ extern "C" {
 // Defines
 //-----------------------------------------------------------------------------
 
-// GAR: moved to src/iotivity_constants.h to avoid circular refs 
-
-/* /\** Max Device address size. *\/ */
-// GAR: moved to src/iotivity_constants.h to avoid circular refs, redundancy 
-/* #ifdef RA_ADAPTER */
-/* #define MAX_ADDR_STR_SIZE (256) */
-/* #else */
-/* /\** Max Address could be */
-/*  * "coaps+tcp://[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:yyy.yyy.yyy.yyy]:xxxxx" */
-/*  * +1 for null terminator. */
-/*  *\/ */
-/* #define MAX_ADDR_STR_SIZE (66) */
-/* #endif */
+// GAR: moved to src/iotivity_constants.h to avoid circular refs
 
 /**
  * TODO: Move these COAP defines to CoAP lib once approved.
@@ -79,44 +67,8 @@ extern "C" {
  * be kept synchronized with OCConnectivityType (below) as well as
  * CATransportAdapter and CATransportFlags (in CACommon.h).
  */
-// GAR: replaced by //src/transport_types.h
-/* typedef enum */
-/* { */
-/*     /\** value zero indicates discovery.*\/ */
-/*     OC_DEFAULT_ADAPTER = 0, */
 
-/*     /\** IPv4 and IPv6, including 6LoWPAN.*\/ */
-/*     OC_ADAPTER_IP           = (1 << 0), */
-
-/*     /\** GATT over Bluetooth LE.*\/ */
-/*     OC_ADAPTER_GATT_BTLE    = (1 << 1), */
-
-/*     /\** RFCOMM over Bluetooth EDR.*\/ */
-/*     OC_ADAPTER_RFCOMM_BTEDR = (1 << 2), */
-/* #ifdef RA_ADAPTER */
-/*     /\**Remote Access over XMPP.*\/ */
-/*     OC_ADAPTER_REMOTE_ACCESS = (1 << 3), */
-/* #endif */
-/*     /\** CoAP over TCP.*\/ */
-/*     OC_ADAPTER_TCP           = (1 << 4), */
-
-/*     /\** NFC Transport for Messaging.*\/ */
-/*     OC_ADAPTER_NFC           = (1 << 5) */
-/* } OCTransportAdapter; */
-
-/* typedef enum */
-/* { */
-/*     /\** default flag is 0.*\/ */
-/*     OC_DEFAULT_BT_FLAGS = 0, */
-/*     /\** disable BLE advertisement.*\/ */
-/*     OC_LE_ADV_DISABLE   = 0x1, */
-/*     /\** enable BLE advertisement.*\/ */
-/*     OC_LE_ADV_ENABLE    = 0x2, */
-/*     /\** disable gatt server.*\/ */
-/*     OC_LE_SERVER_DISABLE = (1 << 4), */
-/*     /\** disable rfcomm server.*\/ */
-/*     OC_EDR_SERVER_DISABLE = (1 << 7) */
-/* } OCTransportBTFlags_t; */
+/* GAR: OCTransportAdapter, OCTransportBTFlags_t moved to //src/transport_types.h */
 
 /**
  * Log level to print can be controlled through this enum.
@@ -130,54 +82,7 @@ typedef enum
     OC_LOG_LEVEL_INFO,                // debug level is disabled.
 } OCLogLevel;
 
-/* /\** */
-/*  *  Enum layout assumes some targets have 16-bit integer (e.g., Arduino). */
-/*  *\/ */
-// GAR: moved to //src/transport_types.h
-/* typedef enum */
-/* { */
-/*     /\** default flag is 0*\/ */
-/*     OC_DEFAULT_FLAGS = 0, */
-
-/*     /\** Insecure transport is the default (subject to change).*\/ */
-/*     /\** secure the transport path*\/ */
-/*     OC_FLAG_SECURE     = (1 << 4), */
-
-/*     /\** IPv4 & IPv6 auto-selection is the default.*\/ */
-/*     /\** IP & TCP adapter only.*\/ */
-/*     OC_IP_USE_V6       = (1 << 5), */
-
-/*     /\** IP & TCP adapter only.*\/ */
-/*     OC_IP_USE_V4       = (1 << 6), */
-
-/*     /\** Multicast only.*\/ */
-/*     OC_MULTICAST       = (1 << 7), */
-
-/*     /\** Link-Local multicast is the default multicast scope for IPv6. */
-/*      *  These are placed here to correspond to the IPv6 multicast address bits.*\/ */
-
-/*     /\** IPv6 Interface-Local scope (loopback).*\/ */
-/*     OC_SCOPE_INTERFACE = 0x1, */
-
-/*     /\** IPv6 Link-Local scope (default).*\/ */
-/*     OC_SCOPE_LINK      = 0x2, */
-
-/*     /\** IPv6 Realm-Local scope. *\/ */
-/*     OC_SCOPE_REALM     = 0x3, */
-
-/*     /\** IPv6 Admin-Local scope. *\/ */
-/*     OC_SCOPE_ADMIN     = 0x4, */
-
-/*     /\** IPv6 Site-Local scope. *\/ */
-/*     OC_SCOPE_SITE      = 0x5, */
-
-/*     /\** IPv6 Organization-Local scope. *\/ */
-/*     OC_SCOPE_ORG       = 0x8, */
-
-/*     /\**IPv6 Global scope. *\/ */
-/*     OC_SCOPE_GLOBAL    = 0xE, */
-
-/* } OCTransportFlags; */
+/* GAR: OCTransportFlags moved to //src/transport_types.h */
 
 /** Bit mask for scope.*/
 #define OC_MASK_SCOPE    (0x000F)
