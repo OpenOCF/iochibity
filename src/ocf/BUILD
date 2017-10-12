@@ -69,8 +69,7 @@ cc_library(
             "ocpresence.h",
 
     ],
-    srcs = ["rdpayload.h",
-            "ocpayloadcbor.h",
+    srcs = ["ocpayloadcbor.h",
             "occlientcb.h",
             "ocobserve.h",
             "ocresource.h",
@@ -164,12 +163,7 @@ cc_library(
             # "oicresourcedirectory.c",
             # "oicresourcedirectory.h",
 
-            "payload_logging.h",
-
-            # obsolete?
-            # "rdpayload.c",
-            # "rdpayload.h"
-            #"internal/ocpayloadcbor.h"
+            "payload_logging.h"
     ]
 
     # if windows, and UWP_APP = 1:
