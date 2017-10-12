@@ -109,8 +109,6 @@ bool CAGetSecureEndpointAttributes(const CAEndpoint_t* peer, uint32_t* allAttrib
  *
  */
 typedef void (*CAgetCredentialTypesHandler)(bool * list, const char* deviceId);
-
-/*GAR FIXME: migrate CADtlsPskCredType_t to security package */
 /**
  * Binary structure containing PKIX related info
  * own certificate chain, public key, CA's and CRL's
@@ -139,7 +137,7 @@ CAResult_t CAregisterGetCredentialTypesHandler(CAgetCredentialTypesHandler getCr
  * @param[in] tlsHandshakeCallback callback for get tls handshake result
  * @return ::CA_STATUS_OK
  */
-CAResult_t CAregisterSslHandshakeCallback(CAErrorCallback tlsHandshakeCallback);
+CAResult_t CAregisterSslHandshakeCallback(CAHandshakeErrorCallback tlsHandshakeCallback);
 
 /**
  * Register callback to get TLS PSK credentials.

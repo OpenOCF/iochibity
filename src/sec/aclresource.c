@@ -1080,6 +1080,9 @@ exit:
 // This function converts CBOR format to ACL data.
 // Caller needs to invoke 'free' when done using
 // It parses { "aclist" : [ { ... } ] } instead of { "aclist" : { "aces" : [ ] } }
+
+#if defined(TCP_ADAPTER) && defined(WITH_CLOUD)
+
 OicSecAcl_t* CBORPayloadToCloudAcl(const uint8_t *cborPayload, const size_t size)
 {
     if (NULL == cborPayload || 0 == size)
@@ -1386,6 +1389,7 @@ exit:
 
     return acl;
 }
+#endif
 
 // This function converts CBOR format to ACL data.
 // Callers should normally invoke "CBORPayloadToAcl()" unless wishing to check
@@ -1449,6 +1453,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                     OIC_LOG_V(DEBUG, TAG, "%s Found v1 ACL; assigning 'versionCheck' and returning NULL.", __func__);
                     *versionCheck = OIC_SEC_ACL_V1;
                     OICFree(acl);
+                    free(tagName);
                     return NULL;
                 }
                 OIC_LOG_V(DEBUG, TAG, "%s decoding v1 ACL.", __func__);
@@ -1463,6 +1468,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                     OIC_LOG_V(DEBUG, TAG, "%s Found v2 ACL; assigning 'versionCheck' and returning NULL.", __func__);
                     *versionCheck = OIC_SEC_ACL_V2;
                     OICFree(acl);
+                    free(tagName);
                     return NULL;
                 }
                 OIC_LOG_V(DEBUG, TAG, "%s decoding v2 ACL.", __func__);
@@ -1477,6 +1483,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                         " Assigning 'versionCheck' to OIC_SEC_ACL_UNKNOWN and returning NULL.", __func__);
                     *versionCheck = OIC_SEC_ACL_UNKNOWN;
                     OICFree(acl);
+                    free(tagName);
                     return NULL;
                 }
             }
@@ -1720,6 +1727,8 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                 {
                                                     OIC_LOG_V(WARNING, TAG, "Unknown tag in subject map: %s", subjectTag);
                                                 }
+
+                                                free(subjectTag);       // we are done with this instance
                                             }
 
                                             // advance to next elt in subject map
@@ -2062,19 +2071,16 @@ exit:
         acl = NULL;
     }
 
-    if(NULL != subjectTag)
-    {
-        free(subjectTag);
-        subjectTag = NULL;
-    }
-
-    if (NULL != rMapName)
+    if (rMapName)
     {
         free(rMapName);
         rMapName = NULL;
     }
 
-    free(tagName);
+    if (tagName)
+    {
+        free(tagName);
+    }
 
     return acl;
 }

@@ -34,7 +34,6 @@
 #include "credresource.h"
 #include "utlist.h"
 #include "aclresource.h" //Note: SRM internal header
-/* PAIRING DEPRECATED #include "pconfresource.h" */
 #include "psinterface.h"
 #include "ocstackinternal.h"
 
@@ -71,7 +70,7 @@ struct ProvPreconfPINCtx
  * The function is responsible for initializaton of the provisioning manager. It will load
  * provisioning database which have owned device's list and their linked status.
  * TODO: In addition, if there is a device(s) which has not up-to-date credentials, this function will
- * automatically try to update the deivce(s).
+ * automatically try to update the device(s).
  *
  * @param[in] dbPath file path of the sqlite3 db
  *
@@ -80,6 +79,18 @@ struct ProvPreconfPINCtx
 OCStackResult OC_CALL OCInitPM(const char* dbPath)
 {
     return PDMInit(dbPath);
+}
+
+/**
+ * This method is used by provisioning manager to close provisioning database.
+ *
+ * @see OCInitPM()
+ *
+ * @return  OC_STACK_OK in case of success and other value otherwise.
+ */
+OCStackResult OC_CALL OCClosePM()
+{
+    return PDMClose();
 }
 
 OCStackResult OC_CALL OCPDMCleanupForTimeout()
@@ -375,6 +386,12 @@ OCStackResult OC_CALL OCProvisionACL(void* ctx, const OCProvisionDev_t *selected
                 aclVersion = OIC_SEC_ACL_V2;
                 break;
             }
+            OicSecRsrc_t* rsrc = NULL;
+            LL_FOREACH(ace->resources, rsrc)
+            {
+                if(0 >= rsrc->interfaceLen)
+                    return OC_STACK_INVALID_PARAM;
+            }
         }
     }
 
@@ -483,8 +500,7 @@ OCStackResult OC_CALL OCProvisionCredentials(void *ctx, OicSecCredType_t type, s
                                              const OCProvisionDev_t *pDev2,
                                              OCProvisionResultCB resultCallback)
 {
-    return SRPProvisionCredentialsDos(ctx, type, keySize,
-                                      pDev1, pDev2, resultCallback);
+    return SRPProvisionCredentialsDos(ctx, type, keySize, pDev1, pDev2, NULL, NULL, resultCallback);
 }
 
 /**
@@ -511,7 +527,7 @@ OCStackResult OC_CALL OCProvisionSymmetricRoleCredentials(void *ctx, OicSecCredT
                                                           const OicSecRole_t *role2,
                                                           OCProvisionResultCB resultCallback)
 {
-    return SRPProvisionCredentials(ctx, type, keySize, pDev1, pDev2, NULL, role1, role2, resultCallback);
+    return SRPProvisionCredentialsDos(ctx, type, keySize, pDev1, pDev2, role1, role2, resultCallback);
 }
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
@@ -530,26 +546,9 @@ OCStackResult OC_CALL OCProvisionCertificate(void *ctx,
     const char* pemCert,
     OCProvisionResultCB resultCallback)
 {
-    return SRPProvisionCredentials(ctx, SIGNED_ASYMMETRIC_KEY, 0,
-        pDev, NULL, pemCert, NULL, NULL, resultCallback);
+    return SRPProvisionCertificate(ctx, pDev, pemCert, resultCallback);
 }
 #endif
-
-/**
- * this function sends Direct-Pairing Configuration to a device.
- *
- * @param[in] ctx Application context would be returned in result callback.
- * @param[in] selectedDeviceInfo Selected target device.
- * @param[in] pconf PCONF pointer.
- * @param[in] resultCallback callback provided by API user, callback will be called when provisioning
-              request recieves a response from resource server.
- * @return  OC_STACK_OK in case of success and other value otherwise.
- */
-OCStackResult OC_CALL OCProvisionDirectPairing(void* ctx, const OCProvisionDev_t *selectedDeviceInfo, OicSecPconf_t *pconf,
-                             OCProvisionResultCB resultCallback)
-{
-    return SRPProvisionDirectPairing(ctx, selectedDeviceInfo, pconf, resultCallback);
-}
 
 #ifdef MULTIPLE_OWNER
 static void AddPreconfPinOxMCB(void* ctx, size_t nOfRes, OCProvisionResult_t *arr, bool hasError)
@@ -1277,8 +1276,7 @@ OCStackResult OC_CALL OCProvisionPairwiseDevices(void* ctx, OicSecCredType_t typ
     link->resultCallback = resultCallback;
     link->currentCountResults = 0;
     link->resArr = (OCProvisionResult_t*) OICMalloc(sizeof(OCProvisionResult_t)*noOfResults);
-    res = SRPProvisionCredentialsDos(link, type, keySize,
-                                     pDev1, pDev2, &ProvisionCredsCB);
+    res = SRPProvisionCredentialsDos(link, type, keySize, pDev1, pDev2, NULL, NULL, &ProvisionCredsCB);
     if (res != OC_STACK_OK)
     {
         OICFree(link->resArr);
@@ -1438,16 +1436,6 @@ void OC_CALL OCDeleteUuidList(OCUuidList_t* pList)
 void OC_CALL OCDeleteACLList(OicSecAcl_t* pAcl)
 {
     DeleteACLList(pAcl);
-}
-
-/**
- * This function deletes PDACL data.
- *
- * @param pPdAcl Pointer to OicSecPdAcl_t structure.
- */
-void OC_CALL OCDeletePdAclList(OicSecPdAcl_t* pPdAcl)
-{
-    FreePdAclList(pPdAcl);
 }
 
 #ifdef MULTIPLE_OWNER

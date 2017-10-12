@@ -108,10 +108,6 @@
 #include "oickeepalive.h"
 #endif
 
-/* DEPRECATED //#ifdef DIRECT_PAIRING */
-/* #include "directpairing.h" */
-/* //#endif */
-
 #ifdef HAVE_ARDUINO_TIME_H
 #include "Time.h"
 #endif
@@ -184,8 +180,6 @@ static const char COAP_TCP_SCHEME[] = "coap+tcp:";
 static const char COAPS_TCP_SCHEME[] = "coaps+tcp:";
 static const char CORESPEC[] = "core";
 
-CAAdapterStateChangedCB g_adapterHandler = NULL;
-CAConnectionStateChangedCB g_connectionHandler = NULL;
 // Persistent Storage callback handler for open/read/write/close/unlink
 static OCPersistentStorage *g_PersistentStorageHandler = NULL;
 // Number of users of OCStack, based on the successful calls to OCInit2 prior to OCStop
@@ -886,6 +880,11 @@ CAResponseResult_t OCToCAStackResult(OCStackResult ocCode, OCMethod method)
                    // GET requests.
                    ret = CA_CONTENT;
                    break;
+               case OC_REST_DELETE:
+                   // This Response Code is like HTTP 200 "OK" but only used in response to
+                   // DELETE requests.
+                   ret = CA_DELETED;
+                   break;
                default:
                    // This should not happen but,
                    // give it a value just in case but output an error
@@ -1467,7 +1466,7 @@ OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload, uint32
                         {
                             assert(zoneId != NULL);
                             // put zoneId to end of addr
-                            OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, "%");
+                            OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, "%25");
                             OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, zoneId);
                             OICFree(zoneId);
                         }
@@ -3994,6 +3993,12 @@ OCStackResult OC_CALL OCStartPresence(const uint32_t ttl)
 {
     OIC_LOG(INFO, __FILE__, "Entering OCStartPresence");
     uint8_t tokenLength = CA_MAX_TOKEN_LEN;
+    if (NULL == presenceResource.handle)
+    {
+        OIC_LOG(ERROR, TAG, "Invalid Presence Resource Handle: Not Initialized");
+        return OC_STACK_ERROR;
+    }
+
     OCChangeResourceProperty(
             &(((OCResource *)presenceResource.handle)->resourceProperties),
             OC_ACTIVE, 1);
@@ -5069,44 +5074,6 @@ OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse)
     return result;
 }
 
-/* DEPRECATED //#ifdef DIRECT_PAIRING */
-/* const OCDPDev_t* OC_CALL OCDiscoverDirectPairingDevices(unsigned short waittime) */
-/* { */
-/*     OIC_LOG(INFO, __FILE__, "Start OCDiscoverDirectPairingDevices"); */
-/*     if(OC_STACK_OK != DPDeviceDiscovery(waittime)) */
-/*     { */
-/*         OIC_LOG(ERROR, __FILE__, "Fail to discover Direct-Pairing device"); */
-/*         return NULL; */
-/*     } */
-
-/*     return (const OCDPDev_t*)DPGetDiscoveredDevices(); */
-/* } */
-
-/* const OCDPDev_t* OC_CALL OCGetDirectPairedDevices() */
-/* { */
-/*     return (const OCDPDev_t*)DPGetPairedDevices(); */
-/* } */
-
-/* OCStackResult OC_CALL OCDoDirectPairing(void *ctx, OCDPDev_t* peer, OCPrm_t pmSel, char *pinNumber, */
-/*                                         OCDirectPairingCB resultCallback) */
-/* { */
-/*     OIC_LOG(INFO, __FILE__, "Start OCDoDirectPairing"); */
-/*     if(NULL ==  peer || NULL == pinNumber) */
-/*     { */
-/*         OIC_LOG(ERROR, __FILE__, "Invalid parameters"); */
-/*         return OC_STACK_INVALID_PARAM; */
-/*     } */
-/*     if (NULL == resultCallback) */
-/*     { */
-/*         OIC_LOG(ERROR, __FILE__, "Invalid callback"); */
-/*         return OC_STACK_INVALID_CALLBACK; */
-/*     } */
-
-/*     return DPDirectPairing(ctx, (OCDirectPairingDev_t*)peer, (OicSecPrm_t)pmSel, */
-/*                                            pinNumber, (OCDirectPairingResultCB)resultCallback); */
-/* } */
-/* //#endif // DIRECT_PAIRING */
-
 //-----------------------------------------------------------------------------
 // Private internal function definitions
 //-----------------------------------------------------------------------------
@@ -5893,6 +5860,10 @@ OCStackResult CAResultToOCResult(CAResult_t caResult)
             return OC_STACK_ERROR;
         case CA_NOT_SUPPORTED:
             return OC_STACK_NOTIMPL;
+        case CA_HANDLE_ERROR_OTHER_MODULE:
+            return OC_STACK_COMM_ERROR;
+        case CA_CONTINUE_OPERATION:
+            return OC_STACK_CONTINUE_OPERATION;
         default:
             return OC_STACK_ERROR;
     }
@@ -5956,11 +5927,7 @@ OCStackResult OCUpdateResourceInsWithResponse(const char *requestUri,
     {
         OIC_LOG(DEBUG, __FILE__, "update the ins of published resource");
 
-        char rdPubUri[MAX_URI_LENGTH] = { 0 };
-        snprintf(rdPubUri, MAX_URI_LENGTH, "%s?rt=%s", OC_RSRVD_RD_URI,
-                 OC_RSRVD_RESOURCE_TYPE_RDPUBLISH);
-
-        if (strcmp(rdPubUri, targetUri) == 0)
+        if (strcmp(OC_RSRVD_RD_URI, targetUri) == 0)
         {
             // Update resource unique id in stack.
             if (response)
@@ -6210,11 +6177,10 @@ OCStackResult OC_CALL OCGetHeaderOption(OCHeaderOption* ocHdrOpt, size_t numOpti
 
 void OCDefaultAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled)
 {
-    OIC_LOG(DEBUG, __FILE__, "OCDefaultAdapterStateChangedHandler");
-    if (g_adapterHandler)
-    {
-        g_adapterHandler(adapter, enabled);
-    }
+    OIC_LOG(DEBUG, TAG, "OCDefaultAdapterStateChangedHandler");
+
+    OC_UNUSED(adapter);
+    OC_UNUSED(enabled);
 
 #ifdef WITH_PRESENCE
     if (presenceResource.handle)
@@ -6228,11 +6194,7 @@ void OCDefaultAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enab
 
 void OCDefaultConnectionStateChangedHandler(const CAEndpoint_t *info, bool isConnected)
 {
-    OIC_LOG(DEBUG, __FILE__, "OCDefaultConnectionStateChangedHandler");
-    if (g_connectionHandler)
-    {
-       g_connectionHandler(info, isConnected);
-    }
+    OIC_LOG(DEBUG, TAG, "OCDefaultConnectionStateChangedHandler");
 
 #ifdef WITH_PRESENCE
     if (presenceResource.handle)

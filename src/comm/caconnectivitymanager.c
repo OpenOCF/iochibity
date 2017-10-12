@@ -189,7 +189,7 @@ bool CAGetSecureEndpointAttributes(const CAEndpoint_t* peer, uint32_t* attribute
     return success;
 }
 
-CAResult_t CAregisterSslHandshakeCallback(CAErrorCallback tlsHandshakeCallback)
+CAResult_t CAregisterSslHandshakeCallback(CAHandshakeErrorCallback tlsHandshakeCallback)
 {
     OIC_LOG(DEBUG, TAG, "CAregisterSslHandshakeCallback");
 
@@ -250,7 +250,6 @@ CAResult_t CACreateEndpoint(CATransportFlags_t flags,
 {
     if (!object)
     {
-	/* errno = EINVAL; */
         OIC_LOG(ERROR, TAG, "Invalid Parameter");
         return CA_STATUS_INVALID_PARAM;
     }

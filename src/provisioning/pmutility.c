@@ -428,8 +428,11 @@ void PMDeleteDeviceList(OCProvisionDev_t *pDevicesList)
             LL_DELETE(pDevicesList, del);
 
             DeleteDoxmBinData(del->doxm);
+            del->doxm = NULL;
             DeletePstatBinData(del->pstat);
+            del->pstat = NULL;
             OICFree(del);
+            del = NULL;
         }
     }
 }
@@ -1296,6 +1299,7 @@ OCStackResult PMSingleDeviceDiscoveryInUnicast(unsigned short waittime, const Oi
 #ifdef MULTIPLE_OWNER
 
 static const unsigned int IOTIVITY_USECS_PER_MSEC = 1000;
+extern int MOTIsSupportedOnboardingType(OicSecDoxm_t *ptrDoxm);
 
 static OCStackApplicationResult MOTDeviceDiscoveryHandler(void *ctx, OCDoHandle UNUSED,
                                 OCClientResponse *clientResponse)

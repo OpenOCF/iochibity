@@ -33,8 +33,6 @@
 #else
 #include "windows/pthread_create.h"
 #endif
-
-
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

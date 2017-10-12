@@ -51,7 +51,7 @@ extern "C"
 /**
  * Macro to verify the validity of cbor operation.
  */
-#define VERIFY_CBOR_SUCCESS(log_tag, err, log_message) \
+#define VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(log_tag, err, log_message) \
     if ((CborNoError != (err)) && (CborErrorOutOfMemory != (err))) \
     { \
         if ((log_tag) && (log_message)) \
@@ -69,6 +69,16 @@ extern "C"
         goto exit;\
     } \
 
+#define VERIFY_CBOR_NOT_OUTOFMEMORY(log_tag, err, log_message) \
+    if (CborErrorOutOfMemory == (err)) \
+    { \
+        if ((log_tag) && (log_message)) \
+        { \
+            OIC_LOG_V(ERROR, (log_tag), "%s with cbor error: \'%s\'.", \
+                    (log_message), (cbor_error_string(err))); \
+        } \
+        goto exit; \
+    } \
 
 typedef struct OCResource OCResource;
 
@@ -308,18 +318,25 @@ char* OC_CALL OCCreateString(const OCStringLL* ll);
 bool OC_CALL OCByteStringCopy(OCByteString *dest, const OCByteString *source);
 
 /**
-* This function creates the payloadValue for links parameter of collection resource.
-* @param[in] resourceUri Resource uri (this should be a collection resource)
-* @param[out] linksRepPayloadValue The payloadValue for links parameter of collection
-* @param[in] devAddr Structure pointing to the address. (from OCEntityHandlerRequest)
-*
-* @note: The destroy of OCRepPayloadValue is not supported. Instead, use
-*        OCRepPayloadDestroy(...) to destroy RepPayload of the collection Resource
-*
-* @return ::OC_STACK_OK if successful or else other value.
-*/
-OCStackResult OC_CALL OCLinksPayloadValueCreate(const char *resourceUri,
-                      OCRepPayloadValue **linksRepPayloadValue, OCDevAddr *devAddr);
+ * This function creates the payloadArray for links parameter of collection resource.
+ * @param[in] resourceUri Resource uri (this should be a collection resource)
+ * @param[in] ehRequest parameter received from Entity Handler for client request
+ * @param[out] createdArraySize return value array size, Null is allowed if no need to know size
+ *
+ * @note: API usage
+ *   OCRepPayload **linkArr = OCLinksPayloadArrayCreate(uri, ehRequest, &ArraySize);
+ *   For links parameter setting  (baseline interface response)
+ *    OCRepPayloadSetPropObjectArrayAsOwner(payload, OC_RSRVD_LINKS, linkArr, {ArraySize, 0,0});
+ *   For arrayPayload setting (linklist interface response)
+ *     payload = linkArr[0]; payload->next = linkArr[1]; ....
+ *     OICFree(linkArr)
+ * @note: The destroy of OCRepPayloadArray is not supported. Instead, use
+ *        OCRepPayloadDestroy(...) to destroy RepPayload of the collection Resource
+ *
+ * @return linksRepPayloadArray The *RepPayload Array pointer for links parameter of collection.
+ **/
+OCRepPayload** OC_CALL OCLinksPayloadArrayCreate(const char *resourceUri,
+                       OCEntityHandlerRequest *ehRequest, size_t* createdArraySize);
 
 #ifdef __cplusplus
 }

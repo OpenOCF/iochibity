@@ -32,10 +32,6 @@
 #include "doxmresource.h"
 #include "iotvticalendar.h"
 #include "pstatresource.h"
-/* PAIRING DEPRECATED
-#include "pconfresource.h"
-#include "dpairingresource.h"
-*/
 #include "amaclresource.h"
 #include "credresource.h"
 #include "rolesresource.h"
@@ -226,10 +222,8 @@ static GetSvrRownerId_t GetSvrRownerId[OIC_SEC_SVR_TYPE_COUNT + 1] = {
     GetCredRownerId,
     NULL,               // crl doesn't have rowneruuid.
     GetDoxmRownerId,
-    /* PAIRING DEPRECATED
-    GetDpairingRownerId,
-    GetPconfRownerId,
-    */
+    NULL,               //Direct Pairing has been removed
+    NULL,				//GetPconfRownerId,
     GetPstatRownerId,
     NULL,               // sacl is not implemented yet.
     NULL,               // svc has been removed from the OCF 1.0 Security spec.

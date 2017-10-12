@@ -116,7 +116,7 @@ extern "C"
  */
 #define CA_MAX_IDENTITY_SIZE (37)
 
-  /**
+/**
  * option types - the highest option number 63.
  */
 #define CA_OPTION_IF_MATCH 1
@@ -164,10 +164,10 @@ typedef uint8_t *CAPayload_t;
  */
 typedef char *CAURI_t;
 
-/* /\** */
-/*  * Token information for mapping the request and responses by resource model. */
-/*  *\/ */
-/* typedef char *CAToken_t; */
+/**
+ * Token information for mapping the request and responses by resource model.
+ */
+typedef char *CAToken_t;
 
 /*
  * Socket types and error definitions.
@@ -200,8 +200,7 @@ typedef int    CASocketFd_t;
 /* #endif */
 
 //GAR: CATransportAdapter_t, CATransportFlags_t match OCTransportAdapter, OCTransportFlags
-// see src/transport_types.h
-
+// the latter have been moved to src/transport_types.h
 typedef enum
 {
     CA_DEFAULT_ADAPTER = 0,
@@ -375,6 +374,8 @@ typedef enum
     CA_NOT_SUPPORTED,               /**< Not supported */
     CA_STATUS_NOT_INITIALIZED,      /**< Not Initialized*/
     CA_DTLS_AUTHENTICATION_FAILURE, /**< Decryption error in DTLS */
+    CA_CONTINUE_OPERATION,          /**< Error happens but current operation should continue */
+    CA_HANDLE_ERROR_OTHER_MODULE,   /**< Error happens but it should be handled in other module */
     CA_STATUS_FAILED =255           /**< Failure */
     /* Result code - END HERE */
 } CAResult_t;
@@ -719,6 +720,14 @@ typedef void (*CAResponseCallback)(const CAEndpoint_t *object,
  */
 typedef void (*CAErrorCallback)(const CAEndpoint_t *object,
                                 const CAErrorInfo_t *errorInfo);
+
+/**
+ * Callback function type for error.
+ * @param[out]   object           remote device information.
+ * @param[out]   result           error information.
+ */
+typedef CAResult_t (*CAHandshakeErrorCallback)(const CAEndpoint_t *object,
+                                               const CAErrorInfo_t *errorInfo);
 
 /**
  * Callback function type for network status changes delivery from CA common logic.

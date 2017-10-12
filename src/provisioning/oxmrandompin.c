@@ -49,13 +49,10 @@
 
 #define TAG "OIC_OXM_RandomPIN"
 
-/*GAR int */
 OCStackResult CreatePinBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
 {
     if(!otmCtx || !otmCtx->selectedDeviceInfo || !payload || *payload || !size)
     {
-	errno = EINVAL;
-	/*GAR FIXME: return OC_RC_FAILURE; */
         return OC_STACK_INVALID_PARAM;
     }
 
@@ -167,28 +164,6 @@ OCStackResult CreateSecureSessionRandomPinCallback(OTMContext_t* otmCtx)
         return OC_STACK_ERROR;
     }
     OIC_LOG(INFO, TAG, "TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256 cipher suite selected.");
-
-    CAEndpoint_t endpoint;
-    OCProvisionDev_t* selDevInfo = otmCtx->selectedDeviceInfo;
-    CopyDevAddrToEndpoint(&selDevInfo->endpoint, &endpoint);
-
-    if (CA_ADAPTER_IP == endpoint.adapter)
-    {
-        endpoint.port = selDevInfo->securePort;
-    }
-#ifdef WITH_TCP
-    else if (CA_ADAPTER_TCP == endpoint.adapter)
-    {
-        endpoint.port = selDevInfo->tcpSecurePort;
-    }
-#endif
-
-    caresult = CAInitiateHandshake(&endpoint);
-    if (CA_STATUS_OK != caresult)
-    {
-        OIC_LOG_V(ERROR, TAG, "DTLS handshake failure.");
-        return OC_STACK_ERROR;
-    }
 
     OIC_LOG(INFO, TAG, "OUT CreateSecureSessionRandomPinCallbak");
 

@@ -41,6 +41,7 @@
 
 #if defined(HAVE_WINDOWS_H)
 # include <windows.h>
+# define HAVE_QUERYPERFORMANCEFREQUENCY
 #elif !defined(WITH_ARDUINO)
 # if _POSIX_TIMERS > 0
 #  include <time.h>        // For clock_gettime()
@@ -75,24 +76,19 @@ uint64_t OICGetCurrentTime(OICTimePrecision precision)
 #else
 # if _POSIX_TIMERS > 0
 #   if defined(CLOCK_MONOTONIC_COARSE)
-    /* printf("TIME POSIX MONOTONIC COARSE\n"); */
     static const clockid_t clockId = CLOCK_MONOTONIC_COARSE;
 #   elif _POSIX_MONOTONIC_CLOCK >= 0
-    /* printf("TIME POSIX MONOTONIC >= 0\n"); */
     // Option _POSIX_MONOTONIC_CLOCK == 0 indicates that the option is
     // available at compile time but may not be supported at run
     // time.  Check if option _POSIX_MONOTONIC_CLOCK is supported at
     // run time.
 #     if _POSIX_MONOTONIC_CLOCK == 0
-    /* printf("TIME POSIX MONOTONIC_CLOCK == 0\n"); */
     static const clockid_t clockId =
         sysconf(_SC_MONOTONIC_CLOCK) > 0 ? CLOCK_MONOTONIC : CLOCK_REALTIME;
 #     else
-    /* printf("TIME ELSE (POSIX MONOTONIC_CLOCK == 0)\n"); */
     static const clockid_t clockId = CLOCK_MONOTONIC;
 #     endif  // _POSIX_MONOTONIC_CLOCK == 0
 #   else
-    /* printf("TIME POSIX CLOCK_REALTIME)\n"); */
     static const clockid_t clockId = CLOCK_REALTIME;
 #   endif  // CLOCK_MONOTONIC_COARSE
 
@@ -105,8 +101,6 @@ uint64_t OICGetCurrentTime(OICTimePrecision precision)
             : (((uint64_t) current.tv_sec * US_PER_SEC) + (current.tv_nsec / NS_PER_US));
     }
 # else
-    /* printf("NOT POSIX_TIMERS > 0 A\n"); */
-    /* printf("TIME GETTIMEOFDAY\n"); */
     struct timeval current = { .tv_sec = 0, .tv_usec = 0 };
     if (gettimeofday(&current, NULL) == 0)
     {
