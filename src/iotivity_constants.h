@@ -4,7 +4,7 @@
 /*GAR: migrated from octypes.h */
 
 /** Version of IoTivity. */
-#define IOTIVITY_VERSION                      "1.3.0"
+#define IOTIVITY_VERSION                      "1.3.1"
 
 /**
  * OIC Virtual resources supported by every OIC device.
@@ -139,11 +139,11 @@
 /** To represent interface.*/
 #define OC_RSRVD_INTERFACE              "if"
 
-/** To indicate how long RD should publish this item.*/
-#define OC_RSRVD_DEVICE_TTL             "lt"
-
 /** To represent time to live.*/
 #define OC_RSRVD_TTL                    "ttl"
+
+/** To indicate how long RD should publish this item.*/
+#define OC_RSRVD_DEVICE_TTL             OC_RSRVD_TTL
 
 /** To represent non*/
 #define OC_RSRVD_NONCE                  "non"
@@ -351,6 +351,17 @@
 #define OC_MULTICAST_PORT               (5683)
 #endif // GOING_AWAY
 
+/* /\** Max Device address size. *\/ */
+/* GAR same code occurs in cacommon.h; both refactored to transport_types.h
+/* #ifdef RA_ADAPTER */
+/* #define MAX_ADDR_STR_SIZE (256) */
+/* #else */
+/* /\** Max Address could be */
+/*  * "coaps+tcp://[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:yyy.yyy.yyy.yyy]:xxxxx" */
+/*  * +1 for null terminator. */
+/*  *\/ */
+/* #define MAX_ADDR_STR_SIZE (66) */
+/* #endif */
 
 /** Length of MAC address */
 #define MAC_ADDR_STR_SIZE (17)
