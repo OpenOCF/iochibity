@@ -571,16 +571,6 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
                                       resource->uri);
             VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed adding uri to links map");
 
-                err |= AddTextStringToMap(&linkMap, OC_RSRVD_HREF, sizeof(OC_RSRVD_HREF) - 1,
-                                          uri);
-            }
-            else
-            {
-                err |= AddTextStringToMap(&linkMap, OC_RSRVD_HREF, sizeof(OC_RSRVD_HREF) - 1,
-                                          resource->uri);
-            }
-            VERIFY_CBOR_SUCCESS(TAG, err, "Failed adding uri to links map");
-
             // Rel - Not a mandatory field
             err |= ConditionalAddTextStringToMap(&linkMap, OC_RSRVD_REL, sizeof(OC_RSRVD_REL) - 1,
                                                  resource->rel);
