@@ -21,7 +21,9 @@
 /**
  * @file
  *
- * This file contains typedefs for callbacks. Extracted from cautilinterface.h
+ * This file contains typedefs for callbacks.
+ * Extracted from src/comm/util/cautilinterface.h
+ *
  */
 
 #ifndef CA_COMMDEFS_H_

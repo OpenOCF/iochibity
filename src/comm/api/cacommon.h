@@ -199,7 +199,8 @@ typedef int    CASocketFd_t;
 /* #define MAX_ADDR_STR_SIZE_CA (66) */
 /* #endif */
 
-//GAR: CATransportAdapter_t, CATransportFlags_t moved to commtypes.h
+//GAR: CATransportAdapter_t, CATransportFlags_t match OCTransportAdapter, OCTransportFlags
+// see src/transport_types.h
 
 typedef enum
 {
