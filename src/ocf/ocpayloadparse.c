@@ -543,7 +543,7 @@ static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *reso
                 }
 
                 err = cbor_value_advance(&epMap);
-                VERIFY_CBOR_SUCCESS(TAG, err, "to advance endpoint map");
+                VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to advance endpoint map");
             }
 
             err = cbor_value_leave_container(&epsMap, &epMap);
