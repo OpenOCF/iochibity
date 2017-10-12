@@ -38,6 +38,7 @@ hello.cc
 build/
 lib/
 sysroots/
+merge/
 
 /release
 resource/release
