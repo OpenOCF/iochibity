@@ -22,9 +22,9 @@
 // causes header files to expose definitions
 // corresponding to the POSIX.1-2001 base
 // specification (excluding the XSI extension).
-// For POSIX.1-2001 base specification,
-// Refer http://pubs.opengroup.org/onlinepubs/009695399/
-#define _POSIX_C_SOURCE 200112L
+// For POSIX.1-2008 base specification,
+// Refer http://pubs.opengroup.org/onlinepubs/9699919799/
+#define _POSIX_C_SOURCE 200809L
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -33,9 +33,7 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
+
 
 #include "coap/coap.h"
 
@@ -69,7 +67,7 @@
 #define INTROSPECTION_FILE_SIZE_BLOCK  1024
 
 #define VERIFY_SUCCESS(op) { if (op != (OC_STACK_OK)) \
-            {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} }
+            {OIC_LOG_V(FATAL, __FILE__, "%s failed!!", #op); goto exit;} }
 
 /**
  * Default cbor payload size. This value is increased in case of CborErrorOutOfMemory.
@@ -143,7 +141,7 @@ OCStackResult GetTCPPortInfo(OCDevAddr *endpoint, uint16_t *port, bool secured)
 {
     if (NULL == endpoint)
     {
-        OIC_LOG(ERROR, TAG, "GetTCPPortInfo failed!");
+        OIC_LOG(ERROR, __FILE__, "GetTCPPortInfo failed!");
         return OC_STACK_ERROR;
     }
 
@@ -176,7 +174,7 @@ OCStackResult ExtractFiltersFromQuery(const char *query, char **filterOne, char 
 {
     if (!query)
     {
-        OIC_LOG(ERROR, TAG, "Query is empty!");
+        OIC_LOG(ERROR, __FILE__, "Query is empty!");
         return OC_STACK_INVALID_QUERY;
     }
     char *key = NULL;
@@ -192,16 +190,16 @@ OCStackResult ExtractFiltersFromQuery(const char *query, char **filterOne, char 
     queryDup = OICStrdup(query);
     if (NULL == queryDup)
     {
-        OIC_LOG(ERROR, TAG, "Creating duplicate string failed!");
+        OIC_LOG(ERROR, __FILE__, "Creating duplicate string failed!");
         return OC_STACK_NO_MEMORY;
     }
 
-    OIC_LOG_V(INFO, TAG, "Extracting params from %s", queryDup);
+    OIC_LOG_V(INFO, __FILE__, "Extracting params from %s", queryDup);
 
     OCStackResult eCode = OC_STACK_INVALID_QUERY;
     if (strnlen(queryDup, MAX_QUERY_LENGTH) >= MAX_QUERY_LENGTH)
     {
-        OIC_LOG(ERROR, TAG, "Query exceeds maximum length.");
+        OIC_LOG(ERROR, __FILE__, "Query exceeds maximum length.");
         goto exit;
     }
 
@@ -211,7 +209,7 @@ OCStackResult ExtractFiltersFromQuery(const char *query, char **filterOne, char 
     {
         if (numKeyValuePairsParsed >= 2)
         {
-            OIC_LOG(ERROR, TAG, "More than 2 queries params in URI.");
+            OIC_LOG(ERROR, __FILE__, "More than 2 queries params in URI.");
             goto exit;
         }
 
@@ -231,7 +229,7 @@ OCStackResult ExtractFiltersFromQuery(const char *query, char **filterOne, char 
         }
         else
         {
-            OIC_LOG_V(ERROR, TAG, "Unsupported query key: %s", key);
+            OIC_LOG_V(ERROR, __FILE__, "Unsupported query key: %s", key);
             goto exit;
         }
         ++numKeyValuePairsParsed;
@@ -244,7 +242,7 @@ OCStackResult ExtractFiltersFromQuery(const char *query, char **filterOne, char 
         *filterOne = OICStrdup(*filterOne);
         if (NULL == *filterOne)
         {
-            OIC_LOG(ERROR, TAG, "Creating duplicate string failed!");
+            OIC_LOG(ERROR, __FILE__, "Creating duplicate string failed!");
             eCode = OC_STACK_NO_MEMORY;
             goto exit;
         }
@@ -255,7 +253,7 @@ OCStackResult ExtractFiltersFromQuery(const char *query, char **filterOne, char 
         *filterTwo = OICStrdup(*filterTwo);
         if (NULL == *filterTwo)
         {
-            OIC_LOG(ERROR, TAG, "Creating duplicate string failed!");
+            OIC_LOG(ERROR, __FILE__, "Creating duplicate string failed!");
             OICFree(*filterOne);
             eCode = OC_STACK_NO_MEMORY;
             goto exit;
@@ -263,7 +261,7 @@ OCStackResult ExtractFiltersFromQuery(const char *query, char **filterOne, char 
     }
 
     OICFree(queryDup);
-    OIC_LOG_V(INFO, TAG, "Extracted params if: %s and rt: %s.", *filterOne, *filterTwo);
+    OIC_LOG_V(INFO, __FILE__, "Extracted params if: %s and rt: %s.", *filterOne, *filterTwo);
     return OC_STACK_OK;
 
 exit:
@@ -344,7 +342,7 @@ static OCStackResult getQueryParamsForFiltering (OCVirtualResources uri, char *q
     if (uri == OC_PRESENCE)
     {
         //Nothing needs to be done, except for pass a OC_PRESENCE query through as OC_STACK_OK.
-        OIC_LOG(INFO, TAG, "OC_PRESENCE Request for virtual resource.");
+        OIC_LOG(INFO, __FILE__, "OC_PRESENCE Request for virtual resource.");
         return OC_STACK_OK;
     }
 #endif
@@ -380,7 +378,7 @@ static OCStackResult BuildDevicePlatformPayload(const OCResource *resourcePtr, O
         const char *deviceId = OCGetServerInstanceIDString();
         if (!deviceId)
         {
-            OIC_LOG(ERROR, TAG, "Failed retrieving device id.");
+            OIC_LOG(ERROR, __FILE__, "Failed retrieving device id.");
             return OC_STACK_ERROR;
         }
         OCRepPayloadSetPropString(tempPayload, OC_RSRVD_DEVICE_ID, deviceId);
@@ -482,7 +480,7 @@ OCStackResult BuildResponseRepresentation(const OCResource *resourcePtr,
         for (uint8_t i = 0; i < numElement; ++i)
         {
             const char *value = OCGetResourceTypeName((OCResource *)resourcePtr, i);
-            OIC_LOG_V(DEBUG, TAG, "value: %s", value);
+            OIC_LOG_V(DEBUG, __FILE__, "value: %s", value);
             rt[i] = OICStrdup(value);
         }
         OCRepPayloadSetStringArrayAsOwner(tempPayload, OC_RSRVD_RESOURCE_TYPE, rt, rtDim);
@@ -496,7 +494,7 @@ OCStackResult BuildResponseRepresentation(const OCResource *resourcePtr,
         for (uint8_t i = 0; i < numElement; ++i)
         {
             const char *value = OCGetResourceInterfaceName((OCResource *)resourcePtr, i);
-            OIC_LOG_V(DEBUG, TAG, "value: %s", value);
+            OIC_LOG_V(DEBUG, __FILE__, "value: %s", value);
             itf[i] = OICStrdup(value);
         }
 
@@ -564,7 +562,7 @@ void CleanUpDeviceProperties(OCDeviceProperties **deviceProperties)
 
 static OCStackResult CreateDeviceProperties(const char *piid, OCDeviceProperties **deviceProperties)
 {
-    OIC_LOG(DEBUG, TAG, "CreateDeviceProperties IN");
+    OIC_LOG(DEBUG, __FILE__, "CreateDeviceProperties IN");
 
     OCStackResult result = OC_STACK_OK;
 
@@ -583,7 +581,7 @@ static OCStackResult CreateDeviceProperties(const char *piid, OCDeviceProperties
         result = OC_STACK_NO_MEMORY;
     }
 
-    OIC_LOG(DEBUG, TAG, "CreateDeviceProperties OUT");
+    OIC_LOG(DEBUG, __FILE__, "CreateDeviceProperties OUT");
 
     return result;
 }
@@ -609,7 +607,7 @@ static OCStackResult GenerateDeviceProperties(OCDeviceProperties **devicePropert
         {
             if (!OCConvertUuidToString(generatedProtocolIndependentId.id, protocolIndependentId))
             {
-                OIC_LOG(ERROR, TAG, "ConvertUuidToStr failed");
+                OIC_LOG(ERROR, __FILE__, "ConvertUuidToStr failed");
                 result = OC_STACK_ERROR;
             }
         }
@@ -620,7 +618,7 @@ static OCStackResult GenerateDeviceProperties(OCDeviceProperties **devicePropert
     }
     else
     {
-        OIC_LOG(FATAL, TAG, "Generate UUID for Device Properties Protocol Independent ID failed!");
+        OIC_LOG(FATAL, __FILE__, "Generate UUID for Device Properties Protocol Independent ID failed!");
         result = OC_STACK_ERROR;
     }
 
@@ -629,7 +627,7 @@ static OCStackResult GenerateDeviceProperties(OCDeviceProperties **devicePropert
         result = CreateDeviceProperties(protocolIndependentId, deviceProperties);
         if (OC_STACK_OK != result)
         {
-            OIC_LOG(ERROR, TAG, "CreateDeviceProperties failed");
+            OIC_LOG(ERROR, __FILE__, "CreateDeviceProperties failed");
         }
     }
 
@@ -666,13 +664,13 @@ OCStackResult CBORPayloadToDeviceProperties(const uint8_t *payload, size_t size,
         cborResult = cbor_value_dup_text_string(&dpMap, &protocolIndependentId, &len, NULL);
         if (CborNoError != cborResult)
         {
-            OIC_LOG(ERROR, TAG, "Failed to get Protocol Independent Id!");
+            OIC_LOG(ERROR, __FILE__, "Failed to get Protocol Independent Id!");
             result = OC_STACK_ERROR;
         }
     }
     else
     {
-        OIC_LOG(ERROR, TAG, "Protocol Independent Id is not present or invalid!");
+        OIC_LOG(ERROR, __FILE__, "Protocol Independent Id is not present or invalid!");
         result = OC_STACK_ERROR;
     }
 
@@ -681,7 +679,7 @@ OCStackResult CBORPayloadToDeviceProperties(const uint8_t *payload, size_t size,
         result = CreateDeviceProperties(protocolIndependentId, deviceProperties);
         if (OC_STACK_OK != result)
         {
-            OIC_LOG(ERROR, TAG, "CreateDeviceProperties failed");
+            OIC_LOG(ERROR, __FILE__, "CreateDeviceProperties failed");
         }
     }
 
@@ -723,7 +721,7 @@ OCStackResult DevicePropertiesToCBORPayload(const OCDeviceProperties *deviceProp
         cborResult = cbor_encoder_create_map(&encoder, &dpMap, CborIndefiniteLength);
         if (CborNoError != cborResult)
         {
-            OIC_LOG(ERROR, TAG, "Failed to create encoder map!");
+            OIC_LOG(ERROR, __FILE__, "Failed to create encoder map!");
             result = OC_STACK_ERROR;
         }
     }
@@ -743,13 +741,13 @@ OCStackResult DevicePropertiesToCBORPayload(const OCDeviceProperties *deviceProp
                                                  strlen(deviceProperties->protocolIndependentId));
             if (CborNoError != cborResult)
             {
-                OIC_LOG(ERROR, TAG, "Failed to encode protocolIndependentId!");
+                OIC_LOG(ERROR, __FILE__, "Failed to encode protocolIndependentId!");
                 result = OC_STACK_ERROR;
             }
         }
         else
         {
-            OIC_LOG(ERROR, TAG, "Failed to encode OC_RSRVD_PROTOCOL_INDEPENDENT_ID!");
+            OIC_LOG(ERROR, __FILE__, "Failed to encode OC_RSRVD_PROTOCOL_INDEPENDENT_ID!");
             result = OC_STACK_ERROR;
         }
     }
@@ -760,7 +758,7 @@ OCStackResult DevicePropertiesToCBORPayload(const OCDeviceProperties *deviceProp
         cborResult = cbor_encoder_close_container(&encoder, &dpMap);
         if (CborNoError != cborResult)
         {
-            OIC_LOG(ERROR, TAG, "Failed to close dpMap container!");
+            OIC_LOG(ERROR, __FILE__, "Failed to close dpMap container!");
             result = OC_STACK_ERROR;
         }
     }
@@ -807,12 +805,12 @@ static OCStackResult UpdateDeviceInfoResourceWithDeviceProperties(const OCDevice
         result = SetAttributeInternal(resource, OC_RSRVD_PROTOCOL_INDEPENDENT_ID, deviceProperties->protocolIndependentId, updateDatabase);
         if (OC_STACK_OK != result)
         {
-            OIC_LOG(ERROR, TAG, "OCSetPropertyValue failed to set Protocol Independent ID");
+            OIC_LOG(ERROR, __FILE__, "OCSetPropertyValue failed to set Protocol Independent ID");
         }
     }
     else
     {
-        OIC_LOG(ERROR, TAG, "Resource does not exist.");
+        OIC_LOG(ERROR, __FILE__, "Resource does not exist.");
         result = OC_STACK_NO_RESOURCE;
     }
 
@@ -824,7 +822,7 @@ static OCStackResult ReadDevicePropertiesFromDatabase(OCDeviceProperties **devic
     uint8_t *data = NULL;
     size_t size = 0;
 
-    OIC_LOG_V(INFO, TAG, "Reading DEVICE_PROPS_FILE: %s", OC_DEVICE_PROPS_FILE_NAME); /* GAR */
+    OIC_LOG_V(INFO, __FILE__, "Reading DEVICE_PROPS_FILE: %s", OC_DEVICE_PROPS_FILE_NAME); /* GAR */
     OCStackResult result = ReadDatabaseFromPS(OC_DEVICE_PROPS_FILE_NAME, OC_JSON_DEVICE_PROPS_NAME, &data, &size);
     if (OC_STACK_OK == result)
     {
@@ -832,12 +830,12 @@ static OCStackResult ReadDevicePropertiesFromDatabase(OCDeviceProperties **devic
         result = CBORPayloadToDeviceProperties(data, size, deviceProperties);
         if (OC_STACK_OK != result)
         {
-            OIC_LOG(WARNING, TAG, "CBORPayloadToDeviceProperties failed");
+            OIC_LOG(WARNING, __FILE__, "CBORPayloadToDeviceProperties failed");
         }
     }
     else
     {
-        OIC_LOG(ERROR, TAG, "ReadDatabaseFromPS failed");
+        OIC_LOG(ERROR, __FILE__, "ReadDatabaseFromPS failed");
     }
 
     // Clean Up
@@ -862,7 +860,7 @@ static OCStackResult UpdateDevicePropertiesDatabase(const OCDeviceProperties *de
     // it is the application's job to manage them.
     if (!OCGetPersistentStorageHandler())
     {
-        OIC_LOG(DEBUG, TAG, "Persistent Storage handler is NULL.");
+        OIC_LOG(DEBUG, __FILE__, "Persistent Storage handler is NULL.");
         return OC_STACK_OK;
     }
 
@@ -873,12 +871,12 @@ static OCStackResult UpdateDevicePropertiesDatabase(const OCDeviceProperties *de
         result = UpdateResourceInPS(OC_DEVICE_PROPS_FILE_NAME, OC_JSON_DEVICE_PROPS_NAME, payload, size);
         if (OC_STACK_OK != result)
         {
-            OIC_LOG_V(ERROR, TAG, "UpdateResourceInPS failed with %d!", result);
+            OIC_LOG_V(ERROR, __FILE__, "UpdateResourceInPS failed with %d!", result);
         }
     }
     else
     {
-        OIC_LOG_V(ERROR, TAG, "DevicePropertiesToCBORPayload failed with %d!", result);
+        OIC_LOG_V(ERROR, __FILE__, "DevicePropertiesToCBORPayload failed with %d!", result);
     }
 
     // Clean Up
@@ -889,7 +887,7 @@ static OCStackResult UpdateDevicePropertiesDatabase(const OCDeviceProperties *de
 
 OCStackResult InitializeDeviceProperties()
 {
-    OIC_LOG(DEBUG, TAG, "InitializeDeviceProperties IN");
+    OIC_LOG(DEBUG, __FILE__, "InitializeDeviceProperties IN");
 
     OCStackResult result = OC_STACK_OK;
     OCDeviceProperties *deviceProperties = NULL;
@@ -899,7 +897,7 @@ OCStackResult InitializeDeviceProperties()
     result = ReadDevicePropertiesFromDatabase(&deviceProperties);
     if (OC_STACK_OK != result)
     {
-        OIC_LOG(ERROR, TAG, "ReadDevicePropertiesFromDatabase failed");
+        OIC_LOG(ERROR, __FILE__, "ReadDevicePropertiesFromDatabase failed");
     }
 
     // If the device properties in persistent storage are corrupted or
@@ -913,7 +911,7 @@ OCStackResult InitializeDeviceProperties()
         }
         else
         {
-            OIC_LOG(ERROR, TAG, "GenerateDeviceProperties failed");
+            OIC_LOG(ERROR, __FILE__, "GenerateDeviceProperties failed");
         }
     }
 
@@ -925,14 +923,14 @@ OCStackResult InitializeDeviceProperties()
         result = UpdateDeviceInfoResourceWithDeviceProperties(deviceProperties, updateDatabase);
         if (OC_STACK_OK != result)
         {
-            OIC_LOG(ERROR, TAG, "UpdateDeviceInfoResourceWithDeviceProperties failed");
+            OIC_LOG(ERROR, __FILE__, "UpdateDeviceInfoResourceWithDeviceProperties failed");
         }
     }
 
     // Clean Up
     CleanUpDeviceProperties(&deviceProperties);
 
-    OIC_LOG(DEBUG, TAG, "InitializeDeviceProperties OUT");
+    OIC_LOG(DEBUG, __FILE__, "InitializeDeviceProperties OUT");
 
     return result;
 }
@@ -964,7 +962,7 @@ static size_t GetIntrospectionDataSize(const OCPersistentStorage *ps)
 
 OCStackResult GetIntrospectionDataFromPS(uint8_t **data, size_t *size)
 {
-    OIC_LOG(DEBUG, TAG, "GetIntrospectionDataFromPS IN");
+    OIC_LOG(DEBUG, __FILE__, "GetIntrospectionDataFromPS IN");
 
     FILE *fp = NULL;
     uint8_t *fsData = NULL;
@@ -980,26 +978,26 @@ OCStackResult GetIntrospectionDataFromPS(uint8_t **data, size_t *size)
     ps = OCGetPersistentStorageHandler();
     if (!ps)
     {
-        OIC_LOG(ERROR, TAG, "Persistent Storage handler is NULL");
+        OIC_LOG(ERROR, __FILE__, "Persistent Storage handler is NULL");
         goto exit;
     }
 
     fileSize = GetIntrospectionDataSize(ps);
-    OIC_LOG_V(DEBUG, TAG, "File Read Size: %zu", fileSize);
+    OIC_LOG_V(DEBUG, __FILE__, "File Read Size: %zu", fileSize);
     if (fileSize)
     {
         // allocate one more byte to accomodate null terminator for string we are reading.
         fsData = (uint8_t *)OICCalloc(1, fileSize + 1);
         if (!fsData)
         {
-            OIC_LOG(ERROR, TAG, "Could not allocate memory for introspection data");
+            OIC_LOG(ERROR, __FILE__, "Could not allocate memory for introspection data");
             goto exit;
         }
 
         fp = ps->open(OC_INTROSPECTION_FILE_NAME, "rb");
         if (!fp)
         {
-            OIC_LOG(ERROR, TAG, "Could not open persistent storage file for introspection data");
+            OIC_LOG(ERROR, __FILE__, "Could not open persistent storage file for introspection data");
             goto exit;
         }
         if (ps->read(fsData, 1, fileSize, fp) == fileSize)
@@ -1011,7 +1009,7 @@ OCStackResult GetIntrospectionDataFromPS(uint8_t **data, size_t *size)
             ret = OC_STACK_OK;
         }
     }
-    OIC_LOG(DEBUG, TAG, "GetIntrospectionDataFromPS OUT");
+    OIC_LOG(DEBUG, __FILE__, "GetIntrospectionDataFromPS OUT");
 
 exit:
     if (fp)
@@ -1058,7 +1056,7 @@ OCRepPayload *BuildUrlInfoWithProtocol(const char *protocol, char *ep)
     OCRepPayload *urlInfoPayload = OCRepPayloadCreate();
     if (!urlInfoPayload)
     {
-        OIC_LOG(ERROR, TAG, "Failed to create a new RepPayload");
+        OIC_LOG(ERROR, __FILE__, "Failed to create a new RepPayload");
         result = OC_STACK_NO_MEMORY;
         goto exit;
     }
@@ -1067,25 +1065,25 @@ OCRepPayload *BuildUrlInfoWithProtocol(const char *protocol, char *ep)
 
     if (!OCRepPayloadSetPropString(urlInfoPayload, OC_RSRVD_INTROSPECTION_URL, introspectionUrl))
     {
-        OIC_LOG(ERROR, TAG, "Failed to add url");
+        OIC_LOG(ERROR, __FILE__, "Failed to add url");
         result = OC_STACK_ERROR;
         goto exit;
     }
     if (!OCRepPayloadSetPropString(urlInfoPayload, OC_RSRVD_INTROSPECTION_PROTOCOL, protocol))
     {
-        OIC_LOG(ERROR, TAG, "Failed to add protocol");
+        OIC_LOG(ERROR, __FILE__, "Failed to add protocol");
         result = OC_STACK_ERROR;
         goto exit;
     }
     if (!OCRepPayloadSetPropString(urlInfoPayload, OC_RSRVD_INTROSPECTION_CONTENT_TYPE, OC_RSRVD_INTROSPECTION_CONTENT_TYPE_VALUE))
     {
-        OIC_LOG(ERROR, TAG, "Failed to add content type");
+        OIC_LOG(ERROR, __FILE__, "Failed to add content type");
         result = OC_STACK_ERROR;
         goto exit;
     }
     if (!OCRepPayloadSetPropInt(urlInfoPayload, OC_RSRVD_INTROSPECTION_VERSION, OC_RSRVD_INTROSPECTION_VERSION_VALUE))
     {
-        OIC_LOG(ERROR, TAG, "Failed to add version");
+        OIC_LOG(ERROR, __FILE__, "Failed to add version");
         result = OC_STACK_ERROR;
         goto exit;
     }
@@ -1134,7 +1132,7 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
 
     if (!OCRepPayloadSetUri(tempPayload, resourcePtr->uri))
     {
-        OIC_LOG(ERROR, TAG, "Failed to set payload URI");
+        OIC_LOG(ERROR, __FILE__, "Failed to set payload URI");
         ret = OC_STACK_ERROR;
         goto exit;
     }
@@ -1144,7 +1142,7 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
     {
         if (!OCRepPayloadAddResourceType(tempPayload, resType->resourcetypename))
         {
-            OIC_LOG(ERROR, TAG, "Failed at add resource type");
+            OIC_LOG(ERROR, __FILE__, "Failed at add resource type");
             ret = OC_STACK_ERROR;
             goto exit;
         }
@@ -1156,7 +1154,7 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
     {
         if (!OCRepPayloadAddInterface(tempPayload, resInterface->name))
         {
-            OIC_LOG(ERROR, TAG, "Failed to add interface");
+            OIC_LOG(ERROR, __FILE__, "Failed to add interface");
             ret = OC_STACK_ERROR;
             goto exit;
         }
@@ -1164,7 +1162,7 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
     }
     if (!OCRepPayloadSetPropString(tempPayload, OC_RSRVD_INTROSPECTION_NAME, OC_RSRVD_INTROSPECTION_NAME_VALUE))
     {
-        OIC_LOG(ERROR, TAG, "Failed to set Name property.");
+        OIC_LOG(ERROR, __FILE__, "Failed to set Name property.");
         ret = OC_STACK_ERROR;
         goto exit;
     }
@@ -1172,7 +1170,7 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
     caResult = CAGetNetworkInformation(&caEps, &nCaEps);
     if (CA_STATUS_FAILED == caResult)
     {
-        OIC_LOG(ERROR, TAG, "CAGetNetworkInformation failed!");
+        OIC_LOG(ERROR, __FILE__, "CAGetNetworkInformation failed!");
         ret = OC_STACK_ERROR;
         goto exit;
     }
@@ -1181,7 +1179,7 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
     urlInfoPayload = (OCRepPayload **)OICCalloc(nCaEps, sizeof(OCRepPayload*));
     if (!urlInfoPayload)
     {
-        OIC_LOG(ERROR, TAG, "Unable to allocate memory for urlInfo ");
+        OIC_LOG(ERROR, __FILE__, "Unable to allocate memory for urlInfo ");
         ret = OC_STACK_NO_MEMORY;
         goto exit;
     }
@@ -1220,7 +1218,7 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
                         urlInfoPayload[dimensions[0]] = BuildUrlInfoWithProtocol(proto, epStr);
                         if (!urlInfoPayload[dimensions[0]])
                         {
-                            OIC_LOG(ERROR, TAG, "Unable to build urlInfo object for protocol");
+                            OIC_LOG(ERROR, __FILE__, "Unable to build urlInfo object for protocol");
                             ret = OC_STACK_ERROR;
                             goto exit;
                         }
@@ -1236,7 +1234,7 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
         urlInfoPayload,
         dimensions))
     {
-        OIC_LOG(ERROR, TAG, "Unable to add urlInfo object to introspection payload ");
+        OIC_LOG(ERROR, __FILE__, "Unable to add urlInfo object to introspection payload ");
         ret = OC_STACK_ERROR;
         goto exit;
     }
@@ -1315,7 +1313,7 @@ OCResource *OC_CALL FindResourceByUri(const char* resourceUri)
         }
         pointer = pointer->next;
     }
-    OIC_LOG_V(INFO, TAG, "Resource %s not found", resourceUri);
+    OIC_LOG_V(INFO, __FILE__, "Resource %s not found", resourceUri);
     return NULL;
 }
 
@@ -1324,7 +1322,7 @@ OCStackResult CheckRequestsEndpoint(const OCDevAddr *reqDevAddr,
 {
     if (!reqDevAddr)
     {
-        OIC_LOG(ERROR, TAG, "OCDevAddr* is NULL!!!");
+        OIC_LOG(ERROR, __FILE__, "OCDevAddr* is NULL!!!");
         return OC_STACK_INVALID_PARAM;
     }
 
@@ -1334,19 +1332,19 @@ OCStackResult CheckRequestsEndpoint(const OCDevAddr *reqDevAddr,
 
     if (result != OC_STACK_OK)
     {
-        OIC_LOG_V(ERROR, TAG, "Failed at get TPS flags. errcode is %d", result);
+        OIC_LOG_V(ERROR, __FILE__, "Failed at get TPS flags. errcode is %d", result);
         return result;
     }
 
     // bit compare between request tps flags and resource tps flags
     if (reqTpsFlags & resTpsFlags)
     {
-        OIC_LOG(INFO, TAG, "Request come from registered TPS");
+        OIC_LOG(INFO, __FILE__, "Request come from registered TPS");
         return OC_STACK_OK;
     }
     else
     {
-        OIC_LOG(ERROR, TAG, "Request come from unregistered TPS!!!");
+        OIC_LOG(ERROR, __FILE__, "Request come from unregistered TPS!!!");
         return OC_STACK_BAD_ENDPOINT;
     }
 }
@@ -1360,12 +1358,12 @@ OCStackResult DetermineResourceHandling (const OCServerRequest *request,
         return OC_STACK_INVALID_PARAM;
     }
 
-    OIC_LOG_V(INFO, TAG, "DetermineResourceHandling for %s", request->resourceUrl);
+    OIC_LOG_V(INFO, __FILE__, "DetermineResourceHandling for %s", request->resourceUrl);
 
     // Check if virtual resource
     if (GetTypeOfVirtualURI(request->resourceUrl) != OC_UNKNOWN_URI)
     {
-        OIC_LOG_V (INFO, TAG, "%s is virtual", request->resourceUrl);
+        OIC_LOG_V (INFO, __FILE__, "%s is virtual", request->resourceUrl);
         *handling = OC_RESOURCE_VIRTUAL;
         *resource = headResource;
         return OC_STACK_OK;
@@ -1390,12 +1388,12 @@ OCStackResult DetermineResourceHandling (const OCServerRequest *request,
             {
                 if (result == OC_STACK_BAD_ENDPOINT)
                 {
-                    OIC_LOG(ERROR, TAG, "Request come from bad endpoint. ignore request!!!");
+                    OIC_LOG(ERROR, __FILE__, "Request come from bad endpoint. ignore request!!!");
                     return OC_STACK_BAD_ENDPOINT;
                 }
                 else
                 {
-                    OIC_LOG_V(ERROR, TAG, "Failed at get tps flag errcode: %d", result);
+                    OIC_LOG_V(ERROR, __FILE__, "Failed at get tps flag errcode: %d", result);
                     return result;
                 }
             }
@@ -1517,7 +1515,7 @@ static bool resourceMatchesRTFilter(OCResource *resource, char *resourceTypeFilt
         }
     }
 
-    OIC_LOG_V(INFO, TAG, "%s does not contain rt=%s.", resource->uri, resourceTypeFilter);
+    OIC_LOG_V(INFO, __FILE__, "%s does not contain rt=%s.", resource->uri, resourceTypeFilter);
     return false;
 }
 
@@ -1552,7 +1550,7 @@ static bool resourceMatchesIFFilter(OCResource *resource, char *interfaceFilter)
         }
     }
 
-    OIC_LOG_V(INFO, TAG, "%s does not contain if=%s.", resource->uri, interfaceFilter);
+    OIC_LOG_V(INFO, __FILE__, "%s does not contain if=%s.", resource->uri, interfaceFilter);
     return false;
 }
 
@@ -1567,7 +1565,7 @@ static bool includeThisResourceInResponse(OCResource *resource,
 {
     if (!resource)
     {
-        OIC_LOG(ERROR, TAG, "Invalid resource");
+        OIC_LOG(ERROR, __FILE__, "Invalid resource");
         return false;
     }
 
@@ -1579,7 +1577,7 @@ static bool includeThisResourceInResponse(OCResource *resource,
          */
         if (!(resourceTypeFilter && *resourceTypeFilter))
         {
-            OIC_LOG_V(INFO, TAG, "%s no query string for EXPLICIT_DISCOVERABLE\
+            OIC_LOG_V(INFO, __FILE__, "%s no query string for EXPLICIT_DISCOVERABLE\
                 resource", resource->uri);
             return false;
         }
@@ -1587,7 +1585,7 @@ static bool includeThisResourceInResponse(OCResource *resource,
     else if (!(resource->resourceProperties & OC_ACTIVE) ||
          !(resource->resourceProperties & OC_DISCOVERABLE))
     {
-        OIC_LOG_V(INFO, TAG, "%s not ACTIVE or DISCOVERABLE", resource->uri);
+        OIC_LOG_V(INFO, __FILE__, "%s not ACTIVE or DISCOVERABLE", resource->uri);
         return false;
     }
 
@@ -1602,7 +1600,7 @@ static OCStackResult SendNonPersistantDiscoveryResponse(OCServerRequest *request
     OCStackResult result = OC_STACK_ERROR;
 
     response = (OCEntityHandlerResponse *)OICCalloc(1, sizeof(*response));
-    VERIFY_PARAM_NON_NULL(TAG, response, "Failed allocating OCEntityHandlerResponse");
+    VERIFY_PARAM_NON_NULL(__FILE__, response, "Failed allocating OCEntityHandlerResponse");
 
     response->ehResult = ehResult;
     response->payload = discoveryPayload;
@@ -1683,17 +1681,17 @@ static OCStackResult discoveryPayloadCreateAndAddDeviceId(OCPayload **payload)
 {
     if (*payload)
     {
-        OIC_LOG(DEBUG, TAG, "Payload is already allocated");
+        OIC_LOG(DEBUG, __FILE__, "Payload is already allocated");
         return OC_STACK_OK;
     }
 
     *payload = (OCPayload *) OCDiscoveryPayloadCreate();
-    VERIFY_PARAM_NON_NULL(TAG, *payload, "Failed adding device id to discovery payload.");
+    VERIFY_PARAM_NON_NULL(__FILE__, *payload, "Failed adding device id to discovery payload.");
 
     {
         OCDiscoveryPayload *discPayload = (OCDiscoveryPayload *)*payload;
         discPayload->sid = (char *)OICCalloc(1, UUID_STRING_SIZE);
-        VERIFY_PARAM_NON_NULL(TAG, discPayload->sid, "Failed adding device id to discovery payload.");
+        VERIFY_PARAM_NON_NULL(__FILE__, discPayload->sid, "Failed adding device id to discovery payload.");
 
         const char* uid = OCGetServerInstanceIDString();
         if (uid)
@@ -1720,20 +1718,20 @@ static OCStackResult addDiscoveryBaselineCommonProperties(OCDiscoveryPayload *di
 {
     if (!discPayload)
     {
-        OIC_LOG(ERROR, TAG, "Payload is not allocated");
+        OIC_LOG(ERROR, __FILE__, "Payload is not allocated");
         return OC_STACK_INVALID_PARAM;
     }
 
     OCGetPropertyValue(PAYLOAD_TYPE_DEVICE, OC_RSRVD_DEVICE_NAME, (void **)&discPayload->name);
 
     discPayload->type = (OCStringLL*)OICCalloc(1, sizeof(OCStringLL));
-    VERIFY_PARAM_NON_NULL(TAG, discPayload->type, "Failed adding rt to discovery payload.");
+    VERIFY_PARAM_NON_NULL(__FILE__, discPayload->type, "Failed adding rt to discovery payload.");
     discPayload->type->value = OICStrdup(OC_RSRVD_RESOURCE_TYPE_RES);
-    VERIFY_PARAM_NON_NULL(TAG, discPayload->type, "Failed adding rt value to discovery payload.");
+    VERIFY_PARAM_NON_NULL(__FILE__, discPayload->type, "Failed adding rt value to discovery payload.");
 
     OCResourcePayloadAddStringLL(&discPayload->iface, OC_RSRVD_INTERFACE_LL);
     OCResourcePayloadAddStringLL(&discPayload->iface, OC_RSRVD_INTERFACE_DEFAULT);
-    VERIFY_PARAM_NON_NULL(TAG, discPayload->iface, "Failed adding if to discovery payload.");
+    VERIFY_PARAM_NON_NULL(__FILE__, discPayload->iface, "Failed adding if to discovery payload.");
 
     return OC_STACK_OK;
 
@@ -1777,22 +1775,22 @@ static OCStackResult HandleVirtualObserveRequest(OCServerRequest *request)
     resourcePtr = FindResourceByUri(OC_RSRVD_WELL_KNOWN_URI);
     if (NULL == resourcePtr)
     {
-        OIC_LOG(FATAL, TAG, "Well-known URI not found.");
+        OIC_LOG(FATAL, __FILE__, "Well-known URI not found.");
         result = OC_STACK_ERROR;
         goto exit;
     }
     if (request->observationOption == OC_OBSERVE_REGISTER)
     {
-        OIC_LOG(INFO, TAG, "Observation registration requested");
+        OIC_LOG(INFO, __FILE__, "Observation registration requested");
         ResourceObserver *obs = GetObserverUsingToken (resourcePtr,
                                                        request->requestToken,
                                                        request->tokenLength);
         if (obs)
         {
-            OIC_LOG (INFO, TAG, "Observer with this token already present");
-            OIC_LOG (INFO, TAG, "Possibly re-transmitted CON OBS request");
-            OIC_LOG (INFO, TAG, "Not adding observer. Not responding to client");
-            OIC_LOG (INFO, TAG, "The first request for this token is already ACKED.");
+            OIC_LOG (INFO, __FILE__, "Observer with this token already present");
+            OIC_LOG (INFO, __FILE__, "Possibly re-transmitted CON OBS request");
+            OIC_LOG (INFO, __FILE__, "Not adding observer. Not responding to client");
+            OIC_LOG (INFO, __FILE__, "The first request for this token is already ACKED.");
             result = OC_STACK_DUPLICATE_REQUEST;
             goto exit;
         }
@@ -1808,12 +1806,12 @@ static OCStackResult HandleVirtualObserveRequest(OCServerRequest *request)
         }
         if (result == OC_STACK_OK)
         {
-            OIC_LOG(INFO, TAG, "Added observer successfully");
+            OIC_LOG(INFO, __FILE__, "Added observer successfully");
             request->observeResult = OC_STACK_OK;
         }
         else if (result == OC_STACK_RESOURCE_ERROR)
         {
-            OIC_LOG(INFO, TAG, "The Resource is not active, discoverable or observable");
+            OIC_LOG(INFO, __FILE__, "The Resource is not active, discoverable or observable");
             request->observeResult = OC_STACK_ERROR;
         }
         else
@@ -1821,17 +1819,17 @@ static OCStackResult HandleVirtualObserveRequest(OCServerRequest *request)
             // The error in observeResult for the request will be used when responding to this
             // request by omitting the observation option/sequence number.
             request->observeResult = OC_STACK_ERROR;
-            OIC_LOG(ERROR, TAG, "Observer Addition failed");
+            OIC_LOG(ERROR, __FILE__, "Observer Addition failed");
         }
     }
     else if (request->observationOption == OC_OBSERVE_DEREGISTER)
     {
-        OIC_LOG(INFO, TAG, "Deregistering observation requested");
+        OIC_LOG(INFO, __FILE__, "Deregistering observation requested");
         result = DeleteObserverUsingToken (resourcePtr,
                                            request->requestToken, request->tokenLength);
         if (result == OC_STACK_OK)
         {
-            OIC_LOG(INFO, TAG, "Removed observer successfully");
+            OIC_LOG(INFO, __FILE__, "Removed observer successfully");
             request->observeResult = OC_STACK_OK;
             // There should be no observe option header for de-registration response.
             // Set as an invalid value here so we can detect it later and remove the field in response.
@@ -1840,7 +1838,7 @@ static OCStackResult HandleVirtualObserveRequest(OCServerRequest *request)
         else
         {
             request->observeResult = OC_STACK_ERROR;
-            OIC_LOG(ERROR, TAG, "Observer Removal failed");
+            OIC_LOG(ERROR, __FILE__, "Observer Removal failed");
         }
     }
     // Whether the observe request succeeded or failed, the request is processed as normal
@@ -1862,7 +1860,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     char *interfaceQuery = NULL;
     char *resourceTypeQuery = NULL;
 
-    OIC_LOG(INFO, TAG, "Entering HandleVirtualResource");
+    OIC_LOG(INFO, __FILE__, "Entering HandleVirtualResource");
 
     OCVirtualResources virtualUriInRequest = GetTypeOfVirtualURI (request->resourceUrl);
 
@@ -1870,7 +1868,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     if (OC_KEEPALIVE_RESOURCE_URI == virtualUriInRequest)
     {
         // Received request for a keepalive
-        OIC_LOG(INFO, TAG, "Request is for KeepAlive Request");
+        OIC_LOG(INFO, __FILE__, "Request is for KeepAlive Request");
         return HandleKeepAliveRequest(request, resource);
     }
 #endif
@@ -1879,7 +1877,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     if (request->method == OC_REST_PUT || request->method == OC_REST_POST ||
         request->method == OC_REST_DELETE)
     {
-        OIC_LOG_V(ERROR, TAG, "Resource : %s not permitted for method: %d",
+        OIC_LOG_V(ERROR, __FILE__, "Resource : %s not permitted for method: %d",
             request->resourceUrl, request->method);
         return OC_STACK_UNAUTHORIZED_REQ;
     }
@@ -1921,7 +1919,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
         CAResult_t caResult = CAGetNetworkInformation(&networkInfo, &infoSize);
         if (CA_STATUS_FAILED == caResult)
         {
-            OIC_LOG(ERROR, TAG, "CAGetNetworkInformation has error on parsing network infomation");
+            OIC_LOG(ERROR, __FILE__, "CAGetNetworkInformation has error on parsing network infomation");
             return OC_STACK_ERROR;
         }
 
@@ -1936,7 +1934,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
         }
 
         discoveryResult = discoveryPayloadCreateAndAddDeviceId(&payload);
-        VERIFY_PARAM_NON_NULL(TAG, payload, "Failed creating Discovery Payload.");
+        VERIFY_PARAM_NON_NULL(__FILE__, payload, "Failed creating Discovery Payload.");
         VERIFY_SUCCESS(discoveryResult);
 
         OCDiscoveryPayload *discPayload = (OCDiscoveryPayload *)payload;
@@ -1998,20 +1996,20 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     else if (virtualUriInRequest == OC_DEVICE_URI)
     {
         OCResource *resourcePtr = FindResourceByUri(OC_RSRVD_DEVICE_URI);
-        VERIFY_PARAM_NON_NULL(TAG, resourcePtr, "Device URI not found.");
+        VERIFY_PARAM_NON_NULL(__FILE__, resourcePtr, "Device URI not found.");
         discoveryResult = BuildDevicePlatformPayload(resourcePtr, (OCRepPayload **)&payload, true);
     }
     else if (virtualUriInRequest == OC_PLATFORM_URI)
     {
         OCResource *resourcePtr = FindResourceByUri(OC_RSRVD_PLATFORM_URI);
-        VERIFY_PARAM_NON_NULL(TAG, resourcePtr, "Platform URI not found.");
+        VERIFY_PARAM_NON_NULL(__FILE__, resourcePtr, "Platform URI not found.");
         discoveryResult = BuildDevicePlatformPayload(resourcePtr, (OCRepPayload **)&payload, false);
     }
 #ifdef ROUTING_GATEWAY
     else if (OC_GATEWAY_URI == virtualUriInRequest)
     {
         // Received request for a gateway
-        OIC_LOG(INFO, TAG, "Request is for Gateway Virtual Request");
+        OIC_LOG(INFO, __FILE__, "Request is for Gateway Virtual Request");
         discoveryResult = RMHandleGatewayRequest(request);
     }
 #endif
@@ -2019,17 +2017,17 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     {
         // Received request for introspection
         OCResource *resourcePtr = FindResourceByUri(OC_RSRVD_INTROSPECTION_URI_PATH);
-        VERIFY_PARAM_NON_NULL(TAG, resourcePtr, "Introspection URI not found.");
+        VERIFY_PARAM_NON_NULL(__FILE__, resourcePtr, "Introspection URI not found.");
         discoveryResult = BuildIntrospectionResponseRepresentation(resourcePtr, (OCRepPayload **)&payload, &request->devAddr);
-        OIC_LOG(INFO, TAG, "Request is for Introspection");
+        OIC_LOG(INFO, __FILE__, "Request is for Introspection");
     }
     else if (OC_INTROSPECTION_PAYLOAD_URI == virtualUriInRequest)
     {
         // Received request for introspection payload
         OCResource *resourcePtr = FindResourceByUri(OC_RSRVD_INTROSPECTION_PAYLOAD_URI_PATH);
-        VERIFY_PARAM_NON_NULL(TAG, resourcePtr, "Introspection Payload URI not found.");
+        VERIFY_PARAM_NON_NULL(__FILE__, resourcePtr, "Introspection Payload URI not found.");
         discoveryResult = BuildIntrospectionPayloadResponse(resourcePtr, &payload, &request->devAddr);
-        OIC_LOG(INFO, TAG, "Request is for Introspection Payload");
+        OIC_LOG(INFO, __FILE__, "Request is for Introspection Payload");
     }
     /**
      * Step 2: Send the discovery response
@@ -2078,7 +2076,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
         {
             if (isUnicast(request))
             {
-                OIC_LOG_V(ERROR, TAG, "Sending a (%d) error to (%d) discovery request",
+                OIC_LOG_V(ERROR, __FILE__, "Sending a (%d) error to (%d) discovery request",
                     discoveryResult, virtualUriInRequest);
                 SendNonPersistantDiscoveryResponse(request, NULL,
                     (discoveryResult == OC_STACK_NO_RESOURCE) ?
@@ -2087,7 +2085,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
             else // Multicast
             {
                 // Ignoring the discovery request as per RFC 7252, Section #8.2
-                OIC_LOG(INFO, TAG, "Silently ignoring the request since no useful data to send.");
+                OIC_LOG(INFO, __FILE__, "Silently ignoring the request since no useful data to send.");
                 // the request should be removed.
                 // since it never remove and causes a big memory waste.
                 DeleteServerRequest(request);
@@ -2122,7 +2120,7 @@ HandleDefaultDeviceEntityHandler(OCServerRequest *request)
 
     OCEntityHandlerResult ehResult = OC_EH_ERROR;
     OCEntityHandlerRequest ehRequest = {0};
-    OIC_LOG(INFO, TAG, "Entering HandleResourceWithDefaultDeviceEntityHandler");
+    OIC_LOG(INFO, __FILE__, "Entering HandleResourceWithDefaultDeviceEntityHandler");
     OCStackResult result = EHRequest(&ehRequest, PAYLOAD_TYPE_REPRESENTATION, request, NULL);
     VERIFY_SUCCESS(result);
 
@@ -2131,7 +2129,7 @@ HandleDefaultDeviceEntityHandler(OCServerRequest *request)
                                   (char*) request->resourceUrl, defaultDeviceHandlerCallbackParameter);
     if(ehResult == OC_EH_SLOW)
     {
-        OIC_LOG(INFO, TAG, "This is a slow resource");
+        OIC_LOG(INFO, __FILE__, "This is a slow resource");
         request->slowFlag = 1;
     }
     else if(ehResult == OC_EH_ERROR)
@@ -2160,7 +2158,7 @@ HandleResourceWithEntityHandler(OCServerRequest *request,
 
     OCEntityHandlerRequest ehRequest = {0};
 
-    OIC_LOG(INFO, TAG, "Entering HandleResourceWithEntityHandler");
+    OIC_LOG(INFO, __FILE__, "Entering HandleResourceWithEntityHandler");
     OCPayloadType type = PAYLOAD_TYPE_REPRESENTATION;
     // check the security resource
     if (request && request->resourceUrl && SRMIsSecurityResourceURI(request->resourceUrl))
@@ -2173,22 +2171,22 @@ HandleResourceWithEntityHandler(OCServerRequest *request,
 
     if(ehRequest.obsInfo.action == OC_OBSERVE_NO_OPTION)
     {
-        OIC_LOG(INFO, TAG, "No observation requested");
+        OIC_LOG(INFO, __FILE__, "No observation requested");
         ehFlag = OC_REQUEST_FLAG;
     }
     else if(ehRequest.obsInfo.action == OC_OBSERVE_REGISTER)
     {
-        OIC_LOG(INFO, TAG, "Observation registration requested");
+        OIC_LOG(INFO, __FILE__, "Observation registration requested");
 
         ResourceObserver *obs = GetObserverUsingToken(resource,
                                                       request->requestToken, request->tokenLength);
 
         if (obs)
         {
-            OIC_LOG (INFO, TAG, "Observer with this token already present");
-            OIC_LOG (INFO, TAG, "Possibly re-transmitted CON OBS request");
-            OIC_LOG (INFO, TAG, "Not adding observer. Not responding to client");
-            OIC_LOG (INFO, TAG, "The first request for this token is already ACKED.");
+            OIC_LOG (INFO, __FILE__, "Observer with this token already present");
+            OIC_LOG (INFO, __FILE__, "Possibly re-transmitted CON OBS request");
+            OIC_LOG (INFO, __FILE__, "Not adding observer. Not responding to client");
+            OIC_LOG (INFO, __FILE__, "The first request for this token is already ACKED.");
 
             // server requests are usually free'd when the response is sent out
             // for the request in ocserverrequest.c : HandleSingleResponse()
@@ -2209,13 +2207,13 @@ HandleResourceWithEntityHandler(OCServerRequest *request,
 
         if(result == OC_STACK_OK)
         {
-            OIC_LOG(INFO, TAG, "Added observer successfully");
+            OIC_LOG(INFO, __FILE__, "Added observer successfully");
             request->observeResult = OC_STACK_OK;
             ehFlag = (OCEntityHandlerFlag)(OC_REQUEST_FLAG | OC_OBSERVE_FLAG);
         }
         else if (result == OC_STACK_RESOURCE_ERROR)
         {
-            OIC_LOG(INFO, TAG, "The Resource is not active, discoverable or observable");
+            OIC_LOG(INFO, __FILE__, "The Resource is not active, discoverable or observable");
             request->observeResult = OC_STACK_ERROR;
             ehFlag = OC_REQUEST_FLAG;
         }
@@ -2224,7 +2222,7 @@ HandleResourceWithEntityHandler(OCServerRequest *request,
             // The error in observeResult for the request will be used when responding to this
             // request by omitting the observation option/sequence number.
             request->observeResult = OC_STACK_ERROR;
-            OIC_LOG(ERROR, TAG, "Observer Addition failed");
+            OIC_LOG(ERROR, __FILE__, "Observer Addition failed");
             ehFlag = OC_REQUEST_FLAG;
             DeleteServerRequest(request);
             goto exit;
@@ -2233,7 +2231,7 @@ HandleResourceWithEntityHandler(OCServerRequest *request,
     }
     else if(ehRequest.obsInfo.action == OC_OBSERVE_DEREGISTER)
     {
-        OIC_LOG(INFO, TAG, "Deregistering observation requested");
+        OIC_LOG(INFO, __FILE__, "Deregistering observation requested");
 
         resObs = GetObserverUsingToken (resource,
                                         request->requestToken, request->tokenLength);
@@ -2253,7 +2251,7 @@ HandleResourceWithEntityHandler(OCServerRequest *request,
 
         if(result == OC_STACK_OK)
         {
-            OIC_LOG(INFO, TAG, "Removed observer successfully");
+            OIC_LOG(INFO, __FILE__, "Removed observer successfully");
             request->observeResult = OC_STACK_OK;
             // There should be no observe option header for de-registration response.
             // Set as an invalid value here so we can detect it later and remove the field in response.
@@ -2262,7 +2260,7 @@ HandleResourceWithEntityHandler(OCServerRequest *request,
         else
         {
             request->observeResult = OC_STACK_ERROR;
-            OIC_LOG(ERROR, TAG, "Observer Removal failed");
+            OIC_LOG(ERROR, __FILE__, "Observer Removal failed");
             DeleteServerRequest(request);
             goto exit;
         }
@@ -2276,7 +2274,7 @@ HandleResourceWithEntityHandler(OCServerRequest *request,
     ehResult = resource->entityHandler(ehFlag, &ehRequest, resource->entityHandlerCallbackParam);
     if(ehResult == OC_EH_SLOW)
     {
-        OIC_LOG(INFO, TAG, "This is a slow resource");
+        OIC_LOG(INFO, __FILE__, "This is a slow resource");
         request->slowFlag = 1;
     }
     else if(ehResult == OC_EH_ERROR)
@@ -2327,7 +2325,7 @@ ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerReque
         }
         case OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER:
         {
-            OIC_LOG(INFO, TAG, "OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER");
+            OIC_LOG(INFO, __FILE__, "OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER");
             return OC_STACK_ERROR;
         }
         case OC_RESOURCE_NOT_COLLECTION_WITH_ENTITYHANDLER:
@@ -2352,7 +2350,7 @@ ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerReque
         }
         default:
         {
-            OIC_LOG(INFO, TAG, "Invalid Resource Determination");
+            OIC_LOG(INFO, __FILE__, "Invalid Resource Determination");
             return OC_STACK_ERROR;
         }
     }
@@ -2364,12 +2362,12 @@ OCStackResult OC_CALL OCSetPlatformInfo(OCPlatformInfo info)
     OCResource *resource = NULL;
     if (!info.platformID || !info.manufacturerName)
     {
-        OIC_LOG(ERROR, TAG, "No value specified.");
+        OIC_LOG(ERROR, __FILE__, "No value specified.");
         goto exit;
     }
     if (0 == strlen(info.platformID) || 0 == strlen(info.manufacturerName))
     {
-        OIC_LOG(ERROR, TAG, "The passed value cannot be empty");
+        OIC_LOG(ERROR, __FILE__, "The passed value cannot be empty");
         goto exit;
     }
     if ((info.manufacturerName && strlen(info.manufacturerName) > MAX_PLATFORM_NAME_LENGTH) ||
@@ -2381,7 +2379,7 @@ OCStackResult OC_CALL OCSetPlatformInfo(OCPlatformInfo info)
         (info.firmwareVersion && strlen(info.firmwareVersion) > MAX_PLATFORM_NAME_LENGTH) ||
         (info.supportUrl && strlen(info.supportUrl) > MAX_PLATFORM_URL_LENGTH))
     {
-        OIC_LOG(ERROR, TAG, "The passed value is bigger than permitted.");
+        OIC_LOG(ERROR, __FILE__, "The passed value is bigger than permitted.");
         goto exit;
     }
 
@@ -2393,17 +2391,18 @@ OCStackResult OC_CALL OCSetPlatformInfo(OCPlatformInfo info)
     uint8_t uuid[UUID_SIZE];
     if (!OCConvertStringToUuid(info.platformID, uuid))
     {
-        OIC_LOG(ERROR, TAG, "Platform ID is not a UUID.");
+        OIC_LOG_V(ERROR, __FILE__, "[%d] %s: Platform ID is not a UUID.",
+		__LINE__, __func__);
         goto exit;
     }
 
     resource = FindResourceByUri(OC_RSRVD_PLATFORM_URI);
     if (!resource)
     {
-        OIC_LOG(ERROR, TAG, "Platform Resource does not exist.");
+        OIC_LOG(ERROR, __FILE__, "Platform Resource does not exist.");
         goto exit;
     }
-    OIC_LOG(INFO, TAG, "Entering OCSetPlatformInfo");
+    OIC_LOG(INFO, __FILE__, "Entering OCSetPlatformInfo");
     VERIFY_SUCCESS(OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_PLATFORM_ID, info.platformID));
     VERIFY_SUCCESS(OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_MFG_NAME, info.manufacturerName));
     OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_MFG_URL, info.manufacturerUrl);
@@ -2415,7 +2414,7 @@ OCStackResult OC_CALL OCSetPlatformInfo(OCPlatformInfo info)
     OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_FIRMWARE_VERSION, info.firmwareVersion);
     OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_SUPPORT_URL, info.supportUrl);
     OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_SYSTEM_TIME, info.systemTime);
-    OIC_LOG(INFO, TAG, "Platform parameter initialized successfully.");
+    OIC_LOG(INFO, __FILE__, "Platform parameter initialized successfully.");
     return OC_STACK_OK;
 
 exit:
@@ -2427,18 +2426,18 @@ OCStackResult OC_CALL OCSetDeviceInfo(OCDeviceInfo info)
     OCResource *resource = FindResourceByUri(OC_RSRVD_DEVICE_URI);
     if (!resource)
     {
-        OIC_LOG(ERROR, TAG, "Device Resource does not exist.");
+        OIC_LOG(ERROR, __FILE__, "Device Resource does not exist.");
         goto exit;
     }
     if (!info.deviceName || info.deviceName[0] == '\0')
     {
-        OIC_LOG(ERROR, TAG, "Null or empty device name.");
+        OIC_LOG(ERROR, __FILE__, "Null or empty device name.");
        return OC_STACK_INVALID_PARAM;
     }
 
     if (OCGetServerInstanceIDString() == NULL)
     {
-        OIC_LOG(INFO, TAG, "Device ID generation failed");
+        OIC_LOG(INFO, __FILE__, "Device ID generation failed");
         goto exit;
     }
 
@@ -2456,7 +2455,7 @@ OCStackResult OC_CALL OCSetDeviceInfo(OCDeviceInfo info)
     if (info.dataModelVersions)
     {
         char *dmv = OCCreateString(info.dataModelVersions);
-        VERIFY_PARAM_NON_NULL(TAG, dmv, "Failed allocating dataModelVersions");
+        VERIFY_PARAM_NON_NULL(__FILE__, dmv, "Failed allocating dataModelVersions");
         OCStackResult r = OCSetPropertyValue(PAYLOAD_TYPE_DEVICE, OC_RSRVD_DATA_MODEL_VERSION, dmv);
         OICFree(dmv);
         VERIFY_SUCCESS(r);
@@ -2466,7 +2465,7 @@ OCStackResult OC_CALL OCSetDeviceInfo(OCDeviceInfo info)
         VERIFY_SUCCESS(OCSetPropertyValue(PAYLOAD_TYPE_DEVICE, OC_RSRVD_DATA_MODEL_VERSION,
             OC_DATA_MODEL_VERSION));
     }
-    OIC_LOG(INFO, TAG, "Device parameter initialized successfully.");
+    OIC_LOG(INFO, __FILE__, "Device parameter initialized successfully.");
     return OC_STACK_OK;
 
 exit:
@@ -2599,9 +2598,9 @@ static OCStackResult SetAttributeInternal(OCResource *resource,
     if (NULL == resAttrib)
     {
         resAttrib = (OCAttribute *)OICCalloc(1, sizeof(OCAttribute));
-        VERIFY_PARAM_NON_NULL(TAG, resAttrib, "Failed allocating OCAttribute");
+        VERIFY_PARAM_NON_NULL(__FILE__, resAttrib, "Failed allocating OCAttribute");
         resAttrib->attrName = OICStrdup(attribute);
-        VERIFY_PARAM_NON_NULL(TAG, resAttrib->attrName, "Failed allocating attribute name");
+        VERIFY_PARAM_NON_NULL(__FILE__, resAttrib->attrName, "Failed allocating attribute name");
         resAttrib->next = resource->rsrcAttributes;
         resource->rsrcAttributes = resAttrib;
     }
@@ -2620,7 +2619,7 @@ static OCStackResult SetAttributeInternal(OCResource *resource,
     {
         resAttrib->attrValue = OICStrdup((char *)value);
     }
-    VERIFY_PARAM_NON_NULL(TAG, resAttrib->attrValue, "Failed allocating attribute value");
+    VERIFY_PARAM_NON_NULL(__FILE__, resAttrib->attrValue, "Failed allocating attribute value");
 
     // The resource has changed from what is stored in the database. Update the database to
     // reflect the new value.
@@ -2634,14 +2633,14 @@ static OCStackResult SetAttributeInternal(OCResource *resource,
             result = UpdateDevicePropertiesDatabase(deviceProperties);
             if (OC_STACK_OK != result)
             {
-                OIC_LOG(ERROR, TAG, "UpdateDevicePropertiesDatabase failed!");
+                OIC_LOG(ERROR, __FILE__, "UpdateDevicePropertiesDatabase failed!");
             }
 
             CleanUpDeviceProperties(&deviceProperties);
         }
         else
         {
-            OIC_LOG(ERROR, TAG, "CreateDeviceProperties failed!");
+            OIC_LOG(ERROR, __FILE__, "CreateDeviceProperties failed!");
         }
     }
 
@@ -2685,7 +2684,7 @@ static OCStackResult IsDatabaseUpdateNeeded(const char *attribute, const void *v
         }
         else
         {
-            OIC_LOG_V(ERROR, TAG,
+            OIC_LOG_V(ERROR, __FILE__,
                 "Call to OCGetPropertyValue for the current PIID failed with error: %d", result);
         }
     }
@@ -2705,7 +2704,7 @@ OCStackResult OC_CALL OCSetAttribute(OCResource *resource, const char *attribute
     // write.
     if (OC_STACK_OK != IsDatabaseUpdateNeeded(attribute, value, &updateDatabase))
     {
-        OIC_LOG_V(WARNING, TAG,
+        OIC_LOG_V(WARNING, __FILE__,
             "Could not determine if a database update was needed for %s. Proceeding without updating the database.",
             attribute);
         updateDatabase = false;
@@ -2732,7 +2731,7 @@ OCStackResult OC_CALL OCSetPropertyValue(OCPayloadType type, const char *prop, c
         OCResource *resource = FindResourceByUri(pathType);
         if (!resource)
         {
-            OIC_LOG(ERROR, TAG, "Resource does not exist.");
+            OIC_LOG(ERROR, __FILE__, "Resource does not exist.");
         }
         else
         {
@@ -2784,7 +2783,7 @@ void GiveStackFeedBackObserverNotInterested(const OCDevAddr *devAddr)
         return;
     }
 
-    OIC_LOG_V(INFO, TAG, "Observer(%s:%u) is not interested anymore", devAddr->addr,
+    OIC_LOG_V(INFO, __FILE__, "Observer(%s:%u) is not interested anymore", devAddr->addr,
               devAddr->port);
 
     OCResource *resource = NULL;
