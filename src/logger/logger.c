@@ -184,7 +184,7 @@ void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t buffe
         // Output 16 values per line
         if (((i + 1) % 16) == 0)
         {
-            OCLogv(level, tag, "%s", lineBuffer);
+            OCLogv(level, tag, 0, "%s", lineBuffer);
             memset(lineBuffer, 0, sizeof lineBuffer);
             lineIndex = 0;
         }
@@ -192,7 +192,7 @@ void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t buffe
     // Output last values in the line, if any
     if (bufferSize % 16)
     {
-        OCLogv(level, tag, "%s", lineBuffer);
+        OCLogv(level, tag, 0, "%s", lineBuffer);
     }
 }
 
@@ -231,7 +231,7 @@ void OCLogShutdown()
  * @param tag    - Module name
  * @param format - variadic log string
  */
-void OCLogv(int level, const char * tag, const char * format, ...)
+void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
 {
     if (!format || !tag) {
         return;
@@ -242,12 +242,15 @@ void OCLogv(int level, const char * tag, const char * format, ...)
         return;
     }
 
+    char tagbuffer[MAX_LOG_V_BUFFER_SIZE] = {0};
+    sprintf(tagbuffer, "%s:%d ", tag, line_nbr);
+
     char buffer[MAX_LOG_V_BUFFER_SIZE] = {0};
     va_list args;
     va_start(args, format);
     vsnprintf(buffer, sizeof buffer - 1, format, args);
     va_end(args);
-    OCLog(level, tag, buffer);
+    OCLog(level, tagbuffer, buffer);
 }
 
 /**
@@ -330,7 +333,7 @@ void OCLog(int level, const char * tag, const char * logStr)
    #endif
 	   /* GAR FIXME: make a separate Log fn for timestamped msgs */
            /* printf("%02d:%02d.%03d %s: %s: %s\n", min, sec, ms, LEVEL[level], tag, logStr); */
-           printf("%s %s: %s\n", LEVEL[level], tag, logStr);
+           printf("%s %s %s\n", LEVEL[level], tag, logStr);
        }
    #endif
    }

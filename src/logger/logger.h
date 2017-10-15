@@ -47,6 +47,10 @@ extern "C"
 #include <inttypes.h>
 #endif
 
+/* For printing __LINE__ */
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 // Use the PCF macro to wrap strings stored in FLASH on the Arduino
 // Example:  OIC_LOG(INFO, TAG, PCF("Entering function"));
 #ifdef ARDUINO
@@ -163,9 +167,9 @@ void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t buffe
      * @param tag    - Module name
      * @param format - variadic log string
      */
-    void OCLogv(int level, const char * tag, const char * format, ...)
+    void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
 #if defined(__GNUC__)
-    __attribute__ ((format(printf, 3, 4)))
+	__attribute__ ((format(printf, 4, 5)))
 #endif
     ;
 
@@ -305,14 +309,14 @@ void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t buffe
 #define OIC_LOG(level, tag, logStr) \
     do { \
         IF_OC_PRINT_LOG_LEVEL((level)) \
-            OCLog((level), (tag), (logStr)); \
+	    OCLog((level), (__FILE__ ":" TOSTRING(__LINE__)), (logStr));	\
     } while(0)
 
 // Define variable argument log function for Linux, Android, and Win32
 #define OIC_LOG_V(level, tag, ...) \
     do { \
         IF_OC_PRINT_LOG_LEVEL((level)) \
-            OCLogv((level), (tag), __VA_ARGS__); \
+	    OCLogv((level), __FILE__, __LINE__, __VA_ARGS__); \
     } while(0)
 
 #endif // ARDUINO
