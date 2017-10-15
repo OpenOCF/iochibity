@@ -2,15 +2,44 @@
 
 === problems
 
-* octypes.h contains some `#ifdef __cplusplus` - why?
+* octypes.h contains some `#ifdef __cplusplus` - why? e.g. struct
+  OCHeaderOption contains code only compiled for c++.  ew. this should
+  be moved to a cpp fn.
 
 * enums are used for constants, like OCTpsSchemeFlags; this forces
   lots of ifdefs.  using plain defines would allow us to avoid such
   globals
 
-* in general octypes.h is a global kitchen sink.  wouldn't it be better to partition?  for example, some of the conditionals like WITH_PRESENCE, RA_ADAPTER
+* in general octypes.h is a global kitchen sink.  wouldn't it be
+  better to partition?  for example, some of the conditionals like
+  WITH_PRESENCE, RA_ADAPTER
 
 
 == TODO
 
-* rename payload_logging  ->  ocpayload_loggin
+* rename payload_logging  ->  ocpayload_logging. move to src/logging?
+
+* extract introspection routines from ocresource.c to introspection.c
+
+=== presence
+
+how does WITH_PRESENCE get set? hardcoded in octypes.h!
+
+Extract presence stuff:
+
+    ocstack.c -> presence.c
+    ocresource.h -> presence.h
+
+Some presence code is ifdeffed into other code; can we extract it?
+E.g., OCInitializeInternal has:
+
+#ifdef WITH_PRESENCE
+    PresenceTimeOutSize = sizeof (PresenceTimeOut) / sizeof (PresenceTimeOut[0]) - 1;
+#endif // WITH_PRESENCE
+
+This particular case could be extracted.  others,
+maybe not. e.g. OCDoRequest switches on OC_REST_PRESENCE
+
+But OC_REST_PRESENCE is treated as GET; we can eliminate it?
+
+

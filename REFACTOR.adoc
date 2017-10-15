@@ -15,6 +15,8 @@ doxmresource.c:
 
 == misc
 
+* put all OCF constants (e.g. "/oic/res" etc.) in src/ocf_constants.h
+
  * split ocstack.c into service_provider and co_service_provider? no
    need for cosp to include e.g. resource registration,handlerequest
    code, etc.
