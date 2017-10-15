@@ -65,7 +65,7 @@ typedef struct
     CAConnectUserPref_t connUserPref;
 } CAUtilConfig_t;
 
-/* GAR: CAConnectionStateChangedCB, CAAdapterStateChangedCB moved to commdefs.h *
+/* GAR: CAConnectionStateChangedCB, CAAdapterStateChangedCB moved to commdefs.h */
 
 /**
  * Register network monitoring callback.
