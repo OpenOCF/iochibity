@@ -44,17 +44,6 @@
 /** Failed communication. */
 #define OC_OBSERVER_FAILED_COMM          (2)
 
-/**
- *Virtual Resource Presence Attributes
- */
-
-#ifdef WITH_PRESENCE
-typedef struct PRESENCERESOURCE{
-    OCResourceHandle handle;
-    uint32_t presenceTTL;
-} PresenceResource;
-#endif
-
 /** Introspection URI.*/
 #define OC_RSRVD_INTROSPECTION_URI_PATH            "/introspection"
 

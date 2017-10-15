@@ -33,6 +33,7 @@
 #include "logger.h"
 #include "ocendpoint.h"
 #include "cacommon.h"
+#include "presence_methods.h"
 
 #define TAG "OIC_RI_PAYLOAD"
 #define CSV_SEPARATOR ','
@@ -2183,33 +2184,6 @@ void OC_CALL OCDiscoveryPayloadDestroy(OCDiscoveryPayload* payload)
     OCFreeOCStringLL(payload->iface);
     OCDiscoveryResourceDestroy(payload->resources);
     OCDiscoveryPayloadDestroy(payload->next);
-    OICFree(payload);
-}
-
-OCPresencePayload* OC_CALL OCPresencePayloadCreate(uint32_t seqNum, uint32_t maxAge,
-        OCPresenceTrigger trigger, const char* resourceType)
-{
-    OCPresencePayload* payload = (OCPresencePayload*)OICCalloc(1, sizeof(OCPresencePayload));
-    if (!payload)
-    {
-        return NULL;
-    }
-
-    payload->base.type = PAYLOAD_TYPE_PRESENCE;
-    payload->sequenceNumber = seqNum;
-    payload->maxAge = maxAge;
-    payload->trigger = trigger;
-    payload->resourceType = OICStrdup(resourceType);
-    return payload;
-}
-
-void OC_CALL OCPresencePayloadDestroy(OCPresencePayload* payload)
-{
-    if (!payload)
-    {
-        return;
-    }
-    OICFree(payload->resourceType);
     OICFree(payload);
 }
 

@@ -30,6 +30,8 @@
 
 #include "ocstack.h"
 #include "ocresource.h"
+#include "ocpresence.h"
+
 #include "cacommon.h"
 
 
@@ -38,24 +40,6 @@ extern "C"
 {
 #endif
 
-
-#ifdef WITH_PRESENCE
-/**
- * Data structure For presence Discovery.
- * This is the TTL associated with presence.
- */
-typedef struct OCPresence
-{
-    /** Time to Live. */
-    uint32_t TTL;
-
-    /** Time out. */
-    uint32_t * timeOut;
-
-    /** TTL Level. */
-    uint32_t TTLlevel;
-} OCPresence;
-#endif // WITH_PRESENCE
 
 /**
  * Forward declaration of resource type.
@@ -138,93 +122,6 @@ typedef struct ClientCB {
  * Linked list of ClientCB node.
  */
 extern struct ClientCB *g_cbList;
-
-/**
- * This method is used to add a client callback method in cbList.
- *
- * @param[out] clientCB            The resulting node from making this call. Null if out of memory.
- * @param[in]  cbData              Address to client callback function.
- * @param[in]  type                Qos type.
- * @param[in]  token               Identifier for OTA CoAP comms.
- * @param[in]  tokenLength         Length for OTA CoAP comms.
- * @param[in]  options             The address of an array containing the vendor specific header
- *                                 options to be sent with the request.
- * @param[in]  numOptions          Number of header options to be included.
- * @param[in]  payload             Request payload.
- * @param[in]  payloadSize         Size of payload.
- * @param[in]  payloadFormat       Format of payload.
- * @param[in]  handle              masked in the public API as an 'invocation handle'
- *                                 Used for callback management.
- * @param[in]  method              A method via which this client callback is expected to operate
- * @param[in]  devAddr             The Device address.
- * @param[in]  requestUri          The resource uri of the request.
- * @param[in]  resourceTypeName    The resource type associated with a presence request.
- * @param[in]  ttl                 time to live in coap_ticks for the callback.
- *
- * @note If the handle you're looking for does not exist, the stack will reply with a RST message.
- *
- * @return OC_STACK_OK for Success, otherwise some error value.
- */
-OCStackResult AddClientCB(ClientCB** clientCB,
-                          OCCallbackData* cbData,
-                          CAMessageType_t type,
-                          CAToken_t token,
-                          uint8_t tokenLength,
-                          CAHeaderOption_t *options,
-                          uint8_t numOptions,
-                          CAPayload_t payload,
-                          size_t payloadSize,
-                          CAPayloadFormat_t payloadFormat,
-                          OCDoHandle *handle,
-                          OCMethod method,
-                          OCDevAddr *devAddr,
-                          char *requestUri,
-                          char *resourceTypeName,
-                          uint32_t ttl);
-
-/**
- * This method is used to remove a callback node from cbList.
- *
- * @param[in]  cbNode               Address to client callback node.
- */
-void DeleteClientCB(ClientCB *cbNode);
-
-/**
- * This method is used to clear the cbList.
- */
-void DeleteClientCBList();
-
-/**
- * This method is used to search and retrieve a cb node in cbList using token.
- *
- * @param[in]  token                Token to search for.
- * @param[in]  tokenLength          The Length of the token.
- *
- * @return address of the node if found, otherwise NULL
- */
-ClientCB* GetClientCBUsingToken(const CAToken_t token,
-                                const uint8_t tokenLength);
-
-/**
- * This method is used to search and retrieve a cb node in cbList using a handle.
- *
- * @param[in]  handle               Handle to search for.
- *
- * @return address of the node if found, otherwise NULL
- */
-ClientCB* GetClientCBUsingHandle(const OCDoHandle handle);
-
-#ifdef WITH_PRESENCE
-/**
- * This method is used to search and retrieve a cb node in cbList using a uri.
- *
- * @param[in]  requestUri           Uri to search for.
- *
- * @return address of the node if found, otherwise NULL
- */
-ClientCB* GetClientCBUsingUri(const char *requestUri);
-#endif // WITH_PRESENCE
-
 
 #ifdef __cplusplus
 } /* extern "C" */

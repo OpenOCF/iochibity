@@ -35,6 +35,7 @@
 #include "oic_string.h"
 #include "oic_malloc.h"
 #include "ocpayloadcbor.h"
+#include "presence_methods.h"
 #include "ocstackinternal.h"
 #include "payload_logging.h"
 #include "ocendpoint.h"

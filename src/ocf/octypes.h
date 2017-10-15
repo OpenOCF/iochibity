@@ -47,7 +47,7 @@ extern "C" {
 /** For the feature presence.*/
 #define WITH_PRESENCE
 
-#include "ocpresence.h"
+/* #include "ocpresence.h" */
 
 //-----------------------------------------------------------------------------
 // Defines
@@ -1012,17 +1012,6 @@ typedef struct
     uint8_t* securityData;
     size_t payloadSize;
 } OCSecurityPayload;
-
-#ifdef WITH_PRESENCE
-typedef struct
-{
-    OCPayload base;
-    uint32_t sequenceNumber;
-    uint32_t maxAge;
-    OCPresenceTrigger trigger;
-    char* resourceType;
-} OCPresencePayload;
-#endif
 
 typedef struct
 {

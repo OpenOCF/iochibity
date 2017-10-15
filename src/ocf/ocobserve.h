@@ -29,6 +29,8 @@
 #ifndef OC_OBSERVE_H
 #define OC_OBSERVE_H
 
+/* #include "ocpresence.h" */
+/* #include "ocresource.h" */
 #include "transport_types.h"
 
 /** Maximum number of observers to reach */
@@ -108,21 +110,6 @@ typedef struct ResourceObserver
 
 } ResourceObserver;
 
-#ifdef WITH_PRESENCE
-/**
- * Create an observe response and send to all observers in the observe list.
- *
- * @param method          RESTful method.
- * @param resPtr          Observed resource.
- * @param maxAge          Time To Live (in seconds) of observation.
- * @param resourceType    Resource type.  Allows resource type name to be added to response.
- * @param qos             Quality of service of resource.
- *
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, uint32_t maxAge,
-        OCPresenceTrigger trigger, OCResourceType *resourceType, OCQualityOfService qos);
-#else
 /**
  * Create an observe response and send to all observers in the observe list.
  *
@@ -135,7 +122,6 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
  */
 OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, uint32_t maxAge,
         OCQualityOfService qos);
-#endif
 
 /**
  * Notify specific observers with updated value of representation.
@@ -267,6 +253,22 @@ OCStackResult
 GetObserveHeaderOption (uint32_t * observationOption,
                         CAHeaderOption_t *options,
                         uint8_t * numOptions);
+
+OCQualityOfService DetermineObserverQoS(OCMethod method,
+					ResourceObserver * resourceObserver,
+					OCQualityOfService appQoS);
+
+/**
+ * Create a get request and pass to entityhandler to notify specific observer.
+ *
+ * @param observer Observer that need to be notified.
+ * @param qos Quality of service of resource.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+OCStackResult SendObserveNotification(ResourceObserver *observer,
+				      uint32_t sequenceNum,
+				      OCQualityOfService qos);
 
 #endif //OC_OBSERVE_H
 

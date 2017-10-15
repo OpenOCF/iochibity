@@ -178,32 +178,22 @@ OCStackResult OCStackFeedBack(CAToken_t token, uint8_t tokenLength, uint8_t stat
  */
 OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolRequest);
 
+/**
+ * Ensure the accept header option is set appropriatly before sending the requests and routing
+ * header option is updated with destination.
+ *
+ * @param object CA remote endpoint.
+ * @param requestInfo CA request info.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *requestInfo);
+
 OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16_t coapID,
         const CAResponseResult_t responseResult, const CAMessageType_t type,
         const uint8_t numOptions, const CAHeaderOption_t *options,
         CAToken_t token, uint8_t tokenLength, const char *resourceUri,
         CADataType_t dataType);
-
-#ifdef WITH_PRESENCE
-
-/**
- * Notify Presence subscribers that a resource has been modified.
- *
- * @param resourceType    Handle to the resourceType linked list of resource that was modified.
- * @param trigger         The simplified reason this API was invoked.
- *
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-OCStackResult SendPresenceNotification(OCResourceType *resourceType,
-        OCPresenceTrigger trigger);
-
-/**
- * Send Stop Notification to Presence subscribers.
- *
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-OCStackResult SendStopNotification();
-#endif // WITH_PRESENCE
 
 /**
  * Bind a resource interface to a resource.
@@ -267,25 +257,6 @@ bool OCResultToSuccess(OCStackResult ocResult);
  * @return CA message type for a given qos.
  */
 CAMessageType_t qualityOfServiceToMessageType(OCQualityOfService qos);
-
-#ifdef WITH_PRESENCE
-/**
- * Enable/disable a resource property.
- *
- * @param inputProperty             Pointer to resource property.
- * @param resourceProperties        Property to be enabled/disabled.
- * @param enable                    0:disable, 1:enable.
- *
- * @return OCStackResult that was converted from the input CAResult_t value.
- */
-//TODO: should the following function be public?
-OCStackResult OCChangeResourceProperty(OCResourceProperty * inputProperty,
-        OCResourceProperty resourceProperties, uint8_t enable);
-#endif
-
-const char *OC_CALL convertTriggerEnumToString(OCPresenceTrigger trigger);
-
-OCPresenceTrigger OC_CALL convertTriggerStringToEnum(const char * triggerStr);
 
 void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out);
 
@@ -392,6 +363,34 @@ void OC_CALL OCEndpointPayloadDestroy(OCEndpointPayload* payload);
 
 // Check on Accept Version option.
 bool OCRequestIsOCFContentFormat(OCEntityHandlerRequest *ehRequest, bool* isOCFContentFormat);
+
+/**
+ * Finds a resource type in an OCResourceType link-list.
+ *
+ * @param resourceTypeList The link-list to be searched through.
+ * @param resourceTypeName The key to search for.
+ *
+ * @return Resource type that matches the key (ie. resourceTypeName) or
+ *      NULL if there is either an invalid parameter or this function was unable to find the key.
+ */
+OCResourceType *findResourceType(OCResourceType * resourceTypeList, const char * resourceTypeName);
+
+void FixUpClientResponse(OCClientResponse *cr);
+
+/**
+ * Find a resource in the linked list of resources.
+ *
+ * @param resource Resource to be found.
+ * @return Pointer to resource that was found in the linked list or NULL if the resource was not
+ *         found.
+ */
+OCResource *findResource(OCResource *resource);
+
+OCPayloadFormat CAToOCPayloadFormat(CAPayloadFormat_t caFormat);
+
+void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out);
+
+uint32_t GetTicks(uint32_t milliSeconds);
 
 #ifdef __cplusplus
 }

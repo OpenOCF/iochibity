@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include "octypes.h"
+#include "ocpresence.h"
 
 #if defined(__WITH_TLS__) || defined(__WITH_DTLS__)
 //GAR #include "securevirtualresourcetypes.h"
@@ -279,11 +280,6 @@ void OC_CALL OCResourcePayloadAddNewEndpoint(OCResourcePayload* payload,
 void OC_CALL OCDiscoveryEndpointDestroy(OCEndpointPayload* payload);
 void OC_CALL OCDiscoveryResourceDestroy(OCResourcePayload* payload);
 void OC_CALL OCDiscoveryPayloadDestroy(OCDiscoveryPayload* payload);
-
-// Presence Payload
-OCPresencePayload* OC_CALL OCPresencePayloadCreate(uint32_t seqNum, uint32_t maxAge,
-        OCPresenceTrigger trigger, const char* resourceType);
-void OC_CALL OCPresencePayloadDestroy(OCPresencePayload* payload);
 
 // Diagnostic Payload
 OCDiagnosticPayload* OC_CALL OCDiagnosticPayloadCreate(const char *message);

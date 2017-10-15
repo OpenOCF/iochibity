@@ -19,7 +19,7 @@
  ******************************************************************/
 
 #include "iotivity_config.h"
-#include "occlientcb.h"
+#include "occlientcb_api.h"
 #include <coap/coap.h>
 #include "logger.h"
 #include "trace.h"
@@ -406,7 +406,7 @@ ClientCB* GetClientCBUsingHandle(const OCDoHandle handle)
     return NULL;
 }
 
-#ifdef WITH_PRESENCE
+#ifdef WITH_PRESENCE		/* GAR: why? */
 ClientCB* GetClientCBUsingUri(const char *requestUri)
 {
     if (!requestUri)

@@ -29,6 +29,7 @@
 #include "oic_string.h"
 #include "ocpayload.h"
 #include "ocserverrequest.h"
+#include "ocpresence.h"
 #include "logger.h"
 
 #include <coap/utlist.h>
@@ -53,8 +54,9 @@
  * @param appQoS Quality of service.
  * @return The quality of service of the observer.
  */
-static OCQualityOfService DetermineObserverQoS(OCMethod method,
-        ResourceObserver * resourceObserver, OCQualityOfService appQoS)
+OCQualityOfService DetermineObserverQoS(OCMethod method,
+					ResourceObserver * resourceObserver,
+					OCQualityOfService appQoS)
 {
     if (!resourceObserver)
     {
@@ -103,10 +105,11 @@ static OCQualityOfService DetermineObserverQoS(OCMethod method,
  *
  * @return ::OC_STACK_OK on success, some other value upon failure.
  */
-static OCStackResult SendObserveNotification(ResourceObserver *observer,
+OCStackResult SendObserveNotification(ResourceObserver *observer,
                                              uint32_t sequenceNum,
                                              OCQualityOfService qos)
 {
+    OIC_LOG_V(INFO, __FILE__, "%s: ENTRY", __func__);
     OCStackResult result = OC_STACK_ERROR;
     OCServerRequest * request = NULL;
 
@@ -137,15 +140,15 @@ static OCStackResult SendObserveNotification(ResourceObserver *observer,
     return result;
 }
 
-#ifdef WITH_PRESENCE
-OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, uint32_t maxAge,
-        OCPresenceTrigger trigger, OCResourceType *resourceType, OCQualityOfService qos)
-#else
+/* #ifdef WITH_PRESENCE
+ * OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, uint32_t maxAge,
+ *         OCPresenceTrigger trigger, OCResourceType *resourceType, OCQualityOfService qos)
+ * #else */
 OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, uint32_t maxAge,
         OCQualityOfService qos)
-#endif
+/* #endif */
 {
-    OIC_LOG(INFO, TAG, "Entering SendObserverNotification");
+    OIC_LOG_V(INFO, __FILE__, "%s: ENTRY", __func__);
     if (!resPtr)
     {
         return OC_STACK_INVALID_PARAM;
@@ -158,59 +161,61 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
 
     OCStackResult result = OC_STACK_ERROR;
     ResourceObserver * resourceObserver = resPtr->observersHead;
-    OCServerRequest * request = NULL;
+/* #ifdef WITH_PRESENCE
+ *     OCServerRequest * request = NULL;
+ * #endif */
     bool observeErrorFlag = false;
 
     // Find clients that are observing this resource
     while (resourceObserver)
     {
-#ifdef WITH_PRESENCE
-        if (method != OC_REST_PRESENCE)
-        {
-#endif
+/* #ifdef WITH_PRESENCE
+ *         if (method != OC_REST_PRESENCE)
+ *         {
+ * #endif */
             qos = DetermineObserverQoS(method, resourceObserver, qos);
             result = SendObserveNotification(resourceObserver, resPtr->sequenceNum, qos);
-#ifdef WITH_PRESENCE
-        }
-        else
-        {
-            OCEntityHandlerResponse ehResponse = {0};
-
-            //This is effectively the implementation for the presence entity handler.
-            OIC_LOG(DEBUG, TAG, "This notification is for Presence");
-            result = AddServerRequest(&request, 0, 0, 1, OC_REST_GET,
-                    0, resPtr->sequenceNum, qos, resourceObserver->query,
-                    NULL, OC_FORMAT_UNDEFINED, NULL,
-                    resourceObserver->token, resourceObserver->tokenLength,
-                    resourceObserver->resUri, 0, resourceObserver->acceptFormat,
-                    resourceObserver->acceptVersion, &resourceObserver->devAddr);
-
-            if (result == OC_STACK_OK)
-            {
-                OCPresencePayload* presenceResBuf = OCPresencePayloadCreate(
-                        resPtr->sequenceNum, maxAge, trigger,
-                        resourceType ? resourceType->resourcetypename : NULL);
-
-                if (!presenceResBuf)
-                {
-                    return OC_STACK_NO_MEMORY;
-                }
-
-                if (result == OC_STACK_OK)
-                {
-                    ehResponse.ehResult = OC_EH_OK;
-                    ehResponse.payload = (OCPayload*)presenceResBuf;
-                    ehResponse.persistentBufferFlag = 0;
-                    ehResponse.requestHandle = (OCRequestHandle) request;
-                    OICStrcpy(ehResponse.resourceUri, sizeof(ehResponse.resourceUri),
-                            resourceObserver->resUri);
-                    result = OCDoResponse(&ehResponse);
-                }
-
-                OCPresencePayloadDestroy(presenceResBuf);
-            }
-        }
-#endif
+/* #ifdef WITH_PRESENCE
+ *         }
+ *         else
+ *         {
+ *             OCEntityHandlerResponse ehResponse = {0};
+ * 
+ *             //This is effectively the implementation for the presence entity handler.
+ *             OIC_LOG(DEBUG, TAG, "This notification is for Presence");
+ *             result = AddServerRequest(&request, 0, 0, 1, OC_REST_GET,
+ *                     0, resPtr->sequenceNum, qos, resourceObserver->query,
+ *                     NULL, OC_FORMAT_UNDEFINED, NULL,
+ *                     resourceObserver->token, resourceObserver->tokenLength,
+ *                     resourceObserver->resUri, 0, resourceObserver->acceptFormat,
+ *                     resourceObserver->acceptVersion, &resourceObserver->devAddr);
+ * 
+ *             if (result == OC_STACK_OK)
+ *             {
+ *                 OCPresencePayload* presenceResBuf = OCPresencePayloadCreate(
+ *                         resPtr->sequenceNum, maxAge, trigger,
+ *                         resourceType ? resourceType->resourcetypename : NULL);
+ * 
+ *                 if (!presenceResBuf)
+ *                 {
+ *                     return OC_STACK_NO_MEMORY;
+ *                 }
+ * 
+ *                 if (result == OC_STACK_OK)
+ *                 {
+ *                     ehResponse.ehResult = OC_EH_OK;
+ *                     ehResponse.payload = (OCPayload*)presenceResBuf;
+ *                     ehResponse.persistentBufferFlag = 0;
+ *                     ehResponse.requestHandle = (OCRequestHandle) request;
+ *                     OICStrcpy(ehResponse.resourceUri, sizeof(ehResponse.resourceUri),
+ *                             resourceObserver->resUri);
+ *                     result = OCDoResponse(&ehResponse);
+ *                 }
+ * 
+ *                 OCPresencePayloadDestroy(presenceResBuf);
+ *             }
+ *         }
+ * #endif */
 
         // Since we are in a loop, set an error flag to indicate at least one error occurred.
         if (result != OC_STACK_OK)
