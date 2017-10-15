@@ -692,6 +692,7 @@ enable_bwt
 enable_multiple_owners
 enable_debugging
 enable_mbedtls_debugging
+enable_coap_debugging
 enable_logging
 enable_ipadapter
 '
@@ -1325,6 +1326,7 @@ Optional Features:
   --enable-debugging      Enable debugging
   --enable-mbedtls-debugging
                           Enable mbedtls debugging
+  --enable-coap-debugging Enable coap debugging
   --enable-logging        Enable logging
   --disable-ipadapter     Disable IP adapter
 
@@ -5306,6 +5308,9 @@ fi
 if test "x$enable_debugging" = "xyes"; then :
 
 
+$as_echo "#define DEBUG /**/" >>confdefs.h
+
+
 $as_echo "#define OC_DEBUG /**/" >>confdefs.h
 
 
@@ -5321,6 +5326,20 @@ if test "x$enable_mbedtls_debugging" = "xyes"; then :
 
 
 $as_echo "#define MBEDTLS_DEBUG_C /**/" >>confdefs.h
+
+
+fi
+
+# Check whether --enable-coap-debugging was given.
+if test "${enable_coap_debugging+set}" = set; then :
+  enableval=$enable_coap_debugging;
+fi
+
+
+if test "x$enable_coap_debugging" = "xyes"; then :
+
+
+$as_echo "#define COAP_DEBUG_C /**/" >>confdefs.h
 
 
 fi

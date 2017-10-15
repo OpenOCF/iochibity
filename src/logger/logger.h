@@ -89,8 +89,11 @@ typedef enum {
 #undef ERROR
 #endif
 
+/* OS X */
+#undef DEBUG
+
 typedef enum {
-    LL_DEBUG = 0,
+    DEBUG = 0,
     INFO,
     WARNING,
     ERROR,

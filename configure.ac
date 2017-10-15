@@ -163,7 +163,7 @@ AC_ARG_ENABLE([debugging],
     AS_HELP_STRING([--enable-debugging], [Enable debugging]))
 
 AS_IF([test "x$enable_debugging" = "xyes"], [
-  AC_DEFINE([DEBUG], [], [Debugging])
+  dnl AC_DEFINE([DEBUG], [], [Debugging])
   AC_DEFINE([OC_DEBUG], [], [OC Debugging])
 ])
 
