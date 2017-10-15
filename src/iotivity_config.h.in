@@ -1,5 +1,11 @@
 /* src/iotivity_config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* COAP Debugging */
+#undef COAP_DEBUG_C
+
+/* Debugging */
+#undef DEBUG
+
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
 
@@ -259,7 +265,7 @@
    slash. */
 #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
 
-/* Debugging */
+/* MBEDTLS Debugging */
 #undef MBEDTLS_DEBUG_C
 
 /* mbedtls: system has time.h and time() */
@@ -271,7 +277,7 @@
 /* Multiple ownership */
 #undef MULTIPLE_OWNER
 
-/* Debugging */
+/* OC Debugging */
 #undef OC_DEBUG
 
 /* Define to the address where bug reports for this package should be sent. */
