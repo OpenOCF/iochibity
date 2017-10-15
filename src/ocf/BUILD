@@ -24,11 +24,13 @@ cc_library(
             "ocpayload.h",
             "ocpayloadcbor.h",
             "ocpresence.h",
+            "presence_methods.h",
             "payload_logging.h"],
     srcs = ["ocserverrequest.h",
             "ocstackinternal.h", # included by sec/doxmresource.c
             "ocstackconfig.h",   # included by ocstackinternal.h
             "occlientcb.h",      # included by ocstackinternal.h
+            "occlientcb_api.h",      # included by ocstackinternal.h
             "ocresource.h",      # included by occlientcb.h
             "ocobserve.h",       # included by ocobserve.h
             "ocresourcehandler.h", # included by sec/secureresourcemanager.c
@@ -67,10 +69,12 @@ cc_library(
             # "ocstack.h",
             # "ocstackconfig.h",
             "ocpresence.h",
+            "presence_methods.h",
 
     ],
     srcs = ["ocpayloadcbor.h",
             "occlientcb.h",
+            "occlientcb_api.h",
             "ocobserve.h",
             "ocresource.h",
             "ocresourcehandler.h",
@@ -148,7 +152,6 @@ cc_library(
             #"ocpayload.h",
             "ocpayloadconvert.c",
             "ocpayloadparse.c",
-            #"ocpresence.h",
             "ocresource.c",
             "ocserverrequest.c",
             #"ocserverrequest.h",
@@ -158,6 +161,9 @@ cc_library(
             "oicgroup.h",
             "oickeepalive.c",
             "oickeepalive.h",
+            "presence.c",
+            "ocpresence.h",
+            "presence_methods.h",
 
             # if SERVER in rd_mode:
             # "oicresourcedirectory.c",
