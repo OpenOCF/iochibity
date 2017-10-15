@@ -18,8 +18,11 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-// Required for strok_r
-#define _POSIX_C_SOURCE 200112L
+/*
+ * Expose POSIX.1-2008 base specification,
+ * Refer http://pubs.opengroup.org/onlinepubs/9699919799/
+ */
+#define _POSIX_C_SOURCE 200809L
 
 #include "iotivity_config.h"
 #include <stdio.h>

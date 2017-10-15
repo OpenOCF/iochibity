@@ -1,7 +1,10 @@
 /* presence.c
  * extracted from ocstack.c */
 
-/* Expose POSIX.1-2008 base definitions */
+/*
+ * Expose POSIX.1-2008 base specification,
+ * Refer http://pubs.opengroup.org/onlinepubs/9699919799/
+ */
 #define _POSIX_C_SOURCE 200809L
 #ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS

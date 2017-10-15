@@ -26,15 +26,12 @@
  * This file provides APIs related to mutex and semaphores.
  */
 
-// Defining _POSIX_C_SOURCE macro with 199309L (or greater) as value
-// causes header files to expose definitions
-// corresponding to the POSIX.1b, Real-time extensions
-// (IEEE Std 1003.1b-1993) specification
-//
-// For this specific file, see use of clock_gettime and PTHREAD_MUTEX_DEFAULT
-#ifndef _POSIX_C_SOURCE
+/*
+ * Expose POSIX.1-2008 base specification,
+ * Refer http://pubs.opengroup.org/onlinepubs/9699919799/
+ * For this specific file, see use of clock_gettime and PTHREAD_MUTEX_DEFAULT
+ */
 #define _POSIX_C_SOURCE 200809L
-#endif
 
 #include "iotivity_config.h"
 #include "iotivity_debug.h"

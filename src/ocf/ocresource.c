@@ -18,12 +18,10 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-// Defining _POSIX_C_SOURCE macro with 200112L (or greater) as value
-// causes header files to expose definitions
-// corresponding to the POSIX.1-2001 base
-// specification (excluding the XSI extension).
-// For POSIX.1-2008 base specification,
-// Refer http://pubs.opengroup.org/onlinepubs/9699919799/
+/*
+ * Expose POSIX.1-2008 base specification,
+ * Refer http://pubs.opengroup.org/onlinepubs/9699919799/
+ */
 #define _POSIX_C_SOURCE 200809L
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE

@@ -17,7 +17,11 @@
 // limitations under the License.
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-#define _POSIX_C_SOURCE 200112L
+/*
+ * Expose POSIX.1-2008 base specification,
+ * Refer http://pubs.opengroup.org/onlinepubs/9699919799/
+ */
+#define _POSIX_C_SOURCE 200809L
 #include <string.h>
 
 #include "srmutility.h"

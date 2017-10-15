@@ -18,17 +18,14 @@
  *
  * *****************************************************************/
 
-// Defining _POSIX_C_SOURCE macro with 199309L (or greater) as value
-// causes header files to expose definitions
-// corresponding to the POSIX.1b, Real-time extensions
-// (IEEE Std 1003.1b-1993) specification
-//
-// For this specific file, see use of clock_gettime,
-// Refer to http://pubs.opengroup.org/stage7tc1/functions/clock_gettime.html
-// and to http://man7.org/linux/man-pages/man2/clock_gettime.2.html
-#ifndef _POSIX_C_SOURCE
+/*
+ * Expose POSIX.1-2008 base specification,
+ * Refer http://pubs.opengroup.org/onlinepubs/9699919799/
+ * For this specific file, see use of clock_gettime,
+ * Refer to http://pubs.opengroup.org/stage7tc1/functions/clock_gettime.html
+ * and to http://man7.org/linux/man-pages/man2/clock_gettime.2.html
+ */
 #define _POSIX_C_SOURCE 200809L
-#endif
 
 #include "iotivity_config.h"
 #ifdef HAVE_TIME_H

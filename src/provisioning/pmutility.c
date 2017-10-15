@@ -17,9 +17,11 @@
  * limitations under the License.
  *
  * *****************************************************************/
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200112L
-#endif
+/*
+ * Expose POSIX.1-2008 base specification,
+ * Refer http://pubs.opengroup.org/onlinepubs/9699919799/
+ */
+#define _POSIX_C_SOURCE 200809L
 
 /* Legacy feature macro. For older versions of glibc < 2.19 */
 #define _BSD_SOURCE
