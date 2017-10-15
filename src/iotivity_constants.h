@@ -22,24 +22,24 @@
 #define OC_RSRVD_PLATFORM_URI                 "/oic/p"
 
 /** Resource Type.*/
-#define OC_RSRVD_RESOURCE_TYPES_URI           "/oic/res/types/d"
+#define OC_RSRVD_RESOURCE_TYPES_URI           "/oic/res/types/d" /* GAR: non-standard? */
 
 /** Gateway URI.*/
-#define OC_RSRVD_GATEWAY_URI                  "/oic/gateway"
+#define OC_RSRVD_GATEWAY_URI                  "/oic/gateway" /* GAR: non-standard? */
 
 /** MQ Broker URI.*/
-#define OC_RSRVD_WELL_KNOWN_MQ_URI            "/oic/ps"
+#define OC_RSRVD_WELL_KNOWN_MQ_URI            "/oic/ps" /* GAR: non-standard */
 
 /** KeepAlive URI.*/
-#define OC_RSRVD_KEEPALIVE_URI                "/oic/ping"
+#define OC_RSRVD_KEEPALIVE_URI                "/oic/ping" /* GAR: non-standard */
 
 /** Presence */
 
 /** Presence URI through which the OIC devices advertise their presence.*/
-#define OC_RSRVD_PRESENCE_URI                 "/oic/ad"
+#define OC_RSRVD_PRESENCE_URI                 "/oic/ad" /* GAR: obsolete; removed from spec 1.3 */
 
 /** Presence URI through which the OIC devices advertise their device presence.*/
-#define OC_RSRVD_DEVICE_PRESENCE_URI         "/oic/prs"
+#define OC_RSRVD_DEVICE_PRESENCE_URI         "/oic/prs" /* GAR: non-standard? */
 
 /** Sets the default time to live (TTL) for presence.*/
 #define OC_DEFAULT_PRESENCE_TTL_SECONDS       (60)
@@ -352,7 +352,7 @@
 #endif // GOING_AWAY
 
 /* /\** Max Device address size. *\/ */
-/* GAR same code occurs in cacommon.h; both refactored to transport_types.h
+/* GAR same code occurs in cacommon.h; both refactored to transport_types.h */
 /* #ifdef RA_ADAPTER */
 /* #define MAX_ADDR_STR_SIZE (256) */
 /* #else */
@@ -387,7 +387,7 @@
 #define OC_RSRVD_RD_DISCOVERY_SEL        "sel"
 
 /** Resource URI used to discover Proxy */
-#define OC_RSRVD_PROXY_URI "/oic/chp"
+#define OC_RSRVD_PROXY_URI "/oic/chp" /* GAR: non-standard? */
 
 /** Resource URI used to discover Proxy */
 #define OC_RSRVD_PROXY_OPTION_ID 35
@@ -419,22 +419,22 @@
 /** Cloud Account */
 
 /** Account URI.*/
-#define OC_RSRVD_ACCOUNT_URI               "/oic/account"
+#define OC_RSRVD_ACCOUNT_URI               "/oic/account" /* GAR: non-standard? */
 
 /** Account user URI.*/
-#define OC_RSRVD_ACCOUNT_SEARCH_URI        "/oic/account/search"
+#define OC_RSRVD_ACCOUNT_SEARCH_URI        "/oic/account/search" /* GAR: non-standard? */
 
 /** Account session URI.*/
-#define OC_RSRVD_ACCOUNT_SESSION_URI       "/oic/account/session"
+#define OC_RSRVD_ACCOUNT_SESSION_URI       "/oic/account/session" /* GAR: non-standard? */
 
 /** Account token refresh URI.*/
-#define OC_RSRVD_ACCOUNT_TOKEN_REFRESH_URI "/oic/account/tokenrefresh"
+#define OC_RSRVD_ACCOUNT_TOKEN_REFRESH_URI "/oic/account/tokenrefresh" /* GAR: non-standard? */
 
 /** ACL group URI.*/
-#define OC_RSRVD_ACL_GROUP_URI             "/oic/acl/group"
+#define OC_RSRVD_ACL_GROUP_URI             "/oic/acl/group" /* GAR: non-standard? */
 
 /** ACL invite URI.*/
-#define OC_RSRVD_ACL_INVITE_URI            "/oic/acl/invite"
+#define OC_RSRVD_ACL_INVITE_URI            "/oic/acl/invite" /* GAR: non-standard? */
 
 /** Defines auth provider. */
 #define OC_RSRVD_AUTHPROVIDER              "authprovider"
@@ -491,7 +491,7 @@
 #define OC_RSRVD_GRANT_TYPE_REFRESH_TOKEN  "refresh_token"
 
 /** Cloud CRL */
-#define OC_RSRVD_PROV_CRL_URL              "/oic/credprov/crl"
+#define OC_RSRVD_PROV_CRL_URL              "/oic/credprov/crl" /* GAR: non-standard? */
 
 #define OC_RSRVD_LAST_UPDATE              "lu"
 
@@ -506,15 +506,15 @@
 #define OC_RSRVD_CRL_ID                   "crlid"
 
 /** Cloud ACL */
-#define OC_RSRVD_GROUP_URL                "/oic/group"
+#define OC_RSRVD_GROUP_URL                "/oic/group" /* GAR: non-standard? */
 
-#define OC_RSRVD_ACL_GROUP_URL            "/oic/acl/group"
+#define OC_RSRVD_ACL_GROUP_URL            "/oic/acl/group" /* GAR: non-standard? */
 
-#define OC_RSRVD_ACL_INVITE_URL           "/oic/acl/invite"
+#define OC_RSRVD_ACL_INVITE_URL           "/oic/acl/invite" /* GAR: non-standard? */
 
-#define OC_RSRVD_ACL_VERIFY_URL           "/oic/acl/verify"
+#define OC_RSRVD_ACL_VERIFY_URL           "/oic/acl/verify" /* GAR: non-standard? */
 
-#define OC_RSRVD_ACL_ID_URL               "/oic/acl/id"
+#define OC_RSRVD_ACL_ID_URL               "/oic/acl/id" /* GAR: non-standard? */
 
 #define OC_RSRVD_MEMBER_ID                "mid"
 
@@ -587,7 +587,7 @@
 #define OC_RSRVD_GROUP_ACL                "gacl"
 
 /** Certificete Sign Request */
-#define OC_RSRVD_PROV_CERT_URI            "/oic/credprov/cert"
+#define OC_RSRVD_PROV_CERT_URI            "/oic/credprov/cert" /* GAR: non-standard? */
 
 #define OC_RSRVD_CSR                      "csr"
 
