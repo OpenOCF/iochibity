@@ -26,6 +26,7 @@ cc_binary(
     # 	     "-Isrc/util"],
     deps = ["//src:config",
             "//src/ocf"],
+    linkopts = ["-lncurses"],
     srcs = ["ocserver.c"]
 )
 

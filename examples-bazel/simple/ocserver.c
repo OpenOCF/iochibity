@@ -20,7 +20,6 @@
 
 
 #include "iotivity_config.h"
-#include "ocstack.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -33,7 +32,12 @@
 #endif
 #include <signal.h>
 #include <stdbool.h>
+
+#include <ncurses.h>
+
+#include "ocstack.h"
 #include "logger.h"
+
 
 #define TAG ("ocserver")
 
@@ -55,6 +59,28 @@ void handleSigInt(int signum) {
 }
 
 int main() {
+
+    /* initscr();			/\* Start curses mode 		  *\/
+     * printw("Hello World !!!");	/\* Print Hello World		  *\/
+     * refresh();			/\* Print it on to the real screen *\/
+     * getch();			/\* Wait for user input *\/
+     * endwin();			/\* End curses mode		  *\/ */
+
+    /* WINDOW *vin;
+     * initscr();
+     * start_color();
+     * init_pair(1,COLOR_YELLOW,COLOR_BLUE);
+     * init_pair(2,COLOR_BLUE,COLOR_YELLOW);
+     * init_pair(3,COLOR_BLUE,COLOR_WHITE);
+     * vin=newwin(12,40,13,0);
+     * wmove(vin,0,5);
+     * wprintw(vin,"Hello, World.");
+     * wbkgd(vin,COLOR_PAIR(1));
+     * wrefresh(vin);
+     * getch();
+     * delwin(vin);
+     * endwin(); */
+
     OIC_LOG_V(INFO, TAG, "Starting ocserver");
     if (OCInit(NULL, 0, OC_SERVER) != OC_STACK_OK) {
         OIC_LOG(ERROR, TAG, "OCStack init error");
@@ -102,4 +128,3 @@ OCStackResult createLightResource() {
                     OC_DISCOVERABLE|OC_OBSERVABLE);
     return res;
 }
-
