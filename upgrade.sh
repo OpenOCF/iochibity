@@ -1,12 +1,15 @@
 #!/bin/sh -e
 
-#IOTIVITY=/path/to/iotivity
+IOTIVITY=$HOME/iotivity/master-git
 # run this from an empty temp directory
+
+echo $IOTIVITY
 
 mkdir -pv src/util
 
 # CONNECTIVITY
 COMM="$IOTIVITY/resource/csdk/connectivity"
+echo "COMM=$COMM"
 mkdir -pv src/comm/api
 mkdir -pv src/comm/common
 mkdir -pv src/comm/adapter_util
@@ -20,12 +23,12 @@ cp -v $COMM/api/cautilinterface.h     src/comm/util
 
 # OMIT: $COMM/build/*
 
-cp -v $COMM/common/inc/cacommonutil.h                src/comm/commnon
-cp -v $COMM/common/inc/caremotehandler.h             src/comm/commnon
-cp -v $COMM/common/inc/cathreadpool.h                src/comm/commnon
+cp -v $COMM/common/inc/cacommonutil.h                src/comm/common
+cp -v $COMM/common/inc/caremotehandler.h             src/comm/common
+cp -v $COMM/common/inc/cathreadpool.h                src/comm/common
 cp -v $COMM/common/inc/uarraylist.h                  src/util
-cp -v $COMM/common/inc/ulinklist.h                   src/comm/commnon
-cp -v $COMM/common/inc/uqueue.h                      src/comm/commnon
+cp -v $COMM/common/inc/ulinklist.h                   src/comm/common
+cp -v $COMM/common/inc/uqueue.h                      src/comm/common
 
 cp -v $COMM/common/src/caremotehandler.c             src/comm/common
 cp -v $COMM/common/src/cathreadpool_pthreads.c       src/comm/common
@@ -326,6 +329,7 @@ cp -v $SEC/src/strptime.c src/portability/windows
 
 cp -vr $SEC/tool src/sec
 
+mkdir -pv test/security
 cp -vr $SEC/unittest/* test/security
 rm -v test/security/SConscript
 # OMIT cp -vr $SEC/unittests
