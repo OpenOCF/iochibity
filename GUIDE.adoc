@@ -1,0 +1,7 @@
+= implementation guide
+
+code conventions, acronyms, etc.
+
+
+* TPS Transport Protocol Suite, e.g. coap, coaps, coap+tcp,
+  coaps+tcp, etc. Enum OCTpsSchemeFlags in octypes.h
