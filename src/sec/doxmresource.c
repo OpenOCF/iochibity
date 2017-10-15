@@ -1817,7 +1817,7 @@ OCStackResult CreateDoxmResource()
  */
 static OCStackResult CheckDeviceID()
 {
-    OIC_LOG_V(DEBUG, TAG, "IN: %s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
 
     OCStackResult ret = OC_STACK_ERROR;
     bool validId = false;
@@ -1906,8 +1906,7 @@ static OCStackResult CheckDeviceID()
         ret = OC_STACK_OK;
     }
 
-    OIC_LOG_V(DEBUG, TAG, "OUT: %s", __func__);
-
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return ret;
 }
 

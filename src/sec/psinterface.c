@@ -75,6 +75,7 @@ typedef enum _PSDatabase
  */
 static OCStackResult WritePayloadToPS(const char *databaseName, uint8_t *payload, size_t size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     if (!databaseName || !payload || (size <= 0))
     {
         return OC_STACK_INVALID_PARAM;
@@ -108,6 +109,7 @@ static OCStackResult WritePayloadToPS(const char *databaseName, uint8_t *payload
         }
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return result;
 }
 
@@ -158,10 +160,12 @@ static size_t GetDatabaseSize(const OCPersistentStorage *ps, const char *databas
  */
 OCStackResult ReadDatabaseFromPS(const char *databaseName, const char *resourceName, uint8_t **data, size_t *size)
 {
-    OIC_LOG(DEBUG, TAG, "ReadDatabaseFromPS IN");
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "Reading database: %s for entry %s", databaseName, resourceName);
 
     if (!databaseName || !data || *data || !size)
     {
+	OIC_LOG_V(DEBUG, TAG, "%s: EXIT: bad parameter", __func__);
         return OC_STACK_INVALID_PARAM;
     }
 
@@ -210,7 +214,6 @@ OCStackResult ReadDatabaseFromPS(const char *databaseName, const char *resourceN
             }
         }
     }
-    OIC_LOG(DEBUG, TAG, "ReadDatabaseFromPS OUT");
 
 exit:
     if (fp)
@@ -218,6 +221,7 @@ exit:
         ps->close(fp);
     }
     OICFree(fsData);
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return ret;
 }
 
