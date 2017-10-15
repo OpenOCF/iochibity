@@ -801,7 +801,7 @@ static CASocketFd_t CACreateSocket(int family, uint16_t *port, bool isMulticast)
 
     if (OC_SOCKET_ERROR == bind(fd, (struct sockaddr *)&sa, socklen))
     {
-        OIC_LOG_V(ERROR, TAG, "bind socket failed: %s", CAIPS_GET_ERROR);
+	OIC_LOG_V(ERROR, TAG, "bind socket failed, port %d: %s", *port, CAIPS_GET_ERROR);
         OC_CLOSE_SOCKET(fd);
         return OC_INVALID_SOCKET;
     }
