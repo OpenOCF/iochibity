@@ -23,7 +23,7 @@
  * Refer http://pubs.opengroup.org/onlinepubs/9699919799/
  * For this specific file, see use of clock_gettime,
  * Refer to http://pubs.opengroup.org/stage7tc1/functions/clock_gettime.html
- * and to http://man7.org/linux/man-pages/man2/clock_gettime.2.html */
+ * and to http://man7.org/linux/man-pages/man2/clock_gettime.2.html
  */
 #define _POSIX_C_SOURCE 200809L
 
