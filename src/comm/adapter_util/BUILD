@@ -1,3 +1,16 @@
+config_setting(
+    name = "windows",
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
+)
+
 cc_library(
     name = "adapter_util",
     alwayslink = True,
@@ -20,7 +33,9 @@ cc_library(
              #"-Ithird_party/coap/include/coap",
              # "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include"]
-    + select({"windows": [],
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps  = ["//src:config",
     	     "//src/comm/api",
@@ -41,9 +56,4 @@ cc_library(
              "caadapterutils.c"],
     visibility = ["//src/comm:__subpackages__",
                   "//src/sec:__pkg__"]
-)
-
-config_setting(
-    name = "windows",
-    values = { "define": "platform=windows" }
 )

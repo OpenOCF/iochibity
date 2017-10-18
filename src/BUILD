@@ -1,6 +1,14 @@
 config_setting(
     name = "windows",
-    values = { "define": "platform=windows" }
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
 )
 
 cc_library(
@@ -10,6 +18,8 @@ cc_library(
             "iotivity_debug.h",
             "system.h",
             "transport_types.h"]
-    + select({"windows": ["msvc_config.h"],
+    + select({":windows": ["msvc_config.h"],
+              ":msvc": ["msvc_config.h"],
+              ":msys": [],
               "//conditions:default": []}),
     visibility = ["//visibility:public"])

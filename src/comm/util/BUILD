@@ -1,8 +1,15 @@
 config_setting(
     name = "windows",
-    values = { "define": "platform=windows" }
+    values = { "cpu": "x64_windows" }
 )
-
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
+)
 
 cc_library(
     name = "util",
@@ -28,7 +35,9 @@ cc_library(
              "-Iexternal/openocf/src/util",
              "-Ithird_party/coap/include",
              "-Iexternal/openocf/third_party/coap/include"]
-    + select({"windows": [],
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/comm/adapter_util",

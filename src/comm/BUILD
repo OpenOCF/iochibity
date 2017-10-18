@@ -1,6 +1,14 @@
 config_setting(
     name = "windows",
-    values = { "define": "platform=windows" }
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
 )
 
 
@@ -9,7 +17,9 @@ cc_library(
     alwayslink = True,
     linkstatic = True,
     copts = ["-Isrc"]
-    + select({"windows": [],
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     hdrs = ["caipadapter.h",
     "caipnwmonitor.h",
@@ -43,7 +53,9 @@ cc_library(
              "-Iexternal/openocf/src/util",
              "-Ithird_party/coap/include",
              "-Iexternal/openocf/third_party/coap/include"]
-    + select({"windows": [],
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/comm/adapter_util",
@@ -99,7 +111,9 @@ cc_library(
              "-Ithird_party/coap/include",
              "-Iexternal/openocf/third_party/coap/include",
              "-Ithird_party/mbedtls/include"]
-    + select({"windows": [],
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/logger",

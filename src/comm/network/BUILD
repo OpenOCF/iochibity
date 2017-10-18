@@ -1,6 +1,14 @@
 config_setting(
     name = "windows",
-    values = { "define": "platform=windows" }
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
 )
 
 cc_library(
@@ -27,7 +35,9 @@ cc_library(
              "-Iexternal/openocf/src/portability",
 	     "-Ithird_party/coap/include",
 	     "-Iexternal/openocf/third_party/coap/include"]
-    + select({"windows": [],
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/logger",
@@ -41,7 +51,9 @@ cc_library(
     # hdrs = ["caipadapter.h"],
     srcs = ["ip_adapter/caipadapter.c",
             "ip_adapter/caipserver.c"]
-    + select({"windows": ["ip_adapter/windows/caipnwmonitor.c"],
+    + select({":windows": ["ip_adapter/windows/caipnwmonitor.c"],
+              ":msvc": ["ip_adapter/windows/caipnwmonitor.c"],
+              ":msys": ["ip_adapter/linux/caipnwmonitor.c"],
               "//conditions:default": ["ip_adapter/linux/caipnwmonitor.c"]}),
     visibility = ["//src/comm:__pkg__"]
 )

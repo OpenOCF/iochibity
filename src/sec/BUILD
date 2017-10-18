@@ -1,6 +1,14 @@
 config_setting(
     name = "windows",
-    values = { "define": "platform=windows" }
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
 )
 
 cc_library(
@@ -15,7 +23,11 @@ cc_library(
     linkstatic = True,
     copts = ["-Isrc",
              "-Isrc/sec",
-             "-Isrc/util"],
+             "-Isrc/util"]
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/util"],
     srcs = [# "srmresourcestrings.c",
@@ -47,16 +59,11 @@ cc_library(
 
 cc_library(
     name = "interface",
-    copts = ["-Isrc/comm/api"],
-    #          "-Isrc/comm/common",
-    #          "-Isrc/comm/include",
-    #          "-Isrc/comm/util",
-    #          "-Isrc/ocf",
-    #          "-Isrc/ocf/internal",
-    #          "-Isrc/util",
-    #          #"-Isrc/sec/ocsecurity",
-    #          "-Ithird_party/coap",
-    #          "-Ithird_party/cbor"],
+    copts = ["-Isrc/comm/api"]
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src/comm/api"],
     #         "//src/util",       # c_common
     #         "//third_party/cbor",
@@ -99,7 +106,11 @@ cc_library(
              "-Ithird_party/coap/include",
              "-Iexternal/openocf/third_party/coap/include",
              "-Ithird_party/tinycbor/src",
-             "-Iexternal/openocf/third_party/tinycbor/src"],
+             "-Iexternal/openocf/third_party/tinycbor/src"]
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/comm/api",
             "//src/comm/common",
@@ -152,7 +163,11 @@ cc_library(
              "-Ithird_party/coap/include",
              "-Iexternal/openocf/third_party/coap/include",
              "-Ithird_party/tinycbor/src",
-             "-Iexternal/openocf/third_party/tinycbor/src"],
+             "-Iexternal/openocf/third_party/tinycbor/src"]
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/comm/adapter_util",
             "//src/comm/api",
@@ -265,7 +280,11 @@ cc_library(
              "-Ithird_party/mbedtls/include",
              "-Iexternal/openocf/third_party/mbedtls/include",
              "-Ithird_party/tinycbor/src",
-             "-Iexternal/openocf/third_party/tinycbor/src"],
+             "-Iexternal/openocf/third_party/tinycbor/src"]
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/comm",
             "//src/comm/api",

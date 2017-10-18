@@ -1,14 +1,23 @@
 config_setting(
     name = "windows",
-    values = { "define": "platform=windows" }
+    values = { "cpu": "x64_windows" }
 )
-
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
+)
 
 cc_library(
     name = "interface",
     copts = ["-Isrc/comm/util",
              "-Ithird_party/coap/include"]
-    + select({"windows": [],
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//third_party/coap"],
     hdrs  = ["caadapterinterface.h",

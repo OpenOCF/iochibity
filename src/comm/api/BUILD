@@ -1,8 +1,24 @@
+config_setting(
+    name = "windows",
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
+)
+
 cc_library(
     name = "api",
-    copts = ["-std=c11",
-             "-Isrc/comm/common",
-             "-Iexternal/openocf/src/comm/common"],
+    copts = ["-Isrc/comm/common",
+             "-Iexternal/openocf/src/comm/common"]
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
+              "//conditions:default": ["-std=c11"]}),
     deps  = ["//src:config",
              "//src/portability"],
     hdrs  = ["cacommon.h",
