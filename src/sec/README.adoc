@@ -20,7 +20,6 @@ Components:
 
 * doxm - device ownership transfer manager/method
 
-
 === security resources
 
 URLs and types (OCF 1.3 draft, summary at p 120-)
@@ -74,6 +73,79 @@ oic/sec/pstat	    oic.r.pstat	Provisioning Status, p. 155
 oic/sec/csr	    oic.r.csr		     Certificate Signing Request, p. 163
 
 oic.r.roles	    oic.r.roles		     p. 164
+
+
+=== Principles of Operation
+
+==== Initialization
+
+(Ignoring TCP here)
+
+ocstack.c/OCInit
+  ocstack.c/OCInit1
+    ocstack.c/OCInit2
+      ocstack.c/OCInitializeInternal
+
+BEGIN OCInitializeInternal
+* some housekeeping...
+* InitializeScheduleResourceList
+* CAInitialize
+* OCSelectNetwork(transportType));
+* CARegisterNetworkMonitorHandler
+* depending on mode (client, server, both):
+** client: CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+*** CAStartDiscoveryServer()
+** server: SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+*** CAStartListeningServer()
+** client-server or gateway:
+*** SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+*** CAStartListeningServer()
+*** CAStartDiscoveryServer()
+
+At this point the stackState is OC_STACK_INITIALIZED.
+
+Next: initialize resources:
+
+* if mode != client
+** initResources()
+start by creating resources:
+*** OCCreateResource for /oic/ad ("PRESENCE" resource)
+***    OCCreateResource always indirectly calls presence.c/SendPresenceNotification
+*** src/sec/secureresourcemanager.c:SRMInitSecureResources()
+**** src/sec/resourcemanager.c:InitSecureResources( )
+***** src/sec/doxmresource.c:InitDoxmResource()
+***** src/sec/resourcemanager.c:InitPstatResource()
+***** src/sec/aclresource.c:InitACLResource()
+***** src/sec/credresource.c:InitCredResource()
+if __WITH_DTLS__ or __WITH_TLS__
+***** src/sec/crlresource.c:InitCRLResource()
+***** src/sec/csrresource.c:InitCSRResource()
+***** src/sec/rolesresource.c:InitRolesResource()
+endif
+***** src/sec/amaclresource.c:InitAmaclResource()
+
+*** CAregisterPskCredentialsHandler(GetDtlsPskCredentials)
+*** CAregisterPkixInfoHandler(GetPkixInfo);
+*** CAregisterGetCredentialTypesHandler(InitCipherSuiteList);
+now do mandatory non-security resources
+*** OCCreateResource for /oic/res (discovery resource?)
+*** CreateResetProfile()
+*** OCCreateResource for /oic/d (DEVICE resource)
+*** OCCreateResource for /oic/p (PLATFORM resource)
+*** OCCreateResource for /introspection
+*** OCCreateResource for /introspection/payload
+then initialize device and platform props:
+*** InitializeDeviceProperties()
+*** OICGetPlatformUuid
+*** OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_PLATFORM_ID, uuidString) (Overridable by app)
+end initResources
+
+* if routing:
+** RMSetStackMode(mode);
+** if (OC_GATEWAY == myStackMode) RMInitialize()
+END OCInitializeInternal
+
+
 
 
 === TODO
