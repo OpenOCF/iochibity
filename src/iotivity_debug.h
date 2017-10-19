@@ -39,4 +39,10 @@
 #define OC_VERIFY(condition) assert(condition)
 #endif
 
+/* definition to expand macro then apply to pragma message */
+#define VALUE_TO_STRING(x) #x
+#define VALUE(x) VALUE_TO_STRING(x)
+#define VAR_NAME_VALUE(var) #var "="  VALUE(var)
+/* #pragma message VAR_NAME_VALUE(foo) */
+
 #endif // #ifndef IOTIVITY_DEBUG_H_
