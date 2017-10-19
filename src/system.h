@@ -18,24 +18,40 @@
 
 /* #pragma message(VAR_NAME_VALUE(HAVE_SYS_TIME_H)) */
 
-#if defined(__STDC_VERSION__)
+/* from resource/c_common/platform_features.h */
+#if defined(__STDC__)
 # if (__STDC_VERSION__ >= 201112L) /* C11 */
 #   include <assert.h>
 #   define OC_STATIC_ASSERT(condition, msg) static_assert(condition, msg)
 # else  /* pre-C11 c compiler  */
-#   define OC_CAT_(a, b) a ## b
-#   define OC_CAT(a, b) OC_CAT_(a, b)
-#   ifdef __COUNTER__		/* gcc >= 4.3.0, msvc >= VS2015 */
-#     define OC_STATIC_ASSERT(condition, msg) \
-        { enum { OC_CAT(StaticAssert_, __COUNTER__) = 1/(int)(!!(condition)) }; }
-#   else
-#     define OC_STATIC_ASSERT(condition, msg) \ /* cannot be used twice on same line */
-        { enum { OC_CAT(StaticAssert_line_, __LINE__) = 1/(int)(!!(condition)) }; }
-#   endif
-# endif	 /* STDC_VERSION test */
-#elif defined(_MSC_VER) /* detect ms c compiler (we do not care which version?) */
-#  define OC_STATIC_ASSERT(condition, msg) static_assert(condition, msg)
+#  error "OpenOCF requires C11; you are using a compiler with __STDC_VERSION_ =" __STDC_VERSION__
+# endif
 #endif
+
+/* OpenOCF is C only, no GLIBCXX */
+
+// see https://gustedt.wordpress.com/2010/11/29/myth-and-reality-about-inline-in-c99/
+#ifndef INLINE_API
+#  if defined(__cplusplus)
+#    define INLINE_API inline
+#  else
+#    ifdef _MSC_VER /* or _WIN32? */
+#      define INLINE_API static __inline
+#    else
+#      define INLINE_API static inline
+#    endif
+#  endif
+#endif
+
+#ifdef _MSC_VER /* better: _WIN32? */
+#  define OC_ANNOTATE_UNUSED
+#else
+#  define OC_ANNOTATE_UNUSED  __attribute__((unused))
+#endif
+
+
+#  define CJSON_HIDE_SYMBOLS 1
+
 
 /* C99 (see https://www.gnu.org/software/autoconf/manual/autoconf-2.64/html_node/Particular-Headers.html#Particular-Headers)
 */
@@ -59,22 +75,7 @@ typedef bool _Bool;
 
 #define WITH_POSIX 1
 
-#ifdef _MSC_VER /* better: _WIN32? */
-//GAR: the EXPORT stuff is obsolete with 1.3.0?
-/* #  ifdef OC_EXPORT_DLL */
-/* #    define OC_EXPORT __declspec(dllexport) */
-/* #  else */
-/* #    define OC_EXPORT __declspec(dllimport) */
-/* #  endif */
-/* #  ifdef ENABLE_TEST_EXPORTS */
-/* #    define OC_EXPORT_TEST OC_EXPORT */
-/* #  else */
-/* #    define OC_EXPORT_TEST */
-/* #  endif */
-#  define OC_ANNOTATE_UNUSED
-
-#  define CJSON_HIDE_SYMBOLS 1
-
+#ifdef _WIN32
 //GAR: mingw has both strtok_r and strtok_s
 //GAR: strtok_s is c11, strtok_r is posix
 //GAR: todo: conditional compile: c11 uses strtok_s, c99 strtok_r?
@@ -89,35 +90,12 @@ typedef bool _Bool;
 #  define ssize_t SSIZE_T	/* POSIX */
 #  define SHUT_RDWR           SD_BOTH
 #  define sleep(SECS)         Sleep(1000*(SECS))
+#endif
 
 //GAR: built as windows portability layer
 /* #  include "windows/include/memmem.h" */
 /* #  include "windows/include/win_sleep.h" */
 /* #  include "windows/include/pthread_create.h" */
-
-#else
-#  define OC_ANNOTATE_UNUSED  __attribute__((unused))
-/* #  define OC_EXPORT */
-/* #  define OC_EXPORT_TEST */
-#endif
-/* #  define OC_ANNOTATE_UNUSED */
-/* #else */
-/* #  define OC_ANNOTATE_UNUSED  __attribute__((unused)) */
-/* #endif */
-
-//GAR: check for c99?
-// see https://gustedt.wordpress.com/2010/11/29/myth-and-reality-about-inline-in-c99/
-#ifndef INLINE_API
-#  if defined(__cplusplus)
-#    define INLINE_API inline
-#  else
-#    ifdef _MSC_VER /* or _WIN32? */
-#      define INLINE_API static __inline
-#    else
-#      define INLINE_API static inline
-#    endif
-#  endif
-#endif
 
 #ifdef HAVE_STRNCASECMP
 # ifdef _MSC_VER		/* must be msys2 autoconf */
@@ -158,7 +136,7 @@ typedef bool _Bool;
 #  define SIZE_MAX ((size_t)-1)
 #endif
 
-#ifdef _WIN32 			/* i.e. target is windows */
+#ifdef _WIN32 			/* i.e. target is windows, any compiler */
 /*
  * Set to __stdcall for Windows, consistent with WIN32 APIs.
  */
