@@ -485,7 +485,7 @@ CAResult_t CARetransmissionReceivedData(CARetransmission_t *context,
                                         const CAEndpoint_t *endpoint, const void *pdu,
                                         uint32_t size, void **retransmissionPdu)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (NULL == context || NULL == endpoint || NULL == pdu || NULL == retransmissionPdu)
     {
         OIC_LOG(ERROR, TAG, "invalid parameter");
@@ -588,7 +588,7 @@ CAResult_t CARetransmissionReceivedData(CARetransmission_t *context,
     // mutex unlock
     oc_mutex_unlock(context->threadMutex);
 
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 

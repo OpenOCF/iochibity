@@ -189,6 +189,7 @@ void DeleteDoxmBinData(OicSecDoxm_t* doxm)
 OCStackResult DoxmToCBORPayloadPartial(const OicSecDoxm_t *doxm,
     uint8_t **payload, size_t *size, const bool *propertiesToInclude)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (NULL == doxm || NULL == payload || NULL != *payload || NULL == size)
     {
         return OC_STACK_INVALID_PARAM;
@@ -220,7 +221,7 @@ OCStackResult DoxmToCBORPayloadPartial(const OicSecDoxm_t *doxm,
     // oxms Property
     if (propertiesToInclude[DOXM_OXMS] && doxm->oxmLen > 0)
     {
-        OIC_LOG_V(DEBUG, TAG, "%s: including %s Property.", __func__, OIC_JSON_OXMS_NAME);
+        OIC_LOG_V(DEBUG, TAG, "DOXM Property: %s", OIC_JSON_OXMS_NAME);
         CborEncoder oxm;
         cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_OXMS_NAME,
             strlen(OIC_JSON_OXMS_NAME));
@@ -235,39 +236,41 @@ OCStackResult DoxmToCBORPayloadPartial(const OicSecDoxm_t *doxm,
         }
         cborEncoderResult = cbor_encoder_close_container(&doxmMap, &oxm);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Closing oxms.");
+        OIC_LOG_V(DEBUG, TAG, "DOXM Property: %s, count %d", OIC_JSON_OXM_SEL_NAME, doxm->oxmLen);
     }
 
-    // oxmsel Property
+    // oxmsel (OTM selection) Property
     if (propertiesToInclude[DOXM_OXMSEL] && doxm->oxmLen > 0)
     {
-        OIC_LOG_V(DEBUG, TAG, "%s: including %s Property.", __func__, OIC_JSON_OXM_SEL_NAME);
         cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_OXM_SEL_NAME,
             strlen(OIC_JSON_OXM_SEL_NAME));
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Adding oxmsel Tag.");
         cborEncoderResult = cbor_encode_int(&doxmMap, doxm->oxmSel);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Adding oxmsel Value.");
+        OIC_LOG_V(DEBUG, TAG, "DOXM Property: %s = %d", OIC_JSON_OXM_SEL_NAME, doxm->oxmSel);
     }
 
-    // sct Property
+    // sct (supported credential types) Property
     if (propertiesToInclude[DOXM_SCT])
     {
-        OIC_LOG_V(DEBUG, TAG, "%s: including %s Property.", __func__, OIC_JSON_SUPPORTED_CRED_TYPE_NAME);
         cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_SUPPORTED_CRED_TYPE_NAME,
             strlen(OIC_JSON_SUPPORTED_CRED_TYPE_NAME));
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Adding sct Tag");
         cborEncoderResult = cbor_encode_int(&doxmMap, doxm->sct);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Adding sct Value.");
+        OIC_LOG_V(DEBUG, TAG, "DOXM Property: %s = 0x%X", OIC_JSON_SUPPORTED_CRED_TYPE_NAME, doxm->sct);
     }
 
     // owned Property
     if (propertiesToInclude[DOXM_OWNED])
     {
-        OIC_LOG_V(DEBUG, TAG, "%s: including %s Property.", __func__, OIC_JSON_OWNED_NAME);
         cborEncoderResult = cbor_encode_text_string(&doxmMap, OIC_JSON_OWNED_NAME,
             strlen(OIC_JSON_OWNED_NAME));
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Adding owned Tag.");
         cborEncoderResult = cbor_encode_boolean(&doxmMap, doxm->owned);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Adding owned Value.");
+        OIC_LOG_V(DEBUG, TAG, "DOXM Property: %s = %s", OIC_JSON_OWNED_NAME,
+		  doxm->owned ? "true" : "false");
     }
 
     // deviceuuid Property
@@ -789,6 +792,7 @@ exit:
  */
 static bool UpdatePersistentStorage(OicSecDoxm_t * doxm)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     bool bRet = false;
 
     if (NULL != doxm)
@@ -812,6 +816,7 @@ static bool UpdatePersistentStorage(OicSecDoxm_t * doxm)
         }
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return bRet;
 }
 
@@ -1917,7 +1922,7 @@ static OCStackResult CheckDeviceID()
  */
 static OicSecDoxm_t* GetDoxmDefault()
 {
-    OIC_LOG(DEBUG, TAG, "GetDoxmToDefault");
+    OIC_LOG(DEBUG, TAG, "%s: returning gDefaultDoxm");
     return &gDefaultDoxm;
 }
 
@@ -1977,6 +1982,7 @@ exit:
 
 OCStackResult InitDoxmResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     //Read DOXM resource from PS
@@ -2041,6 +2047,7 @@ OCStackResult InitDoxmResource()
         isAnonEnabled ? "" : "NOT ");
 #endif // __WITH_DTLS__ or __WITH_TLS__
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
     return ret;
 }
 
@@ -2529,6 +2536,7 @@ bool AreDoxmBinPropertyValuesEqual(OicSecDoxm_t* doxm1, OicSecDoxm_t* doxm2)
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 OCStackResult EnableAnonCipherSuiteIfUnOwnedAndJustWorksSelected(bool *enabled)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     OIC_LOG_V(INFO, TAG, "%s: function enter.", __func__);
@@ -2537,7 +2545,7 @@ OCStackResult EnableAnonCipherSuiteIfUnOwnedAndJustWorksSelected(bool *enabled)
     // If so, register handshake callback, and enable Anon Ciphersuite.
     if (NULL != gDoxm) {
         if (false == gDoxm->owned) {
-            if (OIC_JUST_WORKS == gDoxm->oxmSel) {
+            if (OIC_JUST_WORKS == gDoxm->oxmSel) { /* default is OIC_RANDOM_DEVICE_PIN */
                 RegisterOTMSslHandshakeCallback(DoxmDTLSHandshakeCB);
                 OIC_LOG_V(INFO, TAG, "%s: enabling AnonECDHCipherSuite", __func__);
                 ret = (CAEnableAnonECDHCipherSuite(true) == CA_STATUS_OK) ? OC_STACK_OK : OC_STACK_ERROR;
@@ -2580,9 +2588,7 @@ OCStackResult EnableAnonCipherSuiteIfUnOwnedAndJustWorksSelected(bool *enabled)
         }
     }
 
-    OIC_LOG_V(INFO, TAG, "%s: function exit, returning %s.", __func__,
-        (OC_STACK_OK == ret) ? "OC_STACK_OK" : "OC_STACK_ERROR");
-
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
     return ret;
 }
 #endif // __WITH_DTLS__ or __WITH_TLS__

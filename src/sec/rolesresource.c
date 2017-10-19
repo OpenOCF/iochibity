@@ -1042,6 +1042,7 @@ static OCEntityHandlerResult RolesEntityHandler(OCEntityHandlerFlag flag,
 
 OCStackResult InitRolesResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult res = OCCreateResource(&gRolesHandle,
         OIC_RSRC_TYPE_SEC_ROLES,
         OC_RSRVD_INTERFACE_DEFAULT,
@@ -1056,6 +1057,7 @@ OCStackResult InitRolesResource()
         OIC_LOG_V(FATAL, TAG, "Unable to instantiate roles resource: %d", res);
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
     return res;
 }
 

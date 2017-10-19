@@ -126,7 +126,7 @@ CAResult_t CAStartDiscoveryServer()
 void CARegisterHandler(CARequestCallback ReqHandler, CAResponseCallback RespHandler,
                        CAErrorCallback ErrorHandler)
 {
-    OIC_LOG(DEBUG, TAG, "CARegisterHandler");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     if (!g_isInitialized)
     {
@@ -135,6 +135,7 @@ void CARegisterHandler(CARequestCallback ReqHandler, CAResponseCallback RespHand
     }
 
     CASetInterfaceCallbacks(ReqHandler, RespHandler, ErrorHandler);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)

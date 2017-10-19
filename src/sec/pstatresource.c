@@ -989,6 +989,7 @@ static OCEntityHandlerResult HandlePstatPostRequest(OCEntityHandlerRequest *ehRe
 
 OCStackResult InitPstatResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     // Read Pstat resource from PS
@@ -1028,6 +1029,7 @@ exit:
     {
         DeInitPstatResource();
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
     return ret;
 }
 

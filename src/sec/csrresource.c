@@ -475,6 +475,7 @@ static OCEntityHandlerResult CredCsrEntityHandler(OCEntityHandlerFlag flag,
 
 OCStackResult InitCSRResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OCCreateResource(&gCsrHandle,
         OIC_RSRC_TYPE_SEC_CSR,
         OC_RSRVD_INTERFACE_DEFAULT,
@@ -489,6 +490,7 @@ OCStackResult InitCSRResource()
         OIC_LOG(FATAL, TAG, "Unable to instantiate CSR resource");
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
     return ret;
 }
 

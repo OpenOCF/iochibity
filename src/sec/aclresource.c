@@ -3453,6 +3453,7 @@ exit:
 
 OCStackResult InitACLResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     if (NULL == g_AceIdCounterMutex)
@@ -3498,6 +3499,7 @@ exit:
     {
         DeInitACLResource();
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
     return ret;
 }
 

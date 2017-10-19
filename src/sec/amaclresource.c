@@ -483,6 +483,7 @@ static OCStackResult CreateAmaclResource()
 
 OCStackResult InitAmaclResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OC_STACK_ERROR;
 
     uint8_t *data = NULL;
@@ -512,6 +513,7 @@ OCStackResult InitAmaclResource()
     {
         DeInitAmaclResource();
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
     return ret;
 }
 

@@ -75,7 +75,7 @@ typedef enum _PSDatabase
  */
 static OCStackResult WritePayloadToPS(const char *databaseName, uint8_t *payload, size_t size)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY; db: \"%s\"", __func__, databaseName);
     if (!databaseName || !payload || (size <= 0))
     {
         return OC_STACK_INVALID_PARAM;
@@ -83,7 +83,7 @@ static OCStackResult WritePayloadToPS(const char *databaseName, uint8_t *payload
 
     OCStackResult result = OC_STACK_ERROR;
 
-    OIC_LOG_V(DEBUG, TAG, "Writing in the file: %" PRIuPTR, size);
+    OIC_LOG_V(DEBUG, TAG, "Payload size: %" PRIuPTR, size);
 
     OCPersistentStorage* ps = OCGetPersistentStorageHandler();
     if (ps)
@@ -107,6 +107,8 @@ static OCStackResult WritePayloadToPS(const char *databaseName, uint8_t *payload
         {
             OIC_LOG(ERROR, TAG, "File open failed.");
         }
+    } else {
+	OIC_LOG_V(ERROR, TAG, "OCGetPersistentStorageHandler returned %p", ps);
     }
 
     OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
@@ -290,6 +292,7 @@ OCStackResult UpdateResourceInPS(const char *databaseName, const char *resourceN
             // Only search for and copy resources owned by the target database
             if (PS_DATABASE_SECURITY == database)
             {
+		OIC_LOG(DEBUG, TAG, "Decoding PS_DATABASE_SECURITY database");
                 // Security database
                 cborFindResult = cbor_value_map_find_value(&cbor, OIC_JSON_ACL_NAME, &curVal);
                 if ((CborNoError == cborFindResult) && cbor_value_is_byte_string(&curVal))
@@ -343,6 +346,7 @@ OCStackResult UpdateResourceInPS(const char *databaseName, const char *resourceN
             }
             else
             {
+		OIC_LOG(DEBUG, TAG, "Decoding PS_DATABASE_DEVICEPROPERTIES database");
                 // Device Properties database
                 cborFindResult = cbor_value_map_find_value(&cbor, OC_JSON_DEVICE_PROPS_NAME, &curVal);
                 if ((CborNoError == cborFindResult) && cbor_value_is_byte_string(&curVal))

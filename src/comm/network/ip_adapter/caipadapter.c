@@ -288,6 +288,7 @@ void CAIPErrorHandler(const CAEndpoint_t *endpoint, const void *data,
 
 static void CAInitializeIPGlobals()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     caglobals.ip.u6.fd  = OC_INVALID_SOCKET;
     caglobals.ip.u6s.fd = OC_INVALID_SOCKET;
     caglobals.ip.u4.fd  = OC_INVALID_SOCKET;
@@ -317,6 +318,7 @@ static void CAInitializeIPGlobals()
     caglobals.ip.ipv6enabled = flags & CA_IPV6;
     caglobals.ip.ipv4enabled = flags & CA_IPV4;
     caglobals.ip.dualstack = caglobals.ip.ipv6enabled && caglobals.ip.ipv4enabled;
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 CAResult_t CAInitializeIP(CARegisterConnectivityCallback registerCallback,
@@ -324,7 +326,7 @@ CAResult_t CAInitializeIP(CARegisterConnectivityCallback registerCallback,
                           CAAdapterChangeCallback netCallback,
                           CAErrorHandleCallback errorCallback, ca_thread_pool_t handle)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL(registerCallback, TAG, "registerCallback");
     VERIFY_NON_NULL(networkPacketCallback, TAG, "networkPacketCallback");
     VERIFY_NON_NULL(netCallback, TAG, "netCallback");
@@ -382,7 +384,7 @@ CAResult_t CAInitializeIP(CARegisterConnectivityCallback registerCallback,
         };
     registerCallback(ipHandler);
 
-    OIC_LOG(INFO, TAG, "OUT IntializeIP is Success");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 

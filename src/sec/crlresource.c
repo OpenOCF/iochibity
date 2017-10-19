@@ -662,6 +662,7 @@ static OicSecCrl_t *GetCrlDefault()
  */
 OCStackResult InitCRLResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OC_STACK_ERROR;
     // Read Crl resource from PS
     uint8_t *data = NULL;
@@ -690,6 +691,7 @@ OCStackResult InitCRLResource()
 
     ret = CreateCRLResource();
     OICFree(data);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
     return ret;
 }
 

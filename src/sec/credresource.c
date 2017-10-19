@@ -2580,6 +2580,7 @@ OCStackResult CreateCredResource()
 
 OCStackResult InitCredResource()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OC_STACK_ERROR;
     OicSecCred_t* cred = NULL;
     OicUuid_t   *rownerId = NULL;
@@ -2703,10 +2704,10 @@ OCStackResult InitCredResource()
     ret = CreateCredResource();
 
 exit:
-    OIC_LOG(DEBUG, TAG, "OUT InitCredResource.");
     OICClearMemory(data, size);
     OICFree(data);
     OICFree(rownerId);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
     return ret;
 }
 

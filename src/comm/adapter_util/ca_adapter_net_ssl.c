@@ -1595,7 +1595,7 @@ void CAdeinitSslAdapter()
 
 static int InitConfig(mbedtls_ssl_config * conf, int transport, int mode)
 {
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
+    OIC_LOG_V(DEBUG, NET_SSL_TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_RET(conf, NET_SSL_TAG, "Param conf is NULL" , -1);
     VERIFY_NON_NULL_RET(g_caSslContext, NET_SSL_TAG, "SSL Context is NULL", -1);
     mbedtls_ssl_config_init(conf);
@@ -1632,7 +1632,7 @@ static int InitConfig(mbedtls_ssl_config * conf, int transport, int mode)
     mbedtls_debug_set_threshold(MBED_TLS_DEBUG_LEVEL);
 #endif
 #endif
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "Out %s", __func__);
+    OIC_LOG_V(DEBUG, NET_SSL_TAG, "%s EXIT", __func__);
     return 0;
 }
 #ifdef __WITH_DTLS__
@@ -1695,7 +1695,7 @@ static void StartRetransmit(void *ctx)
 
 CAResult_t CAinitSslAdapter()
 {
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
+    OIC_LOG_V(DEBUG, NET_SSL_TAG, "%s ENTRY", __func__);
     // Initialize mutex for tlsContext
     if (NULL == g_sslContextMutex)
     {
@@ -1836,7 +1836,7 @@ CAResult_t CAinitSslAdapter()
     StartRetransmit(NULL);
 #endif
 
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "Out %s", __func__);
+    OIC_LOG_V(DEBUG, NET_SSL_TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 

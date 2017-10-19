@@ -380,7 +380,7 @@ static void CADestroyData(void *data, uint32_t size)
 #ifdef SINGLE_THREAD
 static void CAProcessReceivedData(CAData_t *data)
 {
-    OIC_LOG(DEBUG, TAG, "CAProcessReceivedData IN");
+    OIC_LOG(DEBUG, TAG, "%s ENTRY", __func__);
     if (!data)
     {
         OIC_LOG(ERROR, TAG, "thread data error!!");
@@ -412,7 +412,7 @@ static void CAProcessReceivedData(CAData_t *data)
 
     CADestroyData(data, sizeof(CAData_t));
 
-    OIC_LOG(DEBUG, TAG, "CAProcessReceivedData OUT");
+    OIC_LOG(DEBUG, TAG, "%s EXIT", __func__);
 }
 #endif
 
@@ -506,6 +506,8 @@ exit:
 
 static CAResult_t CAProcessSendData(const CAData_t *data)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
     VERIFY_NON_NULL(data, TAG, "data");
     VERIFY_NON_NULL(data->remoteEndpoint, TAG, "remoteEndpoint");
 
@@ -662,7 +664,7 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
         CAProcessMulticastData(data);
 #endif
     }
-
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 
