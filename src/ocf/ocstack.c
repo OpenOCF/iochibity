@@ -564,6 +564,7 @@ void FixUpClientResponse(OCClientResponse *cr)
 
 OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *requestInfo)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL(object, FATAL, OC_STACK_INVALID_PARAM);
     VERIFY_NON_NULL(requestInfo, FATAL, OC_STACK_INVALID_PARAM);
     OIC_TRACE_BEGIN(%s:OCSendRequest, TAG);
@@ -2266,6 +2267,7 @@ OCStackResult OC_CALL OCSetRAInfo(const OCRAInfo_t *raInfo)
 
 OCStackResult OC_CALL OCInit(const char *ipAddr, uint16_t port, OCMode mode)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     (void) ipAddr;
     (void) port;
     return OCInit1(mode, OC_DEFAULT_FLAGS, OC_DEFAULT_FLAGS);
@@ -2273,14 +2275,14 @@ OCStackResult OC_CALL OCInit(const char *ipAddr, uint16_t port, OCMode mode)
 
 OCStackResult OC_CALL OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlags clientFlags)
 {
-    OIC_LOG(DEBUG, TAG, "call OCInit1");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     return OCInit2(mode, serverFlags, clientFlags, OC_DEFAULT_ADAPTER);
 }
 
 OCStackResult OC_CALL OCInit2(OCMode mode, OCTransportFlags serverFlags, OCTransportFlags clientFlags,
                               OCTransportAdapter transportType)
 {
-    OIC_LOG(INFO, TAG, "Entering OCInit2");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     // Serialize calls to start and stop the stack.
     OCEnterInitializer();
@@ -2302,12 +2304,14 @@ OCStackResult OC_CALL OCInit2(OCMode mode, OCTransportFlags serverFlags, OCTrans
     }
 
     OCLeaveInitializer();
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return result;
 }
 
 OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFlags,
                                    OCTransportFlags clientFlags, OCTransportAdapter transportType)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (stackState == OC_STACK_INITIALIZED)
     {
         OIC_LOG(INFO, TAG, "Subsequent calls to OCInit() without calling \
@@ -2459,6 +2463,7 @@ exit:
         CATerminate();
         stackState = OC_STACK_UNINITIALIZED;
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return result;
 }
 
@@ -2936,6 +2941,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
         if (destination || devAddr)
         {
             requestInfo.isMulticast = false;
+	    OIC_LOG_V(DEBUG, TAG, "Request is UNICAST");
         }
         else
         {
@@ -2944,6 +2950,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
             destination = &tmpDevAddr;
             requestInfo.isMulticast = true;
             qos = OC_LOW_QOS;
+	    OIC_LOG_V(DEBUG, TAG, "Request is UNICAST");
         }
         // OC_REST_DISCOVER: CA_DISCOVER will become GET and isMulticast.
         // OC_REST_PRESENCE: Since "presence" is a stack layer only implementation.
@@ -3495,13 +3502,17 @@ OCStackResult OC_CALL OCCreateResource(OCResourceHandle *handle,
         void *callbackParam,
         uint8_t resourceProperties)
 {
-    return OCCreateResourceWithEp(handle,
+    OIC_LOG_V(INFO, TAG, "%s %s ENTRY >>>>>>>>>>>>>>>>", __func__, uri);
+
+    OCStackResult r = OCCreateResourceWithEp(handle,
                                   resourceTypeName,
                                   resourceInterfaceName,
                                   uri, entityHandler,
                                   callbackParam,
                                   resourceProperties,
                                   OC_ALL);
+    OIC_LOG_V(INFO, TAG, "%s %s EXIT <<<<<<<<<<<<<<<<", __func__, uri);
+    return r;
 }
 
 OCStackResult OC_CALL OCCreateResourceWithEp(OCResourceHandle *handle,
@@ -3516,7 +3527,7 @@ OCStackResult OC_CALL OCCreateResourceWithEp(OCResourceHandle *handle,
     OCResource *pointer = NULL;
     OCStackResult result = OC_STACK_ERROR;
 
-    OIC_LOG_V(INFO, TAG, "%s: ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY; uri: %s", __func__, uri);
 
     if(myStackMode == OC_CLIENT)
     {
@@ -3628,10 +3639,13 @@ OCStackResult OC_CALL OCCreateResourceWithEp(OCResourceHandle *handle,
     {
         resourceProperties |= OC_NONSECURE;
     }
+    OIC_LOG_V(DEBUG, TAG, "Resource properties: 0x%X", resourceProperties);
 
     // Set properties.  Set OC_ACTIVE
     pointer->resourceProperties = (OCResourceProperty) (resourceProperties
             | OC_ACTIVE);
+
+    OIC_LOG_V(DEBUG, TAG, "Binding resource...");
 
     // Add the resourcetype to the resource
     result = BindResourceTypeToResource(pointer, resourceTypeName);
@@ -3701,7 +3715,7 @@ OCStackResult OC_CALL OCBindResource(
     OCChildResource *tempChildResource = NULL;
     OCChildResource *newChildResource = NULL;
 
-    OIC_LOG(INFO, TAG, "Entering OCBindResource");
+    OIC_LOG(DEBUG, TAG, "Entering OCBindResource");
 
     // Validate parameters
     VERIFY_NON_NULL(collectionHandle, ERROR, OC_STACK_ERROR);
@@ -3772,7 +3786,7 @@ OCStackResult OC_CALL OCUnBindResource(
     OCChildResource *tempChildResource = NULL;
     OCChildResource *tempLastChildResource = NULL;
 
-    OIC_LOG(INFO, TAG, "Entering OCUnBindResource");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     // Validate parameters
     VERIFY_NON_NULL(collectionHandle, ERROR, OC_STACK_ERROR);
@@ -3902,6 +3916,7 @@ static bool ValidateResourceTypeInterface(const char *resourceItemName)
 OCStackResult BindResourceTypeToResource(OCResource* resource,
                                             const char *resourceTypeName)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCResourceType *pointer = NULL;
     char *str = NULL;
     OCStackResult result = OC_STACK_ERROR;
@@ -3946,6 +3961,7 @@ exit:
 OCStackResult BindResourceInterfaceToResource(OCResource* resource,
         const char *resourceInterfaceName)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCResourceInterface *pointer = NULL;
     char *str = NULL;
     OCStackResult result = OC_STACK_ERROR;
@@ -3958,7 +3974,7 @@ OCStackResult BindResourceInterfaceToResource(OCResource* resource,
         return OC_STACK_INVALID_PARAM;
     }
 
-    OIC_LOG_V(INFO, TAG, "Binding %s interface to %s", resourceInterfaceName, resource->uri);
+    OIC_LOG_V(DEBUG, TAG, "Binding %s interface to %s", resourceInterfaceName, resource->uri);
 
     pointer = (OCResourceInterface *) OICCalloc(1, sizeof(OCResourceInterface));
     if (!pointer)
@@ -3993,6 +4009,7 @@ OCStackResult BindResourceInterfaceToResource(OCResource* resource,
 OCStackResult BindTpsTypeToResource(OCResource* resource,
                                     OCTpsSchemeFlags resourceTpsTypes)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (!resource)
     {
         OIC_LOG(ERROR, TAG, "Resource pointer is NULL!!!");
@@ -4016,7 +4033,7 @@ OCStackResult BindTpsTypeToResource(OCResource* resource,
         return OC_STACK_BAD_ENDPOINT;
     }
 
-    OIC_LOG_V(INFO, TAG, "Binding %d TPS flags to %s", supportedTps, resource->uri);
+    OIC_LOG_V(DEBUG, TAG, "Binding TPS flags 0x%X to %s", supportedTps, resource->uri);
     resource->endpointType = supportedTps;
     return result;
 }
@@ -4024,6 +4041,7 @@ OCStackResult BindTpsTypeToResource(OCResource* resource,
 OCStackResult OC_CALL OCBindResourceTypeToResource(OCResourceHandle handle,
         const char *resourceTypeName)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     OCStackResult result = OC_STACK_ERROR;
     OCResource *resource = NULL;
@@ -4450,6 +4468,7 @@ static OCDoHandle GenerateInvocationHandle()
 
 OCStackResult initResources()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCStackResult result = OC_STACK_OK;
 
     headResource = NULL;
@@ -4470,12 +4489,10 @@ OCStackResult initResources()
             &(((OCResource *) presenceResource.handle)->resourceProperties),
             OC_ACTIVE, 0);
 #endif
-#ifndef WITH_ARDUINO
     if (result == OC_STACK_OK)
     {
         result = SRMInitSecureResources();
     }
-#endif
 
     if(result == OC_STACK_OK)
     {
@@ -4849,7 +4866,7 @@ void insertResourceType(OCResource *resource, OCResourceType *resourceType)
     }
     resourceType->next = NULL;
 
-    OIC_LOG_V(INFO, TAG, "Added type %s to %s", resourceType->resourcetypename, resource->uri);
+    OIC_LOG_V(DEBUG, TAG, "Added type %s to %s", resourceType->resourcetypename, resource->uri);
 }
 
 OCResourceType *findResourceTypeAtIndex(OCResourceHandle handle, uint8_t index)
