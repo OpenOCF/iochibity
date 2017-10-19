@@ -160,11 +160,7 @@ typedef enum
 /**
  * Max header options data length.
  */
-#ifdef ARDUINO
-#define CA_MAX_HEADER_OPTION_DATA_LENGTH 20
-#else
 #define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024
-#endif
 
   // from comm/api/cacommon.h, also used in ocf/ocobserve.h etc.:
 /**
