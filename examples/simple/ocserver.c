@@ -120,11 +120,11 @@ int main() {
 OCStackResult createLightResource() {
     Light.power = false;
     OCStackResult res = OCCreateResource(&Light.handle,
-                    "core.light",
-                    "core.rw",
-                    "/a/light",
-                    0,
-                    NULL,
-                    OC_DISCOVERABLE|OC_OBSERVABLE);
+					 "core.light",
+					 "core.rw",
+					 "/a/light",
+					 0,
+					 NULL,
+					 OC_SECURE|OC_DISCOVERABLE|OC_OBSERVABLE);
     return res;
 }

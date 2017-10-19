@@ -45,14 +45,15 @@ void handleSigInt(int signum) {
 }
 
 // This is a function called back when a device is discovered
-OCStackApplicationResult applicationDiscoverCB(
-        OCClientResponse * clientResponse) {
-    (void)clientResponse;
+OCStackApplicationResult application_discovery_cb(void* ctx,
+						  OCDoHandle h,
+						  OCClientResponse * clientResponse) {
+    /* (void)clientResponse; */
     OIC_LOG(INFO, TAG, "Entering applicationDiscoverCB (Application Layer CB)");
-    OIC_LOG_V(INFO, TAG, "Device =============> Discovered %s @ %s:%d",
-                                    clientResponse->resourceUri,
-                                    clientResponse->devAddr.addr,
-                                    clientResponse->devAddr.port);
+    OIC_LOG_V(INFO, TAG, "Device =============> Discovered %s", // @ %s:%d",
+    	      clientResponse->resourceUri);
+                                    /* clientResponse->devAddr.addr,
+                                     * clientResponse->devAddr.port); */
     //return OC_STACK_DELETE_TRANSACTION;
     return OC_STACK_KEEP_TRANSACTION;
 }
@@ -67,10 +68,19 @@ int main() {
     }
 
     /* Start a discovery query*/
+    OCCallbackData cbData;
+    cbData.cb = application_discovery_cb;
+    cbData.context = NULL;
+    cbData.cd = NULL;
     char szQueryUri[MAX_QUERY_LENGTH] = { 0 };
     strcpy(szQueryUri, OC_MULTICAST_DISCOVERY_URI);
-    if (OCDoResource(NULL, OC_REST_GET, szQueryUri, 0, 0, 
-            CT_DEFAULT, OC_LOW_QOS, 0, 0, 0) != OC_STACK_OK) {
+    if (OCDoResource(NULL,
+		     OC_REST_DISCOVER,
+		     szQueryUri,
+		     NULL, NULL,
+		     CT_DEFAULT,
+		     OC_LOW_QOS,
+		     &cbData, NULL, 0) != OC_STACK_OK) {
         OIC_LOG(ERROR, TAG, "OCStack resource error");
         return 0;
     }
@@ -96,4 +106,3 @@ int main() {
 
     return 0;
 }
-
