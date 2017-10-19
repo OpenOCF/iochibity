@@ -1,7 +1,14 @@
 config_setting(
     name = "windows",
-    values = { "define": "platform=windows" }
-    # default: posix
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
 )
 
 cc_library(
@@ -28,12 +35,16 @@ cc_library(
              "-Isrc/portability"]
              # "-Ithird_party/mbedtls/include"]
     + select({"windows": [],
+              "msvc": [],
+              "msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/logger",
             "//src/portability:hdrs",
             "//third_party/mbedtls"],
     linkopts = select({"windows": [],
+                       "msvc": [],
+                       "msys": ["-lpthread"], 
                        "//conditions:default": ["-lpthread"]}),
     srcs = ["oic_platform.c",
             "posix/ocatomic.c",
@@ -50,6 +61,8 @@ cc_library(
              "-Isrc/portability",
              "-Ithird_party/mbedtls/include"]
     + select({"windows": [],
+              "msvc": [],
+              "msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/logger",
@@ -89,10 +102,9 @@ cc_library(
     deps = ["//src:config",
             "//src/logger"]
     + select({":windows": ["//src/portability:win"],
+              ":msvc": ["//src/portability:win"],
+              ":msys": ["//src/portability:posix"],
               "//conditions:default": ["//src/portability:posix"]}),
-              # ":gcc": ["//src/portability:gcc"],
-              # ":posix": ["//src/portability:posix"],
-              # "//conditions:default": []}),
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
              "-Isrc/logger",
@@ -103,6 +115,8 @@ cc_library(
     	     "-Isrc/util",
              "-Iexternal/openocf/src/util"]
     + select({"windows": [],
+              "msvc": [],
+              "msys": [],
               "//conditions:default": ["-std=c11"]}),
     hdrs = glob(["*.h"]),
     srcs = ["iotivity_commontypes.h",

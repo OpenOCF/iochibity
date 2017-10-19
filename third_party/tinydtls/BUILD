@@ -1,9 +1,25 @@
 licenses(["notice"])
 
+config_setting(
+    name = "windows",
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
+)
+
 cc_library(
     name = "tinydtls",
-    copts = ["-std=c11",
-             "-Ithird_party/tinydtls"], # needed for subdir includes like sha2/sha2.c
+    copts = ["-Ithird_party/tinydtls"] # needed for subdir includes like sha2/sha2.c
+    + select({"windows": [],
+              "msvc": [],
+              "msys": [],
+              "//conditions:default": ["-std=c11"]}),
     hdrs = ["tinydtls.h"],
     srcs = ["dtls_config.h",
             #"tinydtls.h",

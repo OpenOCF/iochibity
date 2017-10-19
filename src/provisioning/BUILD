@@ -1,31 +1,34 @@
 config_setting(
     name = "windows",
-    values = { "define": "platform=windows" }
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
 )
 
 cc_library(
     name = "utility",
     copts = ["-Isrc",
-             # "-Isrc/comm",  # comm/inc/pkix
              "-Isrc/comm/api",
-             # "-Isrc/comm/common",
-             # "-Isrc/comm/interface",
-             # "-Isrc/comm/include",
              "-Isrc/logger",
              "-Isrc/ocf",
-             # "-Isrc/ocf/internal",
              "-Isrc/portability",
              "-Isrc/provisioning/include",
              "-Isrc/util",
              "-Isrc/sec",
              "-Isrc/sec/security",
              "-Ithird_party/tinycbor/src",
-             # "-Ithird_party/cjson",
              "-Ithird_party/coap/include",
-             #"-Ithird_party/asn1cert",
              "-Ithird_party/mbedtls/include",
              "-Ithird_party/sqlite3"]
-    + select({"windows": [],
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/comm",
@@ -84,7 +87,9 @@ cc_library(
              "-Iexternal/openocf/third_party/mbedtls/include",
              "-Ithird_party/sqlite3",
              "-Iexternal/openocf/third_party/sqlite3"]
-    + select({"windows": [],
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/comm",
