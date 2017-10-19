@@ -5,3 +5,73 @@ code conventions, acronyms, etc.
 
 * TPS Transport Protocol Suite, e.g. coap, coaps, coap+tcp,
   coaps+tcp, etc. Enum OCTpsSchemeFlags in octypes.h
+
+
+=== code organization
+
+"stack": Iotivity likes to dump everything into a few monster files,
+e.g. ocstack.[ch], octyps.h. For example, ocresource.c exports routine
+OCSetPropertyValue. You might expect the prototype to be in
+ocresource.h, but no, it's in ocstack.h. Maybe the idea is to put the
+public stuff in ocstack.h, I don't know.
+
+Furthermore, the logic is not partitioned as one might
+expect. E.g. operations on resources might be in ocresource.c, or they
+might be in ocstack.c. Another example: the various payload structs
+are defined in octypes.h rather than their own space,
+e.g. ocpayload.h.
+
+Generally we leave the code as-is in Iotivity, but there are a few
+cases where we just had to do a little refactoring, renaming,
+rearranging. In the interest of making the code more understandable
+and maintainable.
+
+Most importantly, we have reorganized the headers so that application
+code need only include one file, `openocf.h`.  (Well, that's the goal, anyway).
+
+(It might also make sense to split that up into the major components;
+e.g. the header for Provisioning Mgmt could be separate, since some
+clients won't need that functionality.)
+
+
+=== style
+
+Some of the code is a little smelly.  E.g. typedef is abused; we have
+lots of stuff like:
+
+    `typedef struct foo_t { ... } Foo;`
+
+which gets the naming backwards (and _t should not be used for
+user-defined stuff anyway, according to Posix).
+
+The Iotivity project has its own coding conventions. OpenOCF follows
+the Linux kernel practices described at https://www.kernel.org/doc/html/v4.10/process/coding-style.html. In particular, Iotivity puts if-then braces like so:
+
+[source,c]
+----
+if (foo)
+ {
+  ...
+ }
+ else
+ {
+ ...
+ }
+----
+
+We prefer:
+
+[source,c]
+----
+if (foo) {
+} else {
+}
+----
+
+=== Resource APIs
+
+In `ocresource.[ch]` and related.
+
+We have added some functions to allow application code to inspect
+requests, responses, and payloads.
+
