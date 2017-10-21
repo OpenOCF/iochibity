@@ -605,6 +605,7 @@ exit:
 
 static OCStackResult OCParseDiscoveryPayloadVndOcfCbor(OCPayload **outPayload, CborValue *rootValue)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENRTY", __func__);
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     OCDiscoveryPayload *rootPayload = NULL;
     CborError err = CborNoError;

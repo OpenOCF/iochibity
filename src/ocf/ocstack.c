@@ -2866,7 +2866,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
                                   OCHeaderOption *options,
                                   uint8_t numOptions)
 {
-    OIC_LOG(INFO, TAG, "Entering OCDoResource");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     // Validate input parameters
     VERIFY_NON_NULL(cbData, FATAL, OC_STACK_INVALID_CALLBACK);

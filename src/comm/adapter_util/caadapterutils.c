@@ -383,7 +383,7 @@ void CALogSendStateInfo(CATransportAdapter_t adapter,
     OC_UNUSED(message);
 #endif
 
-    OIC_LOG(DEBUG, CA_ADAPTER_UTILS_TAG, "CALogSendStateInfo");
+    OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "%s ENTRY", __func__);
     OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
 
     if (true == isSuccess)

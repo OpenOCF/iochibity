@@ -1812,6 +1812,7 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource, const O
                                             CAEndpoint_t *networkInfo, size_t infoSize,
                          OCEndpointPayload **listHead, size_t* epSize, OCEndpointPayload** selfEp)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCEndpointPayload *headNode = NULL;
     OCEndpointPayload *lastNode = NULL;
 

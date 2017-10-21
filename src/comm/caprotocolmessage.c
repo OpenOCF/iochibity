@@ -101,11 +101,13 @@ CAResult_t CAGetErrorInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endp
 coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_t *endpoint,
                           coap_list_t **optlist, coap_transport_t *transport)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
     VERIFY_NON_NULL_RET(info, TAG, "info", NULL);
     VERIFY_NON_NULL_RET(endpoint, TAG, "endpoint", NULL);
     VERIFY_NON_NULL_RET(optlist, TAG, "optlist", NULL);
 
-    OIC_LOG_V(DEBUG, TAG, "generate pdu for [%d]adapter, [%d]flags",
+    OIC_LOG_V(DEBUG, TAG, "transport adapter: 0x%X; transport flags: 0x%X",
               endpoint->adapter, endpoint->flags);
 
     coap_pdu_t *pdu = NULL;
@@ -321,8 +323,13 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
         return NULL;
     }
 
-    OIC_LOG_V(DEBUG, TAG, "transport type: %d, payload size: %" PRIuPTR,
-              *transport, info->payloadSize);
+    OIC_LOG_V(DEBUG, TAG, "coap_transport_type: %s, payload size: %" PRIuPTR,
+              (*transport == COAP_UDP)? "UDP"
+	      : (*transport == COAP_TCP)? "TCP"
+	      : (*transport == COAP_TCP_8BIT)? "TCP_8BIT"
+	      : (*transport == COAP_TCP_16BIT)? "TCP_16BIT"
+	      : (*transport == COAP_TCP_32BIT)? "TCP_32BIT" : "INVALID",
+	      info->payloadSize);
 
 #ifdef WITH_TCP
     if (CAIsSupportedCoAPOverTCP(endpoint->adapter))

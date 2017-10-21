@@ -239,15 +239,15 @@ INLINE_API void OCPayloadLogDiscovery(LogLevel level, OCDiscoveryPayload* payloa
         uint32_t i = 1;
         while(res)
         {
-            OIC_LOG_V(level, __FILE__, "\tLink#%d", i);
-            OIC_LOG_V(level, __FILE__, "\tURI:%s", res->uri);
+            OIC_LOG_V(level, __FILE__, "\tLink #: %d", i);
+            OIC_LOG_V(level, __FILE__, "\tURI: %s", res->uri);
             if (res->rel)
             {
-                OIC_LOG_V(level, __FILE__, "\tRelation:%s", res->rel);
+                OIC_LOG_V(level, __FILE__, "\tRelation: %s", res->rel);
             }
             if (res->anchor)
             {
-                OIC_LOG_V(level, __FILE__, "\tAnchor:%s", res->anchor);
+                OIC_LOG_V(level, __FILE__, "\tAnchor: %s", res->anchor);
             }
             OIC_LOG(level, __FILE__, "\tResource Types:");
             OCStringLL* strll =  res->types;

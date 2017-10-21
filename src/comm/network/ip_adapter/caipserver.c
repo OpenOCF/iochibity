@@ -1406,6 +1406,7 @@ static void sendMulticastData6(const u_arraylist_t *iflist,
                                CAEndpoint_t *endpoint,
                                const void *data, size_t datalen)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (!endpoint)
     {
         OIC_LOG(DEBUG, TAG, "endpoint is null");
@@ -1453,6 +1454,7 @@ static void sendMulticastData4(const u_arraylist_t *iflist,
                                CAEndpoint_t *endpoint,
                                const void *data, size_t datalen)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_VOID(endpoint, TAG, "endpoint is NULL");
 
 #if defined(USE_IP_MREQN)
@@ -1500,6 +1502,7 @@ static void sendMulticastData4(const u_arraylist_t *iflist,
 void CAIPSendData(CAEndpoint_t *endpoint, const void *data, size_t datalen,
                   bool isMulticast)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_VOID(endpoint, TAG, "endpoint is NULL");
     VERIFY_NON_NULL_VOID(data, TAG, "data is NULL");
 
@@ -1552,6 +1555,7 @@ void CAIPSendData(CAEndpoint_t *endpoint, const void *data, size_t datalen,
             sendData(fd, endpoint, data, datalen, "unicast", "ipv4");
         }
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, size_t *size)

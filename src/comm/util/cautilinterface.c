@@ -404,14 +404,14 @@ CAResult_t CAUtilStopLEAdvertising()
 
 CAResult_t CAUtilSetBTConfigure(CAUtilConfig_t config)
 {
-    OIC_LOG(DEBUG, TAG, "CAUtilSetConfigure");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 #if (defined(__ANDROID__) && defined(LE_ADAPTER))
     OIC_LOG_V(DEBUG, TAG, "bleFlag [%d]", config.bleFlags);
     CAManagerSetConfigure(config);
     return CA_STATUS_OK;
 #else
     (void) config;
-    OIC_LOG(DEBUG, TAG, "it is not supported");
+    OIC_LOG(DEBUG, TAG, "BT is not supported");
     return CA_NOT_SUPPORTED;
 #endif
 }
