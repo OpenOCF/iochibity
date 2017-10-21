@@ -689,6 +689,7 @@ memory_error_exit:
 CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uint32_t length,
                              CADataType_t dataType)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     size_t index = 0;
     CAResult_t res = CA_STATUS_FAILED;
 
@@ -743,12 +744,14 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
 
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 
 CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, uint32_t length,
                                CADataType_t dataType)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     size_t index = 0;
     CAResult_t res = CA_STATUS_FAILED;
 
@@ -810,6 +813,7 @@ CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, u
         }
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 
