@@ -554,9 +554,9 @@ CAResult_t CAParseHeadOption(uint32_t code, const CAInfo_t *info, coap_list_t **
                 OIC_LOG_V(DEBUG, TAG, "not Header Opt: %d", id);
                 break;
             case COAP_OPTION_ACCEPT:
-            case CA_OPTION_ACCEPT_VERSION:
+            case OCF_ACCEPT_CONTENT_FORMAT_VERSION:
             case COAP_OPTION_CONTENT_FORMAT:
-            case CA_OPTION_CONTENT_VERSION:
+            case OCF_CONTENT_FORMAT_VERSION:
                 // this is handled below via CAParsePayloadFormatHeadOption
                 break;
             default:
@@ -576,12 +576,12 @@ CAResult_t CAParseHeadOption(uint32_t code, const CAInfo_t *info, coap_list_t **
     // insert one extra header with the payload format if applicable.
     if (CA_FORMAT_UNDEFINED != info->payloadFormat)
     {
-        CAParsePayloadFormatHeadOption(COAP_OPTION_CONTENT_FORMAT, info->payloadFormat, CA_OPTION_CONTENT_VERSION, info->payloadVersion, optlist);
+        CAParsePayloadFormatHeadOption(COAP_OPTION_CONTENT_FORMAT, info->payloadFormat, OCF_CONTENT_FORMAT_VERSION, info->payloadVersion, optlist);
     }
 
     if (CA_FORMAT_UNDEFINED != info->acceptFormat)
     {
-        CAParsePayloadFormatHeadOption(COAP_OPTION_ACCEPT, info->acceptFormat, CA_OPTION_ACCEPT_VERSION, info->acceptVersion, optlist);
+        CAParsePayloadFormatHeadOption(COAP_OPTION_ACCEPT, info->acceptFormat, OCF_ACCEPT_CONTENT_FORMAT_VERSION, info->acceptVersion, optlist);
     }
 
     return CA_STATUS_OK;
@@ -624,8 +624,8 @@ CAResult_t CAParsePayloadFormatHeadOption(uint16_t formatOption, CAPayloadFormat
         return CA_STATUS_INVALID_PARAM;
     }
 
-    if ((CA_OPTION_ACCEPT_VERSION == versionOption ||
-         CA_OPTION_CONTENT_VERSION == versionOption) &&
+    if ((OCF_ACCEPT_CONTENT_FORMAT_VERSION == versionOption ||
+         OCF_CONTENT_FORMAT_VERSION == versionOption) &&
         CA_FORMAT_APPLICATION_VND_OCF_CBOR == format)
     {
         versionNode = CACreateNewOptionNode(versionOption,
@@ -949,7 +949,7 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                 {
                     isProxyRequest = true;
                 }
-                else if (CA_OPTION_ACCEPT_VERSION == opt_iter.type)
+                else if (OCF_ACCEPT_CONTENT_FORMAT_VERSION == opt_iter.type)
                 {
                     if (2 == COAP_OPT_LENGTH(option))
                     {
@@ -983,7 +983,7 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                         OIC_LOG(DEBUG, TAG, "option has an unsupported accept format");
                     }
                 }
-                else if (CA_OPTION_CONTENT_VERSION == opt_iter.type)
+                else if (OCF_CONTENT_FORMAT_VERSION == opt_iter.type)
                 {
                     if (2 == COAP_OPT_LENGTH(option))
                     {
