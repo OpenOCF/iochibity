@@ -588,7 +588,7 @@ OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *request
     {
         for (uint8_t i = 0; i < requestInfo->info.numOptions; i++)
         {
-            if (COAP_OPTION_ACCEPT_VERSION == requestInfo->info.options[i].optionID
+            if (OCF_ACCEPT_CONTENT_FORMAT_VERSION == requestInfo->info.options[i].optionID
                     && sizeof(uint16_t) == requestInfo->info.options[i].optionLength)
             {
                 acceptVersion = (requestInfo->info.options[i].optionData[1] << 8)
@@ -3037,7 +3037,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
         {
             for (uint8_t i = 0; i < numOptions; i++)
             {
-                if (COAP_OPTION_ACCEPT_VERSION == options[i].optionID
+                if (OCF_ACCEPT_CONTENT_FORMAT_VERSION == options[i].optionID
                         && sizeof(uint16_t) == options[i].optionLength)
                 {
                     acceptVersion = (options[i].optionData[1] << 8) + options[i].optionData[0];
@@ -3097,14 +3097,14 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
             // Append accept format and accept version to the options.
             SetHeaderOption(requestInfo.info.options, numOptions, CA_OPTION_ACCEPT, &acceptFormat,
                     sizeof(uint16_t));
-            SetHeaderOption(requestInfo.info.options, numOptions + 1, CA_OPTION_ACCEPT_VERSION,
+            SetHeaderOption(requestInfo.info.options, numOptions + 1, OCF_ACCEPT_CONTENT_FORMAT_VERSION,
                     &acceptVersion, sizeof(uint16_t));
         }
         else if (IsAcceptFormatSet && CA_FORMAT_APPLICATION_VND_OCF_CBOR == acceptFormat
                 && !IsAcceptVersionSet)
         {
             // Append accept version to the options.
-            SetHeaderOption(requestInfo.info.options, numOptions, CA_OPTION_ACCEPT_VERSION,
+            SetHeaderOption(requestInfo.info.options, numOptions, OCF_ACCEPT_CONTENT_FORMAT_VERSION,
                     &acceptVersion, sizeof(uint16_t));
         }
         else if (IsAcceptVersionSet && OC_SPEC_VERSION_VALUE <= acceptVersion && !IsAcceptFormatSet)
@@ -3126,7 +3126,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
         {
             for (uint8_t i = 0; i < numOptions; i++)
             {
-                if (COAP_OPTION_CONTENT_VERSION == options[i].optionID
+                if (OCF_CONTENT_FORMAT_VERSION == options[i].optionID
                         && sizeof(uint16_t) == options[i].optionLength)
                 {
                     payloadVersion = (options[i].optionData[1] << 8) + options[i].optionData[0];

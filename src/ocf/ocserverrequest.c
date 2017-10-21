@@ -557,7 +557,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
     {
         for (uint8_t i = 0; i < responseInfo.info.numOptions; i++)
         {
-            if (COAP_OPTION_CONTENT_VERSION == ehResponse->sendVendorSpecificHeaderOptions[i].optionID)
+            if (OCF_CONTENT_FORMAT_VERSION == ehResponse->sendVendorSpecificHeaderOptions[i].optionID)
             {
                 payloadVersion =
                         (ehResponse->sendVendorSpecificHeaderOptions[i].optionData[1] << 8)
@@ -672,7 +672,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
             if (!IsPayloadVersionSet && !IsPayloadFormatSet)
             {
                 optionsPointer->protocolID = CA_COAP_ID;
-                optionsPointer->optionID = CA_OPTION_CONTENT_VERSION;
+                optionsPointer->optionID = OCF_CONTENT_FORMAT_VERSION;
                 memcpy(optionsPointer->optionData, &payloadVersion,
                         sizeof(uint16_t));
                 optionsPointer->optionLength = sizeof(uint16_t);
@@ -688,7 +688,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
                             && !IsPayloadVersionSet)
             {
                 optionsPointer->protocolID = CA_COAP_ID;
-                optionsPointer->optionID = CA_OPTION_CONTENT_VERSION;
+                optionsPointer->optionID = OCF_CONTENT_FORMAT_VERSION;
                 memcpy(optionsPointer->optionData, &payloadVersion,
                         sizeof(uint16_t));
                 optionsPointer->optionLength = sizeof(uint16_t);

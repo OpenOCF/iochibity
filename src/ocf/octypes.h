@@ -70,8 +70,8 @@ extern "C" {
 /**
  * TODO: Move these COAP defines to CoAP lib once approved.
  */
-#define COAP_OPTION_ACCEPT_VERSION 2049
-#define COAP_OPTION_CONTENT_VERSION 2053
+#define OCF_ACCEPT_CONTENT_FORMAT_VERSION 2049
+#define OCF_CONTENT_FORMAT_VERSION        2053
 
 /**
  * These enums (OCTransportAdapter and OCTransportFlags) must

@@ -148,8 +148,8 @@ extern "C"
 * TODO: Move these COAP defines to CoAP lib once approved.
 */
 #define COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR 10000 // application/vnd.ocf+cbor
-#define CA_OPTION_ACCEPT_VERSION 2049
-#define CA_OPTION_CONTENT_VERSION 2053
+#define OCF_ACCEPT_CONTENT_FORMAT_VERSION 2049
+#define OCF_CONTENT_FORMAT_VERSION 2053
 
 // The Accept Version and Content-Format Version for OCF 1.0.0 (0b0000 1000 0000 0000).
 #define DEFAULT_VERSION_VALUE 2048
