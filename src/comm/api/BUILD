@@ -27,10 +27,6 @@ cc_library(
     srcs  = ["cacommon.h",
              "cainterface.h",
              "casecurityinterface.h"],
-    visibility = ["//src/comm:__subpackages__",
-                  "//src/ocf:__pkg__",
-                  "//src/ocf/stack:__pkg__",
-                  "//src/sec:__subpackages__",
-                  "//src/provisioning:__pkg__"]
+    visibility = ["//visibility:public"]
 )
 

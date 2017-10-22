@@ -79,9 +79,6 @@ cc_library(
             #"uri.h",
             "include/coap/uthash.h",
             "include/coap/utlist.h"],
-    visibility = ["//src/comm:__subpackages__",
-                  "//src/provisioning:__pkg__",
-                  "//src/sec/acl:__pkg__",
-                  "//src/sec:__pkg__"]
+    visibility = ["//visibility:public"]
 )
 

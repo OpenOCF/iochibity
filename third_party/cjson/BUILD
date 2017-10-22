@@ -27,6 +27,5 @@ cc_library(
             "//src/portability"],
     hdrs = ["cJSON.h"],
     srcs = ["cJSON.c"],
-    visibility = ["//src/ocf:__pkg__",
-                  "//src/sec:__pkg__"]
+    visibility = ["//visibility:public"]
 )
