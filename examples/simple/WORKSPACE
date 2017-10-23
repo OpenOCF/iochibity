@@ -1,0 +1,10 @@
+local_repository(
+    name = "sys-cdk",
+    path = "/usr/local/include",
+    build_file_content = """
+cc_library(
+   name = "cdk-hdrs",
+   hdrs = ["usr/include/cdk/*.h"]
+   + glob(["usr/include/cdk/*.h"]),
+   visibility = ["//visibility:public"],
+)
