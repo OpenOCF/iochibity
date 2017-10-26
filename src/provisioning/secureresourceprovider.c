@@ -24,6 +24,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <errno.h>
 
 #include "ocprovisioningmanager.h"
 #include "secureresourceprovider.h"
@@ -874,6 +875,7 @@ OCStackResult SetDOS(const Data_t *data, OicSecDeviceOnboardingState_t dos,
     if (IS_OIC(pTargetDev->specVer))
     {
         OCClientResponse clientResponse = {.result = OC_STACK_RESOURCE_CHANGED};
+	/* since we're synchronously calling the cb function, we do not need to check result */
         resultCallback((void*) data, NULL, &clientResponse);
         return OC_STACK_OK;
     }
@@ -1094,7 +1096,8 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
     if (NULL == ctx)
     {
         OIC_LOG(ERROR, TAG, "Context is NULL");
-        return OC_STACK_INVALID_PARAM;
+	errno = EINVAL;
+        return OC_STACK_DELETE_TRANSACTION;
     }
     if (OC_STACK_RESOURCE_CHANGED == clientResponse->result)
     {
@@ -1102,14 +1105,16 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
         if (CHAIN_TYPE != data->type)
         {
             OIC_LOG(ERROR, TAG, "Invalid type");
-            return OC_STACK_INVALID_PARAM;
+	    errno = EINVAL;
+            return OC_STACK_DELETE_TRANSACTION;
         }
         TrustChainData_t *chainData = (TrustChainData_t *) (data->ctx);
         OicSecCred_t *trustCertChainCred = GetCredEntryByCredId(chainData->credId);
         if (NULL == trustCertChainCred)
         {
             OIC_LOG(ERROR, TAG, "Can not find matched Trust Cert. Chain.");
-            return OC_STACK_NO_RESOURCE;
+	    errno = EPROTO;
+            return OC_STACK_DELETE_TRANSACTION;
         }
 
         OCSecurityPayload *secPayload = (OCSecurityPayload *)OICCalloc(1, sizeof(OCSecurityPayload));
@@ -1117,7 +1122,8 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
         {
             DeleteCredList(trustCertChainCred);
             OIC_LOG(ERROR, TAG, "Failed to allocate memory");
-            return OC_STACK_NO_MEMORY;
+	    errno = ENOMEM;
+            return OC_STACK_DELETE_TRANSACTION;
         }
         secPayload->base.type = PAYLOAD_TYPE_SECURITY;
         int secureFlag = 1; /* Don't send the private key to the device, if it happens to be present */
@@ -1127,7 +1133,8 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
             DeleteCredList(trustCertChainCred);
             OCPayloadDestroy((OCPayload *)secPayload);
             OIC_LOG(ERROR, TAG, "Failed to CredToCBORPayload");
-            return OC_STACK_NO_MEMORY;
+	    errno = EPROTO;	/* Protocol error */
+            return OC_STACK_DELETE_TRANSACTION;
         }
         DeleteCredList(trustCertChainCred);
         OIC_LOG(DEBUG, TAG, "Created payload for Cred:");
@@ -1142,7 +1149,8 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
         {
             OIC_LOG(ERROR, TAG, "Failed to generate query");
             OCPayloadDestroy((OCPayload *)secPayload);
-            return OC_STACK_ERROR;
+	    errno = EPROTO;
+            return OC_STACK_DELETE_TRANSACTION;
         }
         OIC_LOG_V(DEBUG, TAG, "Query=%s", query);
 
@@ -1159,17 +1167,19 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
         if (ret != OC_STACK_OK)
         {
             OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
-            return ret;
+	    errno = EPROTO;
+            return OC_STACK_DELETE_TRANSACTION;
         }
     }
     else
     {
-        OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
-        return OC_STACK_ERROR;
+        OIC_LOG_V(ERROR, TAG, "OUT %s", __func__); /* GAR: why is this an error? */
+	errno = EPROTO;
+        return OC_STACK_DELETE_TRANSACTION;
     }
 
     OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
-    return OC_STACK_OK;
+    return OC_STACK_DELETE_TRANSACTION;
 }
 
 OCStackResult SRPProvisionTrustCertChain(void *ctx, OicSecCredType_t type, uint16_t credId,
@@ -1387,14 +1397,14 @@ static OCStackApplicationResult ProvisionCertificateCB(void *ctx, OCDoHandle han
     OicSecCred_t *cred = NULL;
     OCSecurityPayload *secPayload = NULL;
 
-    VERIFY_NOT_NULL_RETURN(TAG, ctx, ERROR,  OC_STACK_INVALID_PARAM);
-    VERIFY_NOT_NULL_RETURN(TAG, clientResponse, ERROR,  OC_STACK_INVALID_PARAM);
+    VERIFY_NOT_NULL_RETURN(TAG, ctx, ERROR,  OC_STACK_DELETE_TRANSACTION);
+    VERIFY_NOT_NULL_RETURN(TAG, clientResponse, ERROR,  OC_STACK_DELETE_TRANSACTION);
 
     VERIFY_SUCCESS_RETURN(TAG, (OC_STACK_RESOURCE_CHANGED == clientResponse->result), ERROR,
-        OC_STACK_INVALID_PARAM);
+        OC_STACK_DELETE_TRANSACTION);
 
     Data_t *data = (Data_t *) ctx;
-    VERIFY_SUCCESS_RETURN(TAG, (CERT_TYPE == data->type), ERROR, OC_STACK_INVALID_PARAM);
+    VERIFY_SUCCESS_RETURN(TAG, (CERT_TYPE == data->type), ERROR, OC_STACK_DELETE_TRANSACTION);
 
     CertData_t *certData = (CertData_t *) (data->ctx);
     VERIFY_NOT_NULL(TAG, certData, ERROR);
@@ -1443,7 +1453,7 @@ exit:
 
     OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
 
-    return ret;
+    return OC_STACK_DELETE_TRANSACTION;
 }
 
 OCStackResult SRPProvisionCertificate(void *ctx,
@@ -3960,7 +3970,8 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
     if (NULL == ctx || NULL == clientResponse)
     {
         OIC_LOG_V(ERROR, TAG, " ctx: %p, clientResponse: %p", ctx, clientResponse);
-        return OC_STACK_INVALID_PARAM;
+	errno = EINVAL;
+        return OC_STACK_DELETE_TRANSACTION;
     }
     (void) UNUSED;
     if (OC_STACK_RESOURCE_CHANGED == clientResponse->result)
@@ -3969,7 +3980,8 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
         if (ACL_TYPE != data->type)
         {
             OIC_LOG(ERROR, TAG, "Invalid type");
-            return OC_STACK_INVALID_PARAM;
+	    errno = EINVAL;
+            return OC_STACK_DELETE_TRANSACTION;
         }
 
         ACLData_t *aclData = (ACLData_t *) (data->ctx);
@@ -3987,7 +3999,8 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
                 uri = OIC_RSRC_ACL2_URI;
                 break;
             default:
-                return OC_STACK_INVALID_PARAM;
+		errno = EPROTONOSUPPORT; /* FIXME: use a custom E code? */
+                return OC_STACK_DELETE_TRANSACTION;
         }
 
         // if rowneruuid is empty, set it to device ID
@@ -4005,7 +4018,8 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
             {
                 OIC_LOG(ERROR, TAG, "Failed to set Rowner to PT's deviceID\
                     becuase it failed to retrieve Doxm DeviceID");
-                return OC_STACK_ERROR;
+		errno = ENODEV;	/* No such device */
+                return OC_STACK_DELETE_TRANSACTION;
             }
         }
 
@@ -4014,7 +4028,8 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
         {
             OIC_LOG(ERROR, TAG, "Failed to allocate memory");
             OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
-            return OC_STACK_NO_MEMORY;
+	    errno = ENOMEM;
+            return OC_STACK_DELETE_TRANSACTION;
         }
         secPayload->base.type = PAYLOAD_TYPE_SECURITY;
         if (OC_STACK_OK != AclToCBORPayload(aclData->acl, aclData->aclVersion, &secPayload->securityData,
@@ -4023,7 +4038,8 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
             OCPayloadDestroy((OCPayload *)secPayload);
             OIC_LOG(ERROR, TAG, "Failed to AclToCBORPayload");
             OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
-            return OC_STACK_NO_MEMORY;
+	    errno = EPROTO;	/* protocol error FIXME: custom E code? */
+            return OC_STACK_DELETE_TRANSACTION;
         }
         OIC_LOG(DEBUG, TAG, "Created payload for ACL:");
         OIC_LOG_BUFFER(DEBUG, TAG, secPayload->securityData, secPayload->payloadSize);
@@ -4036,7 +4052,8 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
                              query, sizeof(query), uri))
         {
             OIC_LOG(ERROR, TAG, "DeviceDiscoveryHandler : Failed to generate query");
-            return OC_STACK_ERROR;
+	    errno = EPROTO;	/* FIXME: better E code */
+            return OC_STACK_DELETE_TRANSACTION;
         }
         OIC_LOG_V(DEBUG, TAG, "Query=%s", query);
 
@@ -4053,15 +4070,15 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
         if (ret != OC_STACK_OK)
         {
             OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
-            return OC_STACK_ERROR;
+	    errno = EPROTO;	/* FIXME: better E code */
+            return OC_STACK_DELETE_TRANSACTION;
         }
     }
     else
     {
         OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
-        return OC_STACK_ERROR;
+        return OC_STACK_DELETE_TRANSACTION;
     }
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
-    return OC_STACK_OK;
+    return OC_STACK_DELETE_TRANSACTION;
 }
-
