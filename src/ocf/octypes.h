@@ -1166,45 +1166,8 @@ typedef enum
     OC_STACK_DELETE_TRANSACTION = 0,
     /** Keep this callback registered and call it if an apropriate event occurs */
     OC_STACK_KEEP_TRANSACTION,
-    OC_STACK_KEEP_PAYLOAD	/* GAR client responsible for freeing payload */
+    OC_STACK_KEEP_RESPONSE	/* GAR client responsible for freeing response */
 } OCStackApplicationResult;
-
-/* struct */
-/* { */
-/*     unsigned int retain_transaction: 1; */
-/*     unsigned int retain_payload    : 1; */
-/* } OCStackApplicationResult; */
-
-//#ifdef DIRECT_PAIRING
-/**
- * @brief   direct pairing Method Type.
- *              0:  not allowed
- *              1:  pre-configured pin
- *              2:  random pin
- */
-typedef enum OCPrm
-{
-    DP_NOT_ALLOWED             = 0x0,
-    DP_PRE_CONFIGURED        = (0x1 << 0),
-    DP_RANDOM_PIN               = (0x1 << 1),
-} OCPrm_t;
-
-/**
- * Device Information of discoverd direct pairing device(s).
- */
-typedef struct OCDPDev
-{
-    OCDevAddr               endpoint;
-    OCConnectivityType   connType;
-    uint16_t                     securePort;
-    bool                  edp;
-    OCPrm_t           *prm;
-    size_t                prmLen;
-    OCUUIdentity     deviceID;
-    OCUUIdentity     rowner;
-    struct OCDPDev *next;
-} OCDPDev_t;
-//#endif // DIRECT_PAIRING
 
 /*
  * -------------------------------------------------------------------------------------------

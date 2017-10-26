@@ -42,6 +42,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <errno.h>
 
 #include "ocstack.h"
 #include "ocstackinternal.h"
@@ -57,6 +58,9 @@
 #include "oicgroup.h"
 #include "ocendpoint.h"
 #include "presence_methods.h"
+
+/* FIXME: ifdef ROLE_CLIENT //src/ocf:client */
+#include "co_service_provider_mgr.h"
 
 /* //src/portability */
 #include "ocrandom.h"
@@ -1576,22 +1580,32 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                     HandleBatchResponse(cbNode->requestUri, (OCRepPayload **)&response->payload);
                 }
 
-		OIC_LOG_V(INFO, TAG, "[%d] %s: calling user CB", __LINE__, __func__);
+		/* If discovery response, then save msg to
+		   co_service_provider_manager. do this here so that
+		   co_sp API will be available to application's
+		   handler code */
+		oocf_cosp_mgr_save_response(response);
+		OIC_LOG_V(INFO, TAG, "%s: calling user CB", __func__);
+		errno = 0;
 		appFeedback = cbNode->callBack(cbNode->context,
 					       cbNode->handle,
 					       response);
+		/* FIXME: check errno */
+
+		/* now either retain or discard msg saved to co_service_provider_manager */
+
                 cbNode->sequenceNumber = response->sequenceNumber;
 
                 if (appFeedback & OC_STACK_KEEP_TRANSACTION) /* GAR */
                 {
-		    OIC_LOG_V(INFO, TAG, "[%d] %s: retaining user CB", __LINE__, __func__);
+		    OIC_LOG(INFO, TAG, "retaining user CB");
                     // To keep discovery callbacks active.
                     cbNode->TTL = GetTicks(MAX_CB_TIMEOUT_SECONDS *
                                             MILLISECONDS_PER_SECOND);
                 }
 		else
                 {
-		    OIC_LOG_V(INFO, TAG, "[%d] %s: removing user CB", __LINE__, __func__);
+		    OIC_LOG(INFO, TAG, "removing user CB");
                     DeleteClientCB(cbNode);
                 }
             }
@@ -1602,16 +1616,22 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                 SendDirectStackResponse(endPoint, responseInfo->info.messageId, CA_EMPTY,
                         CA_MSG_ACKNOWLEDGE, 0, NULL, NULL, 0, NULL, CA_RESPONSE_FOR_RES);
             }
-	    if (appFeedback & OC_STACK_KEEP_PAYLOAD) { /* GAR */
-		OIC_LOG_V(INFO, TAG, "[%d] %s: retaining OCPayload", __LINE__, __func__);
+
+	    /* FIXME: always free the msg; if not KEEP_PAYLOAD, then also remove it from the co_sp_mgr */
+	    if (appFeedback & OC_STACK_KEEP_RESPONSE) { /* GAR */
+		OIC_LOG(INFO, TAG, "retaining OCClientResponse");
 	    } else {
-		OIC_LOG_V(INFO, TAG, "[%d] %s: removing OCPayload", __LINE__, __func__);
+		OIC_LOG(INFO, TAG, "removing OCClientResponse");
+		/* FIXME: delete from co_sp_mgr db */
+		oocf_cosp_mgr_free_response(response);
 		OCPayloadDestroy(response->payload);
+		OICFree(response);
 	    }
-            OICFree(response);
         }
+	OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
         return;
-    }
+    } /* cbNode */
+    OIC_LOG_V(DEBUG, TAG, "no callback found for this response message");
 
     OCResource *resource = NULL;
     ResourceObserver *observer = NULL;
@@ -2322,6 +2342,8 @@ OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFlags,
                 OCStop() between them are ignored.");
         return OC_STACK_OK;
     }
+
+    oocf_cosp_mgr_init();		/* GAR: initialize co-serviceprovider mgr */
 
 #ifndef ROUTING_GATEWAY
     if (OC_GATEWAY == mode)
