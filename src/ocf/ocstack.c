@@ -581,7 +581,7 @@ OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *request
 
     // TODO: We might need to remove acceptFormat and acceptVersion fields in requestinfo->info
     // at a later stage to avoid duplication.
-    uint16_t acceptVersion = OC_SPEC_VERSION_VALUE;
+    uint16_t acceptVersion = OCF_VERSION_1_0_0;
     CAPayloadFormat_t acceptFormat = CA_FORMAT_APPLICATION_VND_OCF_CBOR;
     // Check settings of version option and content format.
     if (requestInfo->info.numOptions > 0 && requestInfo->info.options)
@@ -3032,7 +3032,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
     else
     {
         // Check if accept format and accept version have been set.
-        uint16_t acceptVersion = OC_SPEC_VERSION_VALUE;
+        uint16_t acceptVersion = OCF_VERSION_1_0_0;
         uint16_t acceptFormat = COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR;
         bool IsAcceptVersionSet = false;
         bool IsAcceptFormatSet = false;
@@ -3111,7 +3111,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
             SetHeaderOption(requestInfo.info.options, numOptions, OCF_ACCEPT_CONTENT_FORMAT_VERSION,
                     &acceptVersion, sizeof(uint16_t));
         }
-        else if (IsAcceptVersionSet && OC_SPEC_VERSION_VALUE <= acceptVersion && !IsAcceptFormatSet)
+        else if (IsAcceptVersionSet && OCF_VERSION_1_0_0 <= acceptVersion && !IsAcceptFormatSet)
         {
             // Append accept format to the options.
             SetHeaderOption(requestInfo.info.options, numOptions, CA_OPTION_ACCEPT, &acceptFormat,
@@ -3123,7 +3123,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
 
     if (payload)
     {
-        uint16_t payloadVersion = OC_SPEC_VERSION_VALUE;
+        uint16_t payloadVersion = OCF_VERSION_1_0_0;
         CAPayloadFormat_t payloadFormat = CA_FORMAT_APPLICATION_VND_OCF_CBOR;
         // Check version option settings
         if (numOptions > 0 && options)

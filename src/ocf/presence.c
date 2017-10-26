@@ -216,7 +216,7 @@ OCStackResult OC_CALL OCStartPresence(const uint32_t ttl)
 
         AddObserver(OC_RSRVD_PRESENCE_URI, NULL, 0, caToken, tokenLength,
                 (OCResource *) presenceResource.handle, OC_LOW_QOS, OC_FORMAT_UNDEFINED,
-                OC_SPEC_VERSION_VALUE, &devAddr);
+                OCF_VERSION_1_0_0, &devAddr);
         CADestroyToken(caToken);
     }
 

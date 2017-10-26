@@ -299,6 +299,8 @@
 
 /** Integer value of spec version (OCF1.0 0b0000:1000:0000:0000).*/
 #define OC_SPEC_VERSION_VALUE            2048
+#define OCF_VERSION_1_0_0 OC_SPEC_VERSION_VALUE
+#define OCF_VERSION_1_1_0                2112
 
 /** Device Data Model version.*/
 #define OC_DATA_MODEL_VERSION            "ocf.res.1.1.0,ocf.sh.1.1.0"

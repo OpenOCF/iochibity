@@ -549,7 +549,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
     }
 
     // Check if version and format option exist.
-    uint16_t payloadVersion = OC_SPEC_VERSION_VALUE;
+    uint16_t payloadVersion = OCF_VERSION_1_0_0;
     uint16_t payloadFormat = COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR;
     bool IsPayloadVersionSet = false;
     bool IsPayloadFormatSet = false;
@@ -693,7 +693,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
                         sizeof(uint16_t));
                 optionsPointer->optionLength = sizeof(uint16_t);
             }
-            else if (IsPayloadVersionSet && OC_SPEC_VERSION_VALUE <= payloadVersion && !IsPayloadFormatSet)
+            else if (IsPayloadVersionSet && OCF_VERSION_1_0_0 <= payloadVersion && !IsPayloadFormatSet)
             {
                 optionsPointer->protocolID = CA_COAP_ID;
                 optionsPointer->optionID = COAP_OPTION_CONTENT_TYPE;
