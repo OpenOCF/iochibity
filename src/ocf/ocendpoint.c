@@ -350,6 +350,7 @@ exit:
 
 OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* out)
 {
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     if (!endpointStr || !out)
     {
         return OC_STACK_INVALID_PARAM;
@@ -386,7 +387,7 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
     VERIFY_GT((size_t)OC_MAX_TPS_STR_SIZE, tpsCharsToWrite);
     ret = memcpy(tps, origin, tpsCharsToWrite);
     VERIFY_NON_NULL(ret);
-    OIC_LOG_V(INFO, TAG, "parsed tps is:%s", tps);
+    OIC_LOG_V(INFO, TAG, "\ttps: %s", tps);
 
     // check tps type
     if (strcmp(tps, COAP_STR) == 0)
@@ -474,7 +475,7 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
         VERIFY_GT((size_t)OC_MAX_ADDR_STR_SIZE, addrCharsToWrite);
         ret = memcpy(addr, tokPos, addrCharsToWrite);
         VERIFY_NON_NULL(ret);
-        OIC_LOG_V(INFO, TAG, "parsed addr is:%s", addr);
+        OIC_LOG_V(INFO, TAG, "\taddr: %s", addr);
 
         tmp = strrchr(origin, OC_ENDPOINT_ADDR_TOKEN);
         VERIFY_NON_NULL(tmp);
@@ -485,7 +486,7 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
         long port = strtol(tokPos, &end, 10);
         VERIFY_GT_ZERO(port);
         VERIFY_LT_OR_EQ(port, UINT16_MAX);
-        OIC_LOG_V(INFO, TAG, "parsed port is:%s", tokPos);
+        OIC_LOG_V(INFO, TAG, "\tport: %s", tokPos);
 
         out->tps = tps;
         out->addr = addr;
@@ -498,6 +499,7 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
     tmp = NULL;
     ret = NULL;
 
+    /* OIC_LOG_V(DEBUG, TAG, "%s EXIT OK", __func__); */
     return OC_STACK_OK;
 exit:
     OICFree(origin);
@@ -510,6 +512,7 @@ exit:
     tps = NULL;
     addr = NULL;
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT ERROR", __func__);
     return OC_STACK_ERROR;
 }
 

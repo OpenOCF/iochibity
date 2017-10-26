@@ -745,7 +745,7 @@ static bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *ep, ui
 static void CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
                                      const void *data, size_t dataLen)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     VERIFY_NON_NULL_VOID(sep, TAG, "remoteEndpoint");
     VERIFY_NON_NULL_VOID(data, TAG, "data");
     OIC_TRACE_BEGIN(%s:CAReceivedPacketCallback, TAG);
@@ -885,22 +885,24 @@ void CAHandleRequestResponseCallbacks()
         return;
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s >>>>>>>>>>>>>>>> ENTRY >>>>>>>>>>>>>>>>", __func__);
     // get endpoint
     CAData_t *td = (CAData_t *) item->msg;
+    OIC_LOG_V(DEBUG, TAG, "Message type: %d", td->dataType);
 
     if (td->requestInfo && g_requestHandler)
     {
-        OIC_LOG_V(DEBUG, TAG, "request callback : %d", td->requestInfo->info.numOptions);
+        OIC_LOG_V(DEBUG, TAG, "REQUEST callback option count: %d", td->requestInfo->info.numOptions);
         g_requestHandler(td->remoteEndpoint, td->requestInfo);
     }
     else if (td->responseInfo && g_responseHandler)
     {
-        OIC_LOG_V(DEBUG, TAG, "response callback : %d", td->responseInfo->info.numOptions);
+        OIC_LOG_V(DEBUG, TAG, "RESPONSE callback option count: %d", td->responseInfo->info.numOptions);
         g_responseHandler(td->remoteEndpoint, td->responseInfo);
     }
     else if (td->errorInfo && g_errorHandler)
     {
-        OIC_LOG_V(DEBUG, TAG, "error callback error: %d", td->errorInfo->result);
+        OIC_LOG_V(DEBUG, TAG, "ERROR callback error: %d", td->errorInfo->result);
         g_errorHandler(td->remoteEndpoint, td->errorInfo);
     }
 
@@ -909,6 +911,7 @@ void CAHandleRequestResponseCallbacks()
 
 #endif // SINGLE_HANDLE
 #endif // SINGLE_THREAD
+    OIC_LOG_V(DEBUG, TAG, "%s <<<<<<<<<<<<<<<< EXIT <<<<<<<<<<<<<<<<", __func__);
 }
 
 static CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
@@ -1398,13 +1401,12 @@ static void CASendErrorInfo(const CAEndpoint_t *endpoint, const CAInfo_t *info, 
 #ifndef ARDUINO
 static void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu)
 {
-    OIC_LOG(DEBUG, TAG, "CALogPDUInfo");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", __func__);
 
     VERIFY_NON_NULL_VOID(data, TAG, "data");
     VERIFY_NON_NULL_VOID(pdu, TAG, "pdu");
     OIC_TRACE_BEGIN(%s:CALogPDUInfo, TAG);
 
-    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
     if(SEND_TYPE_MULTICAST == data->type)
     {
         OIC_LOG(DEBUG, ANALYZER_TAG, "Is Multicast = true");
@@ -1509,11 +1511,11 @@ static void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu)
                    pdu->length - payloadLen);
     OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Header size = [%lu]", pdu->length - payloadLen);
 
-    OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload");
-    //OIC_LOG_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, payloadLen);
     OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload Size = [%lu]", payloadLen);
-    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
+    OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload:");
+    OIC_LOG_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, payloadLen);
     OIC_TRACE_END();
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", __func__);
 }
 #else
 static void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu)

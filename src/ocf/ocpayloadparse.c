@@ -56,6 +56,7 @@ static OCStackResult OCParseSecurityPayload(OCPayload **outPayload, const uint8_
 OCStackResult OCParsePayload(OCPayload **outPayload, OCPayloadFormat payloadFormat,
         OCPayloadType payloadType, const uint8_t *payload, size_t payloadSize)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCStackResult result = OC_STACK_MALFORMED_RESPONSE;
     CborError err;
 
@@ -97,7 +98,8 @@ OCStackResult OCParsePayload(OCPayload **outPayload, OCPayloadFormat payloadForm
     OIC_LOG_V(INFO, TAG, "Finished parse payload, result is %d", result);
 
 exit:
-    return result;
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+   return result;
 }
 
 static OCStackResult OCParseSecurityPayload(OCPayload** outPayload, const uint8_t *payload,
@@ -181,6 +183,7 @@ exit:
 static OCStackResult OCParseDiscoveryPayloadCbor(OCPayload **outPayload,
         CborValue *rootValue)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     OCResourcePayload *resource = NULL;
     OCDiscoveryPayload *temp = NULL;
@@ -399,26 +402,31 @@ static OCStackResult OCParseDiscoveryPayloadCbor(OCPayload **outPayload,
     }
 
     *outPayload = (OCPayload *)rootPayload;
-    OIC_LOG_PAYLOAD(DEBUG, *outPayload);
+    /* OIC_LOG_PAYLOAD(DEBUG, *outPayload); */
 
-    return OC_STACK_OK;
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT OK", __func__);
+   return OC_STACK_OK;
 
 exit:
     OCDiscoveryResourceDestroy(resource);
     OCDiscoveryPayloadDestroy(rootPayload);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT BAD", __func__);
     return ret;
 }
 
 static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *resourceMap)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCResourcePayload *resource = NULL;
     CborError err = CborNoError;
     size_t len = 0;
     OCEndpointPayload *endpoint = NULL;
 
     // Iterate through the array processing each resource which shows up as a map.
+    int i = 0;
     while (cbor_value_is_map(resourceMap))
     {
+	/* OIC_LOG_V(DEBUG, TAG, "Resource %d", i); */
         int bitmap;
 
         resource = (OCResourcePayload *)OICCalloc(1, sizeof(OCResourcePayload));
@@ -432,6 +440,7 @@ static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *reso
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to find href tag");
         err = cbor_value_dup_text_string(&curVal, &(resource->uri), &len, NULL);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to find href value");
+	OIC_LOG_V(DEBUG, TAG, "Resource %d uri: %s", i, resource->uri);
 
         // Rel - Not a mandatory field
         err = cbor_value_map_find_value(resourceMap, OC_RSRVD_REL, &curVal);
@@ -492,9 +501,10 @@ static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *reso
             CborValue epMap;
             err = cbor_value_enter_container(&epsMap, &epMap);
             VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to enter endpoint map");
-
+	    int j = 0;
             while (cbor_value_is_map(&epMap))
             {
+		OIC_LOG_V(DEBUG, TAG, "Resource %d, endpoint %d", i, j);
                 endpoint = NULL;
                 int pri = 0;
                 char *endpointStr = NULL;
@@ -543,6 +553,7 @@ static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *reso
 
                 err = cbor_value_advance(&epMap);
                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to advance endpoint map");
+		j++;
             }
 
             err = cbor_value_leave_container(&epsMap, &epMap);
@@ -593,6 +604,7 @@ static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *reso
                 OCDiscoveryPayloadAddNewResource(*temp, resource);
             }
         }
+	i++;
     }
 exit:
     if (CborNoError != err)
@@ -600,12 +612,13 @@ exit:
         OCDiscoveryResourceDestroy(resource);
         OCDiscoveryEndpointDestroy(endpoint);
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return err;
 }
 
 static OCStackResult OCParseDiscoveryPayloadVndOcfCbor(OCPayload **outPayload, CborValue *rootValue)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENRTY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     OCDiscoveryPayload *rootPayload = NULL;
     CborError err = CborNoError;
@@ -678,7 +691,7 @@ static OCStackResult OCParseDiscoveryPayloadVndOcfCbor(OCPayload **outPayload, C
     }
 
     *outPayload = (OCPayload *)rootPayload;
-    OIC_LOG_PAYLOAD(DEBUG, *outPayload);
+    /* OIC_LOG_PAYLOAD(DEBUG, *outPayload); */
 
     return OC_STACK_OK;
 

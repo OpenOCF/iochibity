@@ -1094,10 +1094,10 @@ OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload, uint32
 
 void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
 {
-    OIC_LOG(DEBUG, TAG, "Enter OCHandleResponse");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OIC_TRACE_MARK(%s:OCHandleResponse:%s, TAG, responseInfo->info.resourceUri);
 
-    OCStackApplicationResult appFeedback;
+    OCStackApplicationResult appFeedback = OC_STACK_DELETE_TRANSACTION;
 
 #ifdef WITH_PRESENCE
     if(responseInfo->info.resourceUri &&
@@ -1162,6 +1162,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
             if (CA_NOT_ACCEPTABLE == responseInfo->result &&
                 CA_FORMAT_UNDEFINED == responseInfo->info.payloadFormat)
             {
+		OIC_LOG(DEBUG, TAG, "Response result NOT_ACCEPTABLE, format UNDEFINED");
                 CARequestInfo_t requestInfo = { .method = CA_GET };
 
                 switch (cbNode->method)
@@ -1253,6 +1254,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                 OCStackResult result = OCSendRequest(endPoint, &requestInfo);
                 if (OC_STACK_OK == result)
                 {
+		    OIC_LOG_V(DEBUG, TAG, "Resending request with Accept=CBOR (OIC)");
                     return;
                 }
                 else
@@ -3461,6 +3463,7 @@ OCPersistentStorage *OC_CALL OCGetPersistentStorageHandler()
 
 OCStackResult OC_CALL OCProcess()
 {
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     if (stackState == OC_STACK_UNINITIALIZED)
     {
         OIC_LOG(ERROR, TAG, "OCProcess has failed. ocstack is not initialized");

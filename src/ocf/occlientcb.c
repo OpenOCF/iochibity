@@ -353,6 +353,8 @@ void DeleteClientCBList()
 ClientCB* GetClientCBUsingToken(const CAToken_t token,
                                 const uint8_t tokenLength)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
     if (!token || tokenLength > CA_MAX_TOKEN_LEN || tokenLength <= 0)
     {
         OIC_LOG(ERROR, TAG, "Invalid parameter");

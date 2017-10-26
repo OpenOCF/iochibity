@@ -1339,7 +1339,7 @@ static void sendData(CASocketFd_t fd, const CAEndpoint_t *endpoint,
     }
 
 #ifdef TB_LOG
-    const char *secure = (endpoint->flags & CA_SECURE) ? "secure " : "";
+    const char *secure = (endpoint->flags & CA_SECURE) ? "secure " : "insecure ";
 #endif
 #if !defined(_WIN32)
     ssize_t len = sendto(fd, data, dlen, 0, (struct sockaddr *)&sock, socklen);
