@@ -47,6 +47,11 @@ extern "C"
 #include <inttypes.h>
 #endif
 
+/* printf function type */
+typedef int (*log_writer_t)(const char * format, ...);
+log_writer_t write_log;
+void oocf_log_hook_stdout(log_writer_t hook);
+
 /* For printing __LINE__ */
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -138,7 +143,7 @@ void OCSetLogLevel(LogLevel level, bool hidePrivateLogEntries);
  * @param[in]    buffer     pointer to buffer of bytes
  * @param[in]    bufferSize max number of byte in buffer
  */
-void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t bufferSize);
+    void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buffer, size_t bufferSize);
 
 #define OCLog(level,tag,mes) LOG_(LOG_ID_MAIN, ((level) & (~OC_LOG_PRIVATE_DATA)), (tag), mes)
 #define OCLogv(level,tag,fmt,args...) LOG_(LOG_ID_MAIN, ((level) & (~OC_LOG_PRIVATE_DATA)),tag,fmt,##args)
@@ -194,7 +199,7 @@ void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t buffe
      * @param buffer     - pointer to buffer of bytes
      * @param bufferSize - max number of byte in buffer
      */
-    void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t bufferSize);
+    void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buffer, size_t bufferSize);
 #else  // For arduino platforms
     /**
      * Initialize the serial logger for Arduino
@@ -222,7 +227,7 @@ void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t buffe
      * @param buffer     - pointer to buffer of bytes
      * @param bufferSize - max number of byte in buffer
      */
-    void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t bufferSize);
+    void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buffer, size_t bufferSize);
 
     /**
      * Output a variable argument list log string with the specified priority level.
@@ -298,13 +303,13 @@ void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t buffe
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize) \
     do { \
         IF_OC_PRINT_LOG_LEVEL((level)) \
-            OCLogBuffer((level), (tag), (buffer), (bufferSize)); \
+            OCLogBuffer((level), __FILE__, __LINE__, (buffer), (bufferSize)); \
     } while(0)
 
 #define OIC_LOG_CA_BUFFER(level, tag, buffer, bufferSize, isHeader) \
     do { \
         IF_OC_PRINT_LOG_LEVEL((level)) \
-            OCPrintCALogBuffer((level), (tag), (buffer), (bufferSize), (isHeader)); \
+            OCPrintCALogBuffer((level), __FILE__, __LINE__, (buffer), (bufferSize), (isHeader)); \
     } while(0)
 
 #define OIC_LOG_CONFIG(ctx)    OCLogConfig((ctx))

@@ -853,10 +853,14 @@ static void CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
     coap_delete_pdu(pdu);
 
 exit:
+    flockfile(stdout);		/* FIXME: macroize this to make it conditional on TB_LOG */
     OIC_LOG(DEBUG, TAG, "received pdu data :");
     OIC_LOG_BUFFER(DEBUG, TAG,  data, dataLen);
 
     OIC_TRACE_END();
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
+    fflush(stdout);
+    funlockfile(stdout);
 }
 
 void CAHandleRequestResponseCallbacks()

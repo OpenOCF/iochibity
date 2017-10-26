@@ -52,6 +52,14 @@
 #include "string.h"
 #include "logger_types.h"
 
+void oocf_log_hook_stdout(log_writer_t hook)
+{
+    /* printf("hooking logger\n");
+     * hook("Hello %s\n", "world"); */
+    write_log = hook;
+    /* write_log("writing %s\n", "log"); */
+}
+
 // log level
 static int g_level = DEBUG;
 // private log messages are not logged unless they have been explicitly enabled by calling OCSetLogLevel().
@@ -148,6 +156,8 @@ static bool AdjustAndVerifyLogLevel(int* level)
 
 #ifndef ARDUINO
 
+void OCLogHexBuffer(int level, const char * tag, int line_nbr, const char * format, ...);
+
 /**
  * Output the contents of the specified buffer (in hex) with the specified priority level.
  *
@@ -156,12 +166,14 @@ static bool AdjustAndVerifyLogLevel(int* level)
  * @param buffer     - pointer to buffer of bytes
  * @param bufferSize - max number of byte in buffer
  */
-void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t bufferSize)
+void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buffer, size_t bufferSize)
 {
     if (!buffer || !tag || (bufferSize == 0))
     {
         return;
     }
+
+    flockfile(stdout);
 
     if (!AdjustAndVerifyLogLevel(&level))
     {
@@ -172,25 +184,30 @@ void OCLogBuffer(int level, const char* tag, const uint8_t* buffer, size_t buffe
     // that this is a variable-sized object.
     char lineBuffer[LINE_BUFFER_SIZE];
     memset(lineBuffer, 0, sizeof lineBuffer);
-    size_t lineIndex = 0;
+    size_t byte_index = 0;	/* 2 hex chars plus 1 space per byte */
+    size_t line_index = 0;
     for (size_t i = 0; i < bufferSize; i++)
     {
         // Format the buffer data into a line
-        snprintf(&lineBuffer[lineIndex * 3], sizeof(lineBuffer) - lineIndex * 3, "%02X ", buffer[i]);
-        lineIndex++;
+        snprintf(&lineBuffer[byte_index * 3], sizeof(lineBuffer) - byte_index * 3, "%02X ", buffer[i]);
+        byte_index++;
         // Output 16 values per line
         if (((i + 1) % 16) == 0)
         {
-            OCLogv(level, tag, 0, "%s", lineBuffer);
+            OCLogHexBuffer(level, "\t", line_index * 16, "%s", lineBuffer);
             memset(lineBuffer, 0, sizeof lineBuffer);
-            lineIndex = 0;
+            byte_index = 0;
+	    line_index++;
         }
     }
     // Output last values in the line, if any
     if (bufferSize % 16)
     {
-        OCLogv(level, tag, 0, "%s", lineBuffer);
+        OCLogHexBuffer(level, "\t", line_index * 16, "%s", lineBuffer);
     }
+    fflush(stdout);
+    funlockfile(stdout);
+
 }
 
 void OCSetLogLevel(LogLevel level, bool hidePrivateLogEntries)
@@ -240,7 +257,29 @@ void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
     }
 
     char tagbuffer[MAX_LOG_V_BUFFER_SIZE] = {0};
-    sprintf(tagbuffer, "%s:%d ", tag, line_nbr);
+    sprintf(tagbuffer, "%s:%d", tag, line_nbr);
+
+    char buffer[MAX_LOG_V_BUFFER_SIZE] = {0};
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer) - 1, format, args);
+    va_end(args);
+    OCLog(level, tagbuffer, buffer);
+}
+
+void OCLogHexBuffer(int level, const char * tag, int line_nbr, const char * format, ...)
+{
+    if (!format || !tag) {
+        return;
+    }
+
+    if (!AdjustAndVerifyLogLevel(&level))
+    {
+        return;
+    }
+
+    char tagbuffer[MAX_LOG_V_BUFFER_SIZE] = {0};
+    sprintf(tagbuffer, "0x%04X", line_nbr);
 
     char buffer[MAX_LOG_V_BUFFER_SIZE] = {0};
     va_list args;
@@ -330,7 +369,8 @@ void OCLog(int level, const char * tag, const char * logStr)
    #endif
 	   /* GAR FIXME: make a separate Log fn for timestamped msgs */
            /* printf("%02d:%02d.%03d %s: %s: %s\n", min, sec, ms, LEVEL[level], tag, logStr); */
-           printf("%s %s %s\n", LEVEL[level], tag, logStr);
+           /* printf("%s %s %s\n", LEVEL[level], tag, logStr); */
+           write_log("%s %s %s\n", LEVEL[level], tag, logStr);
        }
    #endif
    }
