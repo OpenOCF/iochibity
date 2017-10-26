@@ -497,6 +497,17 @@ typedef enum			/* FIXME: align with CAResult_t */
     OC_STACK_INVALID_OBSERVE_PARAM,
     OC_STACK_NO_MEMORY,
     OC_STACK_COMM_ERROR,            /** 504*/
+    /* FIXME: support CAResult_t codes */
+    OC_STACK_CA_SERVER_STARTED_ALREADY,
+    OC_STACK_CA_SERVER_NOT_STARTED,
+    /* CA_DESTINATION_NOT_REACHABLE,   /\**< Destination is not reachable *\/
+     * CA_SOCKET_OPERATION_FAILED,     /\**< Socket operation failed *\/
+     * CA_SEND_FAILED,                 /\**< Send request failed *\/
+     * CA_RECEIVE_FAILED,              /\**< Receive failed *\/
+     * CA_DESTINATION_DISCONNECTED,    /\**< Destination is disconnected *\/
+     * CA_STATUS_NOT_INITIALIZED,      /\**< Not Initialized*\/
+     * CA_DTLS_AUTHENTICATION_FAILURE, /\**< Decryption error in DTLS *\/
+     * CA_HANDLE_ERROR_OTHER_MODULE,   /\**< Error happens but it should be handled in other module *\/ */
     OC_STACK_TIMEOUT,
     OC_STACK_ADAPTER_NOT_ENABLED,
     OC_STACK_NOTIMPL,

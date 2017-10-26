@@ -5211,15 +5211,18 @@ OCStackResult CAResultToOCResult(CAResult_t caResult) /* GAR: support all CAResu
         case CA_ADAPTER_NOT_ENABLED:
             return OC_STACK_ADAPTER_NOT_ENABLED;
         case CA_SERVER_STARTED_ALREADY:
+            /* return OC_STACK_CA_SERVER_STARTED_ALREADY; */
             return OC_STACK_OK;
         case CA_SERVER_NOT_STARTED:
-            return OC_STACK_ERROR;
+            /* return OC_STACK_ERROR; */
+            return OC_STACK_CA_SERVER_NOT_STARTED;
         case CA_DESTINATION_NOT_REACHABLE:
             return OC_STACK_COMM_ERROR;
         case CA_SOCKET_OPERATION_FAILED:
             return OC_STACK_COMM_ERROR;
         case CA_SEND_FAILED:
             return OC_STACK_COMM_ERROR;
+            /* return OC_STACK_CA_SEND_FAILED; */
         case CA_RECEIVE_FAILED:
             return OC_STACK_COMM_ERROR;
         case CA_MEMORY_ALLOC_FAILED:
