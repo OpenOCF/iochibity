@@ -18,10 +18,12 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "iotivity_config.h"
-#include "ocstack.h"
+#include "openocf.h"
+
+#include "gui.h"
 
 #include <limits.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,14 +35,23 @@
 #include <windows.h>
 #endif
 
-#include "logger.h"
-#include "cacommon.h"
-#include "cJSON.h"
-#include "coap/pdu.h"
-
 #define TAG ("occlient")
 
+pthread_t ocf_thread;
 int gQuitFlag = 0;
+
+FILE *logfd;
+
+int log_msg(const char *format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    // printf(format, args);
+    /* fprintf(logfd, "goodbye %s\n", "world"); */
+    vfprintf(logfd, format, args);
+    va_end(args);
+}
 
 /* SIGINT handler: set gQuitFlag to 1 for graceful termination */
 void handleSigInt(int signum) {
@@ -172,7 +183,7 @@ cJSON* links_to_json(OCClientResponse *msg) /* FIXME: split header logging from 
 
 cJSON* discovery_to_json(OCClientResponse *msg)
 {
-    OCDiscoveryPayload *payload = msg->payload;
+    OCDiscoveryPayload *payload = (OCDiscoveryPayload*)msg->payload;
     cJSON *root;
     cJSON *links;
     root = cJSON_CreateObject();
@@ -547,38 +558,31 @@ void log_discovery_message(OCClientResponse *clientResponse)
     OIC_LOG_V(INFO, TAG, "Header Options (%d):", clientResponse->numRcvdVendorSpecificHeaderOptions);
     log_header_options(clientResponse);
 
-    OCDiscoveryPayload* discovery_payload = (OCDiscoveryPayload*) clientResponse->payload;
     cJSON *discovery_json = discovery_to_json(clientResponse);
     char* rendered = cJSON_Print(discovery_json);
     OIC_LOG(INFO, TAG, "Discovery payload:\n");
-    printf("%s\n", rendered);
+    log_msg("%s\n", rendered);
     free(rendered);
 }
 
-// This is a function called back when a device is discovered
-OCStackApplicationResult application_discovery_cb(void* ctx,
+
+// This is a function called back when resources are discovered
+OCStackApplicationResult resource_discovery_cb(void* ctx,
 						  OCDoHandle h,
 						  OCClientResponse * clientResponse) {
-    OIC_LOG(INFO, TAG, "Entering applicationDiscoverCB (Application Layer CB)");
+    OIC_LOG(INFO, TAG, "Entering resource_discovery_cb (Application Layer CB)");
 
     log_discovery_message(clientResponse);
 
     //return OC_STACK_DELETE_TRANSACTION;
-    return OC_STACK_KEEP_TRANSACTION;
+    return OC_STACK_KEEP_TRANSACTION | OC_STACK_KEEP_RESPONSE;
 }
 
-int main() {
-    OIC_LOG_V(INFO, TAG, "Starting occlient");
-
-    /* Initialize OCStack*/
-    if (OCInit(NULL, 0, OC_CLIENT) != OC_STACK_OK) {
-        OIC_LOG(ERROR, TAG, "OCStack init error");
-        return 0;
-    }
-
+void discover_resources ()
+{
     /* Start a discovery query*/
     OCCallbackData cbData;
-    cbData.cb = application_discovery_cb;
+    cbData.cb = resource_discovery_cb;
     cbData.context = NULL;
     cbData.cd = NULL;
     char szQueryUri[MAX_QUERY_LENGTH] = { 0 };
@@ -592,8 +596,33 @@ int main() {
 		     OC_LOW_QOS,
 		     &cbData, NULL, 0) != OC_STACK_OK) {
         OIC_LOG(ERROR, TAG, "OCStack resource error");
+    }
+}
+
+void list_resource_uris ()
+{
+    char **ruris = oocf_cosp_list_resource_uris();
+    if (NULL == ruris)
+	OIC_LOG(DEBUG, TAG, "oocf_cosp_list_resource_uris fail");
+
+    /* OIC_LOG_V(DEBUG, TAG, "ruris: %p", ruris); */
+
+    while (*ruris) {
+    	OIC_LOG_V(DEBUG, TAG, "Resource URI %s", *ruris);
+    	ruris++;
+    }
+}
+
+void* ocf_routine(void *arg) {
+    OIC_LOG_V(INFO, TAG, "Starting occlient");
+
+    /* Initialize OCStack*/
+    if (OCInit(NULL, 0, OC_CLIENT) != OC_STACK_OK) {
+        OIC_LOG(ERROR, TAG, "OCStack init error");
         return 0;
     }
+
+
 
     // Break from loop with Ctrl+C
     OIC_LOG(INFO, TAG, "Entering occlient main loop...");
@@ -604,7 +633,7 @@ int main() {
             OIC_LOG(ERROR, TAG, "OCStack process error");
             return 0;
         }
-
+	fflush(logfd);		/* FIXME */
         sleep(1);
     }
 
@@ -615,4 +644,21 @@ int main() {
     }
 
     return 0;
+}
+
+int main ()
+{
+    logfd = fopen("openocf.log", "w");
+    /* fprintf(logfd, "hello %s\n", "world"); */
+    oocf_log_hook_stdout(log_msg);
+    fflush(logfd);
+
+    int err = pthread_create(&(ocf_thread), NULL, &ocf_routine, NULL);
+    if (err != 0)
+	log_msg("\nCan't create OCF thread :[%s]", strerror(err));
+    else
+	log_msg("\n OCF thread created successfully\n");
+
+    run_gui();
+    fclose(logfd);
 }
