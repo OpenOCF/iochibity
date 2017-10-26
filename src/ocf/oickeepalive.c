@@ -431,8 +431,8 @@ OCStackResult SendKeepAliveResponse(OCServerRequest *request,
 OCEntityHandlerResult HandleKeepAliveGETRequest(OCServerRequest *request,
                                                 const OCResource *resource)
 {
-    VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
-    VERIFY_NON_NULL(resource, FATAL, OC_STACK_INVALID_PARAM);
+    VERIFY_NON_NULL(request, FATAL, OC_EH_ERROR);
+    VERIFY_NON_NULL(resource, FATAL, OC_EH_ERROR);
 
     OIC_LOG_V(DEBUG, TAG, "Find Ping resource [%s]", request->resourceUrl);
 
@@ -450,8 +450,8 @@ OCEntityHandlerResult HandleKeepAliveGETRequest(OCServerRequest *request,
 OCEntityHandlerResult HandleKeepAlivePOSTRequest(OCServerRequest *request,
                                                  const OCResource *resource)
 {
-    VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
-    VERIFY_NON_NULL(resource, FATAL, OC_STACK_INVALID_PARAM);
+    VERIFY_NON_NULL(request, FATAL, OC_EH_ERROR);
+    VERIFY_NON_NULL(resource, FATAL, OC_EH_ERROR);
 
     // Get entry from KeepAlive table.
     CAEndpoint_t endpoint = { .adapter = CA_DEFAULT_ADAPTER };
