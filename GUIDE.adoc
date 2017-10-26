@@ -1,4 +1,4 @@
-= implementation guide
+<= implementation guide
 
 code conventions, acronyms, etc.
 
@@ -6,6 +6,11 @@ code conventions, acronyms, etc.
 * TPS Transport Protocol Suite, e.g. coap, coaps, coap+tcp,
   coaps+tcp, etc. Enum OCTpsSchemeFlags in octypes.h
 
+* Transport Protocol URI: e.g. coaps://<authority>/<path> ... etc
+
+* OCF URI:  ocf://<device id>/<path> ... (OCF 1.3 s. 6.2.1)
+
+* DOS: Device Onboarding State (//src/provisioning)
 
 === code organization
 
@@ -67,6 +72,14 @@ if (foo) {
 } else {
 }
 ----
+
+=== error handling
+
+Callbacks return OCStackApplicationResult, which indicates whether the
+callback should be retained or deleted. The default is deletion, which
+is 0; keep is 1. Thus a non-zero result does not indicate an
+error. Errors are indicated using errno. This means that errno must be
+set to 0 before invoking a callback.
 
 === Resource APIs
 
