@@ -197,8 +197,8 @@ static void CARegisterCallback(CAConnectivityHandler_t handler)
  * @return
  *     CAResult_t
  */
-static CAResult_t AddNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
-        CAConnectionStateChangedCB connCB)
+CAResult_t AddNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
+					  CAConnectionStateChangedCB connCB)
 {
     OIC_LOG(DEBUG, TAG, "Add NetworkStateChanged Callback");
 
@@ -251,8 +251,8 @@ static CAResult_t AddNetworkStateChangedCallback(CAAdapterStateChangedCB adapter
  * @return
  *     CAResult_t
  */
-static CAResult_t RemoveNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
-        CAConnectionStateChangedCB connCB)
+CAResult_t RemoveNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
+					     CAConnectionStateChangedCB connCB)
 {
     OIC_LOG(DEBUG, TAG, "Remove NetworkStateChanged Callback");
 
@@ -486,32 +486,6 @@ void CASetPacketReceivedCallback(CANetworkPacketReceivedCallback callback)
     OIC_LOG(DEBUG, TAG, "Set Receiver handle callback");
 
     g_networkPacketReceivedCallback = callback;
-}
-
-CAResult_t CASetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
-                                        CAConnectionStateChangedCB connCB)
-{
-    OIC_LOG(DEBUG, TAG, "Set network monitoring callback");
-    CAResult_t res = AddNetworkStateChangedCallback(adapterCB, connCB);
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG(ERROR, TAG, "AddNetworkStateChangedCallback has failed");
-        return CA_STATUS_FAILED;
-    }
-    return CA_STATUS_OK;
-}
-
-CAResult_t CAUnsetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
-        CAConnectionStateChangedCB connCB)
-{
-    OIC_LOG(DEBUG, TAG, "Unset network monitoring callback");
-    CAResult_t res = RemoveNetworkStateChangedCallback(adapterCB, connCB);
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG(ERROR, TAG, "RemoveNetworkStateChangedCallback has failed");
-        return CA_STATUS_FAILED;
-    }
-    return CA_STATUS_OK;
 }
 
 void CASetErrorHandleCallback(CAErrorHandleCallback errorCallback)

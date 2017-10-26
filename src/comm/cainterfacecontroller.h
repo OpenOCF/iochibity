@@ -75,26 +75,6 @@ void CASetPacketReceivedCallback(CANetworkPacketReceivedCallback callback);
 void CASetErrorHandleCallback(CAErrorHandleCallback errorCallback);
 
 /**
- * Set the network status changed callback for CAUtil.
- * @param[in]   adapterCB       CAUtil callback to receive adapter status changes.
- * @param[in]   connCB          CAUtil callback to receive connection status changes.
- *
- * @return  ::CA_STATUS_OK or ERROR CODES (::CAResult_t error codes in cacommon.h).
- */
-CAResult_t CASetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
-                                        CAConnectionStateChangedCB connCB);
-
-/**
- * Unset the network status changed callback for CAUtil.
- * @param[in]   adapterCB       CAUtil callback to receive adapter status changes.
- * @param[in]   connCB          CAUtil callback to receive connection status changes.
- *
- * @return  ::CA_STATUS_OK or ERROR CODES (::CAResult_t error codes in cacommon.h).
- */
-CAResult_t CAUnsetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
-                                          CAConnectionStateChangedCB connCB);
-
-/**
  * Starting different connectivity adapters based on the network selection.
  * @param[in]   transportType    interested network for starting.
  * @return  ::CA_STATUS_OK or ERROR CODES (::CAResult_t error codes in cacommon.h).
