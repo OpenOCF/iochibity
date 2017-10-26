@@ -82,8 +82,8 @@ cc_library(
 
 cc_library(
     name = "comm",
-    alwayslink = True,
-    linkstatic = True,
+    # alwayslink = True,
+    linkstatic = 1,
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
              "-Isrc/comm",
@@ -118,6 +118,7 @@ cc_library(
     deps = ["//src:config",
             "//src/logger",
     	    "//src/portability",
+            "//src/comm/api",
             "//src/comm/adapter_util",
 	    "//src/comm/common",
 	    "//src/comm:ifcontrol",
@@ -128,7 +129,7 @@ cc_library(
             "//third_party/mbedtls",
             "//third_party/mbedtls:mbedtls-crypto",
             "//third_party/mbedtls:mbedtls-x509"],
-    #hdrs = ["include/casecurityinterface.h"],
+    # hdrs = ["casecurityinterface.h"],
     srcs = [
         # "adapter_util/caadapterutils.c",
         # "adapter_util/cafragmentation.c", # transport ALL or BLE
@@ -160,8 +161,5 @@ cc_library(
 
 	"caretransmission.c",
 	"caretransmission.h"],
-    visibility = ["//src/comm/network:__pkg__",
-                  "//src/ocf:__pkg__",
-                  "//src/sec:__pkg__",
-                  "//src/provisioning:__pkg__"]
+    visibility = ["//visibility:public"]
 )

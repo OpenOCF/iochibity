@@ -24,9 +24,9 @@ cc_library(
     hdrs  = ["cacommon.h",
              "cainterface.h",
              "casecurityinterface.h"],
-    srcs  = ["cacommon.h",
-             "cainterface.h",
-             "casecurityinterface.h"],
+    # srcs  = ["cacommon.h",
+    #          "cainterface.h",
+    #          "casecurityinterface.h"],
     visibility = ["//visibility:public"]
 )
 

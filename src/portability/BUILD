@@ -97,7 +97,6 @@ cc_library(
 cc_library(
     name = "portability",
     alwayslink = True,
-#    linkopts = ["/WHOLEARCHIVE:libvcruntime.lib"],
     linkstatic = 1,
     deps = ["//src:config",
             "//src/logger"]

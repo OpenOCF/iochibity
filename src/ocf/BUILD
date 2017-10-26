@@ -10,6 +10,19 @@ config_setting(
     name = "msys",
     values = { "cpu": "x64_windows_msys" }
 )
+config_setting(
+    name = "client_role",
+    values = { "define": "role=client" }
+)
+config_setting(
+    name = "server-role",
+    values = { "define": "role=server" }
+)
+config_setting(
+    name = "client-server-role",
+    values = { "define": "role=clientserver" }
+)
+
 
 cc_library(
     name = "ocf",
@@ -17,14 +30,53 @@ cc_library(
                     ":msvc": [],
                     ":msys": [],
                     "//conditions:default": ["-std=c11"]}),
-    #linkstatic = 1,
-    deps = ["//src/ocf:interface",
+    linkstatic = 1,
+    alwayslink = True,
+    deps = ["//src:config",
+            "//src/ocf:interface",
             "//src/ocf:hdrs",
             "//src/ocf:impl",
+            "//src/logger",
             "//src/comm",
+            "//src/comm/api",
+            "//src/portability",
             "//src/provisioning",
-            "//src/sec"
-    ],
+            "//src/sec"]
+    + select({":client_role": ["//src/ocf:client"],
+              "//conditions:default": []}),
+    hdrs = ["openocf.h"],
+    visibility = ["//visibility:public"]
+)
+
+cc_library(
+    name = "client",
+    linkstatic = 1,
+    # alwayslink = True,
+    copts = ["-Isrc",
+             "-Iexternal/openocf/src",
+             "-Isrc/comm/api",
+             "-Iexternal/openocf/src/comm/api",
+             "-Isrc/ocf",
+             "-Iexternal/openocf/src/ocf",
+             "-Isrc/ocf/client",
+             "-Iexternal/openocf/src/ocf/client",
+             "-Isrc/logger",
+             "-Iexternal/openocf/src/logger",
+             "-Isrc/portability",
+             "-Iexternal/openocf/src/portability"]
+    + select({":windows": [],
+              ":msvc": [],
+              ":msys": [],
+              "//conditions:default": ["-std=c11"]}),
+    deps = ["//src:config",
+            "//src/comm/api",
+            "//src/ocf:hdrs",
+            "//src/logger",
+            "//src/portability"],
+    hdrs = ["client/co_service_provider.h",
+            "client/co_service_provider_mgr.h"],
+    srcs = ["client/co_service_provider.c",
+            "client/co_service_provider_mgr.c"],
     visibility = ["//visibility:public"]
 )
 
@@ -124,6 +176,8 @@ cc_library(
              "-Iexternal/openocf/src/comm/util",
              "-Isrc/logger",
              "-Iexternal/openocf/src/logger",
+             "-Isrc/ocf/client",
+             "-Iexternal/openocf/src/ocf/client",
              "-Isrc/ocf",
              "-Iexternal/openocf/src/ocf",
              "-Isrc/sec",
@@ -147,16 +201,17 @@ cc_library(
             "//src/comm/interface",
             "//src/logger",
             "//src/portability",
-            # "//src/sec/aclroles",
-            # "//src/sec:doxm",
-            # "//src/sec:interface",
             "//src/sec",
             "//src/util",       # c_common
             "//third_party/tinycbor",
             "//third_party/cjson",
             "//src/routing",
             "//src/comm",       # connectivity
-            "//src/provisioning"],
+            "//src/provisioning"]
+    + select({":client_role": ["//src/ocf:client"],
+              "//conditions:default": []}),
+    hdrs = select({":client_role": ["client/co_service_provider_mgr.h"],
+              "//conditions:default": []}),
     srcs = ["occlientcb.c",
             "occollection.c",
             "occollection.h",
@@ -191,6 +246,8 @@ cc_library(
 
             "payload_logging.h"
     ]
+    + select({":client_role": ["client/co_service_provider_mgr.c"],
+              "//conditions:default": []}),
 
     # if windows, and UWP_APP = 1:
     # "ocsqlite3helper.c"
