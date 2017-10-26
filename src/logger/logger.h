@@ -49,7 +49,6 @@ extern "C"
 
 /* printf function type */
 typedef int (*log_writer_t)(const char * format, ...);
-log_writer_t write_log;
 void oocf_log_hook_stdout(log_writer_t hook);
 
 /* For printing __LINE__ */
