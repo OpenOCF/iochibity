@@ -1,13 +1,15 @@
 ## package CDK (Curses Dev Kit) for examples
 new_local_repository(
     name = "sys_cdk",
-    path = "/usr/local/",
+    path = "/usr/local",
     build_file_content =
 """
 cc_library(
    name = "cdk-pkg",
-   hdrs = glob(["include/cdk/*.h"]) + ["include/cdk.h"],
-   linkopts = ["-lncurses"],
+   hdrs = ["include/cdk.h"] + glob(["include/cdk/*.h"]),
+   linkstatic = 1,
+   linkopts = ["-lncurses",
+   "-L/lib64"], # linux
    srcs = ["lib/libcdk.a"],
    visibility = ["//visibility:public"],
 )

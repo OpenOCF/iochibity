@@ -3,9 +3,6 @@
 /* COAP Debugging */
 #undef COAP_DEBUG_C
 
-/* Debugging */
-#undef DEBUG
-
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
 
