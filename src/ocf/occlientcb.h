@@ -52,7 +52,7 @@ typedef struct resourcetype_t OCResourceType;
  */
 typedef struct ClientCB {
     /** callback method defined in application address space. */
-    OCClientResponseHandler callBack;
+    OCClientResponseHandler callBack; /* Always set errno = 0 before calling!  */
 
     /** callback context data. */
     void * context;

@@ -1191,6 +1191,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                         requestInfo.method = CA_GET;
                         break;
                     default:
+			/* GAR: OC_REST_NOMETHOD???  */
                         goto proceed;
                 }
 
@@ -1288,9 +1289,10 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                     cbNode->handle, response);
             DeleteClientCB(cbNode);
             OICFree(response);
-        }
+        } /* result != EMPTY, ENTITY_INCOMPLETE, RETRANSMIT_TIMEOUT, NOT_ACCEPTABLE */
         else if ((cbNode->method == OC_REST_OBSERVE || cbNode->method == OC_REST_OBSERVE_ALL)
                 && (responseInfo->result == CA_CONTENT) && !obsHeaderOpt)
+	    /* response = CONTENT means HTTP 200 "OK" but only used in response to GET requests. */
         {
             OCClientResponse *response = NULL;
 
@@ -1319,7 +1321,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                              response);
             DeleteClientCB(cbNode);
             OICFree(response);
-        }
+        } /* OBSERVE or OBSERVE_ALL */
         else
         {
             OIC_LOG(INFO, TAG, "This is a regular response, A client call back is found");
@@ -5176,7 +5178,7 @@ CAResult_t OCSelectNetwork(OCTransportAdapter transportType)
     return retResult;
 }
 
-OCStackResult CAResultToOCResult(CAResult_t caResult)
+OCStackResult CAResultToOCResult(CAResult_t caResult) /* GAR: support all CAResult_t codes */
 {
     switch (caResult)
     {

@@ -188,10 +188,10 @@
 #define OC_RSRVD_POLICY                 "p"
 
 /** To represent bitmap.*/
-#define OC_RSRVD_BITMAP                 "bm"
+#define OC_RSRVD_BITMAP                 "bm" /* policy bitmask */
 
 /** For security.*/
-#define OC_RSRVD_SECURE                 "sec"
+#define OC_RSRVD_SECURE                 "sec" /* policy security */
 
 /** Security Database persistent store name(json). */
 #define OC_SECURITY_DB_FILE_NAME        "oic_svr_db.json"
@@ -200,7 +200,7 @@
 #define OC_SECURITY_DB_DAT_FILE_NAME    "oic_svr_db.dat"
 
 /** Port. */
-#define OC_RSRVD_HOSTING_PORT           "port"
+#define OC_RSRVD_HOSTING_PORT           "port" /* policy security port */
 
 /** TCP Port. */
 #define OC_RSRVD_TCP_PORT               "x.org.iotivity.tcp"
@@ -242,7 +242,7 @@
 /** Platform MFG Date.*/
 #define OC_RSRVD_MFG_DATE               "mndt"
 
-/** Platform versio.n */
+/** Platform version */
 #define OC_RSRVD_PLATFORM_VERSION       "mnpv"
 
 /** Platform Operating system version. */
@@ -273,7 +273,7 @@
 /** Device Name.*/
 #define OC_RSRVD_DEVICE_NAME             "n"
 
-/** Device specification version.*/
+/** OCF spec version implemented by device.*/
 #define OC_RSRVD_SPEC_VERSION            "icv"
 
 /** Device data model.*/

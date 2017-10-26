@@ -474,7 +474,7 @@ typedef enum
 /**
  * Declares Stack Results & Errors.
  */
-typedef enum
+typedef enum			/* FIXME: align with CAResult_t */
 {
     /** Success status code - START HERE.*/
     OC_STACK_OK = 0,                /** 203, 205*/
@@ -965,44 +965,53 @@ typedef struct OCEndpointPayload
 } OCEndpointPayload;
 
 // used inside a discovery payload
+/* GAR: a Link? OCF 1.3.0 section 7.8.2. Compare OCResource in ocresource.h */
 typedef struct OCResourcePayload
 {
-    char* uri;
+    char* uri;			/* property "href" (mandatory) */
     char* rel;
-    char* anchor;
-    OCStringLL* types;
-    OCStringLL* interfaces;
-    uint8_t bitmap;
+    char* anchor; /* NB: for OIC 1.1, a transfer URI; for OCF 1.0, a OCF URI */
+    OCStringLL* types;		/* property "rt" (mandatory) */
+    OCStringLL* interfaces;	/* property "if" (mandatory) */
+    uint8_t bitmap;		/* visibility policy bitmask: discoverable, observable */
+    /* OCF 1.0: "sec" and "port" ... used only in a response payload
+       when the request does not include an
+       OCF-Accept-Content-Format-Version option, i.e. OIC 1.1
+       clients. OCF 1.0 uses eps to convey info about encrypted
+       endpoints */
     bool secure;
     uint16_t port;
 #ifdef TCP_ADAPTER
     uint16_t tcpPort;
 #endif
     struct OCResourcePayload* next;
-    OCEndpointPayload* eps;
+    OCEndpointPayload* eps;  /* OCF 1.0 */
+    /* GAR: what about the remaining optional parameters, e.g. di, type (mt?), etc. */
 } OCResourcePayload;
 
-typedef struct OCDiscoveryPayload
+typedef struct OCDiscoveryPayload /* GAR: implicitly uri is "oic/res" (set in OCClientResponse parent) */
 {
     OCPayload base;
 
     /** Device Id */
-    char *sid;
+    char *sid;			/* property "di" (OIC 1.1 only mandatory) */
 
     /** Name */
-    char *name;
+    char *name;			/* propery "n" (optional) */
 
     /** Resource Type */
-    OCStringLL *type;
+    OCStringLL *type;		/* propery "rt" (mandatory) */
 
     /** Interface */
-    OCStringLL *iface;
+    OCStringLL *iface;		/* property "if" (mandatory) */
 
     /** This structure holds the old /oic/res response. */
-    OCResourcePayload *resources;
+    OCResourcePayload *resources; /* property "links" (mandatory) */
 
     /** Holding address of the next DiscoveryPayload. */
     struct OCDiscoveryPayload *next;
+
+    /* GAR: property "mpro" (messaging protocol support)? */
 
 } OCDiscoveryPayload;
 
@@ -1082,7 +1091,7 @@ typedef struct
     OCConnectivityType connType;
 
     /** the security identity of the remote server.*/
-    OCIdentity identity;
+    OCIdentity identity;	/* GAR: not used for discovery responses? */
 
     /** the is the result of our stack, OCStackResult should contain coap/other error codes.*/
     OCStackResult result;
