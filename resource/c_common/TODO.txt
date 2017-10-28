@@ -1,2 +1,0 @@
-
-Random:  use OpenBSD's arc4random.c (http://blog.kibotu.net/android/c-arc4random-on-android-windows-and-linux)
