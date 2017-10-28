@@ -175,6 +175,11 @@ typedef enum
 
   // from comm/api/cacommon.h, also used in ocf/ocobserve.h etc.:
 /**
+ * Max header options data length.
+ */
+#define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024
+
+/**
  * Header options structure to be filled.
  *
  * This structure is used to hold header information.

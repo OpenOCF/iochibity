@@ -69,7 +69,7 @@ extern "C"
  */
 #define CA_MACADDR_SIZE 18
 
-#define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024
+/* GAR moved to src/transport_types.h: #define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024 */
 
 /**
 * Max token length.
