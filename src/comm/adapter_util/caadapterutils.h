@@ -67,18 +67,6 @@ extern "C"
  */
 #define IPV4_ADDR_ONE_OCTECT_LEN 4
 
-#ifdef SINGLE_THREAD
-/**
- * Network Interface Information. Only needed for Arduino.
- */
-typedef struct
-{
-    char ipAddress[CA_IPADDR_SIZE];             /**< Address of the interface. **/
-    char subnetMask[CA_IPADDR_SIZE];            /**< Maintains interface subnetmask. **/
-    char interfaceName[CA_INTERFACE_NAME_SIZE]; /**< Interface name. **/
-} CANetInfo_t;
-#endif
-
 /**
  * unicast and multicast server information.
  */
@@ -92,17 +80,6 @@ typedef struct
     char interfaceName[CA_INTERFACE_NAME_SIZE]; /**< Interface Name. **/
     char subNetMask[CA_IPADDR_SIZE];            /**< Subnet Mask. **/
 } CAServerInfo_t;
-
-/**
- * To parse the IP address and port from "ipaddress:port".
- * @param[in]   ipAddrStr       IP address to be parsed.
- * @param[out]  ipAddr          Parsed IP address.
- * @param[in]   ipAddr          Buffer length for parsed IP address.
- * @param[out]  port            Parsed Port number.
- * @return ::CA_STATUS_OK or Appropriate error code.
- */
-CAResult_t CAParseIPv4AddressInternal(const char *ipAddrStr, uint8_t *ipAddr,
-                                      size_t ipAddrLen, uint16_t *port);
 
 /**
  * Check if two ip address belong to same subnet.
@@ -199,7 +176,6 @@ void CAClearNetInterfaceInfoList(u_arraylist_t *infoList);
  */
 void CAClearServerInfoList(u_arraylist_t *serverInfoList);
 
-#ifndef WITH_ARDUINO
 /**
  * Convert address from binary to string.
  * @param[in]    sockAddr     IP address info.
@@ -219,7 +195,6 @@ CAResult_t CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_
  * @return CA_STATUS_OK on success, or an appropriate error code on failure.
  */
 CAResult_t CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_storage *sockaddr);
-#endif /* WITH_ARDUINO */
 
 #ifdef __JAVA__
 /**
@@ -294,7 +269,6 @@ jobject *CANativeGetActivity();
 #endif
 #endif
 
-#ifndef WITH_ARDUINO
 /**
  * print send state in the adapter.
  * @param[in]   adapter          transport adapter type.
@@ -328,7 +302,6 @@ void CALogAdapterTypeInfo(CATransportAdapter_t adapter);
  * @return      ::CA_STATUS_OK or Appropriate error code.
  */
 CAResult_t CAGetIpv6AddrScopeInternal(const char *addr, CATransportFlags_t *scopeLevel);
-#endif
 
 #ifdef __cplusplus
 } /* extern "C" */
