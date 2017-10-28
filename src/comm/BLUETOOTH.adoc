@@ -1,0 +1,91 @@
+= bluetooth
+
+=== bt le
+
+"GATT and Bluetooth LE profiles together enable the creation of
+applications in a standardized way without using IP." (https://tools.ietf.org/html/rfc7668#page-4)
+
+"IPv6 over Bluetooth LE requires an adapted 6LoWPAN layer that runs on top of Bluetooth LE L2CAP." https://tools.ietf.org/html/rfc7668#page-4
+
+6LoWPan/BLE stack:
+
+   +---------+  +----------------------------+
+          |  IPSS   |  |       UDP/TCP/other        |
+          +---------+  +----------------------------+
+          |  GATT   |  |            IPv6            |
+          +---------+  +----------------------------+
+          |  ATT    |  |  6LoWPAN for Bluetooth LE  |
+          +---------+--+----------------------------+
+          |          Bluetooth LE L2CAP             |
+     -  - +-----------------------------------------+- - - HCI
+          |        Bluetooth LE Link Layer          |
+          +-----------------------------------------+
+          |         Bluetooth LE Physical           |
+          +-----------------------------------------+
+
+(https://tools.ietf.org/html/rfc7668#page-8)
+
+L2CAP - Logical Link Control and Adaptation Protocol - OSI session
+layer, TCP application layer? That puts 6LoWPAN for BLE in the
+application layer, which does not sound right. L2CAP looks more like a
+network layer. But really the BLE stack does not map cleanly to the
+OSI/TCP stack.
+
+In the TCP stack, 6LoWPAN is an adaptation layer between the IP and
+MAC layers. Which would make BLE L2CAP correspond to the MAC layer
+rather than the OSI session layer. It corresponds to the 802.15.4 MAC
+layer.
+
+6LN = 6LoWPAN Node (https://tools.ietf.org/html/rfc6775)
+
+6LBR = 6LoWPAN Border Router (https://tools.ietf.org/html/rfc6775)
+
+
+=== bt classic
+
+EDR - Enhanced Data Rate = BT 2
+BR/EDR - Basic Rate/Enhanced Data Rate
+
+RFCOMM - Radio Frequency Communications
+
+"RFCOMM is a simple transport protocol, which provides emulation of RS232 serial ports over the L2CAP protocol.The protocol is based on the ETSI standard TS 07.10. Only a subset of the TS 07.10 standard is used and an RFCOMM - specific extension is added, in the form of a mandatory credit based flow control scheme." (https://www.amd.e-technik.uni-rostock.de/ma/gol/lectures/wirlec/bluetooth_info/rfcomm.html)
+
+
+"Bluetooth uses RFCOMM as cable replacement protocol. RFCOMM functions as virtual serial port and does transport of binary digital data bits. It basically emulates RS232 specifications over bluetooth physical layer." (http://www.rfwireless-world.com/Tutorials/Bluetooth-protocol-stack.html)
+
+BT protocol stack v. OSI model: http://opensourceforu.com/2015/06/linux-without-wires-the-basics-of-bluetooth/
+
+SDP - Service Discovery Protocol
+
+SDP and RFCOMM are at the OSI presentation layer
+
+L2CAP - Logical Link Control and Adaptation Protocol - OSI session layer, TCP application layer
+
+HCI - Host Controller Interface.  OSI transport layer
+
+
+** CT_ADAPTER_GATT_BTLE : GATT is a profile; the transport is ATT (Attribute Protocol)
+
+** CT_ADAPTER_RFCOMM_BTEDR : RFCOMM is a transport protocol, BTEDR (really BREDR) names the entire protocol stack (BT 2 and above).  Can you use EDR without RFCOMM? Yes, using SDP or L2CAP (?)
+
+
+=== ble implementations
+
+We have stacks
+
+* Bluez (Linux)
+
+* Bluedroid (android) See https://medium.com/@zpcat/bluedroid-stack-in-android-564c58b451f4
+
+* OS X has an integrated BT stack
+
+* Windows - Microsoft's, plus some third-party stacks
+
+And we have Java APIs:
+
+* Android Bluetooth API  (over bluedroid)
+* TinyB  (over bluez)
+* Bluecove  (Java JSR-82)  (GPL; moribund?)
+  ** bluecove linux, bluecove-bluez, etc
+
+
