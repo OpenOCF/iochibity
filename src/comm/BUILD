@@ -24,7 +24,7 @@ cc_library(
     hdrs = ["caipadapter.h",
     "caipnwmonitor.h",
     "caqueueingthread.h"],
-    visibility = ["//src/comm/network:__pkg__"]
+    visibility = ["//visibility:public"]
 )
 
 cc_library(
