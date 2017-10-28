@@ -141,14 +141,16 @@ cc_library(
     linkstatic = True,
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
-             "-Isrc/comm/adapter_util",
-             "-Iexternal/openocf/src/comm/adapter_util",
+             "-Isrc/comm/transport/util",
+             "-Iexternal/openocf/src/comm/transport/util",
              "-Isrc/comm/api",
              "-Iexternal/openocf/src/comm/api",
              "-Isrc/comm/common",
              "-Iexternal/openocf/src/comm/common",
              "-Isrc/comm/interface",
              "-Iexternal/openocf/src/comm/interface",
+             "-Isrc/comm/security",
+             "-Iexternal/openocf/src/comm/security",
              "-Isrc/logger",
              "-Iexternal/openocf/src/logger",
              "-Isrc/ocf",
@@ -169,10 +171,11 @@ cc_library(
               ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
-            "//src/comm/adapter_util",
+            "//src/comm/transport/util",
             "//src/comm/api",
             "//src/comm/common",
             "//src/comm/interface",
+            "//src/comm/security",
             "//src/logger",
             "//src/ocf:hdrs",
             "//src/portability",
@@ -337,18 +340,6 @@ cc_library(
 
 	    "psinterface.c",
 	    "psinterface.h",
-
-	    # "pstatresource.c",
-	    # "pstatresource.h",
-
-	    # "resourcemanager.c",
-	    # "resourcemanager.h",
-
-            # "rolesresource.c",   # SECURED=1
-            # "rolesresource.h",   # SECURED=1
-
-            # "secureresourcemanager.c",
-            # "secureresourcemanager.h",
 
             "security_internals.h"],
 

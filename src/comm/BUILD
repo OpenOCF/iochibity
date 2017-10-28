@@ -21,9 +21,7 @@ cc_library(
               ":msvc": [],
               ":msys": [],
               "//conditions:default": ["-std=c11"]}),
-    hdrs = ["caipadapter.h",
-    "caipnwmonitor.h",
-    "caqueueingthread.h"],
+    hdrs = ["caqueueingthread.h"],
     visibility = ["//visibility:public"]
 )
 
@@ -35,14 +33,16 @@ cc_library(
              "-Iexternal/openocf/src",
              "-Isrc/comm",
              "-Iexternal/openocf/src/comm",
-             "-Isrc/comm/adapter_util",
-             "-Iexternal/openocf/src/comm/adapter_util",
+             "-Isrc/comm/transport/util",
+             "-Iexternal/openocf/src/comm/transport/util",
              "-Isrc/comm/api",
              "-Iexternal/openocf/src/comm/api",
              "-Isrc/comm/common",
              "-Iexternal/openocf/src/comm/common",
              "-Isrc/comm/interface",
              "-Iexternal/openocf/src/comm/interface",
+             "-Isrc/comm/transport/udpip",
+             "-Iexternal/openocf/src/comm/transport/udpip",
              "-Isrc/comm/util",
              "-Iexternal/openocf/src/comm/util",
              "-Isrc/logger",
@@ -58,11 +58,12 @@ cc_library(
               ":msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
-            "//src/comm/adapter_util",
+            "//src/comm/transport/util",
             "//src/comm/api",
             "//src/comm/common",
             "//src/comm:hdrs",
             "//src/comm/interface",
+            "//src/comm/transport/udpip", # FIXME: select for this
             "//src/comm/util",
             "//src/logger",
             "//src/portability",
@@ -70,14 +71,12 @@ cc_library(
             "//third_party/coap"],
     srcs  = ["cainterfacecontroller.c",
 	     "cainterfacecontroller.h",
-             # "caipnwmonitor.h",
              "caedradapter.h",
              "caleadapter.h",
              "canfcadapter.h",
-             # "caipadapter.h",
              # "caqueueingthread.h",
              "canetworkconfigurator.h"],
-    visibility = ["//src/comm/network:__pkg__"]
+    # visibility = ["//src/comm/transport:__subpackages__"]
 )
 
 cc_library(
@@ -90,18 +89,21 @@ cc_library(
              "-Iexternal/openocf/src/comm",
              "-Isrc/comm/api",
              "-Iexternal/openocf/src/comm/api",
-             "-Isrc/comm/adapter_util",
-             "-Iexternal/openocf/src/comm/adapter_util",
+             "-Isrc/comm/transport/util",
+             "-Iexternal/openocf/src/comm/transport/util",
 	     "-Isrc/comm/common",
              "-Iexternal/openocf/src/comm/common",
 	     "-Isrc/comm/include",
              "-Iexternal/openocf/src/comm/include",
 	     "-Isrc/comm/interface",
              "-Iexternal/openocf/src/comm/interface",
+	     "-Isrc/comm/security",
+             "-Iexternal/openocf/src/comm/security",
              "-Isrc/comm/util",
              "-Iexternal/openocf/src/comm/util",
-             "-Isrc/comm/network",
-             "-Iexternal/openocf/src/comm/network",
+             # FIXME: select for this:
+             "-Isrc/comm/transport/udpip",
+             "-Iexternal/openocf/src/comm/transport/udpip",
              "-Isrc/logger",
              "-Iexternal/openocf/src/logger",
              "-Isrc/portability",
@@ -119,47 +121,33 @@ cc_library(
             "//src/logger",
     	    "//src/portability",
             "//src/comm/api",
-            "//src/comm/adapter_util",
+            "//src/comm/transport/util",
 	    "//src/comm/common",
 	    "//src/comm:ifcontrol",
 	    "//src/comm/interface",
-	    # "//src/comm:shared",
-            "//src/comm/network:ip",
+	    "//src/comm/security",
+            # FIXME: select for this
+            "//src/comm/transport/udpip",
             "//third_party/coap",
             "//third_party/mbedtls",
             "//third_party/mbedtls:mbedtls-crypto",
             "//third_party/mbedtls:mbedtls-x509"],
     # hdrs = ["casecurityinterface.h"],
-    srcs = [
-        # "adapter_util/caadapterutils.c",
-        # "adapter_util/cafragmentation.c", # transport ALL or BLE
-        # "adapter_util/ca_adapter_net_ssl.c", # not tizen or no tls path
-
-        "cablockwisetransfer.c", # transport ALL or IP
-        "cablockwisetransfer.h",
-
-        "caconnectivitymanager.c",
-
-
-        "caedradapter.h",
-        "caleadapter.h",
-        "canfcadapter.h",
-        "caraadapter.h",
-        "caipadapter.h",
-
-	"camessagehandler.c",
-	"camessagehandler.h",
-
-
-	"canetworkconfigurator.c",
-        "canetworkconfigurator.h",
-
-	"caprotocolmessage.c",
-
-        "caqueueingthread.c",
-        "caqueueingthread.h",
-
-	"caretransmission.c",
-	"caretransmission.h"],
+    srcs = ["cablockwisetransfer.c", # transport ALL or IP
+            "cablockwisetransfer.h",
+            "caconnectivitymanager.c",
+            "caedradapter.h",
+            "caleadapter.h",
+            "canfcadapter.h",
+            "caraadapter.h",
+	    "camessagehandler.c",
+	    "camessagehandler.h",
+	    "canetworkconfigurator.c",
+            "canetworkconfigurator.h",
+	    "caprotocolmessage.c",
+            "caqueueingthread.c",
+            "caqueueingthread.h",
+	    "caretransmission.c",
+	    "caretransmission.h"],
     visibility = ["//visibility:public"]
 )
