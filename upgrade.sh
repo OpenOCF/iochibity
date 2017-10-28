@@ -14,6 +14,23 @@ mkdir -pv src/comm/api
 mkdir -pv src/comm/common
 mkdir -pv src/comm/adapter_util
 mkdir -pv src/comm/interface
+mkdir -pv src/comm/security
+mkdir -pv src/comm/transport/ble
+mkdir -pv src/comm/transport/bredr
+mkdir -pv src/comm/transport/nfc
+mkdir -pv src/comm/transport/tcpip
+mkdir -pv src/comm/transport/udpip
+mkdir -vp src/comm/transport/udpip/android
+mkdir -vp src/comm/transport/udpip/linux
+# mkdir -vp src/comm/transport/udpip/tizen TODO
+mkdir -vp src/comm/transport/udpip/windows
+
+# OMIT cp -v $COMM/src/ip_adapter/arduino
+
+mkdir -pv src/comm/transport/util
+mkdir -pv src/comm/transport/xmpp
+mkdir -vp src/comm/transport/udpip/linux
+
 mkdir -pv src/comm/util
 
 cp -v $COMM/api/cacommon.h           src/comm/api
@@ -36,54 +53,53 @@ cp -v $COMM/common/src/uarraylist.c                  src/util
 cp -v $COMM/common/src/ulinklist.c                   src/comm/common
 cp -v $COMM/common/src/uqueue.c                      src/comm/common
 
-cp -v $COMM/inc/ca_adapter_net_ssl.h                 src/comm/adapter_util
+cp -v $COMM/inc/ca_adapter_net_ssl.h                 src/comm/security
 cp -v $COMM/inc/caadapterinterface.h                 src/comm/interface
 cp -v $COMM/inc/caadapternetdtls.h                   src/comm
-cp -v $COMM/inc/caadapterutils.h                     src/comm/adapter_util
+cp -v $COMM/inc/caadapterutils.h                     src/comm/transport/util
 cp -v $COMM/inc/cablockwisetransfer.h                src/comm
-cp -v $COMM/inc/caedradapter.h                       src/comm
-cp -v $COMM/inc/caedradapter_singlethread.h          src/comm
-cp -v $COMM/inc/caedrinterface.h                     src/comm
-cp -v $COMM/inc/cafragmentation.h                    src/comm/adapter_util
-cp -v $COMM/inc/cagattservice.h                      src/comm
+cp -v $COMM/inc/caedradapter.h                       src/comm/transport/bredr
+cp -v $COMM/inc/caedradapter_singlethread.h          src/comm/transport/bredr
+cp -v $COMM/inc/caedrinterface.h                     src/comm/transport/bredr
+cp -v $COMM/inc/cafragmentation.h                    src/comm/transport/ble
+cp -v $COMM/inc/cagattservice.h                      src/comm/transport/ble
 cp -v $COMM/inc/cainterfacecontroller.h              src/comm
 cp -v $COMM/inc/cainterfacecontroller_singlethread.h src/comm
-cp -v $COMM/inc/caipadapter.h                        src/comm
-cp -v $COMM/inc/caipinterface.h                      src/comm/interface
-cp -v $COMM/inc/caipnwmonitor.h                      src/comm
-cp -v $COMM/inc/caleadapter.h                        src/comm
-cp -v $COMM/inc/caleinterface.h                      src/comm
+cp -v $COMM/inc/caipadapter.h                        src/comm/transport/udpip
+cp -v $COMM/inc/caipinterface.h                      src/comm/transport/udpip
+cp -v $COMM/inc/caipnwmonitor.h                      src/comm/transport/udpip
+cp -v $COMM/inc/caleadapter.h                        src/comm/transport/ble
+cp -v $COMM/inc/caleinterface.h                      src/comm/transport/ble
 cp -v $COMM/inc/camessagehandler.h                   src/comm
 cp -v $COMM/inc/canetworkconfigurator.h              src/comm
-cp -v $COMM/inc/canfcadapter.h                       src/comm
-cp -v $COMM/inc/canfcinterface.h                     src/comm
+cp -v $COMM/inc/canfcadapter.h                       src/comm/transport/nfc
+cp -v $COMM/inc/canfcinterface.h                     src/comm/transport/nfc
 cp -v $COMM/inc/caprotocolmessage.h                  src/comm/interface
 cp -v $COMM/inc/caqueueingthread.h                   src/comm
-cp -v $COMM/inc/caraadapter.h                        src/comm
+cp -v $COMM/inc/caraadapter.h                        src/comm/transport/xmpp
 cp -v $COMM/inc/caretransmission.h                   src/comm
-cp -v $COMM/inc/catcpadapter.h                       src/comm
-cp -v $COMM/inc/catcpinterface.h                     src/comm
+cp -v $COMM/inc/catcpadapter.h                       src/comm/transport/tcpip
+cp -v $COMM/inc/catcpinterface.h                     src/comm/transport/tcpip
 
 # OMIT $COMM/lib  - moved to third_party
 
-cp -v $COMM/src/adapter_util/ca_adapter_net_ssl.c src/comm/adapter_util
-cp -v $COMM/src/adapter_util/caadapterutils.c src/comm/adapter_util
-cp -v $COMM/src/adapter_util/cafragmentation.c src/comm/adapter_util
+cp -v $COMM/src/adapter_util/ca_adapter_net_ssl.c src/comm/security
+cp -v $COMM/src/adapter_util/caadapterutils.c src/comm/transport/util
+cp -v $COMM/src/adapter_util/cafragmentation.c src/comm/transport/ble
 
-# cp -v $COMM/src/bt_edr_adapter/android TODO
+cp -v $COMM/src/bt_edr_adapter/android src/comm/transport/bredr
 
 mkdir -pv src/comm/bt_edr_adapter
-cp -v $COMM/src/bt_edr_adapter/caedradapter.c src/comm/bt_edr_adapter
+cp -v $COMM/src/bt_edr_adapter/caedradapter.c src/comm/transport/bredr
 
 # cp -v $COMM/src/bt_edr_adapter/tizen TODO
 
-mkdir -pv src/comm/bt_le_adapter/linux
-# cp -v $COMM/src/bt_le_adapter/android TODO
+cp -v $COMM/src/bt_le_adapter/android/* src/comm/transport/ble/ble/android
 # OMIT $COMM/src/src/bt_le_adapter/arduino
-cp -v $COMM/src/bt_le_adapter/caleadapter.c src/comm/bt_le_adapter
-cp -v $COMM/src/bt_le_adapter/linux/* src/comm/bt_le_adapter/linux
+cp -v $COMM/src/bt_le_adapter/caleadapter.c src/comm/transport/ble
+cp -v $COMM/src/bt_le_adapter/linux/* src/comm/transport/ble/linux
 rm -v src/comm/bt_le_adapter/linux/SConscript
-# cp -v $COMM/src/bt_le_adapter/tizen TODO
+#TODO cp -v $COMM/src/bt_le_adapter/tizen src/comm/transport/ble/tizen
 
 cp -v $COMM/src/cablockwisetransfer.c src/comm
 cp -v $COMM/src/caconnectivitymanager.c src/comm
@@ -94,29 +110,21 @@ cp -v $COMM/src/caprotocolmessage.c src/comm
 cp -v $COMM/src/caqueueingthread.c src/comm
 cp -v $COMM/src/caretransmission.c src/comm
 
-mkdir -vp src/comm/network/ip_adapter/linux
-# mkdir -vp src/comm/network/ip_adapter/tizen TODO
-mkdir -vp src/comm/network/ip_adapter/windows
-# cp -v $COMM/src/ip_adapter/android TODO
-# OMMIT cp -v $COMM/src/ip_adapter/arduino
-cp -v $COMM/src/ip_adapter/caipadapter.c src/comm/network/ip_adapter
-cp -v $COMM/src/ip_adapter/caipserver.c src/comm/network/ip_adapter
-cp -v $COMM/src/ip_adapter/linux/caipnwmonitor.c  src/comm/network/ip_adapter/linux
+cp -v $COMM/src/ip_adapter/android src/comm/transport/udpip/android
+cp -v $COMM/src/ip_adapter/caipadapter.c src/comm/transport/udpip
+cp -v $COMM/src/ip_adapter/caipserver.c src/comm/transport/udpip
+cp -v $COMM/src/ip_adapter/linux/caipnwmonitor.c  src/comm/transport/udpip/linux
 # cp -v $COMM/src/ip_adapter/tizen/caipnwmonitor.c  src/comm/network/ip_adapter/tizen TODO
-cp -v $COMM/src/ip_adapter/windows/caipnwmonitor.c  src/comm/network/ip_adapter/windows
+cp -v $COMM/src/ip_adapter/windows/caipnwmonitor.c  src/comm/transport/udpip/windows
 
-mkdir -vp src/comm/nfc_adapter
-mkdir -vp src/comm/ra_adapter
-mkdir -vp src/comm/tcp_adapter
+cp -v $COMM/src/nfc_adapter/android src/comm/nfc_adapter/android/* src/comm/transport/nfc/android
+cp -v $COMM/src/nfc_adapter/canfcadapter.c src/comm/transport/nfc
 
-# cp -v $COMM/src/nfc_adapter/android src/comm/nfc_adapter/android TODO
-cp -v $COMM/src/nfc_adapter/canfcadapter.c src/comm/nfc_adapter
-
-cp -v $COMM/src/ra_adapter/caraadapter.c src/comm/ra_adapter
+cp -v $COMM/src/ra_adapter/caraadapter.c src/comm/transport/xmpp
 
 # OMIT cp -v $COMM/src/tcp_adapter/arduino
-cp -v $COMM/src/tcp_adapter/catcpadapter.c src/comm/tcp_adapter
-cp -v $COMM/src/tcp_adapter/catcpserver.c src/comm/tcp_adapter
+cp -v $COMM/src/tcp_adapter/catcpadapter.c src/comm/transport/tcpip
+cp -v $COMM/src/tcp_adapter/catcpserver.c src/comm/transport/tcpip
 
 mkdir -pv test/connectivity
 cp -vr $COMM/test/* test/connectivity
