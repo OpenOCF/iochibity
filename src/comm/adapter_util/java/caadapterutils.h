@@ -30,6 +30,9 @@
 #include "iotivity_config.h"
 
 #include <stdbool.h>
+#ifdef __JAVA__
+#include <jni.h>
+#endif
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -192,6 +195,79 @@ CAResult_t CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_
  * @return CA_STATUS_OK on success, or an appropriate error code on failure.
  */
 CAResult_t CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_storage *sockaddr);
+
+#ifdef __JAVA__
+/**
+ * To set jvm object.
+ * This must be called by the Android API before CA Initialization.
+ * @param[in]   jvm         jvm object.
+ */
+void CANativeJNISetJavaVM(JavaVM *jvm);
+
+/**
+ * To get JVM object.
+ * Called from adapters to get JavaVM object.
+ * @return  JVM object.
+ */
+JavaVM *CANativeJNIGetJavaVM();
+
+/**
+ * get method ID for method Name and class
+ * @param[in]   env              JNI interface pointer.
+ * @param[in]   className        android class.
+ * @param[in]   methodName       android method name.
+ * @param[in]   methodFormat     method type of methodName.
+ * @return      jmethodID        iD of the method.
+ */
+jmethodID CAGetJNIMethodID(JNIEnv *env, const char* className,
+                           const char* methodName,
+                           const char* methodFormat);
+
+/**
+ * check JNI exception occurrence
+ * @param[in]   env              JNI interface pointer.
+ * @return  true(occurrence) or false(no occurrence).
+ */
+bool CACheckJNIException(JNIEnv *env);
+
+/**
+ * To Delete other Global References
+ * Called during CATerminate to remove global references
+ */
+void CADeleteGlobalReferences();
+
+#ifdef __ANDROID__
+/**
+ * To set context of JNI Application.
+ * This must be called by the Android API before CA Initialization.
+ * @param[in]   env         JNI interface pointer.
+ * @param[in]   context     context object.
+ */
+void CANativeJNISetContext(JNIEnv *env, jobject context);
+
+/**
+ * To set Activity to JNI.
+ * This must be called by the Android API before CA Initialization.
+ * @param[in]   env         JNI Environment pointer.
+ * @param[in]   activity    Activity object.
+ */
+void CANativeSetActivity(JNIEnv *env, jobject activity);
+
+/**
+ * To get context.
+ * Called by adapters to get Application context.
+ * @return  context object.
+ */
+jobject CANativeJNIGetContext();
+
+/**
+ * To get Activity.
+ * Called from adapters to get Activity.
+ * @return  Activity object.
+ */
+jobject *CANativeGetActivity();
+#endif
+#endif
 
 /**
  * print send state in the adapter.

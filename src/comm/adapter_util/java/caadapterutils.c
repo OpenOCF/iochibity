@@ -51,6 +51,25 @@
 #include <in6addr.h>
 #endif
 
+#ifdef __JAVA__
+#include <jni.h>
+
+/**
+ * @var g_jvm
+ * @brief pointer to store JavaVM
+ */
+static JavaVM *g_jvm = NULL;
+
+#ifdef __ANDROID__
+/**
+ * @var gContext
+ * @brief pointer to store context for android callback interface
+ */
+static jobject g_Context = NULL;
+static jobject g_Activity = NULL;
+#endif
+#endif
+
 #define CA_ADAPTER_UTILS_TAG "OIC_CA_ADAP_UTILS"
 
 CAResult_t CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_t sockAddrLen,
@@ -144,6 +163,130 @@ CAResult_t CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_
     freeaddrinfo(addrs);
     return CA_STATUS_OK;
 }
+
+#ifdef __JAVA__
+void CANativeJNISetJavaVM(JavaVM *jvm)
+{
+    OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "CANativeJNISetJavaVM");
+    g_jvm = jvm;
+}
+
+JavaVM *CANativeJNIGetJavaVM()
+{
+    return g_jvm;
+}
+
+void CADeleteGlobalReferences(JNIEnv *env)
+{
+    OC_UNUSED(env);
+#ifdef __ANDROID__
+    if (g_Context)
+    {
+        (*env)->DeleteGlobalRef(env, g_Context);
+        g_Context = NULL;
+    }
+
+    if (g_Activity)
+    {
+        (*env)->DeleteGlobalRef(env, g_Activity);
+        g_Activity = NULL;
+    }
+#endif //__ANDROID__
+}
+
+jmethodID CAGetJNIMethodID(JNIEnv *env, const char* className,
+                           const char* methodName,
+                           const char* methodFormat)
+{
+    VERIFY_NON_NULL_RET(env, CA_ADAPTER_UTILS_TAG, "env", NULL);
+    VERIFY_NON_NULL_RET(className, CA_ADAPTER_UTILS_TAG, "className", NULL);
+    VERIFY_NON_NULL_RET(methodName, CA_ADAPTER_UTILS_TAG, "methodName", NULL);
+    VERIFY_NON_NULL_RET(methodFormat, CA_ADAPTER_UTILS_TAG, "methodFormat", NULL);
+
+    jclass jni_cid = (*env)->FindClass(env, className);
+    if (!jni_cid)
+    {
+        OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG, "jni_cid [%s] is null", className);
+        CACheckJNIException(env);
+        return NULL;
+    }
+
+    jmethodID jni_midID = (*env)->GetMethodID(env, jni_cid, methodName, methodFormat);
+    if (!jni_midID)
+    {
+        OIC_LOG_V(ERROR, CA_ADAPTER_UTILS_TAG, "jni_midID [%s] is null", methodName);
+        CACheckJNIException(env);
+        (*env)->DeleteLocalRef(env, jni_cid);
+        return NULL;
+    }
+
+    (*env)->DeleteLocalRef(env, jni_cid);
+    return jni_midID;
+}
+
+bool CACheckJNIException(JNIEnv *env)
+{
+    if ((*env)->ExceptionCheck(env))
+    {
+        (*env)->ExceptionDescribe(env);
+        (*env)->ExceptionClear(env);
+        return true;
+    }
+    return false;
+}
+
+#ifdef __ANDROID__
+void CANativeJNISetContext(JNIEnv *env, jobject context)
+{
+    OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "CANativeJNISetContext");
+
+    if (!context)
+    {
+        OIC_LOG(ERROR, CA_ADAPTER_UTILS_TAG, "context is null");
+        return;
+    }
+
+    if (!g_Context)
+    {
+        g_Context = (*env)->NewGlobalRef(env, context);
+    }
+    else
+    {
+        OIC_LOG(INFO, CA_ADAPTER_UTILS_TAG, "context is already set");
+    }
+}
+
+jobject CANativeJNIGetContext()
+{
+    return g_Context;
+}
+
+void CANativeSetActivity(JNIEnv *env, jobject activity)
+{
+    OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "CANativeSetActivity");
+
+    if (!activity)
+    {
+        OIC_LOG(ERROR, CA_ADAPTER_UTILS_TAG, "activity is null");
+        return;
+    }
+
+    if (!g_Activity)
+    {
+        g_Activity = (*env)->NewGlobalRef(env, activity);
+    }
+    else
+    {
+        OIC_LOG(INFO, CA_ADAPTER_UTILS_TAG, "activity is already set");
+    }
+}
+
+jobject *CANativeGetActivity()
+{
+    return g_Activity;
+}
+#endif //__ANDROID__
+#endif //JAVA__
 
 void CALogAdapterStateInfo(CATransportAdapter_t adapter, CANetworkStatus_t state)
 {
