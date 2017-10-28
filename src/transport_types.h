@@ -157,11 +157,6 @@ typedef enum
 #endif
 #define MAX_ADDR_STR_SIZE_CA MAX_ADDR_STR_SIZE
 
-/**
- * Max header options data length.
- */
-#define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024
-
   // from comm/api/cacommon.h, also used in ocf/ocobserve.h etc.:
 /**
  * Token information for mapping the request and responses by resource model.

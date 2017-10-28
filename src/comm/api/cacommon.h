@@ -69,15 +69,7 @@ extern "C"
  */
 #define CA_MACADDR_SIZE 18
 
-/* /\** */
-/*  * Max header options data length. */
-/*  *\/ */
-// GAR: to transport_types.h
-/* #ifdef ARDUINO */
-/* #define CA_MAX_HEADER_OPTION_DATA_LENGTH 20 */
-/* #else */
-/* #define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024 */
-/* #endif */
+#define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024
 
 /**
 * Max token length.
