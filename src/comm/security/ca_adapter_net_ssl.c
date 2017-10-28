@@ -31,7 +31,7 @@
 #include <inttypes.h>
 #include "ca_adapter_net_ssl.h"
 #include "cacommon.h"
-#include "caipinterface.h"
+//#include "caipinterface.h"
 #include "oic_malloc.h"
 #include "ocrandom.h"
 #include "byte_array.h"

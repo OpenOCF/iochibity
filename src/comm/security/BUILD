@@ -12,7 +12,7 @@ config_setting(
 )
 
 cc_library(
-    name = "adapter_util",
+    name = "security",
     alwayslink = True,
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
@@ -20,6 +20,8 @@ cc_library(
              "-Iexternal/openocf/src/comm/api",  # cacommon.h
              "-Isrc/comm/common",  # cacommonutil.h
              "-Iexternal/openocf/src/comm/common",  # cacommonutil.h
+             "-Isrc/comm/transport/util",
+             "-Iexternal/openocf/src/comm/transport/util",
              "-Isrc/comm/interface",
              "-Iexternal/openocf/src/comm/interface",
              "-Isrc/logger",
@@ -30,8 +32,6 @@ cc_library(
              "-Iexternal/openocf/src/util",
              "-Ithird_party/coap/include",
              "-Iexternal/openocf/third_party/coap/include",
-             #"-Ithird_party/coap/include/coap",
-             # "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include"]
     + select({":windows": [],
               ":msvc": [],
@@ -39,6 +39,7 @@ cc_library(
               "//conditions:default": ["-std=c11"]}),
     deps  = ["//src:config",
     	     "//src/comm/api",
+    	     "//src/comm/transport/util",
     	     "//src/comm/common",
     	     "//src/comm/interface",
              "//src/logger",
@@ -48,12 +49,8 @@ cc_library(
              "//third_party/mbedtls",
              "//third_party/mbedtls:mbedtls-crypto",
              "//third_party/mbedtls:mbedtls-x509"],
-    hdrs = ["caadapterutils.h",
-            "ca_adapter_net_ssl.h"],
-    srcs  = ["ca_adapter_net_ssl.c",
-             # "cafragmentation.c", # ble only?
-             # "cafragmentation.h", # ble only?
-             "caadapterutils.c"],
+    hdrs = ["ca_adapter_net_ssl.h"],
+    srcs  = ["ca_adapter_net_ssl.c"],
     visibility = ["//src/comm:__subpackages__",
                   "//src/sec:__pkg__"]
 )

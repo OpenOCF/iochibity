@@ -164,7 +164,7 @@ CAResult_t CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_
     return CA_STATUS_OK;
 }
 
-#ifdef __JAVA__
+#ifdef __JAVA__			/* GAR: this is only used for Android? */
 void CANativeJNISetJavaVM(JavaVM *jvm)
 {
     OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "CANativeJNISetJavaVM");
