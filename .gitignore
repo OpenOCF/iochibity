@@ -39,6 +39,7 @@ build/
 lib/
 sysroots/
 merge/
+logs/
 
 /release
 resource/release
