@@ -19,10 +19,22 @@ counterparts).  These are obviously about the network protocol layer:
 
 * xx_IP_USE_Vn => xx_NETWORK_PROTOCOL_IPVn
 
-In general, the networking protocol is implied by the transport
-protocol; in the specific case of UDP and TCP, the implied networking
-protocol is IP, but since there are two versions of IP we need to say
-which.
+TCP Link layer (OSI Data Link + Physical layer):
+
+The assumption seems to be that this will be IPv6 over 802.11 (WiFI).
+
+IPv6 over 802.15.4: 6LoWPAN (https://tools.ietf.org/html/rfc4919, https://tools.ietf.org/html/rfc4944, https://tools.ietf.org/html/rfc6282, https://tools.ietf.org/html/rfc6775)
+
+IPv6 over BLE:  https://tools.ietf.org/html/rfc7668) Note that this uses 6LoWPAN.
+
+In general, in Iotivity the networking protocol is implied by the
+transport protocol; in the specific case of UDP and TCP, the implied
+networking protocol is IP, but since there are two versions of IP we
+need to say which.
+
+Note that the constants are inconsistent; we have e.g. we have
+CT_ADAPTER_TCP, but we have no CT_ADAPTER_UDP. Instead we have
+CT_ADAPTER_IP, which covers both IPv4 and IPv6, including 6LoWPAN.
 
     // NOTE: OCDoResource needs a DevAddr and a ConnectivityType,
     // giving redundant networking params.  Why? Maybe so
@@ -52,3 +64,14 @@ which.
     // if we have one, otherwise from connectivityType
 
     // also OCClientResponse contains an OCConnectivityType member.
+
+=== issues
+
+api/ seems to be the public api, containing:
+    common.h
+    cainterface.h
+    casecurityinterface.h
+
+api/common.h - do something about this
+
+comm/common/cacommonutil.h - contains only VERIFY_x macros; move to src/macros.h?
