@@ -52,6 +52,8 @@
 #include "string.h"
 #include "logger_types.h"
 
+log_writer_t write_log = printf;
+
 void oocf_log_hook_stdout(log_writer_t hook)
 {
     /* printf("hooking logger\n");

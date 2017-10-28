@@ -11,7 +11,7 @@ cc_binary(
              "-Isrc/ocf",
              "-Isrc/ocf/client",
              "-Isrc/portability",
-             "-I/usr/local/include",
+             "-I/usr/include/cdk",
              "-Ithird_party/cjson",
              "-Ithird_party/coap/include"],
     deps = ["//src:config",
@@ -22,6 +22,7 @@ cc_binary(
             "//third_party/coap",
             "@sys_cdk//:cdk-pkg"
     ],
+#    linkopts = ["-L/usr/x86_64-linux-gnu"],
     linkstatic = 1,
     srcs = ["occlient.c",
             "gui.h",
@@ -41,4 +42,3 @@ cc_binary(
     linkopts = ["-lncurses"],
     srcs = ["ocserver.c"]
 )
-

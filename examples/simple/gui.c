@@ -112,27 +112,27 @@ int run_gui (void)
    initCDKColor ();
 
    /* initialize windows */
-   CDK_PARAMS params;
-   request_log = newCDKSwindow (cdkscreen,
-				CDKparamValue (&params, 'X', CENTER),
-				CDKparamValue (&params, 'Y', CENTER),
-				CDKparamValue (&params, 'H', 10),
-				CDKparamValue (&params, 'W', 65),
-				request_log_title,
-				100, /* saveLines */
-				CDKparamValue (&params, 'N', TRUE),
-				CDKparamValue (&params, 'S', TRUE));
-   /* Is the window null. */
-   if (request_log == 0)
-       {
-	   /* Exit CDK. */
-	   destroyCDKScreen (cdkscreen);
-	   endCDK ();
+   /* CDK_PARAMS params; */
+   /* request_log = newCDKSwindow (cdkscreen, */
+   /* 				CDKparamValue (&params, 'X', CENTER), */
+   /* 				CDKparamValue (&params, 'Y', CENTER), */
+   /* 				CDKparamValue (&params, 'H', 10), */
+   /* 				CDKparamValue (&params, 'W', 65), */
+   /* 				request_log_title, */
+   /* 				100, /\* saveLines *\/ */
+   /* 				CDKparamValue (&params, 'N', TRUE), */
+   /* 				CDKparamValue (&params, 'S', TRUE)); */
+   /* /\* Is the window null. *\/ */
+   /* if (request_log == 0) */
+   /*     { */
+   /* 	   /\* Exit CDK. *\/ */
+   /* 	   destroyCDKScreen (cdkscreen); */
+   /* 	   endCDK (); */
 
-	   printf ("Cannot create request scrolling window. ");
-	   printf ("Is the window too small?\n");
-	   ExitProgram (EXIT_FAILURE);
-       }
+   /* 	   printf ("Cannot create request scrolling window. "); */
+   /* 	   printf ("Is the window too small?\n"); */
+   /* 	   ExitProgram (EXIT_FAILURE); */
+   /*     } */
 
    /* Set up the menu. */
    menulist[0][0] = "</B>Discover<!B>";
