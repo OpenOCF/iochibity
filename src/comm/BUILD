@@ -63,6 +63,10 @@ cc_library(
             "//src/comm/common",
             "//src/comm:hdrs",
             "//src/comm/interface",
+            # "//src/comm/transport/bredr", # FIXME: select for this
+            # "//src/comm/transport/ble", # FIXME: select for this
+            # "//src/comm/transport/nfc", # FIXME: select for this
+            # "//src/comm/transport/tcpip", # FIXME: select for this
             "//src/comm/transport/udpip", # FIXME: select for this
             "//src/comm/util",
             "//src/logger",
@@ -71,10 +75,6 @@ cc_library(
             "//third_party/coap"],
     srcs  = ["cainterfacecontroller.c",
 	     "cainterfacecontroller.h",
-             "caedradapter.h",
-             "caleadapter.h",
-             "canfcadapter.h",
-             # "caqueueingthread.h",
              "canetworkconfigurator.h"],
     # visibility = ["//src/comm/transport:__subpackages__"]
 )
@@ -136,10 +136,10 @@ cc_library(
     srcs = ["cablockwisetransfer.c", # transport ALL or IP
             "cablockwisetransfer.h",
             "caconnectivitymanager.c",
-            "caedradapter.h",
-            "caleadapter.h",
-            "canfcadapter.h",
-            "caraadapter.h",
+            # "caedradapter.h",
+            # "caleadapter.h",
+            # "canfcadapter.h",
+            # "caraadapter.h",
 	    "camessagehandler.c",
 	    "camessagehandler.h",
 	    "canetworkconfigurator.c",

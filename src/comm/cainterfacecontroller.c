@@ -29,26 +29,34 @@
 #include "caadapterutils.h"
 #include "canetworkconfigurator.h"
 #include "cainterfacecontroller.h"
+#ifdef EDR_ADAPTER
 #include "caedradapter.h"
+#endif
+#ifdef LE_ADAPTER
 #include "caleadapter.h"
+#endif
+#ifdef NFC_ADAPTER
 #include "canfcadapter.h"
+#endif
+#ifdef IP_ADAPTER
+#include "caipadapter.h"
+#endif
+#ifdef RA_ADAPTER
+#include "caraadapter.h"
+#endif
+#ifdef TCP_ADAPTER
+#include "catcpadapter.h"
+#endif
+
+
 #include "caremotehandler.h"
 #include "cathreadpool.h"
-#include "caipadapter.h"
 #include "cainterface.h"
 #include <coap/utlist.h>
 
 #ifndef SINGLE_THREAD
 #include <assert.h>
 #include "caqueueingthread.h"
-#endif
-
-#ifdef RA_ADAPTER
-#include "caraadapter.h"
-#endif
-
-#ifdef TCP_ADAPTER
-#include "catcpadapter.h"
 #endif
 
 #define TAG "OIC_CA_INF_CTR"

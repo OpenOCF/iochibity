@@ -128,7 +128,7 @@ dnl                    third_party/tinydtls])
 dnl TODO: for consistency with autotools, change __WITH_DTLS__ to ENABLE_DTLS, etc.
 dnl DTLS is on by default
 AC_ARG_ENABLE([dtls],
-    AS_HELP_STRING([--disable-dtls], [Disable DTLS]))
+    AS_HELP_STRING([--disable-dtls], [Disable DTLS (enabled by default)]))
 
 AS_IF([test "x$enable_dtls" != "xno"], [
   AC_DEFINE([__WITH_DTLS__], [], [Enable DTLS])
@@ -191,12 +191,47 @@ AS_IF([test "x$enable_logging" = "xyes"], [
   AC_DEFINE([TB_LOG], [], [Logging])
 ])
 
-dnl default to IP_ADAPTER
-AC_ARG_ENABLE([ipadapter],
-    AS_HELP_STRING([--disable-ipadapter], [Disable IP adapter]))
+dnl enable adapters. default to IP_ADAPTER
+AC_ARG_ENABLE([udpip],
+    AS_HELP_STRING([--disable-udpip], [Disable UDP/IP adapter (default: enabled)]))
 
-AS_IF([test "x$enable_ipadapter" != "xno"], [
+AS_IF([test "x$enable_udpip" != "xno"], [
   AC_DEFINE([IP_ADAPTER], [], [Enable IP_ADAPTER])
+])
+
+AC_ARG_ENABLE([ble],
+    AS_HELP_STRING([--enable-ble], [Enable BLE transport]))
+
+AS_IF([test "x$enable_ipadapter" = "xyes"], [
+  AC_DEFINE([LE_ADAPTER], [], [Enable BLE transport])
+])
+
+AC_ARG_ENABLE([bredr],
+    AS_HELP_STRING([--enable-bredr], [Enable BR/EDR transpor]))
+
+AS_IF([test "x$enable_bredr" = "xyes"], [
+  AC_DEFINE([EDR_ADAPTER], [], [Enable BR/EDR transport])
+])
+
+AC_ARG_ENABLE([nfc],
+    AS_HELP_STRING([--enable-nfc], [Enable NFC transport]))
+
+AS_IF([test "x$enable_nfc" = "xyes"], [
+  AC_DEFINE([NFC_ADAPTER], [], [Enable NFC transport])
+])
+
+AC_ARG_ENABLE([xmpp],
+    AS_HELP_STRING([--enable-xmpp], [Enable XMPP (Remote Access) transport]))
+
+AS_IF([test "x$enable_xmpp" = "xyes"], [
+  AC_DEFINE([RA_ADAPTER], [], [Enable XMPP (Remote Access) transport])
+])
+
+AC_ARG_ENABLE([tcpip],
+    AS_HELP_STRING([--enable-tcpip], [Enable TCP/IP transport]))
+
+AS_IF([test "x$enable_tcpip" = "xyes"], [
+  AC_DEFINE([TCP_ADAPTER], [], [Enable TCP/IP transport])
 ])
 
 dnl AC_ARG_WITH([msvc],
@@ -204,7 +239,7 @@ dnl             [AS_HELP_STRING([--with-msvc],
 dnl               [enable support for msvc toolchain])],
 dnl             [with_msvc=yes],
 dnl             [with_msvc=no])
-          
+
 dnl AS_IF([test "x$with_msvc" != xyes], [
 dnl   AC_CHECK_HEADER(sys/time.h)
 dnl   AC_CHECK_HEADER(foo.h)

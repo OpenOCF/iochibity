@@ -3,6 +3,9 @@
 /* COAP Debugging */
 #undef COAP_DEBUG_C
 
+/* Enable BR/EDR transport */
+#undef EDR_ADAPTER
+
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
 
@@ -258,6 +261,9 @@
 /* Enable IP_ADAPTER */
 #undef IP_ADAPTER
 
+/* Enable BLE transport */
+#undef LE_ADAPTER
+
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
 #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
@@ -273,6 +279,9 @@
 
 /* Multiple ownership */
 #undef MULTIPLE_OWNER
+
+/* Enable NFC transport */
+#undef NFC_ADAPTER
 
 /* OC Debugging */
 #undef OC_DEBUG
@@ -295,6 +304,9 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Enable XMPP (Remote Access) transport */
+#undef RA_ADAPTER
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
@@ -303,6 +315,9 @@
 
 /* Logging */
 #undef TB_LOG
+
+/* Enable TCP/IP transport */
+#undef TCP_ADAPTER
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
