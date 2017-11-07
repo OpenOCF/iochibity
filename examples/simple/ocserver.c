@@ -33,7 +33,7 @@
 #include <signal.h>
 #include <stdbool.h>
 
-#include <ncurses.h>
+/* #include <ncurses.h> */
 
 #include "ocstack.h"
 #include "logger.h"

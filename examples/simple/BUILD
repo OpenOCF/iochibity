@@ -1,6 +1,11 @@
- config_setting(
-    name = "windows",
-    values = { "define": "platform=windows" }
+#  config_setting(
+#     name = "windows",
+#     values = { "define": "platform=windows" }
+# )
+
+config_setting(
+    name = "rpi3b",
+     values = { "crosstool_top": "//platforms/rpi3b:toolchain" }
 )
 
 cc_binary(
@@ -11,18 +16,20 @@ cc_binary(
              "-Isrc/ocf",
              "-Isrc/ocf/client",
              "-Isrc/portability",
-             "-I/usr/include/cdk",
              "-Ithird_party/cjson",
-             "-Ithird_party/coap/include"],
+             "-Ithird_party/coap/include"]
+    + select({":rpi3b": ["-Iexternal/sysroot_rpi3b/usr/include",
+                         "-Iexternal/sysroot_rpi3b/usr/include/cdk",
+                         "-std=c11"],
+              "//conditions:default": ["-Iexternal/usr_local/include",
+                                       "-Iexternal/usr_local/include/cdk"]}),
     deps = ["//src:config",
-            # "//src/comm/api",
             "//src/ocf",
             "//src/ocf:client",
             "//third_party/cjson",
-            "//third_party/coap",
-            "@sys_cdk//:cdk-pkg"
-    ],
-#    linkopts = ["-L/usr/x86_64-linux-gnu"],
+            "//third_party/coap"]
+    + select({":rpi3b": ["@sysroot_rpi3b//:cdk"],
+              "//conditions:default": ["@usr_local//:cdk"]}),
     linkstatic = 1,
     srcs = ["occlient.c",
             "gui.h",
@@ -36,9 +43,17 @@ cc_binary(
              "-Isrc/comm",
              "-Isrc/logger",
              "-Isrc/ocf",
-             "-Ithird_party/coap/include"],
+             "-Ithird_party/coap/include"]
+    + select({":rpi3b": ["-Iexternal/sysroot_rpi3b/usr/include",
+                         "-Iexternal/sysroot_rpi3b/usr/include/cdk",
+                         "-std=c11"],
+              "//conditions:default": ["-Iexternal/usr_local/include",
+                                       "-Iexternal/usr_local/include/cdk",
+                                       "-std=c11"]}),
     deps = ["//src:config",
-            "//src/ocf"],
-    linkopts = ["-lncurses"],
+            "//src/ocf"]
+    + select({":rpi3b": ["@sysroot_rpi3b//:rpi3b"],
+              "//conditions:default": ["@usr_local//:cdk"]}),
+    # linkopts = ["-Wl,-dead_strip"],
     srcs = ["ocserver.c"]
 )

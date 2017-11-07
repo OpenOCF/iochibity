@@ -1,6 +1,6 @@
 #include "openocf.h"
 
-#include <cdk/cdk_test.h>
+#include <cdk_test.h>
 
 #ifdef HAVE_XCURSES
 char *XCursesProgramName = "menu_ex";
