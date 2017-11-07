@@ -246,8 +246,6 @@ cc_library(
 
             "payload_logging.h"
     ]
-    + select({":client_role": ["client/co_service_provider_mgr.c"],
-              "//conditions:default": []}),
 
     # if windows, and UWP_APP = 1:
     # "ocsqlite3helper.c"

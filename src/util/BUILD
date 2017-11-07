@@ -33,8 +33,8 @@ cc_library(
             "byte_array.h",
             "utlist.h"],
     srcs = ["base64.c",
-            "trace.c",
-	    "trace.h",
+            # "trace.c",
+	    # "trace.h",
             "uarraylist.c",
             "uarraylist.h"],
     visibility = ["//src:__subpackages__"]

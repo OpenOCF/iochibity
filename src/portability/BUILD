@@ -10,6 +10,11 @@ config_setting(
     name = "msys",
     values = { "cpu": "x64_windows_msys" }
 )
+config_setting(
+    name = "android",
+    # values = { "crosstool_top": "//external:android/crosstool."} # "@android_ndk//:toolchain-libcpp"
+    values = {"cpu": "armeabi-v7a"}
+)
 
 cc_library(
     name = "hdrs",
@@ -44,7 +49,8 @@ cc_library(
             "//third_party/mbedtls"],
     linkopts = select({"windows": [],
                        "msvc": [],
-                       "msys": ["-lpthread"], 
+                       "msys": ["-lpthread"],
+                       "android": [],
                        "//conditions:default": ["-lpthread"]}),
     srcs = ["oic_platform.c",
             "posix/ocatomic.c",
