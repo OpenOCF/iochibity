@@ -22,4 +22,27 @@ cc_library(
               ":msvc": ["msvc_config.h"],
               ":msys": [],
               "//conditions:default": []}),
-    visibility = ["//visibility:public"])
+    visibility = ["//visibility:public"]
+)
+
+android_library(
+    name = "openocf",
+    deps = ["//src/ocf",
+            "//src/comm/transport/udpip/android"],
+    srcs = ["Lib.java"],
+)
+
+android_binary(
+    name = "hello_world",
+    srcs = glob([
+        "MainActivity.java",
+        "Jni.java",
+    ]),
+    manifest = "AndroidManifest.xml",
+    resource_files = glob(["res/**"]),
+    deps = [
+        "//src/ocf",
+        ":lib",
+        "@androidsdk//com.android.support:appcompat-v7-25.0.0",
+    ],
+)
