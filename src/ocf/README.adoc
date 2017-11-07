@@ -21,6 +21,11 @@
 
 * extract introspection routines from ocresource.c to introspection.c
 
+
+=== connection mgr
+
+occonnectionmanager.[ch] - why not in comm?  is this tcp/cloud only?
+
 === presence
 
 how does WITH_PRESENCE get set? hardcoded in octypes.h!
