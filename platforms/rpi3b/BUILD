@@ -11,15 +11,15 @@ cc_toolchain_suite(
 
 cc_toolchain(
     name = "cc-compiler-armv8-rpi3",
-    all_files = "@rpi3b_repo//:everything",
-    compiler_files = "@rpi3b_repo//:compile",  # "@rpi3b_repo//:gcc-armv8-toolchain",
+    all_files = "@toolchain_rpi3b//:everything",
+    compiler_files = "@toolchain_rpi3b//:compile",  # "@toolchain_rpi3b//:gcc-armv8-toolchain",
     cpu = "armv8",
-    dwp_files = "@rpi3b_repo//:empty",
-    linker_files = "@rpi3b_repo//:link", # gcc-arm-android-4.9-toolchain",
-    objcopy_files = "@rpi3b_repo//:objcopy",
-    dynamic_runtime_libs = ["@rpi3b_repo//:link"],
-    static_runtime_libs = ["@rpi3b_repo//:link"],
-    strip_files = "@rpi3b_repo//:strip",
+    dwp_files = "@toolchain_rpi3b//:empty",
+    linker_files = "@toolchain_rpi3b//:link", # gcc-arm-android-4.9-toolchain",
+    objcopy_files = "@toolchain_rpi3b//:objcopy",
+    dynamic_runtime_libs = ["@toolchain_rpi3b//:link"],
+    static_runtime_libs = ["@toolchain_rpi3b//:link"],
+    strip_files = "@toolchain_rpi3b//:strip",
     supports_param_files = 1,
     visibility = ["//visibility:public"],
 )

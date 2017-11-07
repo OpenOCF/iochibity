@@ -1,0 +1,189 @@
+# original: https://github.com/moul/bazel-examples/blob/master/android-ndk/CROSSTOOL
+# see also https://github.com/bazelbuild/bazel/wiki/Building-with-a-custom-toolchain
+
+#
+# Copyright 2015 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+major_version: "local"
+minor_version: ""
+default_target_cpu: "darwin" # "androideabi-4.9"
+# without this, we get "No toolchain found for cpu 'darwin'", even when --cpu=androideabi-4.9
+default_toolchain {
+  cpu: "darwin"
+  toolchain_identifier: "arm-linux-androideabi-4.9"
+}
+
+default_toolchain {
+  cpu: "androideabi-4.9"
+  toolchain_identifier: "arm-linux-androideabi-4.9"
+}
+
+# Android NDK
+toolchain {
+
+  # this should be more specific
+  abi_version: "local"
+  abi_libc_version: "local"
+
+  # This should contain a BUILD file, defining 'compile' and 'link' filegroups.
+  # default_grte_top: "/Users/gar/android/android-ndk-r15c/platforms/android-23/arch-arm"
+  # default_grte_top: "//platforms/ndk"
+  # default_grte_top: "@toolchain_ndk//:everything"
+
+  # this is for --sysroot, both headers and libs, plus runtimes (crtbegin_so.o, etc.)
+  # android: "The compile time sysroot is now $NDK/sysroot. Previously this was
+  # $NDK/platforms/android-$API/arch-$ARCH."
+  # alas this won't work; $NDK/sysroot is headers only
+  builtin_sysroot: "/Users/gar/android/android-ndk-r15c/platforms/android-23/arch-arm"
+  # builtin_sysroot: "/Users/gar/android/android-ndk-r15c/sysroot"
+
+  # builtin include dirs: we need these because gcc uses them; to show builtin paths: gcc -E -Wp,-v -
+  # that shows these two:
+  cxx_builtin_include_directory: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/lib/gcc/arm-linux-androideabi/4.9.x/include"
+  cxx_builtin_include_directory: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/lib/gcc/arm-linux-androideabi/4.9.x/include-fixed"
+  # but without the next cxx_builtin_include_directory we get error messsages like:
+  # "this rule is missing dependency declarations for the following files included by 'lib/hello-time.c':
+  # '/Users/gar/android/android-ndk-r15c/platforms/android-23/arch-arm/usr/include/stdlib.h'
+  cxx_builtin_include_directory: "/Users/gar/android/android-ndk-r15c/platforms/android-23/arch-arm/usr/include"
+
+  # but:  "If the compiler has --sysroot support, then these paths should use
+  # %sysroot% rather than the include path, and specify the sysroot attribute
+  # in order to give blaze the information necessary to make the correct
+  # replacements.
+  # unfortunately that does not work, we need the toolchain dirs above
+  # cxx_builtin_include_directory: "/Users/gar/android/android-ndk-r15c/sysroot/usr/include"
+  # cxx_builtin_include_directory: "/Users/gar/android/android-ndk-r15c/sysroot/usr/include/arm-linux-androideabi"
+
+  compiler: "gcc"
+  host_system_name: "local"
+  needsPic: true
+  supports_gold_linker: false
+  supports_incremental_linker: false
+  supports_fission: false
+  supports_interface_shared_objects: false
+  supports_normalizing_ar: false
+  supports_start_end_lib: false
+  supports_thin_archives: false
+  target_libc: "local"
+
+  target_cpu: "androideabi-4.9"
+  target_system_name: "arm-linux-androideabi"
+  toolchain_identifier: "arm-linux-androideabi-4.9"
+
+  tool_path { name: "ar"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-ar"
+  }
+  tool_path { name: "compat-ld"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-ld"
+  }
+  tool_path { name: "cpp"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-cpp"
+  }
+  tool_path { name: "dwp"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-dwp"
+  }
+  tool_path { name: "gcc"
+    ## path: "gcc"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-gcc"
+  }
+  tool_path { name: "gcov"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-gcov"
+  }
+  tool_path { name: "ld"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-ld"
+  }
+  tool_path { name: "nm"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-nm"
+  }
+  tool_path { name: "objcopy"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-objcopy"
+  }
+  tool_path { name: "strip"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-strip"
+  }
+  tool_path { name: "objdump"
+    path: "/Users/gar/android/android-ndk-r15c/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-objdump"
+  }
+  objcopy_embed_flag: "-I"
+
+  cxx_flag: "-std=c++0x"
+  compilation_mode_flags {
+    mode: FASTBUILD
+  }
+  compilation_mode_flags {
+    mode: DBG
+  }
+  compilation_mode_flags {
+    mode: COVERAGE
+  }
+  compilation_mode_flags {
+    mode: OPT
+  }
+
+  cxx_flag: "-std=gnu++11"
+
+  # https://android.googlesource.com/platform/ndk/+/master/docs/UnifiedHeaders.md:
+  # "Pass -isystem $NDK/sysroot/usr/include/$TRIPLE when compiling"
+  # unfiltered_cxx_flag: "-isystem"
+  # unfiltered_cxx_flag: "/Users/gar/android/android-ndk-r15c/sysroot/usr/include/arm-linux-androideabi"
+
+  ## unfiltered_cxx_flag: "-isystem/Users/gar/android/android-ndk-r15c/sources/cxx-stl/gnu-libstdc++/4.9/include"
+  ## unfiltered_cxx_flag: "-isystem/Users/gar/android/android-ndk-r15c/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include"
+
+  ## unfiltered_cxx_flag: "-isystem"
+  ## unfiltered_cxx_flag: "/Users/gar/android/android-ndk-r15c/sources/cxx-stl/stlport/stlport"
+  ## unfiltered_cxx_flag: "-isystem"
+  ## unfiltered_cxx_flag: "/Users/gar/android/android-ndk-r15c/sources/cxx-stl/gabi++/include"
+
+  linking_mode_flags {
+    mode: FULLY_STATIC
+  }
+  objcopy_embed_flag: "-I"
+  objcopy_embed_flag: "binary"
+  linking_mode_flags {
+    mode: MOSTLY_STATIC
+  }
+  linking_mode_flags {
+    mode: DYNAMIC
+  }
+
+  unfiltered_cxx_flag: "-fno-canonical-system-headers"
+  unfiltered_cxx_flag: "-no-canonical-prefixes"
+
+  linker_flag: "-no-canonical-prefixes"
+
+  compiler_flag: "--debug"
+  compiler_flag: "-fPIE"
+  compiler_flag: "-DANDROID"
+  compiler_flag: "-D__ANDROID_API__=23"
+  compiler_flag: "-g"
+  compiler_flag: "-std=c11"
+
+  ## compiler_flag: "-mfloat-abi=softfp"
+  ## compiler_flag: "-mfpu=vfpv3-d16"
+
+  linker_flag: "-fPIE"
+  linker_flag: "-pie"
+
+  ## linker_flag: "-L/Users/gar/android/android-ndk-r15c/platforms/android-23/arch-arm/usr/lib"
+  ## dynamic_runtimes_filegroup: "@cosysroot_ndk//:link"
+  ## static_runtimes_filegroup: "@cosysroot_ndk//:link"
+
+  ## linker_flag: "-L/Users/gar/android/android-ndk-r15c/sources/cxx-stl/gnu-libstdc++/4.9/libs/androideabi-4.9/"
+  ## linker_flag: "-lgnustl_static"
+  ## linker_flag: "-lsupc++"
+  linker_flag: "-lc"
+  linker_flag: "-lm"
+}
