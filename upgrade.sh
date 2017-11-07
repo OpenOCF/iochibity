@@ -66,7 +66,7 @@ cp -v $COMM/inc/cagattservice.h                      src/comm/transport/ble
 cp -v $COMM/inc/cainterfacecontroller.h              src/comm
 cp -v $COMM/inc/cainterfacecontroller_singlethread.h src/comm
 cp -v $COMM/inc/caipadapter.h                        src/comm/transport/udpip
-cp -v $COMM/inc/caipinterface.h                      src/comm/transport/udpip
+cp -v $COMM/inc/caipinterface.h                      src/comm/transport/udpip/caipserver.h
 cp -v $COMM/inc/caipnwmonitor.h                      src/comm/transport/udpip
 cp -v $COMM/inc/caleadapter.h                        src/comm/transport/ble
 cp -v $COMM/inc/caleinterface.h                      src/comm/transport/ble
