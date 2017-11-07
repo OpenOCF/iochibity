@@ -21,7 +21,7 @@
 #include <jni.h>
 #include <stdio.h>
 #include <string.h>
-#include <android/log.h>
+/* GAR: this is ndk? #include <android/log.h> */
 #include <unistd.h>
 #include "caleserver.h"
 #include "caleutils.h"

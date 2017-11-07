@@ -35,11 +35,12 @@
 #include <errno.h>
 
 #ifdef __linux__		/* FIXM: use HAVE_NETLINK_H etc */
+#include <linux/if.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #endif
 
-#include "../caipinterface.h"
+#include "../caipserver.h"
 #include "../caipnwmonitor.h"
 #include "octhread.h"
 #include "caadapterutils.h"

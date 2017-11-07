@@ -33,7 +33,7 @@
 #include <netinet/in.h>
 #include <net_connection.h>
 
-#include "caipinterface.h"
+#include "caipserver.h"
 #include "caipnwmonitor.h"
 #include "caadapterutils.h"
 #include "logger.h"

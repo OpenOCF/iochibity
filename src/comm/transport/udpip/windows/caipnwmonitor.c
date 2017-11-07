@@ -19,7 +19,7 @@
 
 #include "iotivity_config.h"
 #include "iotivity_debug.h"
-#include "caipinterface.h"
+#include "caipserver.h"
 
 #include <assert.h>
 #include <sys/types.h>

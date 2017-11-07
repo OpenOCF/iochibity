@@ -18,7 +18,7 @@
 *
 ******************************************************************/
 
-#include "caipinterface.h"
+#include "caipserver.h"
 
 #include <stdio.h>
 #include <string.h>

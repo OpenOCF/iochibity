@@ -1,1 +1,98 @@
 According the the SConscript this dir is only for cloud/tcp or android or tizen
+
+changes:
+
+    cautilinterface.h - moved here from connectivity/api. this seems
+    to be a dumping ground for various APIs, to make them available to
+    client code
+
+    commdefs.h - new file, cb prototypes moved from cautilinterface.h, to fix circularity;
+        /comm/cainterfacecontroller.h includes it rather than cautilinterface.h
+
+    cloud - all the camanager stuff (except bt_le_manager) renamed, since it only applies to cloud
+
+    ble_manager - was camanager/bt_le_manager.  why is this here instead of in comm/transport/ble/android?
+
+Android only:
+
+    cabtpairinginterface.h
+
+
+Mostly Android:
+
+cautilinterface.c
+
+cautilinterface.h:
+
+generic routines:
+
+    CARegisterNetworkMonitorHandler -> comm/cainterfacecontroller.c/AddNetworkStateChangedCallback
+        called by ocf/ocstack.c, ocf/occonnectionmanager.c
+    CAUnregisterNetworkMonitorHandler -> comm/cainterfacecontroller.c/RemoveNetworkStateChangedCallback
+        called by ocf/ocstack.c, ocf/occonnectionmanager.c
+
+    CAResult_t CAGetIpv6AddrScope(const char *addr, CATransportFlags_t *scopeLevel);
+
+    void CAUtilSetLogLevel(CAUtilLogLevel_t level, bool hidePrivateLogEntries);
+
+ca connection manager routines, called by ocf/occonnectionmanager.c
+    only for TCP_ADAPTER && WITH_CLOUD
+    i.e. this is a CM interface, why glommed into cautilinterface?
+    CAUtilCMInitailize - called by ocf/occonnectionmanager.c/OCCMInitialize, which is called by
+     ocstack.c as part of OCInitializeInternal, #if defined(TCP_ADAPTER) && defined(WITH_CLOUD)
+
+    CAUtilCMTerminate - ditto, ocf/occonnectionmanger.[ch], from ocstack.c/OCCMTerminate,
+         from OCDeInitializeInternal, #if defined(TCP_ADAPTER) && defined(WITH_CLOUD)
+
+    CAUtilCMUpdateRemoteDeviceInfo
+    CAUtilCMResetRemoteDeviceInfo
+    CAUtilCMSetConnectionUserConfig
+    CAUtilCMGetConnectionUserConfig
+
+cxx stuff: these seem to be here just to support the cxx api
+
+    CASetPortNumberToAssign - sets port based on adapter type, only called from resource/src/CAManager.cpp
+    CAGetAssignedPortNumber - ditto
+
+android only: these are exposed to Android via jni
+
+    SetAutoConnectionDeviceInfo - jni
+        iotivity-android:  org.iotivity.ca.CaInterface.java
+		public synchronized static void setAutoConnectionDevice(String address)
+	        private static native void caManagerSetAutoConnectionDeviceInfo(String address);
+        	implementation java/jni/JniCaInterface.c calls SetAutoConnectionDeviceInfo
+		also called by connectivity/test/ca_api_unittest.cpp
+		JniCaInterface.h = org_iotivity_ca_CaInterface.h, from iotivity-android
+		SetAutoConnectionDeviceInfo calls
+		    comm/util/camanager/{android,tizen}/caleconnectionmanager.c/CASetLEClientAutoConnectionDeviceInfo
+
+    CAUnsetAutoConnectionDeviceInfo - like SetAutoConnectionDeviceInfo
+        calls comm/util/camanager/bt_le_manager/{android, tizen}/caleconnectionmanager.c
+	    (but: #ifdeffed to Android only)
+	    CAUnsetLEClientAutoConnectionDeviceInfo, which calls into JNI:
+	        android.bluetooth.BluetoothAdapter/checkBluetoothAddress
+		etc.
+
+    CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm, jobject context);
+        logic depends on ADAPTER type - initializes LE client or BT pairing for EDR
+
+android && LE_ADAPTER only:
+
+    CAUtilClientTerminate (ANDROID && LE_ADAPTER)
+    CAResult_t CAUtilSetLEScanInterval(jint intervalTime, jint workingCount)
+    CAResult_t CAUtilStopLEScan()
+    CAResult_t CAUtilStartLEAdvertising()  (also Tizen)
+    CAResult_t CAUtilStopLEAdvertising()
+    CAResult_t CAUtilSetBTConfigure(CAUtilConfig_t config)
+
+
+java only:
+
+    EDR_ADAPTER only:
+
+        CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm) - EDR only
+	CAResult_t CAUtilStartScan(JNIEnv *env)
+	CAResult_t CAUtilStopScan(JNIEnv *env)
+	CAResult_t CAUtilCreateBond(JNIEnv *env, jobject device)
+	void CAUtilSetFoundDeviceListener(jobject listener)
+

@@ -25,7 +25,7 @@
 #include <stdint.h>
 
 #include "caipnwmonitor.h"
-#include "caipinterface.h"
+#include "caipserver.h"
 #include "caqueueingthread.h"
 #include "caadapterutils.h"
 #ifdef __WITH_DTLS__

@@ -50,9 +50,9 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#ifdef HAVE_SYS_TIMEB_H
-#include <sys/timeb.h>
-#endif
+/* #ifdef HAVE_SYS_TIMEB_H */
+/* GAR: removed from android, since removed from posix 2008 #include <sys/timeb.h> */
+/* #endif */
 #ifdef HAVE_TIME_H
 #include <time.h>
 #endif

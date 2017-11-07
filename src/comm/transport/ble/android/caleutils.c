@@ -20,7 +20,7 @@
 
 #include <jni.h>
 #include <stdio.h>
-#include <android/log.h>
+/* GAR #include <android/log.h> */
 
 #include "caleutils.h"
 #include "logger.h"

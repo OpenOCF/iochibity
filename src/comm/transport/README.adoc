@@ -1,0 +1,54 @@
+= transport layer
+
+
+== udpip
+
+caipnwmonitor.h - one
+
+caipnwmonitor.c - one per platform. however, some of the routines are
+the same across all (most) platforms:
+
+    CAIPSetNetworkMonitorCallback - same
+
+    CAIPUnSetNetworkMonitorCallback - same
+
+    CAIPGetInterfaceInformation - different on the surface but mostly the same
+
+    CAFindInterfaceChange - linux, android are different
+
+    CAIPStartNetworkMonitor
+
+        linux: calls CAIPInitializeNetworkMonitorList, then CAIPSetNetworkMonitorCallback
+	android: calls CAIPJniInit (which creates Java obj that registers callbacks), then CAIPSetNetworkMonitorCallback
+
+    CAIPStopNetworkMonitor - slightly different, android version calls into jni
+
+    CAProcessNewInterface
+
+CAGetLinkLocalZoneIdInternal
+
+internal routines:
+
+    CAGetPollingInterval - same
+
+    CAIPPassNetworkChangesToAdapter - same
+
+
+    CANewInterfaceItem - same
+
+    CAGetLinkLocalZoneIdInternal - same
+
+Linux only:
+
+    CAIPInitializeNetworkMonitorList
+    CAIPDestroyNetworkMonitorList
+    CACmpNetworkList
+    CAAddNetworkMonitorList
+    CARemoveNetworkMonitorList
+
+
+Android only:
+
+CAParsingNetorkInfo
+
+CAAddInterfaceItem

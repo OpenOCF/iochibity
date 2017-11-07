@@ -1,0 +1,44 @@
+= udpip
+
+== ip interface
+
+caipinterface.h - misnamed, it's really the caipserver.h
+
+    CAAdapterServerType_t - defined here and in bredr/caedrinterface.h, nfc/canfcinterface.c,
+         used in android/caedrserver.c,
+
+    (*CAIPPacketReceivedCallback) - prototyped in caipinterace.h, used in caipserver.c
+
+    (*CAIPErrorHandleCallback) - prototyped in caipinterace.h, used in caipserver.c
+
+    CAIPStartServer - defined caipserver.c, called by caipadapter.c
+
+    CADeInitializeIPGlobals - defined and called inin caipserver.c
+
+    CAIPStopServer - defined in caipserver, used by caipadapter.c
+
+    CAIPStartListenServer - defined by caipserver.c, used by caipserver.c, caipadapter.c,
+
+    CAIPStopListenServer - defined by caipserver.c, used by caipadapter.c
+
+    CAIPSetPacketReceiveCallback - defined by caipserver.c, used by caipadapter.c
+
+    CAIPSetUnicastPort - unused (arduino)
+
+    CAIPSendData - defined in caipserver.c, used by caipadapter.c
+
+    CAIPIsConnected - unused
+
+    CAIPPullData - defined in caipserver.c, used by caipadapter.c
+
+    CAGetPollingInterval - defined in platform caipnwmonitor.c, called by caipserver.c
+
+    CAWakeUpForChange - defined in caipserver.c, not used
+
+    CAIPSetErrorHandler - defined in caipserver.c, used by caipadapter.c
+
+
+
+== network monitor
+
+one header caipnwmonitor.h, platform-specific implementations

@@ -19,12 +19,12 @@
  ******************************************************************/
 
 /**
- * @file caipinterface.h
+ * @file caipserver.h
  * This file provides APIs IP client/server/network monitor modules.
  */
 
-#ifndef CA_IP_INTERFACE_H_
-#define CA_IP_INTERFACE_H_
+#ifndef CA_IPSERVER_H
+#define CA_IPSERVER_H
 
 #include <stdbool.h>
 
@@ -178,4 +178,4 @@ void CAIPSetErrorHandler(CAIPErrorHandleCallback errorHandleCallback);
 }
 #endif
 
-#endif /* CA_IP_INTERFACE_H_ */
+#endif /* CA_IPSERVER_H */

@@ -95,7 +95,7 @@ CAResult_t CAUnregisterNetworkMonitorHandler(CAAdapterStateChangedCB adapterStat
  *
  * @return  ::CA_STATUS_OK or ::CA_STATUS_FAILED.
  */
-CAResult_t CASetAutoConnectionDeviceInfo(const char* address);
+CAResult_t CASetAutoConnectionDeviceInfo(const char* address); /* GAR: Android only? */
 
 /**
  * Unset device to handle for auto connection.
@@ -103,7 +103,7 @@ CAResult_t CASetAutoConnectionDeviceInfo(const char* address);
  *
  * @return  ::CA_STATUS_OK or ::CA_STATUS_FAILED.
  */
-CAResult_t CAUnsetAutoConnectionDeviceInfo(const char* address);
+CAResult_t CAUnsetAutoConnectionDeviceInfo(const char* address); /* GAR: Android only? */
 
 /**
  * Set the port number to assign .
@@ -189,6 +189,7 @@ CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm, jobject context);
 CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm);
 #endif //_ANDROID__
 
+/* GAR: this is only implemented for Android or EDR: */
 /**
  * terminate util client for android
  * @param[in]   env                   JNI interface pointer.
@@ -198,6 +199,7 @@ CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm);
 CAResult_t CAUtilClientTerminate(JNIEnv *env);
 
 // BT pairing
+/* GAR: only implemented for EDR_ADAPTER: */
 /**
  * start discovery for BT device which has iotivity UUID.
  * @param[in]  env              JNI interface pointer.

@@ -41,7 +41,7 @@ void CASetLENetworkMonitorCallbacks(CAAdapterStateChangedCB adapterStateCB,
 /**
  * Set device information for auto connection.
  */
-CAResult_t CASetLEClientAutoConnectionDeviceInfo();
+CAResult_t CASetLEClientAutoConnectionDeviceInfo(); /* GAR: Android, Tizen only */
 
 /**
  * Unset device information to stop auto connection.

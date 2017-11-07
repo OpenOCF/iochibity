@@ -33,6 +33,7 @@
 #endif
 #define TAG "OIC_CA_COMMON_UTILS"
 
+/* GAR: definition is in comm/cainterfacecontroller.c/AddNetworkStateChangedCallback */
 CAResult_t AddNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
 					  CAConnectionStateChangedCB connCB);
 
@@ -58,6 +59,7 @@ CAResult_t CARegisterNetworkMonitorHandler(CAAdapterStateChangedCB adapterStateC
     return CASetNetworkMonitorCallbacks(adapterStateCB, connStateCB);
 }
 
+/* GAR: definition is in comm/cainterfacecontroller.c/AddNetworkStateChangedCallback */
 CAResult_t RemoveNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
 					     CAConnectionStateChangedCB connCB);
 
@@ -327,6 +329,7 @@ CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm)
 
 #endif //__ANDROID__
 
+// GAR: java stuff only applies to android?
 /**
  * terminate client connection manager
  * @param[in]   env                   JNI interface pointer.

@@ -63,7 +63,7 @@
 
 #include <coap/pdu.h>
 #include <inttypes.h>
-#include "caipinterface.h"
+#include "caipserver.h"
 #include "caipnwmonitor.h"
 #include "caadapterutils.h"
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
