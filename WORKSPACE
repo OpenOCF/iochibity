@@ -1,19 +1,22 @@
-## package CDK (Curses Dev Kit) for examples
+# this will contain crosscompiled third party libs (ncurses, cdk)
 new_local_repository(
-    name = "sys_cdk",
-    path = "/usr/local",
-    build_file_content =
-"""
-cc_library(
-   name = "cdk-pkg",
-   hdrs = ["include/cdk.h"] + glob(["include/cdk/*.h"]),
-   linkstatic = 1,
-   linkopts = ["-lncurses",
-   "-L/lib64"], # linux
-   srcs = ["lib/libcdk.a"],
-   visibility = ["//visibility:public"],
+  name = "sysroot_rpi3b",
+  path = "/Users/gar/sysroots/rpi3b",
+  build_file = "platforms/rpi3b/sysroot.BUILD"
 )
-""")
+
+new_local_repository(
+  name = "toolchain_rpi3b",
+  path = "/Volumes/CrossToolNG/armv8-rpi3-linux-gnueabihf",
+  build_file = 'platforms/rpi3b/toolchain.BUILD',
+)
+
+## local repo, for access to stuff in /usr/local, e.g. cdk
+new_local_repository(
+    name = "usr_local",
+    path = "/usr/local",
+    build_file = "platforms/darwin/sysroot.BUILD"
+)
 
 android_sdk_repository(
     name="androidsdk",
@@ -27,20 +30,15 @@ android_ndk_repository(
     api_level=23
 )
 
-# new_local_repository(
-#   name = "android_ndk_repo",
-#   path = $ANDROID_NDK_HOME,
-#   build_file = 'compilers/android-ndk.BUILD'
-# )
+# android
+android_sdk_repository(
+    name="androidsdk",
+    path="/Users/gar/android/sdk",
+    api_level=23,
+)
 
-# new_local_repository(
-#   name = "android_ndk_repo",
-#   path = "/Users/gar/android/android-ndk-r15c",
-#   build_file = 'tools/android-ndk.BUILD',
-# )
-
-new_local_repository(
-  name = "rpi3b_repo",
-  path = "/Volumes/CrossToolNG/armv8-rpi3-linux-gnueabihf",
-  build_file = 'platforms/rpi3b/repo.BUILD',
+android_ndk_repository(
+    name="androidndk",
+    path="/Users/gar/android/android-ndk-r14b",
+    api_level=23,
 )
