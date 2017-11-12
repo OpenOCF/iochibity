@@ -61,13 +61,14 @@
 #define PDM_SQLITE_TRANSACTION_COMMIT "COMMIT;"
 #define PDM_SQLITE_TRANSACTION_ROLLBACK "ROLLBACK;"
 
-#ifdef __GNUC__
-#if ((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 6))
-#define static_assert(value, message) _Static_assert((value) ? 1 : 0, message)
-#else
-#define static_assert(value, message)
-#endif
-#endif
+/* #ifdef __GNUC__ */
+/* #if ((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 6)) */
+/* #define static_assert(value, message) _Static_assert((value) ? 1 : 0, message) */
+/* #else */
+/* #define static_assert(value, message) */
+/* #endif */
+/* #endif */
+
 #define PDM_VERIFY_STATEMENT_SIZE(stmt) \
     static_assert(sizeof(stmt) < INT_MAX, #stmt " must be shorter than INT_MAX.")
 

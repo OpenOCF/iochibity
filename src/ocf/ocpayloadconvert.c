@@ -69,13 +69,6 @@ static int64_t ConditionalAddTextStringToMap(CborEncoder *map, const char *key, 
 OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
         uint8_t** outPayload, size_t* size)
 {
-    // TinyCbor Version 47a78569c0 or better on master is required for the re-allocation
-    // strategy to work.  If you receive the following assertion error, please do a git-pull
-    // from the extlibs/tinycbor/tinycbor directory
-    #define CborNeedsUpdating  (((unsigned int)CborErrorOutOfMemory) < ((unsigned int)CborErrorDataTooLarge))
-    OC_STATIC_ASSERT(!CborNeedsUpdating, "tinycbor needs to be updated to at least 47a78569c0");
-    #undef CborNeedsUpdating
-
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     int64_t err = CborErrorOutOfMemory;
     uint8_t *out = NULL;

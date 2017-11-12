@@ -20,12 +20,16 @@
 
 /* from resource/c_common/platform_features.h */
 #if defined(__STDC__)
+/* #if defined(__ANDROID__)	   /\* FIXME: android x86 toolchain broken *\/ */
+/* #  define OC_STATIC_ASSERT */
+/* #else */
 # if (__STDC_VERSION__ >= 201112L) /* C11 */
 #   include <assert.h>
 #   define OC_STATIC_ASSERT(condition, msg) static_assert(condition, msg)
 # else  /* pre-C11 c compiler  */
 #  error "OpenOCF requires C11; you are using a compiler with __STDC_VERSION_ =" __STDC_VERSION__
 # endif
+/* # endif */
 #endif
 
 /* OpenOCF is C only, no GLIBCXX */
@@ -125,6 +129,7 @@ typedef bool _Bool;
 
 //GAR: todo: find an AC macro that does this
 // e.g. https://github.com/gagern/gnulib/blob/master/m4/size_max.m4
+#include <stdint.h>
 #ifndef SIZE_MAX
 /* Some systems fail to define SIZE_MAX in <stdint.h>, even though C99 requires it...
  * Conversion from signed to unsigned is defined in 6.3.1.3 (Signed and unsigned integers) p2,
