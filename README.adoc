@@ -50,7 +50,9 @@ $ bazel build <target>`
 
 WARNING: Configuration support for cross-compiling is WIP.
 
-Targets are defined by BUILD files.  Examples:
+Targets are defined by BUILD files; cross-compilation by flags. Before
+building, see link:tools/bazel.rc[tools/bazel.rc] and make sure you've
+got the right ones.  Examples:
 
 * `$ bazel build src/provisioning`
 * `$ bazel build src/comm`
@@ -58,7 +60,7 @@ Targets are defined by BUILD files.  Examples:
 
 Run `./configure --help` to see the `--enable-feature` and `--with-lib` options.
 
-Test app:
+Build test apps:
 
 [source,shell]
 ----
