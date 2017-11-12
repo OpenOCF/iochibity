@@ -24,6 +24,29 @@ config_setting(
 )
 
 
+cc_binary(
+    # name = "libopenocf.dylib",
+    name = "libopenocf.so",
+    copts = select({":windows": [],
+                    ":msvc": [],
+                    ":msys": [],
+                    "//conditions:default": ["-std=c11"]}),
+    deps = ["//src:config",
+            "//src/ocf:interface",
+            "//src/ocf:hdrs",
+            "//src/ocf:impl",
+            "//src/logger",
+            "//src/comm",
+            "//src/comm/api",
+            "//src/portability",
+            "//src/provisioning",
+            "//src/sec"]
+    + select({":client_role": ["//src/ocf:client"],
+              "//conditions:default": []}),
+    linkshared = 1,
+    visibility = ["//visibility:public"]
+)
+
 cc_library(
     name = "ocf",
     copts = select({":windows": [],
