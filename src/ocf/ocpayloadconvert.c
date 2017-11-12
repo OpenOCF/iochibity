@@ -18,10 +18,6 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#ifdef ARDUINO
-#define __STDC_LIMIT_MACROS
-#endif
-
 #include "iotivity_config.h"
 
 #include "ocpayloadcbor.h"
