@@ -1,4 +1,8 @@
 config_setting(
+    name = "darwin",
+    values = { "cpu": "darwin_foo" }
+)
+config_setting(
     name = "windows",
     values = { "cpu": "x64_windows" }
 )
@@ -61,16 +65,9 @@ cc_library(
     	    "//src/comm/transport/util",
             "//src/portability",
 	    "//third_party/coap"],
-    # + select({#":windows": ["windows/caipnwmonitor.c"],
-    #           #":msvc": ["windows/caipnwmonitor.c"],
-    #           #":msys": ["linux/caipnwmonitor.c"],
-    #           ":ndk": ["//src/comm/transport/udpip/android"],
-    #           "//conditions:default": ["//src/comm/transport/udpip/linux"]}),
     hdrs = ["caipadapter.h",
             "caipnwmonitor.h",
             "caipserver.h"],
-    # srcs = ["caipadapter.c",
-    #         "caipserver.c"],
     visibility = ["//src/comm:__subpackages__"]
 )
 
@@ -112,19 +109,30 @@ cc_library(
     	    "//src/comm:hdrs",
     	    "//src/comm/interface",
             "//src/comm/security",
+    	    "//src/comm/transport/udpip/posix",
     	    "//src/comm/transport/util",
             "//src/portability",
-	    "//third_party/coap"]
+	    "//third_party/coap",
+            ]
     + select({#":windows": ["windows/caipnwmonitor.c"],
               #":msvc": ["windows/caipnwmonitor.c"],
               #":msys": ["linux/caipnwmonitor.c"],
-              ":ndk": ["//src/comm/transport/udpip/android"],
-              ":android": ["//src/comm/transport/udpip/android"],
-              "//conditions:default": ["//src/comm/transport/udpip/linux"]}),
+              ":darwin": ["//src/comm/transport/udpip/darwin"],
+              # ":android": ["//src/comm/transport/udpip/android"],
+              # ":ndk": ["//src/comm/transport/udpip/android"],
+              # ":linux": ["//src/comm/transport/udpip/linux"],
+              "//conditions:default": []}),
     hdrs = ["caipadapter.h",
             "caipnwmonitor.h",
             "caipserver.h"],
-    srcs = ["caipadapter.c",
-            "caipserver.c"],
+    srcs = ["caipadapter.c"],
+            # "caipserver.c"],
+    # + select({#":windows": ["windows/caipnwmonitor.c"],
+    #     #":msvc": ["windows/caipnwmonitor.c"],
+    #     #":msys": ["linux/caipnwmonitor.c"],
+    #     # ":darwin": ["//src/comm/transport/udpip/darwin"],
+    #     # ":ndk": ["//src/comm/transport/udpip/android"],
+    #     # ":android": ["//src/comm/transport/udpip/android"],
+    #     "//conditions:default": ["caipnwmonitor.c"]}),
     visibility = ["//src/comm:__subpackages__"]
 )

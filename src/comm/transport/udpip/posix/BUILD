@@ -12,7 +12,7 @@ config_setting(
 )
 
 cc_library(
-    name = "linux",
+    name = "posix",
     copts = ["-Isrc",
              "-Iexternal/openocf/src/",
              "-Isrc/util",
@@ -58,8 +58,9 @@ cc_library(
             # "//src/portability",
 	    # "//third_party/coap"],
             ],
-    srcs = ["monitor_impl.c",
-            "caipserver.c"
+    srcs = ["caipnwmonitor.c",
+            "caipserver.c",
+            #"monitor_impl.c"
     ],
     visibility = ["//src/comm/transport/udpip:__pkg__"]
 )

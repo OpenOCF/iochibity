@@ -12,7 +12,7 @@ config_setting(
 )
 
 cc_library(
-    name = "linux",
+    name = "darwin",
     copts = ["-Isrc",
              "-Iexternal/openocf/src/",
              "-Isrc/util",
@@ -58,8 +58,6 @@ cc_library(
             # "//src/portability",
 	    # "//third_party/coap"],
             ],
-    srcs = ["monitor_impl.c",
-            "caipserver.c"
-    ],
+    srcs = ["monitor_impl.c"],
     visibility = ["//src/comm/transport/udpip:__pkg__"]
 )
