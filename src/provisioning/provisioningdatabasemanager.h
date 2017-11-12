@@ -20,6 +20,10 @@
 
 #ifndef PROVISIONING_DATABASE_MANAGER_H
 #define PROVISIONING_DATABASE_MANAGER_H
+
+#include "iotivity_config.h"
+#include "iotivity_debug.h"
+
 #include "securevirtualresourcetypes.h"
 #include "ocstack.h"
 #include "pmtypes.h"
