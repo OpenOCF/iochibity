@@ -1,4 +1,8 @@
 config_setting(
+    name = "ndk",
+    values = { "crosstool_top": "//platforms/ndk:toolchain" }
+)
+config_setting(
     name = "windows",
     values = { "cpu": "x64_windows" }
 )
@@ -21,6 +25,9 @@ cc_library(
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config"],
     hdrs = ["logger.h"],
+    linkopts = select({":ndk": ["-llog"],
+                       # FIXME: select android_cc
+                       "//conditions:default": []}),
     srcs = ["logger.c",
 	    "logger_types.h",
             "trace.c",

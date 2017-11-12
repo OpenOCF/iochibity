@@ -1,4 +1,8 @@
 config_setting(
+    name = "ndk",
+    values = { "crosstool_top": "//platforms/ndk:toolchain" }
+)
+config_setting(
     name = "windows",
     values = { "cpu": "x64_windows" }
 )
@@ -10,10 +14,20 @@ config_setting(
     name = "msys",
     values = { "cpu": "x64_windows_msys" }
 )
+# FIXME: detect android builds
+# config_setting(
+#     name = "android",
+#     values = {"define": "target=android",
+#               "fat_apk_cpu": "x86",
+#               #"android_crosstool_top": "//platforms/ndk:toolchain",
+#               # "cpu": "armeabi-v7a"
+#     }
+# )
 config_setting(
-    name = "android",
-    # values = { "crosstool_top": "//external:android/crosstool."} # "@android_ndk//:toolchain-libcpp"
-    values = {"cpu": "armeabi-v7a"}
+    name = "androidx86",
+    values = {"fat_apk_cpu": "x86",
+              # "android_crosstool_top": "//platforms/ndk:toolchain"
+    }
 )
 
 cc_library(
@@ -26,7 +40,8 @@ cc_library(
             "oic_platform.h",
             "oic_string.h",
             "oic_time.h",
-            "iotivity_commontypes.h"]
+            "iotivity_commontypes.h"],
+    visibility = ["//visibility:public"],
 )
 
 # if platform != windows and defined(HAVE_LIBPTHREAD)
@@ -50,8 +65,11 @@ cc_library(
     linkopts = select({"windows": [],
                        "msvc": [],
                        "msys": ["-lpthread"],
-                       "android": [],
-                       "//conditions:default": ["-lpthread"]}),
+                       # "posix": ["-lpthread"],
+                       # "android": [],
+                       "androidx86": [],
+                       #"ndk": [],
+                       "//conditions:default": []}),
     srcs = ["oic_platform.c",
             "posix/ocatomic.c",
             "posix/ocevent.c",

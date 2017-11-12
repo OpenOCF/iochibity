@@ -98,3 +98,110 @@ filegroup(
         ":everything"
     ],
 )
+
+################################################################
+## x86 clang3.8
+filegroup(
+    name = "hdrs-clang",
+    srcs = glob(
+        [
+            "sysroot/**/*.h",
+            "sysroot/usr/include/**/*.h",
+            "sysroot/usr/include/i686-linux-android/**/*.h",
+            "sysroot/usr/include/i686-linux-android/asm/*.h",
+            "platforms/android-23/arch-x86/usr/include/**/*.h",
+            # "toolchains/llvm/prebuilt/darwin-x86_64/lib64/clang/3.8.275480/include/**/*.h"
+        ],
+    ),
+)
+
+filegroup(
+    name = "libs-clang",
+    srcs = glob(
+        [
+            "platforms/android-23/arch-x86/usr/lib/**/*.a",
+            "platforms/android-23/arch-x86/usr/lib/**/*.o",
+            "platforms/android-23/arch-x86/usr/lib/**/*.so",
+        ],
+    )
+)
+
+filegroup(
+    name = "arch-x86-static-runtime-libs",
+    srcs = glob([
+        "platforms/android-23/arch-x86/usr/lib/crt*.o",
+        "platforms/android-23/arch-x86/usr/lib/*.a",
+    ]),
+    output_licenses = ["unencumbered"],
+)
+
+filegroup(
+    name = "arch-x86-dynamic-runtime-libs",
+    srcs = glob([
+        "platforms/android-23/arch-x86/usr/lib/**/*.so",
+    ]),
+    output_licenses = ["unencumbered"],
+)
+
+filegroup(
+    name = "clang-x86-4.9-toolchain",
+    srcs = glob([
+        "toolchains/x86-4.9/**"
+    ]),
+    output_licenses = ["unencumbered"],
+)
+
+filegroup(
+    name = "everything-clang",
+    srcs = [
+        ":hdrs-clang",
+        ":libs-clang",
+        "clang-x86-4.9-toolchain",
+    ],
+)
+
+filegroup(
+    name = "objcopy-clang",
+    srcs = [
+        "toolchains/x86-4.9/prebuilt/darwin-x86_64/bin/i686-linux-android-objcopy"
+    ],
+)
+
+filegroup(
+    name = "strip-clang",
+    srcs = [
+        "toolchains/x86-4.9/prebuilt/darwin-x86_64/bin/i686-linux-android-strip"
+    ],
+)
+
+################################################################
+## toolchain: aarch64-linux-android-gcc
+filegroup(
+    name = "aarch64-linux-android-gcc-toolchain_files",
+    srcs = glob(["toolchain_ndk/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64/**/*"]),
+    output_licenses = ["unencumbered"],
+)
+
+filegroup(
+    name = "aarch64-linux-android-gcc-all_files",
+    srcs = [
+        ":aarch64-linux-android-gcc-toolchain_files",
+    ] + glob([
+        "toolchain_ndk/sysroot/usr/include/**/*.h",
+        "toolchain_ndk/platforms/android-23/arch-arm64/**/*",
+        "toolchain_ndk/sources/cxx-stl/llvm-libc++/libcxx/include/**/*",
+        "toolchain_ndk/sources/cxx-stl/llvm-libc++abi/libcxxabi/include/**/*",
+        "toolchain_ndk/sources/android/support/include/**/*",
+    ]),
+)
+
+filegroup(
+    name = "libcpp-arm64-v8a-dynamic-runtime-libraries",
+    srcs = glob(["ndk/sources/cxx-stl/llvm-libc++/libs/arm64-v8a/*.so"]),
+)
+
+filegroup(
+    name = "libcpp-arm64-v8a-static-runtime-libraries",
+    srcs = glob(["ndk/sources/cxx-stl/llvm-libc++/libs/arm64-v8a/*.a"]),
+)
+
