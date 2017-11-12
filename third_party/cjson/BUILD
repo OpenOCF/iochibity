@@ -26,6 +26,7 @@ cc_library(
     deps = ["//src:config",
             "//src/portability"],
     hdrs = ["cJSON.h"],
+    linkopts = ["-lm"],
     srcs = ["cJSON.c"],
     visibility = ["//visibility:public"]
 )
