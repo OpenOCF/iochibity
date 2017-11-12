@@ -1,4 +1,4 @@
-Copyright (c) 2014, 2015 IoTivity
+Portions Copyright (c) 2014, 2015 IoTivity
 <http://www.iotivity.org/>
 
 Licensed under the Apache License, Version 2.0 (the "License");
