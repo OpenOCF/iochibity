@@ -2976,7 +2976,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
             destination = &tmpDevAddr;
             requestInfo.isMulticast = true;
             qos = OC_LOW_QOS;
-	    OIC_LOG_V(DEBUG, TAG, "Request is UNICAST");
+	    OIC_LOG_V(DEBUG, TAG, "Request is MULTICAST");
         }
         // OC_REST_DISCOVER: CA_DISCOVER will become GET and isMulticast.
         // OC_REST_PRESENCE: Since "presence" is a stack layer only implementation.
