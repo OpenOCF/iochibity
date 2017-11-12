@@ -95,6 +95,7 @@ cc_library(
             "//src/comm/api",
             "//src/ocf:hdrs",
             "//src/logger",
+            "//src/portability:hdrs",
             "//src/portability"],
     hdrs = ["client/co_service_provider.h",
             "client/co_service_provider_mgr.h"],
@@ -107,13 +108,17 @@ cc_library(
     name = "hdrs",
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
+             "-Isrc/comm/api",
+             "-Iexternal/openocf/src/comm/api",
              "-Isrc/ocf",
              "-Iexternal/openocf/src/ocf",]
     + select({":windows": [],
               ":msvc": [],
               ":msys": [],
               "//conditions:default": ["-std=c11"]}),
-    deps = ["//src:config"
+    deps = ["//src:config",
+            "//src/comm/api",
+            "//third_party/coap"
     ],
     hdrs = ["octypes.h",
             "ocstack.h",
