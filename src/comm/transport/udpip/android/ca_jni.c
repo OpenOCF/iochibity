@@ -237,7 +237,7 @@ Java_org_iotivity_ca_CaIpInterface_caIpStateEnabled(JNIEnv *env, jclass class)
             continue;
         }
 
-        CAProcessNewInterface(ifitem);
+        CAProcessNewInterface(ifitem); /* GAR: in caipserver.c */
 
     }
     u_arraylist_destroy(iflist);

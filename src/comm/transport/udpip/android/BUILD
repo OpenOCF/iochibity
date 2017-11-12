@@ -57,10 +57,10 @@ cc_library(
             "//src/comm/security",
             "//src/portability",
 	    "//third_party/coap"],
-    hdrs = ["caifaddrs.h",
-            "org_iotivity_ca_CaIpInterface.h"],
+    hdrs = ["caifaddrs.h"],
+            # "org_iotivity_ca_CaIpInterface.h"],
     srcs = ["caifaddrs.c",
-            "ca_jni.c",
+            # "ca_jni.c",
             "caipnwmonitor.c"]
     + ["@local_jdk//:jni_header",
        "@local_jdk//:jni_md_header-darwin"],

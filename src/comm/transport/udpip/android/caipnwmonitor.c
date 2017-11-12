@@ -21,7 +21,7 @@
 #include "caipserver.h"
 
 #include <sys/types.h>
-#include <sys/socket.h>
+/* #include <sys/socket.h> */
 #include <netdb.h>
 #include <string.h>
 #include <errno.h>
@@ -47,7 +47,7 @@
 #include "logger.h"
 #include "oic_malloc.h"
 #include "oic_string.h"
-#include "org_iotivity_ca_CaIpInterface.h"
+/* #include "org_iotivity_ca_CaIpInterface.h" */
 #include "caifaddrs.h"
 
 #define TAG "OIC_CA_IP_MONITOR"
@@ -69,7 +69,9 @@ static struct CAIPCBData_t *g_adapterCallbackList = NULL;
  * @param[in]  flags    The active flag word of a device.
  * @return  CAInterface_t objects.
  */
-static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family,
+/* GAR: same as posix */
+/* FIXME: prototype should be in header */
+CAInterface_t *CANewInterfaceItem(int index, const char *name, int family,
                                          const char *addr, int flags);
 
 /**
@@ -87,117 +89,124 @@ static CAResult_t CAAddInterfaceItem(u_arraylist_t *iflist, int index,
 
 // GAR: not used #define MAX_INTERFACE_INFO_LENGTH 1024 // allows 32 interfaces from SIOCGIFCONF
 
-CAResult_t CAIPStartNetworkMonitor(CAIPAdapterStateChangeCallback callback,
-                                   CATransportAdapter_t adapter)
-{
-    CAResult_t res = CAIPJniInit();
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG(ERROR, TAG, "failed to initialize ip jni interface");
-        return res;
-    }
+/* GAR: same as posix, except it calls CAIPInitializeNetworkMonitorList */
+/* CAResult_t CAIPStartNetworkMonitor(CAIPAdapterStateChangeCallback callback,
+ *                                    CATransportAdapter_t adapter)
+ * {
+ *     CAResult_t res = CAIPJniInit();
+ *     if (CA_STATUS_OK != res)
+ *     {
+ *         OIC_LOG(ERROR, TAG, "failed to initialize ip jni interface");
+ *         return res;
+ *     }
+ *
+ *     return CAIPSetNetworkMonitorCallback(callback, adapter);
+ * } */
 
-    return CAIPSetNetworkMonitorCallback(callback, adapter);
-}
+/* GAR: same as posix, except it calls CAIPDestroyNetworkMonitorList */
+/* CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
+ * {
+ *     CAIPUnSetNetworkMonitorCallback(adapter);
+ *
+ *     // if there is no callback to pass the changed status, stop monitoring.
+ *     if (!g_adapterCallbackList)
+ *     {
+ *         return CAIPDestroyJniInterface();
+ *     }
+ *
+ *     return CA_STATUS_OK;
+ * } */
 
-CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
-{
-    CAIPUnSetNetworkMonitorCallback(adapter);
+/* GAR: same as posix */
+/* int CAGetPollingInterval(int interval)
+ * {
+ *     return interval;
+ * } */
 
-    // if there is no callback to pass the changed status, stop monitoring.
-    if (!g_adapterCallbackList)
-    {
-        return CAIPDestroyJniInterface();
-    }
+/* GAR: same as posix */
+/* static void CAIPPassNetworkChangesToAdapter(CANetworkStatus_t status)
+ * {
+ *     CAIPCBData_t *cbitem = NULL;
+ *     LL_FOREACH(g_adapterCallbackList, cbitem)
+ *     {
+ *         if (cbitem && cbitem->adapter)
+ *         {
+ *             cbitem->callback(cbitem->adapter, status);
+ *         }
+ *     }
+ * } */
 
-    return CA_STATUS_OK;
-}
+/* GAR: same as posix */
+/* CAResult_t CAIPSetNetworkMonitorCallback(CAIPAdapterStateChangeCallback callback,
+ *                                          CATransportAdapter_t adapter)
+ * {
+ *     if (!callback)
+ *     {
+ *         OIC_LOG(ERROR, TAG, "callback is null");
+ *         return CA_STATUS_INVALID_PARAM;
+ *     }
+ *
+ *     CAIPCBData_t *cbitem = NULL;
+ *     LL_FOREACH(g_adapterCallbackList, cbitem)
+ *     {
+ *         if (cbitem && adapter == cbitem->adapter && callback == cbitem->callback)
+ *         {
+ *             OIC_LOG(DEBUG, TAG, "this callback is already added");
+ *             return CA_STATUS_OK;
+ *         }
+ *     }
+ *
+ *     cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem));
+ *     if (!cbitem)
+ *     {
+ *         OIC_LOG(ERROR, TAG, "Malloc failed");
+ *         return CA_STATUS_FAILED;
+ *     }
+ *
+ *     cbitem->adapter = adapter;
+ *     cbitem->callback = callback;
+ *     LL_APPEND(g_adapterCallbackList, cbitem);
+ *
+ *     return CA_STATUS_OK;
+ * } */
 
-int CAGetPollingInterval(int interval)
-{
-    return interval;
-}
+/* GAR: same as posix */
+/* CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)
+ * {
+ *     CAIPCBData_t *cbitem = NULL;
+ *     CAIPCBData_t *tmpCbitem = NULL;
+ *     LL_FOREACH_SAFE(g_adapterCallbackList, cbitem, tmpCbitem)
+ *     {
+ *         if (cbitem && adapter == cbitem->adapter)
+ *         {
+ *             OIC_LOG(DEBUG, TAG, "remove specific callback");
+ *             LL_DELETE(g_adapterCallbackList, cbitem);
+ *             OICFree(cbitem);
+ *             return CA_STATUS_OK;
+ *         }
+ *     }
+ *     return CA_STATUS_OK;
+ * } */
 
-static void CAIPPassNetworkChangesToAdapter(CANetworkStatus_t status)
-{
-    CAIPCBData_t *cbitem = NULL;
-    LL_FOREACH(g_adapterCallbackList, cbitem)
-    {
-        if (cbitem && cbitem->adapter)
-        {
-            cbitem->callback(cbitem->adapter, status);
-        }
-    }
-}
-
-CAResult_t CAIPSetNetworkMonitorCallback(CAIPAdapterStateChangeCallback callback,
-                                         CATransportAdapter_t adapter)
-{
-    if (!callback)
-    {
-        OIC_LOG(ERROR, TAG, "callback is null");
-        return CA_STATUS_INVALID_PARAM;
-    }
-
-    CAIPCBData_t *cbitem = NULL;
-    LL_FOREACH(g_adapterCallbackList, cbitem)
-    {
-        if (cbitem && adapter == cbitem->adapter && callback == cbitem->callback)
-        {
-            OIC_LOG(DEBUG, TAG, "this callback is already added");
-            return CA_STATUS_OK;
-        }
-    }
-
-    cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem));
-    if (!cbitem)
-    {
-        OIC_LOG(ERROR, TAG, "Malloc failed");
-        return CA_STATUS_FAILED;
-    }
-
-    cbitem->adapter = adapter;
-    cbitem->callback = callback;
-    LL_APPEND(g_adapterCallbackList, cbitem);
-
-    return CA_STATUS_OK;
-}
-
-CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)
-{
-    CAIPCBData_t *cbitem = NULL;
-    CAIPCBData_t *tmpCbitem = NULL;
-    LL_FOREACH_SAFE(g_adapterCallbackList, cbitem, tmpCbitem)
-    {
-        if (cbitem && adapter == cbitem->adapter)
-        {
-            OIC_LOG(DEBUG, TAG, "remove specific callback");
-            LL_DELETE(g_adapterCallbackList, cbitem);
-            OICFree(cbitem);
-            return CA_STATUS_OK;
-        }
-    }
-    return CA_STATUS_OK;
-}
-
-u_arraylist_t *CAFindInterfaceChange()
-{
-    char buf[NETLINK_MESSAGE_LENGTH] = { 0 };
-    struct sockaddr_nl sa = { 0 };
-    struct iovec iov = { .iov_base = buf,
-                         .iov_len = sizeof (buf) };
-    struct msghdr msg = { .msg_name = (void *)&sa,
-                          .msg_namelen = sizeof (sa),
-                          .msg_iov = &iov,
-                          .msg_iovlen = 1 };
-
-    // We do nothing with netlink event here.
-    // Android BroadcastReceiver will work instead.
-    ssize_t len = recvmsg(caglobals.ip.netlinkFd, &msg, 0);
-    OC_UNUSED(len);
-
-    return NULL;
-}
+/* GAR: platform-specific; linux uses netlink */
+/* u_arraylist_t *CAFindInterfaceChange()
+ * {
+ *     char buf[NETLINK_MESSAGE_LENGTH] = { 0 };
+ *     struct sockaddr_nl sa = { 0 };
+ *     struct iovec iov = { .iov_base = buf,
+ *                          .iov_len = sizeof (buf) };
+ *     struct msghdr msg = { .msg_name = (void *)&sa,
+ *                           .msg_namelen = sizeof (sa),
+ *                           .msg_iov = &iov,
+ *                           .msg_iovlen = 1 };
+ * 
+ *     // We do nothing with netlink event here.
+ *     // Android BroadcastReceiver will work instead.
+ *     ssize_t len = recvmsg(caglobals.ip.netlinkFd, &msg, 0);
+ *     OC_UNUSED(len);
+ * 
+ *     return NULL;
+ * } */
 
 /**
  * Used to send netlink query to kernel and recv response from kernel.
@@ -206,6 +215,7 @@ u_arraylist_t *CAFindInterfaceChange()
  * @param[out]  iflist    linked list.
  *
  */
+/* GAR: not in posix; called by CAIPGetInterfaceInformation */
 static bool CAParsingNetorkInfo(int idx, u_arraylist_t *iflist)
 {
     if ((idx < 0) || (iflist == NULL))
@@ -214,7 +224,7 @@ static bool CAParsingNetorkInfo(int idx, u_arraylist_t *iflist)
     }
 
     struct ifaddrs *ifp = NULL;
-    CAResult_t ret = CAGetIfaddrsUsingNetlink(&ifp);
+    CAResult_t ret = CAGetIfaddrsUsingNetlink(&ifp); /* GAR: why not getifaddrs? */
     if (CA_STATUS_OK != ret)
     {
         OIC_LOG_V(ERROR, TAG, "Failed to get ifaddrs err code is: %d", ret);
@@ -278,6 +288,7 @@ exit:
     return false;
 }
 
+/* GAR: posix uses getifaddrs, only added in android 24 */
 u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
 {
     u_arraylist_t *iflist = u_arraylist_create();
@@ -299,7 +310,8 @@ exit:
     return NULL;
 }
 
-static CAResult_t CAAddInterfaceItem(u_arraylist_t *iflist, int index,
+/* GAR: not in posix */
+CAResult_t CAAddInterfaceItem(u_arraylist_t *iflist, int index,
                                      const char *name, int family, const char *addr, int flags)
 {
     CAInterface_t *ifitem = CANewInterfaceItem(index, name, family, addr, flags);
@@ -318,47 +330,49 @@ static CAResult_t CAAddInterfaceItem(u_arraylist_t *iflist, int index,
     return CA_STATUS_OK;
 }
 
-static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family,
-                                         const char *addr, int flags)
-{
-    CAInterface_t *ifitem = (CAInterface_t *)OICCalloc(1, sizeof (CAInterface_t));
-    if (!ifitem)
-    {
-        OIC_LOG(ERROR, TAG, "Malloc failed");
-        return NULL;
-    }
+/* GAR: same as posix */
+/* static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family,
+ *                                          const char *addr, int flags)
+ * {
+ *     CAInterface_t *ifitem = (CAInterface_t *)OICCalloc(1, sizeof (CAInterface_t));
+ *     if (!ifitem)
+ *     {
+ *         OIC_LOG(ERROR, TAG, "Malloc failed");
+ *         return NULL;
+ *     }
+ *
+ *     OICStrcpy(ifitem->name, sizeof (ifitem->name), name);
+ *     ifitem->index = index;
+ *     ifitem->family = family;
+ *     OICStrcpy(ifitem->addr, sizeof (ifitem->addr), addr);
+ *     ifitem->flags = flags;
+ *
+ *     return ifitem;
+ * } */
 
-    OICStrcpy(ifitem->name, sizeof (ifitem->name), name);
-    ifitem->index = index;
-    ifitem->family = family;
-    OICStrcpy(ifitem->addr, sizeof (ifitem->addr), addr);
-    ifitem->flags = flags;
-
-    return ifitem;
-}
-
-CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
-{
-    if (!zoneId || (*zoneId != NULL))
-    {
-        return CA_STATUS_INVALID_PARAM;
-    }
-
-    *zoneId = (char *)OICCalloc(IF_NAMESIZE, sizeof(char));
-    if (!(*zoneId))
-    {
-        OIC_LOG(ERROR, TAG, "OICCalloc failed in CAGetLinkLocalZoneIdInternal");
-        return CA_MEMORY_ALLOC_FAILED;
-    }
-
-    if (!if_indextoname(ifindex, *zoneId))
-    {
-        OIC_LOG(ERROR, TAG, "if_indextoname failed in CAGetLinkLocalZoneIdInternal");
-        OICFree(*zoneId);
-        *zoneId = NULL;
-        return CA_STATUS_FAILED;
-    }
-
-    OIC_LOG_V(DEBUG, TAG, "Given ifindex is %d parsed zoneId is %s", ifindex, *zoneId);
-    return CA_STATUS_OK;
-}
+/* GAR: same as posix */
+/* CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
+ * {
+ *     if (!zoneId || (*zoneId != NULL))
+ *     {
+ *         return CA_STATUS_INVALID_PARAM;
+ *     }
+ *
+ *     *zoneId = (char *)OICCalloc(IF_NAMESIZE, sizeof(char));
+ *     if (!(*zoneId))
+ *     {
+ *         OIC_LOG(ERROR, TAG, "OICCalloc failed in CAGetLinkLocalZoneIdInternal");
+ *         return CA_MEMORY_ALLOC_FAILED;
+ *     }
+ *
+ *     if (!if_indextoname(ifindex, *zoneId))
+ *     {
+ *         OIC_LOG(ERROR, TAG, "if_indextoname failed in CAGetLinkLocalZoneIdInternal");
+ *         OICFree(*zoneId);
+ *         *zoneId = NULL;
+ *         return CA_STATUS_FAILED;
+ *     }
+ *
+ *     OIC_LOG_V(DEBUG, TAG, "Given ifindex is %d parsed zoneId is %s", ifindex, *zoneId);
+ *     return CA_STATUS_OK;
+ * } */
