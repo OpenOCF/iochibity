@@ -74,17 +74,23 @@ support cross-compiling has not yet been tested there).
 
 === cross-compiling
 
-Steps:
+See
+https://github.com/mobileink/bazel-crosscompile[bazel-crosscompile]
+for detailed examples of crosscompiling with Bazel.
+
+Summary:
 
 1. Build/install the toolchain.
 
-2. Configure the toolchain for Bazel.
+2. Configure the toolchain for Bazel (CROSSTOOL, etc.).
 
 3. Build the third-party libs needed by your app.
 
-4. Configure the third-party libraries for Bazel.
+4. Configure the third-party libraries for Bazel (WORKSPACE and BUILD files).
 
-5. Configure your application.
+5. Configure your application (BUILD files).
+
+6. Build using the toolchaing
 
 See [cross compiling with bazel] for more info.
 
