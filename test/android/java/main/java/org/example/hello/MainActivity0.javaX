@@ -1,0 +1,21 @@
+package org.example.hello;
+
+import openocf.Service;
+
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+
+/**
+ * Main class for the Bazel Android "Hello, World" app.
+ */
+public class MainActivity extends AppCompatActivity {
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    Log.v("Bazel", "Hello, Android");
+    System.loadLibrary("openocf");
+    Log.v("Bazel", "JNI says: " + Service.configuration());
+  }
+}
