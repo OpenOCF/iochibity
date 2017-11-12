@@ -27,6 +27,7 @@ config.sub
 src/iotivity_config.h
 
 # bazel
+.bazelrc
 # tmp dirs:
 bazel-*
 # query results
