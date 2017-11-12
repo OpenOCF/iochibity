@@ -1,5 +1,59 @@
 = udpip
 
+WARNING:  Work In Progress
+
+* list local interfaces
+
+* respond dynamically to network/interface changes
+
+== portability
+
+Platforms:
+
+    Posix:  shared by all? or just by Linux, BSD, Darwin, Android
+
+    Darwin, Linux, BSD: platform-specific code, e.g. netlink stuff for linux
+
+    Tizen
+
+    Windows
+
+
+Local network addresses: no really portable method
+
+    BSD:  getifaddrs
+
+    Darwin: BSD getifaddrs - see https://developer.apple.com/library/content/technotes/tn1145/_index.html#//apple_ref/doc/uid/DTS10002984-CH1-SECGETTINGIPLIST[Getting a list of all IP addresses]
+
+    Linux: getifaddrs (not quite same as BSD getifaddrs), netlink
+
+    Android: getifaddrs introduced in 24, otherwise netlink
+
+        android-ifaddrs: https://github.com/morristech/android-ifaddrs
+
+
+   POSIX: no such API, per https://stackoverflow.com/questions/8645566/is-there-a-posix-compliant-way-of-getting-local-network-ip-address-of-my-compute.
+
+    Windows: GetAdapterAddresses?
+
+why getifaddrs and not netlink? https://stackoverflow.com/questions/579783/how-to-detect-ip-address-change-programmatically-in-linux
+
+getifaddrs manpage: "Support of address families other than IPv4 is available only on kernels that support netlink."
+
+but netlink is Linux-only
+
+Winsock v. POSIX sockets: https://stackoverflow.com/questions/28027937/cross-platform-sockets
+
+Dynamic response to changes:
+
+    Linux:  netlink
+
+    BSD:  ??
+
+    OS X:  System Configuration framework
+
+    Windows: ??
+
 == ip interface
 
 caipinterface.h - misnamed, it's really the caipserver.h
