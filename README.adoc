@@ -76,7 +76,8 @@ support cross-compiling has not yet been tested there).
 
 See
 https://github.com/mobileink/bazel-crosscompile[bazel-crosscompile]
-for detailed examples of crosscompiling with Bazel.
+for detailed examples of crosscompiling with Bazel. The relevant files
+here are in link:platforms[platforms/] and link:WORKSPACE[WORKSPACE].
 
 Summary:
 
@@ -91,8 +92,6 @@ Summary:
 5. Configure your application (BUILD files).
 
 6. Build using the toolchaing
-
-See [cross compiling with bazel] for more info.
 
 Current support for cross-compiling is based on toolchains built by
 https://crosstool-ng.github.io/[crosstool-NG].
@@ -111,7 +110,7 @@ the Raspberry Pi 3b:
 $ bazel build examples/simple:server --crosstool_top=//platforms/rpi3b:toolchain
 ----
 
-See `tools/bazel.rc`. Copy that file to `<root>/.bazelrc` to customize.
+See link:tools/bazel.rc[tools/bazel.rc]. Copy that file to `<root>/.bazelrc` to customize.
 
 
 == Java/Android
