@@ -1,12 +1,50 @@
 = udpip
 
-WARNING:  Work In Progress
+WARNING: doc is Work In Progress
+
+Tasks:
+
+* observe (recv) incoming data messages - select/recvmsg on all data sockets
+* exhibit (send) messages
+* monitor interface/addr status messages - netlink socket (CARegisterForAddressChanges) select/recvmsg
+
+
+Observation/monitoring flow (caipserver.c):
+
+CAIpStartServer CAReceiveHandler to threadpool
+CAReceiveHandler loop => CAFindReadyMessage => CASelectReturned
+for data messages, CASelectReturned calls CAReceiveMessage
+for if change messages, CASelectReturned calls CAFindInterfaceChange, CAProcessNewInterface
+for shutdown messages, CASelectReturned quits
+
+CAFindInterfaceChange -> CAIPGetInterfaceInformation
+CAIPGetInterfaceInformation => getifaddrs, converts result to list of CAInterface_t
+
+Naming fixes:
+CARegisterForAddressChanges -> initialize_interface_monitor (i.e. create the netlink socket)
+CAFindReadyMessage          -> wait_for_ready_interfaces
+CASelectReturned            -> process_ready_interfaces
+CAReceiveMessage            -> handle_data_message
+CAFindInterfaceChange       -> handle_network_change_message
+CAIPGetInterfaceInformation -> get_ifaddrs_info
+CAProcessNewInterface       -> join_multicast_group
+
 
 * list local interfaces
 
 * respond dynamically to network/interface changes
 
 == portability
+
+SIOCGIFCONF won't return IPv6 addrs. Netlink is Linux only.
+
+https://stackoverflow.com/questions/20743709/get-ipv6-addresses-in-linux-using-ioctl :
+"Each platform has a different way of getting the IPv6 ones:
+Linux, use NETLINK if you're crazy, use getifaddrs if you have a vaguely recent glibc, otherwise read /proc/net/if_inet6 (eg on Android).
+Darwin or FreeBSD: use getifaddrs.
+Solaris, use SIOCGLIFCONF.
+AIX, use SIOCGIFCONF which actually returns IPv4 and IPv6 addresses (because they have an sa_len field in struct sockaddr they can actually support that).
+"
 
 Platforms:
 
@@ -92,7 +130,195 @@ caipinterface.h - misnamed, it's really the caipserver.h
     CAIPSetErrorHandler - defined in caipserver.c, used by caipadapter.c
 
 
+CAProcessNewInterface - misnamed, really means AddIfToMulticastGroups, defined and used in caipserver.c
+
+
+== servers
+
+We have:
+
+caipserver.c/CAIPStartListenServer: calls
+CAIPGetInterfaceInformation(0), iterates over resulting iflist, adding each if
+to multicast group, then destroys the iflist
+
+caipadapter.c/CAStartIPListeningServer calls CAIPStartListenServer, nothing else
+
+caipadapter.c/CAStartIPDiscoveryServer calls Castartiplisteningserver, nothing else
+
+cainterfacecontroller.c/CAStartDiscoveryServerAdapters calls the
+startDiscoveryServer on each adapterhandler (i.e. CA_ADAPTER_* enabled
+at compile time)
+
+* caipserver.c/CAIPStartListenServer - called by:
+<== caipadapter.c/CAStartIPListeningServer (called by caipadapter.c/CAStartIPDiscoveryServer, from ipHandler.startDiscoveryServer set in CAInitializeIP, .startDiscoveryServer called by cainterfacecontroller.c/CAStartDiscoveryServerAdapters, by caconnectivitymanager.c/CAStartDiscoveryServer, by ocstack.c/OCInitializeInternal)
+<== caipserver.c/CAIPStartServer (called by caipadapter.c/CAStartIP(), which is also ipHandler.startAdapter from CAInitializeIP, which is called by cainterfacecontroller.c/CAStartAdapter, called by canetworkconfigurator.c/CAAddNetworkType, called by connectivitymanager.c/CASelectNetwork,called by ocstack.c/OCSelectNetwork, called by ocstack.c/OCInitializeInternal, by OCInit2, by OCInit1, by OCInit, by application)
 
 == network monitor
 
+caipnwmonitor is misnamed. it's really an IP interface manager. This
+involves two tasks:
+
+* construct a global list of ifs
+* respond dynamically to changes in if status (up/down)
+
+Terminology problems: "interface" & "address", "adapter". One nw
+interface may have multiple addresses. Interface =? adapter?
+
+caipnwmonitor.h/CAInterface_t: name, index, flags, family, addr
+(string). The comments say this is misnamed since one if could have
+multiple addresses. E.g. interface "en1" could have IPv4 and IPv6
+addresses. Name/index pairs are unique - one per interface. The
+relation between IP interface (name/index) and ifaddrs is one to many.
+
+CAInterface_t is an IP level abstraction. It does not know about transport (UDP/TCP).
+
+Related data structs:
+
+cacommon.h/CAEndpoint_t - transport adapter and flags, port, addr
+(string), ifindex, remoteid cacommon.h/CATransportAdapter_t - enum,
+CA_ADAPTER_IP (meaning UDP?), CA_ADAPTER_TCP, etc.
+cacommon.h/CATransportFlags_t - enum, secure, multicast, scope, ip
+version
+
+Network IP if manager API:
+caipnwmonitor.c/g_netInterfaceList  = list of CAInterface_t (u_array_list_t*)
+CAIPInitializeNetworkMonitorList    = create_global_iflist
+CAIPDestroyNetworkMonitorList       = destroy_global_iflist
+CAAddNetworkMonitorList             = add_if_to_global_iflist (CAInterface_t)
+CARemoveNetworkMonitorList          = remove_if_from_global_iflist
+CACmpNetworkList(uint32_t ifiindex) = if_is_on_global_iflist (bool)
+
+NB: as far as I can tell, g_netInterfaceList is not actually used for
+anything. Clients always use the list of CAInterface_t dynamically
+created and returned by CAIPGetInterfaceInformation.
+
+The global if list is populated by CAIPGetInterfaceInformation.
+
+At startup, CAIPStartListenServer calls
+CAIPGetInterfaceInformation(0), which calls getifaddrs and then
+iterates over all ifaddrs:
+
+* converts each discovered ifaddrs to CAInterface_t and passes it to CAAddNetworkMonitorList
+* makes a copy of that CAInterface_t and adds it to a list of CAInterface_t (u_arraylist_t*)
+* returns the u_arraylist_t*
+
+When if status changes, CAIPGetInterfaceInformation is called with the
+index of the changed if.  E.g. CAFindInterfaceChange queries the
+netlink socket to get the indices of changed interfaces. It then calls
+CAIPGetInterfaceInformation, passing the index of the changed if,
+which calls CAAddNetworkMonitorList (for RTM_NEWADDR) or
+CARemoveNetworkMonitorList (for RTMM_DELADDR).
+
+The netlink socket is set up in CARegisterForAddressChanges <= CAIPStartServer <= ... <= OCInit
+
+CAIPGetInterfaceInformation(0) (i.e. get all ifs) is called by:
+
+* caipserver.c/CAIPStartListenServer - called by:
+<== caipadapter.c/CAStartIPListeningServer (called by caipadapter.c/CAStartIPDiscoveryServer, from ipHandler.startDiscoveryServer set in CAInitializeIP, .startDiscoveryServer called by cainterfacecontroller.c/CAStartDiscoveryServerAdapters, by caconnectivitymanager.c/CAStartDiscoveryServer, by ocstack.c/OCInitializeInternal)
+<== caipserver.c/CAIPStartServer (called by caipadapter.c/CAStartIP(), which is also ipHandler.startAdapter from CAInitializeIP, which is called by cainterfacecontroller.c/CAStartAdapter, called by canetworkconfigurator.c/CAAddNetworkType, called by connectivitymanager.c/CASelectNetwork,called by ocstack.c/OCSelectNetwork, called by ocstack.c/OCInitializeInternal, by OCInit2, by OCInit1, by OCInit, by application)
+* caipserver.c/CAIPSendData (for multicast msgs)
+* caipserver.c/CAGetIPInterfaceInformation(/CAEndpoint_t **info, size_t *size)
+<== called by caipadapter.c/CAUpdateStoredIPAddressInfo(CANetworkStatus_t status)
+<==== called by CAIPAdapterHandler(CATransportAdapter_t adapter, CANetworkStatus_t status)
+<====== called by CAStartIP()
+<== stored as CAConnectivityHandler_t ipHandler.GetnetInfo from CAInitializeIP
+<==== called by cainterfacecontroller.c/CAGetNetworkInfo (output arg: CAEndpoint_t**)
+<====== called by canetworkconfigurator.c/CAGetNetworkInformationInternal
+<======== called by caconnectivitymanager.c/CAGetNetworkInformation
+<========== called by e.g. ocresource.c/HandleVirtualResource, etc.
+
+Note the redundancy. We call CAIPGetInterfaceInformation multiple times at startup
+(OCInitializeInternal), whenever a multicast msg is sent, and when
+
+
+On all platforms we have a set of 8 comm sockets (ipv4/ipv6,
+unicast/multicast, secure/insecure).
+
+We also have two "meta" sockets, one for ipaddr change event
+detection, one to signal shutdown to threads. These are
+platform-specific:
+
+    ip addr changes:
+
+       Linux uses netlink socket
+       OS X - sys config framework?
+       	   https://developer.apple.com/library/content/technotes/tn1145/_index.html#//apple_ref/doc/uid/DTS10002984-CH1-SECGETTINGIPLIST
+	   https://stackoverflow.com/questions/3613521/udp-socket-network-disconnect-behavior-on-windows-linux-mac
+       BSD - ioctl(SIOCGIFCONF)?
+       Windows uses WSAEVENT
+
+    shutdown event signaling:
+
+        Linux uses 2 ints
+	BSD - ioctl(SIOCGIFCONF)?
+	Darwin - ?
+	Windows uses WSAEVENT
+
+
 one header caipnwmonitor.h, platform-specific implementations
+
+caipnwmonitor.h/CAIPCBData_t holds CATransportAdapter_t * and CAIPAdapterStateChangeCallback *
+
+
+caipadapter.c/CAStartIP
+=> caipnwmonitor.c/CAIPStartNetworkMonitor(cb, adapter)
+===> caipnwmonitor.c/CAIPInitializeNetworkMonitorList() - creates mutex, global if list
+===> CAIPSetNetworkMonitorCallback(cb, adapter)
+       creates CAIPCBData_t* for cb/adapter, adds to g_adapterCallbackList
+
+https://jira.iotivity.org/browse/IOT-437
+
+
+caipserver.c/CAIpStartServer // adds CAReceiveHandler to threadpool
+
+caipserver./cCAReceiveHandler  // while (!caglobals.ip.terminate) { CAFindReadyMessage(); }
+
+caipserver.c/CAFindReadyMessage // calls select on the set of global fds, CASelectReturned on ready fds
+
+caipserver.c/CASelectReturned // loops, recving msgs, until all recvd or caglobals.ip.terminate
+        for netlinkFd events, we know sth has changed, so:
+            => CAFindInterfaceChange  // use netlink to get RTM_DELADDR, RTM_NEWADDR
+                foreach RTM_NEWADDR: we have its index, so:
+		    => caipnwmonitor.c/CAIPGetInterfaceInformation(idx) (complicated, see below)
+	foreach found interface call caipserver/CAProcessNewInterface to add it to multicast group
+
+%%%%%%%%%%%%%%%%
+caipnwmonitor.c/CAIPGetInterfaceInformation for a desired index
+
+input arg is 0, or if index obtained from netlink RTM_NEWADDR if called from CAFindInterfaceChange
+
+Called by two kinds of routines
+
+    * those that need to process all ifs, e.g. CAIPStartListenServer adds them all to multicast group.
+
+    * those that need only on if. e.g. called by nwmonitor on
+ detection of nw changes, for the side effect of adding newly found
+ ifs to nw monitoring list (and ignoring the returnd iflist). iow this
+ is a very badly designed routine.
+
+Hidden semantics: passing 0 as desired index means return all ifs,
+otherwise just the one.
+
+what does "interface information" mean, exactly?
+
+create an u_arraylist_t * iflist to hold ifs
+
+    call getifaddrs to get ifaddrs *ifp  (NB: each if has an (one?) address and an (one?) index)
+
+    iterate over if addresses to find matching index:
+
+    once we find the if by index, OR if desired index is 0:
+
+        iterate over the iflist to see if if already added, matching index and family
+
+	  one if has one name/index, but may have multiple addrs. we only store one CAInterfaceItem per name/index, apparently. seems a bug.
+
+	if not: create a CAInterface_t for it, add to iflist
+	if not already on the NetworkList, then
+	    caipnwmonitor/CANewInterfaceItem
+	        this creates a new  CAInterface_t* from the one we just made, why? because iflist owns that one
+	    CAAddNetworkMonitorList, CAIPPassNetworkChangesToAdapter
+
+CAIPPassNetworkChangesToAdapter takes one arg, if_up or down; how does
+it know which adapter? it doesn't, it iterates over all adapter cbs
+and passes the status (IF_UP/IF_DOWN) to each. bug?
