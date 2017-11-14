@@ -29,6 +29,10 @@ cc_binary(
               ":android": ["-Iexternal/cosysroot_ndk/usr/include",
                          "-Iexternal/cosysroot_ndk/usr/include/cdk",
                          "-std=c11"],
+              ":wrlinux": ["-Iexternal/cosysroot_wrlinux/usr/local/include",
+                         "-Iexternal/cosysroot_wrlinux/usr/local/include/cdk",
+                         "-Iexternal/cosysroot_wrlinux/usr/include",
+                         "-std=c11"],
               "//conditions:default": ["-Iexternal/usr_local/include",
                                        "-Iexternal/usr_local/include/cdk"]}),
     deps = ["//src:config",
@@ -38,6 +42,7 @@ cc_binary(
             "//third_party/coap"]
     + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
               ":android": ["@cosysroot_ndk//:cdk"],
+              ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
               "//conditions:default": ["@usr_local//:cdk"]}),
     linkstatic = 1,
     srcs = ["occlient.c",
