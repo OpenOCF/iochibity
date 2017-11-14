@@ -1,13 +1,6 @@
-package(default_visibility = ["//visibility:public"])
+# the toolchain BUILD package defines the filegroups used by CROSSTOOL
 
-cc_toolchain_suite(
-    name = "toolchain",
-    toolchains = {
-        # --cpu | --compiler : <cc_toolchain name>
-        "armv8|gcc": "cc-compiler-armv8-rpi3",
-        # "k8|compiler": "cc-compiler-k8",
-    },
-)
+package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "toolchain_fg",
@@ -24,71 +17,134 @@ cc_library(
     srcs = [],
 )
 
+filegroup(
+    name = "all-files",
+    srcs = [
+        ":compiler",
+        ":linker",
+        ":headers",
+        ":x86_64-unknown-linux-gnu-static-runtime-libs",
+        ":x86_64-unknown-linux-gnu-dynamic-runtime-libs",
+    ],
+)
 
 filegroup(
-    name = "compile",
+    name = "compiler",
     srcs = glob(
         [
-            "armv8-rpi3-linux-gnueabihf/sysroot/**/*.h",
-            # "toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/**/*.h",
-            # "platforms/android-23/arch-arm/**/*.h",
+            "bin/x86_64-unknown-linux-gnu-gcc",
+            "bin/x86_64-unknown-linux-gnu-as",
+            "bin/x86_64-unknown-linux-gnu-ld",
         ],
     ),
 )
 
-
 filegroup(
-  name = 'compiler_pieces',
-  srcs = glob([
-    'armv7l-tizen-linux-gnueabi/**',
-    'libexec/**',
-    'lib/gcc/armv7l-tizen-linux-gnueabi/**',
-    'include/**',
-  ]),
+    name = "linker",
+    srcs = ["bin/x86_64-unknown-linux-gnu-gcc",
+            "bin/x86_64-unknown-linux-gnu-ar",
+            "bin/x86_64-unknown-linux-gnu-ld"],
 )
 
 filegroup(
-    name = "link",
+    name = "headers",
     srcs = glob(
         [
-            "armv8-rpi3-linux-gnueabihf/lib/*.a",
-            "armv8-rpi3-linux-gnueabihf/sysroot/lib/*.a",
-            "armv8-rpi3-linux-gnueabihf/sysroot/usr/lib/**/*.a",
-            "lib/gcc/armv8-rpi3-linux-gnueabihf/6.3.0/*.a",
-
-            "armv8-rpi3-linux-gnueabihf/sysroot/usr/lib/*.o",
-            "lib/gcc/armv8-rpi3-linux-gnueabihf/6.3.0/*.o",
-
-            "armv8-rpi3-linux-gnueabihf/lib/*.so",
-            "armv8-rpi3-linux-gnueabihf/sysroot/lib/*.so",
-            "armv8-rpi3-linux-gnueabihf/sysroot/usr/lib/*.so",
-            "armv8-rpi3-linux-gnueabihf/sysroot/usr/**/*.so",
-            "armv8-rpi3-linux-gnueabihf/sysroot/lib/plugin/*.so",
-            "lib/gcc/armv8-rpi3-linux-gnueabihf/6.3.0/**/*.so",
-            "lib/*.so",
-            "libexec/**/*.so",
+            "include/**/*h",
+            "lib/gcc/x86_64-unknown-linux-gnu/6.3.0/include/**/*.h",
+            "lib/gcc/x86_64-unknown-linux-gnu/6.3.0/include-fixed/**/*.h",
+            "x86_64-unknown-linux-gnu/sysroot/include/**/*.h",
+            "x86_64-unknown-linux-gnu/sysroot/usr/include/*.h",
+            "x86_64-unknown-linux-gnu/sysroot/usr/include/*.h",
+            "x86_64-unknown-linux-gnu/include/c++/**",
         ],
-    )
+    ),
 )
+
+# filegroup(
+#     name = "compile",
+#     srcs = glob(
+#         [
+#             "x86_64-unknown-linux-gnu/sysroot/**/*.h",
+#         ],
+#     ),
+# )
+
+
+# filegroup(
+#   name = 'compiler_pieces',
+#   srcs = glob([
+#     'x86_64-unknown-linux-gnu/**',
+#     'libexec/**',
+#     'lib/gcc/armv7l-tizen-linux-gnueabi/**',
+#     'include/**',
+#   ]),
+# )
+
+filegroup(
+    name = "x86_64-unknown-linux-gnu-static-runtime-libs",
+    srcs = glob([
+        "x86_64-unknown-linux-gnu/lib/gcc/x86_64-unknown-linux-gnu/6.3.0/crt*.o",
+        "x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu/sysroot/usr/lib/crt*.o",
+        "x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu/sysroot/lib/*.a",
+        "x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu/sysroot/usr/lib/*.a"
+    ]),
+    output_licenses = ["unencumbered"],
+)
+
+filegroup(
+    name = "x86_64-unknown-linux-gnu-dynamic-runtime-libs",
+    srcs = glob([
+        # "x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu/sysroot/usr/lib/crt*.o"
+        "x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu/sysroot/lib/**/*.so",
+        "x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu/sysroot/usr/lib/**/*.so"
+    ]),
+    output_licenses = ["unencumbered"],
+)
+
+
+# filegroup(
+#     name = "link",
+#     srcs = glob(
+#         [
+#             "x86_64-unknown-linux-gnu/lib/*.a",
+#             "x86_64-unknown-linux-gnu/sysroot/lib/*.a",
+#             "x86_64-unknown-linux-gnu/sysroot/usr/lib/**/*.a",
+#             "lib/gcc/x86_64-unknown-linux-gnu/6.3.0/*.a",
+
+#             "x86_64-unknown-linux-gnu/sysroot/usr/lib/*.o",
+#             "lib/gcc/x86_64-unknown-linux-gnu/6.3.0/*.o",
+
+#             "x86_64-unknown-linux-gnu/lib/*.so",
+#             "x86_64-unknown-linux-gnu/sysroot/lib/*.so",
+#             "x86_64-unknown-linux-gnu/sysroot/usr/lib/*.so",
+#             "x86_64-unknown-linux-gnu/sysroot/usr/**/*.so",
+#             "x86_64-unknown-linux-gnu/sysroot/lib/plugin/*.so",
+#             "lib/gcc/x86_64-unknown-linux-gnu/6.3.0/**/*.so",
+#             "lib/*.so",
+#             "libexec/**/*.so",
+#         ],
+#     )
+# )
 
 filegroup(
     name = "objcopy",
     srcs = [
-        "armv8-rpi3-linux-gnueabihf/sysroot/bin/armv8-rpi3-linux-gnueabihf-objcopy"
+        "x86_64-unknown-linux-gnu/sysroot/bin/x86_64-unknown-linux-gnu-objcopy"
     ],
 )
 
 filegroup(
     name = "strip",
     srcs = [
-        "armv8-rpi3-linux-gnueabihf/sysroot/bin/armv8-rpi3-linux-gnueabihf-strip"
+        "x86_64-unknown-linux-gnu/sysroot/bin/x86_64-unknown-linux-gnu-strip"
     ],
 )
 
 filegroup(
     name = "gcc-armv8-toolchain",
     srcs = glob([
-        "armv8-rpi3-linux-gnueabihf/**",
+        "x86_64-unknown-linux-gnu/**",
     ]),
     output_licenses = ["unencumbered"],
 )
@@ -113,18 +169,3 @@ filegroup(
     name = "empty",
     srcs = [],
 )
-
-# cc_toolchain(
-#     name = "cc-compiler-armv8-rpi3",
-#     all_files = ":everything",
-#     compiler_files = ":compile",  # ":gcc-armv8-toolchain",
-#     cpu = "armv8",
-#     dwp_files = ":empty",
-#     linker_files = ":link", # gcc-arm-android-4.9-toolchain",
-#     objcopy_files = ":objcopy",
-#     dynamic_runtime_libs = [":link"],
-#     static_runtime_libs = [":link"],
-#     strip_files = ":strip",
-#     supports_param_files = 1,
-#     visibility = ["//visibility:public"],
-# )

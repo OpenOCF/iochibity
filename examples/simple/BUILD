@@ -5,6 +5,10 @@ config_setting(
               "android_crosstool_top": "//platforms/ndk:toolchain" }
 )
 config_setting(
+    name = "wrlinux",
+    values = { "crosstool_top": "//platforms/wrlinux:toolchain" }
+)
+config_setting(
     name = "rpi3b",
      values = { "crosstool_top": "//platforms/rpi3b:toolchain" }
 )
@@ -62,6 +66,7 @@ cc_binary(
             "//src/ocf"]
     + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
               ":android": ["@cosysroot_ndk//:cdk"],
+              ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
               "//conditions:default": ["@usr_local//:cdk"]}),
     # linkopts = ["-Wl,-dead_strip"],
     srcs = ["ocserver.c"]

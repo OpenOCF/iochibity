@@ -3,6 +3,10 @@ config_setting(
     values = { "crosstool_top": "//platforms/ndk:toolchain" }
 )
 config_setting(
+    name = "wrlinux",
+    values = { "crosstool_top": "//platforms/wrlinux:toolchain" }
+)
+config_setting(
     name = "windows",
     values = { "cpu": "x64_windows" }
 )
@@ -65,7 +69,7 @@ cc_library(
     linkopts = select({"windows": [],
                        "msvc": [],
                        "msys": ["-lpthread"],
-                       # "posix": ["-lpthread"],
+                       "wrlinux": ["-lpthread"],
                        # "android": [],
                        "androidx86": [],
                        #"ndk": [],
