@@ -614,8 +614,9 @@ typedef struct
         WSAEVENT addressChangeEvent;/**< Event used to signal address changes */
         WSAEVENT shutdownEvent;     /**< Event used to signal threads to stop */
 #else
+	/* GAR: netlink_socket, not int? */
         int netlinkFd;              /**< netlink */
-        int shutdownFds[2];         /**< fds used to signal threads to stop */
+        int shutdownFds[2];         /**< pipe used to signal threads to stop */
         CASocketFd_t maxfd;         /**< highest fd (for select) */
 #endif
         int selectTimeout;          /**< in seconds */
