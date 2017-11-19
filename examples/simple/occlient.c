@@ -21,9 +21,12 @@
 #include "openocf.h"
 
 #include "gui.h"
+#include "cJSON.h"
+#include "coap/pdu.h"
 
 #include <limits.h>
 #include <pthread.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,7 +45,7 @@ int gQuitFlag = 0;
 
 FILE *logfd;
 
-int log_msg(const char *format, ...)
+void log_msg(const char *format, ...)
 {
     va_list args;
 
@@ -572,7 +575,11 @@ OCStackApplicationResult resource_discovery_cb(void* ctx,
 						  OCClientResponse * clientResponse) {
     OIC_LOG(INFO, TAG, "Entering resource_discovery_cb (Application Layer CB)");
 
+    /* 1. update behaviors_observed_log */
+    /*  */
+
     log_discovery_message(clientResponse);
+
 
     //return OC_STACK_DELETE_TRANSACTION;
     return OC_STACK_KEEP_TRANSACTION | OC_STACK_KEEP_RESPONSE;
@@ -648,7 +655,7 @@ void* ocf_routine(void *arg) {
 
 int main ()
 {
-    logfd = fopen("openocf.log", "w");
+    logfd = fopen("./logs/client.log", "w");
     /* fprintf(logfd, "hello %s\n", "world"); */
     oocf_log_hook_stdout(log_msg);
     fflush(logfd);

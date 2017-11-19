@@ -1,0 +1,2 @@
+
+void discover_resources ();

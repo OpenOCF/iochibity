@@ -19,7 +19,9 @@
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
-#include "iotivity_config.h"
+#include "openocf.h"
+
+/* #include "iotivity_config.h" */
 
 #include <stdio.h>
 #include <string.h>
@@ -35,9 +37,8 @@
 
 /* #include <ncurses.h> */
 
-#include "ocstack.h"
-#include "logger.h"
-
+/* #include "ocstack.h"
+ * #include "logger.h" */
 
 #define TAG ("ocserver")
 

@@ -16,13 +16,15 @@ config_setting(
 cc_binary(
     name = "client",
     copts = ["-Isrc",
+             "-Iinclude",
              "-Isrc/comm/api",
              "-Isrc/logger",
              "-Isrc/ocf",
              "-Isrc/ocf/client",
              "-Isrc/portability",
              "-Ithird_party/cjson",
-             "-Ithird_party/coap/include"]
+             "-Ithird_party/coap/include",
+             "-Ithird_party/tinycbor/src"]
     + select({":rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/include",
                          "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
                          "-std=c11"],
@@ -34,18 +36,23 @@ cc_binary(
                          "-Iexternal/cosysroot_wrlinux/usr/include",
                          "-std=c11"],
               "//conditions:default": ["-Iexternal/usr_local/include",
-                                       "-Iexternal/usr_local/include/cdk"]}),
+                                       "-Iexternal/usr_local/include/cdk",
+                                       "-std=c11",
+                                       "-U DEBUG"]}), # OS X
     deps = ["//src:config",
+            "//include",
             "//src/ocf",
             "//src/ocf:client",
+            "//third_party/tinycbor",
             "//third_party/cjson",
-            "//third_party/coap"]
+           "//third_party/coap"]
     + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
               ":android": ["@cosysroot_ndk//:cdk"],
               ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
               "//conditions:default": ["@usr_local//:cdk"]}),
     linkstatic = 1,
     srcs = ["occlient.c",
+            "occlient.h",
             "gui.h",
             "gui.c",]
 )
@@ -54,10 +61,12 @@ cc_binary(
     name = "server",
     # linkstatic = 1,
     copts = ["-Isrc",
+             "-Iinclude",
              "-Isrc/comm",
              "-Isrc/logger",
              "-Isrc/ocf",
-             "-Ithird_party/coap/include"]
+             "-Ithird_party/coap/include",
+             "-Ithird_party/tinycbor/src"]
     + select({":rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/include",
                          "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
                          "-std=c11"],
@@ -66,9 +75,11 @@ cc_binary(
                          "-std=c11"],
               "//conditions:default": ["-Iexternal/usr_local/include",
                                        "-Iexternal/usr_local/include/cdk",
-                                       "-std=c11"]}),
+                                       "-std=c11",
+                                       "-U DEBUG"]}), # OS X
     deps = ["//src:config",
-            "//src/ocf"]
+            "//src/ocf",
+            "//third_party/tinycbor"]
     + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
               ":android": ["@cosysroot_ndk//:cdk"],
               ":wrlinux": ["@cosysroot_wrlinux//:cdk"],

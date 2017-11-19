@@ -1,11 +1,6 @@
 #ifndef GUI_H
 #define GUI_H	1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-
+#include "occlient.h"
 
 #endif /* GUI_H */
