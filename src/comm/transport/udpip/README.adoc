@@ -249,11 +249,12 @@ platform-specific:
 
     shutdown event signaling:
 
-        Linux uses 2 ints
-	BSD - ioctl(SIOCGIFCONF)?
-	Darwin - ?
+        Linux, BSD, Darwin - pipe
 	Windows uses WSAEVENT
 
+caglobals.ip.shutdownFds -> shutdownPipe
+shutdownFds[0] ->  shutdownPipe[READPORT]
+shutdownFds[1] ->  shutdownPipe[WRITEPORT]
 
 one header caipnwmonitor.h, platform-specific implementations
 
