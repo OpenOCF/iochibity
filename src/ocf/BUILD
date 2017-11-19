@@ -214,7 +214,9 @@ cc_library(
              "-Iexternal/openocf/src/sec/aclroles",
              "-Isrc/util",
              "-Iexternal/openocf/src/util",
+             "-Ithird_party/coap",
              "-Ithird_party/coap/include",
+             "-Iexternal/openocf/third_party/coap",
              "-Iexternal/openocf/third_party/coap/include",
              "-Ithird_party/tinycbor/src",
              "-Iexternal/openocf/third_party/tinycbor/src"]
