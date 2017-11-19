@@ -28,7 +28,7 @@ extern "C"
 {
 #endif
 
-#include "iotivity_config.h"
+/* #include "iotivity_config.h" */
 
 /* project version */
 #define CJSON_VERSION_MAJOR 1
