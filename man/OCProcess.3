@@ -1,0 +1,42 @@
+.TH OCProcess 3
+.SH NAME
+OCProcess \- "Process stack services"
+\" .Sh LIBRARY
+\" .Lb libz
+.Sh SYNOPSIS
+.In ocstack.h
+.LP
+#include <octypes.h>
+.Ft OCStackResult
+.Fo OCProcess
+.Fa "void"
+.Fc
+
+.Sh DESCRIPTION
+The
+.Fn OCInit void
+routine is called in main loop of a client or server. Allows
+low-level processing of stack services.
+
+.Sh RETURN VALUES
+The value returned on success is
+.Li OC_STACK_OK.
+On failure, something from enum
+.Li OCStackResult.
+
+\" .Sh EXAMPLES
+
+.Sh ERRORS
+.Bl -tag -width Er \" Begin list
+.It Li OC_STACK_ERROR
+Something went wrong.
+
+.Sh SEE ALSO
+.Xr OCInit 3 ,
+.Xr OCStop 3 ,
+
+.Sh HISTORY
+The
+.Fn OCProcess
+function first appeared in
+.Ox 1.0 .
