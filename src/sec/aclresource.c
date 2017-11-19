@@ -30,11 +30,11 @@
 #include "ocstack.h"
 #include "octypes.h"
 #include "ocserverrequest.h"
-#include "oic_malloc.h"
+/* #include "oic_malloc.h" */
 #include "oic_string.h"
 #include "ocrandom.h"
 #include "ocpayload.h"
-#include "utlist.h"
+/* #include "utlist.h" */
 #include "acl_logging.h"
 #include "payload_logging.h"
 #include "srmresourcestrings.h"

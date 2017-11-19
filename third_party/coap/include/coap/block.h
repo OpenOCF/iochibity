@@ -9,6 +9,7 @@
 #ifndef _COAP_BLOCK_H_
 #define _COAP_BLOCK_H_
 
+#include "config.h"
 #include "option.h"
 #include "encode.h"
 #include "pdu.h"
