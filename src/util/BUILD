@@ -56,8 +56,9 @@ cc_library(
             "byte_array.h",
             "configuration.h",
             "ifaddrs.h",
-            "tree.h",
-            "utlist.h"],
+            # "tree.h",
+            # "utlist.h"
+    ],
     srcs = ["base64.c",
             "base64.h",
             "byte_array.c",
