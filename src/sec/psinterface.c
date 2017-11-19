@@ -22,26 +22,57 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
+#include "psinterface.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 
-#include "cainterface.h"
-#include "logger.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "ocstack.h"
-#include "oic_malloc.h"
-#include "payload_logging.h"
-#include "resourcemanager.h"
-#include "secureresourcemanager.h"
-#include "srmresourcestrings.h"
-#include "srmutility.h"
-#include "pstatresource.h"
-#include "doxmresource.h"
-#include "ocresourcehandler.h"
+/* #include "cainterface.h" */
+/* #include "logger.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "ocstack.h" */
+/* #include "oic_malloc.h" */
+/* #include "payload_logging.h" */
+/* #include "resourcemanager.h" */
+/* #include "secureresourcemanager.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "srmutility.h" */
+/* #include "pstatresource.h" */
+/* #include "doxmresource.h" */
+/* #include "ocresourcehandler.h" */
+
+#include "cbor.h"
 
 #define TAG  "OIC_SRM_PSI"
+
+/**
+ * Persistent storage handlers. An APP must provide OCPersistentStorage handler pointers
+ * when it calls OCRegisterPersistentStorageHandler.
+ * Persistent storage open handler points to default file path.
+ * It should check file path and whether the file is symbolic link or no.
+ * Application can point to appropriate SVR database path for it's IoTivity Server.
+ */
+#if EXPORT_INTERFACE
+#include <stdio.h>
+typedef struct {
+    /** Persistent storage file path.*/
+    FILE* (* open)(const char *path, const char *mode);
+
+    /** Persistent storage read handler.*/
+    size_t (* read)(void *ptr, size_t size, size_t nmemb, FILE *stream);
+
+    /** Persistent storage write handler.*/
+    size_t (* write)(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+
+    /** Persistent storage close handler.*/
+    int (* close)(FILE *fp);
+
+    /** Persistent storage unlink handler.*/
+    int (* unlink)(const char *path);
+} OCPersistentStorage;
+#endif	/* INTERFACE */
 
 /**
  * Helps cover adding the name of the resource, map addition, and ending while
@@ -63,6 +94,10 @@ typedef enum _PSDatabase
     PS_DATABASE_SECURITY = 0,
     PS_DATABASE_DEVICEPROPERTIES
 } PSDatabase;
+
+#if INTERFACE
+#include <stdint.h>
+#endif	/* INTERFACE */
 
 /**
  * Writes CBOR payload to the specified database in persistent storage.

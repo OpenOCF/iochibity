@@ -18,11 +18,13 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "iotivity_config.h"
-#include "iotivity_constants.h"
+#include "srmresourcestrings.h"
+
+/* #include "iotivity_config.h" */
+/* #include "iotivity_constants.h" */
 
 #include <stdlib.h>
-#include "securevirtualresourcetypes.h"
+/* #include "securevirtualresourcetypes.h" */
 /* #include "octypes.h" *\/ */
 
 const char * SVR_DB_FILE_NAME = OC_SECURITY_DB_FILE_NAME;
@@ -190,6 +192,9 @@ const char * MF_PRIMARY_CERT = "oic.sec.cred.mfgcert";
 OicUuid_t WILDCARD_SUBJECT_ID = {"*"};
 OicUuid_t WILDCARD_SUBJECT_B64_ID = { .id = {'2', '2', '2', '2', '2', '2', '2', '2',
                                              '2', '2', '2', '2', '2', '2', '2', '2' }};
+#if EXPORT_INTERFACE
+#include <stdlib.h>
+#endif
 size_t WILDCARD_SUBJECT_ID_LEN = 1;
 const char * WILDCARD_RESOURCE_URI = "*";
 

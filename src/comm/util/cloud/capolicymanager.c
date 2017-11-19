@@ -18,14 +18,16 @@
  *
  ******************************************************************/
 
+#include "capolicymanager.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "oic_string.h"
-#include "logger.h"
-
-#include "caconnectionmanager.h"
+/* #include "oic_string.h"
+ * #include "logger.h"
+ *
+ * #include "caconnectionmanager.h" */
 
 #define TAG "OIC_CM_POLICY"
 

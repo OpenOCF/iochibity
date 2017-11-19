@@ -20,24 +20,126 @@
 #include <string.h>
 #include <assert.h>
 
-#include "utlist.h"
-#include "oic_malloc.h"
-#include "ocrandom.h"
 #include "policyengine.h"
-#include "resourcemanager.h"
-#include "srmresourcestrings.h"
-#include "logger.h"
-#include "aclresource.h"
-#include "srmutility.h"
-#include "doxmresource.h"
-#include "iotvticalendar.h"
-#include "pstatresource.h"
-#include "amaclresource.h"
-#include "credresource.h"
-#include "rolesresource.h"
-#include "deviceonboardingstate.h"
+
+/* #include "utlist.h" */
+/* #include "oic_malloc.h" */
+/* #include "ocrandom.h" */
+/* #include "policyengine.h" */
+/* #include "resourcemanager.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "logger.h" */
+/* #include "aclresource.h" */
+/* #include "srmutility.h" */
+/* #include "doxmresource.h" */
+/* #include "iotvticalendar.h" */
+/* #include "pstatresource.h" */
+/* #include "amaclresource.h" */
+/* #include "credresource.h" */
+/* #include "rolesresource.h" */
+/* #include "deviceonboardingstate.h" */
 
 #define TAG "OIC_SRM_PE"
+
+#if INTERFACE
+typedef enum OicSecConntype
+{
+    AUTH_CRYPT, // any subject requesting over authenticated and encrypted channel
+    ANON_CLEAR, // any subject requesting over anonymous and unencrypted channel
+} OicSecConntype_t;
+#endif	/* INTERFACE */
+
+#if INTERFACE
+typedef enum
+{
+    DISCOVERABLE_NOT_KNOWN = 0,
+    DISCOVERABLE_TRUE = 1,
+    DISCOVERABLE_FALSE = 2
+} OicSecDiscoverable_t;
+#endif	/* INTERFACE */
+
+typedef OCStackResult (*GetSvrRownerId_t)(OicUuid_t *rowner);
+
+/**
+ * Values used to create bit-maskable enums for single-value response with
+ * embedded code.
+ */
+#if INTERFACE
+#define ACCESS_GRANTED_DEF                      (1 << 0)
+#define ACCESS_DENIED_DEF                       (1 << 1)
+#define INSUFFICIENT_PERMISSION_DEF             (1 << 2)
+#define SUBJECT_NOT_FOUND_DEF                   (1 << 3)
+#define RESOURCE_NOT_FOUND_DEF                  (1 << 4)
+#define POLICY_ENGINE_ERROR_DEF                 (1 << 5)
+#define INVALID_PERIOD_DEF                      (1 << 6)
+#define SEC_RESOURCE_OVER_UNSECURE_CHANNEL_DEF  (1 << 7)
+#define REASON_MASK_DEF               (INSUFFICIENT_PERMISSION_DEF | \
+                                       INVALID_PERIOD_DEF | \
+                                       SUBJECT_NOT_FOUND_DEF | \
+                                       RESOURCE_NOT_FOUND_DEF | \
+                                       POLICY_ENGINE_ERROR_DEF | \
+                                       SEC_RESOURCE_OVER_UNSECURE_CHANNEL_DEF)
+#endif	/* INTERFACE */
+
+/**
+ * Access policy in least significant bits (from Spec):
+ * 1st lsb:  C (Create)
+ * 2nd lsb:  R (Read, Observe, Discover)
+ * 3rd lsb:  U (Write, Update)
+ * 4th lsb:  D (Delete)
+ * 5th lsb:  N (Notify)
+ */
+#if INTERFACE
+#define PERMISSION_ERROR        (0x0)
+#define PERMISSION_CREATE       (1 << 0)
+#define PERMISSION_READ         (1 << 1)
+#define PERMISSION_WRITE        (1 << 2)
+#define PERMISSION_DELETE       (1 << 3)
+#define PERMISSION_NOTIFY       (1 << 4)
+#define PERMISSION_FULL_CONTROL (PERMISSION_CREATE | \
+                                 PERMISSION_READ | \
+                                 PERMISSION_WRITE | \
+                                 PERMISSION_DELETE | \
+                                 PERMISSION_NOTIFY)
+#endif	/* INTERFACE */
+
+#if INTERFACE
+/**
+ * Returns 'true' iff request should be passed on to RI layer.
+ */
+/* FIXME INLINE_API */
+typedef enum access_response_fixme
+{
+    ACCESS_GRANTED = ACCESS_GRANTED_DEF,
+    ACCESS_DENIED = ACCESS_DENIED_DEF,
+    ACCESS_DENIED_INVALID_PERIOD = ACCESS_DENIED_DEF
+        | INVALID_PERIOD_DEF,
+    ACCESS_DENIED_INSUFFICIENT_PERMISSION = ACCESS_DENIED_DEF
+        | INSUFFICIENT_PERMISSION_DEF,
+    ACCESS_DENIED_SUBJECT_NOT_FOUND = ACCESS_DENIED_DEF
+        | SUBJECT_NOT_FOUND_DEF,
+    ACCESS_DENIED_RESOURCE_NOT_FOUND = ACCESS_DENIED_DEF
+        | RESOURCE_NOT_FOUND_DEF,
+    ACCESS_DENIED_POLICY_ENGINE_ERROR = ACCESS_DENIED_DEF
+        | POLICY_ENGINE_ERROR_DEF,
+    ACCESS_DENIED_SEC_RESOURCE_OVER_UNSECURE_CHANNEL = ACCESS_DENIED_DEF
+        | SEC_RESOURCE_OVER_UNSECURE_CHANNEL_DEF,
+} SRMAccessResponse_t;
+
+/* typedef unsigned int SRMAccessResponse_t; */
+#endif
+
+bool IsAccessGranted(SRMAccessResponse_t response)
+{
+    if(ACCESS_GRANTED == (response & ACCESS_GRANTED))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 
 uint16_t GetPermissionFromCAMethod_t(const CAMethod_t method)
 {

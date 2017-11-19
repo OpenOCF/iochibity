@@ -28,14 +28,13 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "iotivity_config.h"
+#include "oic_time.h"
+/* #include "iotivity_config.h" */
 
 #include <stddef.h>        /* For NULL */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>	   /* for _POSIX_TIMERS */
 #endif
-
-#include "oic_time.h"
 
 #if defined(HAVE_WINDOWS_H)
 # include <windows.h>
@@ -49,6 +48,32 @@
 #endif
 
 #define TAG "OIC_TIME"
+
+/**
+ * @name
+ * Useful constants for time unit conversions.
+ *
+ * @{
+ */
+#if INTERFACE
+#define MS_PER_SEC  (1000)
+#define US_PER_SEC  (1000000)
+#define US_PER_MS   (1000)
+#define NS_PER_US   (1000)
+#define NS_PER_MS   (1000000)
+#define HNS_PER_US  (10)
+#endif	/* INTERFACE */
+/** @} */
+
+
+#if INTERFACE
+#include <stdint.h>
+typedef enum
+{
+    TIME_IN_MS = 0,     //!< milliseconds
+    TIME_IN_US,         //!< microseconds
+} OICTimePrecision;
+#endif	/* INTERFACE */
 
 uint64_t OICGetCurrentTime(OICTimePrecision precision)
 {

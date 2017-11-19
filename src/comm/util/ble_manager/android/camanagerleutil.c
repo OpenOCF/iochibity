@@ -19,14 +19,20 @@
  ******************************************************************/
 
 #include <jni.h>
-#include "cacommon.h"
-#include "logger.h"
-#include "cacommonutil.h"
+/* #include "cacommon.h"
+ * #include "logger.h"
+ * #include "cacommonutil.h" */
 #include "camanagerleutil.h"
-#include "caleclient.h"
-#include "caleutils.h"
+/* #include "caleclient.h"
+ * #include "caleutils.h" */
 
 #define TAG "OIC_CA_MANAGER_UTIL"
+
+typedef enum {
+    CM_CONTAINS = 1,
+    CM_ADD,
+    CM_REMOVE
+} CASetMethod_t;
 
 static const char CLASSPATH_CONTENT_PREF[] = "android/content/SharedPreferences";
 static const char CLASSPATH_CONTENT_PREF_EDITOR[] = "android/content/SharedPreferences$Editor";
@@ -127,8 +133,8 @@ bool CAManagerIsDeviceBonded(JNIEnv *env, jobject btDevice)
 {
     OIC_LOG(DEBUG, TAG, "IN - CAManagerIsDeviceBonded");
 
-    VERIFY_NON_NULL(env, TAG, "env is null");
-    VERIFY_NON_NULL(btDevice, TAG, "btDevice is null");
+    VERIFY_NON_NULL_MSG(env, TAG, "env is null");
+    VERIFY_NON_NULL_MSG(btDevice, TAG, "btDevice is null");
 
     jclass jni_cid_BTDevice = (*env)->FindClass(env, CLASSPATH_BT_DEVICE);
     if (!jni_cid_BTDevice)
@@ -215,8 +221,8 @@ bool CAManagerControlAdapter(JNIEnv *env, bool control_flag)
 
 CAResult_t CAManagerReadRemoteRssi(JNIEnv *env, jobject bluetoothGatt)
 {
-    VERIFY_NON_NULL(env, TAG, "env is null");
-    VERIFY_NON_NULL(bluetoothGatt, TAG, "bluetoothGatt is null");
+    VERIFY_NON_NULL_MSG(env, TAG, "env is null");
+    VERIFY_NON_NULL_MSG(bluetoothGatt, TAG, "bluetoothGatt is null");
 
     if (!CALEIsEnableBTAdapter(env))
     {

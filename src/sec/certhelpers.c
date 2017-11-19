@@ -18,25 +18,32 @@
  *
  * *****************************************************************/
 
-#include "iotivity_config.h"
+#include "certhelpers.h"
+/* #include "iotivity_config.h" */
 
-#include "logger.h"
+/* #include "logger.h" */
 #include <stddef.h>
 #include <string.h>
+#include <time.h>
+#include <inttypes.h>
 #include <assert.h>
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "cacommon.h"
-#include "ocrandom.h"
-#include "cacommonutil.h"
 
-#include "ocpayload.h"
-#include "payload_logging.h"
-//GARtmp #include "pmutility.h"
-#include "srmutility.h"
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "cacommon.h" */
+/* #include "ocrandom.h" */
+/* #include "cacommonutil.h" */
+
+/* #include "ocpayload.h" */
+/* #include "payload_logging.h" */
+/* //GARtmp #include "pmutility.h" */
+/* #include "srmutility.h" */
 
 // headers required for mbed TLS
 #include "mbedtls/config.h"
+#if INTERFACE
+#include "mbedtls/pk.h"
+#endif
 #include "mbedtls/platform.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
@@ -53,8 +60,6 @@
 #include <unistd.h>
 #endif
 #include <fcntl.h>
-
-#include "certhelpers.h"
 
 #define TAG "OIC_CERTHELPERS"
 
@@ -256,6 +261,7 @@ exit:
     return ret;
 }
 
+#if defined(__WITH_TLS__) || defined(__WITH_DTLS__)
 int OCInternalCSRRequest(const char *subject, mbedtls_pk_context *keyPair, OicEncodingType_t encoding, OCByteString *csr)
 {
     return GenerateCSRForKey(subject, keyPair, encoding, csr);
@@ -265,6 +271,7 @@ int OCInternalGenerateKeyPair(mbedtls_pk_context *keyPair)
 {
     return GenerateEccKeyPair(keyPair);
 }
+#endif
 
 OCStackResult OCInternalIsValidRoleCertificate(const uint8_t *buf, size_t bufLen,
                                                uint8_t **pubKey, size_t *pubKeyLen)
@@ -440,6 +447,9 @@ static const mbedtls_x509_crt_profile s_certProfile = {
     0                                                   /* RSA minimum key length - not used because we only use EC key pairs */
 };
 
+#if INTERFACE
+#include <time.h>		/* expose struct tm for interface sigs */
+#endif	/* INTERFACE */
 OCStackResult OCInternalVerifyRoleCertificate(const OicSecKey_t *certificateChain, const uint8_t *trustedCaCerts,
                                               size_t trustedCaCertsLength, OicSecRole_t **roles,
                                               size_t *rolesLength, struct tm *notValidAfter)

@@ -18,7 +18,9 @@
  *
  ******************************************************************/
 
-#include "iotivity_config.h"
+#include "caqueueingthread.h"
+
+/* #include "iotivity_config.h" */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,11 +31,44 @@
 #include <sys/types.h>
 #endif
 
-#include "caqueueingthread.h"
-#include "oic_malloc.h"
-#include "logger.h"
+/* #include "caqueueingthread.h" */
+/* #include "oic_malloc.h" */
+/* #include "logger.h" */
 
 #define TAG PCF("OIC_CA_QING")
+
+#include <stdint.h>
+
+/* #include "cathreadpool.h" */
+/* #include "octhread.h" */
+/* #include "uqueue.h" */
+/* #include "cacommon.h" */
+
+#if EXPORT_INTERFACE
+/** Thread function to be invoked. **/
+typedef void (*CAThreadTask)(void *threadData);
+
+/** Data destroy function. **/
+typedef void (*CADataDestroyFunction)(void *data, uint32_t size);
+
+typedef struct
+{
+    /** Thread pool of the thread started. **/
+    ca_thread_pool_t threadPool;
+    /** mutex for synchronization. **/
+    oc_mutex threadMutex;
+    /** conditional mutex for synchronization. **/
+    oc_cond threadCond;
+    /** Thread function to be invoked. **/
+    CAThreadTask threadTask;
+    /** Data destroy function. **/
+    CADataDestroyFunction destroy;
+    /** Variable to inform the thread to stop. **/
+    bool isStop;
+    /** Que on which the thread is operating. **/
+    u_queue_t *dataQueue;
+} CAQueueingThread_t;
+#endif
 
 static void CAQueueingThreadBaseRoutine(void *threadValue)
 {

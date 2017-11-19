@@ -17,8 +17,9 @@
  * limitations under the License.
  *
  ******************************************************************/
+#include "catcpadapter.h"
 
-#include "iotivity_config.h"
+/* #include "iotivity_config.h" */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,26 +30,61 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include "cainterface.h"
-#include "caipnwmonitor.h"
-#include "catcpadapter.h"
-#include "catcpinterface.h"
-#include "caqueueingthread.h"
-#include "caadapterutils.h"
-#include "octhread.h"
-#include "uarraylist.h"
-#include "caremotehandler.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#ifdef __WITH_TLS__
-#include "ca_adapter_net_ssl.h"
-#endif
-#include "iotivity_debug.h"
+/* #include "cainterface.h" */
+/* #include "caipnwmonitor.h" */
+/* #include "catcpadapter.h" */
+/* #include "catcpinterface.h" */
+/* #include "caqueueingthread.h" */
+/* #include "caadapterutils.h" */
+/* #include "octhread.h" */
+/* #include "uarraylist.h" */
+/* #include "caremotehandler.h" */
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #ifdef __WITH_TLS__ */
+/* #include "ca_adapter_net_ssl.h" */
+/* #endif */
+/* #include "iotivity_debug.h" */
 
 /**
  * Logging tag for module name.
  */
 #define TAG "OIC_CA_TCP_ADAP"
+
+typedef enum CAProtocol
+{
+    UNKNOWN = 0,
+    TLS,
+    COAP
+} CAProtocol_t;
+
+/**
+ * TCP Connection State.
+ */
+typedef enum
+{
+    CONNECTING = 0,
+    CONNECTED,
+    DISCONNECTED
+} CATCPConnectionState_t;
+
+/**
+ * TCP Session Information for IPv4/IPv6 TCP transport
+ */
+typedef struct CATCPSessionInfo_t
+{
+    CASecureEndpoint_t sep;             /**< secure endpoint information */
+    CASocketFd_t fd;                    /**< file descriptor info */
+    unsigned char* data;                /**< received data from remote device */
+    size_t len;                         /**< received data length */
+    size_t totalLen;                    /**< total coap data length required to receive */
+    unsigned char tlsdata[18437];       /**< tls data(rfc5246: TLSCiphertext max (2^14+2048+5)) */
+    size_t tlsLen;                      /**< received tls data length */
+    CAProtocol_t protocol;              /**< application-level protocol */
+    CATCPConnectionState_t state;       /**< current tcp session state */
+    bool isClient;                      /**< Host Mode of Operation. */
+    struct CATCPSessionInfo_t *next;    /**< Linked list; for multiple session list. */
+} CATCPSessionInfo_t;
 
 /**
  * Holds internal thread TCP data information.
@@ -263,10 +299,12 @@ static void CATCPConnectionHandler(const CAEndpoint_t *endpoint, bool isConnecte
     }
 }
 
+#if defined(TCP_ADAPTER)	/* Play nice with makeheaders */
 void CATCPSetKeepAliveCallbacks(CAKeepAliveConnectionCallback ConnHandler)
 {
     g_connKeepAliveCallback = ConnHandler;
 }
+#endif
 
 void CATCPAdapterHandler(CATransportAdapter_t adapter, CANetworkStatus_t status)
 {
@@ -334,11 +372,11 @@ CAResult_t CAInitializeTCP(CARegisterConnectivityCallback registerCallback,
                            CAErrorHandleCallback errorCallback, ca_thread_pool_t handle)
 {
     OIC_LOG(DEBUG, TAG, "IN");
-    VERIFY_NON_NULL(registerCallback, TAG, "registerCallback");
-    VERIFY_NON_NULL(networkPacketCallback, TAG, "networkPacketCallback");
-    VERIFY_NON_NULL(netCallback, TAG, "netCallback");
+    VERIFY_NON_NULL_MSG(registerCallback, TAG, "registerCallback");
+    VERIFY_NON_NULL_MSG(networkPacketCallback, TAG, "networkPacketCallback");
+    VERIFY_NON_NULL_MSG(netCallback, TAG, "netCallback");
 #ifndef SINGLE_THREAD
-    VERIFY_NON_NULL(handle, TAG, "thread pool handle");
+    VERIFY_NON_NULL_MSG(handle, TAG, "thread pool handle");
 #endif
 
 #ifdef WSA_WAIT_EVENT_0

@@ -22,11 +22,19 @@
 #include <errno.h>
 #include "win_sleep.h"
 
-#include "logger.h"
+/* #include "logger.h" */
 #define TAG  "WIN_SLEEP"
 
 #define NS_PER_MS  (1000000)
 #define US_PER_MS  (1000)
+
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
+struct timespec
+{
+    time_t tv_sec;  // Seconds - >= 0
+    long   tv_nsec; // Nanoseconds - [0, 999999999]
+};
+#endif
 
 #define ASSERT_AND_FAIL(EXPRESSION) {    \
     assert((EXPRESSION));                \

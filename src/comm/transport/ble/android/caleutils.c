@@ -23,12 +23,55 @@
 /* GAR #include <android/log.h> */
 
 #include "caleutils.h"
-#include "logger.h"
-#include "cathreadpool.h"
-#include "uarraylist.h"
-#include "caadapterutils.h"
+/* #include "logger.h"
+ * #include "cathreadpool.h"
+ * #include "uarraylist.h"
+ * #include "caadapterutils.h" */
 
 #define TAG PCF("OIC_CA_LE_UTILS")
+
+#define CA_LE_AUTO_CONNECT_FLAG    1
+#define CA_LE_CONNECTION_STATE     2
+#define CA_LE_SEND_STATE           3
+#define CA_LE_DESCRIPTOR_FOUND     4
+
+/* Service UUID */
+static const char OIC_GATT_SERVICE_UUID[] = CA_GATT_SERVICE_UUID;
+static const char OIC_GATT_CHARACTERISTIC_REQUEST_UUID[] = CA_GATT_REQUEST_CHRC_UUID;
+static const char OIC_GATT_CHARACTERISTIC_RESPONSE_UUID[] = CA_GATT_RESPONSE_CHRC_UUID;
+static const char OIC_GATT_CHARACTERISTIC_CONFIG_UUID[] = "00002902-0000-1000-8000-00805f9b34fb";
+
+static const char CLASSPATH_BT_PROFILE[] = "android/bluetooth/BluetoothProfile";
+static const char CLASSPATH_BT_GATT[] = "android/bluetooth/BluetoothGatt";
+static const char CLASSPATH_BT_ADAPTER[] = "android/bluetooth/BluetoothAdapter";
+static const char CLASSPATH_BT_DEVICE[] = "android/bluetooth/BluetoothDevice";
+static const char CLASSPATH_BT_UUID[] = "java/util/UUID";
+static const char CLASSPATH_LE_SCANNER[] = "android/bluetooth/le/BluetoothLeScanner";
+static const char CLASSPATH_LE_SCANSETTINGS[] = "android/bluetooth/le/ScanSettings";
+
+static const char METHODID_OBJECTNONPARAM[] = "()Landroid/bluetooth/BluetoothAdapter;";
+static const char METHODID_BT_DEVICE[] = "()Landroid/bluetooth/BluetoothDevice;";
+static const char METHODID_BT_REMOTE_DEVICE[] = "(Ljava/lang/String;)Landroid/bluetooth/BluetoothDevice;";
+
+static const jint GATT_PROFILE = 7;
+static const jint GATT_SUCCESS = 0;
+
+static const jint BOND_BONDED = 12;
+static const jint BOND_BONDING = 11;
+static const jint BOND_NONE = 10;
+
+static const uint16_t STATE_CONNECTED = 3;
+static const uint16_t STATE_SERVICE_CONNECTED = 2;
+static const uint16_t STATE_DISCONNECTED = 1;
+
+static const uint16_t GATT_ERROR = 133;
+
+static const uint16_t STATE_SEND_NONE = 1;
+static const uint16_t STATE_SEND_SUCCESS = 2;
+static const uint16_t STATE_SEND_FAIL = 3;
+static const uint16_t STATE_SENDING = 4;
+static const uint16_t STATE_SEND_PREPARING = 5;
+static const uint16_t STATE_SEND_MTU_NEGO_SUCCESS = 6;
 
 jobject CALEGetUuidFromString(JNIEnv *env, const char* uuid)
 {

@@ -29,21 +29,82 @@
 #include<netinet/in.h>
 
 
-#include "caadapterutils.h"
-#include "oic_string.h"
-#include "oic_malloc.h"
+/* #include "caadapterutils.h"
+ * #include "oic_string.h"
+ * #include "oic_malloc.h" */
+
+#include <bluetooth.h>
 
 /**
  * Logging tag for module name
  */
 #define TAG "OIC_CA_LE_UTIL"
 
+
+typedef struct
+{
+    void *data;
+    uint32_t dataLength;
+} LEData;
+
+typedef struct _LEDataList
+{
+    LEData *data;
+    struct _LEDataList *next;
+} LEDataList;
+
+typedef enum
+{
+    LE_STATUS_INVALID = 0,
+    LE_STATUS_UNICAST_PENDING,
+    LE_STATUS_DISCOVERED,
+    LE_STATUS_CONNECTION_INITIATED,
+    LE_STATUS_CONNECTED,
+    LE_STATUS_SERVICES_DISCOVERED
+} LEDeviceStatus;
+
+typedef struct
+{
+    bt_gatt_client_h clientHandle;
+    bt_gatt_h serviceHandle;
+    bt_gatt_h readChar;
+    bt_gatt_h writeChar;
+    char *remoteAddress;
+    LEDataList *pendingDataList;
+    LEDeviceStatus status;
+} LEServerInfo;
+
+typedef struct _LEServerInfoList
+{
+    LEServerInfo *serverInfo;
+    struct _LEServerInfoList *next;
+} LEServerInfoList;
+
+typedef struct _LEClientInfoList
+{
+    char *remoteAddress;
+    struct _LEClientInfoList *next;
+} LEClientInfoList;
+
+/**
+ * Different characteristics types.
+ *
+ * This provides information of different characteristics
+ * which will be added to OIC service.
+ */
+typedef enum
+{
+    BLE_GATT_WRITE_CHAR = 0, /**< write_char This will be used to get the unicast response. */
+    BLE_GATT_READ_CHAR,      /**< read_char This will be used update value to OIC server. */
+    BLE_GATT_NOTIFY_CHAR     /**< Reserved char for the time being. */
+} CHAR_TYPE;
+
 CAResult_t CAAddLEDataToList(LEDataList **dataList, const void *data, uint32_t dataLength)
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(dataList, TAG, "Data list is null");
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(dataList, TAG, "Data list is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     if (0 == dataLength)
     {
@@ -101,7 +162,7 @@ void CARemoveLEDataFromList(LEDataList **dataList)
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(dataList, TAG, "Data list is null");
+    VERIFY_NON_NULL_MSG(dataList, TAG, "Data list is null");
 
     if (*dataList)
     {
@@ -150,8 +211,8 @@ CAResult_t CAAddLEServerInfoToList(LEServerInfoList **serverList,
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(serverList, TAG, "serverList");
-    VERIFY_NON_NULL(leServerInfo, TAG, "leServerInfo");
+    VERIFY_NON_NULL_MSG(serverList, TAG, "serverList");
+    VERIFY_NON_NULL_MSG(leServerInfo, TAG, "leServerInfo");
 
     LEServerInfoList *node = (LEServerInfoList *) OICCalloc(1, sizeof(LEServerInfoList));
     if (NULL == node)
@@ -220,8 +281,8 @@ CAResult_t CAGetLEServerInfo(LEServerInfoList *serverList, const char *leAddress
 
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(leServerInfo, TAG, "leClientInfo");
-    VERIFY_NON_NULL(leAddress, TAG, "leAddress");
+    VERIFY_NON_NULL_MSG(leServerInfo, TAG, "leClientInfo");
+    VERIFY_NON_NULL_MSG(leAddress, TAG, "leAddress");
 
     if (NULL == serverList)
     {
@@ -300,8 +361,8 @@ CAResult_t CAAddLEClientInfoToList(LEClientInfoList **clientList,
                                    char *clientAddress)
 {
     OIC_LOG(DEBUG, TAG, "IN");
-    VERIFY_NON_NULL(clientList, TAG, "clientList");
-    VERIFY_NON_NULL(clientAddress, TAG, "clientAddress");
+    VERIFY_NON_NULL_MSG(clientList, TAG, "clientList");
+    VERIFY_NON_NULL_MSG(clientAddress, TAG, "clientAddress");
 
     LEClientInfoList *node = (LEClientInfoList *) OICCalloc(1, sizeof(LEClientInfoList));
     if (NULL == node)

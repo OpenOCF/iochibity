@@ -18,11 +18,13 @@
  *
  * *****************************************************************/
 
+#include "oxmrandompin.h"
+
 #include <memory.h>
 
 /* #include "openocf.h" */
 
-#include "iotivity_config.h"
+/* #include "iotivity_config.h" */
 
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
@@ -31,23 +33,25 @@
 #endif
 
 /* #include "ocstack.h" */
-#include "securevirtualresourcetypes.h"
-#include "doxmresource.h"
-#include "credresource.h"
-#include "cacommon.h"
-#include "cainterface.h"
-#include "ocrandom.h"
-#include "oic_malloc.h"
-#include "logger.h"
-#include "pbkdf2.h"
-#include "base64.h"
-#include "oxmrandompin.h"
-#include "ownershiptransfermanager.h"
-#include "pinoxmcommon.h"
-#include "ocstackinternal.h"
+/* #include "securevirtualresourcetypes.h" */
+/* #include "doxmresource.h" */
+/* #include "credresource.h" */
+/* #include "cacommon.h" */
+/* #include "cainterface.h" */
+/* #include "ocrandom.h" */
+/* #include "oic_malloc.h" */
+/* #include "logger.h" */
+/* #include "pbkdf2.h" */
+/* #include "base64.h" */
+/* #include "oxmrandompin.h" */
+/* #include "ownershiptransfermanager.h" */
+/* #include "pinoxmcommon.h" */
+/* #include "ocstackinternal.h" */
 #include "mbedtls/ssl_ciphersuites.h"
 
 #define TAG "OIC_OXM_RandomPIN"
+
+#define fixme_doxm_p DoxmProperty_t /* help makeheaders */
 
 OCStackResult CreatePinBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
 {

@@ -34,8 +34,11 @@
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
-#include "iotivity_config.h"
-#include "iotivity_debug.h"
+
+#include "ocstack.h"
+
+/* #include "iotivity_config.h" */
+/* #include "iotivity_debug.h" */
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -43,74 +46,78 @@
 #include <unistd.h>
 #endif
 #include <errno.h>
+#include <limits.h>		/* UINT_MAX */
+#if INTERFACE
+#include <stdint.h>
+#endif	/* INTERFACE */
 
-#include "ocstack.h"
-#include "ocstackinternal.h"
+/* #include "ocstack.h" */
+/* #include "ocstackinternal.h" */
 
 /* //src/ocf */
-#include "ocresourcehandler.h"
-#include "occlientcb.h"
-#include "occlientcb_api.h"
-#include "ocobserve.h"
-#include "ocserverrequest.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "oicgroup.h"
-#include "ocendpoint.h"
-#include "presence_methods.h"
+/* #include "ocresourcehandler.h" */
+/* #include "occlientcb.h" */
+/* #include "occlientcb_api.h" */
+/* #include "ocobserve.h" */
+/* #include "ocserverrequest.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "oicgroup.h" */
+/* #include "ocendpoint.h" */
+/* #include "presence_methods.h" */
 
 /* FIXME: ifdef ROLE_CLIENT //src/ocf:client */
-#include "co_service_provider_mgr.h"
+/* #include "co_service_provider_mgr.h" */
 
 /* //src/portability */
-#include "ocrandom.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "ocatomic.h"
-#include "oic_platform.h"
+/* #include "ocrandom.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "ocatomic.h" */
+/* #include "oic_platform.h" */
 
 /* //src/logger */
-#include "logger.h"
-#include "trace.h"
+/* #include "logger.h" */
+/* #include "trace.h" */
 
 
 /* //src/sec */
-#include "secureresourcemanager.h"
-#include "psinterface.h"
+/* #include "secureresourcemanager.h" */
+/* #include "psinterface.h" */
 
-/* //src/sec/doxm */
-#include "doxmresource.h"
+/* /\* //src/sec/doxm *\/ */
+/* #include "doxmresource.h" */
 
-/* //src/comm/common */
-#include "cacommon.h"
+/* /\* //src/comm/common *\/ */
+/* #include "cacommon.h" */
 
-/* //src/comm/api */
-#include "cainterface.h"
+/* /\* //src/comm/api *\/ */
+/* #include "cainterface.h" */
 
-/* //src/comm/util */
-#include "cautilinterface.h"
+/* /\* //src/comm/util *\/ */
+/* #include "cautilinterface.h" */
 
-/* //src/comm/interface */
-#include "caprotocolmessage.h"
+/* /\* //src/comm/interface *\/ */
+/* #include "caprotocolmessage.h" */
 
-#ifdef UWP_APP
-#include "ocsqlite3helper.h"
-#endif // UWP_APP
+/* #ifdef UWP_APP */
+/* #include "ocsqlite3helper.h" */
+/* #endif // UWP_APP */
 
-#if defined(TCP_ADAPTER) && defined(WITH_CLOUD)
-#include "occonnectionmanager.h"
-#endif
+/* #if defined(TCP_ADAPTER) && defined(WITH_CLOUD) */
+/* #include "occonnectionmanager.h" */
+/* #endif */
 
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
-#include "routingutility.h"
-#ifdef ROUTING_GATEWAY
-#include "routingmanager.h"
-#endif
-#endif
+/* #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+/* #include "routingutility.h" */
+/* #ifdef ROUTING_GATEWAY */
+/* #include "routingmanager.h" */
+/* #endif */
+/* #endif */
 
-#ifdef TCP_ADAPTER
-#include "oickeepalive.h"
-#endif
+/* #ifdef TCP_ADAPTER */
+/* #include "oickeepalive.h" */
+/* #endif */
 
 #ifdef HAVE_ARDUINO_TIME_H
 #include "Time.h"
@@ -118,7 +125,9 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#include <coap/coap.h>
+#include "coap_config.h"
+#include "coap/coap_time.h"
+#include "coap/pdu.h"
 
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
@@ -128,10 +137,107 @@
 #define UINT32_MAX   (0xFFFFFFFFUL)
 #endif
 
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-#include "ocsecurity.h"
-#include "srmresourcestrings.h"
-#endif
+/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
+/* #include "ocsecurity.h" */
+/* #include "srmresourcestrings.h" */
+/* #endif */
+
+//-----------------------------------------------------------------------------
+// Global variables
+//-----------------------------------------------------------------------------
+
+/** Default device entity Handler.*/
+extern OCDeviceEntityHandler defaultDeviceHandler;
+
+/** Default Callback parameter.*/
+extern void* defaultDeviceHandlerCallbackParameter;
+
+//-----------------------------------------------------------------------------
+// Defines
+//-----------------------------------------------------------------------------
+
+/** The coap scheme */
+#define OC_COAP_SCHEME "coap://"
+
+/** the first outgoing sequence number will be 1*/
+#define OC_OFFSET_SEQUENCE_NUMBER (0)
+
+/**
+ * This structure will be created in occoap and passed up the stack on the server side.
+ */
+typedef struct
+{
+    /** Observe option field.*/
+    uint32_t observationOption;
+
+    /** The REST method retrieved from received request PDU.*/
+    OCMethod method;
+
+    /** the provided payload format. */
+    OCPayloadFormat payloadFormat;
+
+    /** the requested payload format. */
+    OCPayloadFormat acceptFormat;
+
+    /** the requested payload version. */
+    uint16_t acceptVersion;
+
+    /** resourceUrl will be filled in occoap using the path options in received request PDU.*/
+    char resourceUrl[MAX_URI_LENGTH];
+
+    /** resource query send by client.*/
+    char query[MAX_QUERY_LENGTH];
+
+    /** reqJSON is retrieved from the payload of the received request PDU.*/
+    uint8_t *payload;
+
+    /** qos is indicating if the request is CON or NON.*/
+    OCQualityOfService qos;
+
+    /** Number of the received vendor specific header options.*/
+    uint8_t numRcvdVendorSpecificHeaderOptions;
+
+    /** Array of received vendor specific header option .*/
+    OCHeaderOption rcvdVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
+
+    /** Remote end-point address **/
+    OCDevAddr devAddr;
+
+    /** Token for the observe request.*/
+    CAToken_t requestToken;
+
+    /** token length.*/
+    uint8_t tokenLength;
+
+    /** The ID of CoAP PDU.*/
+    uint16_t coapID;
+
+    /** For delayed Response.*/
+    uint8_t delayedResNeeded;
+
+    /** For More packet.*/
+    uint8_t reqMorePacket;
+
+    /** The number of requested packet.*/
+    uint32_t reqPacketNum;
+
+    /** The size of requested packet.*/
+    uint16_t reqPacketSize;
+
+    /** The number of responded packet.*/
+    uint32_t resPacketNum;
+
+    /** Responded packet size.*/
+    uint16_t resPacketSize;
+
+    /** The total size of requested packet.*/
+    size_t reqTotalSize;
+} OCServerProtocolRequest;
+
+/**
+ * This typedef is to represent our Server Instance identification.
+ */
+typedef uint8_t ServerID[16];
 
 //-----------------------------------------------------------------------------
 // Typedefs
@@ -141,6 +247,129 @@ typedef enum
     OC_STACK_UNINITIALIZED = 0,
     OC_STACK_INITIALIZED
 } OCStackState;
+
+#if EXPORT_INTERFACE
+/**
+ * Declares Stack Results & Errors.
+ */
+typedef enum			/* FIXME: align with CAResult_t */
+{
+    /** Success status code - START HERE.*/
+    OC_STACK_OK = 0,                /** 203, 205*/
+    OC_STACK_RESOURCE_CREATED,      /** 201*/
+    OC_STACK_RESOURCE_DELETED,      /** 202*/
+    OC_STACK_CONTINUE,
+    OC_STACK_RESOURCE_CHANGED,      /** 204*/
+    /** Success status code - END HERE.*/
+
+    /** Error status code - START HERE.*/
+    OC_STACK_INVALID_URI = 20,
+    OC_STACK_INVALID_QUERY,         /** 400*/
+    OC_STACK_INVALID_IP,
+    OC_STACK_INVALID_PORT,
+    OC_STACK_INVALID_CALLBACK,
+    OC_STACK_INVALID_METHOD,
+
+    /** Invalid parameter.*/
+    OC_STACK_INVALID_PARAM,
+    OC_STACK_INVALID_OBSERVE_PARAM,
+    OC_STACK_NO_MEMORY,
+    OC_STACK_COMM_ERROR,            /** 504*/
+    /* FIXME: support CAResult_t codes */
+    OC_STACK_CA_SERVER_STARTED_ALREADY,
+    OC_STACK_CA_SERVER_NOT_STARTED,
+    /* CA_DESTINATION_NOT_REACHABLE,   /\**< Destination is not reachable *\/
+     * CA_SOCKET_OPERATION_FAILED,     /\**< Socket operation failed *\/
+     * CA_SEND_FAILED,                 /\**< Send request failed *\/
+     * CA_RECEIVE_FAILED,              /\**< Receive failed *\/
+     * CA_DESTINATION_DISCONNECTED,    /\**< Destination is disconnected *\/
+     * CA_STATUS_NOT_INITIALIZED,      /\**< Not Initialized*\/
+     * CA_DTLS_AUTHENTICATION_FAILURE, /\**< Decryption error in DTLS *\/
+     * CA_HANDLE_ERROR_OTHER_MODULE,   /\**< Error happens but it should be handled in other module *\/ */
+    OC_STACK_TIMEOUT,
+    OC_STACK_ADAPTER_NOT_ENABLED,
+    OC_STACK_NOTIMPL,
+
+    /** Resource not found.*/
+    OC_STACK_NO_RESOURCE,           /** 404*/
+
+    /** e.g: not supported method or interface.*/
+    OC_STACK_RESOURCE_ERROR,
+    OC_STACK_SLOW_RESOURCE,
+    OC_STACK_DUPLICATE_REQUEST,
+
+    /** Resource has no registered observers.*/
+    OC_STACK_NO_OBSERVERS,
+    OC_STACK_OBSERVER_NOT_FOUND,
+    OC_STACK_VIRTUAL_DO_NOT_HANDLE,
+    OC_STACK_INVALID_OPTION,        /** 402*/
+
+    /** The remote reply contained malformed data.*/
+    OC_STACK_MALFORMED_RESPONSE,
+    OC_STACK_PERSISTENT_BUFFER_REQUIRED,
+    OC_STACK_INVALID_REQUEST_HANDLE,
+    OC_STACK_INVALID_DEVICE_INFO,
+    OC_STACK_INVALID_JSON,
+
+    /** Request is not authorized by Resource Server. */
+    OC_STACK_UNAUTHORIZED_REQ,      /** 401*/
+    OC_STACK_TOO_LARGE_REQ,         /** 413*/
+
+    /** Error code from PDM */
+    OC_STACK_PDM_IS_NOT_INITIALIZED,
+    OC_STACK_DUPLICATE_UUID,
+    OC_STACK_INCONSISTENT_DB,
+
+    /**
+     * Error code from OTM
+     * This error is pushed from DTLS interface when handshake failure happens
+     */
+    OC_STACK_AUTHENTICATION_FAILURE,
+    OC_STACK_NOT_ALLOWED_OXM,
+    OC_STACK_CONTINUE_OPERATION,
+
+    /** Request come from endpoint which is not mapped to the resource. */
+    OC_STACK_BAD_ENDPOINT,
+
+    /** Insert all new error codes here!.*/
+#ifdef WITH_PRESENCE
+    OC_STACK_PRESENCE_STOPPED = 128,
+    OC_STACK_PRESENCE_TIMEOUT,
+    OC_STACK_PRESENCE_DO_NOT_HANDLE,
+#endif
+
+    /** Request is denied by the user*/
+    OC_STACK_USER_DENIED_REQ,
+    OC_STACK_NOT_ACCEPTABLE,
+
+    /** ERROR code from server */
+    OC_STACK_FORBIDDEN_REQ,          /** 403*/
+    OC_STACK_INTERNAL_SERVER_ERROR,  /** 500*/
+    OC_STACK_GATEWAY_TIMEOUT,        /** 504*/
+    OC_STACK_SERVICE_UNAVAILABLE,    /** 503*/
+
+    /** ERROR in stack.*/
+    OC_STACK_ERROR = 255
+    /** Error status code - END HERE.*/
+} OCStackResult;
+
+/**
+ * Handle to an OCDoResource invocation.
+ */
+typedef void * OCDoHandle;
+
+/**
+ * Handle to an OCResource object owned by the OCStack.
+ */
+typedef void * OCResourceHandle;
+
+/**
+ * Handle to an OCRequest object owned by the OCStack.
+ */
+typedef void * OCRequestHandle;
+
+#endif	/* EXPORT_INTERFACE */
+
 
 //-----------------------------------------------------------------------------
 // Private variables
@@ -183,14 +412,113 @@ bool g_multicastServerStopped = false;
 // Macros
 //-----------------------------------------------------------------------------
 #define TAG  "OIC_RI_STACK"
-#define VERIFY_SUCCESS(op, successCode) { if ((op) != (successCode)) \
-            {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} }
-#define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \
-             TAG, #arg " is NULL"); return (retVal); } }
-#define VERIFY_NON_NULL_NR(arg, logLevel) { if (!(arg)) { OIC_LOG((logLevel), \
-             TAG, #arg " is NULL"); return; } }
-#define VERIFY_NON_NULL_V(arg) { if (!arg) {OIC_LOG(FATAL, TAG, #arg " is NULL");\
-    goto exit;} }
+/* GAR:moved to //src/utils/errcheck.h */
+/* #define VERIFY_SUCCESS(op, successCode) { if ((op) != (successCode)) \ */
+/*             {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} } */
+/* #define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \ */
+/*              TAG, #arg " is NULL"); return (retVal); } } */
+/* #define VERIFY_NON_NULL_NR(arg, logLevel) { if (!(arg)) { OIC_LOG((logLevel), \ */
+/*              TAG, #arg " is NULL"); return; } } */
+/* #define VERIFY_NON_NULL_V(arg) { if (!arg) {OIC_LOG(FATAL, TAG, #arg " is NULL");\ */
+/*     goto exit;} } */
+
+/**
+ *  OCDoResource methods to dispatch the request
+ */
+#if EXPORT_INTERFACE
+/**
+ * Possible returned values from entity handler.
+ */
+typedef enum
+{
+    OC_EH_OK = 0,
+    OC_EH_ERROR,
+    OC_EH_SLOW,
+    OC_EH_RESOURCE_CREATED = 201,
+    OC_EH_RESOURCE_DELETED = 202,
+    OC_EH_VALID = 203,
+    OC_EH_CHANGED = 204,
+    OC_EH_CONTENT = 205,
+    OC_EH_BAD_REQ = 400,
+    OC_EH_UNAUTHORIZED_REQ = 401,
+    OC_EH_BAD_OPT = 402,
+    OC_EH_FORBIDDEN = 403,
+    OC_EH_RESOURCE_NOT_FOUND = 404,
+    OC_EH_METHOD_NOT_ALLOWED = 405,
+    OC_EH_NOT_ACCEPTABLE = 406,
+    OC_EH_TOO_LARGE = 413,
+    OC_EH_UNSUPPORTED_MEDIA_TYPE = 415,
+    OC_EH_INTERNAL_SERVER_ERROR = 500,
+    OC_EH_BAD_GATEWAY = 502,
+    OC_EH_SERVICE_UNAVAILABLE = 503,
+    OC_EH_RETRANSMIT_TIMEOUT = 504
+} OCEntityHandlerResult;
+
+/* typedef enum
+ * {
+ *     OC_REST_NOMETHOD       = 0,
+ * 
+ *     /\** Read.*\/
+ *     OC_REST_GET            = (1 << 0),
+ * 
+ *     /\** Write.*\/
+ *     OC_REST_PUT            = (1 << 1),
+ * 
+ *     /\** Update.*\/
+ *     OC_REST_POST           = (1 << 2),
+ * 
+ *     /\** Delete.*\/
+ *     OC_REST_DELETE         = (1 << 3),
+ * 
+ *     /\** Register observe request for most up date notifications ONLY.*\/
+ *     OC_REST_OBSERVE        = (1 << 4),
+ * 
+ *     /\** Register observe request for all notifications, including stale notifications.*\/
+ *     OC_REST_OBSERVE_ALL    = (1 << 5),
+ * 
+ * #ifdef WITH_PRESENCE
+ *     /\** Subscribe for all presence notifications of a particular resource.*\/
+ *     OC_REST_PRESENCE       = (1 << 7),
+ * 
+ * #endif
+ *     /\** Allows OCDoResource caller to do discovery.*\/
+ *     OC_REST_DISCOVER       = (1 << 8)
+ * } OCMethod; */
+
+/**
+ * The type of query a request/response message is.
+ */
+typedef enum
+{
+    STACK_RES_DISCOVERY_NOFILTER = 0,
+    STACK_RES_DISCOVERY_IF_FILTER,
+    STACK_RES_DISCOVERY_RT_FILTER,
+    STACK_DEVICE_DISCOVERY_DI_FILTER,
+    STACK_DEVICE_DISCOVERY_DN_FILTER
+} StackQueryTypes;
+
+/**
+ * Quality of Service attempts to abstract the guarantees provided by the underlying transport
+ * protocol. The precise definitions of each quality of service level depend on the
+ * implementation. In descriptions below are for the current implementation and may changed
+ * over time.
+ */
+typedef enum
+{
+    /** Packet delivery is best effort.*/
+    OC_LOW_QOS = 0,
+
+    /** Packet delivery is best effort.*/
+    OC_MEDIUM_QOS,
+
+    /** Acknowledgments are used to confirm delivery.*/
+    OC_HIGH_QOS,
+
+    /** No Quality is defined, let the stack decide.*/
+    OC_NA_QOS
+} OCQualityOfService;
+#endif	/* INTERFACE */
+
 
 //TODO: we should allow the server to define this
 #define MAX_OBSERVE_AGE (0x2FFFFUL)
@@ -201,241 +529,6 @@ bool g_multicastServerStopped = false;
 #if defined(WITH_ARDUINO) && !defined(SCNd64)
 #define SCNd64 "lld"
 #endif
-//-----------------------------------------------------------------------------
-// Private internal function prototypes
-//-----------------------------------------------------------------------------
-
-/**
- * Generate handle of OCDoResource invocation for callback management.
- *
- * @return Generated OCDoResource handle.
- */
-static OCDoHandle GenerateInvocationHandle();
-
-/**
- * Initialize resource data structures, variables, etc.
- *
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-static OCStackResult initResources();
-
-/**
- * Add a resource to the end of the linked list of resources.
- *
- * @param resource Resource to be added
- */
-static void insertResource(OCResource *resource);
-
-/**
- * Insert a resource type into a resource's resource type linked list.
- * If resource type already exists, it will not be inserted and the
- * resourceType will be free'd.
- * resourceType->next should be null to avoid memory leaks.
- * Function returns silently for null args.
- *
- * @param resource Resource where resource type is to be inserted.
- * @param resourceType Resource type to be inserted.
- */
-static void insertResourceType(OCResource *resource,
-        OCResourceType *resourceType);
-
-/**
- * Get a resource type at the specified index within a resource.
- *
- * @param handle Handle of resource.
- * @param index Index of resource type.
- *
- * @return Pointer to resource type if found, NULL otherwise.
- */
-static OCResourceType *findResourceTypeAtIndex(OCResourceHandle handle,
-        uint8_t index);
-
-/**
- * Insert a resource interface into a resource's resource interface linked list.
- * If resource interface already exists, it will not be inserted and the
- * resourceInterface will be free'd.
- * resourceInterface->next should be null to avoid memory leaks.
- *
- * @param resource Resource where resource interface is to be inserted.
- * @param resourceInterface Resource interface to be inserted.
- */
-static void insertResourceInterface(OCResource *resource,
-        OCResourceInterface *resourceInterface);
-
-/**
- * Get a resource interface at the specified index within a resource.
- *
- * @param handle Handle of resource.
- * @param index Index of resource interface.
- *
- * @return Pointer to resource interface if found, NULL otherwise.
- */
-static OCResourceInterface *findResourceInterfaceAtIndex(
-        OCResourceHandle handle, uint8_t index);
-
-/**
- * Delete all of the dynamically allocated elements that were created for the resource type.
- *
- * @param resourceType Specified resource type.
- */
-static void deleteResourceType(OCResourceType *resourceType);
-
-/**
- * Delete all of the dynamically allocated elements that were created for the resource interface.
- *
- * @param resourceInterface Specified resource interface.
- */
-static void deleteResourceInterface(OCResourceInterface *resourceInterface);
-
-/**
- * Delete all of the dynamically allocated elements that were created for the resource.
- *
- * @param resource Specified resource.
- */
-static void deleteResourceElements(OCResource *resource);
-
-/**
- * Delete resource specified by handle.  Deletes resource and all resourcetype and resourceinterface
- * linked lists.
- *
- * @param handle Handle of resource to be deleted.
- *
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-static OCStackResult deleteResource(OCResource *resource);
-
-/**
- * Delete all of the resources in the resource list.
- */
-static void deleteAllResources();
-
-/**
- * Increment resource sequence number.  Handles rollover.
- *
- * @param resPtr Pointer to resource.
- */
-static void incrementSequenceNumber(OCResource * resPtr);
-
-/*
- * Attempts to initialize every network interface that the CA Layer might have compiled in.
- *
- * Note: At least one interface must succeed to initialize. If all calls to @ref CASelectNetwork
- * return something other than @ref CA_STATUS_OK, then this function fails.
- * @param transportType  OCTransportAdapter value to select.
- * @return ::CA_STATUS_OK on success, some other value upon failure.
- */
-static CAResult_t OCSelectNetwork(OCTransportAdapter transportType);
-
-/**
- * Convert CAResponseResult_t to OCStackResult.
- *
- * @param caCode CAResponseResult_t code.
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-static OCStackResult CAResponseToOCStackResult(CAResponseResult_t caCode);
-
-/**
- * Convert OCTransportFlags_t to CATransportModifiers_t.
- *
- * @param ocConType OCTransportFlags_t input.
- * @return CATransportFlags
- */
-static CATransportFlags_t OCToCATransportFlags(OCTransportFlags ocConType);
-
-/**
- * Convert CATransportFlags_t to OCTransportModifiers_t.
- *
- * @param caConType CATransportFlags_t input.
- * @return OCTransportFlags
- */
-static OCTransportFlags CAToOCTransportFlags(CATransportFlags_t caConType);
-
-/**
- * This function will be called back by CA layer when a response is received.
- *
- * @param endPoint CA remote endpoint.
- * @param responseInfo CA response info.
- */
-static void HandleCAResponses(const CAEndpoint_t* endPoint,
-        const CAResponseInfo_t* responseInfo);
-
-/**
- * This function will be called back by CA layer when a request is received.
- *
- * @param endPoint CA remote endpoint.
- * @param requestInfo CA request info.
- */
-static void HandleCARequests(const CAEndpoint_t* endPoint,
-        const CARequestInfo_t* requestInfo);
-
-/**
- * Extract query from a URI.
- *
- * @param uri Full URI with query.
- * @param query Pointer to string that will contain query.
- * @param newURI Pointer to string that will contain URI.
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-static OCStackResult getQueryFromUri(const char * uri, char** resourceType, char ** newURI);
-
-/**
- * Set Header Option.
- * @param caHdrOpt            Pointer to existing options
- * @param numOptions          Number of existing options.
- * @param optionID            COAP option ID.
- * @param optionData          Option data value.
- * @param optionDataLength    Size of Option data value.
-
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-static OCStackResult SetHeaderOption(CAHeaderOption_t *caHdrOpt, size_t numOptions,
-        uint16_t optionID, void* optionData, size_t optionDataLength);
-
-/**
- * default adapter state change callback method
- *
- * @param adapter   CA network adapter type.
- * @param enabled   current adapter state.
- */
-static void OCDefaultAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled);
-
-/**
- * default connection state change callback method
- *
- * @param info          CAEndpoint which has address, port and etc.
- * @param isConnected   current connection state.
- */
-static void OCDefaultConnectionStateChangedHandler(const CAEndpoint_t *info, bool isConnected);
-
-/**
- * Map zoneId to endpoint address which scope is ipv6 link-local.
- * @param payload Discovery payload which has Endpoint information.
- * @param ifindex index which indicate network interface.
- */
-#if defined (IP_ADAPTER) && !defined (WITH_ARDUINO)
-static OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload, uint32_t ifindex);
-#endif
-
-/**
- * Initialize the stack.
- * Caller of this function must serialize calls to this function and the stop counterpart.
- * @param mode            Mode of operation.
- * @param serverFlags     The server flag used when the mode of operation is a server mode.
- * @param clientFlags     The client flag used when the mode of operation is a client mode.
- * @param transportType   The transport type.
- *
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-static OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFlags,
-    OCTransportFlags clientFlags, OCTransportAdapter transportType);
-
-/**
- * DeInitialize the stack.
- * Caller of this function must serialize calls to this function and the init counterpart.
- *
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-static OCStackResult OCDeInitializeInternal();
 
 //-----------------------------------------------------------------------------
 // Internal functions
@@ -500,6 +593,13 @@ bool checkProxyUri(OCHeaderOption *options, uint8_t numOptions)
     return false;
 }
 
+
+/**
+ * Get the CoAP ticks after the specified number of milli-seconds.
+ *
+ * @param milliSeconds Milli-seconds.
+ * @return CoAP ticks
+ */
 uint32_t GetTicks(uint32_t milliSeconds)
 {
     coap_tick_t now;
@@ -566,6 +666,15 @@ void FixUpClientResponse(OCClientResponse *cr)
         ((cr->devAddr.adapter << CT_ADAPTER_SHIFT) | (cr->devAddr.flags & CT_MASK_FLAGS));
 }
 
+/**
+ * Ensure the accept header option is set appropriatly before sending the requests and routing
+ * header option is updated with destination.
+ *
+ * @param object CA remote endpoint.
+ * @param requestInfo CA request info.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
 OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *requestInfo)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -644,8 +753,21 @@ OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *request
 // Internal API function
 //-----------------------------------------------------------------------------
 
-// This internal function is called to update the stack with the status of
-// observers and communication failures
+/* This internal function is called to update the stack with the status of */
+/* observers and communication failures */
+/**
+ * Handler function for sending a response from multiple resources, such as a collection.
+ * Aggregates responses from multiple resource until all responses are received then sends the
+ * concatenated response
+ *
+ * TODO: Need to add a timeout in case a (remote?) resource does not respond
+ *
+ * @param token         Token to search for.
+ * @param tokenLength   Length of token.
+ * @param status        Feedback status.
+ * @return
+ *     ::OCStackResult
+ */
 OCStackResult OCStackFeedBack(CAToken_t token, uint8_t tokenLength, uint8_t status)
 {
     OCStackResult result = OC_STACK_ERROR;
@@ -743,7 +865,13 @@ OCStackResult OCStackFeedBack(CAToken_t token, uint8_t tokenLength, uint8_t stat
     return result;
 }
 
-OCStackResult CAResponseToOCStackResult(CAResponseResult_t caCode)
+/**
+ * Convert CAResponseResult_t to OCStackResult.
+ *
+ * @param caCode CAResponseResult_t code.
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+static OCStackResult CAResponseToOCStackResult(CAResponseResult_t caCode)
 {
     OCStackResult ret = OC_STACK_ERROR;
     switch(caCode)
@@ -797,7 +925,14 @@ OCStackResult CAResponseToOCStackResult(CAResponseResult_t caCode)
     return ret;
 }
 
-CAResponseResult_t OCToCAStackResult(OCStackResult ocCode, OCMethod method)
+/**
+ * Convert OCStackResult to CAResponseResult_t.
+ *
+ * @param ocCode OCStackResult code.
+ * @param method OCMethod method the return code replies to.
+ * @return ::CA_CONTENT on OK, some other value upon failure.
+ */
+static CAResponseResult_t OCToCAStackResult(OCStackResult ocCode, OCMethod method)
 {
     CAResponseResult_t ret = CA_INTERNAL_SERVER_ERROR;
 
@@ -878,7 +1013,14 @@ CAResponseResult_t OCToCAStackResult(OCStackResult ocCode, OCMethod method)
     return ret;
 }
 
-CATransportFlags_t OCToCATransportFlags(OCTransportFlags ocFlags)
+
+/**
+ * Convert OCTransportFlags_t to CATransportModifiers_t.
+ *
+ * @param ocConType OCTransportFlags_t input.
+ * @return CATransportFlags
+ */
+LOCAL CATransportFlags_t OCToCATransportFlags(OCTransportFlags ocFlags)
 {
     CATransportFlags_t caFlags = (CATransportFlags_t)ocFlags;
 
@@ -894,7 +1036,13 @@ CATransportFlags_t OCToCATransportFlags(OCTransportFlags ocFlags)
     return caFlags;
 }
 
-OCTransportFlags CAToOCTransportFlags(CATransportFlags_t caFlags)
+/**
+ * Convert CATransportFlags_t to OCTransportModifiers_t.
+ *
+ * @param caConType CATransportFlags_t input.
+ * @return OCTransportFlags
+ */
+LOCAL OCTransportFlags CAToOCTransportFlags(CATransportFlags_t caFlags)
 {
     return (OCTransportFlags)caFlags;
 }
@@ -1041,8 +1189,13 @@ OCStackResult HandleBatchResponse(char *requestUri, OCRepPayload **payload)
     return OC_STACK_INVALID_PARAM;
 }
 
-#if defined (IP_ADAPTER) && !defined (WITH_ARDUINO)
-OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload, uint32_t ifindex)
+/**
+ * Map zoneId to endpoint address which scope is ipv6 link-local.
+ * @param payload Discovery payload which has Endpoint information.
+ * @param ifindex index which indicate network interface.
+ */
+#if defined (IP_ADAPTER)
+static OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload, uint32_t ifindex)
 {
     if (!payload)
     {
@@ -1703,7 +1856,13 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
     }
 }
 
-void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
+/**
+ * This function will be called back by CA layer when a response is received.
+ *
+ * @param endPoint CA remote endpoint.
+ * @param responseInfo CA response info.
+ */
+static void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
 {
     VERIFY_NON_NULL_NR(endPoint, FATAL);
     VERIFY_NON_NULL_NR(responseInfo, FATAL);
@@ -1914,7 +2073,15 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
     return OC_STACK_OK;
 }
 
-OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolRequest)
+/**
+ * Handler function to execute stack requests
+ *
+ * @param protocolRequest      Pointer to the protocol requests from server.
+ *
+ * @return
+ *     ::OCStackResult
+ */
+static OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolRequest)
 {
     OIC_LOG(INFO, TAG, "Entering HandleStackRequests (OCStack Layer)");
     OCStackResult result = OC_STACK_ERROR;
@@ -2194,8 +2361,13 @@ void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
     OIC_LOG(INFO, TAG, "Exit OCHandleRequests");
 }
 
-//This function will be called back by CA layer when a request is received
-void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
+/**
+ * This function will be called back by CA layer when a request is received.
+ *
+ * @param endPoint CA remote endpoint.
+ * @param requestInfo CA request info.
+ */
+static void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
 {
     OIC_LOG(INFO, TAG, "Enter HandleCARequests");
     OIC_TRACE_BEGIN(%s:HandleCARequests, TAG);
@@ -2289,7 +2461,7 @@ OCStackResult OC_CALL OCSetRAInfo(const OCRAInfo_t *raInfo)
 }
 #endif
 
-OCStackResult OC_CALL OCInit(const char *ipAddr, uint16_t port, OCMode mode)
+OCStackResult OC_CALL OCInit(const char *ipAddr, uint16_t port, OCMode mode) EXPORT
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     (void) ipAddr;
@@ -2332,8 +2504,18 @@ OCStackResult OC_CALL OCInit2(OCMode mode, OCTransportFlags serverFlags, OCTrans
     return result;
 }
 
-OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFlags,
-                                   OCTransportFlags clientFlags, OCTransportAdapter transportType)
+/**
+ * Initialize the stack.
+ * Caller of this function must serialize calls to this function and the stop counterpart.
+ * @param mode            Mode of operation.
+ * @param serverFlags     The server flag used when the mode of operation is a server mode.
+ * @param clientFlags     The client flag used when the mode of operation is a client mode.
+ * @param transportType   The transport type.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFlags,
+					  OCTransportFlags clientFlags, OCTransportAdapter transportType)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (stackState == OC_STACK_INITIALIZED)
@@ -2398,21 +2580,21 @@ OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFlags,
 
 #ifdef UWP_APP
     result = InitSqlite3TempDir();
-    VERIFY_SUCCESS(result, OC_STACK_OK);
+    if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%s failed!!", result); goto exit;}
 #endif // UWP_APP
 
     result = InitializeScheduleResourceList();
-    VERIFY_SUCCESS(result, OC_STACK_OK);
+    if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%s failed!!", result); goto exit;}
 
     result = CAResultToOCResult(CAInitialize((CATransportAdapter_t)transportType));
-    VERIFY_SUCCESS(result, OC_STACK_OK);
+    if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%s failed!!", result); goto exit;}
 
     result = CAResultToOCResult(OCSelectNetwork(transportType));
-    VERIFY_SUCCESS(result, OC_STACK_OK);
+    if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%s failed!!", result); goto exit;}
 
     result = CAResultToOCResult(CARegisterNetworkMonitorHandler(
       OCDefaultAdapterStateChangedHandler, OCDefaultConnectionStateChangedHandler));
-    VERIFY_SUCCESS(result, OC_STACK_OK);
+    if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%s failed!!", result); goto exit;}
 
     switch (myStackMode)
     {
@@ -2436,7 +2618,7 @@ OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFlags,
             }
             break;
     }
-    VERIFY_SUCCESS(result, OC_STACK_OK);
+    if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%s failed!!", result); goto exit;}
 
 #ifdef TCP_ADAPTER
     CARegisterKeepAliveHandler(HandleKeepAliveConnCB);
@@ -2493,7 +2675,7 @@ exit:
     return result;
 }
 
-OCStackResult OC_CALL OCStop()
+OCStackResult OC_CALL OCStop() EXPORT
 {
     OIC_LOG(INFO, TAG, "Entering OCStop");
 
@@ -2523,7 +2705,13 @@ OCStackResult OC_CALL OCStop()
     return result;
 }
 
-OCStackResult OCDeInitializeInternal()
+/**
+ * DeInitialize the stack.
+ * Caller of this function must serialize calls to this function and the init counterpart.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+LOCAL OCStackResult OCDeInitializeInternal()
 {
     assert(stackState == OC_STACK_INITIALIZED);
 
@@ -2566,9 +2754,10 @@ OCStackResult OCDeInitializeInternal()
     OCCMTerminate();
 #endif
 
-    // Unset cautil config
-    CAUtilConfig_t configs = {(CATransportBTFlags_t)CA_DEFAULT_BT_FLAGS};
-    CAUtilSetBTConfigure(configs);
+ /* FIXME: if BT
+  *    // Unset cautil config
+  *    CAUtilConfig_t configs = {(CATransportBTFlags_t)CA_DEFAULT_BT_FLAGS};
+  *    CAUtilSetBTConfigure(configs); */
 
     stackState = OC_STACK_UNINITIALIZED;
     return OC_STACK_OK;
@@ -2591,7 +2780,15 @@ OCStackResult OC_CALL OCStopMulticastServer()
     return OC_STACK_OK;
 }
 
-CAMessageType_t qualityOfServiceToMessageType(OCQualityOfService qos)
+
+/**
+ * Map OCQualityOfService to CAMessageType.
+ *
+ * @param qos Input qos.
+ *
+ * @return CA message type for a given qos.
+ */
+static CAMessageType_t qualityOfServiceToMessageType(OCQualityOfService qos)
 {
     switch (qos)
     {
@@ -2850,6 +3047,7 @@ OCStackResult OC_CALL OCDoResource(OCDoHandle *handle,
                                    OCCallbackData *cbData,
                                    OCHeaderOption *options,
                                    uint8_t numOptions)
+EXPORT
 {
     OIC_TRACE_BEGIN(%s:OCDoRequest, TAG);
     OCStackResult ret = OCDoRequest(handle, method, requestUri,destination, payload,
@@ -3485,7 +3683,7 @@ OCPersistentStorage *OC_CALL OCGetPersistentStorageHandler()
     return g_PersistentStorageHandler;
 }
 
-OCStackResult OC_CALL OCProcess()
+OCStackResult OC_CALL OCProcess(void) EXPORT
 {
     /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     if (stackState == OC_STACK_UNINITIALIZED)
@@ -3525,9 +3723,11 @@ OCTpsSchemeFlags OC_CALL OCGetSupportedEndpointTpsFlags()
 OCStackResult OC_CALL OCCreateResource(OCResourceHandle *handle,
         const char *resourceTypeName,
         const char *resourceInterfaceName,
-        const char *uri, OCEntityHandler entityHandler,
+        const char *uri,
+        OCEntityHandler entityHandler,
         void *callbackParam,
         uint8_t resourceProperties)
+EXPORT
 {
     OIC_LOG_V(INFO, TAG, "%s %s ENTRY >>>>>>>>>>>>>>>>", __func__, uri);
 
@@ -3940,8 +4140,15 @@ static bool ValidateResourceTypeInterface(const char *resourceItemName)
     return true;
 }
 
-OCStackResult BindResourceTypeToResource(OCResource* resource,
-                                            const char *resourceTypeName)
+/**
+ * Bind a resource type to a resource.
+ *
+ * @param resource Target resource.
+ * @param resourceTypeName Name of resource type.
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+LOCAL OCStackResult BindResourceTypeToResource(OCResource *resource,
+						const char *resourceTypeName)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCResourceType *pointer = NULL;
@@ -3985,8 +4192,16 @@ exit:
     return result;
 }
 
+/**
+ * Bind a resource interface to a resource.
+ *
+ * @param resource Target resource.
+ * @param resourceInterfaceName Resource interface.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
 OCStackResult BindResourceInterfaceToResource(OCResource* resource,
-        const char *resourceInterfaceName)
+					      const char *resourceInterfaceName)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCResourceInterface *pointer = NULL;
@@ -4033,8 +4248,15 @@ OCStackResult BindResourceInterfaceToResource(OCResource* resource,
     return result;
 }
 
-OCStackResult BindTpsTypeToResource(OCResource* resource,
-                                    OCTpsSchemeFlags resourceTpsTypes)
+/**
+ * Bind a Transport Protocol Suites type to a resource.
+ *
+ * @param resource Target resource.
+ * @param resourceTpsTypes Name of transport protocol suites type.
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+LOCAL OCStackResult BindTpsTypeToResource(OCResource *resource,
+					   OCTpsSchemeFlags resourceTpsTypes)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (!resource)
@@ -4369,7 +4591,12 @@ OCEntityHandler OC_CALL OCGetResourceHandler(OCResourceHandle handle)
     return resource->entityHandler;
 }
 
-void incrementSequenceNumber(OCResource * resPtr)
+/**
+ * Increment resource sequence number.  Handles rollover.
+ *
+ * @param resPtr Pointer to resource.
+ */
+static void incrementSequenceNumber(OCResource * resPtr)
 {
     // Increment the sequence number
     resPtr->sequenceNum += 1;
@@ -4476,7 +4703,12 @@ OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse)
 //-----------------------------------------------------------------------------
 // Private internal function definitions
 //-----------------------------------------------------------------------------
-static OCDoHandle GenerateInvocationHandle()
+/**
+ * Generate handle of OCDoResource invocation for callback management.
+ *
+ * @return Generated OCDoResource handle.
+ */
+LOCAL OCDoHandle GenerateInvocationHandle()
 {
     OCDoHandle handle = NULL;
     // Generate token here, it will be deleted when the transaction is deleted
@@ -4493,7 +4725,12 @@ static OCDoHandle GenerateInvocationHandle()
     return handle;
 }
 
-OCStackResult initResources()
+/**
+ * Initialize resource data structures, variables, etc.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+LOCAL OCStackResult initResources()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCStackResult result = OC_STACK_OK;
@@ -4639,7 +4876,12 @@ OCStackResult initResources()
     return result;
 }
 
-void insertResource(OCResource *resource)
+/**
+ * Add a resource to the end of the linked list of resources.
+ *
+ * @param resource Resource to be added
+ */
+LOCAL void insertResource(OCResource *resource)
 {
     if (!headResource)
     {
@@ -4654,6 +4896,13 @@ void insertResource(OCResource *resource)
     resource->next = NULL;
 }
 
+/**
+ * Find a resource in the linked list of resources.
+ *
+ * @param resource Resource to be found.
+ * @return Pointer to resource that was found in the linked list or NULL if the resource was not
+ *         found.
+ */
 OCResource *findResource(OCResource *resource)
 {
     OCResource *pointer = headResource;
@@ -4669,7 +4918,10 @@ OCResource *findResource(OCResource *resource)
     return NULL;
 }
 
-void deleteAllResources()
+/**
+ * Delete all of the resources in the resource list.
+ */
+LOCAL void deleteAllResources()
 {
     OCResource *pointer = headResource;
     OCResource *temp = NULL;
@@ -4704,7 +4956,16 @@ void deleteAllResources()
 #endif // WITH_PRESENCE
 }
 
-OCStackResult deleteResource(OCResource *resource)
+
+/**
+ * Delete resource specified by handle.  Deletes resource and all resourcetype and resourceinterface
+ * linked lists.
+ *
+ * @param handle Handle of resource to be deleted.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+LOCAL OCStackResult deleteResource(OCResource *resource)
 {
     OCResource *prev = NULL;
     OCResource *temp = NULL;
@@ -4774,7 +5035,12 @@ OCStackResult deleteResource(OCResource *resource)
     return OC_STACK_ERROR;
 }
 
-void deleteResourceElements(OCResource *resource)
+/**
+ * Delete all of the dynamically allocated elements that were created for the resource.
+ *
+ * @param resource Specified resource.
+ */
+LOCAL void deleteResourceElements(OCResource *resource)
 {
     if (!resource)
     {
@@ -4805,7 +5071,12 @@ void deleteResourceElements(OCResource *resource)
     DeleteObserverList(resource);
 }
 
-void deleteResourceType(OCResourceType *resourceType)
+/**
+ * Delete all of the dynamically allocated elements that were created for the resource type.
+ *
+ * @param resourceType Specified resource type.
+ */
+LOCAL void deleteResourceType(OCResourceType *resourceType)
 {
     OCResourceType *next = NULL;
 
@@ -4820,7 +5091,12 @@ void deleteResourceType(OCResourceType *resourceType)
     }
 }
 
-void deleteResourceInterface(OCResourceInterface *resourceInterface)
+/**
+ * Delete all of the dynamically allocated elements that were created for the resource interface.
+ *
+ * @param resourceInterface Specified resource interface.
+ */
+LOCAL void deleteResourceInterface(OCResourceInterface *resourceInterface)
 {
     OCResourceInterface *next = NULL;
     for (OCResourceInterface *pointer = resourceInterface; pointer; pointer = next)
@@ -4834,6 +5110,11 @@ void deleteResourceInterface(OCResourceInterface *resourceInterface)
     }
 }
 
+/**
+ * Delete all of the dynamically allocated elements that were created for the resource attributes.
+ *
+ * @param rsrcAttributes Specified resource attribute.
+ */
 void OCDeleteResourceAttributes(OCAttribute *rsrcAttributes)
 {
     OCAttribute *next = NULL;
@@ -4856,7 +5137,18 @@ void OCDeleteResourceAttributes(OCAttribute *rsrcAttributes)
     }
 }
 
-void insertResourceType(OCResource *resource, OCResourceType *resourceType)
+/**
+ * Insert a resource type into a resource's resource type linked list.
+ * If resource type already exists, it will not be inserted and the
+ * resourceType will be free'd.
+ * resourceType->next should be null to avoid memory leaks.
+ * Function returns silently for null args.
+ *
+ * @param resource Resource where resource type is to be inserted.
+ * @param resourceType Resource type to be inserted.
+ */
+LOCAL void insertResourceType(OCResource *resource,
+        OCResourceType *resourceType)
 {
     OCResourceType *pointer = NULL;
     OCResourceType *previous = NULL;
@@ -4896,7 +5188,16 @@ void insertResourceType(OCResource *resource, OCResourceType *resourceType)
     OIC_LOG_V(DEBUG, TAG, "Added type %s to %s", resourceType->resourcetypename, resource->uri);
 }
 
-OCResourceType *findResourceTypeAtIndex(OCResourceHandle handle, uint8_t index)
+/**
+ * Get a resource type at the specified index within a resource.
+ *
+ * @param handle Handle of resource.
+ * @param index Index of resource type.
+ *
+ * @return Pointer to resource type if found, NULL otherwise.
+ */
+LOCAL OCResourceType *findResourceTypeAtIndex(OCResourceHandle handle,
+					       uint8_t index)
 {
     OCResource *resource = NULL;
     OCResourceType *pointer = NULL;
@@ -4923,6 +5224,15 @@ OCResourceType *findResourceTypeAtIndex(OCResourceHandle handle, uint8_t index)
     return pointer;
 }
 
+/**
+ * Finds a resource type in an OCResourceType link-list.
+ *
+ * @param resourceTypeList The link-list to be searched through.
+ * @param resourceTypeName The key to search for.
+ *
+ * @return Resource type that matches the key (ie. resourceTypeName) or
+ *      NULL if there is either an invalid parameter or this function was unable to find the key.
+ */
 OCResourceType *findResourceType(OCResourceType * resourceTypeList, const char * resourceTypeName)
 {
     if(resourceTypeList && resourceTypeName)
@@ -4949,7 +5259,17 @@ OCResourceType *findResourceType(OCResourceType * resourceTypeList, const char *
  * If alredy present, 2nd arg is free'd.
  * Default interface will always be first if present.
  */
-void insertResourceInterface(OCResource *resource, OCResourceInterface *newInterface)
+/**
+ * Insert a resource interface into a resource's resource interface linked list.
+ * If resource interface already exists, it will not be inserted and the
+ * resourceInterface will be free'd.
+ * resourceInterface->next should be null to avoid memory leaks.
+ *
+ * @param resource Resource where resource interface is to be inserted.
+ * @param resourceInterface Resource interface to be inserted.
+ */
+LOCAL void insertResourceInterface(OCResource *resource,
+				    OCResourceInterface *newInterface)
 {
     OCResourceInterface *pointer = NULL;
     OCResourceInterface *previous = NULL;
@@ -5019,8 +5339,15 @@ void insertResourceInterface(OCResource *resource, OCResourceInterface *newInter
     }
 }
 
-OCResourceInterface *findResourceInterfaceAtIndex(OCResourceHandle handle,
-        uint8_t index)
+/**
+ * Get a resource interface at the specified index within a resource.
+ *
+ * @param handle Handle of resource.
+ * @param index Index of resource interface.
+ *
+ * @return Pointer to resource interface if found, NULL otherwise.
+ */
+LOCAL OCResourceInterface *findResourceInterfaceAtIndex(OCResourceHandle handle, uint8_t index)
 {
     OCResource *resource = NULL;
     OCResourceInterface *pointer = NULL;
@@ -5061,7 +5388,16 @@ OCResourceInterface *findResourceInterfaceAtIndex(OCResourceHandle handle,
  *       malformed uri's with '??'. Whitespace at the end will be assumed to be
  *       part of the query.
  */
-OCStackResult getQueryFromUri(const char * uri, char** query, char ** uriWithoutQuery)
+/**
+ * Extract query from a URI.
+ *
+ * @param uri Full URI with query.
+ * @param query Pointer to string that will contain query.
+ * @param newURI Pointer to string that will contain URI.
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+/* static OCStackResult getQueryFromUri(const char * uri, char** resourceType, char ** newURI); */
+LOCAL OCStackResult getQueryFromUri(const char * uri, char** query, char ** uriWithoutQuery)
 {
     if(!uri)
     {
@@ -5150,7 +5486,15 @@ const char* OC_CALL OCGetServerInstanceIDString(void)
     return sidStr;
 }
 
-CAResult_t OCSelectNetwork(OCTransportAdapter transportType)
+/*
+ * Attempts to initialize every network interface that the CA Layer might have compiled in.
+ *
+ * Note: At least one interface must succeed to initialize. If all calls to @ref CASelectNetwork
+ * return something other than @ref CA_STATUS_OK, then this function fails.
+ * @param transportType  OCTransportAdapter value to select.
+ * @return ::CA_STATUS_OK on success, some other value upon failure.
+ */
+LOCAL CAResult_t OCSelectNetwork(OCTransportAdapter transportType)
 {
     OIC_LOG_V(DEBUG, TAG, "OCSelectNetwork [%d]", transportType);
     CAResult_t retResult = CA_STATUS_FAILED;
@@ -5200,6 +5544,13 @@ CAResult_t OCSelectNetwork(OCTransportAdapter transportType)
     return retResult;
 }
 
+
+/**
+ * Converts a CAResult_t type to a OCStackResult type.
+ *
+ * @param caResult CAResult_t value to convert.
+ * @return OCStackResult that was converted from the input CAResult_t value.
+ */
 OCStackResult CAResultToOCResult(CAResult_t caResult) /* GAR: support all CAResult_t codes */
 {
     switch (caResult)
@@ -5244,7 +5595,14 @@ OCStackResult CAResultToOCResult(CAResult_t caResult) /* GAR: support all CAResu
     }
 }
 
-bool OCResultToSuccess(OCStackResult ocResult)
+
+/**
+ * Converts a OCStackResult type to a bool type.
+ *
+ * @param ocResult OCStackResult value to convert.
+ * @return true on success, false upon failure.
+ */
+LOCAL bool OCResultToSuccess(OCStackResult ocResult)
 {
     switch (ocResult)
     {
@@ -5284,8 +5642,18 @@ OCStackResult OC_CALL OCBindResourceInsToResource(OCResourceHandle handle, int64
     return OC_STACK_OK;
 }
 
+#if defined(RD_CLIENT) || defined(RD_SERVER)
+/**
+ * This function binds an resource unique ins value to the resource. This can be only called
+ * when the stack has received a response from resource-directory.
+ *
+ * @param requestUri URI of the resource.
+ * @param response Response from queries to remote servers.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
 OCStackResult OCUpdateResourceInsWithResponse(const char *requestUri,
-                                                      const OCClientResponse *response)
+                                              const OCClientResponse *response)
 {
     // Validate input parameters
     VERIFY_NON_NULL(requestUri, ERROR, OC_STACK_INVALID_PARAM);
@@ -5404,6 +5772,7 @@ OCStackResult OCUpdateResourceInsWithResponse(const char *requestUri,
     OICFree(targetUri);
     return OC_STACK_OK;
 }
+#endif
 
 OCStackResult OC_CALL OCGetResourceIns(OCResourceHandle handle, int64_t* ins)
 {
@@ -5444,8 +5813,18 @@ OCResourceHandle OC_CALL OCGetResourceHandleAtUri(const char *uri)
     return NULL;
 }
 
-static OCStackResult SetHeaderOption(CAHeaderOption_t *caHdrOpt, size_t numOptions,
-        uint16_t optionID, void* optionData, size_t optionDataLength)
+/**
+ * Set Header Option.
+ * @param caHdrOpt            Pointer to existing options
+ * @param numOptions          Number of existing options.
+ * @param optionID            COAP option ID.
+ * @param optionData          Option data value.
+ * @param optionDataLength    Size of Option data value.
+
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+LOCAL OCStackResult SetHeaderOption(CAHeaderOption_t *caHdrOpt, size_t numOptions,
+				     uint16_t optionID, void* optionData, size_t optionDataLength)
 {
     if (!caHdrOpt)
     {
@@ -5511,6 +5890,7 @@ OCStackResult OC_CALL OCSetHeaderOption(OCHeaderOption* ocHdrOpt, size_t* numOpt
 OCStackResult OC_CALL OCGetHeaderOption(OCHeaderOption* ocHdrOpt, size_t numOptions,
                                         uint16_t optionID, void* optionData, size_t optionDataLength,
                                         uint16_t* receivedDataLength)
+EXPORT
 {
     if (!ocHdrOpt || !numOptions)
     {
@@ -5550,7 +5930,13 @@ OCStackResult OC_CALL OCGetHeaderOption(OCHeaderOption* ocHdrOpt, size_t numOpti
     return OC_STACK_OK;
 }
 
-void OCDefaultAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled)
+/**
+ * default adapter state change callback method
+ *
+ * @param adapter   CA network adapter type.
+ * @param enabled   current adapter state.
+ */
+LOCAL void OCDefaultAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled)
 {
     OIC_LOG(DEBUG, TAG, "OCDefaultAdapterStateChangedHandler");
 
@@ -5567,7 +5953,13 @@ void OCDefaultAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enab
 #endif
 }
 
-void OCDefaultConnectionStateChangedHandler(const CAEndpoint_t *info, bool isConnected)
+/**
+ * default connection state change callback method
+ *
+ * @param info          CAEndpoint which has address, port and etc.
+ * @param isConnected   current connection state.
+ */
+LOCAL void OCDefaultConnectionStateChangedHandler(const CAEndpoint_t *info, bool isConnected)
 {
     OIC_LOG(DEBUG, TAG, "OCDefaultConnectionStateChangedHandler");
 

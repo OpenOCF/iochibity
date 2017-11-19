@@ -18,21 +18,45 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "iotivity_config.h"
-#include <stdlib.h>
-#include <string.h>
-#include "oic_malloc.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "payload_logging.h"
-#include "psinterface.h"
-#include "resourcemanager.h"
-#include "utlist.h"
-#include "srmresourcestrings.h"
-#include "srmutility.h"
 #include "amaclresource.h"
 
+/* #include "iotivity_config.h" */
+#include <stdlib.h>
+#include <string.h>
+
+/* #include "oic_malloc.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "payload_logging.h" */
+/* #include "psinterface.h" */
+/* #include "resourcemanager.h" */
+/* #include "utlist.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "srmutility.h" */
+/* #include "amaclresource.h" */
+
+#include "cbor.h"
+
 #define TAG  "OIC_SRM_AMACL"
+
+#define fixme_amacl_rp OCResourceProperty /* help makeheaders */
+
+#if INTERFACE
+/**
+ * /oic/sec/amacl (Access Manager Service Accesss Control List) data type.
+ * Derived from OIC Security Spec; see Spec for details.
+ */
+typedef struct OicSecAmacl_t
+{
+    // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
+    size_t              resourcesLen;   // the number of elts in Resources
+    char                **resources;    // 0:R:M:Y:String
+    OicSecAmacl_t         *next;
+} OicSecAmacl_t;
+
+typedef struct OicSecAmacl OicSecAmacl_t;
+#endif
+
 
 /** Default cbor payload size. This value is increased in case of CborErrorOutOfMemory.
  * The value of payload size is increased until reaching belox max cbor size. */

@@ -24,23 +24,268 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "iotivity_config.h"
-#include <stdio.h>
 #include "ocpayload.h"
-#include "occollection.h"
-#include <string.h>
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "ocstackinternal.h"
-#include "ocresource.h"
-#include "logger.h"
-#include "ocendpoint.h"
-#include "cacommon.h"
-#include "presence_methods.h"
+
+/* #include "iotivity_config.h" */
+#include <stdio.h>
+/* #include "ocpayload.h" */
+/* #include "occollection.h" */
+/* #include <string.h> */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "ocstackinternal.h" */
+/* #include "ocresource.h" */
+/* #include "logger.h" */
+/* #include "ocendpoint.h" */
+/* #include "cacommon.h" */
+/* #include "presence_methods.h" */
 
 #define TAG "OIC_RI_PAYLOAD"
+
 #define CSV_SEPARATOR ','
 #define MASK_SECURE_FAMS (OC_FLAG_SECURE | OC_MASK_FAMS)
+
+#define COAP_MAX_PDU_SIZE           1400 /* maximum size of a CoAP PDU for big platforms*/
+
+/**
+ * Format indicating which encoding has been used on the payload.
+ */
+#if INTERFACE
+typedef enum
+{
+    CA_FORMAT_UNDEFINED = 0,            /**< Undefined enoding format */
+    CA_FORMAT_TEXT_PLAIN,
+    CA_FORMAT_APPLICATION_LINK_FORMAT,
+    CA_FORMAT_APPLICATION_XML,
+    CA_FORMAT_APPLICATION_OCTET_STREAM,
+    CA_FORMAT_APPLICATION_RDF_XML,
+    CA_FORMAT_APPLICATION_EXI,
+    CA_FORMAT_APPLICATION_JSON,
+    CA_FORMAT_APPLICATION_CBOR,
+    CA_FORMAT_APPLICATION_VND_OCF_CBOR,
+    CA_FORMAT_UNSUPPORTED
+} CAPayloadFormat_t;
+#endif	/* INTERFACE */
+
+/**
+ * Payload information from resource model.
+ */
+#if INTERFACE
+typedef uint8_t *CAPayload_t;
+#endif	/* INTERFACE */
+
+#if EXPORT_INTERFACE
+#include <stddef.h>
+#include <stdint.h>
+
+/** Enum to describe the type of object held by the OCPayload object.*/
+typedef enum
+{
+    /** Contents of the payload are invalid */
+    PAYLOAD_TYPE_INVALID,
+    /** The payload is an OCDiscoveryPayload */
+    PAYLOAD_TYPE_DISCOVERY,
+    /** The payload of the device */
+    PAYLOAD_TYPE_DEVICE,
+    /** The payload type of the platform */
+    PAYLOAD_TYPE_PLATFORM,
+    /** The payload is an OCRepPayload */
+    PAYLOAD_TYPE_REPRESENTATION,
+    /** The payload is an OCSecurityPayload */
+    PAYLOAD_TYPE_SECURITY,
+    /** The payload is an OCPresencePayload */
+    PAYLOAD_TYPE_PRESENCE,
+    /** The payload is an OCDiagnosticPayload */
+    PAYLOAD_TYPE_DIAGNOSTIC,
+    /** The payload is an OCIntrospectionPayload */
+    PAYLOAD_TYPE_INTROSPECTION
+} OCPayloadType;
+
+/**
+ * A generic struct representing a payload returned from a resource operation
+ *
+ * A pointer to OCPayLoad can be cast to a more specific struct to access members
+ * for the its type.
+ */
+typedef struct
+{
+    /** The type of message that was received */
+    OCPayloadType type;
+} OCPayload;
+
+typedef enum
+{
+    OCREP_PROP_NULL,
+    OCREP_PROP_INT,
+    OCREP_PROP_DOUBLE,
+    OCREP_PROP_BOOL,
+    OCREP_PROP_STRING,
+    OCREP_PROP_BYTE_STRING,
+    OCREP_PROP_OBJECT,
+    OCREP_PROP_ARRAY
+}OCRepPayloadPropType;
+
+/** This structure will be used to represent a binary string for CBOR payloads.*/
+typedef struct
+{
+    /** pointer to data bytes.*/
+    uint8_t* bytes;
+
+    /** number of data bytes.*/
+    size_t   len;
+} OCByteString;
+
+#define MAX_REP_ARRAY_DEPTH 3
+
+// used for get/set/put/observe/etc representations
+typedef struct OCRepPayload
+{
+    OCPayload base;
+    char* uri;
+    OCStringLL* types;
+    OCStringLL* interfaces;
+    OCRepPayloadValue* values;
+    struct OCRepPayload* next;
+} OCRepPayload;
+
+// used inside a resource payload
+typedef struct OCEndpointPayload
+{
+    char* tps;
+    char* addr;
+    OCTransportFlags family;
+    uint16_t port;
+    uint16_t pri;
+    struct OCEndpointPayload* next;
+} OCEndpointPayload;
+
+// used inside a discovery payload
+/* GAR: a Link? OCF 1.3.0 section 7.8.2. Compare OCResource in ocresource.h */
+typedef struct OCResourcePayload
+{
+    char* uri;			/* property "href" (mandatory) */
+    char* rel;
+    char* anchor; /* NB: for OIC 1.1, a transfer URI; for OCF 1.0, a OCF URI */
+    OCStringLL* types;		/* property "rt" (mandatory) */
+    OCStringLL* interfaces;	/* property "if" (mandatory) */
+    uint8_t bitmap;		/* visibility policy bitmask: discoverable, observable */
+    /* OCF 1.0: "sec" and "port" ... used only in a response payload
+       when the request does not include an
+       OCF-Accept-Content-Format-Version option, i.e. OIC 1.1
+       clients. OCF 1.0 uses eps to convey info about encrypted
+       endpoints */
+    bool secure;
+    uint16_t port;
+#ifdef TCP_ADAPTER
+    uint16_t tcpPort;
+#endif
+    struct OCResourcePayload* next;
+    OCEndpointPayload* eps;  /* OCF 1.0 */
+    /* GAR: what about the remaining optional parameters, e.g. di, type (mt?), etc. */
+} OCResourcePayload;
+
+typedef struct OCDiscoveryPayload /* GAR: implicitly uri is "oic/res" (set in OCClientResponse parent) */
+{
+    OCPayload base;
+
+    /** Device Id */
+    char *sid;			/* property "di" (OIC 1.1 only mandatory) */
+
+    /** Name */
+    char *name;			/* propery "n" (optional) */
+
+    /** Resource Type */
+    OCStringLL *type;		/* propery "rt" (mandatory) */
+
+    /** Interface */
+    OCStringLL *iface;		/* property "if" (mandatory) */
+
+    /** This structure holds the old /oic/res response. */
+    OCResourcePayload *resources; /* property "links" (mandatory) */
+
+    /** Holding address of the next DiscoveryPayload. */
+    struct OCDiscoveryPayload *next;
+
+    /* GAR: property "mpro" (messaging protocol support)? */
+
+} OCDiscoveryPayload;
+
+typedef struct
+{
+    OCPayload base;
+    uint8_t* securityData;
+    size_t payloadSize;
+} OCSecurityPayload;
+
+typedef struct
+{
+    OCPayload base;
+    char* message;
+} OCDiagnosticPayload;
+
+typedef struct
+{
+    OCPayload base;
+    OCByteString cborPayload;
+} OCIntrospectionPayload;
+
+#endif	/* EXPORT_INTERFACE */
+
+#if INTERFACE
+/**
+ *  Formats for payload encoding.
+ */
+typedef enum
+{
+    OC_FORMAT_CBOR,
+    OC_FORMAT_VND_OCF_CBOR,
+    OC_FORMAT_JSON,
+    OC_FORMAT_UNDEFINED,
+    OC_FORMAT_UNSUPPORTED,
+} OCPayloadFormat;
+#endif	/* INTERFACE */
+
+#if INTERFACE
+struct OCRepPayloadValueArray
+{
+    OCRepPayloadPropType type;
+    size_t dimensions[MAX_REP_ARRAY_DEPTH];
+
+    union
+    {
+        int64_t* iArray;
+        double* dArray;
+        bool* bArray;
+        char** strArray;
+
+        /** pointer to ByteString array.*/
+        OCByteString* ocByteStrArray;
+
+        struct OCRepPayload** objArray;
+    };
+};
+
+struct OCRepPayloadValue
+{
+    char* name;
+    OCRepPayloadPropType type;
+    union
+    {
+        int64_t i;
+        double d;
+        bool b;
+        char* str;
+
+        /** ByteString object.*/
+        OCByteString ocByteStr;
+
+        struct OCRepPayload* obj;
+        OCRepPayloadValueArray arr;
+    };
+    struct OCRepPayloadValue* next;
+
+};
+#endif	/* INTERFACE */
 
 static void OCFreeRepPayloadValueContents(OCRepPayloadValue* val);
 
@@ -1808,9 +2053,28 @@ void OC_CALL OCResourcePayloadAddNewEndpoint(OCResourcePayload* payload, OCEndpo
     }
 }
 
-OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource, const OCDevAddr *devAddr,
-                                            CAEndpoint_t *networkInfo, size_t infoSize,
-                         OCEndpointPayload **listHead, size_t* epSize, OCEndpointPayload** selfEp)
+/**
+ * This function creates list of OCEndpointPayload structure,
+ * which matches with the resource's endpointType from list of
+ * CAEndpoint_t.
+ *
+ * @param[in] resource the resource
+ * @param[in] devAddr devAddr Structure pointing to the address.
+ * @param[in] networkInfo array of CAEndpoint_t
+ * @param[in] infoSize size of array
+ * @param[out] listHead pointer to HeadNode pointer
+ * @param[out] epSize size of array(set NULL not to use it)
+ * @param[out] selfEp endpoint that matches devAddr for use in anchor(set NULL not to use it)
+ *
+ * @return if success return pointer else NULL
+ */
+OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
+					     const OCDevAddr *devAddr,
+					     CAEndpoint_t *networkInfo,
+					     size_t infoSize,
+					     OCEndpointPayload **listHead,
+					     size_t* epSize,
+					     OCEndpointPayload** selfEp)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCEndpointPayload *headNode = NULL;
@@ -2073,6 +2337,17 @@ void OC_CALL OCDiscoveryPayloadAddResource(OCDiscoveryPayload* payload, const OC
 }
 #endif
 
+/**
+ * OCDiscoveryPayloadAddResourceWithEps
+ * Add resource payload with endpoint payload to discovery payload.
+ *
+ * @param payload       Pointer to discovery payload.
+ * @param res           Pointer to OCresource structure.
+ * @param securePort    Secure port number.
+ * @param networkInfo   List of CAEndpoint_t.
+ * @param infoSize      Size of CAEndpoint_t list.
+ * @param devAddr       Pointer to OCDevAddr structure.
+ */
 #ifndef TCP_ADAPTER
 void OCDiscoveryPayloadAddResourceWithEps(OCDiscoveryPayload* payload, const OCResource* res,
                                                   uint16_t securePort, void *networkInfo, size_t infoSize,
@@ -2219,6 +2494,10 @@ void OC_CALL OCDiagnosticPayloadDestroy(OCDiagnosticPayload* payload)
     OICFree(payload);
 }
 
+/*
+* This function returns to destroy endpoint payload
+*
+*/
 void OC_CALL OCEndpointPayloadDestroy(OCEndpointPayload* payload)
 {
     if (!payload)
@@ -2254,6 +2533,7 @@ OCRepPayload** OC_CALL OCLinksPayloadArrayCreate(const char* resourceUri,
 }
 
 // Check on Content Version option whether request has vnd.ocf+cbor format instead of cbor
+// Check on Accept Version option.
 bool OCRequestIsOCFContentFormat(OCEntityHandlerRequest *ehRequest, bool* isOCFContentFormat)
 {
     if ((ehRequest == NULL)||(isOCFContentFormat == NULL))

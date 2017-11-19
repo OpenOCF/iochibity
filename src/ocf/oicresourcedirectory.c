@@ -22,29 +22,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef RD_SERVER
-#include "sqlite3.h"
-#endif
+#include "oicresourcedirectory.h"
 
-#include "octypes.h"
-#include "ocstack.h"
-#include "ocrandom.h"
-#include "logger.h"
-#include "ocpayload.h"
-#include "ocendpoint.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "cainterface.h" /* GAR is this needed? */
+/* #ifdef RD_SERVER */
+/* #include "sqlite3.h" */
+/* #endif */
+
+/* #include "octypes.h" */
+/* #include "ocstack.h" */
+/* #include "ocrandom.h" */
+/* #include "logger.h" */
+/* #include "ocpayload.h" */
+/* #include "ocendpoint.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "cainterface.h" /\* GAR is this needed? *\/ */
 
 #define TAG "OIC_RI_RESOURCEDIRECTORY"
 
-#define VERIFY_NON_NULL(arg) \
-if (!(arg)) \
-{ \
-    OIC_LOG(ERROR, TAG, #arg " is NULL"); \
-    result = OC_STACK_NO_MEMORY; \
-    goto exit; \
-}
+/* #define VERIFY_NON_NULL(arg) \ */
+/* if (!(arg)) \ */
+/* { \ */
+/*     OIC_LOG(ERROR, TAG, #arg " is NULL"); \ */
+/*     result = OC_STACK_NO_MEMORY; \ */
+/*     goto exit; \ */
+/* } */
 
 #ifdef RD_SERVER
 
@@ -106,9 +108,9 @@ static OCStackResult appendStringLL(OCStringLL **type, const unsigned char *valu
 {
     OCStackResult result;
     OCStringLL *temp= (OCStringLL*)OICCalloc(1, sizeof(OCStringLL));
-    VERIFY_NON_NULL(temp);
+    VERIFY_NON_NULL_1(temp);
     temp->value = OICStrdup((char *)value);
-    VERIFY_NON_NULL(temp->value);
+    VERIFY_NON_NULL_1(temp->value);
     temp->next = NULL;
 
     if (!*type)
@@ -153,7 +155,7 @@ static OCStackResult ResourcePayloadCreate(sqlite3_stmt *stmt, OCDevAddr *devAdd
     while (SQLITE_ROW == res)
     {
         resourcePayload = (OCResourcePayload *)OICCalloc(1, sizeof(OCResourcePayload));
-        VERIFY_NON_NULL(resourcePayload);
+        VERIFY_NON_NULL_1(resourcePayload);
 
         sqlite3_int64 id = sqlite3_column_int64(stmt, ins_index);
         const unsigned char *uri = sqlite3_column_text(stmt, href_index);
@@ -164,16 +166,16 @@ static OCStackResult ResourcePayloadCreate(sqlite3_stmt *stmt, OCDevAddr *devAdd
         OIC_LOG_V(DEBUG, TAG, " %s %" PRId64, uri, (int64_t) deviceId);
 
         resourcePayload->uri = OICStrdup((char *)uri);
-        VERIFY_NON_NULL(resourcePayload->uri)
+        VERIFY_NON_NULL_1(resourcePayload->uri)
         if (rel)
         {
             resourcePayload->rel = OICStrdup((char *)rel);
-            VERIFY_NON_NULL(resourcePayload->rel);
+            VERIFY_NON_NULL_1(resourcePayload->rel);
         }
         if (anchor)
         {
             resourcePayload->anchor = OICStrdup((char *)anchor);
-            VERIFY_NON_NULL(resourcePayload->anchor);
+            VERIFY_NON_NULL_1(resourcePayload->anchor);
         }
 
         const char rt[] = "SELECT rt FROM RD_LINK_RT WHERE LINK_ID=@id";
@@ -227,7 +229,7 @@ static OCStackResult ResourcePayloadCreate(sqlite3_stmt *stmt, OCDevAddr *devAdd
         while (SQLITE_ROW == sqlite3_step(stmtEP))
         {
             epPayload = (OCEndpointPayload *)OICCalloc(1, sizeof(OCEndpointPayload));
-            VERIFY_NON_NULL(epPayload);
+            VERIFY_NON_NULL_1(epPayload);
             const unsigned char *tempEp = sqlite3_column_text(stmtEP, ep_value_index);
             result = OCParseEndpointString((const char *)tempEp, epPayload);
             if (OC_STACK_OK != result)
@@ -289,7 +291,7 @@ static OCStackResult ResourcePayloadCreate(sqlite3_stmt *stmt, OCDevAddr *devAdd
             const unsigned char *tempDi = sqlite3_column_text(stmtDI, di_index);
             OIC_LOG_V(DEBUG, TAG, " %s", tempDi);
             discPayload->sid = OICStrdup((char *)tempDi);
-            VERIFY_NON_NULL(discPayload->sid);
+            VERIFY_NON_NULL_1(discPayload->sid);
         }
         VERIFY_SQLITE(sqlite3_finalize(stmtDI));
         stmtDI = NULL;
@@ -457,9 +459,9 @@ OCStackResult OC_CALL OCRDDatabaseDiscoveryPayloadCreateWithEp(const char *inter
         sqlite3_int64 externalHost = sqlite3_column_int64(stmt, external_host_index);
         *tail = OCDiscoveryPayloadCreate();
         result = OC_STACK_INTERNAL_SERVER_ERROR;
-        VERIFY_NON_NULL(*tail);
+        VERIFY_NON_NULL_1(*tail);
         (*tail)->sid = (char *)OICCalloc(1, UUID_STRING_SIZE);
-        VERIFY_NON_NULL((*tail)->sid);
+        VERIFY_NON_NULL_1((*tail)->sid);
         memcpy((*tail)->sid, di, UUID_STRING_SIZE);
         result = CheckResources(interfaceType, resourceType, externalHost ? NULL : endpoint, *tail);
         if (OC_STACK_OK == result)

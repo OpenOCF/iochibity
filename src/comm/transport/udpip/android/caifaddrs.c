@@ -19,8 +19,8 @@
  ******************************************************************/
 
 #include "caifaddrs.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
+/* #include "oic_malloc.h"
+ * #include "oic_string.h" */
 
 #include <stdbool.h>
 #include <string.h>
@@ -33,9 +33,21 @@
 #include <netinet/in.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
-#include "logger.h"
+/* #include "logger.h" */
+
 #define TAG "OIC_CA_IFADDRS"
-#define VERIFY_NON_NULL(arg) { if (!arg) {OIC_LOG(ERROR, TAG, #arg " is NULL"); goto exit;} }
+/* #define VERIFY_NON_NULL(arg) { if (!arg) {OIC_LOG(ERROR, TAG, #arg " is NULL"); goto exit;} } */
+
+/**
+ * CA partial define for the structure ifaddrs.
+ */
+struct ifaddrs
+{
+    struct ifaddrs     *ifa_next;
+    char               *ifa_name;
+    unsigned int       ifa_flags;
+    struct sockaddr    *ifa_addr;
+};
 
 #define NETLINK_MESSAGE_LENGTH  (4096)
 #define IFC_LABEL_LOOP          "lo"
@@ -81,13 +93,13 @@ static struct ifaddrs *CAParsingAddr(struct nlmsghdr *recvMsg)
     int ifaddrmsgLen = IFA_PAYLOAD(recvMsg);
 
     struct ifaddrs *node = (struct ifaddrs *)OICCalloc(1, sizeof(struct ifaddrs));
-    VERIFY_NON_NULL(node);
+    VERIFY_NON_NULL_1(node);
 
     char nameBuf[IFNAMSIZ] = { 0 };
     node->ifa_next = NULL;
     if_indextoname(ifaddrmsgData->ifa_index, nameBuf);
     node->ifa_name = (char *)OICCalloc(strlen(nameBuf)+1, sizeof(char));
-    VERIFY_NON_NULL(node->ifa_name);
+    VERIFY_NON_NULL_1(node->ifa_name);
 
     OICStrcpy(node->ifa_name, strlen(nameBuf)+1, nameBuf);
     node->ifa_flags = ifaddrmsgData->ifa_flags;
@@ -101,7 +113,7 @@ static struct ifaddrs *CAParsingAddr(struct nlmsghdr *recvMsg)
         {
             case IFA_ADDRESS:
                 ss = (struct sockaddr_storage*)OICCalloc(1, sizeof(struct sockaddr_storage));
-                VERIFY_NON_NULL(ss);
+                VERIFY_NON_NULL_1(ss);
 
                 ss->ss_family = ifaddrmsgData-> ifa_family;
 
@@ -198,7 +210,7 @@ CAResult_t CAGetIfaddrsUsingNetlink(struct ifaddrs **ifap)
                 case RTM_NEWADDR:
                     node = CAParsingAddr(recvMsg);
                     state = CA_MEMORY_ALLOC_FAILED;
-                    VERIFY_NON_NULL(node);
+                    VERIFY_NON_NULL_1(node);
                     state = CA_STATUS_OK;
 
                     if (*ifap == NULL)

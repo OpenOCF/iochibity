@@ -18,22 +18,28 @@
  *
  ******************************************************************/
 
-#include "iotivity_config.h"
+/* #include "iotivity_config.h" */
 #include "caadapterutils.h"
 
 #include <string.h>
 #include <ctype.h>
-#include "oic_string.h"
-#include "oic_malloc.h"
+/* #include "oic_string.h" */
+/* #include "oic_malloc.h" */
 #include <errno.h>
 #include <inttypes.h>
+#if INTERFACE
+#include <unistd.h>
+#endif	/* INTERFACE */
+
 
 #ifdef HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
 #endif
+#if INTERFACE
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
+#endif	/* INTERFACE */
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -52,6 +58,11 @@
 #endif
 
 #define CA_ADAPTER_UTILS_TAG "OIC_CA_ADAP_UTILS"
+
+/**
+ * IP address Length.
+ */
+#define CA_IPADDR_SIZE 16
 
 CAResult_t CAConvertAddrToName(const struct sockaddr_storage *sockAddr, socklen_t sockAddrLen,
                                char *host, uint16_t *port)

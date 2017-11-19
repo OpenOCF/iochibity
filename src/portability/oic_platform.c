@@ -16,7 +16,8 @@
  * limitations under the License.
  *
  ******************************************************************/
-#include "iotivity_config.h"
+#include "oic_platform.h"
+/* #include "iotivity_config.h" */
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -54,17 +55,44 @@
 #include <sys/types.h>
 #endif
 
+#include <string.h>
+
 #include <assert.h>
 #include <stdio.h>
+#if EXPORT_INTERFACE
+#include <stdint.h>
+#endif
+#include <stddef.h>
 #include <errno.h>
 #include <mbedtls/md.h>
-#include "logger.h"
-#include "iotivity_debug.h"
-#include "oic_platform.h"
-#include "ocrandom.h"
-#include "oic_string.h"
+/* #include "logger.h" */
+/* #include "iotivity_debug.h" */
+/* #include "oic_platform.h" */
+/* #include "ocrandom.h" */
+/* #include "oic_string.h" */
 
 #define TAG "OIC_PLATFORM"
+
+/**
+ * Declares OIC Platform Results & Errors.
+ */
+#if EXPORT_INTERFACE
+typedef enum
+{
+    /** Success status code.*/
+    OIC_PLATFORM_OK = 0,
+
+    /** Error status code - START HERE.*/
+    OIC_PLATFORM_INVALID_PARAM,	/* errno: EINVAL */
+    OIC_PLATFORM_NO_MEMORY,	/* errno: ENOMEM */
+    OIC_PLATFORM_NOTIMPL,	/* errno: ENOSYS */
+
+    /** Generic ERROR.*/
+    OIC_PLATFORM_ERROR = 255	/* GAR disallow? */
+    /** Error status code - END HERE.*/
+} OICPlatformResult_t;
+#define OIC_UUID_LENGTH     16
+#endif
 
 /*GAR #if defined(__unix__) || defined(_WIN32) */
 // Create a UUID for using the "Name-Based UUID" mechanism specified in

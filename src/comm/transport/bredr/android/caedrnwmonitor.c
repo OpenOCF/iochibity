@@ -18,22 +18,24 @@
  *
  ******************************************************************/
 
+#include "caedrnwmonitor.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <jni.h>
 
-#include "caedrinterface.h"
-#include "caedrnwmonitor.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "cathreadpool.h" /* for thread pool */
-#include "octhread.h"
-#include "uarraylist.h"
-#include "caadapterutils.h"
-#include "caedrserver.h"
-#include "caedrutils.h"
-
-#include "org_iotivity_ca_CaEdrInterface.h"
+/* #include "caedrinterface.h"
+ * #include "caedrnwmonitor.h"
+ * #include "logger.h"
+ * #include "oic_malloc.h"
+ * #include "cathreadpool.h" /\* for thread pool *\/
+ * #include "octhread.h"
+ * #include "uarraylist.h"
+ * #include "caadapterutils.h"
+ * #include "caedrserver.h"
+ * #include "caedrutils.h"
+ * 
+ * #include "org_iotivity_ca_CaEdrInterface.h" */
 
 //#define DEBUG_MODE
 #define TAG PCF("OIC_CA_EDR_MONITOR")

@@ -19,16 +19,54 @@
  ******************************************************************/
 #include "canfcinterface.h"
 
-#include "caadapterutils.h"
-#include "octhread.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
+/* #include "caadapterutils.h"
+ * #include "octhread.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h" */
 
 /**
  * TAG
  * Logging tag for module name
  */
 #define TAG "NFC_SERVER"
+
+#if INTERFACE
+/* /\**
+ *  * CAAdapterServerType_t.
+ *  * Enum for defining different server types.
+ *  *\/
+ * typedef enum
+ * {
+ *     CA_NFC_SERVER = 0, /\**< Listening Server *\/
+ * } CAAdapterServerType_t; */
+
+/**
+ * Callback to be notified on reception of any data from remote OIC devices.
+ *
+ * @param[in]  endpoint    network endpoint description
+ * @param[in]  data        Data received from remote OIC device.
+ * @param[in]  dataLength  Length of data in bytes.
+ */
+typedef void (*CANFCPacketReceivedCallback)(const CASecureEndpoint_t *endpoint, const void *data,
+                                            uint32_t dataLength);
+
+/**
+  * Callback to notify error in the NFC adapter.
+  *
+  * @param[in]  endpoint     network endpoint description.
+  * @param[in]  data         Data sent/received.
+  * @param[in]  dataLength   Length of data in bytes.
+  * @param[in]  result       result of request.
+  */
+typedef void (*CANFCErrorHandleCallback)(const CAEndpoint_t *endpoint, const void *data,
+                                         size_t dataLength, CAResult_t result);
+
+/**
+ * Callback to be notified when exception occures on multicast/unicast server.
+ * @param[in]  type    Type of server(::CAAdapterServerType_t).
+ */
+typedef void (*CANFCExceptionCallback)(CAAdapterServerType_t type);
+#endif	/* INTERFACE */
 
 static CANFCPacketReceivedCallback g_packetReceivedCallback;
 
@@ -71,10 +109,10 @@ CAResult_t SetCreateNdefMessageCallbackfromNative(JNIEnv* env)
 {
     OIC_LOG(DEBUG, TAG, "SetCreateNdefMessageCallbackfromNative IN");
 
-    VERIFY_NON_NULL(env, TAG, "env");
-    VERIFY_NON_NULL(g_context, TAG, "g_context");
-    VERIFY_NON_NULL(g_activity, TAG, "g_activity");
-    VERIFY_NON_NULL(g_nfcInterface, TAG, "g_nfcInterface");
+    VERIFY_NON_NULL_MSG(env, TAG, "env");
+    VERIFY_NON_NULL_MSG(g_context, TAG, "g_context");
+    VERIFY_NON_NULL_MSG(g_activity, TAG, "g_activity");
+    VERIFY_NON_NULL_MSG(g_nfcInterface, TAG, "g_nfcInterface");
 
     jclass cid_NfcAdapter = (*env)->FindClass(env, "android/nfc/NfcAdapter");
     if (!cid_NfcAdapter)
@@ -128,9 +166,9 @@ CAResult_t CANfcCreateJniInterfaceObject()
 {
     OIC_LOG(DEBUG, TAG, "CANfcCreateJniInterfaceObject IN");
 
-    VERIFY_NON_NULL(g_activity, TAG, "g_activity");
-    VERIFY_NON_NULL(g_context, TAG, "g_context");
-    VERIFY_NON_NULL(g_jvm, TAG, "g_jvm");
+    VERIFY_NON_NULL_MSG(g_activity, TAG, "g_activity");
+    VERIFY_NON_NULL_MSG(g_context, TAG, "g_context");
+    VERIFY_NON_NULL_MSG(g_jvm, TAG, "g_jvm");
 
     bool isAttached = false;
     JNIEnv* env = NULL;
@@ -525,9 +563,9 @@ Java_org_iotivity_ca_CaNfcInterface_caNativeNfcPacketReceived(JNIEnv *env, jobje
 
 CAResult_t CANfcSendDataImpl(const CAEndpoint_t * ep, const char* data, uint32_t dataLen)
 {
-    VERIFY_NON_NULL(ep, TAG, "CANfcSendDataImpl : endpoint is null");
-    VERIFY_NON_NULL(data, TAG, "CANfcSendDataImpl : data is null");
-    VERIFY_NON_NULL(g_jvm, TAG, "CANfcSendDataImpl : g_jvm is null");
+    VERIFY_NON_NULL_MSG(ep, TAG, "CANfcSendDataImpl : endpoint is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "CANfcSendDataImpl : data is null");
+    VERIFY_NON_NULL_MSG(g_jvm, TAG, "CANfcSendDataImpl : g_jvm is null");
 
     OIC_LOG(INFO, TAG, "CANfcSendDataImpl moved env outside");
     bool isAttached = false;

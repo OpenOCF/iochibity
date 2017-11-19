@@ -22,17 +22,71 @@
  * Refer http://pubs.opengroup.org/onlinepubs/9699919799/
  */
 #define _POSIX_C_SOURCE 200809L
-#include <string.h>
 
 #include "srmutility.h"
-#include "srmresourcestrings.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "base64.h"
-#include "ocrandom.h"
-#include "doxmresource.h"
+
+#include <string.h>
+
+/* #include "srmutility.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "base64.h" */
+/* #include "ocrandom.h" */
+/* #include "doxmresource.h" */
 
 #define TAG  "OIC_SRM_UTILITY"
+
+/**
+ * Reason code for SRMAccessResponse.
+ */
+enum access_reason_fixme
+{
+    NO_REASON_GIVEN = 0,
+    INSUFFICIENT_PERMISSION = INSUFFICIENT_PERMISSION_DEF,
+    SUBJECT_NOT_FOUND = SUBJECT_NOT_FOUND_DEF,
+    RESOURCE_NOT_FOUND = RESOURCE_NOT_FOUND_DEF,
+};
+
+#if INTERFACE
+typedef unsigned int SRMAccessResponseReasonCode_t;
+#endif	/* INTERFACE */
+
+/**
+ * Extract Reason Code from Access Response.
+ */
+/* FIXME: makeheaders doesn't like INLINE_API */
+INLINE_API SRMAccessResponseReasonCode_t GetReasonCode(
+    SRMAccessResponse_t response)
+{
+    SRMAccessResponseReasonCode_t reason =
+        (SRMAccessResponseReasonCode_t)(response & REASON_MASK_DEF);
+    return reason;
+}
+
+/* typedef struct OicSecValidity OicSecValidity_t; */
+
+#if EXPORT_INTERFACE
+#include "coap/uri.h"
+
+typedef struct OicParseQueryIter OicParseQueryIter_t;
+
+/**
+ * OicRestQueryIter data structure is used for book-keeping
+ * sub-REST query's attribute's and value's, starting location &
+ * length between calls to GetNextQuery(). This struct needs
+ * to be first initialized with ParseQueryIterInit().
+ *
+ */
+struct OicParseQueryIter
+{
+    unsigned char * attrPos;    /**< stating location of attribute. */
+    size_t attrLen;             /**< length of the attribute. */
+    unsigned char * valPos;     /**< starting location of value. */
+    size_t valLen;              /**< length of the value. */
+    coap_parse_iterator_t pi;   /**< coap struct for tokenizing the query.*/
+};
+#endif
 
 void ParseQueryIterInit(const unsigned char * query, OicParseQueryIter_t * parseIter)
 {

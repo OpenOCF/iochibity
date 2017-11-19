@@ -18,27 +18,77 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+#include "oxmpincommon.h"
+
 #include <memory.h>
 #include <limits.h>
 
-#include "ocstack.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "ocrandom.h"
-#include "logger.h"
-#include "pinoxmcommon.h"
-#include "pbkdf2.h"
-#include "base64.h"
-#include "srmresourcestrings.h"
-#include "doxmresource.h"
-#include "credresource.h"
-#include "cainterface.h"
-#include "oic_string.h"
+/* #include "ocstack.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "ocrandom.h" */
+/* #include "logger.h" */
+/* #include "pinoxmcommon.h" */
+/* #include "pbkdf2.h" */
+/* #include "base64.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "doxmresource.h" */
+/* #include "credresource.h" */
+/* #include "cainterface.h" */
+/* #include "oic_string.h" */
 
 #define TAG "OIC_PIN_OXM_COMMON"
 
 #define NUMBER_OF_PINNUM (10)
 #define NUMBER_OF_ALPHABET (26)
+
+#if INTERFACE
+#define OXM_RANDOM_PIN_DEFAULT_SIZE (8)
+#define OXM_RANDOM_PIN_DEFAULT_PIN_TYPE (NUM_PIN | LOWERCASE_CHAR_PIN | UPPERCASE_CHAR_PIN)
+#define OXM_RANDOM_PIN_MIN_SIZE (4)
+#define OXM_RANDOM_PIN_MAX_SIZE (32)
+#define OXM_PRECONFIG_PIN_MAX_SIZE (OXM_RANDOM_PIN_MAX_SIZE)
+#endif
+
+/** Number of PIN type */
+#define OXM_PIN_TYPE_COUNT 3
+
+#if INTERFACE
+/**
+ * PIN type definition.
+ * This type supports multiple bit set.
+ * e.g.) NUM_PIN | UPPERCASE_CHAR_PIN
+ */
+typedef enum OicSecPinType{
+    NUM_PIN            = (0x1 << 0),    //Numeric PIN
+    UPPERCASE_CHAR_PIN = (0x1 << 1),    //uppercase character PIN
+    LOWERCASE_CHAR_PIN = (0x1 << 2)     //lowercase character PIN
+}OicSecPinType_t;
+
+/**
+ * Function pointer to display pin code.
+ */
+typedef void (OC_CALL *GeneratePinCallback)(char* pinData, size_t pinSize);
+
+/**
+ * Function pointer to display pin code, with context.
+ */
+typedef void(OC_CALL *DisplayPinCallbackWithContext)(char* pinData, size_t pinSize, void* context);
+
+/**
+ * Function pointer to close the displied PIN.
+ */
+typedef void (OC_CALL *ClosePinDisplayCallback)(void);
+
+/**
+ * Function pointer to input pin code.
+ */
+typedef void (OC_CALL *InputPinCallback)(char* pinBuf, size_t bufSize);
+
+/**
+ * Function pointer to input pin code, with context and device information.
+ */
+typedef void(OC_CALL *InputPinCallbackWithContext)(OicUuid_t deviceId, char* pinBuffer, size_t pinBufferSize, void* context);
 
 /**
  * Callbacks for displaying a pin.
@@ -61,15 +111,16 @@ typedef struct InputPinCallbacks
     void* context;
 } InputPinCallbacks_t;
 
-static DisplayPinCallbacks_t g_displayPinCallbacks = { .callback = NULL, .contextCallback = NULL, .closePinDisplayCallback = NULL, .context = NULL };
-static InputPinCallbacks_t g_inputPinCallbacks = { .callback = NULL, .contextCallback = NULL, .context = NULL };
-
 typedef struct PinOxmData {
     uint8_t pinData[OXM_RANDOM_PIN_MAX_SIZE + 1];
     size_t pinSize;
     OicSecPinType_t pinType;
     OicUuid_t newDevice;
 }PinOxmData_t;
+#endif	/* INTERFACE */
+
+static DisplayPinCallbacks_t g_displayPinCallbacks = { .callback = NULL, .contextCallback = NULL, .closePinDisplayCallback = NULL, .context = NULL };
+static InputPinCallbacks_t g_inputPinCallbacks = { .callback = NULL, .contextCallback = NULL, .context = NULL };
 
 static PinOxmData_t g_PinOxmData = {
         .pinData={0},

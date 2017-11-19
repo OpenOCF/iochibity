@@ -19,21 +19,43 @@
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 #include "deviceonboardingstate.h"
-#include "srmutility.h"
-#include "octypes.h"
-#include "logger.h"
-#include "srmresourcestrings.h"
-#include "aclresource.h"
-#include "amaclresource.h"
-#include "credresource.h"
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-#include "crlresource.h"
-#endif /* (__WITH_DTLS__) || (__WITH_TLS__) */
-#include "doxmresource.h"
-#include "pstatresource.h"
-#include "resourcemanager.h"
+
+/* #include "deviceonboardingstate.h" */
+/* #include "srmutility.h" */
+/* #include "octypes.h" */
+/* #include "logger.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "aclresource.h" */
+/* #include "amaclresource.h" */
+/* #include "credresource.h" */
+/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
+/* #include "crlresource.h" */
+/* #endif /\* (__WITH_DTLS__) || (__WITH_TLS__) *\/ */
+/* #include "doxmresource.h" */
+/* #include "pstatresource.h" */
+/* #include "resourcemanager.h" */
 
 #define TAG "OIC_SRM_DOS"
+
+#if INTERFACE
+typedef enum OicSecDeviceOnboardingState
+{
+    DOS_RESET = 0,
+    DOS_RFOTM,
+    DOS_RFPRO,
+    DOS_RFNOP,
+    DOS_SRESET,
+    DOS_STATE_COUNT
+} OicSecDeviceOnboardingState_t;
+#endif	/* INTERFACE */
+
+#if INTERFACE
+typedef struct OicSecDostype
+{
+    OicSecDeviceOnboardingState_t state;
+    bool                          pending;
+} OicSecDostype_t;
+#endif	/* INTERFACE */
 
 /**
  * @return true if changing from oldState to newState is valid transition.

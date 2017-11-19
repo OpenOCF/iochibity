@@ -17,13 +17,13 @@
  ******************************************************************/
 
 #include "service.h"
-#include "gatt_dbus.h"
-#include "utils.h"
-#include "bluez.h"
-
-#include "cagattservice.h"
-#include "logger.h"
-#include "oic_malloc.h"
+/* #include "gatt_dbus.h"
+ * #include "utils.h"
+ * #include "bluez.h"
+ *
+ * #include "cagattservice.h"
+ * #include "logger.h"
+ * #include "oic_malloc.h" */
 
 #include <stdio.h>
 #include <assert.h>
@@ -31,6 +31,106 @@
 
 // Logging tag.
 #define TAG "BLE_SERVICE"
+
+/**
+ * GATT Service Information
+ */
+typedef struct CAGattService
+{
+    /// D-Bus object path for the GattService1 object.
+    char * object_path;
+
+    /**
+     * OIC GATT service object_manager D-Bus interface skeleton
+     * object.
+     */
+    ObjectManager * object_manager;
+
+    /// OIC GATT service D-Bus interface skeleton object.
+    GattService1 * service;
+
+    /// OIC GATT request characteristic information.
+    CAGattCharacteristic request_characteristic;
+
+    /// OIC GATT response characteristic information.
+    CAGattCharacteristic response_characteristic;
+
+    /**
+     * org.bluez.GattManager1 object with which the service is
+     * registered.
+     */
+    GDBusProxy * gatt_manager;
+
+} CAGattService;
+
+/**
+ * @name BlueZ GATT Service D-Bus Object Paths
+ *
+ * The IoTivity BlueZ GATT Service hierarchy is the following:
+ *
+ *  -> /org/iotivity/gatt/advertisement0
+ *
+ *  -> /org/iotivity/gatt/<hciX>/service0
+ *    |   - OIC GATT Service
+ *    |
+ *    -> /org/iotivity/gatt/<hciX>/service0/char0
+ *    | |   - OIC GATT Request Characteristic Value
+ *    | |
+ *    | -> /org/iotivity/gatt/<hciX>/service0/char0/desc0
+ *    |       - OIC GATT Request User Description Descriptor
+ *    |
+ *    -> /org/iotivity/gatt/<hciX>/service0/char1
+ *      |   - OIC GATT Response Characteristic Value
+ *      |
+ *      -> /org/iotivity/gatt/<hciX>/service0/char1/desc0
+ *            - OIC GATT Response User Description Descriptor
+ *
+ * where <hciX> corresponds to the bluetooth hardware adapter with
+ * which the GATT service is being registered, e.g. "hci0".
+ *
+ * @note The OIC GATT Client Characterstic Configuration Descriptor is
+ *       implicitly added to the response characteristic hierarchy by
+ *       BlueZ since its "notify" property is set.
+ */
+//@{
+
+#if INTERFACE
+/**
+ * Root object path of the GATT service hierarchy.
+ *
+ * The GATT service object manager (i.e. implementation of
+ * @c org.freedesktop.DBus.ObjectManager) is found at this object
+ * path.
+ */
+#define CA_GATT_SERVICE_ROOT_PATH "/org/iotivity/gatt"
+
+// ------------------------
+
+#define CA_LE_ADVERTISEMENT_PATH "advertisement0"
+
+// ------------------------
+
+/// GATT service object path basename.
+#define CA_GATT_SERVICE_PATH  "service0"
+
+// ------------------------
+
+/// Request GATT characteristic object path basename.
+#define CA_GATT_REQUEST_CHRC_PATH "char0"
+
+/// Request GATT user description descriptor object path basename.
+#define CA_GATT_REQUEST_USER_DESC_PATH "desc0"
+
+// ------------------------
+
+/// Response GATT characteristic object path basename.
+#define CA_GATT_RESPONSE_CHRC_PATH "char1"
+
+/// Response GATT user description descriptor object path basename.
+#define CA_GATT_RESPONSE_USER_DESC_PATH "desc0"
+//@}
+#endif	/* INTERFACE */
+
 
 static GVariant * CAGattServiceGetProperties(GattService1 * service)
 {

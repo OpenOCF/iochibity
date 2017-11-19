@@ -27,7 +27,9 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "iotivity_config.h"
+#include "ownershiptransfermanager.h"
+
+/* #include "iotivity_config.h" */
 #ifdef HAVE_TIME_H
 #include <time.h>
 #endif
@@ -45,39 +47,146 @@
 #include <errno.h>
 #endif
 
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "cacommon.h"
-#include "cainterface.h"
-#include "base64.h"
-#include "utlist.h"
-#include "srmresourcestrings.h"
-#include "doxmresource.h"
-#include "pstatresource.h"
-#include "credresource.h"
-#include "aclresource.h"
-#include "ownershiptransfermanager.h"
-#include "secureresourceprovider.h"
-#include "oxmjustworks.h"
-#include "oxmrandompin.h"
-#include "oxmmanufacturercert.h"
-#ifdef MULTIPLE_OWNER
-#include "oxmpreconfpin.h"
-#endif //MULTIPLE_OWNER
-#include "otmcontextlist.h"
-#include "pmtypes.h"
-#include "pmutility.h"
-#include "srmutility.h"
-#include "provisioningdatabasemanager.h"
-#include "ocpayload.h"
-#include "payload_logging.h"
-#include "pkix_interface.h"
-#include "oxmverifycommon.h"
-#include "psinterface.h"
-#include "ocstackinternal.h"
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "cacommon.h" */
+/* #include "cainterface.h" */
+/* #include "base64.h" */
+/* #include "utlist.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "doxmresource.h" */
+/* #include "pstatresource.h" */
+/* #include "credresource.h" */
+/* #include "aclresource.h" */
+/* #include "ownershiptransfermanager.h" */
+/* #include "secureresourceprovider.h" */
+/* #include "oxmjustworks.h" */
+/* #include "oxmrandompin.h" */
+/* #include "oxmmanufacturercert.h" */
+/* #ifdef MULTIPLE_OWNER */
+/* #include "oxmpreconfpin.h" */
+/* #endif //MULTIPLE_OWNER */
+/* #include "otmcontextlist.h" */
+/* #include "pmtypes.h" */
+/* #include "pmutility.h" */
+/* #include "srmutility.h" */
+/* #include "provisioningdatabasemanager.h" */
+/* #include "ocpayload.h" */
+/* #include "payload_logging.h" */
+/* #include "pkix_interface.h" */
+/* #include "oxmverifycommon.h" */
+/* #include "psinterface.h" */
+/* #include "ocstackinternal.h" */
 
 #define TAG "OIC_OTM"
+
+#ifdef MULTIPLE_OWNER
+enum multiowner_fixme
+{
+    MOT_STATUS_READY = 0,
+    MOT_STATUS_IN_PROGRESS = 1,
+    MOT_STATUS_DONE = 2,
+};
+
+typedef unsigned int MotStatus_t;
+
+/**
+ * oic.sec.mom type definition
+ * TODO: This type will be included to OIC Security Spec.
+ * 0 : Disable multiple owner
+ * 1 : Enable multiple owner (Always on)
+ * 2 : Timely multiple owner enable
+ */
+enum multiowner_status_fixme
+{
+    OIC_MULTIPLE_OWNER_DISABLE = 0,
+    OIC_MULTIPLE_OWNER_ENABLE = 1,
+    OIC_MULTIPLE_OWNER_TIMELY_ENABLE = 2,
+    OIC_NUMBER_OF_MOM_TYPE = 3
+};
+
+#if INTERFACE
+typedef unsigned int OicSecMomType_t;
+#endif	/* INTERFACE */
+
+#endif //MULTIPLE_OWNER
+
+#ifdef MULTIPLE_OWNER
+typedef struct OicSecSubOwner OicSecSubOwner_t;
+typedef struct OicSecMom OicSecMom_t;
+#endif //MULTIPLE_OWNER
+
+#ifdef MULTIPLE_OWNER
+struct OicSecSubOwner {
+    OicUuid_t uuid;
+    MotStatus_t status;
+    OicSecSubOwner_t* next;
+};
+
+struct OicSecMom{
+    OicSecMomType_t mode;
+};
+#endif //MULTIPLE_OWNER
+
+#define fixme_otm_dp DoxmProperty_t /* help makeheaders */
+#define fixme_otm_pstat PstatProperty_t /* help makeheaders */
+
+#define OXM_STRING_MAX_LENGTH 32
+#define WRONG_PIN_MAX_ATTEMP 5
+
+#if INTERFACE
+/**
+ *Callback for load secret for temporal secure session
+ *
+ * e.g) in case of PIN based, input the pin through this callback
+ *       in case of X.509 based, input the certificate through this callback
+ */
+typedef OCStackResult (*OTMLoadSecret)(struct OTMContext* otmCtx);
+
+/**
+ * Callback for create secure channel using secret inputed from OTMLoadSecret callback
+ */
+typedef OCStackResult (*OTMCreateSecureSession)(struct OTMContext* otmCtx);
+
+/**
+ * Callback for creating CoAP payload.
+ */
+typedef OCStackResult (*OTMCreatePayloadCallback)(struct OTMContext* otmCtx, uint8_t **payload,
+                                                  size_t *size);
+/**
+ * Required callback for performing ownership transfer
+ */
+/* typedef struct OTMCallbackData OTMCallbackData_t; */
+struct OTMCallbackData
+{
+    OTMLoadSecret loadSecretCB;
+    OTMCreateSecureSession createSecureSessionCB;
+    OTMCreatePayloadCallback createSelectOxmPayloadCB;
+    OTMCreatePayloadCallback createOwnerTransferPayloadCB;
+} ;
+
+/**
+ * Context for ownership transfer(OT)
+ */
+struct OTMContext {
+    void* userCtx;                            /**< Context for user.*/
+    OCProvisionDev_t* selectedDeviceInfo;     /**< Selected device info for OT. */
+    OicUuid_t subIdForPinOxm;                 /**< Subject Id which uses PIN based OTM. */
+    OCProvisionResultCB ctxResultCallback;    /**< Function pointer to store result callback. */
+    OCProvisionResult_t* ctxResultArray;      /**< Result array having result of all device. */
+    size_t ctxResultArraySize;                /**< No of elements in result array. */
+    bool ctxHasError;                         /**< Does OT process have any error. */
+    OCDoHandle ocDoHandle;                    /**< A handle for latest request message. */
+    struct OTMCallbackData otmCallback;            /**< OTM callbacks to perform the OT/MOT. */
+#ifdef MULTIPLE_OWNER
+    OicSecDoxm_t* doxm;                       /**< Device Owner Transfer Method. */
+    OicSecCred_t* cred;                       /**< Credential data. */
+#endif // MULTIPLE_OWNER
+    int attemptCnt;
+};
+typedef struct OTMContext OTMContext_t;
+#endif	/* INTERFACE */
 
 
 #define ALLOWED_OXM         1
@@ -96,7 +205,7 @@ static uint8_t g_OxmAllowStatus[OXM_IDX_COUNT] = {ALLOWED_OXM, ALLOWED_OXM, ALLO
                                                   ALLOWED_OXM, ALLOWED_OXM, NOT_ALLOWED_OXM};
 #endif
 
-OCStackResult OTMSetOTCallback(OicSecOxm_t oxm, OTMCallbackData_t* callbacks)
+OCStackResult OTMSetOTCallback(OicSecOxm_t oxm, struct OTMCallbackData* callbacks)
 {
     OCStackResult res = OC_STACK_INVALID_PARAM;
 
@@ -434,26 +543,6 @@ static OCStackResult PostOwnerAcl(OTMContext_t* otmCtx, OicSecAclVersion_t aclVe
  * @return  OC_STACK_OK on success
  */
 static OCStackResult PostOwnershipInformation(OTMContext_t* otmCtx);
-
-/**
- * Function to update pstat as Ready for provisioning.
- * This function would update 'dos.s' to DOS_RFPRO.
- *
- * @param[in] ctx   context value passed to callback from calling function.
- * @param[in] selectedDevice   selected device information to performing provisioning.
- * @return  OC_STACK_OK on success
- */
-static OCStackResult PostProvisioningStatus(OTMContext_t* otmCtx);
-
-/**
- * Function to update pstat as Ready for Normal Operation.
- * This function would update 'dos.s' to DOS_RFNOP.
- *
- * @param[in] ctx   context value passed to callback from calling function.
- * @param[in] selectedDevice   selected device information to performing provisioning.
- * @return  OC_STACK_OK on success
- */
-static OCStackResult PostNormalOperationStatus(OTMContext_t* otmCtx);
 
 static bool IsComplete(OTMContext_t* otmCtx)
 {
@@ -2324,7 +2413,7 @@ exit:
     return res;
 }
 
-OCStackResult OTMSetOwnershipTransferCallbackData(OicSecOxm_t oxmType, OTMCallbackData_t* data)
+OCStackResult OTMSetOwnershipTransferCallbackData(OicSecOxm_t oxmType, struct OTMCallbackData* data)
 {
     OIC_LOG(DEBUG, TAG, "IN OTMSetOwnerTransferCallbackData");
 
@@ -2437,7 +2526,15 @@ OCStackResult OTMSetOxmAllowStatus(const OicSecOxm_t oxm, const bool allowStatus
     return OC_STACK_OK;
 }
 
-OCStackResult PostProvisioningStatus(OTMContext_t* otmCtx)
+/**
+ * Function to update pstat as Ready for provisioning.
+ * This function would update 'dos.s' to DOS_RFPRO.
+ *
+ * @param[in] ctx   context value passed to callback from calling function.
+ * @param[in] selectedDevice   selected device information to performing provisioning.
+ * @return  OC_STACK_OK on success
+ */
+LOCAL OCStackResult PostProvisioningStatus(OTMContext_t* otmCtx)
 {
     OIC_LOG_V(INFO, TAG, "IN %s", __func__);
 
@@ -2514,7 +2611,15 @@ OCStackResult PostProvisioningStatus(OTMContext_t* otmCtx)
     return ret;
 }
 
-OCStackResult PostNormalOperationStatus(OTMContext_t* otmCtx)
+/**
+ * Function to update pstat as Ready for Normal Operation.
+ * This function would update 'dos.s' to DOS_RFNOP.
+ *
+ * @param[in] ctx   context value passed to callback from calling function.
+ * @param[in] selectedDevice   selected device information to performing provisioning.
+ * @return  OC_STACK_OK on success
+ */
+LOCAL OCStackResult PostNormalOperationStatus(OTMContext_t* otmCtx)
 {
     OIC_LOG(INFO, TAG, "IN PostNormalOperationStatus");
 

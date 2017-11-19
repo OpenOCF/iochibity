@@ -16,7 +16,8 @@
 * limitations under the License.
 *
 ******************************************************************/
-#include "iotivity_config.h"
+#include "oic_winplatform.cpp"
+// #include "iotivity_config.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -28,11 +29,11 @@
 #include <stdio.h>
 #include <errno.h>
 #include <inttypes.h>
-#include "logger.h"
-#include "iotivity_debug.h"
-#include "oic_platform.h"
-#include "oic_string.h"
-#include "oic_malloc.h"
+// #include "logger.h"
+// #include "iotivity_debug.h"
+// #include "oic_platform.h"
+// #include "oic_string.h"
+// #include "oic_malloc.h"
 
 #ifdef UWP_APP
 #include <cstdint>

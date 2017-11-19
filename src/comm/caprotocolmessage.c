@@ -28,7 +28,9 @@
 // Refer http://www.gnu.org/software/libc/manual/html_node/BSD-Random.html
 #define _DEFAULT_SOURCE
 
-#include "iotivity_config.h"
+#include "caprotocolmessage.h"
+
+/* #include "iotivity_config.h" */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,15 +39,104 @@
 #include <time.h>
 #endif
 
-#include "caprotocolmessage.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "ocrandom.h"
-#include "cacommonutil.h"
-#include "cablockwisetransfer.h"
+/* #include "openocf_config.h" */
+#if LOCAL_INTERFACE
+#include "coap_config.h"
+/* #include "coap/coap_list.h" */
+#include "coap/mem.h"
+#include "coap/pdu.h"
+#include "coap/prng.h"
+#endif	/* INTERFACE */
+
+/* #include "caprotocolmessage.h" */
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "ocrandom.h" */
+/* #include "cacommonutil.h" */
+/* #include "cablockwisetransfer.h" */
 
 #define TAG "OIC_CA_PRTCL_MSG"
+
+/**
+ * Message Type for Base source code.
+ */
+#if INTERFACE
+typedef enum
+{
+    CA_MSG_CONFIRM = 0,  /**< confirmable message (requires ACK/RST) */
+    CA_MSG_NONCONFIRM,   /**< non-confirmable message (one-shot message) */
+    CA_MSG_ACKNOWLEDGE,  /**< used to acknowledge confirmable messages */
+    CA_MSG_RESET         /**< used to indicates not-interested or error (lack of context)in
+                                                  received messages */
+} CAMessageType_t;
+#endif	/* INTERFACE */
+
+/**
+ * Allowed method to be used by resource model.
+ */
+#if INTERFACE
+typedef enum
+{
+    CA_GET = 1, /**< GET Method  */
+    CA_POST,    /**< POST Method */
+    CA_PUT,     /**< PUT Method */
+    CA_DELETE   /**< DELETE Method */
+} CAMethod_t;
+#endif	/* INTERFACE */
+
+/**
+ * Max header options data length.
+ */
+#if INTERFACE
+#define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024
+#endif	/* INTERFACE */
+
+/**
+ * Token information for mapping the request and responses by resource model.
+ */
+#if INTERFACE
+typedef char *CAToken_t;
+#endif	/* INTERFACE */
+
+/**
+ * Header options structure to be filled.
+ *
+ * This structure is used to hold header information.
+ */
+/**
+ * Transport Protocol IDs for additional options.
+ */
+#if INTERFACE
+typedef enum
+{
+    CA_INVALID_ID = (1 << 0),   /**< Invalid ID */
+    CA_COAP_ID = (1 << 1)       /**< COAP ID */
+} CATransportProtocolID_t;
+#endif	/* INTERFACE */
+
+#if INTERFACE
+#include <stdint.h>
+typedef struct
+{
+    CATransportProtocolID_t protocolID;                     /**< Protocol ID of the Option */
+    uint16_t optionID;                                      /**< The header option ID which will be
+                                                            added to communication packets */
+    uint16_t optionLength;                                  /**< Option Length **/
+    char optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];      /**< Optional data values**/
+} CAHeaderOption_t;
+#endif	/* INTERFACE */
+
+#if INTERFACE
+typedef uint32_t code_t;
+
+#define CA_RESPONSE_CLASS(C) (((C) >> 5)*100)
+#define CA_RESPONSE_CODE(C) (CA_RESPONSE_CLASS(C) + (C - COAP_RESPONSE_CODE(CA_RESPONSE_CLASS(C))))
+#endif	/* INTERFACE */
+
+#define HAVE_TIME_H 1
+
+static const uint8_t PAYLOAD_MARKER = 1;
 
 #define CA_PDU_MIN_SIZE (4)
 #define CA_ENCODE_BUFFER_SIZE (4)
@@ -56,7 +147,7 @@ static char g_chproxyUri[CA_MAX_URI_LENGTH];
 
 CAResult_t CASetProxyUri(const char *uri)
 {
-    VERIFY_NON_NULL(uri, TAG, "uri");
+    VERIFY_NON_NULL_MSG(uri, TAG, "uri");
     OICStrcpy(g_chproxyUri, sizeof (g_chproxyUri), uri);
     return CA_STATUS_OK;
 }
@@ -64,8 +155,8 @@ CAResult_t CASetProxyUri(const char *uri)
 CAResult_t CAGetRequestInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                                    CARequestInfo_t *outReqInfo)
 {
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(outReqInfo, TAG, "outReqInfo");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(outReqInfo, TAG, "outReqInfo");
 
     uint32_t code = CA_NOT_FOUND;
     CAResult_t ret = CAGetInfoFromPDU(pdu, endpoint, &code, &(outReqInfo->info));
@@ -77,8 +168,8 @@ CAResult_t CAGetRequestInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *en
 CAResult_t CAGetResponseInfoFromPDU(const coap_pdu_t *pdu, CAResponseInfo_t *outResInfo,
                                     const CAEndpoint_t *endpoint)
 {
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(outResInfo, TAG, "outResInfo");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(outResInfo, TAG, "outResInfo");
 
     uint32_t code = CA_NOT_FOUND;
     CAResult_t ret = CAGetInfoFromPDU(pdu, endpoint, &code, &(outResInfo->info));
@@ -90,7 +181,7 @@ CAResult_t CAGetResponseInfoFromPDU(const coap_pdu_t *pdu, CAResponseInfo_t *out
 CAResult_t CAGetErrorInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                                  CAErrorInfo_t *errorInfo)
 {
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
 
     uint32_t code = 0;
     CAResult_t ret = CAGetInfoFromPDU(pdu, endpoint, &code, &errorInfo->info);
@@ -325,10 +416,13 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
 
     OIC_LOG_V(DEBUG, TAG, "coap_transport_type: %s, payload size: %" PRIuPTR,
               (*transport == COAP_UDP)? "UDP"
+#ifdef WITH_TCP
 	      : (*transport == COAP_TCP)? "TCP"
 	      : (*transport == COAP_TCP_8BIT)? "TCP_8BIT"
 	      : (*transport == COAP_TCP_16BIT)? "TCP_16BIT"
-	      : (*transport == COAP_TCP_32BIT)? "TCP_32BIT" : "INVALID",
+	      : (*transport == COAP_TCP_32BIT)? "TCP_32BIT"
+#endif
+	      : "INVALID",
 	      info->payloadSize);
 
 #ifdef WITH_TCP
@@ -344,7 +438,9 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
         if (0 == info->messageId)
         {
             /* initialize message id */
-            prng((uint8_t * ) &message_id, sizeof(message_id));
+	    /* prng files buf with len random bytes. alas it is private (static) to libcoap
+             * prng((uint8_t * ) &message_id, sizeof(message_id)); */
+	    OCGetRandomBytes((uint8_t * ) &message_id, sizeof(message_id));
 
             OIC_LOG_V(DEBUG, TAG, "gen msg id=%d", message_id);
         }
@@ -419,8 +515,8 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
 
 CAResult_t CAParseURI(const char *uriInfo, coap_list_t **optlist)
 {
-    VERIFY_NON_NULL(uriInfo, TAG, "uriInfo");
-    VERIFY_NON_NULL(optlist, TAG, "optlist");
+    VERIFY_NON_NULL_MSG(uriInfo, TAG, "uriInfo");
+    VERIFY_NON_NULL_MSG(optlist, TAG, "optlist");
 
     /* split arg into Uri-* options */
     coap_uri_t uri;
@@ -468,7 +564,7 @@ CAResult_t CAParseURI(const char *uriInfo, coap_list_t **optlist)
 CAResult_t CAParseUriPartial(const unsigned char *str, size_t length, uint16_t target,
                              coap_list_t **optlist)
 {
-    VERIFY_NON_NULL(optlist, TAG, "optlist");
+    VERIFY_NON_NULL_MSG(optlist, TAG, "optlist");
 
     if ((target != COAP_OPTION_URI_PATH) && (target != COAP_OPTION_URI_QUERY))
     {
@@ -653,7 +749,9 @@ coap_list_t *CACreateNewOptionNode(uint16_t key, uint32_t length, const char *da
 {
     VERIFY_NON_NULL_RET(data, TAG, "data", NULL);
 
-    coap_option *option = coap_malloc(sizeof(coap_option) + length + 1);
+    /* coap_malloc is static (private to libcoap!) */
+    /* coap_option *option = coap_malloc(sizeof(coap_option) + length + 1); */
+    coap_option *option = (coap_option*)OICMalloc(sizeof(coap_option) + length + 1);
     if (!option)
     {
         OIC_LOG(ERROR, TAG, "Out of memory");
@@ -693,7 +791,8 @@ coap_list_t *CACreateNewOptionNode(uint16_t key, uint32_t length, const char *da
     if (!node)
     {
         OIC_LOG(ERROR, TAG, "node is NULL");
-        coap_free(option);
+        /* coap_free(option);	/\* coap_free is static (private) to libcoap! *\/ */
+	OICFree(option);
         return NULL;
     }
 
@@ -753,10 +852,10 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                             uint32_t *outCode, CAInfo_t *outInfo)
 {
     OIC_LOG(INFO, TAG, "IN - CAGetInfoFromPDU");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
-    VERIFY_NON_NULL(outCode, TAG, "outCode");
-    VERIFY_NON_NULL(outInfo, TAG, "outInfo");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(outCode, TAG, "outCode");
+    VERIFY_NON_NULL_MSG(outInfo, TAG, "outInfo");
 
     coap_transport_t transport;
 #ifdef WITH_TCP
@@ -1122,9 +1221,9 @@ CAResult_t CAGetTokenFromPDU(const coap_hdr_transport_t *pdu_hdr,
                              CAInfo_t *outInfo,
                              const CAEndpoint_t *endpoint)
 {
-    VERIFY_NON_NULL(pdu_hdr, TAG, "pdu_hdr");
-    VERIFY_NON_NULL(outInfo, TAG, "outInfo");
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(pdu_hdr, TAG, "pdu_hdr");
+    VERIFY_NON_NULL_MSG(outInfo, TAG, "outInfo");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
 
     coap_transport_t transport = COAP_UDP;
 #ifdef WITH_TCP
@@ -1159,7 +1258,7 @@ CAResult_t CAGetTokenFromPDU(const coap_hdr_transport_t *pdu_hdr,
 
 CAResult_t CAGenerateTokenInternal(CAToken_t *token, uint8_t tokenLength)
 {
-    VERIFY_NON_NULL(token, TAG, "token");
+    VERIFY_NON_NULL_MSG(token, TAG, "token");
 
     if ((tokenLength > CA_MAX_TOKEN_LEN) || (0 == tokenLength))
     {

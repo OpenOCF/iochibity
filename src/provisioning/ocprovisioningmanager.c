@@ -17,27 +17,65 @@
  * limitations under the License.
  *
  * *****************************************************************/
+#include "ocprovisioningmanager.h"
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "ocprovisioningmanager.h"
-#include "pmutility.h"
-#include "srmutility.h"
-#include "ownershiptransfermanager.h"
-#ifdef MULTIPLE_OWNER
-#include "multipleownershiptransfermanager.h"
-#endif //MULTIPLE_OWNER
-#include "oic_malloc.h"
-#include "logger.h"
-#include "secureresourceprovider.h"
-#include "provisioningdatabasemanager.h"
-#include "credresource.h"
-#include "utlist.h"
-#include "aclresource.h" //Note: SRM internal header
-#include "psinterface.h"
-#include "ocstackinternal.h"
+/* #include "ocprovisioningmanager.h" */
+/* #include "pmutility.h" */
+/* #include "srmutility.h" */
+/* #include "ownershiptransfermanager.h" */
+/* #ifdef MULTIPLE_OWNER */
+/* #include "multipleownershiptransfermanager.h" */
+/* #endif //MULTIPLE_OWNER */
+/* #include "oic_malloc.h" */
+/* #include "logger.h" */
+/* #include "secureresourceprovider.h" */
+/* #include "provisioningdatabasemanager.h" */
+/* #include "credresource.h" */
+/* #include "utlist.h" */
+/* #include "aclresource.h" //Note: SRM internal header */
+/* #include "psinterface.h" */
+/* #include "ocstackinternal.h" */
 
 #define TAG "OIC_OCPMAPI"
+
+/**
+ * @brief   /oic/sec/prmtype (Pairing Method Type) data type.
+ *              0:  not allowed
+ *              1:  pre-configured pin
+ *              2:  random pin
+ */
+enum PRMBitmask
+{
+    PRM_NOT_ALLOWED             = 0x0,
+    PRM_PRE_CONFIGURED        = (0x1 << 0),
+    PRM_RANDOM_PIN               = (0x1 << 1),
+};
+
+typedef unsigned int OicSecPrm_t;
+
+/* device pairing is removed */
+/* struct OicPin
+ * {
+ *     uint8_t             val[DP_PIN_LENGTH];
+ * }; */
+
+/* /\**
+ *  * @brief   oic.sec.dpacltype (Device Pairing Access Control List) data type.
+ *  *\/
+ * struct OicSecPdAcl
+ * {
+ *     // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
+ *     char                  **resources;        // 0:R:M:Y:String
+ *     size_t                resourcesLen;      // the number of elts in Resources
+ *     uint16_t             permission;        // 1:R:S:Y:UINT16
+ *     char                  **periods;            // 2:R:M*:N:String (<--M*; see Spec)
+ *     char                  **recurrences;    // 3:R:M:N:String
+ *     size_t                prdRecrLen;         // the number of elts in Periods/Recurrences
+ *     OicSecPdAcl_t    *next;
+ * }; */
 
 typedef struct Linkdata Linkdata_t;
 struct Linkdata
@@ -302,7 +340,7 @@ OCStackResult OC_CALL OCIsSubownerOfDevice(OCProvisionDev_t *device, bool *isSub
  * @param[in] Implementation of callback functions for owership transfer.
  * @return  OC_STACK_OK in case of success and other value otherwise.
  */
-OCStackResult OC_CALL OCSetOwnerTransferCallbackData(OicSecOxm_t oxm, OTMCallbackData_t* callbackData)
+OCStackResult OC_CALL OCSetOwnerTransferCallbackData(OicSecOxm_t oxm, struct OTMCallbackData* callbackData)
 {
     if(NULL == callbackData)
     {

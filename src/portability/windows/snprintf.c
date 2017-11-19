@@ -17,7 +17,7 @@
 *
 ******************************************************************/
 
-#include "vs12_snprintf.h"
+#include "snprintf.h"
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -64,3 +64,7 @@ int vs12_snprintf(char *buffer, size_t count, const char *format, ...)
 
     return length;
 }
+
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
+# define snprintf vs12_snprintf
+#endif

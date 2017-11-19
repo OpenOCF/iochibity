@@ -59,7 +59,7 @@ cc_library(
 	    # "//third_party/coap"],
             ],
     srcs = ["monitor_impl.c",
-            "caipserver.c"
+            "caipserver_linux.c"
     ],
     visibility = ["//src/comm/transport/udpip:__pkg__"]
 )

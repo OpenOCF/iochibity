@@ -32,6 +32,22 @@
 #define TAG "BLE_DESCRIPTOR"
 
 /**
+ * OIC GATT Descriptor Information
+ */
+typedef struct CAGattDescriptor
+{
+    /// D-Bus object path for the GattCharacteristic1 object.
+    char * object_path;
+
+    /// OIC GATT service D-Bus interface skeleton object.
+    GattDescriptor1 * descriptor;
+
+} CAGattDescriptor;
+
+// Forward declarations.
+struct CAGattService;
+
+/**
  * Implementation of the @c org.bluez.GattDescriptor1.ReadValue()
  * method.
  *

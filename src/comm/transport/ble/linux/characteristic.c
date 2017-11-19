@@ -33,6 +33,64 @@
 // Logging tag.
 #define TAG "BLE_CHARACTERISTIC"
 
+/**
+ * OIC GATT Characteristic Information
+ *
+ * OIC GATT characteristics contain one user description descriptor.
+ *
+ * @note The response characteristic should also have a client
+ *       characteristic configuration descriptor.  However, BlueZ
+ *       implicitly adds that descriptor to the characteristic when
+ *       the characteristic "notify" property is set.  There is no
+ *       need to explicitly add that descriptor.
+ */
+/* src/comm/transport/ble/linux/characteristic.c */
+typedef struct CAGattCharacteristic
+{
+
+    /**
+     * Object containing the D-Bus connection list of connected
+     * devices.
+     */
+    CALEContext * context;
+
+    /**
+     * IoTivity OIC GATT service information.
+     *
+     * @note This is currently only used by the response
+     *       characteristic to gain access to the request
+     *       characteristic @c client endpoint field.
+     *
+     * @todo It seems somewhat wasteful have a field available to both
+     *       response and request characteristics, but used by only
+     *       one of them.
+     */
+    struct CAGattService * service;
+
+    /// D-Bus object path for the GattCharacteristic1 object.
+    char * object_path;
+
+    /// OIC GATT service D-Bus interface skeleton object.
+    GattCharacteristic1 * characteristic;
+
+    /// OIC GATT user description descriptor information.
+    CAGattDescriptor descriptor;
+
+    /**
+     * Information used to keep track of received data fragments.
+     *
+     * @note This is only used by the OIC GATT request characteristic
+     *       skeleton implementation.  It is not needed by the
+     *       response characteristic skeleton.
+     *
+     * @todo It seems somewhat wasteful have a field available to both
+     *       response and request characteristics, but used by only
+     *       one of them.
+     */
+    CAGattRecvInfo recv_info;
+
+} CAGattCharacteristic;
+
 // ---------------------------------------------------------------------
 //                      GATT Request Handling
 // ---------------------------------------------------------------------

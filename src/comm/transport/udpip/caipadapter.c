@@ -24,20 +24,20 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "caipnwmonitor.h"
-#include "caipserver.h"
-#include "caqueueingthread.h"
-#include "caadapterutils.h"
-#ifdef __WITH_DTLS__
-#include "ca_adapter_net_ssl.h"
-#endif
-#include "octhread.h"
-#include "uarraylist.h"
-#include "caremotehandler.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "iotivity_debug.h"
+/* #include "caipnwmonitor.h" */
+/* #include "caipserver.h" */
+/* #include "caqueueingthread.h" */
+/* #include "caadapterutils.h" */
+/* #ifdef __WITH_DTLS__ */
+/* #include "ca_adapter_net_ssl.h" */
+/* #endif */
+/* #include "octhread.h" */
+/* #include "uarraylist.h" */
+/* #include "caremotehandler.h" */
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "iotivity_debug.h" */
 
 /**
  * Logging tag for module name.
@@ -45,6 +45,7 @@
 #define TAG "OIC_CA_IP_ADAP"
 
 #ifndef SINGLE_THREAD
+#if EXPORT_INTERFACE
 /**
  * Holds inter thread ip data information.
  */
@@ -55,6 +56,7 @@ typedef struct
     uint32_t dataLen;
     bool isMulticast;
 } CAIPData_t;
+#endif	/* EXPORT_INTERFACE */
 
 /**
  * Queue handle for Send Data.
@@ -82,8 +84,8 @@ static CAAdapterChangeCallback g_networkChangeCallback = NULL;
  */
 static CAErrorHandleCallback g_errorCallback = NULL;
 
-static void CAIPPacketReceivedCB(const CASecureEndpoint_t *endpoint,
-                                 const void *data, size_t dataLength);
+/* static void CAIPPacketReceivedCB(const CASecureEndpoint_t *endpoint, */
+/*                                  const void *data, size_t dataLength); */
 #ifdef __WITH_DTLS__
 static ssize_t CAIPPacketSendCB(CAEndpoint_t *endpoint,
                                 const void *data, size_t dataLength);
@@ -93,21 +95,21 @@ static void CAUpdateStoredIPAddressInfo(CANetworkStatus_t status);
 
 #ifndef SINGLE_THREAD
 
-static CAResult_t CAIPInitializeQueueHandles();
+/* static CAResult_t CAIPInitializeQueueHandles(); */
 
-static void CAIPDeinitializeQueueHandles();
+/* static void CAIPDeinitializeQueueHandles(); */
 
-static void CAIPSendDataThread(void *threadData);
+/* static void CAIPSendDataThread(void *threadData); */
 
-static CAIPData_t *CACreateIPData(const CAEndpoint_t *remoteEndpoint,
-                                  const void *data, uint32_t dataLength,
-                                  bool isMulticast);
+/* static CAIPData_t *CACreateIPData(const CAEndpoint_t *remoteEndpoint, */
+/*                                   const void *data, uint32_t dataLength, */
+/*                                   bool isMulticast); */
 
-void CAFreeIPData(CAIPData_t *ipData);
+/* void CAFreeIPData(CAIPData_t *ipData); */
 
-static void CADataDestroyer(void *data, uint32_t size);
+/* static void CADataDestroyer(void *data, uint32_t size); */
 
-CAResult_t CAIPInitializeQueueHandles()
+static CAResult_t CAIPInitializeQueueHandles()
 {
     // Check if the message queue is already initialized
     if (g_sendQueueHandle)
@@ -148,7 +150,7 @@ CAResult_t CAIPInitializeQueueHandles()
     return CA_STATUS_OK;
 }
 
-void CAIPDeinitializeQueueHandles()
+static void CAIPDeinitializeQueueHandles()
 {
     CAQueueingThreadDestroy(g_sendQueueHandle);
     OICFree(g_sendQueueHandle);
@@ -235,7 +237,7 @@ static ssize_t CAIPPacketSendCB(CAEndpoint_t *endpoint, const void *data, size_t
 }
 #endif
 
-void CAIPPacketReceivedCB(const CASecureEndpoint_t *sep, const void *data,
+static void CAIPPacketReceivedCB(const CASecureEndpoint_t *sep, const void *data,
                           size_t dataLength)
 {
     VERIFY_NON_NULL_VOID(sep, TAG, "sep is NULL");
@@ -327,11 +329,11 @@ CAResult_t CAInitializeIP(CARegisterConnectivityCallback registerCallback,
                           CAErrorHandleCallback errorCallback, ca_thread_pool_t handle)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    VERIFY_NON_NULL(registerCallback, TAG, "registerCallback");
-    VERIFY_NON_NULL(networkPacketCallback, TAG, "networkPacketCallback");
-    VERIFY_NON_NULL(netCallback, TAG, "netCallback");
+    VERIFY_NON_NULL_MSG(registerCallback, TAG, "registerCallback");
+    VERIFY_NON_NULL_MSG(networkPacketCallback, TAG, "networkPacketCallback");
+    VERIFY_NON_NULL_MSG(netCallback, TAG, "netCallback");
 #ifndef SINGLE_THREAD
-    VERIFY_NON_NULL(handle, TAG, "thread pool handle");
+    VERIFY_NON_NULL_MSG(handle, TAG, "thread pool handle");
 #endif
 
 #ifdef WSA_WAIT_EVENT_0

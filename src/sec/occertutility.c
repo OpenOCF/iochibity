@@ -20,24 +20,25 @@
 
 #if defined(__WITH_TLS__) || defined(__WITH_DTLS__)
 
-#include "iotivity_config.h"
+#include "occertutility.h"
+/* #include "iotivity_config.h" */
 
-#include "logger.h"
+/* #include "logger.h" */
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
 #include <inttypes.h>
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "cacommon.h"
-#include "ocrandom.h"
-#include "cacommonutil.h"
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "cacommon.h" */
+/* #include "ocrandom.h" */
+/* #include "cacommonutil.h" */
 
-#include "ocpayload.h"
-#include "payload_logging.h"
-#include "pmutility.h"
-#include "srmutility.h"
-#include "srmresourcestrings.h"
+/* #include "ocpayload.h" */
+/* #include "payload_logging.h" */
+/* #include "pmutility.h" */
+/* #include "srmutility.h" */
+/* #include "srmresourcestrings.h" */
 
 // headers required for mbed TLS
 #include "mbedtls/config.h"
@@ -65,6 +66,42 @@
 #include "occertutility.h"
 
 #define TAG "OIC_OCCERTUTILITY"
+
+#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+typedef ByteArray_t OicSecCert_t;
+#else
+typedef void OicSecCert_t;
+#endif /* __WITH_DTLS__ or __WITH_TLS__*/
+
+
+#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+/**
+ * Callback function definition for Change in TrustCertChain
+ *
+ * @param[IN] ctx - user context returned in the callback.
+ * @param[IN] credId - trustCertChain changed for this ID
+ * @param[IN] trustCertChain - trustcertchain binary blob.
+ * @param[IN] chainSize - size of trustchain
+ */
+#if INTERFACE
+#include <stddef.h>		/* size_t */
+#include <stdint.h>		/* uintXX_t, etc. */
+typedef void (*TrustCertChainChangeCB)(void *ctx, uint16_t credId, uint8_t *trustCertChain,
+        size_t chainSize);
+#endif	/* INTERFACE */
+
+/**
+ * certChain context structure.
+ */
+#if INTERFACE
+typedef struct trustCertChainContext
+{
+    TrustCertChainChangeCB callback;
+    void *context;
+} trustCertChainContext_t;
+#endif	/* INTERFACE */
+#endif
+
 
 /**
  * @def PERSONALIZATION_STRING

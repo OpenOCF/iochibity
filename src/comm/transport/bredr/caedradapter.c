@@ -134,11 +134,11 @@ CAResult_t CAInitializeEDR(CARegisterConnectivityCallback registerCallback,
                            CAErrorHandleCallback errorCallback, ca_thread_pool_t handle)
 {
     // Input validation
-    VERIFY_NON_NULL(registerCallback, TAG, "register callback is NULL");
-    VERIFY_NON_NULL(packetReceivedCallback, TAG, "data receive callback is NULL");
-    VERIFY_NON_NULL(netCallback, TAG, "adapter state change callback is NULL");
-    VERIFY_NON_NULL(connCallback, TAG, "connection state change callback is NULL");
-    VERIFY_NON_NULL(handle, TAG, "Thread pool handle is NULL");
+    VERIFY_NON_NULL_MSG(registerCallback, TAG, "register callback is NULL");
+    VERIFY_NON_NULL_MSG(packetReceivedCallback, TAG, "data receive callback is NULL");
+    VERIFY_NON_NULL_MSG(netCallback, TAG, "adapter state change callback is NULL");
+    VERIFY_NON_NULL_MSG(connCallback, TAG, "connection state change callback is NULL");
+    VERIFY_NON_NULL_MSG(handle, TAG, "Thread pool handle is NULL");
 
     // Register the callbacks
     g_edrThreadPool = handle;
@@ -328,7 +328,7 @@ int32_t CASendEDRMulticastData(const CAEndpoint_t *endpoint, const void *data, u
 
 CAResult_t CAGetEDRInterfaceInformation(CAEndpoint_t **info, size_t *size)
 {
-    VERIFY_NON_NULL(info, TAG, "LocalConnectivity info is null");
+    VERIFY_NON_NULL_MSG(info, TAG, "LocalConnectivity info is null");
 
     CAResult_t err = CA_STATUS_OK;
     *size = 0;
@@ -694,9 +694,9 @@ CAResult_t CAAdapterSendData(const char *remoteAddress, const char *serviceUUID,
         return CA_ADAPTER_NOT_ENABLED;
     }
     // Input validation
-    VERIFY_NON_NULL(serviceUUID, TAG, "service UUID is null");
-    VERIFY_NON_NULL(data, TAG, "Data is null");
-    VERIFY_NON_NULL(sentLength, TAG, "Sent data length holder is null");
+    VERIFY_NON_NULL_MSG(serviceUUID, TAG, "service UUID is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "Data is null");
+    VERIFY_NON_NULL_MSG(sentLength, TAG, "Sent data length holder is null");
 
     // Create remote endpoint
     CAEndpoint_t *remoteEndpoint = CACreateEndpointObject(CA_DEFAULT_FLAGS,

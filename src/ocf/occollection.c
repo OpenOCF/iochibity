@@ -25,14 +25,21 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "occollection.h"
-#include "ocpayload.h"
-#include "ocendpoint.h"
-#include "ocstack.h"
-#include "ocstackinternal.h"
-#include "oicgroup.h"
-#include "oic_string.h"
-#include "payload_logging.h"
-#include "cainterface.h"
+
+/* #ifdef HAVE_STRING_H */
+#include <string.h>
+/* #endif */
+
+/* #include "occollection.h" */
+/* #include "ocpayload.h" */
+/* #include "ocendpoint.h" */
+/* #include "ocstack.h" */
+/* #include "ocstackinternal.h" */
+/* #include "oicgroup.h" */
+/* #include "oic_string.h" */
+/* #include "payload_logging.h" */
+/* #include "cainterface.h" */
+
 #define TAG "OIC_RI_COLLECTION"
 
 static bool AddRTSBaselinePayload(OCRepPayload **linkArray, int size, OCRepPayload **colPayload)

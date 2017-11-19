@@ -22,38 +22,53 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "oic_time.h"
-#include "ocrandom.h"
-#include "uarraylist.h"
-#include "ocstackinternal.h"
-#include "ocpayloadcbor.h"
-#include "ocpayload.h"
-#include "ocresourcehandler.h"
-#include "logger.h"
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "oic_time.h" */
+/* #include "ocrandom.h" */
+/* #include "uarraylist.h" */
+/* #include "ocstackinternal.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "ocpayload.h" */
+/* #include "ocresourcehandler.h" */
+/* #include "logger.h" */
 
 /**
  * Logging tag for module name.
  */
 #define TAG "OIC_RI_KEEPALIVE"
 
+/**
+ * Name of resource type.
+ */
+#define KEEPALIVE_RESOURCE_TYPE_NAME "oic.wk.ping"
+
+/**
+ * Name of resource interface.
+ */
+#define KEEPALIVE_RESOURCE_INTF_NAME OC_RSRVD_INTERFACE_READ_WRITE
+
+/**
+ * URI of the resource.
+ */
+#define KEEPALIVE_RESOURCE_URI "/oic/ping"
+
 static const uint64_t USECS_PER_SEC = 1000000;
 
 //-----------------------------------------------------------------------------
 // Macros
 //-----------------------------------------------------------------------------
-#define VERIFY_SUCCESS(op, successCode) { if ((op) != (successCode)) \
-            {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} }
+/* #define VERIFY_SUCCESS(op, successCode) { if ((op) != (successCode)) \ */
+/*             {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} } */
 
-#define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \
-             TAG, #arg " is NULL"); return (retVal); } }
+/* #define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \ */
+/*              TAG, #arg " is NULL"); return (retVal); } } */
 
-#define VERIFY_NON_NULL_NR(arg, logLevel) { if (!(arg)) { OIC_LOG((logLevel), \
-             TAG, #arg " is NULL"); return; } }
+/* #define VERIFY_NON_NULL_NR(arg, logLevel) { if (!(arg)) { OIC_LOG((logLevel), \ */
+/*              TAG, #arg " is NULL"); return; } } */
 
-#define VERIFY_NON_NULL_V(arg) { if (!arg) {OIC_LOG_V(FATAL, TAG, "%s is NULL", #arg);\
-    goto exit;} }
+/* #define VERIFY_NON_NULL_V(arg) { if (!arg) {OIC_LOG_V(FATAL, TAG, "%s is NULL", #arg);\ */
+/*     goto exit;} } */
 
 /**
  * The KeepAlive table entries are removed
@@ -102,6 +117,7 @@ static OCResourceHandle g_keepAliveHandle = NULL;
  */
 static u_arraylist_t *g_keepAliveConnectionTable = NULL;
 
+#if INTERFACE
 /**
  * KeepAlive table entries.
  */
@@ -116,126 +132,7 @@ typedef struct
     bool sentPingMsg;               /**< if oic client already sent ping message. */
     uint64_t timeStamp;             /**< last sent or received ping message. in microseconds. */
 } KeepAliveEntry_t;
-
-/**
- * Send disconnect message to remove connection.
- */
-static OCStackResult SendDisconnectMessage(const KeepAliveEntry_t *entry);
-
-/**
- * Send ping message to remote endpoint.
- */
-static OCStackResult SendPingMessage(KeepAliveEntry_t *entry);
-
-/**
- * Increase interval value to send next ping message.
- */
-static void IncreaseInterval(KeepAliveEntry_t *entry);
-
-/**
- * Ping Message callback registered with RI for KeepAlive Request.
- */
-static OCStackApplicationResult PingRequestCallback(void* ctx, OCDoHandle handle,
-                                             OCClientResponse * clientResponse);
-
-/**
- * This function creates KeepAlive resource.
- * @return  ::OC_STACK_OK or Appropriate error code.
- */
-static OCStackResult CreateKeepAliveResource();
-
-/**
- * This function deletes KeepAlive resource.
- * @return  ::OC_STACK_OK or Appropriate error code.
- */
-static OCStackResult DeleteKeepAliveResource();
-
-/**
- * API to handle the GET request received for a KeepAlive resource.
- * @param[in]   request     Request Received.
- * @param[in]   resource    Resource handle used for sending the response.
- * @return  ::OC_STACK_OK or Appropriate error code.
- */
-static OCEntityHandlerResult HandleKeepAliveGETRequest(OCServerRequest *request,
-                                                       const OCResource *resource);
-
-/**
- * API to handle the POST request received for a KeepAlive resource.
- * @param[in]   request     Request Received.
- * @param[in]   resource    Resource handle used for sending the response.
- * @return  ::OC_STACK_OK or Appropriate error code.
- */
-static OCEntityHandlerResult HandleKeepAlivePOSTRequest(OCServerRequest *request,
-                                                        const OCResource *resource);
-
-/**
- * API to handle the Response payload.
- * @param[in]   endpoint        RemoteEndpoint which sent the packet.
- * @param[in]   responseCode    Received reseponse code.
- * @param[in]   respPayload     Response payload.
- * @return  ::OC_STACK_OK or Appropriate error code.
- */
-OCStackResult HandleKeepAliveResponse(const CAEndpoint_t *endPoint,
-                                      OCStackResult responseCode,
-                                      const OCRepPayload *respPayload);
-/**
- * Gets keepalive entry.
- * @param[in]   endpoint    Remote Endpoint information (like ipaddress,
- *                          port, reference uri and transport type) to
- *                          which the ping message has to be sent.
- * @param[out]  index       index of array list.
- * @return  KeepAlive entry to send ping message.
- */
-static KeepAliveEntry_t *GetEntryFromEndpoint(const CAEndpoint_t *endpoint, size_t *index);
-
-/**
- * Add keepalive entry.
- * @param[in]   endpoint    Remote Endpoint information (like ipaddress,
- *                          port, reference uri and transport type).
- * @param[in]   mode        Whether it is OIC Server or OIC Client.
- * @param[in]   intervalArray   Received interval values from cloud server.
- * @return  The KeepAlive entry added in KeepAlive Table.
- */
-KeepAliveEntry_t *AddKeepAliveEntry(const CAEndpoint_t *endpoint, OCMode mode,
-                                    int64_t *intervalArray);
-
-/**
- * Remove keepalive entry.
- * @param[in]   endpoint    Remote Endpoint information (like ipaddress,
- *                          port, reference uri and transport type).
- * @return  The KeepAlive entry removed in KeepAlive Table.
- */
-static OCStackResult RemoveKeepAliveEntry(const CAEndpoint_t *endpoint);
-
-/**
- * Create KeepAlive paylaod to send message.
- * @param[in]   interval   The interval value to be sent.
- * @return  Created representation payload.
- */
-static OCRepPayload *CreateKeepAlivePayload(int64_t interval);
-
-/**
- * Send response to remote device.
- * @param[in]   request     Request Received.
- * @param[in]   result      Result to be sent.
- * @return  ::OC_STACK_OK or Appropriate error code.
- */
-static OCStackResult SendKeepAliveResponse(OCServerRequest *request,
-                                           OCEntityHandlerResult result);
-
-/**
- * Add resource type name to payload for GET request.
- * @param[in]   payload     Pointer to the payload to which byte string needs to be added.
- * @return  ::OC_STACK_OK or Appropriate error code.
- */
-static OCStackResult AddResourceTypeNameToPayload(OCRepPayload *payload);
-
-/**
- * Add resource interface name to payload for GET request.
- * @param[in]   payload     Pointer to the payload to which byte string needs to be added.
- * @return  ::OC_STACK_OK or Appropriate error code.
- */
-static OCStackResult AddResourceInterfaceNameToPayload(OCRepPayload *payload);
+#endif	/* INTERFACE */
 
 OCStackResult InitializeKeepAlive(OCMode mode)
 {
@@ -306,7 +203,11 @@ OCStackResult TerminateKeepAlive(OCMode mode)
     return OC_STACK_OK;
 }
 
-OCStackResult CreateKeepAliveResource()
+/**
+ * This function creates KeepAlive resource.
+ * @return  ::OC_STACK_OK or Appropriate error code.
+ */
+LOCAL OCStackResult CreateKeepAliveResource()
 {
     OIC_LOG(DEBUG, TAG, "InitKeepAliveResource IN");
 
@@ -333,7 +234,11 @@ OCStackResult CreateKeepAliveResource()
     return result;
 }
 
-OCStackResult DeleteKeepAliveResource()
+/**
+ * This function deletes KeepAlive resource.
+ * @return  ::OC_STACK_OK or Appropriate error code.
+ */
+LOCAL OCStackResult DeleteKeepAliveResource()
 {
     OIC_LOG(DEBUG, TAG, "DeleteKeepAliveResource IN");
 
@@ -349,8 +254,8 @@ OCStackResult DeleteKeepAliveResource()
     return result;
 }
 
-OCStackResult HandleKeepAliveRequest(OCServerRequest *request,
-                                     const OCResource *resource)
+LOCAL OCStackResult HandleKeepAliveRequest(OCServerRequest *request,
+					   const OCResource *resource)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
     VERIFY_NON_NULL(resource, FATAL, OC_STACK_INVALID_PARAM);
@@ -394,8 +299,14 @@ OCStackResult HandleKeepAliveRequest(OCServerRequest *request,
     return ret;
 }
 
-OCStackResult SendKeepAliveResponse(OCServerRequest *request,
-                                    OCEntityHandlerResult result)
+/**
+ * Send response to remote device.
+ * @param[in]   request     Request Received.
+ * @param[in]   result      Result to be sent.
+ * @return  ::OC_STACK_OK or Appropriate error code.
+ */
+LOCAL OCStackResult SendKeepAliveResponse(OCServerRequest *request,
+					   OCEntityHandlerResult result)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
 
@@ -428,8 +339,15 @@ OCStackResult SendKeepAliveResponse(OCServerRequest *request,
     return OCDoResponse(&ehResponse);
 }
 
-OCEntityHandlerResult HandleKeepAliveGETRequest(OCServerRequest *request,
-                                                const OCResource *resource)
+
+/**
+ * API to handle the GET request received for a KeepAlive resource.
+ * @param[in]   request     Request Received.
+ * @param[in]   resource    Resource handle used for sending the response.
+ * @return  ::OC_STACK_OK or Appropriate error code.
+ */
+LOCAL OCEntityHandlerResult HandleKeepAliveGETRequest(OCServerRequest *request,
+						       const OCResource *resource)
 {
     VERIFY_NON_NULL(request, FATAL, OC_EH_ERROR);
     VERIFY_NON_NULL(resource, FATAL, OC_EH_ERROR);
@@ -447,8 +365,14 @@ OCEntityHandlerResult HandleKeepAliveGETRequest(OCServerRequest *request,
     return OC_EH_OK;
 }
 
-OCEntityHandlerResult HandleKeepAlivePOSTRequest(OCServerRequest *request,
-                                                 const OCResource *resource)
+/**
+ * API to handle the POST request received for a KeepAlive resource.
+ * @param[in]   request     Request Received.
+ * @param[in]   resource    Resource handle used for sending the response.
+ * @return  ::OC_STACK_OK or Appropriate error code.
+ */
+LOCAL OCEntityHandlerResult HandleKeepAlivePOSTRequest(OCServerRequest *request,
+							const OCResource *resource)
 {
     VERIFY_NON_NULL(request, FATAL, OC_EH_ERROR);
     VERIFY_NON_NULL(resource, FATAL, OC_EH_ERROR);
@@ -486,9 +410,16 @@ OCEntityHandlerResult HandleKeepAlivePOSTRequest(OCServerRequest *request,
     return OC_EH_OK;
 }
 
-OCStackResult HandleKeepAliveResponse(const CAEndpoint_t *endPoint,
-                                      OCStackResult responseCode,
-                                      const OCRepPayload *respPayload)
+/**
+ * API to handle the Response payload.
+ * @param[in]   endpoint        RemoteEndpoint which sent the packet.
+ * @param[in]   responseCode    Received reseponse code.
+ * @param[in]   respPayload     Response payload.
+ * @return  ::OC_STACK_OK or Appropriate error code.
+ */
+static OCStackResult HandleKeepAliveResponse(const CAEndpoint_t *endPoint,
+					     OCStackResult responseCode,
+					     const OCRepPayload *respPayload)
 {
     VERIFY_NON_NULL(endPoint, FATAL, OC_STACK_INVALID_PARAM);
 
@@ -617,7 +548,10 @@ void ProcessKeepAlive()
     }
 }
 
-void IncreaseInterval(KeepAliveEntry_t *entry)
+/**
+ * Increase interval value to send next ping message.
+ */
+LOCAL void IncreaseInterval(KeepAliveEntry_t *entry)
 {
     VERIFY_NON_NULL_NR(entry, FATAL);
 
@@ -630,7 +564,10 @@ void IncreaseInterval(KeepAliveEntry_t *entry)
     }
 }
 
-OCStackResult SendDisconnectMessage(const KeepAliveEntry_t *entry)
+/**
+ * Send disconnect message to remove connection.
+ */
+LOCAL OCStackResult SendDisconnectMessage(const KeepAliveEntry_t *entry)
 {
     VERIFY_NON_NULL(entry, FATAL, OC_STACK_INVALID_PARAM);
 
@@ -650,7 +587,10 @@ OCStackResult SendDisconnectMessage(const KeepAliveEntry_t *entry)
     return CAResultToOCResult(result);
 }
 
-OCStackResult SendPingMessage(KeepAliveEntry_t *entry)
+/**
+ * Send ping message to remote endpoint.
+ */
+LOCAL OCStackResult SendPingMessage(KeepAliveEntry_t *entry)
 {
     VERIFY_NON_NULL(entry, FATAL, OC_STACK_INVALID_PARAM);
 
@@ -678,7 +618,10 @@ OCStackResult SendPingMessage(KeepAliveEntry_t *entry)
     return OC_STACK_OK;
 }
 
-OCStackApplicationResult PingRequestCallback(void* ctx, OCDoHandle handle,
+/**
+ * Ping Message callback registered with RI for KeepAlive Request.
+ */
+LOCAL OCStackApplicationResult PingRequestCallback(void* ctx, OCDoHandle handle,
                                              OCClientResponse *clientResponse)
 {
     (void) ctx;
@@ -698,7 +641,15 @@ OCStackApplicationResult PingRequestCallback(void* ctx, OCDoHandle handle,
     return OC_STACK_DELETE_TRANSACTION;
 }
 
-KeepAliveEntry_t *GetEntryFromEndpoint(const CAEndpoint_t *endpoint, size_t *index)
+/**
+ * Gets keepalive entry.
+ * @param[in]   endpoint    Remote Endpoint information (like ipaddress,
+ *                          port, reference uri and transport type) to
+ *                          which the ping message has to be sent.
+ * @param[out]  index       index of array list.
+ * @return  KeepAlive entry to send ping message.
+ */
+LOCAL KeepAliveEntry_t *GetEntryFromEndpoint(const CAEndpoint_t *endpoint, size_t *index)
 {
     if (!g_keepAliveConnectionTable)
     {
@@ -729,7 +680,15 @@ KeepAliveEntry_t *GetEntryFromEndpoint(const CAEndpoint_t *endpoint, size_t *ind
     return NULL;
 }
 
-KeepAliveEntry_t *AddKeepAliveEntry(const CAEndpoint_t *endpoint, OCMode mode,
+/**
+ * Add keepalive entry.
+ * @param[in]   endpoint    Remote Endpoint information (like ipaddress,
+ *                          port, reference uri and transport type).
+ * @param[in]   mode        Whether it is OIC Server or OIC Client.
+ * @param[in]   intervalArray   Received interval values from cloud server.
+ * @return  The KeepAlive entry added in KeepAlive Table.
+ */
+LOCAL KeepAliveEntry_t *AddKeepAliveEntry(const CAEndpoint_t *endpoint, OCMode mode,
                                     int64_t *intervalInfo)
 {
     if (!endpoint)
@@ -778,7 +737,13 @@ KeepAliveEntry_t *AddKeepAliveEntry(const CAEndpoint_t *endpoint, OCMode mode,
     return entry;
 }
 
-OCStackResult RemoveKeepAliveEntry(const CAEndpoint_t *endpoint)
+/**
+ * Remove keepalive entry.
+ * @param[in]   endpoint    Remote Endpoint information (like ipaddress,
+ *                          port, reference uri and transport type).
+ * @return  The KeepAlive entry removed in KeepAlive Table.
+ */
+LOCAL OCStackResult RemoveKeepAliveEntry(const CAEndpoint_t *endpoint)
 {
     VERIFY_NON_NULL(endpoint, FATAL, OC_STACK_INVALID_PARAM);
 
@@ -845,7 +810,12 @@ void HandleKeepAliveConnCB(const CAEndpoint_t *endpoint, bool isConnected, bool 
     }
 }
 
-OCRepPayload *CreateKeepAlivePayload(int64_t interval)
+/**
+ * Create KeepAlive paylaod to send message.
+ * @param[in]   interval   The interval value to be sent.
+ * @return  Created representation payload.
+ */
+LOCAL OCRepPayload *CreateKeepAlivePayload(int64_t interval)
 {
     OIC_LOG_V(DEBUG, TAG, "Create KeepAlive Payload, interval is [%" PRId64 "]", interval);
 
@@ -861,7 +831,12 @@ OCRepPayload *CreateKeepAlivePayload(int64_t interval)
     return payload;
 }
 
-OCStackResult AddResourceTypeNameToPayload(OCRepPayload *payload)
+/**
+ * Add resource type name to payload for GET request.
+ * @param[in]   payload     Pointer to the payload to which byte string needs to be added.
+ * @return  ::OC_STACK_OK or Appropriate error code.
+ */
+LOCAL OCStackResult AddResourceTypeNameToPayload(OCRepPayload *payload)
 {
     uint8_t numElement = 0;
     OCStackResult res = OCGetNumberOfResourceTypes(g_keepAliveHandle, &numElement);
@@ -901,7 +876,12 @@ OCStackResult AddResourceTypeNameToPayload(OCRepPayload *payload)
     return res;
 }
 
-OCStackResult AddResourceInterfaceNameToPayload(OCRepPayload *payload)
+/**
+ * Add resource interface name to payload for GET request.
+ * @param[in]   payload     Pointer to the payload to which byte string needs to be added.
+ * @return  ::OC_STACK_OK or Appropriate error code.
+ */
+LOCAL OCStackResult AddResourceInterfaceNameToPayload(OCRepPayload *payload)
 {
     uint8_t numElement = 0;
     OCStackResult res = OCGetNumberOfResourceInterfaces(g_keepAliveHandle, &numElement);

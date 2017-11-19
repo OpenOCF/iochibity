@@ -17,7 +17,9 @@
  * limitations under the License.
  *
  * *****************************************************************/
-#include "iotivity_config.h"
+#include "secureresourceprovider.h"
+
+/* #include "iotivity_config.h" */
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -26,39 +28,62 @@
 #endif
 #include <errno.h>
 
-#include "ocprovisioningmanager.h"
-#include "secureresourceprovider.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "aclresource.h"
-#include "pstatresource.h"
-#include "srmresourcestrings.h"
-#include "credresource.h"
-#include "csrresource.h"
-#include "rolesresource.h"
-#include "doxmresource.h"
-#include "credentialgenerator.h"
-#include "cainterface.h"
-#include "oic_string.h"
-#include "pmtypes.h"
-#include "pmutility.h"
-#include "srmutility.h"
-#include "provisioningdatabasemanager.h"
-#include "base64.h"
-#include "utlist.h"
-#include "ocpayload.h"
-#include "srmutility.h"
-#include "certhelpers.h"
-#include "ocstackinternal.h"
+/* #include "ocprovisioningmanager.h" */
+/* #include "secureresourceprovider.h" */
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "aclresource.h" */
+/* #include "pstatresource.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "credresource.h" */
+/* #include "csrresource.h" */
+/* #include "rolesresource.h" */
+/* #include "doxmresource.h" */
+/* #include "credentialgenerator.h" */
+/* #include "cainterface.h" */
+/* #include "oic_string.h" */
+/* #include "pmtypes.h" */
+/* #include "pmutility.h" */
+/* #include "srmutility.h" */
+/* #include "provisioningdatabasemanager.h" */
+/* #include "base64.h" */
+/* #include "utlist.h" */
+/* #include "ocpayload.h" */
+/* #include "srmutility.h" */
+/* #include "certhelpers.h" */
+/* #include "ocstackinternal.h" */
 
-#ifdef __WITH_DTLS__
-#include "crlresource.h"
-#endif
+/* #ifdef __WITH_DTLS__ */
+/* #include "crlresource.h" */
+/* #endif */
 
 #define DEFAULT_URI_LENGTH (MAX_URI_LENGTH + MAX_QUERY_LENGTH)
 
 #define TAG "OIC_SRPAPI"
+
+#define fixme_srp_pp PstatProperty_t /* help makeheaders */
+
+#if INTERFACE
+// Enum type index for data types.
+typedef enum
+{
+    CHAIN_TYPE = 0,                       /**< Certificate trust chain.**/
+    ACL_TYPE,                             /**< Access control list.**/
+    PSK_TYPE,                             /**< Pre-Shared Key.**/
+    CERT_TYPE,                            /**< X.509 certificate.**/
+    MOT_TYPE                              /**< Multiple Ownership Transfer.**/
+} DataType_t;
+
+/**
+ * Structure to carry general data to callback.
+ */
+typedef struct Data
+{
+    void *ctx;                                   /**< Pointer to user context.**/
+    DataType_t type;                             /**< Data type of the context.**/
+} Data_t;
+#endif
 
 trustCertChainContext_t g_trustCertChainNotifier;
 

@@ -19,7 +19,7 @@
  ******************************************************************/
 
 
-#include "iotivity_config.h"
+/* #include "iotivity_config.h" */
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -29,14 +29,16 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <inttypes.h>
+
 #include "ca_adapter_net_ssl.h"
-#include "cacommon.h"
-//#include "caipinterface.h"
-#include "oic_malloc.h"
-#include "ocrandom.h"
-#include "byte_array.h"
-#include "octhread.h"
-#include "octimer.h"
+
+/* #include "cacommon.h" */
+/* //#include "caipinterface.h" */
+/* #include "oic_malloc.h" */
+/* #include "ocrandom.h" */
+/* #include "byte_array.h" */
+/* #include "octhread.h" */
+/* #include "octimer.h" */
 
 // headers required for mbed TLS
 #include "mbedtls/platform.h"
@@ -66,9 +68,39 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+/**
+ * Currently TLS supported adapters(3) WIFI, ETHERNET and BLE for linux platform.
+ */
+#define MAX_SUPPORTED_ADAPTERS 3
+
+#if INTERFACE
+#include <unistd.h>
+typedef void (*CAPacketReceivedCallback)(const CASecureEndpoint_t *sep,
+                                         const void *data, size_t dataLength);
+
+typedef ssize_t (*CAPacketSendCallback)(CAEndpoint_t *endpoint,
+                                        const void *data, size_t dataLength);
+
+typedef enum
+{
+    ADAPTER_CURVE_SECP256R1,
+    ADAPTER_CURVE_MAXIMUM
+} AdapterCurve_t;
+#define ADAPTER_CURVE_MAX 1
+#endif
+
+#include "mbedtls/ecp.h"
+static mbedtls_ecp_group_id curve[ADAPTER_CURVE_MAX][2] =
+{
+    {MBEDTLS_ECP_DP_SECP256R1, MBEDTLS_ECP_DP_NONE}
+};
 
 /**
  * @def MBED_TLS_VERSION_LEN
@@ -118,7 +150,9 @@
  * @def UUID_LENGTHPSK_LENGTH
  * @brief Identity max length
  */
+#if INTERFACE
 #define UUID_LENGTH (128/8)
+#endif	/* INTERFACE */
 /**
  * @def MASTER_SECRET_LEN
  * @brief TLS master secret length
@@ -238,12 +272,6 @@ typedef enum
     SSL_CIPHER_MAX
 } SslCipher_t;
 
-typedef enum
-{
-    ADAPTER_CURVE_SECP256R1,
-    ADAPTER_CURVE_MAX
-} AdapterCurve_t;
-
 static const int tlsCipher[SSL_CIPHER_MAX][2] =
 {
     {MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA256, 0},
@@ -260,11 +288,6 @@ static const int tlsCipher[SSL_CIPHER_MAX][2] =
 };
 
 static int g_cipherSuitesList[SSL_CIPHER_MAX];
-
-mbedtls_ecp_group_id curve[ADAPTER_CURVE_MAX][2] =
-{
-    {MBEDTLS_ECP_DP_SECP256R1, MBEDTLS_ECP_DP_NONE}
-};
 
 typedef struct  {
     int code;
@@ -337,11 +360,12 @@ static void DebugSsl(void *ctx, int level, const char *file, int line, const cha
 }
 #endif
 
+#if EXPORT_INTERFACE
 /**
  * structure to holds the information of cache message and address info.
  */
 typedef ByteArray_t SslCacheMessage_t;
-
+#endif
 
 /**
  * Data structure for holding the send and recv callbacks.

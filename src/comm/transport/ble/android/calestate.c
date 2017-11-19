@@ -18,24 +18,36 @@
  *
  ******************************************************************/
 
+#include "calestate.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <jni.h>
 #include <unistd.h>
 
-#include "calestate.h"
-#include "caleinterface.h"
-#include "caadapterutils.h"
-#include "caleutils.h"
-
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "cathreadpool.h" /* for thread pool */
-#include "octhread.h"
-#include "uarraylist.h"
+/* #include "calestate.h"
+ * #include "caleinterface.h"
+ * #include "caadapterutils.h"
+ * #include "caleutils.h"
+ *
+ * #include "logger.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * #include "cathreadpool.h" /\* for thread pool *\/
+ * #include "octhread.h"
+ * #include "uarraylist.h" */
 
 #define TAG PCF("OIC_CA_LE_STATE")
+
+typedef struct le_state_info
+{
+    char address[CA_MACADDR_SIZE];
+    uint16_t connectedState;
+    uint16_t sendState;
+    jboolean autoConnectFlag;
+    jboolean isDescriptorFound;
+    uint16_t mtuSize;
+} CALEState_t;
 
 CAResult_t CALEUpdateDeviceState(const char* address,
                                  uint16_t state_type,
@@ -43,8 +55,8 @@ CAResult_t CALEUpdateDeviceState(const char* address,
                                  u_arraylist_t *deviceList,
                                  oc_mutex deviceListMutex)
 {
-    VERIFY_NON_NULL(address, TAG, "address is null");
-    VERIFY_NON_NULL(deviceList, TAG, "deviceList is null");
+    VERIFY_NON_NULL_MSG(address, TAG, "address is null");
+    VERIFY_NON_NULL_MSG(deviceList, TAG, "deviceList is null");
 
     oc_mutex_lock(deviceListMutex);
 
@@ -150,7 +162,7 @@ CAResult_t CALERemoveAllDeviceState(u_arraylist_t *deviceList,
                                     oc_mutex deviceListMutex)
 {
     OIC_LOG(DEBUG, TAG, "CALERemoveAllDeviceState");
-    VERIFY_NON_NULL(deviceList, TAG, "deviceList is null");
+    VERIFY_NON_NULL_MSG(deviceList, TAG, "deviceList is null");
 
     oc_mutex_lock(deviceListMutex);
     size_t length = u_arraylist_length(deviceList);
@@ -174,7 +186,7 @@ CAResult_t CALEResetDeviceStateForAll(u_arraylist_t *deviceList,
                                       oc_mutex deviceListMutex)
 {
     OIC_LOG(DEBUG, TAG, "CALEResetDeviceStateForAll");
-    VERIFY_NON_NULL(deviceList, TAG, "deviceList is null");
+    VERIFY_NON_NULL_MSG(deviceList, TAG, "deviceList is null");
 
     oc_mutex_lock(deviceListMutex);
     size_t length = u_arraylist_length(deviceList);
@@ -201,8 +213,8 @@ CAResult_t CALERemoveDeviceState(const char* remoteAddress,
                                  u_arraylist_t *deviceList)
 {
     OIC_LOG(DEBUG, TAG, "CALERemoveDeviceState");
-    VERIFY_NON_NULL(remoteAddress, TAG, "remoteAddress is null");
-    VERIFY_NON_NULL(deviceList, TAG, "deviceList is null");
+    VERIFY_NON_NULL_MSG(remoteAddress, TAG, "remoteAddress is null");
+    VERIFY_NON_NULL_MSG(deviceList, TAG, "deviceList is null");
 
     size_t length = u_arraylist_length(deviceList);
     for (size_t index = 0; index < length; index++)
@@ -314,9 +326,9 @@ CAResult_t CALESetFlagToState(JNIEnv *env, jstring jni_address, jint state_idx, 
                               u_arraylist_t *deviceList, oc_mutex deviceListMutex)
 {
     OIC_LOG(DEBUG, TAG, "IN - CALESetFlagToState");
-    VERIFY_NON_NULL(env, TAG, "env");
-    VERIFY_NON_NULL(jni_address, TAG, "jni_address");
-    VERIFY_NON_NULL(deviceList, TAG, "deviceList");
+    VERIFY_NON_NULL_MSG(env, TAG, "env");
+    VERIFY_NON_NULL_MSG(jni_address, TAG, "jni_address");
+    VERIFY_NON_NULL_MSG(deviceList, TAG, "deviceList");
 
     oc_mutex_lock(deviceListMutex);
 
@@ -410,8 +422,8 @@ CAResult_t CALESetMtuSize(const char* address, uint16_t mtuSize,
                           u_arraylist_t *deviceList, oc_mutex deviceListMutex)
 
 {
-    VERIFY_NON_NULL(address, TAG, "address is null");
-    VERIFY_NON_NULL(deviceList, TAG, "deviceList is null");
+    VERIFY_NON_NULL_MSG(address, TAG, "address is null");
+    VERIFY_NON_NULL_MSG(deviceList, TAG, "deviceList is null");
 
     oc_mutex_lock(deviceListMutex);
     if (CALEIsDeviceInList(address, deviceList))

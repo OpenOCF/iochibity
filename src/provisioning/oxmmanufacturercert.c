@@ -18,28 +18,33 @@
  *
  * *****************************************************************/
 
+#include "oxmmanufacturercert.h"
+
 #include <memory.h>
 
-#include "ocstack.h"
-#include "securevirtualresourcetypes.h"
-#include "doxmresource.h"
-#include "credresource.h"
-#include "cacommon.h"
-#include "cainterface.h"
-#include "casecurityinterface.h"
-#include "ocrandom.h"
-#include "oic_malloc.h"
-#include "logger.h"
-#include "pbkdf2.h"
-#include "base64.h"
-#include "oxmmanufacturercert.h"
-#include "ownershiptransfermanager.h"
-#include "srmresourcestrings.h"
-#include "pkix_interface.h"
+/* #include "ocstack.h" */
+/* #include "securevirtualresourcetypes.h" */
+/* #include "doxmresource.h" */
+/* #include "credresource.h" */
+/* #include "cacommon.h" */
+/* #include "cainterface.h" */
+/* #include "casecurityinterface.h" */
+/* #include "ocrandom.h" */
+/* #include "oic_malloc.h" */
+/* #include "logger.h" */
+/* #include "pbkdf2.h" */
+/* #include "base64.h" */
+/* #include "oxmmanufacturercert.h" */
+/* #include "ownershiptransfermanager.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "pkix_interface.h" */
+/* #include "ocstackinternal.h" */
+
 #include "mbedtls/ssl_ciphersuites.h"
-#include "ocstackinternal.h"
 
 #define TAG "OXM_MCertificate"
+
+#define fixme_oxmmfg_dp DoxmProperty_t /* help makeheaders */
 
 OCStackResult CreateMCertificateBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
 {

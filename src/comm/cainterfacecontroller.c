@@ -18,48 +18,77 @@
  *
  ******************************************************************/
 
+#include "cainterfacecontroller.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 
-#include "iotivity_config.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "caadapterutils.h"
-#include "canetworkconfigurator.h"
-#include "cainterfacecontroller.h"
-#ifdef EDR_ADAPTER
-#include "caedradapter.h"
-#endif
-#ifdef LE_ADAPTER
-#include "caleadapter.h"
-#endif
-#ifdef NFC_ADAPTER
-#include "canfcadapter.h"
-#endif
-#ifdef IP_ADAPTER
-#include "caipadapter.h"
-#endif
-#ifdef RA_ADAPTER
-#include "caraadapter.h"
-#endif
-#ifdef TCP_ADAPTER
-#include "catcpadapter.h"
-#endif
+/* #include "iotivity_config.h" */
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "caadapterutils.h" */
+/* #include "canetworkconfigurator.h" */
+/* #include "cainterfacecontroller.h" */
+/* #ifdef EDR_ADAPTER */
+/* #include "caedradapter.h" */
+/* #endif */
+/* #ifdef LE_ADAPTER */
+/* #include "caleadapter.h" */
+/* #endif */
+/* #ifdef NFC_ADAPTER */
+/* #include "canfcadapter.h" */
+/* #endif */
+/* #ifdef IP_ADAPTER */
+/* #include "caipadapter.h" */
+/* #endif */
+/* #ifdef RA_ADAPTER */
+/* #include "caraadapter.h" */
+/* #endif */
+/* #ifdef TCP_ADAPTER */
+/* #include "catcpadapter.h" */
+/* #endif */
 
 
-#include "caremotehandler.h"
-#include "cathreadpool.h"
-#include "cainterface.h"
-#include <coap/utlist.h>
+/* #include "caremotehandler.h" */
+/* #include "cathreadpool.h" */
+/* #include "cainterface.h" */
+/* #include <coap/utlist.h> */
 
 #ifndef SINGLE_THREAD
 #include <assert.h>
-#include "caqueueingthread.h"
+/* #include "caqueueingthread.h" */
 #endif
 
 #define TAG "OIC_CA_INF_CTR"
+
+/**
+ * Information about the network status.
+ */
+#if INTERFACE
+typedef enum
+{
+    CA_INTERFACE_DOWN,   /**< Connection is not available */
+    CA_INTERFACE_UP    /**< Connection is Available */
+} CANetworkStatus_t;
+#endif	/* INTERFACE */
+
+#if INTERFACE
+/**
+ * Callback function type for connection status changes delivery.
+ * @param[out]   info           Remote endpoint information.
+ * @param[out]   isConnected    Current connection status info.
+ */
+typedef void (*CAConnectionStateChangedCB)(const CAEndpoint_t *info, bool isConnected);
+
+/**
+ * Callback function type for adapter status changes delivery.
+ * @param[out]   adapter    Transport type information.
+ * @param[out]   enabled    Current adapter status info.
+ */
+typedef void (*CAAdapterStateChangedCB)(CATransportAdapter_t adapter, bool enabled);
+#endif	/* INTERFACE */
 
 #if defined(TCP_ADAPTER) || defined(EDR_ADAPTER) || defined(LE_ADAPTER)
 #define STATEFUL_PROTOCOL_SUPPORTED
@@ -570,8 +599,8 @@ void CAStopAdapters()
 
 CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
 {
-    VERIFY_NON_NULL(info, TAG, "info is null");
-    VERIFY_NON_NULL(size, TAG, "size is null");
+    VERIFY_NON_NULL_MSG(info, TAG, "info is null");
+    VERIFY_NON_NULL_MSG(size, TAG, "size is null");
 
     CAEndpoint_t **tempInfo = (CAEndpoint_t **) OICCalloc(g_numberOfAdapters, sizeof(*tempInfo));
     if (!tempInfo)
@@ -675,7 +704,7 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
     size_t index = 0;
     CAResult_t res = CA_STATUS_FAILED;
 
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint is null");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint is null");
 
     u_arraylist_t *list = CAGetSelectedNetworkList();
     if (!list)
@@ -737,7 +766,7 @@ CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, u
     size_t index = 0;
     CAResult_t res = CA_STATUS_FAILED;
 
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint is null");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint is null");
 
     u_arraylist_t *list = CAGetSelectedNetworkList();
     if (!list)

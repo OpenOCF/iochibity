@@ -18,7 +18,9 @@
 //
 //******************************************************************
 
-#include "iotivity_config.h"
+#include "csrresource.h"
+
+/* #include "iotivity_config.h" */
 #include <stdlib.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -29,23 +31,29 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include "oic_string.h"
-#include "cainterface.h"
-#include "payload_logging.h"
-#include "ocstack.h"
-#include "ocrandom.h"
-#include "cacommon.h"
-#include "srmresourcestrings.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "credresource.h"
-#include "doxmresource.h"
-#include "srmutility.h"
-#include "certhelpers.h"
-#include "csrresource.h"
-#include "resourcemanager.h"
+/* #include "oic_string.h" */
+/* #include "cainterface.h" */
+/* #include "payload_logging.h" */
+/* #include "ocstack.h" */
+/* #include "ocrandom.h" */
+/* #include "cacommon.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "credresource.h" */
+/* #include "doxmresource.h" */
+/* #include "srmutility.h" */
+/* #include "certhelpers.h" */
+/* #include "csrresource.h" */
+/* #include "resourcemanager.h" */
 
 #define TAG  "OIC_SRM_CSR"
+
+#define fixme_csr_rp OCResourceProperty /* help makeheaders */
+
+#if defined(__WITH_TLS__) || defined(__WITH_DTLS__)
+
+#define fixme_encoding oic_sec_encoding_fixme /* help makeheaders */
 
 static const uint8_t CSR_MAP_SIZE = 4; // csr, encoding, RT, and IF
 
@@ -507,3 +515,5 @@ OCStackResult DeInitCSRResource()
 
     return res;
 }
+
+#endif

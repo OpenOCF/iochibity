@@ -20,8 +20,11 @@
 #include "oic_string.h"
 
 #include <string.h>
+#if EXPORT_INTERFACE
+#include <stddef.h>
+#endif
 #include <assert.h>
-#include "oic_malloc.h"
+/* #include "oic_malloc.h" */
 
 #define TAG "OIC_STRING"
 char *OICStrdup(const char *str)

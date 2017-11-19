@@ -27,8 +27,9 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "iotivity_config.h"
-#include "logger.h"
+/* #include "iotivity_config.h" */
+/* #include "logger.h" */
+#include "ocrandom.h"
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -51,13 +52,29 @@
 #include <windows.h>
 #endif
 
-#include "ocrandom.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
 #include <ctype.h>
 
 #define OC_MIN(A,B) ((A)<(B)?(A):(B))
+
+
+#if EXPORT_INTERFACE
+#include <stddef.h>
+#include <stdint.h>
+
+ /* Number of bytes in a UUID. */
+#define UUID_SIZE (16)
+
+/*
+ * Size of a UUID string.
+ * IoTivity formats UUIDs as strings following RFC 4122, Section 3.
+ * For example, "f81d4fae-7dec-11d0-a765-00a0c91e6bf6".
+ * This requires 36 characters, plus one for the null terminator.
+ */
+#define UUID_STRING_SIZE (37)
+#endif
 
 #define OC_UUID_HYPHEN_1 9
 #define OC_UUID_HYPHEN_2 14
@@ -70,88 +87,6 @@
 * @brief Logging tag for module name
 */
 #define OCRANDOM_TAG "OIC_OCRANDOM"
-
-#ifdef ARDUINO
-#include "Arduino.h"
-
-/*
- * ARM GCC compiler doesnt define random/srandom functions, fallback to
- * rand/srand.
- */
-#if !defined(ARDUINO_ARCH_SAM)
-#define OC_arduino_srandom_function srandom
-#define OC_arduino_random_function random
-#else
-#define OC_arduino_srandom_function srand
-#define OC_arduino_random_function rand
-#endif
-
-uint8_t GetRandomBitRaw()
-{
-    return analogRead((uint8_t)ANALOG_IN) & 0x1;
-}
-
-uint8_t GetRandomBitRaw2()
-{
-    int a = 0;
-    for (;;)
-    {
-        a = GetRandomBitRaw() | (GetRandomBitRaw()<<1);
-        if (a==1)
-        {
-            return 0; // 1 to 0 transition: log a zero bit
-        }
-        if (a==2)
-        {
-            return 1;// 0 to 1 transition: log a one bit
-        }
-        // For other cases, try again.
-    }
-}
-
-uint8_t GetRandomBit()
-{
-    int a = 0;
-    for (;;)
-    {
-        a = GetRandomBitRaw2() | (GetRandomBitRaw2()<<1);
-        if (a==1)
-        {
-            return 0; // 1 to 0 transition: log a zero bit
-        }
-        if (a==2)
-        {
-            return 1;// 0 to 1 transition: log a one bit
-        }
-        // For other cases, try again.
-    }
-}
-
-/*
- * Currently, only the Arduino platform requires seeding. It's done
- * automatically on the first call to OCGetRandomBytes.
- */
-uint8_t g_isSeeded = 0;
-static void OCSeedRandom()
-{
-    if (g_isSeeded)
-    {
-        return;
-    }
-
-    uint32_t result =0;
-    uint8_t i;
-    for (i=32; i--;)
-    {
-        result += result + GetRandomBit();
-    }
-    OC_arduino_srandom_function(result);
-
-    g_isSeeded = 1;
-    return;
-}
-
-#endif /* ARDUINO */
 
 bool OCGetRandomBytes(uint8_t * output, size_t len)
 {

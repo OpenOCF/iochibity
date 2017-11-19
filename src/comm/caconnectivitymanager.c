@@ -18,27 +18,29 @@
  *
  ******************************************************************/
 
+#include "caconnectivitymanager.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "ocrandom.h"
-#include "cainterface.h"
-#include "caremotehandler.h"
-#include "camessagehandler.h"
-#include "caprotocolmessage.h"
-#include "canetworkconfigurator.h"
-#include "cainterfacecontroller.h"
-#include "logger.h"
+/* #include "ocrandom.h" */
+/* #include "cainterface.h" */
+/* #include "caremotehandler.h" */
+/* #include "camessagehandler.h" */
+/* #include "caprotocolmessage.h" */
+/* #include "canetworkconfigurator.h" */
+/* #include "cainterfacecontroller.h" */
+/* #include "logger.h" */
 
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-#include "ca_adapter_net_ssl.h"
-#endif // __WITH_DTLS__ or __WITH_TLS__
+/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
+/* #include "ca_adapter_net_ssl.h" */
+/* #endif // __WITH_DTLS__ or __WITH_TLS__ */
 
-#ifdef TCP_ADAPTER
-#include "catcpadapter.h"
-#endif
+/* #ifdef TCP_ADAPTER */
+/* #include "catcpadapter.h" */
+/* #endif */
 
 CAGlobals_t caglobals = { .clientFlags = 0,
                           .serverFlags = 0, };
@@ -46,6 +48,28 @@ CAGlobals_t caglobals = { .clientFlags = 0,
 #define TAG "OIC_CA_CONN_MGR"
 
 static bool g_isInitialized = false;
+
+#if EXPORT_INTERFACE
+#include <stdint.h>
+
+#ifdef TCP_ADAPTER
+/**
+ * Callback function to pass the connection information from CA to RI.
+ * @param[out]   object           remote device information.
+ * @param[out]   isConnected      Whether keepalive message needs to be sent.
+ * @param[out]   isClient         Host Mode of Operation.
+ */
+typedef void (*CAKeepAliveConnectionCallback)(const CAEndpoint_t *object, bool isConnected,
+                                              bool isClient);
+
+/**
+ * Register connection status changes callback to process KeepAlive.
+ * connection informations are delivered these callbacks.
+ * @param[in]   ConnHandler     Connection status changes callback.
+ */
+void CARegisterKeepAliveHandler(CAKeepAliveConnectionCallback ConnHandler);
+#endif
+#endif
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 // Taking callback all the way through adapters not the right approach, hence calling here.

@@ -18,24 +18,70 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "utlist.h"
-#include "crl_logging.h"
-#include "payload_logging.h"
-#include "psinterface.h"
-#include "resourcemanager.h"
-#include "srmresourcestrings.h"
-#include "srmutility.h"
-#include "doxmresource.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
 #include "crlresource.h"
-#include "ocpayloadcbor.h"
-#include "base64.h"
+
+/* #include "utlist.h" */
+/* #include "crl_logging.h" */
+/* #include "payload_logging.h" */
+/* #include "psinterface.h" */
+/* #include "resourcemanager.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "srmutility.h" */
+/* #include "doxmresource.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "crlresource.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "base64.h" */
+
 #include <time.h>
 
 #define TAG  "OIC_SRM_CRL"
+
+#if INTERFACE
+#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+typedef struct OicSecCrl OicSecCrl_t;
+#endif /* __WITH_DTLS__ or __WITH_TLS__*/
+
+#if defined(__WITH_DTLS__) ||  defined(__WITH_TLS__)
+struct OicSecCrl
+{
+    uint16_t CrlId;
+    ByteArray_t ThisUpdate;
+    OicSecKey_t CrlData;
+};
+#endif /* __WITH_DTLS__ or __WITH_TLS__ */
+#endif	/* INTERFACE */
+
+#define fixme_crl_rp OCResourceProperty /* help makeheaders */
+
+#ifdef TB_LOG
+#define OIC_LOG_CRL(level, crl) printCRL((level),(crl))
+
+/* FIXME: makeheaders doesn't like this: INLINE_API */
+INLINE_API void printCRL(LogLevel level, const OicSecCrl_t *crl)
+{
+    OIC_LOG_V(level, CRL_TAG, "Print CRL @ %p:", crl);
+
+    if (NULL == crl)
+    {
+        return;
+    }
+
+    OIC_LOG(level, CRL_TAG, "CRL object contains:");
+    OIC_LOG_V(level, CRL_TAG, "id = %d", crl->CrlId);
+    OIC_LOG_BUFFER(level, CRL_TAG, crl->ThisUpdate.data, crl->ThisUpdate.len);
+
+    OIC_LOG(level, CRL_TAG, "crl:");
+    OIC_LOG_V(level, CRL_TAG, "encoding = %d", crl->CrlData.encoding);
+    OIC_LOG_V(level, CRL_TAG, "data (length = %" PRIuPTR "):", crl->CrlData.len);
+    OIC_LOG_BUFFER(level, CRL_TAG, crl->CrlData.data, crl->CrlData.len);
+}
+#else
+#define OIC_LOG_CRL(level, crl)
+#endif
 
 #define SEPARATOR                   ":"
 #define SEPARATOR_LEN               (1)

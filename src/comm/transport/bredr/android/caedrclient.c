@@ -18,21 +18,23 @@
  *
  ******************************************************************/
 
+#include "caedrclient.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <jni.h>
 
-#include "caedrinterface.h"
-#include "caedrutils.h"
-#include "caedrclient.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "cathreadpool.h" /* for thread pool */
-#include "octhread.h"
-#include "uarraylist.h"
-#include "caadapterutils.h"
-#include "caremotehandler.h"
+/* #include "caedrinterface.h"
+ * #include "caedrutils.h"
+ * #include "caedrclient.h"
+ * #include "logger.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * #include "cathreadpool.h" /\* for thread pool *\/
+ * #include "octhread.h"
+ * #include "uarraylist.h"
+ * #include "caadapterutils.h"
+ * #include "caremotehandler.h" */
 
 #define TAG PCF("OIC_CA_EDR_CLIENT")
 
@@ -148,8 +150,8 @@ CAResult_t CAEDRManagerReadData()
 CAResult_t CAEDRClientSendUnicastData(const char *remoteAddress, const uint8_t *data,
                                       uint32_t dataLength)
 {
-    VERIFY_NON_NULL(remoteAddress, TAG, "remoteAddress is null");
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(remoteAddress, TAG, "remoteAddress is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     CAResult_t result = CAEDRSendUnicastMessage(remoteAddress, data, dataLength);
     return result;
@@ -157,7 +159,7 @@ CAResult_t CAEDRClientSendUnicastData(const char *remoteAddress, const uint8_t *
 
 CAResult_t CAEDRClientSendMulticastData(const uint8_t *data, uint32_t dataLength)
 {
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     CAResult_t result = CAEDRSendMulticastMessage(data, dataLength);
     return result;
@@ -181,7 +183,7 @@ void CAEDRClientDisconnectAll()
 
 CAResult_t CAEDRGetAdapterEnableState(bool *state)
 {
-    VERIFY_NON_NULL(state, TAG, "state is null");
+    VERIFY_NON_NULL_MSG(state, TAG, "state is null");
 
     if (!g_jvm)
     {
@@ -498,8 +500,8 @@ void CAEDRCoreJniInit()
 
 CAResult_t CAEDRSendUnicastMessage(const char* address, const uint8_t* data, uint32_t dataLen)
 {
-    VERIFY_NON_NULL(address, TAG, "address is null");
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(address, TAG, "address is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     CAResult_t result = CAEDRSendUnicastMessageImpl(address, data, dataLen);
     return result;
@@ -507,7 +509,7 @@ CAResult_t CAEDRSendUnicastMessage(const char* address, const uint8_t* data, uin
 
 CAResult_t CAEDRSendMulticastMessage(const uint8_t* data, uint32_t dataLen)
 {
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     bool isAttached = false;
     JNIEnv* env = NULL;
@@ -594,8 +596,8 @@ void CAEDRGetLocalAddress(char **address)
 
 CAResult_t CAEDRSendUnicastMessageImpl(const char* address, const uint8_t* data, uint32_t dataLen)
 {
-    VERIFY_NON_NULL(address, TAG, "address is null");
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(address, TAG, "address is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     bool isAttached = false;
     JNIEnv* env = NULL;
@@ -697,8 +699,8 @@ CAResult_t CAEDRSendUnicastMessageImpl(const char* address, const uint8_t* data,
 
 CAResult_t CAEDRSendMulticastMessageImpl(JNIEnv *env, const uint8_t* data, uint32_t dataLen)
 {
-    VERIFY_NON_NULL(env, TAG, "env is null");
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(env, TAG, "env is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     // get bonded device list
     jobjectArray jni_arrayPairedDevices = CAEDRNativeGetBondedDevices(env);
@@ -756,9 +758,9 @@ CAResult_t CAEDRSendMulticastMessageImpl(JNIEnv *env, const uint8_t* data, uint3
 CAResult_t CAEDRNativeSendData(JNIEnv *env, const char *address, const uint8_t *data,
                                uint32_t dataLength)
 {
-    VERIFY_NON_NULL(env, TAG, "env is null");
-    VERIFY_NON_NULL(address, TAG, "address is null");
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(env, TAG, "env is null");
+    VERIFY_NON_NULL_MSG(address, TAG, "address is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     if (!CAEDRNativeIsEnableBTAdapter(env))
     {
@@ -883,7 +885,7 @@ CAResult_t CAEDRNativeSendData(JNIEnv *env, const char *address, const uint8_t *
 
 CAResult_t CAEDRNativeConnect(JNIEnv *env, const char *address)
 {
-    VERIFY_NON_NULL(address, TAG, "address is null");
+    VERIFY_NON_NULL_MSG(address, TAG, "address is null");
 
     if (!CAEDRNativeIsEnableBTAdapter(env))
     {

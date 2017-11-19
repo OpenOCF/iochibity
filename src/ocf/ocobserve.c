@@ -18,30 +18,153 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include <string.h>
-#include "ocstack.h"
-#include "ocstackconfig.h"
-#include "ocstackinternal.h"
 #include "ocobserve.h"
-#include "ocresourcehandler.h"
-#include "ocrandom.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "ocpayload.h"
-#include "ocserverrequest.h"
-#include "ocpresence.h"
-#include "logger.h"
 
-#include <coap/utlist.h>
-#include <coap/pdu.h>
-#include <coap/coap.h>
+#include <string.h>
+/* #include "ocstack.h" */
+/* #include "ocstackconfig.h" */
+/* #include "ocstackinternal.h" */
+/* #include "ocobserve.h" */
+/* #include "ocresourcehandler.h" */
+/* #include "ocrandom.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "ocpayload.h" */
+/* #include "ocserverrequest.h" */
+/* #include "ocpresence.h" */
+/* #include "logger.h" */
+
+#include "coap_config.h"
+#include "coap/pdu.h"
+#include "coap/coap_time.h"
 
 // Module Name
 #define MOD_NAME "ocobserve"
 
 #define TAG  "OIC_RI_OBSERVE"
 
-#define VERIFY_NON_NULL(arg) { if (!arg) {OIC_LOG(FATAL, TAG, #arg " is NULL"); goto exit;} }
+/**
+ * Unique identifier for each observation request. Used when observations are
+ * registered or de-registered. Used by entity handler to signal specific
+ * observers to be notified of resource changes.
+ * There can be maximum of 256 observations per server.
+ */
+#if INTERFACE
+typedef uint8_t OCObservationId;
+#endif	/* INTERFACE */
+
+/**
+ * Action associated with observation.
+ */
+#if INTERFACE
+typedef enum
+{
+    /** To Register. */
+    OC_OBSERVE_REGISTER = 0,
+
+    /** To Deregister. */
+    OC_OBSERVE_DEREGISTER = 1,
+
+    /** Others. */
+    OC_OBSERVE_NO_OPTION = 2,
+
+} OCObserveAction;
+#endif	/* INTERFACE */
+
+/**
+ * Possible returned values from entity handler.
+ */
+#if INTERFACE
+typedef struct
+{
+    /** Action associated with observation request.*/
+    OCObserveAction action;
+
+    /** Identifier for observation being registered/deregistered.*/
+    OCObservationId obsId;
+} OCObservationInfo;
+
+/** Maximum number of observers to reach */
+
+#define MAX_OBSERVER_FAILED_COMM         (2)
+
+/** Maximum number of observers to reach for resources with low QOS */
+#define MAX_OBSERVER_NON_COUNT           (3)
+
+/**
+ *  MAX_OBSERVER_TTL_SECONDS sets the maximum time to live (TTL) for notification.
+ *  60 sec/min * 60 min/hr * 24 hr/day
+ */
+#define MAX_OBSERVER_TTL_SECONDS     (60 * 60 * 24)
+
+#define MILLISECONDS_PER_SECOND   (1000)
+#endif	/* EXPORT_INTERFACE */
+
+/**
+ * Forward declaration of resource.
+ */
+/* typedef struct OCResource OCResource; */
+
+/**
+ * Forward declaration of resource type.
+ */
+typedef struct resourcetype_t OCResourceType;
+
+/**
+ * Data structure to hold informations for each registered observer.
+ */
+#if INTERFACE
+typedef struct ResourceObserver
+{
+    /** Observation Identifier for request.*/
+    OCObservationId observeId;
+
+    /** URI of observed resource.*/
+    char *resUri;
+
+    /** Query.*/
+    char *query;
+
+    /** token for the observe request.*/
+    CAToken_t token;
+
+    /** token length for the observe request.*/
+    uint8_t tokenLength;
+
+    /** Remote Endpoint. */
+    OCDevAddr devAddr;
+
+    /** Quality of service of the request.*/
+    OCQualityOfService qos;
+
+    /** number of times the server failed to reach the observer.*/
+    uint8_t failedCommCount;
+
+    /** number of times the server sent NON notifications.*/
+    uint8_t lowQosCount;
+
+    /** force the qos value to CON.*/
+    uint8_t forceHighQos;
+
+    /** The TTL for this callback. TTL is set to 24 hours.
+     * A server send a notification in a confirmable message every 24 hours.
+     * This prevents a client that went away or is no logger interested
+     * from remaining in the list of observers indefinitely.*/
+    uint32_t TTL;
+
+    /** next node in this list.*/
+    struct ResourceObserver *next;
+
+    /** requested payload encoding format. */
+    OCPayloadFormat acceptFormat;
+
+    /** requested payload content version. */
+    uint16_t acceptVersion;
+
+} ResourceObserver;
+#endif	/* INTERFACE */
+
+/* #define VERIFY_NON_NULL(arg) { if (!arg) {OIC_LOG(FATAL, TAG, #arg " is NULL"); goto exit;} } */
 
 /**
  * Determine observe QOS based on the QOS of the request.
@@ -336,7 +459,7 @@ OCStackResult SendListObserverNotification (OCResource * resource,
 OCStackResult GenerateObserverId (OCObservationId *observationId)
 {
     OIC_LOG(INFO, TAG, "Entering GenerateObserverId");
-    VERIFY_NON_NULL (observationId);
+    VERIFY_NON_NULL_1(observationId);
 
     do
     {
@@ -387,7 +510,7 @@ OCStackResult AddObserver (const char         *resUri,
         obsNode->observeId = obsId;
 
         obsNode->resUri = OICStrdup(resUri);
-        VERIFY_NON_NULL (obsNode->resUri);
+        VERIFY_NON_NULL_1(obsNode->resUri);
 
         obsNode->qos = qos;
         obsNode->acceptFormat = acceptFormat;
@@ -395,14 +518,14 @@ OCStackResult AddObserver (const char         *resUri,
         if (query)
         {
             obsNode->query = OICStrdup(query);
-            VERIFY_NON_NULL (obsNode->query);
+            VERIFY_NON_NULL_1(obsNode->query);
         }
         // If tokenLength is zero, the return value depends on the
         // particular library implementation (it may or may not be a null pointer).
         if (tokenLength)
         {
             obsNode->token = (CAToken_t)OICMalloc(tokenLength);
-            VERIFY_NON_NULL (obsNode->token);
+            VERIFY_NON_NULL_1(obsNode->token);
             memcpy(obsNode->token, token, tokenLength);
         }
         obsNode->tokenLength = tokenLength;

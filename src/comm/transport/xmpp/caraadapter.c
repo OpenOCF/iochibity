@@ -25,24 +25,50 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "caadapterutils.h"
-#include "octhread.h"
-#include "uarraylist.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "caremotehandler.h"
-#include "cacommon.h"
+/* #include "caadapterutils.h"
+ * #include "octhread.h"
+ * #include "uarraylist.h"
+ * #include "logger.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * #include "caremotehandler.h"
+ * #include "cacommon.h"
+ *
+ * #ifdef RA_ADAPTER_IBB
+ * #include "caprotocolmessage.h"
+ * #include "xmpp_helper.h"
+ * #include "xmpp_utils.h"
+ * #include "xmpp_ibb.h"
+ * #include "xmpp_utils.h"
+ * #else
+ * #include "ra_xmpp.h"
+ * #endif */
 
-#ifdef RA_ADAPTER_IBB
-#include "caprotocolmessage.h"
-#include "xmpp_helper.h"
-#include "xmpp_utils.h"
-#include "xmpp_ibb.h"
-#include "xmpp_utils.h"
-#else
-#include "ra_xmpp.h"
-#endif
+#ifdef RA_ADAPTER
+
+/**
+ * Callback for bound JID
+ * @param[out]   jid           Boud Jabber Identifier.
+ */
+typedef void (*CAJidBoundCallback)(char *jid);
+
+/**
+ * CA Remote Access information for XMPP Client
+ *
+ */
+typedef struct
+{
+    char *hostName;     /**< XMPP server hostname */
+    uint16_t port;      /**< XMPP server serivce port */
+    char *xmppDomain;  /**< XMPP login domain */
+    char *userName;     /**< login username */
+    char *password;     /**< login password */
+    char *resource;     /**< specific resource for login */
+    char *userJid;     /**< specific JID for login */
+    CAJidBoundCallback jidBoundCallback;  /**< callback when JID bound */
+} CARAInfo_t;
+
+#endif //RA_ADAPTER
 
 #ifdef RA_ADAPTER_IBB
 #define SET_BUT_NOT_USED(x) (void) x
@@ -60,6 +86,11 @@ static CANetworkPacketReceivedCallback g_networkPacketCallback = NULL;
  * Network Changed Callback to CA.
  */
 static CAAdapterChangeCallback g_networkChangeCallback = NULL;
+
+/**
+ * Remote Access jabber ID length.
+ */
+#define CA_RAJABBERID_SIZE 256
 
 /**
  * Holds XMPP data information.
@@ -394,6 +425,17 @@ CAResult_t CAInitializeRA(CARegisterConnectivityCallback registerCallback,
     return CA_STATUS_OK;
 }
 
+/* #if EXPORT_INTERFACE */
+/* #ifdef RA_ADAPTER */
+/* /\** */
+/*  * Set Remote Access information for XMPP Client. */
+/*  * @param[in]   caraInfo          remote access info. */
+/*  * */
+/*  * @return  ::CA_STATUS_OK or ::CA_STATUS_INVALID_PARAM */
+/*  *\/ */
+/* CAResult_t CASetRAInfo(const CARAInfo_t *caraInfo); */
+/* #endif */
+/* #endif */
 CAResult_t CASetRAInfo(const CARAInfo_t *caraInfo)
 {
     if (!caraInfo)
@@ -566,8 +608,8 @@ int32_t CASendRAUnicastData(const CAEndpoint_t *remoteEndpoint, const void *data
 
 CAResult_t CAGetRAInterfaceInformation(CAEndpoint_t **info, size_t *size)
 {
-    VERIFY_NON_NULL(info, RA_ADAPTER_TAG, "info is NULL");
-    VERIFY_NON_NULL(size, RA_ADAPTER_TAG, "size is NULL");
+    VERIFY_NON_NULL_MSG(info, RA_ADAPTER_TAG, "info is NULL");
+    VERIFY_NON_NULL_MSG(size, RA_ADAPTER_TAG, "size is NULL");
     return CA_STATUS_OK;
 }
 
@@ -601,7 +643,7 @@ CAResult_t CAReadRAData()
     return CA_NOT_SUPPORTED;
 }
 
-#else /* #ifdef RA_ADAPTER_IBB */
+#elif defined (RA_ADAPTER)	/* GAR: play nice with makeheaders */
 
 /**
  * Logging tag for module name.
@@ -934,8 +976,8 @@ int32_t CASendRAUnicastData(const CAEndpoint_t *remoteEndpoint, const void *data
 
 CAResult_t CAGetRAInterfaceInformation(CAEndpoint_t **info, size_t *size)
 {
-    VERIFY_NON_NULL(info, RA_ADAPTER_TAG, "info is NULL");
-    VERIFY_NON_NULL(size, RA_ADAPTER_TAG, "size is NULL");
+    VERIFY_NON_NULL_MSG(info, RA_ADAPTER_TAG, "info is NULL");
+    VERIFY_NON_NULL_MSG(size, RA_ADAPTER_TAG, "size is NULL");
 
     oc_mutex_lock (g_raadapterMutex);
 

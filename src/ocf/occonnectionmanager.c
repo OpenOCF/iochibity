@@ -18,7 +18,9 @@
  *
  ******************************************************************/
 
-#include "iotivity_config.h"
+#include "occonnectionmanager.h"
+
+/* #include "iotivity_config.h" */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,25 +30,25 @@
 #include <unistd.h>
 #endif
 #include <getopt.h>
-#include "octypes.h"
-#include "ocstack.h"
-#include "ocstackinternal.h"
-#include "ocrandom.h"
-#include "logger.h"
-#include "occonnectionmanager.h"
-#include "ocpayload.h"
-#include "oic_string.h"
-#include "oic_malloc.h"
+/* #include "octypes.h" */
+/* #include "ocstack.h" */
+/* #include "ocstackinternal.h" */
+/* #include "ocrandom.h" */
+/* #include "logger.h" */
+/* #include "occonnectionmanager.h" */
+/* #include "ocpayload.h" */
+/* #include "oic_string.h" */
+/* #include "oic_malloc.h" */
 
-#include "cacommon.h"
-#include "cainterface.h"
-#include "cautilinterface.h"
+/* #include "cacommon.h" */
+/* #include "cainterface.h" */
+/* #include "cautilinterface.h" */
 
 #define DEFAULT_CONTEXT_VALUE (0x99)
-#define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \
-             TAG, #arg " is NULL"); return (retVal); } }
-#define VERIFY_NON_NULL_NR(arg, logLevel) { if (!(arg)) { OIC_LOG((logLevel), \
-             TAG, #arg " is NULL"); return; } }
+/* #define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \ */
+/*              TAG, #arg " is NULL"); return (retVal); } } */
+/* #define VERIFY_NON_NULL_NR(arg, logLevel) { if (!(arg)) { OIC_LOG((logLevel), \ */
+/*              TAG, #arg " is NULL"); return; } } */
 #define CLOUD_PREFIX "/oic/route\0"
 #define CLOUD_PREFIX_LENGTH 10
 

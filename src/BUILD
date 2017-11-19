@@ -11,13 +11,15 @@ config_setting(
     values = { "cpu": "x64_windows_msys" }
 )
 
+# needed by third_party libs
 cc_library(
     name = "config",
-    hdrs = ["iotivity_config.h",
+    hdrs = [# "openocf_config.h",
             "iotivity_constants.h",
             "iotivity_debug.h",
-            "system.h",
-            "transport_types.h"]
+            # "system.h",
+            # "transport_types.h"
+    ]
     + select({":windows": ["msvc_config.h"],
               ":msvc": ["msvc_config.h"],
               ":msys": [],

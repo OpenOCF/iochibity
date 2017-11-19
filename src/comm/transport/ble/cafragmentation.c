@@ -18,18 +18,74 @@
  *
  ******************************************************************/
 
+#include "cafragmentation.h"
+
 #include <string.h>
 #include <math.h>
 
-#include "cacommon.h"
-#include "caadapterutils.h"
-#include "cafragmentation.h"
-#include "caleinterface.h"
+/* #include "cacommon.h"
+ * #include "caadapterutils.h"
+ * #include "cafragmentation.h"
+ * #include "caleinterface.h" */
 
 /**
  * Debugging tag for fragmentation module.
  */
 #define TAG "OIC_CA_FRAG"
+
+/**
+ * The maximum port value for BLE packet format
+ */
+#define CA_SUPPORTED_BLE_MAX_PORT  127
+
+/**
+ * The minimum port value for BLE packet format
+ */
+#define CA_SUPPORTED_BLE_MIN_PORT  1
+
+/**
+ * The multicaset packet remote port value
+ */
+#define CA_BLE_MULTICAST_PORT  0
+
+/**
+ * The header size for ble fragmentation.
+ * Specific header descriptions are below.
+ */
+#define CA_BLE_HEADER_SIZE 2
+
+/**
+ * The length header size for ble fragmentation.
+ * Length header is embedded in first packet of entire CoAP PDU.
+ */
+#define CA_BLE_LENGTH_HEADER_SIZE 4
+
+/**
+ * Current Header version.
+ */
+#define HEADER_VERSION 1
+
+/**
+ * This enum value is used to make the CA BLE packet header.
+ * 1st bit is used to check whether the packet is start packet or not.
+ * Start packet should be marked ad CA_BLE_PACKET_START(1) and any other
+ * packet is marked as CA_BLE_PACKET_NOT_START(0).
+ */
+typedef enum {
+    CA_BLE_PACKET_NOT_START     = 0,
+    CA_BLE_PACKET_START         = 1
+} CABLEPacketStart_t;
+
+/**
+ * This enum value is used to make the CA BLE packet header.
+ * 9th bit is uesd to check the packet use secure logic(dtls) or not.
+ * Secure packet should be marking CA_BLE_PACKET_SECURE(1) and other
+ * packet is makred CA_BLE_PACKET_NON_SECURE(0).
+ */
+typedef enum {
+    CA_BLE_PACKET_NON_SECURE    = 0,
+    CA_BLE_PACKET_SECURE        = 1
+} CABLEPacketSecure_t;
 
 //packet format define value
 #define CA_BLE_START_POS 7
@@ -124,7 +180,7 @@ CAResult_t CAGenerateHeader(uint8_t *header,
                             CABLEPacketSecure_t secure,
                             const uint8_t destPort)
 {
-    VERIFY_NON_NULL(header, TAG, "header is NULL");
+    VERIFY_NON_NULL_MSG(header, TAG, "header is NULL");
 
     if (sourcePort > CA_SUPPORTED_BLE_MAX_PORT ||
         sourcePort < CA_SUPPORTED_BLE_MIN_PORT ||
@@ -147,7 +203,7 @@ CAResult_t CAGenerateHeaderPayloadLength(uint8_t *header,
                                          size_t headerLength,
                                          size_t dataLength)
 {
-    VERIFY_NON_NULL(header, TAG, "header is NULL");
+    VERIFY_NON_NULL_MSG(header, TAG, "header is NULL");
 
     if (headerLength != CA_BLE_LENGTH_HEADER_SIZE)
     {
@@ -170,9 +226,9 @@ CAResult_t CAMakeFirstDataSegment(uint8_t *dataSegment,
                                   const uint8_t *dataHeader,
                                   const uint8_t *lengthHeader)
 {
-    VERIFY_NON_NULL(dataSegment, TAG, "dataSegment is NULL");
-    VERIFY_NON_NULL(dataHeader, TAG, "dataHeader is NULL");
-    VERIFY_NON_NULL(lengthHeader, TAG, "lengthHeader is NULL");
+    VERIFY_NON_NULL_MSG(dataSegment, TAG, "dataSegment is NULL");
+    VERIFY_NON_NULL_MSG(dataHeader, TAG, "dataHeader is NULL");
+    VERIFY_NON_NULL_MSG(lengthHeader, TAG, "lengthHeader is NULL");
 
     memcpy(dataSegment, dataHeader, CA_BLE_HEADER_SIZE);
     memcpy(dataSegment + CA_BLE_HEADER_SIZE, lengthHeader, CA_BLE_LENGTH_HEADER_SIZE);
@@ -188,8 +244,8 @@ CAResult_t CAMakeRemainDataSegment(uint8_t *dataSegment,
                                    const uint8_t *dataHeader,
                                    uint16_t mtuSize)
 {
-    VERIFY_NON_NULL(dataSegment, TAG, "dataSegment is NULL");
-    VERIFY_NON_NULL(dataHeader, TAG, "dataHeader is NULL");
+    VERIFY_NON_NULL_MSG(dataSegment, TAG, "dataSegment is NULL");
+    VERIFY_NON_NULL_MSG(dataHeader, TAG, "dataHeader is NULL");
 
     uint32_t index = (mtuSize - CA_BLE_HEADER_SIZE - CA_BLE_LENGTH_HEADER_SIZE) +
             (segmentNum * (mtuSize - CA_BLE_HEADER_SIZE));
@@ -210,7 +266,7 @@ CAResult_t CAParseHeader(const uint8_t *header,
                          CABLEPacketSecure_t *secureFlag,
                          uint16_t *destPort)
 {
-    VERIFY_NON_NULL(header, TAG, "header is NULL");
+    VERIFY_NON_NULL_MSG(header, TAG, "header is NULL");
 
     *startFlag = CAGetBits(header[0], CA_BLE_START_POS, CA_BLE_START_LEN);
     *sourcePort = CAGetBits(header[0], CA_BLE_SOURCE_PORT_POS, CA_BLE_SOURCE_PORT_LEN);
@@ -224,7 +280,7 @@ CAResult_t CAParseHeaderPayloadLength(uint8_t *header,
                                       size_t headerLength,
                                       uint32_t *dataLength)
 {
-    VERIFY_NON_NULL(header, TAG, "header is NULL");
+    VERIFY_NON_NULL_MSG(header, TAG, "header is NULL");
 
     if (headerLength != CA_BLE_LENGTH_HEADER_SIZE)
     {

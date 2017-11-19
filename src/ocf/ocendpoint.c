@@ -19,20 +19,118 @@
  ******************************************************************/
 
 #include "ocendpoint.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include <string.h>
-#include "cainterface.h"
 
-#define VERIFY_NON_NULL(arg) { if (!arg) {OIC_LOG(FATAL, TAG, #arg " is NULL"); goto exit;} }
-#define VERIFY_GT_ZERO(arg) { if (arg < 1) {OIC_LOG(FATAL, TAG, #arg " < 1"); goto exit;} }
-#define VERIFY_GT(arg1, arg2) { if (arg1 <= arg2) {OIC_LOG(FATAL, TAG, #arg1 " <= " #arg2); goto exit;} }
-#define VERIFY_LT_OR_EQ(arg1, arg2) { if (arg1 > arg2) {OIC_LOG(FATAL, TAG, #arg1 " > " #arg2); goto exit;} }
-#define VERIFY_SNPRINTF_RET(arg1, arg2) \
-    { if (0 > arg1 || arg1 >= arg2) {OIC_LOG(FATAL, TAG, "Error (snprintf)"); goto exit;} } \
+/* #include "ocendpoint.h" */
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+#include <string.h>
+/* #include "cainterface.h" */
+
+/* #define VERIFY_NON_NULL(arg) { if (!arg) {OIC_LOG(FATAL, TAG, #arg " is NULL"); goto exit;} } */
+/* #define VERIFY_GT_ZERO(arg) { if (arg < 1) {OIC_LOG(FATAL, TAG, #arg " < 1"); goto exit;} } */
+/* #define VERIFY_GT(arg1, arg2) { if (arg1 <= arg2) {OIC_LOG(FATAL, TAG, #arg1 " <= " #arg2); goto exit;} } */
+/* #define VERIFY_LT_OR_EQ(arg1, arg2) { if (arg1 > arg2) {OIC_LOG(FATAL, TAG, #arg1 " > " #arg2); goto exit;} } */
+/* #define VERIFY_SNPRINTF_RET(arg1, arg2) \ */
+/*     { if (0 > arg1 || arg1 >= arg2) {OIC_LOG(FATAL, TAG, "Error (snprintf)"); goto exit;} } \ */
 
 #define TAG  "OIC_RI_ENDPOINT"
+
+/**
+ * Endpoint information for connectivities.
+ * Must be identical to OCDevAddr.
+ */
+#if INTERFACE
+#include <stdint.h>
+typedef struct CAEndpoint_s
+{
+    CATransportAdapter_t    adapter;    // adapter type
+    CATransportFlags_t      flags;      // transport modifiers
+    uint16_t                port;       // for IP
+    char                    addr[MAX_ADDR_STR_SIZE_CA]; // address for all
+    uint32_t                ifindex;    // usually zero for default interface
+    char                    remoteId[CA_MAX_IDENTITY_SIZE]; // device ID of remote device
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+    char                    routeData[MAX_ADDR_STR_SIZE_CA]; /**< GatewayId:ClientId of
+                                                                    destination. **/
+#endif
+} CAEndpoint_t;
+#endif	/* INTERFACE */
+
+#if INTERFACE
+#define CA_SECURE_ENDPOINT_PUBLIC_KEY_MAX_LENGTH    (512)
+#endif	/* INTERFACE */
+
+/**
+ * Endpoint information for secure messages.
+ */
+#if INTERFACE
+typedef struct
+{
+    CAEndpoint_t endpoint;      /**< endpoint */
+    // TODO change name to deviceId
+    CARemoteId_t identity;      /**< endpoint device uuid */
+    CARemoteId_t userId;        /**< endpoint user uuid */
+    uint32_t attributes;
+    uint8_t publicKey[CA_SECURE_ENDPOINT_PUBLIC_KEY_MAX_LENGTH]; /**< Peer's DER-encoded public key (if using certificate) */
+    size_t publicKeyLength;     /**< Length of publicKey; zero if not using certificate */
+} CASecureEndpoint_t;
+#endif	/* INTERFACE */
+
+/**
+ * Endpoint used for security administration - a special type of identity that
+ * bypasses Access Control Entry checks for SVR resources, while the device is
+ * not ready for normal operation yet.
+ */
+#if INTERFACE
+#define CA_SECURE_ENDPOINT_ATTRIBUTE_ADMINISTRATOR  0x1
+#endif	/* INTERFACE */
+
+/**
+ *Maximum length of the remoteEndpoint identity.
+ */
+#if INTERFACE
+#define CA_MAX_ENDPOINT_IDENTITY_LEN  CA_MAX_IDENTITY_SIZE
+#endif	/* INTERFACE */
+
+/**
+ * Max identity size.
+ */
+#if INTERFACE
+#define CA_MAX_IDENTITY_SIZE (37)
+#endif	/* INTERFACE */
+
+#if INTERFACE
+#define OC_MAX_TPS_STR_SIZE          (12)
+#define OC_MAX_ADDR_STR_SIZE         (46)
+#define OC_MAX_PORT_STR_SIZE         (6)
+#endif	/* INTERFACE */
+#define OC_ENDPOINT_TPS_TOKEN        "://"
+#define OC_ENDPOINT_ADDR_TOKEN       ':'
+#define OC_ENDPOINT_BRACKET_START     '['
+#define OC_ENDPOINT_BRACKET_END       ']'
+#define OC_ENDPOINT_IPV4_NULL_TOKEN '\0'
+#define OC_ENDPOINT_IPV4_SEGMENT_TOKEN '.'
+#define OC_ENDPOINT_IPV4_MIN_VALUE '0'
+#define OC_ENDPOINT_IPV4_MAX_VALUE '9'
+
+#define DEFAULT_ENDPOINT_PRI         (1)
+
+#define COAP_STR                     "coap"
+#define COAPS_STR                    "coaps"
+#ifdef TCP_ADAPTER
+#define COAP_TCP_STR                 "coap+tcp"
+#define COAPS_TCP_STR                "coaps+tcp"
+#endif
+#ifdef HTTP_ADAPTER
+#define HTTP_STR                     "http"
+#define HTTPS_STR                    "https"
+#endif
+#ifdef EDR_ADAPTER
+#define COAP_RFCOMM_STR              "coap+rfcomm"
+#endif
+
+#define mkhrd_ep_rp OCResourceProperty /* help makeheaders */
 
 OCStackResult OCGetSupportedEndpointFlags(const OCTpsSchemeFlags givenFlags, OCTpsSchemeFlags* out)
 {
@@ -219,7 +317,7 @@ OCStackResult OCConvertTpsToString(const OCTpsSchemeFlags tps, char** out)
     }
 
     *out = OICStrdup(ConvertTpsToString(tps));
-    VERIFY_NON_NULL(*out);
+    VERIFY_NON_NULL_1(*out);
     return OC_STACK_OK;
 
 exit:
@@ -234,7 +332,7 @@ char* OCCreateEndpointString(const OCEndpointPayload* endpoint)
     }
 
     char* buf = (char*)OICCalloc(MAX_ADDR_STR_SIZE, sizeof(char));
-    VERIFY_NON_NULL(buf);
+    VERIFY_NON_NULL_1(buf);
 
     if ((strcmp(endpoint->tps, COAP_STR) == 0) || (strcmp(endpoint->tps, COAPS_STR) == 0)
 #ifdef TCP_ADAPTER
@@ -299,7 +397,7 @@ char* OC_CALL OCCreateEndpointStringFromCA(const CAEndpoint_t* endpoint)
     }
 
     buf = (char*)OICCalloc(MAX_ADDR_STR_SIZE, sizeof(char));
-    VERIFY_NON_NULL(buf);
+    VERIFY_NON_NULL_1(buf);
 
     switch (tps)
     {
@@ -369,24 +467,24 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
     bool isSecure = false;
 
     tps = (char*)OICCalloc(OC_MAX_TPS_STR_SIZE, sizeof(char));
-    VERIFY_NON_NULL(tps);
+    VERIFY_NON_NULL_1(tps);
 
     addr = (char*)OICCalloc(OC_MAX_ADDR_STR_SIZE, sizeof(char));
-    VERIFY_NON_NULL(addr);
+    VERIFY_NON_NULL_1(addr);
 
     origin = OICStrdup(endpointStr);
-    VERIFY_NON_NULL(origin);
+    VERIFY_NON_NULL_1(origin);
 
     // token start pos
     tokPos = strstr(origin, OC_ENDPOINT_TPS_TOKEN);
-    VERIFY_NON_NULL(tokPos);
+    VERIFY_NON_NULL_1(tokPos);
 
     // copy tps
     tpsCharsToWrite = tokPos - origin;
     VERIFY_GT_ZERO(tpsCharsToWrite);
     VERIFY_GT((size_t)OC_MAX_TPS_STR_SIZE, tpsCharsToWrite);
     ret = memcpy(tps, origin, tpsCharsToWrite);
-    VERIFY_NON_NULL(ret);
+    VERIFY_NON_NULL_1(ret);
     OIC_LOG_V(INFO, TAG, "\ttps: %s", tps);
 
     // check tps type
@@ -440,7 +538,7 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
         // copy addr
         tokPos = tokPos + 3;
         ret = OICStrcpy(addr, OC_MAX_ADDR_STR_SIZE, tokPos);
-        VERIFY_NON_NULL(ret);
+        VERIFY_NON_NULL_1(ret);
         out->tps = tps;
         out->addr = addr;
         out->family = OC_DEFAULT_FLAGS;
@@ -463,7 +561,7 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
             tokPos = tokPos + 3;
             tmp = strrchr(origin, OC_ENDPOINT_ADDR_TOKEN);
         }
-        VERIFY_NON_NULL(tmp);
+        VERIFY_NON_NULL_1(tmp);
         if (isSecure)
         {
             out->family = (OCTransportFlags)(out->family | OC_FLAG_SECURE);
@@ -474,11 +572,11 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
         VERIFY_GT_ZERO(addrCharsToWrite);
         VERIFY_GT((size_t)OC_MAX_ADDR_STR_SIZE, addrCharsToWrite);
         ret = memcpy(addr, tokPos, addrCharsToWrite);
-        VERIFY_NON_NULL(ret);
+        VERIFY_NON_NULL_1(ret);
         OIC_LOG_V(INFO, TAG, "\taddr: %s", addr);
 
         tmp = strrchr(origin, OC_ENDPOINT_ADDR_TOKEN);
-        VERIFY_NON_NULL(tmp);
+        VERIFY_NON_NULL_1(tmp);
 
         // port start pos
         tokPos = tmp + 1;

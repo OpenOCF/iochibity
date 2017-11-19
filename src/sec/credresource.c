@@ -20,7 +20,9 @@
 
 #define __STDC_LIMIT_MACROS
 
-#include "iotivity_config.h"
+#include "credresource.h"
+
+/* #include "iotivity_config.h" */
 #include <stdlib.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -32,34 +34,38 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#include "cainterface.h"
-#include "payload_logging.h"
-#include "ocstack.h"
-#include "ocrandom.h"
-#include "base64.h"
-#include "ocserverrequest.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "utlist.h"
-#include "credresource.h"
-#include "doxmresource.h"
-#include "pstatresource.h"
-#include "iotvticalendar.h"
-#include "pbkdf2.h"
-#include "resourcemanager.h"
-#include "srmresourcestrings.h"
-#include "srmutility.h"
-#include "psinterface.h"
-#include "pinoxmcommon.h"
-#include "certhelpers.h"
-#include "cacommon.h"
-#include "secureresourcemanager.h"
-#include "ocstackinternal.h"
-#include "deviceonboardingstate.h"
+#if INTERFACE
+#include "cbor.h"
+#endif
 
-#ifdef __unix__
+/* #include "cainterface.h" */
+/* #include "payload_logging.h" */
+/* #include "ocstack.h" */
+/* #include "ocrandom.h" */
+/* #include "base64.h" */
+/* #include "ocserverrequest.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "utlist.h" */
+/* #include "credresource.h" */
+/* #include "doxmresource.h" */
+/* #include "pstatresource.h" */
+/* #include "iotvticalendar.h" */
+/* #include "pbkdf2.h" */
+/* #include "resourcemanager.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "srmutility.h" */
+/* #include "psinterface.h" */
+/* #include "pinoxmcommon.h" */
+/* #include "certhelpers.h" */
+/* #include "cacommon.h" */
+/* #include "secureresourcemanager.h" */
+/* #include "ocstackinternal.h" */
+/* #include "deviceonboardingstate.h" */
+
+#ifdef __unix__			/* FIXME: feature test */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -75,9 +81,80 @@
 
 #define TAG  "OIC_SRM_CREDL"
 
+#define mkhdrs_cred_rp OCResourceProperty /* help makeheaders */
+
 #ifdef HAVE_WINDOWS_H
 #include <wincrypt.h>
 #include <intsafe.h>
+#endif
+
+#if INTERFACE
+
+/* FIXME: put this in secresource.c, it's shared across r types */
+typedef enum OicEncodingType_t
+{
+    OIC_ENCODING_UNKNOW = 0,
+    OIC_ENCODING_RAW = 1,
+    OIC_ENCODING_BASE64 = 2,
+    OIC_ENCODING_PEM = 3,
+    OIC_ENCODING_DER = 4	/* oic.sec.encoding.der */
+} OicEncodingType_t;
+
+/* typedef unsigned int OicEncodingType_t; */
+
+typedef enum /* OSCTBitmask */
+{
+    NO_SECURITY_MODE                = 0x0,
+    SYMMETRIC_PAIR_WISE_KEY         = (0x1 << 0),
+    SYMMETRIC_GROUP_KEY             = (0x1 << 1),
+    ASYMMETRIC_KEY                  = (0x1 << 2),
+    SIGNED_ASYMMETRIC_KEY           = (0x1 << 3),
+    PIN_PASSWORD                    = (0x1 << 4),
+    ASYMMETRIC_ENCRYPTION_KEY       = (0x1 << 5),
+} OicSecCredType_t;
+
+/* typedef unsigned int OSCTBitmask_t; */
+
+/**
+ * /oic/sec/credtype (Credential Type) data type.
+ * Derived from OIC Security Spec /oic/sec/cred; see Spec for details.
+ *              0:  no security mode
+ *              1:  symmetric pair-wise key
+ *              2:  symmetric group key
+ *              4:  asymmetric key
+ *              8:  signed asymmetric key (aka certificate)
+ *              16: PIN /password
+ */
+
+typedef OSCTBitmask_t OicSecCredType_t;
+
+/**
+ * /oic/sec/cred (Credential) data type.
+ * Derived from OIC Security Spec; see Spec for details.
+ */
+struct OicSecCred_t
+{
+    // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
+    uint16_t            credId;         // 0:R:S:Y:UINT16
+    OicUuid_t           subject;        // 1:R:S:Y:oic.uuid
+    // If roleId.id is all zeroes, this property is not set.
+    OicSecRole_t        roleId;         // 2:R:M:N:oic.sec.roletype
+    OicSecCredType_t    credType;       // 3:R:S:Y:oic.sec.credtype
+#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+    OicSecKey_t         publicData;     // own cerificate chain
+    char            *credUsage;            // 4:R:S:N:String
+    OicSecOpt_t        optionalData;   // CA's cerificate chain
+#endif /* __WITH_DTLS__  or __WITH_TLS__*/
+    OicSecKey_t         privateData;    // 6:R:S:N:oic.sec.key
+    char                *period;        // 7:R:S:N:String
+    OicUuid_t            rownerID;      // 8:R:S:Y:oic.uuid
+#ifdef MULTIPLE_OWNER
+    OicUuid_t            *eownerID;     //9:R:S:N:oic.uuid
+#endif //MULTIPLE_OWNER
+    OicSecCred_t        *next;
+};
+/* typedef struct OicSecCred OicSecCred_t; */
+
 #endif
 
 /** Max credential types number used for TLS */
@@ -88,12 +165,12 @@ static const uint16_t CBOR_SIZE = 2048;
 
 /** CRED size - Number of mandatory items. */
 static const uint8_t CRED_ROOT_MAP_SIZE = 4;
-static const uint8_t CRED_EMPTY_ROOT_MAP_SIZE = 2;
+/* static const uint8_t CRED_EMPTY_ROOT_MAP_SIZE = 2; */
 static const uint8_t CRED_MAP_SIZE = 3;
 static const uint8_t ROLEID_MAP_SIZE = 1;
 
 
-static OicSecCred_t        *gCred = NULL;
+OicSecCred_t        *gCred = NULL;
 static OCResourceHandle    gCredHandle = NULL;
 static OicUuid_t           gRownerId = { .id = { 0 } };
 
@@ -126,7 +203,7 @@ static void DeleteCredIdList(CredIdList_t** list)
     }
 }
 
-static bool ValueWithinBounds(uint64_t value, uint64_t maxValue)
+bool ValueWithinBounds(uint64_t value, uint64_t maxValue)
 {
     if (value > maxValue)
     {
@@ -2567,8 +2644,7 @@ OCStackResult CreateCredResource()
                                          OIC_RSRC_CRED_URI,
                                          CredEntityHandler,
                                          NULL,
-                                         OC_SECURE |
-                                         OC_DISCOVERABLE);
+                                         OC_SECURE | OC_DISCOVERABLE);
 
     if (OC_STACK_OK != ret)
     {
@@ -2815,229 +2891,6 @@ exit:
     return NULL;
 }
 
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
-              const uint8_t *desc, size_t desc_len,
-              uint8_t *result, size_t result_length)
-{
-    int32_t ret = -1;
-
-    if (NULL == result)
-    {
-        return ret;
-    }
-
-    switch (type)
-    {
-        case CA_DTLS_PSK_HINT:
-        case CA_DTLS_PSK_IDENTITY:
-            {
-                OicUuid_t deviceID = {.id={0}};
-                // Retrieve Device ID from doxm resource
-                if ( OC_STACK_OK != GetDoxmDeviceID(&deviceID) )
-                {
-                    OIC_LOG (ERROR, TAG, "Unable to retrieve doxm Device ID");
-                    return ret;
-                }
-
-                if (result_length < sizeof(deviceID.id))
-                {
-                    OIC_LOG (ERROR, TAG, "Wrong value for result_length");
-                    return ret;
-                }
-                memcpy(result, deviceID.id, sizeof(deviceID.id));
-                return (sizeof(deviceID.id));
-            }
-            break;
-
-        case CA_DTLS_PSK_KEY:
-            {
-                OicSecCred_t *cred = NULL;
-                LL_FOREACH(gCred, cred)
-                {
-                    if (cred->credType != SYMMETRIC_PAIR_WISE_KEY)
-                    {
-                        continue;
-                    }
-
-                    if ((desc_len == sizeof(cred->subject.id)) &&
-                        (memcmp(desc, cred->subject.id, sizeof(cred->subject.id)) == 0))
-                    {
-                        /*
-                         * If the credentials are valid for limited time,
-                         * check their expiry.
-                         */
-                        if (cred->period)
-                        {
-                            if(IOTVTICAL_VALID_ACCESS != IsRequestWithinValidTime(cred->period, NULL))
-                            {
-                                OIC_LOG (INFO, TAG, "Credentials are expired.");
-                                return ret;
-                            }
-                        }
-
-                        // Copy PSK.
-                        // TODO: Added as workaround. Will be replaced soon.
-                        if(OIC_ENCODING_RAW == cred->privateData.encoding)
-                        {
-                            if (ValueWithinBounds(cred->privateData.len, INT32_MAX))
-                            {
-                                size_t len = cred->privateData.len;
-                                if (result_length < len)
-                                {
-                                    OIC_LOG (ERROR, TAG, "Wrong value for result_length");
-                                    return ret;
-                                }
-                                memcpy(result, cred->privateData.data, len);
-                                ret = (int32_t)len;
-                            }
-                        }
-                        else if(OIC_ENCODING_BASE64 == cred->privateData.encoding)
-                        {
-                            size_t outBufSize = B64DECODE_OUT_SAFESIZE((cred->privateData.len + 1));
-                            uint8_t* outKey = OICCalloc(1, outBufSize);
-                            size_t outKeySize;
-                            if(NULL == outKey)
-                            {
-                                OIC_LOG (ERROR, TAG, "Failed to allocate memory.");
-                                return ret;
-                            }
-
-                            if(B64_OK == b64Decode((char*)cred->privateData.data, cred->privateData.len, outKey, outBufSize, &outKeySize))
-                            {
-                                if (ValueWithinBounds(outKeySize, INT32_MAX))
-                                {
-                                    if (result_length < outKeySize)
-                                    {
-                                        OIC_LOG (ERROR, TAG, "Wrong value for result_length");
-                                        return ret;
-                                    }
-                                    memcpy(result, outKey, outKeySize);
-                                    ret = (int32_t)outKeySize;
-                                }
-                            }
-                            else
-                            {
-                                OIC_LOG (ERROR, TAG, "Failed base64 decoding.");
-                            }
-
-                            OICFree(outKey);
-                        }
-
-                        if (OC_STACK_OK != RegisterSymmetricCredentialRole(cred))
-                        {
-                            OIC_LOG(WARNING, TAG, "Couldn't RegisterRoleForSubject");
-                        }
-
-                        return ret;
-                    }
-                }
-                OIC_LOG(DEBUG, TAG, "Can not find subject matched credential.");
-
-#ifdef MULTIPLE_OWNER
-                const OicSecDoxm_t* doxm = GetDoxmResourceData();
-                if(doxm && doxm->mom && OIC_MULTIPLE_OWNER_DISABLE != doxm->mom->mode)
-                {
-                    // in case of multiple owner transfer authentication
-                    if(OIC_PRECONFIG_PIN == doxm->oxmSel)
-                    {
-                        OicSecCred_t* wildCardCred = GetCredResourceData(&WILDCARD_SUBJECT_ID);
-                        if(wildCardCred)
-                        {
-                            OIC_LOG(DEBUG, TAG, "Detected wildcard credential.");
-                            if(PIN_PASSWORD == wildCardCred->credType)
-                            {
-                                //Read PIN/PW
-                                char* pinBuffer = NULL;
-                                size_t pinLength = 0;
-                                if(OIC_ENCODING_RAW == wildCardCred->privateData.encoding)
-                                {
-                                    pinBuffer = OICCalloc(1, wildCardCred->privateData.len + 1);
-                                    if(NULL == pinBuffer)
-                                    {
-                                        OIC_LOG (ERROR, TAG, "Failed to allocate memory.");
-                                        return ret;
-                                    }
-                                    pinLength = wildCardCred->privateData.len;
-                                    memcpy(pinBuffer, wildCardCred->privateData.data, pinLength);
-                                }
-                                else if(OIC_ENCODING_BASE64 == wildCardCred->privateData.encoding)
-                                {
-                                    size_t pinBufSize = B64DECODE_OUT_SAFESIZE((wildCardCred->privateData.len + 1));
-                                    pinBuffer = OICCalloc(1, pinBufSize);
-                                    if(NULL == pinBuffer)
-                                    {
-                                        OIC_LOG (ERROR, TAG, "Failed to allocate memory.");
-                                        return ret;
-                                    }
-
-                                    if(B64_OK != b64Decode((char*)wildCardCred->privateData.data, wildCardCred->privateData.len, (uint8_t*)pinBuffer, pinBufSize, &pinLength))
-                                    {
-                                        OIC_LOG (ERROR, TAG, "Failed to base64 decoding.");
-                                        return ret;
-                                    }
-                                }
-                                else
-                                {
-                                    OIC_LOG(ERROR, TAG, "Unknown encoding type of PIN/PW credential.");
-                                    return ret;
-                                }
-
-                                //Set the PIN/PW to derive PSK
-                                if (OC_STACK_OK != SetPreconfigPin(pinBuffer, pinLength))
-                                {
-                                    OICFree(pinBuffer);
-                                    OIC_LOG(ERROR, TAG, "Failed to load PIN data.");
-                                    return ret;
-                                }
-                                OICFree(pinBuffer);
-
-                                OicUuid_t myUuid;
-                                if(OC_STACK_OK != GetDoxmDeviceID(&myUuid))
-                                {
-                                    OIC_LOG(ERROR, TAG, "Failed to read device ID");
-                                    return ret;
-                                }
-                                SetUuidForPinBasedOxm(&myUuid);
-
-                                //Calculate PSK using PIN/PW
-                                if(0 == DerivePSKUsingPIN((uint8_t*)result))
-                                {
-                                    ret = OWNER_PSK_LENGTH_128;
-                                }
-                                else
-                                {
-                                    OIC_LOG_V(ERROR, TAG, "Failed to derive crypto key from PIN");
-                                }
-
-                                if(CA_STATUS_OK != CAregisterSslHandshakeCallback(MultipleOwnerDTLSHandshakeCB))
-                                {
-                                    OIC_LOG(WARNING, TAG, "Error while bind the DTLS Handshake Callback.");
-                                }
-                            }
-                        }
-                    }
-                    else if(OIC_RANDOM_DEVICE_PIN == doxm->oxmSel)
-                    {
-                        if(0 == DerivePSKUsingPIN((uint8_t*)result))
-                        {
-                            ret = OWNER_PSK_LENGTH_128;
-                        }
-                        else
-                        {
-                            OIC_LOG_V(ERROR, TAG, "Failed to derive crypto key from PIN : result");
-                            ret = -1;
-                        }
-                    }
-                }
-#endif //MULTIPLE_OWNER
-            }
-            break;
-    }
-
-    return ret;
-}
-
 /**
  * Add temporal PSK to PIN based OxM
  *
@@ -3097,8 +2950,6 @@ OCStackResult AddTmpPskWithPIN(const OicUuid_t* tmpSubject, OicSecCredType_t cre
 exit:
     return ret;
 }
-
-#endif /* __WITH_DTLS__ */
 
 OCStackResult SetCredRownerId(const OicUuid_t* newROwner)
 {

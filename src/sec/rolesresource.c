@@ -18,7 +18,9 @@
 //
 //******************************************************************
 
-#include "iotivity_config.h"
+#include "rolesresource.h"
+
+/* #include "iotivity_config.h" */
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 #include <stdlib.h>
@@ -31,27 +33,56 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include "oic_string.h"
-#include "cainterface.h"
-#include "payload_logging.h"
-#include "ocstack.h"
-#include "ocrandom.h"
-#include "cacommon.h"
-#include "srmresourcestrings.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "credresource.h"
-#include "doxmresource.h"
-#include "srmutility.h"
-#include "certhelpers.h"
-#include "resourcemanager.h"
-#include "utlist.h"
-#include "ca_adapter_net_ssl.h"
-#include "ocstackinternal.h"
-#include "rolesresource.h"
-#include "secureresourcemanager.h"
+
+/* #include "oic_string.h" */
+/* #include "cainterface.h" */
+/* #include "payload_logging.h" */
+/* #include "ocstack.h" */
+/* #include "ocrandom.h" */
+/* #include "cacommon.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "credresource.h" */
+/* #include "doxmresource.h" */
+/* #include "srmutility.h" */
+/* #include "certhelpers.h" */
+/* #include "resourcemanager.h" */
+/* #include "utlist.h" */
+/* #include "ca_adapter_net_ssl.h" */
+/* #include "ocstackinternal.h" */
+/* #include "rolesresource.h" */
+/* #include "secureresourcemanager.h" */
 
 #define TAG  "OIC_SRM_ROLES"
+
+/**
+ * /oic/sec/role (Role) data type.
+ * Derived from OIC Security Spec; see Spec for details.
+ */
+#if INTERFACE
+struct OicSecRole
+{
+    // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
+    char id[ROLEID_LENGTH];                 // 0:R:S:Y:String
+    char authority[ROLEAUTHORITY_LENGTH];   // 1:R:S:N:String
+};
+
+typedef struct OicSecRole OicSecRole_t;
+
+#endif	/* INTERFACE */
+
+
+#define fixme_rp OCResourceProperty /* help makeheaders find the enum */
+
+#if INTERFACE
+typedef struct RoleCertChain {
+    uint32_t                credId;             /**< locally assigned ID number for use with DELETE */
+    OicSecKey_t             certificate;        /**< certificate chain including leaf and intermediate CA certificates */
+
+    struct RoleCertChain    *next;              /**< next chain in list */
+} RoleCertChain_t;
+#endif
 
 typedef struct RolesEntry {
     uint8_t                 *publicKey;         /**< DER-encoded public key */

@@ -30,22 +30,145 @@
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
 
+/* #if EXPORT_INTERFACE */
+/* #include "iotivity_config.h" */
+/* #endif */
+
+#include "cablockwisetransfer.h"
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "caadapterutils.h"
-#include "cainterface.h"
-#include "camessagehandler.h"
-#include "caremotehandler.h"
-#include "cablockwisetransfer.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "octhread.h"
-#include "logger.h"
+/* #include "caadapterutils.h" */
+/* #include "cainterface.h" */
+/* #include "camessagehandler.h" */
+/* #include "caremotehandler.h" */
+/* #include "cablockwisetransfer.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "octhread.h" */
+/* #include "logger.h" */
 
 #define TAG "OIC_CA_BWT"
+
+/* #include "coap_config.h" */
+
+#if INTERFACE
+#include "coap_config.h"
+#include "coap/block.h"
+/* #include "coap/coap_list.h" */
+/**
+ * Callback to send block data.
+ * @param[in]   data    send data.
+ */
+typedef void (*CASendThreadFunc)(CAData_t *data);
+
+/**
+ * Callback to notify received data from the remote endpoint.
+ * @param[in]   data    received data.
+ */
+typedef void (*CAReceiveThreadFunc)(CAData_t *data);
+
+/**
+ * context of blockwise transfer.
+ */
+typedef struct
+{
+    /** send method for block data. **/
+    CASendThreadFunc sendThreadFunc;
+
+    /** callback function for received message. **/
+    CAReceiveThreadFunc receivedThreadFunc;
+
+    /** array list on which the thread is operating. **/
+    u_arraylist_t *dataList;
+
+    /** data list mutex for synchronization. **/
+    oc_mutex blockDataListMutex;
+
+    /** sender mutex for synchronization. **/
+    oc_mutex blockDataSenderMutex;
+
+    /** array list tracking multicast requests. **/
+    u_arraylist_t *multicastDataList;
+
+    /** mulitcast data list mutex for synchronization. **/
+    oc_mutex multicastDataListMutex;
+} CABlockWiseContext_t;
+
+/**
+ * ID set of Blockwise transfer data set(::CABlockData_t).
+ */
+typedef struct
+{
+    uint8_t* id;                       /**< blockData ID for CA. */
+    size_t idLength;                   /**< length of blockData ID. */
+} CABlockDataID_t;
+
+/**
+ * Block Data Set.
+ */
+typedef struct
+{
+    coap_block_t block1;                /**< block1 option. */
+    coap_block_t block2;                /**< block2 option. */
+    uint16_t type;                      /**< block option type. */
+    CABlockDataID_t* blockDataId;        /**< ID set of CABlockData. */
+    CAData_t *sentData;                 /**< sent request or response data information. */
+    CAPayload_t payload;                /**< payload buffer. */
+    size_t payloadLength;               /**< the total payload length to be received. */
+    size_t receivedPayloadLen;          /**< currently received payload length. */
+} CABlockData_t;
+
+/**
+ * state of received block message from remote endpoint.
+ */
+typedef enum
+{
+    CA_BLOCK_UNKNOWN = 0,
+    CA_OPTION1_RESPONSE,
+    CA_OPTION1_REQUEST_LAST_BLOCK,
+    CA_OPTION1_REQUEST_BLOCK,
+    CA_OPTION2_FIRST_BLOCK,
+    CA_OPTION2_LAST_BLOCK,
+    CA_OPTION2_RESPONSE,
+    CA_OPTION2_REQUEST,
+    CA_BLOCK_INCOMPLETE,
+    CA_BLOCK_TOO_LARGE,
+    CA_BLOCK_RECEIVED_ALREADY
+} CABlockState_t;
+
+/**
+ * Multicast request.
+ */
+typedef struct
+{
+    CAToken_t token;            /**< Token for CA */
+    uint8_t tokenLength;        /**< token length */
+    CAURI_t resourceUri;        /**< Resource URI information **/
+} CABlockMulticastData_t;
+#endif	/* EXPORT_INTERFACE */
+
+/**
+ * block size.
+ * it depends on defined size in libCoAP.
+ */
+typedef enum
+{
+    CA_BLOCK_SIZE_16_BYTE = 0,    /**< 16byte */
+    CA_BLOCK_SIZE_32_BYTE = 1,    /**< 32byte */
+    CA_BLOCK_SIZE_64_BYTE = 2,    /**< 64byte */
+    CA_BLOCK_SIZE_128_BYTE = 3,   /**< 128byte */
+    CA_BLOCK_SIZE_256_BYTE = 4,   /**< 256byte */
+    CA_BLOCK_SIZE_512_BYTE = 5,   /**< 512byte */
+    CA_BLOCK_SIZE_1024_BYTE = 6     /**< 1Kbyte */
+} CABlockSize_t;
+
+#ifdef WITH_BWT
+#define CA_DEFAULT_BLOCK_SIZE       CA_BLOCK_SIZE_1024_BYTE
+#endif
 
 #define BLOCKWISE_OPTION_BUFFER    (sizeof(unsigned int))
 #define BLOCK_NUMBER_IDX           4
@@ -196,7 +319,7 @@ void CATerminateBlockWiseMutexVariables()
 
 CAResult_t CASendBlockWiseData(const CAData_t *sendData)
 {
-    VERIFY_NON_NULL(sendData, TAG, "sendData");
+    VERIFY_NON_NULL_MSG(sendData, TAG, "sendData");
 
     // check if message type is CA_MSG_RESET
     if (sendData->requestInfo)
@@ -296,8 +419,8 @@ CAResult_t CASendBlockWiseData(const CAData_t *sendData)
 
 CAResult_t CAAddSendThreadQueue(const CAData_t *sendData, const CABlockDataID_t *blockID)
 {
-    VERIFY_NON_NULL(sendData, TAG, "sendData");
-    VERIFY_NON_NULL(blockID, TAG, "blockID");
+    VERIFY_NON_NULL_MSG(sendData, TAG, "sendData");
+    VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
 
     CAData_t *cloneData = CACloneCAData(sendData);
     if (!cloneData)
@@ -322,8 +445,8 @@ CAResult_t CAAddSendThreadQueue(const CAData_t *sendData, const CABlockDataID_t 
 
 CAResult_t CACheckBlockOptionType(CABlockData_t *currData)
 {
-    VERIFY_NON_NULL(currData, TAG, "currData");
-    VERIFY_NON_NULL(currData->sentData, TAG, "currData->sentData");
+    VERIFY_NON_NULL_MSG(currData, TAG, "currData");
+    VERIFY_NON_NULL_MSG(currData->sentData, TAG, "currData->sentData");
 
     bool isBlock = CACheckPayloadLength(currData->sentData);
     if (!isBlock)
@@ -349,10 +472,10 @@ CAResult_t CAReceiveBlockWiseData(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                                   const CAData_t *receivedData, size_t dataLen)
 {
     OIC_LOG(DEBUG, TAG, "CAReceiveBlockWiseData");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(pdu->transport_hdr, TAG, "pdu->transport_hdr");
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
-    VERIFY_NON_NULL(receivedData, TAG, "receivedData");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(pdu->transport_hdr, TAG, "pdu->transport_hdr");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(receivedData, TAG, "receivedData");
     VERIFY_TRUE((pdu->transport_hdr->udp.token_length <= UINT8_MAX), TAG,
                 "pdu->transport_hdr->udp.token_length");
 
@@ -511,9 +634,9 @@ CAResult_t CAReceiveBlockWiseData(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
 CAResult_t CAProcessNextStep(const coap_pdu_t *pdu, const CAData_t *receivedData,
                              uint8_t blockWiseStatus, const CABlockDataID_t *blockID)
 {
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(pdu->hdr, TAG, "pdu->hdr");
-    VERIFY_NON_NULL(blockID, TAG, "blockID");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(pdu->hdr, TAG, "pdu->hdr");
+    VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
 
     CAResult_t res = CA_STATUS_OK;
     CAData_t *data = NULL;
@@ -650,9 +773,9 @@ static CAResult_t CASendDirectEmptyResponse(const CAEndpoint_t *endpoint, uint16
 CAResult_t CASendBlockMessage(const coap_pdu_t *pdu, CAMessageType_t msgType,
                               const CABlockDataID_t *blockID)
 {
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(pdu->transport_hdr, TAG, "pdu->transport_hdr");
-    VERIFY_NON_NULL(blockID, TAG, "blockID");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(pdu->transport_hdr, TAG, "pdu->transport_hdr");
+    VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
 
     CAData_t *data = CAGetDataSetFromBlockDataList(blockID);
     if (!data)
@@ -723,9 +846,9 @@ CAResult_t CASendBlockMessage(const coap_pdu_t *pdu, CAMessageType_t msgType,
 CAResult_t CASendErrorMessage(const coap_pdu_t *pdu, uint8_t status,
                               CAResponseResult_t responseResult, const CABlockDataID_t *blockID)
 {
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(pdu->transport_hdr, TAG, "pdu->transport_hdr");
-    VERIFY_NON_NULL(blockID, TAG, "blockID");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(pdu->transport_hdr, TAG, "pdu->transport_hdr");
+    VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
     VERIFY_TRUE((pdu->transport_hdr->udp.token_length <= UINT8_MAX), TAG,
                 "pdu->transport_hdr->udp.token_length");
 
@@ -832,8 +955,8 @@ CAResult_t CASendErrorMessage(const coap_pdu_t *pdu, uint8_t status,
 
 CAResult_t CAReceiveLastBlock(const CABlockDataID_t *blockID, const CAData_t *receivedData)
 {
-    VERIFY_NON_NULL(blockID, TAG, "blockID");
-    VERIFY_NON_NULL(receivedData, TAG, "receivedData");
+    VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
+    VERIFY_NON_NULL_MSG(receivedData, TAG, "receivedData");
 
     // total block data have to notify to Application
     CAData_t *cloneData = CACloneCAData(receivedData);
@@ -931,10 +1054,10 @@ CAResult_t CASetNextBlockOption1(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                                  size_t dataLen)
 {
     OIC_LOG(INFO, TAG, "CASetNextBlockOption1");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(pdu->transport_hdr, TAG, "pdu->transport_hdr");
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
-    VERIFY_NON_NULL(receivedData, TAG, "receivedData");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(pdu->transport_hdr, TAG, "pdu->transport_hdr");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(receivedData, TAG, "receivedData");
     VERIFY_TRUE((pdu->transport_hdr->udp.token_length <= UINT8_MAX), TAG,
                 "pdu->transport_hdr->udp.token_length");
 
@@ -1079,10 +1202,10 @@ CAResult_t CASetNextBlockOption2(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
     OIC_LOG(DEBUG, TAG, "CASetNextBlockOption2");
     OIC_LOG_V(INFO, TAG, "num:%d, M:%d, sze:%d", block.num, block.m, block.szx);
 
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(pdu->transport_hdr, TAG, "pdu->transport_hdr");
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
-    VERIFY_NON_NULL(receivedData, TAG, "receivedData");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(pdu->transport_hdr, TAG, "pdu->transport_hdr");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(receivedData, TAG, "receivedData");
     VERIFY_TRUE((pdu->transport_hdr->udp.token_length <= UINT8_MAX), TAG,
                 "pdu->transport_hdr->udp.token_length");
 
@@ -1235,10 +1358,10 @@ CAResult_t CAUpdateBlockOptionItems(CABlockData_t *currData, const coap_pdu_t *p
                                     coap_block_t *block, uint16_t blockType,
                                     uint32_t status)
 {
-    VERIFY_NON_NULL(currData, TAG, "currData");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(pdu->transport_hdr, TAG, "pdu->transport_hdr");
-    VERIFY_NON_NULL(block, TAG, "block");
+    VERIFY_NON_NULL_MSG(currData, TAG, "currData");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(pdu->transport_hdr, TAG, "pdu->transport_hdr");
+    VERIFY_NON_NULL_MSG(block, TAG, "block");
 
     // update block data
     CAResult_t res = CA_STATUS_OK;
@@ -1313,7 +1436,7 @@ CAResult_t CAUpdateBlockOptionItems(CABlockData_t *currData, const coap_pdu_t *p
 
 CAResult_t CASetMoreBitFromBlock(size_t payloadLen, coap_block_t *block)
 {
-    VERIFY_NON_NULL(block, TAG, "block");
+    VERIFY_NON_NULL_MSG(block, TAG, "block");
 
     if ((size_t) ((block->num + 1) << (block->szx + BLOCK_NUMBER_IDX)) < payloadLen)
     {
@@ -1334,10 +1457,10 @@ CAResult_t CANegotiateBlockSize(CABlockData_t *currData, coap_block_t *block,
 {
     OIC_LOG(DEBUG, TAG, "IN-NegotiateBlockSize");
 
-    VERIFY_NON_NULL(currData, TAG, "currData");
-    VERIFY_NON_NULL(block, TAG, "block");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(pdu->transport_hdr, TAG, "pdu->transport_hdr");
+    VERIFY_NON_NULL_MSG(currData, TAG, "currData");
+    VERIFY_NON_NULL_MSG(block, TAG, "block");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(pdu->transport_hdr, TAG, "pdu->transport_hdr");
 
     bool isReqMsg = false;
     uint32_t code = pdu->transport_hdr->udp.code;
@@ -1411,7 +1534,7 @@ CAResult_t CANegotiateBlockSize(CABlockData_t *currData, coap_block_t *block,
 CAResult_t CAUpdateBlockData(CABlockData_t *currData, coap_block_t block,
                              uint16_t blockType)
 {
-    VERIFY_NON_NULL(currData, TAG, "currData");
+    VERIFY_NON_NULL_MSG(currData, TAG, "currData");
 
     // check if block size is bigger than CABlockSize_t
     if (block.szx > CA_BLOCK_SIZE_1024_BYTE)
@@ -1436,9 +1559,9 @@ CAResult_t CAUpdateBlockData(CABlockData_t *currData, coap_block_t block,
 
 CAResult_t CAUpdateMessageId(coap_pdu_t *pdu, const CABlockDataID_t *blockID)
 {
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(pdu->transport_hdr, TAG, "pdu->transport_hdr");
-    VERIFY_NON_NULL(blockID, TAG, "blockID");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(pdu->transport_hdr, TAG, "pdu->transport_hdr");
+    VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
 
     // if message is sent, update messageId in block-wise transfer list
     CAData_t * cadata = CAGetDataSetFromBlockDataList(blockID);
@@ -1456,16 +1579,19 @@ CAResult_t CAUpdateMessageId(coap_pdu_t *pdu, const CABlockDataID_t *blockID)
     return CA_STATUS_OK;
 }
 
+#if INTERFACE
+#include <limits.h>
+#endif	/* INTERFACE */
 CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
                             const CAEndpoint_t *endpoint, coap_list_t **options)
 {
     OIC_LOG(DEBUG, TAG, "IN-AddBlockOption");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL((*pdu), TAG, "(*pdu)");
-    VERIFY_NON_NULL((*pdu)->transport_hdr, TAG, "(*pdu)->transport_hdr");
-    VERIFY_NON_NULL(info, TAG, "info");
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
-    VERIFY_NON_NULL(options, TAG, "options");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG((*pdu), TAG, "(*pdu)");
+    VERIFY_NON_NULL_MSG((*pdu)->transport_hdr, TAG, "(*pdu)->transport_hdr");
+    VERIFY_NON_NULL_MSG(info, TAG, "info");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(options, TAG, "options");
     VERIFY_TRUE(((*pdu)->transport_hdr->udp.token_length <= UINT8_MAX), TAG,
                 "pdu->transport_hdr->udp.token_length");
     VERIFY_TRUE((info->payloadSize <= UINT_MAX), TAG, "info->payloadSize");
@@ -1581,12 +1707,12 @@ CAResult_t CAAddBlockOption2(coap_pdu_t **pdu, const CAInfo_t *info, size_t data
                              const CABlockDataID_t *blockID, coap_list_t **options)
 {
     OIC_LOG(DEBUG, TAG, "IN-AddBlockOption2");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL((*pdu), TAG, "(*pdu)");
-    VERIFY_NON_NULL((*pdu)->transport_hdr, TAG, "(*pdu)->transport_hdr");
-    VERIFY_NON_NULL(info, TAG, "info");
-    VERIFY_NON_NULL(blockID, TAG, "blockID");
-    VERIFY_NON_NULL(options, TAG, "options");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG((*pdu), TAG, "(*pdu)");
+    VERIFY_NON_NULL_MSG((*pdu)->transport_hdr, TAG, "(*pdu)->transport_hdr");
+    VERIFY_NON_NULL_MSG(info, TAG, "info");
+    VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
+    VERIFY_NON_NULL_MSG(options, TAG, "options");
     VERIFY_TRUE((dataLength <= UINT_MAX), TAG, "dataLength");
 
     // get set block data from CABlock list-set.
@@ -1689,12 +1815,12 @@ CAResult_t CAAddBlockOption1(coap_pdu_t **pdu, const CAInfo_t *info, size_t data
                              const CABlockDataID_t *blockID, coap_list_t **options)
 {
     OIC_LOG(DEBUG, TAG, "IN-AddBlockOption1");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL((*pdu), TAG, "(*pdu)");
-    VERIFY_NON_NULL((*pdu)->transport_hdr, TAG, "(*pdu)->transport_hdr");
-    VERIFY_NON_NULL(info, TAG, "info");
-    VERIFY_NON_NULL(blockID, TAG, "blockID");
-    VERIFY_NON_NULL(options, TAG, "options");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG((*pdu), TAG, "(*pdu)");
+    VERIFY_NON_NULL_MSG((*pdu)->transport_hdr, TAG, "(*pdu)->transport_hdr");
+    VERIFY_NON_NULL_MSG(info, TAG, "info");
+    VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
+    VERIFY_NON_NULL_MSG(options, TAG, "options");
     VERIFY_TRUE((dataLength <= UINT_MAX), TAG, "dataLength");
 
     // get set block data from CABlock list-set.
@@ -1813,8 +1939,8 @@ CAResult_t CAAddBlockOptionImpl(coap_block_t *block, uint8_t blockType,
                                 coap_list_t **options)
 {
     OIC_LOG(DEBUG, TAG, "IN-AddBlockOptionImpl");
-    VERIFY_NON_NULL(block, TAG, "block");
-    VERIFY_NON_NULL(options, TAG, "options");
+    VERIFY_NON_NULL_MSG(block, TAG, "block");
+    VERIFY_NON_NULL_MSG(options, TAG, "options");
 
     unsigned char buf[BLOCKWISE_OPTION_BUFFER] = { 0 };
     unsigned int optionLength = coap_encode_var_bytes(buf,
@@ -1864,8 +1990,8 @@ CAResult_t CAAddBlockSizeOption(coap_pdu_t *pdu, uint16_t sizeType, size_t dataL
                                 coap_list_t **options)
 {
     OIC_LOG(DEBUG, TAG, "IN-CAAddBlockSizeOption");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(options, TAG, "options");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(options, TAG, "options");
     VERIFY_TRUE((dataLength <= UINT_MAX), TAG, "dataLength");
 
     if (sizeType != COAP_OPTION_SIZE1 && sizeType != COAP_OPTION_SIZE2)
@@ -1897,8 +2023,8 @@ bool CAIsPayloadLengthInPduWithBlockSizeOption(coap_pdu_t *pdu,
                                                size_t *totalPayloadLen)
 {
     OIC_LOG(DEBUG, TAG, "IN-CAIsPayloadLengthInPduWithBlockSizeOption");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(totalPayloadLen, TAG, "totalPayloadLen");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(totalPayloadLen, TAG, "totalPayloadLen");
 
     if (sizeType != COAP_OPTION_SIZE1 && sizeType != COAP_OPTION_SIZE2)
     {
@@ -1931,9 +2057,9 @@ uint8_t CACheckBlockErrorType(CABlockData_t *currData, coap_block_t *receivedBlo
 {
     OIC_LOG(DEBUG, TAG, "IN-CheckBlockError");
 
-    VERIFY_NON_NULL(currData, TAG, "currData is NULL");
-    VERIFY_NON_NULL(receivedBlock, TAG, "receivedBlock is NULL");
-    VERIFY_NON_NULL(receivedData, TAG, "receivedData is NULL");
+    VERIFY_NON_NULL_MSG(currData, TAG, "currData is NULL");
+    VERIFY_NON_NULL_MSG(receivedBlock, TAG, "receivedBlock is NULL");
+    VERIFY_NON_NULL_MSG(receivedData, TAG, "receivedData is NULL");
 
     // #1. check the received payload length
     size_t blockPayloadLen = 0;
@@ -2036,8 +2162,8 @@ CAResult_t CAUpdatePayloadData(CABlockData_t *currData, const CAData_t *received
 {
     OIC_LOG(DEBUG, TAG, "IN-UpdatePayloadData");
 
-    VERIFY_NON_NULL(currData, TAG, "currData");
-    VERIFY_NON_NULL(receivedData, TAG, "receivedData");
+    VERIFY_NON_NULL_MSG(currData, TAG, "currData");
+    VERIFY_NON_NULL_MSG(receivedData, TAG, "receivedData");
 
     // if error code is 4.08, do not update payload
     if (CA_BLOCK_INCOMPLETE == status)
@@ -2243,8 +2369,8 @@ CAResult_t CAUpdatePayloadToCAData(CAData_t *data, const CAPayload_t payload,
 {
     OIC_LOG(DEBUG, TAG, "IN-UpdatePayload");
 
-    VERIFY_NON_NULL(data, TAG, "data is NULL");
-    VERIFY_NON_NULL(payload, TAG, "payload is NULL");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is NULL");
+    VERIFY_NON_NULL_MSG(payload, TAG, "payload is NULL");
 
     CAPayload_t newPayload = NULL;
     switch (data->dataType)
@@ -2325,7 +2451,7 @@ CAResult_t CAHandleBlockErrorResponse(coap_block_t *block, uint16_t blockType,
                                       uint32_t responseResult)
 {
     OIC_LOG(DEBUG, TAG, "IN-HandleBlockErrorRes");
-    VERIFY_NON_NULL(block, TAG, "block is NULL");
+    VERIFY_NON_NULL_MSG(block, TAG, "block is NULL");
 
     // update block data
     switch (responseResult)
@@ -2352,7 +2478,7 @@ CAResult_t CAHandleBlockErrorResponse(coap_block_t *block, uint16_t blockType,
 CAResult_t CAUpdateBlockOptionType(const CABlockDataID_t *blockID, uint16_t blockType)
 {
     OIC_LOG(DEBUG, TAG, "IN-UpdateBlockOptionType");
-    VERIFY_NON_NULL(blockID, TAG, "blockID");
+    VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
 
     oc_mutex_lock(g_context.blockDataListMutex);
 
@@ -2448,9 +2574,9 @@ CAResult_t CAGetTokenFromBlockDataList(const coap_pdu_t *pdu, const CAEndpoint_t
                                        CAResponseInfo_t *responseInfo)
 {
     OIC_LOG(DEBUG, TAG, "IN-CAGetTokenFromBlockDataList");
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
-    VERIFY_NON_NULL(responseInfo, TAG, "responseInfo");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(responseInfo, TAG, "responseInfo");
 
     oc_mutex_lock(g_context.blockDataListMutex);
 
@@ -2498,8 +2624,8 @@ CAResult_t CAGetTokenFromBlockDataList(const coap_pdu_t *pdu, const CAEndpoint_t
 
 CAResult_t CACheckBlockDataValidation(const CAData_t *sendData, CABlockData_t **blockData)
 {
-    VERIFY_NON_NULL(sendData, TAG, "sendData");
-    VERIFY_NON_NULL(blockData, TAG, "blockData");
+    VERIFY_NON_NULL_MSG(sendData, TAG, "sendData");
+    VERIFY_NON_NULL_MSG(blockData, TAG, "blockData");
 
     if (sendData->responseInfo && sendData->remoteEndpoint)
     {
@@ -2625,7 +2751,7 @@ CABlockData_t *CACreateNewBlockData(const CAData_t *sendData)
     data->sentData = CACloneCAData(sendData);
     if (!data->sentData)
     {
-        OIC_LOG(ERROR, TAG, PCF("memory alloc has failed"));
+        OIC_LOG(ERROR, TAG, PCF("memory alloc has failed")); /* FIXME: insane msg */
         OICFree(data);
         return NULL;
     }
@@ -2686,7 +2812,7 @@ CABlockData_t *CACreateNewBlockData(const CAData_t *sendData)
 CAResult_t CARemoveBlockDataFromList(const CABlockDataID_t *blockID)
 {
     OIC_LOG(DEBUG, TAG, "CARemoveBlockData");
-    VERIFY_NON_NULL(blockID, TAG, "blockID");
+    VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
 
     oc_mutex_lock(g_context.blockDataListMutex);
 

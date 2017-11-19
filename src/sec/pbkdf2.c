@@ -18,12 +18,26 @@
 *
 ******************************************************************/
 
-#include "logger.h"
+#include "pbkdf2.h"
+
+/* #include "logger.h" */
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/md.h"
+#if INTERFACE
+#include <stddef.h>
 #include <inttypes.h>
+#endif	/* INTERFACE */
 
 #define TAG "OIC_SEC_PBDKF2"
+
+/**
+ * The number of iterations desired to derived key.
+ * As specified in the OCF Security Specification. This choice is required for
+ * interoperability in the Random PIN OTM.
+ */
+#if INTERFACE
+#define PBKDF_ITERATIONS 1000
+#endif	/* INTERFACE */
 
 int DeriveCryptoKeyFromPassword(const unsigned char *passwd, size_t pLen,
     const uint8_t *salt, size_t saltLen,

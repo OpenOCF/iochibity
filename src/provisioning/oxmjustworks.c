@@ -18,20 +18,24 @@
  *
  * *****************************************************************/
 
+#include "oxmjustworks.h"
+
 #include <memory.h>
-#include "ocstack.h"
-#include "securevirtualresourcetypes.h"
-#include "doxmresource.h"
-#include "cacommon.h"
-#include "cainterface.h"
-#include "oic_malloc.h"
-#include "logger.h"
-#include "pmtypes.h"
-#include "ownershiptransfermanager.h"
-#include "ocstackinternal.h"
+/* #include "ocstack.h" */
+/* #include "securevirtualresourcetypes.h" */
+/* #include "doxmresource.h" */
+/* #include "cacommon.h" */
+/* #include "cainterface.h" */
+/* #include "oic_malloc.h" */
+/* #include "logger.h" */
+/* #include "pmtypes.h" */
+/* #include "ownershiptransfermanager.h" */
+/* #include "ocstackinternal.h" */
 #include "mbedtls/ssl_ciphersuites.h"
 
 #define TAG "OIC_OXM_JustWorks"
+
+#define fixme_oxmjw_dp DoxmProperty_t /* help makeheaders */
 
 OCStackResult CreateJustWorksSelectOxmPayload(OTMContext_t *otmCtx,
     uint8_t **payload, size_t *size)

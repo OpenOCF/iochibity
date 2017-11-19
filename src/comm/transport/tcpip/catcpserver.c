@@ -65,7 +65,7 @@
 #include "oic_string.h"
 
 #include <coap/pdu.h>
-#include <coap/utlist.h>
+/* #include <coap/utlist.h> */
 #include <inttypes.h>
 
 #ifdef __WITH_TLS__
@@ -745,7 +745,7 @@ CAResult_t CAConstructCoAP(CATCPSessionInfo_t *svritem, unsigned char **data,
 
 static CAResult_t CAReceiveMessage(CATCPSessionInfo_t *svritem)
 {
-    VERIFY_NON_NULL(svritem, TAG, "svritem is NULL");
+    VERIFY_NON_NULL_MSG(svritem, TAG, "svritem is NULL");
 
     // read data
     int len = 0;
@@ -873,7 +873,7 @@ static void CAWakeUpForReadFdsUpdate()
 
 static CAResult_t CATCPCreateSocket(int family, CATCPSessionInfo_t *svritem)
 {
-    VERIFY_NON_NULL(svritem, TAG, "svritem is NULL");
+    VERIFY_NON_NULL_MSG(svritem, TAG, "svritem is NULL");
 
     OIC_LOG_V(DEBUG, TAG, "try to connect with [%s:%u]",
               svritem->sep.endpoint.addr, svritem->sep.endpoint.port);
@@ -1319,8 +1319,8 @@ ssize_t CATCPSendData(CAEndpoint_t *endpoint, const void *data, size_t datalen)
 
 CAResult_t CAGetTCPInterfaceInformation(CAEndpoint_t **info, size_t *size)
 {
-    VERIFY_NON_NULL(info, TAG, "info is NULL");
-    VERIFY_NON_NULL(size, TAG, "size is NULL");
+    VERIFY_NON_NULL_MSG(info, TAG, "info is NULL");
+    VERIFY_NON_NULL_MSG(size, TAG, "size is NULL");
 
     u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
     if (!iflist)
@@ -1469,7 +1469,7 @@ CAResult_t CADisconnectTCPSession(CATCPSessionInfo_t *removedData)
 {
     OIC_LOG_V(DEBUG, TAG, "%s", __func__);
 
-    VERIFY_NON_NULL(removedData, TAG, "removedData is NULL");
+    VERIFY_NON_NULL_MSG(removedData, TAG, "removedData is NULL");
 
     // close the socket and remove session info in list.
     if (removedData->fd != OC_INVALID_SOCKET)
@@ -1573,7 +1573,7 @@ CASocketFd_t CAGetSocketFDFromEndpoint(const CAEndpoint_t *endpoint)
 
 CAResult_t CASearchAndDeleteTCPSession(const CAEndpoint_t *endpoint)
 {
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint is NULL");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint is NULL");
 
     OIC_LOG_V(DEBUG, TAG, "Looking for [%s:%d]", endpoint->addr, endpoint->port);
 

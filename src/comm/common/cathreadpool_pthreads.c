@@ -27,19 +27,35 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include "iotivity_config.h"
+/* #include "iotivity_config.h" */
 #include <errno.h>
 #if defined HAVE_WINSOCK2_H
 #include <winsock2.h>
 #endif
-#include "cathreadpool.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "uarraylist.h"
-#include "octhread.h"
+#include "cathreadpool_pthreads.h"
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "uarraylist.h" */
+/* #include "octhread.h" */
 /*GAR  #include "platform_features.h" */
 
 #define TAG PCF("OIC_CA_UTHREADPOOL")
+
+#if EXPORT_INTERFACE
+/**
+ * Callback type can be registered to thread pool.
+ */
+typedef void (*ca_thread_func)(void *);
+
+struct ca_thread_pool_details_t;
+/**
+ * Thread pool type.
+ */
+typedef struct ca_thread_pool
+{
+    struct ca_thread_pool_details_t* details;
+}*ca_thread_pool_t;
+#endif
 
 /**
  * empty struct to represent the details.  This implementation has no data

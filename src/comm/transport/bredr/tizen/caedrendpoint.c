@@ -25,16 +25,19 @@
  */
 
 #include "caedrendpoint.h"
-#include "caadapterutils.h"
-#include "caedrutils.h"
-#include "logger.h"
+
+/* #include "caedrendpoint.h"
+ * #include "caadapterutils.h"
+ * #include "caedrutils.h"
+ * #include "logger.h" */
+
 
 CAResult_t CAEDRSendData(int serverFD, const char *addr, const void *data, uint32_t dataLength)
 {
     OIC_LOG(DEBUG, EDR_ADAPTER_TAG, "IN");
 
-    VERIFY_NON_NULL(data, EDR_ADAPTER_TAG, "Data is null");
-    VERIFY_NON_NULL(addr, EDR_ADAPTER_TAG, "Addr is null");
+    VERIFY_NON_NULL_MSG(data, EDR_ADAPTER_TAG, "Data is null");
+    VERIFY_NON_NULL_MSG(addr, EDR_ADAPTER_TAG, "Addr is null");
 
     if (0 > serverFD)
     {

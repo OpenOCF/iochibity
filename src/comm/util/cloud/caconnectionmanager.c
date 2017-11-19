@@ -18,27 +18,43 @@
  *
  ******************************************************************/
 
+#include "caconnectionmanager.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "caadapterutils.h"
-#include "cainterface.h"
-#include "camessagehandler.h"
-#include "caremotehandler.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "octhread.h"
-#include "logger.h"
-#include "caadapterutils.h"
-
-#include "caconnectionmanager.h"
-#include "camessagearbiter.h"
-#include "capolicymanager.h"
-#include "camanagerutil.h"
+/* #include "caadapterutils.h"
+ * #include "cainterface.h"
+ * #include "camessagehandler.h"
+ * #include "caremotehandler.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * #include "octhread.h"
+ * #include "logger.h"
+ * #include "caadapterutils.h"
+ * 
+ * #include "caconnectionmanager.h"
+ * #include "camessagearbiter.h"
+ * #include "capolicymanager.h"
+ * #include "camanagerutil.h" */
 
 #define TAG "OIC_CM"
 
+/**
+ * User Preference of connectivity channel for connection manager
+ */
+#if INTERFACE
+typedef enum
+{
+    /** Cloud TCP (Default) */
+    CA_USER_PREF_CLOUD = 0,
+    /** local UDP */
+    CA_USER_PREF_LOCAL_UDP = 1,
+    /** local TCP */
+    CA_USER_PREF_LOCAL_TCP = 2
+} CAConnectUserPref_t;
+#endif	/* INTERFACE */
 
 CAResult_t CACMInitialize()
 {
@@ -70,7 +86,7 @@ CAResult_t CACMGetMessageData(CAData_t *data)
 {
     OIC_LOG(DEBUG, TAG, "CACMGetMessageData");
 
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     return CAMsgArbiterGetMessageData(data);
 }

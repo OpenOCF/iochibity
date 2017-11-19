@@ -18,21 +18,23 @@
  *
  ******************************************************************/
 
+#include "calenwmonitor.h"
+
 #include <jni.h>
 #include <stdio.h>
 /* GAR #include <android/log.h> */
-#include "logger.h"
-#include "calenwmonitor.h"
-#include "caleclient.h"
-#include "caleserver.h"
-#include "caleutils.h"
-#include "caleinterface.h"
-#include "caadapterutils.h"
-
-#include "octhread.h"
-
-#include "org_iotivity_ca_CaLeClientInterface.h"
-#include "org_iotivity_ca_CaLeServerInterface.h"
+/* #include "logger.h"
+ * #include "calenwmonitor.h"
+ * #include "caleclient.h"
+ * #include "caleserver.h"
+ * #include "caleutils.h"
+ * #include "caleinterface.h"
+ * #include "caadapterutils.h"
+ *
+ * #include "octhread.h"
+ *
+ * #include "org_iotivity_ca_CaLeClientInterface.h"
+ * #include "org_iotivity_ca_CaLeServerInterface.h" */
 
 #define TAG PCF("OIC_CA_LE_MONITOR")
 
@@ -243,8 +245,8 @@ CAResult_t CAUnsetLENWConnectionStateChangedCb()
 static CAResult_t CALEStateConnectedCallback(JNIEnv *env, jstring jni_address,
                                              jboolean isDescriptorFound)
 {
-    VERIFY_NON_NULL(env, TAG, "env");
-    VERIFY_NON_NULL(jni_address, TAG, "jni_address");
+    VERIFY_NON_NULL_MSG(env, TAG, "env");
+    VERIFY_NON_NULL_MSG(jni_address, TAG, "jni_address");
 
     if (CALEClientGetFlagFromState(env, jni_address, CA_LE_DESCRIPTOR_FOUND) == isDescriptorFound)
     {

@@ -21,10 +21,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include "uarraylist.h"
-#include "logger.h"
-#include "oic_malloc.h"
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
 
 #define TAG "OIC_UARRAYLIST"
+
+/**
+ * array list structure.
+ *
+ * @note
+ * Members should be treated as private and not accessed directly. Instead
+ * all access should be through the defined u_arraylist_*() functions.
+ */
+#if EXPORT_INTERFACE
+#include <stdlib.h>
+struct u_arraylist_t
+{
+    void **data;
+    size_t length;
+    size_t capacity;
+};
+#endif
 
 /**
  * Use this default capacity when initialized

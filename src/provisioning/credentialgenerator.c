@@ -17,17 +17,19 @@
  * limitations under the License.
  *
  * *****************************************************************/
-#include <string.h>
 #include "credentialgenerator.h"
-#include "base64.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "ocpayload.h"
-#include "payload_logging.h"
-#include "credresource.h"
-#include "ocrandom.h"
-#include "srmutility.h"
-#include "stdbool.h"
+
+#include <string.h>
+/* #include "credentialgenerator.h" */
+/* #include "base64.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "ocpayload.h" */
+/* #include "payload_logging.h" */
+/* #include "credresource.h" */
+/* #include "ocrandom.h" */
+/* #include "srmutility.h" */
+/* #include "stdbool.h" */
 
 #define TAG "OIC_SRPAPI_CG"
 

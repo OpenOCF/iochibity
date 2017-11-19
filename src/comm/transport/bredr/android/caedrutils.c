@@ -18,19 +18,30 @@
  *
  ******************************************************************/
 
+#include "caedrutils.h"
+
 #include <jni.h>
 #include <stdio.h>
 #include <android/log.h>
-#include "caedrutils.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "cathreadpool.h"
-#include "uarraylist.h"
-#include "caadapterutils.h"
+/* #include "caedrutils.h"
+ * #include "logger.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * #include "cathreadpool.h"
+ * #include "uarraylist.h"
+ * #include "caadapterutils.h" */
 
 #define ERROR_CODE (-1)
 #define TAG PCF("OIC_CA_EDR_UTILS")
+
+/**
+ * EDR Socket Information for EDR transport
+ */
+typedef struct
+{
+    jobject deviceSocket;   /**< Bluetooth device socket info */
+    jobject inputStream;    /**< InputStream for read data */
+} CAEDRSocketInfo_t;
 
 static const char METHODID_OBJECTNONPARAM[] = "()Landroid/bluetooth/BluetoothAdapter;";
 static const char METHODID_STRINGNONPARAM[] = "()Ljava/lang/String;";

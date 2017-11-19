@@ -18,17 +18,28 @@
  *
  ******************************************************************/
 
-#include <jni.h>
-#include "cacommon.h"
-#include "logger.h"
-#include "cacommonutil.h"
-#include "camanagerleutil.h"
-#include "uarraylist.h"
-#include "octhread.h"
 #include "camanagerdevice.h"
-#include "oic_malloc.h"
+
+#include <jni.h>
+/* #include "cacommon.h"
+ * #include "logger.h"
+ * #include "cacommonutil.h"
+ * #include "camanagerleutil.h"
+ * #include "uarraylist.h"
+ * #include "octhread.h"
+ * #include "camanagerdevice.h"
+ * #include "oic_malloc.h" */
 
 #define TAG "OIC_CA_MANAGER_DEVICE"
+
+/*
+ * Auto Connection Target Device Identity
+ */
+typedef struct
+{
+    jstring address;         /**< remote address */
+    bool isAutoConnecting;   /**< whether GATT connection has been in progress */
+} CAManagerACData_t;
 
 static u_arraylist_t *g_deviceACDataList = NULL;
 static oc_mutex g_deviceACDataListMutex = NULL;
@@ -206,8 +217,8 @@ void CAManagerAddACData(JNIEnv *env, jstring jaddress)
 CAResult_t CAManagerRemoveACData(JNIEnv *env, jstring jaddress)
 {
     OIC_LOG(DEBUG, TAG, "CAManagerRemoveACData");
-    VERIFY_NON_NULL(env, TAG, "env");
-    VERIFY_NON_NULL(jaddress, TAG, "jaddress");
+    VERIFY_NON_NULL_MSG(env, TAG, "env");
+    VERIFY_NON_NULL_MSG(jaddress, TAG, "jaddress");
 
     oc_mutex_lock(g_deviceACDataListMutex);
 
@@ -280,7 +291,7 @@ CAResult_t CAManagerRemoveACData(JNIEnv *env, jstring jaddress)
 CAResult_t CAManagerRemoveAllACData(JNIEnv *env)
 {
     OIC_LOG(DEBUG, TAG, "IN - CAManagerRemoveAllACData");
-    VERIFY_NON_NULL(env, TAG, "env");
+    VERIFY_NON_NULL_MSG(env, TAG, "env");
 
     oc_mutex_lock(g_deviceACDataListMutex);
 
@@ -318,8 +329,8 @@ CAResult_t CAManagerRemoveAllACData(JNIEnv *env)
 CAResult_t CAManagerGetAutoConnectingFlag(JNIEnv *env, jstring jaddress, bool *flag)
 {
     OIC_LOG(DEBUG, TAG, "CAManagerGetAutoConnectingFlag");
-    VERIFY_NON_NULL(env, TAG, "env");
-    VERIFY_NON_NULL(jaddress, TAG, "jaddress");
+    VERIFY_NON_NULL_MSG(env, TAG, "env");
+    VERIFY_NON_NULL_MSG(jaddress, TAG, "jaddress");
 
     oc_mutex_lock(g_deviceACDataListMutex);
 

@@ -18,43 +18,198 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "iotivity_config.h"
+#include "aclresource.h"
+
+/* #include "iotivity_config.h" */
 #ifdef HAVE_STRING_H
 #include <string.h>
 #elif defined(HAVE_STRINGS_H)
 #include <strings.h>
 #endif
 #include <stdlib.h>
+#include <inttypes.h>
 
-#include "utlist.h"
-#include "ocstack.h"
-#include "octypes.h"
-#include "ocserverrequest.h"
-/* #include "oic_malloc.h" */
-#include "oic_string.h"
-#include "ocrandom.h"
-#include "ocpayload.h"
 /* #include "utlist.h" */
-#include "acl_logging.h"
-#include "payload_logging.h"
-#include "srmresourcestrings.h"
-#include "aclresource.h"
-#include "doxmresource.h"
-#include "rolesresource.h"
-#include "resourcemanager.h"
-#include "srmutility.h"
-#include "psinterface.h"
-#include "ocpayloadcbor.h"
-#include "secureresourcemanager.h"
-#include "deviceonboardingstate.h"
-#include "octhread.h"
+/* #include "ocstack.h" */
+/* #include "octypes.h" */
+/* #include "ocserverrequest.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "ocrandom.h" */
+/* #include "ocpayload.h" */
+/* #include "utlist.h" */
+/* #include "acl_logging.h" */
+/* #include "payload_logging.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "doxmresource.h" */
+/* #include "rolesresource.h" */
+/* #include "resourcemanager.h" */
+/* #include "srmutility.h" */
+/* #include "psinterface.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "secureresourcemanager.h" */
+/* #include "deviceonboardingstate.h" */
+/* #include "octhread.h" */
 
-#include "security_internals.h"
+/* #include "security_internals.h" */
 
 #define TAG  "OIC_SRM_ACL"
+
 #define NUMBER_OF_SEC_PROV_RSCS 3
 #define NUMBER_OF_DEFAULT_SEC_RSCS 2
 #define STRING_UUID_SIZE (UUID_LENGTH * 2 + 5)
+
+#define OIC_SEC_ACL_LATEST OIC_SEC_ACL_V2
+
+#if INTERFACE
+#define SPEC_MAX_VER_LEN (sizeof("core.x.x.x") + 1) // Spec Version length.
+#endif	/* INTERFACE */
+
+
+/**
+ * @def GET_ACL_VER(specVer)
+ * Gets ACL version depending on spec. version.
+ * Version value has "ocf.x.x.x" for ocf device and "core.x.x.x" for oic device.
+ *
+ * @param specVer spec. version string
+ * @return ACL version
+ */
+
+#define GET_ACL_VER(specVer) ((specVer)[0] == 'o' && (specVer)[1] == 'c' && (specVer)[2] == 'f' ?      \
+                             OIC_SEC_ACL_V2 : OIC_SEC_ACL_V1)
+
+#if INTERFACE
+#define IS_OIC(specVer) ((specVer)[0] == 'c' && (specVer)[1] == 'o' && (specVer)[2] == 'r' && (specVer)[3] == 'e')
+#endif	/* INTERFACE */
+
+#ifdef TB_LOG
+INLINE_API void printACE(LogLevel level, const OicSecAce_t *ace)
+{
+    OIC_LOG(level, ACL_TAG, "=================================================");
+    OIC_LOG_V(level, ACL_TAG, "ACE @ %p", ace);
+
+    if (NULL == ace)
+    {
+        return;
+    }
+
+    OIC_LOG_V(level, ACL_TAG, "    aceid = %d", ace->aceid);
+
+    OIC_LOG_V(level, ACL_TAG, "    permission = %#x", (uint32_t)ace->permission);
+
+    // Log the subject
+    if (ace->subjectType == OicSecAceUuidSubject)
+    {
+        char uuidString[UUID_STRING_SIZE] = { 0 };
+        bool convertedUUID = OCConvertUuidToString(ace->subjectuuid.id, uuidString);
+        OIC_LOG_V(level, ACL_TAG, "    subject UUID = %s", convertedUUID ? uuidString : "incorrect format");
+    }
+    else if (ace->subjectType == OicSecAceRoleSubject)
+    {
+        OIC_LOG_V(level, ACL_TAG, "    role id = %s", ace->subjectRole.id);
+        OIC_LOG_V(level, ACL_TAG, "    authority = %s", ace->subjectRole.authority);
+    }
+    else if (ace->subjectType == OicSecAceConntypeSubject)
+    {
+        const char *conntype;
+        if (ANON_CLEAR == ace->subjectConn)
+        {
+            conntype = "ANON_CLEAR";
+        }
+        else if (AUTH_CRYPT == ace->subjectConn)
+        {
+            conntype = "AUTH_CRYPT";
+        }
+        else
+        {
+            conntype = "Unknown conntype in subjectConn";
+        }
+        OIC_LOG_V(level, ACL_TAG, "    conntype = %s", conntype);
+    }
+    else
+    {
+        OIC_LOG(level, ACL_TAG, "    subject = (subject of unknown type)");
+    }
+
+    // Log all resources this ACE applies to.
+    OicSecRsrc_t *resource = NULL;
+    size_t resourceCount = 0;
+    LL_FOREACH(ace->resources, resource)
+    {
+        OIC_LOG_V(level, ACL_TAG, "    resources[%" PRIuPTR "]:", resourceCount);
+        OIC_LOG_V(level, ACL_TAG, "        href = %s", resource->href ? resource->href : "null");
+
+        for (size_t i = 0; i < resource->typeLen; i++)
+        {
+            OIC_LOG_V(level, ACL_TAG, "        types[%" PRIuPTR "] = %s", i,
+                resource->types[i] ? resource->types[i] : "null");
+        }
+
+        for (size_t i = 0; i < resource->interfaceLen; i++)
+        {
+            OIC_LOG_V(level, ACL_TAG, "        interfaces[%" PRIuPTR "] = %s", i,
+                resource->interfaces[i] ? resource->interfaces[i] : "null");
+        }
+
+        resourceCount++;
+    }
+
+    // Log the validities.
+    OicSecValidity_t *validity = NULL;
+    size_t validityCount = 0;
+    LL_FOREACH(ace->validities, validity)
+    {
+        OIC_LOG_V(level, ACL_TAG, "    validities[%" PRIuPTR "]:", validityCount);
+        OIC_LOG_V(level, ACL_TAG, "        period = %s", validity->period);
+        for (size_t i = 0; i < validity->recurrenceLen; i++)
+        {
+            OIC_LOG_V(level, ACL_TAG, "    recurrences[%" PRIuPTR "] = %s", i,
+                validity->recurrences[i] ? validity->recurrences[i] : "null");
+        }
+        validityCount++;
+    }
+
+    OIC_LOG(level, ACL_TAG, "=================================================");
+}
+
+INLINE_API void printACL(LogLevel level, const OicSecAcl_t* acl)
+{
+    OIC_LOG_V(level, ACL_TAG, "Print ACL @ %p:", acl);
+
+    if (NULL == acl)
+    {
+        return;
+    }
+
+    char rowner[UUID_STRING_SIZE] = { 0 };
+    if (OCConvertUuidToString(acl->rownerID.id, rowner))
+    {
+        OIC_LOG_V(level, ACL_TAG, "rowner id = %s", rowner);
+    }
+    else
+    {
+        OIC_LOG(ERROR, ACL_TAG, "Can't convert rowner uuid to string");
+    }
+
+    const OicSecAce_t *ace = acl->aces;
+    size_t ace_count = 0;
+    while (ace)
+    {
+        OIC_LOG_V(level, ACL_TAG, "Print ace[%" PRIuPTR "]:", ace_count);
+        printACE(level, ace);
+        ace = ace->next;
+        ace_count++;
+    }
+}
+#define OIC_LOG_ACL(level, acl) printACL((level),(acl))
+#define OIC_LOG_ACE(level, ace) printACE((level),(ace))
+
+#else
+#define OIC_LOG_ACL(level, acl)
+#define OIC_LOG_ACE(level, ace)
+#endif
+
+
 
 static const uint8_t ACL_MAP_SIZE = 4; // aclist, rowneruuid, RT and IF
 static const uint8_t ACL_ACLIST_MAP_SIZE = 1; // aces object
@@ -71,10 +226,74 @@ static OicSecAcl_t *gAcl = NULL;
 static OCResourceHandle gAclHandle = NULL;
 static OCResourceHandle gAcl2Handle = NULL;
 
+#if INTERFACE
+#define fixme_rp2 OCResourceProperty /* help makeheaders */
+typedef struct OicSecRsrc_t
+{
+    char *href; // 0:R:S:Y:String
+    char *rel; // 1:R:S:N:String
+    char** types; // 2:R:S:N:String Array
+    size_t typeLen; // the number of elts in types
+    char** interfaces; // 3:R:S:N:String Array
+    size_t interfaceLen; // the number of elts in interfaces
+    OicSecAceResourceWildcard_t wildcard;
+    OicSecRsrc_t *next;
+} OicSecRsrc_t;
+
+typedef struct OicSecAce_t
+{
+    // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
+    OicSecAceSubjectType subjectType;
+    union                               // 0:R:S:Y:{roletype|didtype|"*"}
+    {
+        OicUuid_t subjectuuid;          // Only valid for subjectType == OicSecAceUuidSubject
+        OicSecRole_t subjectRole;       // Only valid for subjectType == OicSecAceRoleSubject
+        OicSecConntype_t subjectConn;   // Only valid for subjectType == OicSecAceConntypeSubject
+    };
+    OicSecRsrc_t *resources;            // 1:R:M:Y:Resource
+    uint16_t permission;                // 2:R:S:Y:UINT16
+    OicSecValidity_t *validities;       // 3:R:M:N:Time-interval
+    uint16_t aceid;                     // mandatory in ACE2
+#ifdef MULTIPLE_OWNER
+    OicUuid_t* eownerID;                //4:R:S:N:oic.uuid
+#endif
+    OicSecAce_t *next;
+} OicSecAce_t;
+/* typedef struct OicSecAce OicSecAce_t; */
+
+typedef enum
+{
+    OicSecAceUuidSubject = 0, /* Default to this type. */
+    OicSecAceRoleSubject,
+    OicSecAceConntypeSubject
+} OicSecAceSubjectType;
+
+typedef enum OicSecAceResourceWildcard
+{
+    NO_WILDCARD = 0,
+    ALL_DISCOVERABLE,       // maps to "+" in JSON/CBOR
+    ALL_NON_DISCOVERABLE,   // maps to "-" in JSON/CBOR
+    ALL_RESOURCES           // maps to "*" in JSON/CBOR
+} OicSecAceResourceWildcard_t;
+
+/* typedef struct OicSecAcl OicSecAcl_t; */
+
+/**
+ * /oic/sec/acl (Access Control List) data type.
+ * Derived from OIC Security Spec; see Spec for details.
+ */
+typedef struct OicSecAcl_t
+{
+    // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
+    OicUuid_t           rownerID;        // 0:R:S:Y:oic.uuid
+    OicSecAce_t         *aces; // 1:R:M:N:ACE
+}  OicSecAcl_t;
+#endif	/* INTERFACE */
+
 /**
  * List of known ace ids
  */
-enum
+enum ACL_IDS
 {
     ACE_ID1 = 1,
     ACE_ID2,
@@ -83,6 +302,23 @@ enum
     ACE_ID5,
     ACE_ID_FIRST_FREE
 };
+
+#if INTERFACE
+typedef struct OicSecValidity_t
+{
+    char* period; // 0:R:S:Y:String
+    char** recurrences; // 1:R:M:Y:Array of String
+    size_t recurrenceLen; // the number of elts in recurrence
+    OicSecValidity_t *next;
+} OicSecValidity_t;
+
+typedef enum
+{
+    OIC_SEC_ACL_UNKNOWN = 0,
+    OIC_SEC_ACL_V1 = 1,
+    OIC_SEC_ACL_V2 = 2
+} OicSecAclVersion_t;
+#endif	/* INTERFACE */
 
 //global aceid counter to assign unique ace id to new/duplicated aces
 static uint16_t gAceFreeId = ACE_ID_FIRST_FREE;

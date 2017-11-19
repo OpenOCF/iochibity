@@ -18,24 +18,44 @@
  *
  * *****************************************************************/
 
+#include "provisioningdatabasemanager.h"
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-#include <limits.h>
 
 #include "sqlite3.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "provisioningdatabasemanager.h"
-#include "pmutility.h"
-#include "oic_string.h"
-#include "utlist.h"
-
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "provisioningdatabasemanager.h" */
+/* #include "pmutility.h" */
+/* #include "oic_string.h" */
+/* #include "utlist.h" */
 
 #define DB_FILE "PDM.db"
 
 #define TAG "OIC_PDM"
+
+#if INTERFACE
+typedef enum PdmDeviceState {
+    PDM_DEVICE_ACTIVE = 0,
+    PDM_DEVICE_STALE = 1,
+    PDM_DEVICE_INIT = 2,
+    PDM_DEVICE_UNKNOWN = 99
+}PdmDeviceState_t;
+
+/**
+ * Node to construct list of UUID pair list.
+ */
+/* typedef struct OCPairList OCPairList_t; */
+typedef struct OCPairList_t
+{
+    OicUuid_t dev;
+    OicUuid_t dev2;
+    OCPairList_t *next;
+}OCPairList_t;
+#endif
 
 #define PDM_FIRST_INDEX 0
 #define PDM_SECOND_INDEX 1
@@ -69,6 +89,8 @@
 /* #endif */
 /* #endif */
 
+#if INTERFACE
+#include <limits.h>
 #define PDM_VERIFY_STATEMENT_SIZE(stmt) \
     static_assert(sizeof(stmt) < INT_MAX, #stmt " must be shorter than INT_MAX.")
 
@@ -130,7 +152,7 @@ PDM_VERIFY_STATEMENT_SIZE(PDM_SQLITE_GET_DEVICE_STATUS);
                                                           WHERE ID = ? or ID2 = ?"
 #define PDM_SQLITE_UPDATE_LINK_STALE_FOR_STALE_DEVICE_SIZE (int)sizeof(PDM_SQLITE_UPDATE_LINK_STALE_FOR_STALE_DEVICE)
 PDM_VERIFY_STATEMENT_SIZE(PDM_SQLITE_UPDATE_LINK_STALE_FOR_STALE_DEVICE);
-
+#endif
 
 #define ASCENDING_ORDER(id1, id2) do{if( (id1) > (id2) )\
   { int temp; temp = id1; id1 = id2; id2 = temp; }}while(0)

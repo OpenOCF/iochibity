@@ -13,37 +13,121 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
-#include "iotivity_config.h"
-#include "iotivity_debug.h"
+#include "presence.h"
+#include <strings.h>
 
-#include "occlientcb.h"
-#include "occlientcb_api.h"
-#include "ocobserve.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "presence_methods.h"
-#include "ocserverrequest.h"
-#include "ocstackinternal.h"
-#include "ocrandom.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
+/* #include "iotivity_config.h" */
+/* #include "iotivity_debug.h" */
 
-/* //src/comm/api */
-#include "cainterface.h"
+/* #include "occlientcb.h" */
+/* #include "occlientcb_api.h" */
+/* #include "ocobserve.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "presence_methods.h" */
+/* #include "ocserverrequest.h" */
+/* #include "ocstackinternal.h" */
+/* #include "ocrandom.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
 
-#include "utlist.h"
+/* /\* //src/comm/api *\/ */
+/* #include "cainterface.h" */
 
-/* #ifdef __cplusplus
- * extern "C" {
- * #endif // __cplusplus */
+/* #include "utlist.h" */
 
 /* #ifdef WITH_PRESENCE */
 
-#define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \
-             __FILE__, #arg " is NULL"); return (retVal); } }
+/* #define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \ */
+/*              __FILE__, #arg " is NULL"); return (retVal); } } */
 
-#define VERIFY_NON_NULL_V(arg) { if (!arg) {OIC_LOG(FATAL, __FILE__, #arg " is NULL");\
-    goto exit;} }
+/* #define VERIFY_NON_NULL_V(arg) { if (!arg) {OIC_LOG(FATAL, __FILE__, #arg " is NULL");\ */
+/*     goto exit;} } */
+
+#if INTERFACE
+/**
+ * The OCPresenceTrigger enum delineates the three spec-compliant modes for
+ * "Trigger." These enum values are then mapped to  strings
+ * "create", "change", "delete", respectively, before getting encoded into
+ * the payload.
+ */
+typedef enum
+{
+    /** The creation of a resource is associated with this invocation. */
+    OC_PRESENCE_TRIGGER_CREATE = 0,
+
+    /** The change/update of a resource is associated this invocation. */
+    OC_PRESENCE_TRIGGER_CHANGE = 1,
+
+    /** The deletion of a resource is associated with this invocation.*/
+    OC_PRESENCE_TRIGGER_DELETE = 2
+} OCPresenceTrigger;
+#endif	/* INTERFACE */
+
+/* #endif */
+
+#if INTERFACE
+/* #ifdef WITH_PRESENCE */
+typedef struct			/* from octypes.h */
+{
+    OCPayload base;
+    uint32_t sequenceNumber;
+    uint32_t maxAge;
+    OCPresenceTrigger trigger;
+    char* resourceType;
+} OCPresencePayload;
+/* #endif */
+
+/* #ifdef WITH_PRESENCE */
+/** from occlientcb.h
+ * Data structure For presence Discovery.
+ * This is the TTL associated with presence.
+ */
+typedef struct OCPresence
+{
+    /** Time to Live. */
+    uint32_t TTL;
+
+    /** Time out. */
+    uint32_t * timeOut;
+
+    /** TTL Level. */
+    uint32_t TTLlevel;
+} OCPresence;
+/* #endif // WITH_PRESENCE */
+#endif	/* INTERFACE */
+
+#if INTERFACE
+/** from ocresource.h
+ *Virtual Resource Presence Attributes
+ */
+/* #ifdef WITH_PRESENCE */
+typedef struct PRESENCERESOURCE{
+    OCResourceHandle handle;
+    uint32_t presenceTTL;
+} PresenceResource;
+/* #endif */
+
+/* #ifdef WITH_PRESENCE */
+typedef enum
+{
+    OC_PRESENCE_UNINITIALIZED = 0,
+    OC_PRESENCE_INITIALIZED
+} OCPresenceState;
+/* #endif */
+#endif	/* INTERFACE */
+
+/* #ifdef WITH_PRESENCE */
+OCPresenceState presenceState = OC_PRESENCE_UNINITIALIZED;
+PresenceResource presenceResource = {0};
+uint8_t PresenceTimeOutSize = 0;
+uint32_t PresenceTimeOut[5] = {50, 75, 85, 95, 100};
+/* #endif */
+
+/**
+ * Forward declaration of resource type.
+ */
+typedef struct resourcetype_t OCResourceType;
 
 OCStackResult OCProcessPresence()
 {
@@ -773,7 +857,3 @@ OCStackResult SendAllObserverNotificationWithPresence (OCMethod method,
     }
     return result;
 }
-
-/* #ifdef __cplusplus
- * }
- * #endif // __cplusplus */

@@ -16,15 +16,15 @@
  ******************************************************************/
 #include "canfcadapter.h"
 
-#include "canfcinterface.h"
-#include "caqueueingthread.h"
-#include "caadapterutils.h"
-#include "octhread.h"
-#include "uarraylist.h"
-#include "caremotehandler.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
+/* #include "canfcinterface.h"
+ * #include "caqueueingthread.h"
+ * #include "caadapterutils.h"
+ * #include "octhread.h"
+ * #include "uarraylist.h"
+ * #include "caremotehandler.h"
+ * #include "logger.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h" */
 
 /**
  * Logging tag for module name
@@ -181,10 +181,10 @@ CAResult_t CAInitializeNFC(CARegisterConnectivityCallback registerCallback,
                            CAErrorHandleCallback errorCallback, ca_thread_pool_t handle)
 {
     OIC_LOG(DEBUG, TAG, "IN");
-    VERIFY_NON_NULL(registerCallback, TAG, "registerCallback");
-    VERIFY_NON_NULL(packetReceivedCallback, TAG, "packetReceivedCallback");
-    VERIFY_NON_NULL(netCallback, TAG, "netCallback");
-    VERIFY_NON_NULL(handle, TAG, "thread pool handle");
+    VERIFY_NON_NULL_MSG(registerCallback, TAG, "registerCallback");
+    VERIFY_NON_NULL_MSG(packetReceivedCallback, TAG, "packetReceivedCallback");
+    VERIFY_NON_NULL_MSG(netCallback, TAG, "netCallback");
+    VERIFY_NON_NULL_MSG(handle, TAG, "thread pool handle");
 
     g_adapterStateCallback = netCallback;
     g_packetReceivedCallback = packetReceivedCallback;

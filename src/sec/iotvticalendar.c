@@ -18,19 +18,128 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-//Not supported on Arduino due lack of absolute time need to implement iCalendar
-#if !defined(WITH_ARDUINO)
+#include "iotvticalendar.h"
 
 #define _XOPEN_SOURCE  //Needed by strptime
-#include "iotivity_config.h"
+/* #include "iotivity_config.h" */
 #include <string.h>
+#include <stdint.h>
 #include <assert.h>
-#include "iotvticalendar.h"
-#include "oic_string.h"
+/* #include "iotvticalendar.h" */
+/* #include "oic_string.h" */
 
 #ifndef HAVE_STRPTIME
 char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #endif
+
+#define FREQ_DAILY (1)
+#define MAX_BYDAY_SIZE (7)     //7 days of week
+#define TM_YEAR_OFFSET (1900)  //tm_year field of c-lang tm date-time struct
+                               //represents number of years since 1900.
+#define TM_DST_OFFSET (1)      //c-lang tm struct Daylight Saving Time offset.
+#define TOTAL_HOURS (24)       //Total hours in a day.
+
+#if INTERFACE
+#include <time.h>
+typedef struct IotvtICalRecur IotvtICalRecur_t;
+typedef struct IotvtICalPeriod IotvtICalPeriod_t;
+
+/**
+ *  date-time  = date "T" time.
+ *
+ *  date               = date-value
+ *  date-value         = date-fullyear date-month date-mday
+ *  date-fullyear      = 4DIGIT
+ *  date-month         = 2DIGIT        ;01-12
+ *  date-mday          = 2DIGIT        ;01-28, 01-29, 01-30, 01-31
+ *                                     ;based on month/year
+ *
+ *  time               = time-hour time-minute time-second [time-utc]
+ *  time-hour          = 2DIGIT        ;00-23
+ *  time-minute        = 2DIGIT        ;00-59
+ *  time-second        = 2DIGIT        ;00-60
+ *                                     ;The "60" value is used to account for "leap" seconds.
+ *
+ *  Date-Time Forms:
+ *  1. Date with Local time
+ *      20150626T150000
+ */
+typedef struct tm IotvtICalDateTime_t; //c-lang tm date-time struct
+
+/**
+ * Bit mask for weekdays.
+ */
+typedef enum
+{
+    NO_WEEKDAY  = 0X0,
+    SUNDAY      = (0x1 << 0),
+    MONDAY      = (0x1 << 1),
+    TUESDAY     = (0x1 << 2),
+    WEDNESDAY   = (0x1 << 3),
+    THURSDAY    = (0x1 << 4),
+    FRIDAY      = (0x1 << 5),
+    SATURDAY    = (0x1 << 6)
+} IotvtICalWeekdayBM_t;
+
+#if INTERFACE
+
+/**
+ * Result code for IotvtICalendar.
+ */
+typedef enum
+{
+    IOTVTICAL_SUCCESS = 0,       /**< successfully completed operation. */
+    IOTVTICAL_VALID_ACCESS,      /**< access is within allowable time. */
+    IOTVTICAL_INVALID_ACCESS,    /**< access is not within allowable time. */
+    IOTVTICAL_INVALID_PARAMETER, /**< invalid method parameter. */
+    IOTVTICAL_INVALID_RRULE,     /**< rrule is not well form, missing FREQ. */
+    IOTVTICAL_INVALID_PERIOD,    /**< period is not well form, start-datetime is after end-datetime. */
+    IOTVTICAL_ERROR              /**< encounter error. */
+} IotvtICalResult_t;
+#endif
+
+/**
+ *  Grammar for iCalendar data type PERIOD.
+ *
+ *  period = date-time "/" date-time  ; start-time / end-time.
+ *                                    ;The start-time MUST be before the end-time.
+ *
+ */
+struct IotvtICalPeriod
+{
+    IotvtICalDateTime_t startDateTime;
+    IotvtICalDateTime_t endDateTime;
+};
+#endif	/* INTERFACE */
+
+/**
+ * Grammar for iCalendar data type RECUR.
+ *
+ * recur      = "FREQ"=freq *(
+ *            ( ";" "UNTIL" "=" enddate ) /
+ *            ( ";" "BYDAY" "=" bywdaylist ) /
+ *            )
+ *
+ * freq       = "DAILY"
+ * enddate    = date
+ * bywdaylist = weekday/ ( weekday *("," weekday) )
+ * weekday    = "SU" / "MO" / "TU" / "WE" / "TH" / "FR" / "SA"
+ *
+ * Example:
+ * 1."Allow access on every Monday, Wednesday & Friday between 3pm to 5pm"
+ *      PERIOD:20150626T150000/20150626T170000
+ *      RRULE: FREQ=DAILY; BYDAY=MO, WE, FR
+ * 2."Allow access every Monday, Wednesday & Friday from 3pm to 5pm until
+ *    July 3rd, 2015"
+ *      PERIOD:20150626T150000/20150626T170000
+ *      RRULE: FREQ=DAILY; UNTIL=20150703; BYDAY=MO, WE, FR
+ */
+struct IotvtICalRecur
+{
+    uint16_t                freq;
+    IotvtICalDateTime_t     until;
+    IotvtICalWeekdayBM_t    byDay;
+};
 
 static char dtFormat[] =  "%Y%m%dT%H%M%S"; //date-time format
 static char dFormat[] =  "%Y%m%d";         // date format
@@ -450,4 +559,3 @@ IotvtICalResult_t IsRequestWithinValidTime(const char *periodStr, const char *re
     }
     return ret;
 }
-#endif

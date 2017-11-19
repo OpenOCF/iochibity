@@ -18,18 +18,20 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "iotivity_config.h"
+#include "ocpayloadconvert.h"
 
-#include "ocpayloadcbor.h"
+/* #include "iotivity_config.h" */
+
+/* #include "ocpayloadcbor.h" */
 #include <stdlib.h>
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "logger.h"
-#include "ocpayload.h"
-#include "ocrandom.h"
-#include "ocresourcehandler.h"
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "logger.h" */
+/* #include "ocpayload.h" */
+/* #include "ocrandom.h" */
+/* #include "ocresourcehandler.h" */
 #include "cbor.h"
-#include "ocendpoint.h"
+/* #include "ocendpoint.h" */
 
 #define TAG "OIC_RI_PAYLOADCONVERT"
 
@@ -69,6 +71,7 @@ static int64_t ConditionalAddTextStringToMap(CborEncoder *map, const char *key, 
 OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
         uint8_t** outPayload, size_t* size)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     int64_t err = CborErrorOutOfMemory;
     uint8_t *out = NULL;
@@ -100,6 +103,7 @@ OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
 
     for (;;)
     {
+	OIC_LOG_V(INFO, TAG, "%s LOOP", __func__);
         out = (uint8_t *)OICCalloc(1, curSize);
         VERIFY_PARAM_NON_NULL(TAG, out, "Failed to allocate payload");
         err = OCConvertPayloadHelper(payload, format, out, &curSize);
@@ -108,6 +112,10 @@ OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
         {
             break;
         }
+	else {
+	    OIC_LOG_V(ERROR, TAG, "OCConvertPayloadHelper error: %s", cbor_error_string(err));
+	    /* break; */
+	}
 
         OICFree(out);
     }
@@ -127,6 +135,7 @@ OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
         *outPayload = out;
         OIC_LOG_V(DEBUG, TAG, "Payload Size: %zd Payload : ", *size);
         OIC_LOG_BUFFER(DEBUG, TAG, *outPayload, *size);
+	OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
         return OC_STACK_OK;
     }
 
@@ -134,6 +143,7 @@ OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
     ret = (OCStackResult)-err;
 
 exit:
+    OIC_LOG_V(INFO, TAG, "%s Error EXIT", __func__);
     OICFree(out);
     return ret;
 }
@@ -356,10 +366,12 @@ exit:
 static int64_t OCConvertDiscoveryPayloadCbor(OCDiscoveryPayload *payload,
                                              uint8_t *outPayload, size_t *size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     CborEncoder encoder;
     int64_t err = CborNoError;
 
     cbor_encoder_init(&encoder, outPayload, *size, 0);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 
     /*
     The format for the payload is "modelled" as JSON.
@@ -482,6 +494,7 @@ exit:
 static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
                                                    uint8_t *outPayload, size_t *size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     CborEncoder encoder;
     int64_t err = CborNoError;
 
@@ -638,6 +651,7 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
                     err |= cbor_encode_text_string(&endpointMap, OC_RSRVD_PRIORITY,
                                                    sizeof(OC_RSRVD_PRIORITY) - 1);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed adding priority tag to endpoint map");
+
                     err |= cbor_encode_uint(&endpointMap, endpoint->pri);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed adding priority value to endpoint map");
 
@@ -679,12 +693,14 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
     }
 
 exit:
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return checkError(err, &encoder, outPayload, size);
 }
 
 static int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadFormat format,
                                          uint8_t *outPayload, size_t *size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (OC_FORMAT_VND_OCF_CBOR == format)
     {
         return OCConvertDiscoveryPayloadVndOcfCbor(payload, outPayload, size);
@@ -693,6 +709,7 @@ static int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadF
     {
         return OCConvertDiscoveryPayloadCbor(payload, outPayload, size);
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 static int64_t OCConvertArrayItem(CborEncoder *array, const OCRepPayloadValueArray *valArray,

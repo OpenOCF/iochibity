@@ -1,8 +1,20 @@
 /* co_service_provider_mgr.c */
 
 #include "co_service_provider_mgr.h"
-#include "oic_malloc.h"
-#include "logger.h"
+#include <string.h>
+/* #include "oic_malloc.h"
+ * #include "logger.h" */
+
+/**
+ * Mutex to synchronize the access to g_responses variable.
+ */
+static oc_mutex g_responses_mutex = NULL;
+
+/* FIXME: typedef this? */
+struct OOCF_ResponseItem {
+    OCClientResponse * response;
+    struct OOCF_ResponseItem *next;
+};
 
 static struct OOCF_ResponseItem *g_responses;
 
@@ -20,6 +32,7 @@ OCStackResult oocf_cosp_mgr_init()
         }
     }
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return OC_STACK_OK;
 }
 
 OCStackResult oocf_cosp_mgr_terminate()
@@ -33,6 +46,7 @@ OCStackResult oocf_cosp_mgr_terminate()
 	    g_responses_mutex = NULL;
 	}
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return OC_STACK_OK;
 }
 
 /**
@@ -144,7 +158,7 @@ char **oocf_cosp_list_resource_uris()
     }
     i++; /* for null */
 
-    CoServiceProvider *cosps = OICCalloc(1, i * sizeof(CoServiceProvider*));
+    /* CoServiceProvider *cosps = OICCalloc(1, i * sizeof(CoServiceProvider*)); */
     char **uris = OICCalloc(1, i * sizeof(char*));
 
 
@@ -168,7 +182,7 @@ char **oocf_cosp_list_resource_uris()
 	item = item->next;
 	i++;
     }
-    char **xuris = uris;
+    /* char **xuris = uris; */
     /* OIC_LOG_V(DEBUG, TAG, "xuris: %p", xuris); */
 
     return uris;

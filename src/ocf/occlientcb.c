@@ -18,32 +18,148 @@
  *
  ******************************************************************/
 
-#include "iotivity_config.h"
-#include "occlientcb_api.h"
-#include <coap/coap.h>
-#include "logger.h"
-#include "trace.h"
-#include "oic_malloc.h"
+#include "occlientcb.h"
+
+/* #include "iotivity_config.h" */
+/* #include "occlientcb_api.h" */
+
+#include "coap_config.h"
+#include "coap/coap_time.h"
+
+/* #include "logger.h" */
+/* #include "trace.h" */
+/* #include "oic_malloc.h" */
 #include <string.h>
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#ifdef HAVE_ARDUINO_TIME_H
-#include "Time.h"
-#endif
 
-#include "cacommon.h"
-#include "cainterface.h"
+/* #include "cacommon.h" */
+/* #include "cainterface.h" */
 
 /// Module Name
 #define TAG "OIC_RI_CLIENTCB"
 
-//-------------------------------------------------------------------------------------------------
-// Private variables
-//-------------------------------------------------------------------------------------------------
+#if EXPORT_INTERFACE
+/**
+ * Client applications implement this callback to consume responses received from Servers.
+ */
+typedef OCStackApplicationResult (* OCClientResponseHandler)(void *context, OCDoHandle handle,
+    OCClientResponse * clientResponse);
+
+/**
+ * Client applications using a context pointer implement this callback to delete the
+ * context upon removal of the callback/context pointer from the internal callback-list.
+ */
+typedef void (* OCClientContextDeleter)(void *context);
+
+/**
+ * This info is passed from application to OC Stack when initiating a request to Server.
+ */
+typedef struct OCCallbackData
+{
+    /** Pointer to the context.*/
+    void *context;
+
+    /** The pointer to a function the stack will call to handle the requests.*/
+    OCClientResponseHandler cb;
+
+    /** A pointer to a function to delete the context when this callback is removed.*/
+    OCClientContextDeleter cd;
+
+#ifdef __cplusplus
+    OCCallbackData() = default;
+    OCCallbackData(void* ctx, OCClientResponseHandler callback, OCClientContextDeleter deleter)
+        :context(ctx), cb(callback), cd(deleter){}
+#endif // __cplusplus
+} OCCallbackData;
+#endif	/* INTERFACE */
+
+/**
+ * Forward declaration of resource type.
+ */
+typedef struct resourcetype_t OCResourceType;
+
+/**
+ * Data structure for holding client's callback context, methods and Time to Live,
+ * connectivity Types, presence and resource type, request uri etc.
+ */
+#if INTERFACE
+typedef struct ClientCB {
+    /** callback method defined in application address space. */
+    OCClientResponseHandler callBack; /* Always set errno = 0 before calling!  */
+
+    /** callback context data. */
+    void * context;
+
+    /** callback method to delete context data. */
+    OCClientContextDeleter deleteCallback;
+
+    /** Qos for the request */
+    CAMessageType_t type;
+
+    /**  when a response is recvd with this token, above callback will be invoked. */
+    CAToken_t token;
+
+    /** a response is recvd with this token length.*/
+    uint8_t tokenLength;
+
+    CAHeaderOption_t *options;
+
+    uint8_t numOptions;
+
+    CAPayload_t payload;
+
+    size_t payloadSize;
+
+    CAPayloadFormat_t payloadFormat;
+
+    /** Invocation handle tied to original call to OCDoResource().*/
+    OCDoHandle handle;
+
+    /** This is used to determine if all responses should be consumed or not.
+     * (For now, only pertains to OC_REST_OBSERVE_ALL vs. OC_REST_OBSERVE functionality).*/
+    OCMethod method;
+
+    /** This is the sequence identifier the server applies to the invocation tied to 'handle'.*/
+    uint32_t sequenceNumber;
+
+    /** The canonical form of the request uri associated with the call back.*/
+    char * requestUri;
+
+    /** Remote address complete.*/
+    OCDevAddr * devAddr;
+
+#ifdef WITH_PRESENCE
+    /** Struct to hold TTL info for presence.*/
+    OCPresence * presence;
+
+    /** Struct to hold a resource type name for filtering a presence interesting.*/
+    OCResourceType * interestingPresenceResourceType;
+#endif
+
+    /** The connectivity type on which the request was sent on.*/
+    OCConnectivityType conType;
+
+    /** The TTL for this callback. Holds the time till when this callback can
+     * still be used. TTL is set to 0 when the callback is for presence and observe.
+     * Presence has ttl mechanism in the "presence" member of this struct and observes
+     * can be explicitly cancelled.*/
+    uint32_t TTL;
+
+    /** next node in this list.*/
+    struct ClientCB    *next;
+} ClientCB;
+#endif	/* INTERFACE */
+
 //TODO: Now g_cbList is defined as extern variable since ocstack needs it to process presence.
 //      This should be static variable after we make a presence feature separately.
+//TODO: Now ocstack is directly accessing the clientCB list to process presence.
+//      It should be avoided after we make a presence feature separately.
+/**
+ * Linked list of ClientCB node.
+ */
 struct ClientCB *g_cbList = NULL;
 
 //-------------------------------------------------------------------------------------------------

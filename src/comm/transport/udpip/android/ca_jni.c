@@ -31,7 +31,7 @@
 #ifdef HAVE_LINUX_IF_H
 #include <linux/if.h>
 #endif
-#include <coap/utlist.h>
+/* #include <coap/utlist.h> */
 #ifdef HAVE_LINUX_NETLINK_H
 #include <linux/netlink.h>
 #endif
@@ -237,7 +237,7 @@ Java_org_iotivity_ca_CaIpInterface_caIpStateEnabled(JNIEnv *env, jclass class)
             continue;
         }
 
-        CAProcessNewInterface(ifitem); /* GAR: in caipserver.c */
+        CAProcessNewInterface(ifitem); /* GAR: in caipserver.c; adds if to multicast grp */
 
     }
     u_arraylist_destroy(iflist);

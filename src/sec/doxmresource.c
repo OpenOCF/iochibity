@@ -17,44 +17,113 @@
 // limitations under the License.
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-#include "iotivity_config.h"
-#include "iotivity_debug.h"
+#include "doxmresource.h"
+
+/* #include "iotivity_config.h" */
+/* #include "iotivity_debug.h" */
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
 
-#include "ocstack.h"
-#include "oic_malloc.h"
-#include "payload_logging.h"
-#include "utlist.h"
-#include "ocrandom.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "cainterface.h"
-#include "ocserverrequest.h"
-#include "resourcemanager.h"	/* for SendSRMResponse */
-#include "doxmresource.h"
-#include "pstatresource.h"
-#include "deviceonboardingstate.h"
-#include "aclresource.h"
-#include "amaclresource.h"
-#include "psinterface.h"
-#include "srmresourcestrings.h"
-#include "credresource.h"
-#include "srmutility.h"
-#include "pinoxmcommon.h"
-#include "oxmverifycommon.h"
-#include "ocstackinternal.h"
+/* #include "ocstack.h" */
+/* #include "oic_malloc.h" */
+/* #include "payload_logging.h" */
+/* #include "utlist.h" */
+/* #include "ocrandom.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "cainterface.h" */
+/* #include "ocserverrequest.h" */
+/* #include "resourcemanager.h"	/\* for SendSRMResponse *\/ */
+/* #include "doxmresource.h" */
+/* #include "pstatresource.h" */
+/* #include "deviceonboardingstate.h" */
+/* #include "aclresource.h" */
+/* #include "amaclresource.h" */
+/* #include "psinterface.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "credresource.h" */
+/* #include "srmutility.h" */
+/* #include "pinoxmcommon.h" */
+/* #include "oxmverifycommon.h" */
+/* #include "ocstackinternal.h" */
 #if defined(__WITH_DTLS__) || defined (__WITH_TLS__)
 #include <mbedtls/ssl_ciphersuites.h>
 #include <mbedtls/md.h>
-#include "pkix_interface.h"
+/* #include "pkix_interface.h" */
 #endif
 
 #define TAG  "OIC_SRM_DOXM"
+
+#define fixme_rp OCResourceProperty /* help makeheaders */
+
+#if EXPORT_INTERFACE
+#include <stdlib.h>
+typedef enum OicSecOxm_t
+{
+    OIC_JUST_WORKS                          = 0x0, /* oic.sec.doxm.jw */
+    OIC_RANDOM_DEVICE_PIN                   = 0x1,
+    OIC_MANUFACTURER_CERTIFICATE            = 0x2,
+    OIC_DECENTRALIZED_PUBLIC_KEY            = 0x3,
+    OIC_OXM_COUNT,
+#ifdef MULTIPLE_OWNER
+    OIC_PRECONFIG_PIN                       = 0xFF00,
+#endif //MULTIPLE_OWNER
+    OIC_MV_JUST_WORKS                       = 0xFF01,
+    OIC_CON_MFG_CERT                        = 0xFF02,
+} OicSecOxm_t;
+
+/* typedef unsigned int OicSecOxm_t; */
+
+#if INTERFACE
+// NOTE that this enum must match the gDoxmPropertyAccessModes
+// table in doxmresource.c
+typedef enum DoxmProperty_t{
+    DOXM_OXMS = 1,
+    DOXM_OXMSEL,
+    DOXM_SCT,
+    DOXM_OWNED,
+#ifdef MULTIPLE_OWNER
+    DOXM_SUBOWNER,
+    DOXM_MOM,
+#endif // MULTIPLE_OWNER
+    DOXM_DEVICEUUID,
+    DOXM_DEVOWNERUUID,
+    DOXM_ROWNERUUID,
+    DOXM_PROPERTY_COUNT
+} DoxmProperty_t;
+#endif
+
+/**
+ * /oic/sec/doxm (Device Owner Transfer Methods) data type
+ * Derived from OIC Security Spec; see Spec for details.
+ * @note If the struct is updated please update
+ * DoxmUpdateWriteableProperty appropriately.
+ */
+struct OicSecDoxm
+{
+    // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
+    OicSecOxm_t         *oxm;           // 1:R:M:N:UINT16
+    size_t              oxmLen;         // the number of elts in Oxm
+    OicSecOxm_t         oxmSel;         // 2:R/W:S:Y:UINT16
+    OicSecCredType_t    sct;            // 3:R:S:Y:oic.sec.credtype
+    bool                owned;          // 4:R:S:Y:Boolean
+    OicUuid_t           deviceID;       // 6:R:S:Y:oic.uuid
+    bool                dpc;            // 7:R:S:Y:Boolean
+    OicUuid_t           owner;          // 8:R:S:Y:oic.uuid
+#ifdef MULTIPLE_OWNER
+    OicSecSubOwner_t* subOwners;        //9:R/W:M:N:oic.uuid
+    OicSecMom_t *mom;                   //10:R/W:S:N:oic.sec.mom
+#endif //MULTIPLE_OWNER
+    OicUuid_t           rownerID;       // 11:R:S:Y:oic.uuid
+};
+typedef struct OicSecDoxm OicSecDoxm_t;
+#endif
+
 #define CHAR_ZERO ('0')
 
 /** Default cbor payload size. This value is increased in case of CborErrorOutOfMemory.
@@ -2071,6 +2140,9 @@ OCStackResult DeInitDoxmResource()
 }
 
 #if defined(__WITH_DTLS__) || defined (__WITH_TLS__)
+#if INTERFACE
+#include <stdint.h>
+#endif	/* INTERFACE */
 OCStackResult SetDoxmDeviceIDSeed(const uint8_t* seed, size_t seedSize)
 {
     OIC_LOG_V(INFO, TAG, "In %s", __func__);

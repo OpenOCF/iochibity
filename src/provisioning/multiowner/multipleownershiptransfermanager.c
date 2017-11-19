@@ -18,6 +18,8 @@
  *
  * *****************************************************************/
 
+#include "multipleownershiptransfermanager.h"
+
 #ifdef HAVE_TIME_H
 #include <time.h>
 #endif
@@ -30,37 +32,39 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "utlist.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "cacommon.h"
-#include "cainterface.h"
-#include "base64.h"
-#include "srmresourcestrings.h"
-#include "doxmresource.h"
-#include "pstatresource.h"
-#include "credresource.h"
-#include "aclresource.h"
-#include "ownershiptransfermanager.h"
-#include "oxmjustworks.h"
-#include "pmtypes.h"
-#include "pmutility.h"
-#include "pmutilityinternal.h"
-#include "srmutility.h"
-#include "provisioningdatabasemanager.h"
-#include "oxmrandompin.h"
-#include "ocpayload.h"
-#include "payload_logging.h"
-#include "oxmjustworks.h"
-#include "oxmpreconfpin.h"
-#include "oxmrandompin.h"
-#include "otmcontextlist.h"
-#include "ocstackinternal.h"
-#include "mbedtls/ssl_ciphersuites.h"
-#include "ocrandom.h"
+/* #include "utlist.h" */
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "cacommon.h" */
+/* #include "cainterface.h" */
+/* #include "base64.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "doxmresource.h" */
+/* #include "pstatresource.h" */
+/* #include "credresource.h" */
+/* #include "aclresource.h" */
+/* #include "ownershiptransfermanager.h" */
+/* #include "oxmjustworks.h" */
+/* #include "pmtypes.h" */
+/* #include "pmutility.h" */
+/* #include "pmutilityinternal.h" */
+/* #include "srmutility.h" */
+/* #include "provisioningdatabasemanager.h" */
+/* #include "oxmrandompin.h" */
+/* #include "ocpayload.h" */
+/* #include "payload_logging.h" */
+/* #include "oxmjustworks.h" */
+/* #include "oxmpreconfpin.h" */
+/* #include "oxmrandompin.h" */
+/* #include "otmcontextlist.h" */
+/* #include "ocstackinternal.h" */
+/* #include "mbedtls/ssl_ciphersuites.h" */
+/* #include "ocrandom.h" */
 
 #define TAG "OIC_MULTIPLE_OTM"
+
+#ifdef MULTIPLE_OWNER
 
 /**********************************************************************
  * API for Super Owner
@@ -1539,3 +1543,4 @@ exit:
 
     return res;
 }
+#endif	/* MULTIPLE_OWNER */

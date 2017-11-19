@@ -17,17 +17,17 @@
  ******************************************************************/
 
 #include "caleinterface.h"
-#include "bluez.h"
-#include "central.h"
-#include "peripheral.h"
-#include "client.h"
-#include "server.h"
-#include "utils.h"
-
-#include "cagattservice.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "logger.h"
+/* #include "bluez.h"
+ * #include "central.h"
+ * #include "peripheral.h"
+ * #include "client.h"
+ * #include "server.h"
+ * #include "utils.h"
+ *
+ * #include "cagattservice.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * #include "logger.h" */
 
 #include <string.h>
 #include <strings.h>  // For strcasecmp().
@@ -38,6 +38,224 @@
 
 // Logging tag.
 #define TAG "BLE_INTERFACE"
+
+/**
+ * Provide info about different mode of data transfer.
+ *
+ * This enum is used to differentiate between unicast and multicast
+ * data transfer.
+ */
+typedef enum
+{
+    LE_MULTICAST,    /**< When this enum is selected, data will be updated to all OIC servers. */
+    LE_UNICAST       /**< When this enum is selected, data will be updated to desired OIC Server. */
+} CALETransferType_t;
+
+/**
+ * Stores the information of the Data to be sent from the queues.
+ *
+ * This structure will be pushed to the sender/receiver queue for
+ * processing.
+ */
+typedef struct
+{
+    /// Remote endpoint contains the information of remote device.
+    CAEndpoint_t *remoteEndpoint;
+
+    /// Data to be transmitted over LE transport.
+    uint8_t *data;
+
+    /// Length of the data being transmitted.
+    uint32_t dataLen;
+
+    /// Sender information list
+    u_arraylist_t * senderInfo;
+} CALEData_t;
+
+/**
+ * The MTU supported for BLE adapter
+ */
+#define CA_DEFAULT_BLE_MTU_SIZE  20
+
+/**
+ * The MTU supported for BLE spec
+ */
+#define CA_SUPPORTED_BLE_MTU_SIZE  517
+
+/**
+ * The Header of the MTU supported for BLE spec
+ */
+#define CA_BLE_MTU_HEADER_SIZE  5
+
+/**
+ * This will be used to notify device status changes to the LE adapter layer.
+ * @param[in]  adapter_state State of the adapter.
+ */
+typedef void (*CALEDeviceStateChangedCallback)(CAAdapterState_t adapter_state);
+
+/**
+ * This will be used to notify device connection state changes to the LE adapter layer.
+ * @param[in]   adapter        Transport type information.
+ * @param[in]   remoteAddress  Endpoint object from which the connection status is changed.
+ * @param[in]   connected      State of connection.
+ */
+typedef void (*CALEConnectionStateChangedCallback)(CATransportAdapter_t adapter,
+                                                   const char *remoteAddress, bool connected);
+
+/* caleinterface.c */
+/**
+ * @internal
+ *
+ * BLE Linux adapter base context.
+ */
+typedef struct _CALEContext
+{
+    /// Connection to the D-Bus system bus.
+    GDBusConnection * connection;
+
+    /**
+     * Proxy to the BlueZ D-Bus object that implements the
+     * "org.freedesktop.DBus.ObjectManager" interface.
+     *
+     * @todo There's probably no need to keep this around after we've
+     *       retrieved the managed objects the first time around since
+     *       we can rely on signals to alert us to any subsequent
+     *       changes.
+     */
+    GDBusObjectManager * object_manager;
+
+    /**
+     * List of @c GDBusObject objects obtained from the BlueZ
+     * @c ObjectManager.
+     *
+     * @note This list will be updated later on as needed if changes
+     *       in the BlueZ ObjectManager are detected.
+     */
+    GList * objects;
+
+    /**
+     * BlueZ adapter list.
+     *
+     * List of @c GDBusProxy objects for all BlueZ adapters (i.e.
+     * @c org.bluez.Adapter1).  More than one adapter can exist if
+     * multiple Bluetooth hardware interfaces are detected by BlueZ.
+     */
+    GList * adapters;
+
+    /**
+     * BlueZ device list.
+     *
+     * List of @c GDBusProxy objects for all BlueZ devices (i.e.
+     * @c org.bluez.Device1), such as those that matched the discovery
+     * criteria.
+     */
+    GList * devices;
+
+    /**
+     * GATT characteristics to Bluetooth MAC address map.
+     *
+     * Hash table that maps OIC Transport Profile GATT characteristic
+     * to a Bluetooth MAC address.  The key is an interface proxy
+     * (@c GDBusProxy) to an @c org.bluez.GattCharacteristic1 object.
+     * The value is a pointer to the peer @c CAEndpoint_t object.
+     *
+     * On the client side, this maps a response characteristic to the
+     * corresponding MAC address.  On the server side, this maps
+     * request characteristic to the corresponding MAC address.
+     *
+     * @note On the server side a map is overkill since only one
+     *       client is ever connected to the server.  No?
+     *
+     * @todo We may want to have a seperate server-side map to reduce
+     *       contention on this map.
+     */
+    GHashTable * address_map;
+
+    /**
+     * D-Bus signal subscription identifiers.
+     *
+     * The Linux BLE transport implementation subscribes to three
+     * D-Bus signals:
+     *
+     * @li @c org.freedesktop.DBus.ObjectManager.InterfacesAdded
+     * @li @c org.freedesktop.DBus.ObjectManager.InterfacesRemoved
+     *
+     * These subscription identifiers are only used when unsubscribing
+     * from the signals when stopping the LE transport.
+     *
+     * @todo Verify if we need the two property related signals at
+     *       this level.
+     */
+    //@{
+    guint interfaces_added_sub_id;
+    guint interfaces_removed_sub_id;
+    //@}
+
+    /// Glib event loop that drives D-Bus signal handling.
+    GMainLoop * event_loop;
+
+    /**
+     * Callback invoked upon change in local Bluetooth adapter state.
+     */
+    CALEDeviceStateChangedCallback on_device_state_changed;
+
+    /// Callback invoked upon server receiving request data.
+    CABLEDataReceivedCallback on_server_received_data;
+
+    /// Callback invoked upon client receiving response data.
+    CABLEDataReceivedCallback on_client_received_data;
+
+    /**
+     * Handle to thread pool to which client side tasks will be
+     * added.
+     */
+    ca_thread_pool_t client_thread_pool;
+
+    /**
+     * Handle to thread pool to which server side tasks will be
+     * added.
+     */
+    ca_thread_pool_t server_thread_pool;
+
+    /// Callback invoked when reporting a client side error.
+    CABLEErrorHandleCallback on_client_error;
+
+    /// Callback invoked when reporting a server side error.
+    CABLEErrorHandleCallback on_server_error;
+
+    /// Mutex used to synchronize access to context fields.
+    oc_mutex lock;
+
+    /**
+     * BlueZ adapter list initialization condition variable.
+     *
+     * This condition variable is used to prevent the BLE adapter
+     * "start" from completing until the thread performing BlueZ
+     * adapter query completes.  Initialization is performed in the
+     * same thread that will run the event loop.  The condition
+     * variable is also used to wait for peripheral devices to be
+     * discovered.
+     *
+     * @see @c GMainLoop documentation for further details.
+     */
+    oc_cond condition;
+
+    /**
+     * Semaphore that indicates completed start of the LE transport.
+     *
+     * In some corner cases the transport stop will complete before
+     * transport start completes.  In such cases, the event loop
+     * run during LE transport start will never exit since the
+     * transport stop will have completed before the event loop that
+     * drives was
+     * run.  This semaphore is used to force the call to
+     * ::CAStartLEAdapter() to wait for the thread that runs the GLib
+     * event loop that drives D-Bus signal handling to completely
+     * start.
+     */
+    sem_t le_started;
+
+} CALEContext;
 
 /*
     The IoTivity adapter interface currently doesn't provide a means to

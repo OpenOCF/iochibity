@@ -20,6 +20,55 @@
 
 #include "base64.h"
 
+#include <stdint.h>
+#include <stdio.h>
+
+#if INTERFACE
+#include <stdlib.h>
+#endif	/* INTERFACE */
+
+/**
+ * @file
+ * An implementation of Base 64 encoding. As defined in RFC4648 section 4.
+ *
+ * This enables encoding/decoding binary data into a 65-character subset
+ * of US-ASCII (64 characters plus a padding character).
+ *
+ * @note Only Base 64 encoding is implemented. Other encoding types
+ * defined in RFC4648 are not implemented. Base 64 encoding with URL
+ * and filename safe alphabet, Bass 32, and Base 16 Encoding are not
+ * implemented.
+ */
+
+#if INTERFACE
+/**
+ * Macro to calculate the size of 'output' buffer required for
+ * a 'input' buffer of length x during Base64 encoding operation.
+ */
+#define B64ENCODE_OUT_SAFESIZE(x) ((((x) + 3 - 1)/3) * 4 + 1)
+
+/**
+ * Macro to calculate the size of 'output' buffer required for
+ * a 'input' buffer of length x during Base64 decoding operation.
+ */
+#define B64DECODE_OUT_SAFESIZE(x) (((x)*3)/4)
+
+/**
+ * Result code of base64 functions.
+ */
+typedef enum
+{
+    /// The encode, decode operation was successful
+    B64_OK = 0,
+    /// Invalid input parameter.
+    B64_INVALID_PARAM,
+    /// The output buffer is not large enough for the encoded or decoded data.
+    B64_OUTPUT_BUFFER_TOO_SMALL,
+    /// Indicates error encoding or decoding.
+    B64_ERROR
+} B64Result;
+#endif	/* INTERFACE */
+
 /** base character of Base64. */
 static const char g_b64TransTbl[] =
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef"\

@@ -18,26 +18,97 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "iotivity_config.h"
+#include "pstatresource.h"
+
+/* #include "iotivity_config.h" */
 
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 
-#include "ocstack.h"
-#include "oic_malloc.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "payload_logging.h"
-#include "resourcemanager.h"
-#include "pstatresource.h"
-#include "doxmresource.h"
-#include "psinterface.h"
-#include "srmresourcestrings.h"
-#include "srmutility.h"
-#include "deviceonboardingstate.h"
+/* #include "ocstack.h" */
+/* #include "oic_malloc.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "payload_logging.h" */
+/* #include "resourcemanager.h" */
+/* #include "pstatresource.h" */
+/* #include "doxmresource.h" */
+/* #include "psinterface.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "srmutility.h" */
+/* #include "deviceonboardingstate.h" */
 
 #define TAG  "OIC_SRM_PSTAT"
+
+/**
+ * /oic/sec/pstat (Provisioning Status) data type.
+ */
+#if INTERFACE
+struct OicSecPstat
+{
+    // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
+    OicSecDostype_t     dos;            // -:RW:S:Y:oic.sec.dostype
+    bool                isOp;           // 0:R:S:Y:Boolean
+    OicSecDpm_t         cm;             // 1:R:S:Y:oic.sec.dpmtype
+    OicSecDpm_t         tm;             // 2:RW:S:Y:oic.sec.dpmtype
+    OicSecDpom_t        om;             // 4:RW:M:Y:oic.sec.dpom
+    size_t              smLen;          // the number of elts in Sm
+    OicSecDpom_t        *sm;            // 5:R:M:Y:oic.sec.dpom
+    uint16_t            commitHash;     // 6:R:S:Y:oic.sec.sha256
+    OicUuid_t           rownerID;       // 7:R:S:Y:oic.uuid
+};
+
+typedef struct OicSecPstat OicSecPstat_t;
+#endif	/* INTERFACE */
+
+#define fixme_pstat_rp OCResourceProperty /* help makeheaders */
+
+#if INTERFACE
+typedef enum PstatProperty_t{
+    PSTAT_DOS = 0,
+    PSTAT_ISOP,
+    PSTAT_CM,
+    PSTAT_TM,
+    PSTAT_OM,
+    PSTAT_SM,
+    PSTAT_ROWNERUUID,
+    PSTAT_PROPERTY_COUNT
+} PstatProperty_t;
+
+/**
+ * The oic.sec.dpmtype
+ */
+typedef enum OicSecDpm
+{
+    NORMAL                          = 0x0,
+    RESET                           = (0x1 << 0),
+    TAKE_OWNER                      = (0x1 << 1),
+    BOOTSTRAP_SERVICE               = (0x1 << 2),
+    SECURITY_MANAGEMENT_SERVICES    = (0x1 << 3),
+    PROVISION_CREDENTIALS           = (0x1 << 4),
+    PROVISION_ACLS                  = (0x1 << 5),
+    VERIFY_SOFTWARE_VERSION         = (0x1 << 6),
+    UPDATE_SOFTWARE                 = (0x1 << 7),
+#ifdef MULTIPLE_OWNER
+    TAKE_SUB_OWNER                  = (0x1 << 13),
+#endif
+} OicSecDpm_t;
+
+/* typedef unsigned int OicSecDpm_t; */
+
+/* These types are taken from the Security Spec v1.1.12 /pstat resource definition */
+/* Note that per the latest spec, there is NO definition for Multiple Service Client Directed */
+/* provisioning mode, so that enum value has been removed. */
+typedef enum OicSecDpom_t
+{
+    MULTIPLE_SERVICE_SERVER_DRIVEN    = (0x1 << 0),
+    SINGLE_SERVICE_SERVER_DRIVEN      = (0x1 << 1),
+    SINGLE_SERVICE_CLIENT_DRIVEN      = (0x1 << 2),
+} OicSecDpom_t;
+#endif	/* INTERFACE */
+
+/* typedef unsigned int OicSecDpom_t; */
 
 /** Default cbor payload size. This value is increased in case of CborErrorOutOfMemory.
  * The value of payload size is increased until reaching below max cbor size. */

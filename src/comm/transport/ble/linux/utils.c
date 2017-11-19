@@ -27,6 +27,39 @@
 // Logging tag.
 #define TAG "BLE_UTILS"
 
+/**
+ * Proxy retrieval filter function type.
+ *
+ * A function that implements this interface may be passed to
+ * @c CAGetBlueZManagedObjectProxies() to filter proxies to be added
+ * to the returned list.
+ *
+ * @return @c true if the proxy should be added to the proxy list,
+ *         @c false otherwise.
+ */
+typedef bool(*CALEProxyFilter)(GDBusProxy * proxy);
+
+/**
+ * D-Bus skeleton propery name/value pair.
+ *
+ * This name value pair will be used when constructing the property
+ * dictionary embedded in
+ * @c org.freedesktop.DBus.ObjectManager.GetManagedObjects() results.
+ */
+typedef struct _CADBusSkeletonProperty
+{
+    /// Property name.
+    char const * const name;
+
+    /**
+     * Property value.
+     *
+     * @c Ownership is transferred to the function this variant passed
+     * to.
+     */
+    GVariant * const value;
+} CADBusSkeletonProperty;
+
 bool CAGetBlueZManagedObjectProxies(GList ** proxies,
                                     char const * interface,
                                     CALEContext * context,

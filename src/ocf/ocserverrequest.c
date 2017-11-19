@@ -18,60 +18,313 @@
  *
  ******************************************************************/
 
+#include "ocserverrequest.h"
+
 #include <string.h>
 
-#include "ocstack.h"
-#include "ocserverrequest.h"
-#include "ocresourcehandler.h"
-#include "ocobserve.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "logger.h"
+/* #include "ocstack.h" */
+/* #include "ocserverrequest.h" */
+/* #include "ocresourcehandler.h" */
+/* #include "ocobserve.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "ocpayload.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "logger.h" */
 
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
-#include "routingutility.h"
-#endif
+/* #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
+/* #include "routingutility.h" */
+/* #endif */
 
-#include "cacommon.h"
-#include "cainterface.h"
+/* #include "cacommon.h" */
+/* #include "cainterface.h" */
 
 #include <coap/pdu.h>
 
 //-------------------------------------------------------------------------------------------------
 // Macros
 //-------------------------------------------------------------------------------------------------
-#define VERIFY_NON_NULL(arg) { if (!arg) {OIC_LOG(FATAL, TAG, #arg " is NULL"); goto exit;} }
+/* #define VERIFY_NON_NULL(arg) { if (!arg) {OIC_LOG(FATAL, TAG, #arg " is NULL"); goto exit;} } */
 
 // Module Name
 #define TAG "OIC_RI_SERVERREQUEST"
 
+/**
+ * Incoming requests handled by the server. Requests are passed in as a parameter to the
+ * OCEntityHandler callback API.
+ * The OCEntityHandler callback API must be implemented in the application in order
+ * to receive these requests.
+ */
+#if EXPORT_INTERFACE
+#include <stdint.h>
+typedef struct
+{
+    /** Associated resource.*/
+    OCResourceHandle resource;
+
+    /** Associated request handle.*/
+    OCRequestHandle requestHandle;
+
+    /** the REST method retrieved from received request PDU.*/
+    OCMethod method;
+
+    /** description of endpoint that sent the request.*/
+    OCDevAddr devAddr;
+
+    /** resource query send by client.*/
+    char * query;
+
+    /** Information associated with observation - valid only when OCEntityHandler flag includes
+     * ::OC_OBSERVE_FLAG.*/
+    OCObservationInfo obsInfo;
+
+    /** Number of the received vendor specific header options.*/
+    uint8_t numRcvdVendorSpecificHeaderOptions;
+
+    /** Pointer to the array of the received vendor specific header options.*/
+    OCHeaderOption * rcvdVendorSpecificHeaderOptions;
+
+    /** Message id.*/
+    uint16_t messageID;
+
+    /** the payload from the request PDU.*/
+    OCPayload *payload;
+
+} OCEntityHandlerRequest;
+#endif	/* INTERFACE */
+
+/**
+ * Response from queries to remote servers. Queries are made by calling the OCDoResource API.
+ */
+#if EXPORT_INTERFACE
+typedef struct
+{
+    /** Address of remote server.*/
+    OCDevAddr devAddr;
+
+    /** backward compatibility (points to devAddr).*/
+    OCDevAddr *addr;
+
+    /** backward compatibility.*/
+    OCConnectivityType connType;
+
+    /** the security identity of the remote server.*/
+    OCIdentity identity;	/* GAR: not used for discovery responses? */
+
+    /** the is the result of our stack, OCStackResult should contain coap/other error codes.*/
+    OCStackResult result;
+
+    /** If associated with observe, this will represent the sequence of notifications from server.*/
+    uint32_t sequenceNumber;
+
+    /** resourceURI.*/
+    const char * resourceUri;
+
+    /** the payload for the response PDU.*/
+    OCPayload *payload;
+
+    /** Number of the received vendor specific header options.*/
+    uint8_t numRcvdVendorSpecificHeaderOptions;
+
+    /** An array of the received vendor specific header options.*/
+    OCHeaderOption rcvdVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
+} OCClientResponse;
+#endif	/* INTERFACE */
+
+/**
+ * Request handle is passed to server via the entity handler for each incoming request.
+ * Stack assigns when request is received, server sets to indicate what request response is for.
+ */
+#if EXPORT_INTERFACE
+typedef struct
+{
+    /** Request handle.*/
+    OCRequestHandle requestHandle;
+
+    /** Resource handle. (@deprecated: This parameter is not used.) */
+    OCResourceHandle resourceHandle;
+
+    /** Allow the entity handler to pass a result with the response.*/
+    OCEntityHandlerResult  ehResult;
+
+    /** This is the pointer to server payload data to be transferred.*/
+    OCPayload* payload;
+
+    /** number of the vendor specific header options .*/
+    uint8_t numSendVendorSpecificHeaderOptions;
+
+    /** An array of the vendor specific header options the entity handler wishes to use in response.*/
+    OCHeaderOption sendVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
+
+    /** Resource path of new resource that entity handler might create.*/
+    char resourceUri[MAX_URI_LENGTH];
+
+    /** Server sets to true for persistent response buffer,false for non-persistent response buffer*/
+    uint8_t persistentBufferFlag;
+} OCEntityHandlerResponse;
+#endif	/* INTERFACE */
+
+/**
+ * Entity's state
+ */
+#if EXPORT_INTERFACE
+typedef enum
+{
+    /** Request state.*/
+    OC_REQUEST_FLAG = (1 << 1),
+    /** Observe state.*/
+    OC_OBSERVE_FLAG = (1 << 2)
+} OCEntityHandlerFlag;
+#endif	/* INTERFACE */
+
+/**
+ * Option ID of header option. The values match CoAP option types in pdu.h.
+ */
+typedef enum
+{
+    CA_HEADER_OPTION_ID_LOCATION_PATH = 8,
+    CA_HEADER_OPTION_ID_LOCATION_QUERY = 20
+} CAHeaderOptionId_t;
+
+#if INTERFACE
+/**
+ * The signature of the internal call back functions to handle responses from entity handler
+ */
+typedef OCStackResult (* OCEHResponseHandler)(OCEntityHandlerResponse * ehResponse);
+
+/**
+ * following structure will be created in occoap and passed up the stack on the server side.
+ */
+typedef struct OCServerRequest
+{
+    /** The REST method retrieved from received request PDU.*/
+    OCMethod method;
+
+    /** Accept format retrieved from the received request PDU. */
+    OCPayloadFormat acceptFormat;
+
+    /** Accept version retrieved from the received request PDU. */
+    uint16_t acceptVersion;
+
+    /** resourceUrl will be filled in occoap using the path options in received request PDU.*/
+    char resourceUrl[MAX_URI_LENGTH];
+
+    /** resource query send by client.*/
+    char query[MAX_QUERY_LENGTH];
+
+    /** qos is indicating if the request is CON or NON.*/
+    OCQualityOfService qos;
+
+    /** Observe option field.*/
+
+    uint32_t observationOption;
+
+    /** Observe Result field.*/
+    OCStackResult observeResult;
+
+    /** number of Responses.*/
+    uint8_t numResponses;
+
+    /** Response Entity Handler .*/
+    OCEHResponseHandler ehResponseHandler;
+
+    /** Remote endpoint address **/
+    OCDevAddr devAddr;
+
+    /** The ID of server request*/
+    uint32_t requestId;
+
+    /** Token for the request.*/
+    CAToken_t requestToken;
+
+    /** token length the request.*/
+    uint8_t tokenLength;
+
+    /** The ID of CoAP pdu (Kept in CoAp).*/
+    uint16_t coapID;
+
+    /** For Delayed Response.*/
+    uint8_t delayedResNeeded;
+
+    /** Number of vendor specific header options.*/
+    uint8_t numRcvdVendorSpecificHeaderOptions;
+
+    /** An Array  of received vendor specific header options.*/
+    OCHeaderOption rcvdVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
+
+    /** Request to complete.*/
+    uint8_t requestComplete;
+
+    /** Node entry in red-black tree of linked lists.*/
+    RBL_ENTRY(OCServerRequest) entry;
+
+    /** Flag indicating slow response.*/
+    uint8_t slowFlag;
+
+    /** Flag indicating notification.*/
+    uint8_t notificationFlag;
+
+    /** Payload format retrieved from the received request PDU. */
+    OCPayloadFormat payloadFormat;
+
+    /** Payload Size.*/
+    size_t payloadSize;
+
+    /** payload is retrieved from the payload of the received request PDU.*/
+    uint8_t payload[1];
+
+    // WARNING: Do NOT add attributes after payload as they get overwritten
+    // when payload content gets copied over!
+
+} OCServerRequest;
+
+/**
+ * Following structure will be created in ocstack to aggregate responses
+ * (in future: for block transfer).
+ */
+typedef struct OCServerResponse
+{
+    /** Node entry in red-black tree.*/
+    RB_ENTRY(OCServerResponse) entry;
+
+    /** this is the pointer to server payload data to be transferred.*/
+    OCPayload* payload;
+
+    /** Remaining size of the payload data to be transferred.*/
+    uint16_t remainingPayloadSize;
+
+    /** Requests to handle.*/
+    OCRequestHandle requestHandle;
+} OCServerResponse;
+#endif
+
 //-------------------------------------------------------------------------------------------------
 // Local functions for RB tree
 //-------------------------------------------------------------------------------------------------
-static int RBRequestTokenCmp(OCServerRequest *target, OCServerRequest *treeNode)
+/* #if INTERFACE */
+LOCAL int RBRequestTokenCmp(OCServerRequest *target, OCServerRequest *treeNode)
 {
     return memcmp(target->requestToken, treeNode->requestToken, target->tokenLength);
 }
 
-static int RBResponseTokenCmp(OCServerResponse *target, OCServerResponse *treeNode)
+LOCAL int RBResponseTokenCmp(OCServerResponse *target, OCServerResponse *treeNode)
 {
     return memcmp(((OCServerRequest*)target->requestHandle)->requestToken,
                   ((OCServerRequest*)treeNode->requestHandle)->requestToken,
                   ((OCServerRequest*)target->requestHandle)->tokenLength);
 }
+/* #endif	/\* INTERFACE *\/ */
 
 //-------------------------------------------------------------------------------------------------
 // Private variables
 //-------------------------------------------------------------------------------------------------
-RB_HEAD(ServerRequestTree, OCServerRequest) g_serverRequestTree =
+static RB_HEAD(ServerRequestTree, OCServerRequest) g_serverRequestTree =
                                                             RB_INITIALIZER(&g_serverRequestTree);
-RBL_GENERATE(ServerRequestTree, OCServerRequest, entry, RBRequestTokenCmp)
+static RBL_GENERATE(ServerRequestTree, OCServerRequest, entry, RBRequestTokenCmp)
 
-RB_HEAD(ServerResponseTree, OCServerResponse) g_serverResponseTree =
+static RB_HEAD(ServerResponseTree, OCServerResponse) g_serverResponseTree =
                                                             RB_INITIALIZER(&g_serverResponseTree);
-RB_GENERATE(ServerResponseTree, OCServerResponse, entry, RBResponseTokenCmp)
+static RB_GENERATE(ServerResponseTree, OCServerResponse, entry, RBResponseTokenCmp)
 
 //-------------------------------------------------------------------------------------------------
 // Local functions
@@ -93,7 +346,7 @@ static OCStackResult AddServerResponse (OCServerResponse ** response, OCRequestH
     OCServerResponse * serverResponse = NULL;
 
     serverResponse = (OCServerResponse *) OICCalloc(1, sizeof(OCServerResponse));
-    VERIFY_NON_NULL(serverResponse);
+    VERIFY_NON_NULL_1(serverResponse);
 
     serverResponse->payload = NULL;
     serverResponse->requestHandle = requestHandle;
@@ -306,7 +559,7 @@ OCStackResult AddServerRequest (OCServerRequest ** request,
 
     OCServerRequest * serverRequest = (OCServerRequest *) OICCalloc(1, sizeof(OCServerRequest) +
                                                             (payloadSize ? payloadSize : 1) - 1);
-    VERIFY_NON_NULL(serverRequest);
+    VERIFY_NON_NULL_1(serverRequest);
 
     serverRequest->coapID = coapMessageID;
     serverRequest->delayedResNeeded = delayedResNeeded;
@@ -348,7 +601,7 @@ OCStackResult AddServerRequest (OCServerRequest ** request,
         if (tokenLength)
         {
             serverRequest->requestToken = (CAToken_t) OICMalloc(tokenLength);
-            VERIFY_NON_NULL(serverRequest->requestToken);
+            VERIFY_NON_NULL_1(serverRequest->requestToken);
             memcpy(serverRequest->requestToken, requestToken, tokenLength);
         }
     }
@@ -858,7 +1111,7 @@ OCStackResult HandleAggregateResponse(OCEntityHandlerResponse * ehResponse)
                 OIC_LOG(ERROR, TAG, "Error adding server response");
                 return stackRet;
             }
-            VERIFY_NON_NULL(serverResponse);
+            VERIFY_NON_NULL_1(serverResponse);
         }
 
         if(ehResponse->payload->type != PAYLOAD_TYPE_REPRESENTATION)

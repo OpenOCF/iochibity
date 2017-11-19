@@ -18,20 +18,73 @@
  *
  ******************************************************************/
 
+#include "caleconnectionmanager.h"
+
 #include <jni.h>
-#include "logger.h"
-#include "cautilinterface.h"
-#include "camanagerleinterface.h"
-#include "camanagerleutil.h"
-#include "caleautoconnector.h"
-#include "cacommon.h"
-#include "cacommonutil.h"
-#include "camanagerdevice.h"
-#include "caleclient.h"
-#include "caleserver.h"
-#include "caleutils.h"
+/* #include "logger.h"
+ * #include "cautilinterface.h"
+ * #include "camanagerleinterface.h"
+ * #include "camanagerleutil.h"
+ * #include "caleautoconnector.h"
+ * #include "cacommon.h"
+ * #include "cacommonutil.h"
+ * #include "camanagerdevice.h"
+ * #include "caleclient.h"
+ * #include "caleserver.h"
+ * #include "caleutils.h" */
 
 #define TAG "OIC_CA_MANAGER_LE"
+
+#if INTERFACE
+typedef enum
+{
+    CA_DEFAULT_BT_FLAGS = 0,
+    // flags for BLE transport
+    CA_LE_ADV_DISABLE   = 0x1,   // disable BLE advertisement.
+    CA_LE_ADV_ENABLE    = 0x2,   // enable BLE advertisement.
+    CA_LE_SERVER_DISABLE = (1 << 4),   // disable gatt server.
+    // flags for EDR transport
+    CA_EDR_SERVER_DISABLE = (1 << 7)
+} CATransportBTFlags_t;
+#endif	/* INTERFACE */
+
+typedef enum
+{
+    /** default flag is 0.*/
+    OC_DEFAULT_BT_FLAGS = 0,
+    /* CA_DEFAULT_BT_FLAGS = 0, */
+
+    // flags for BLE transport
+    /** disable BLE advertisement.*/
+    OC_LE_ADV_DISABLE   = 0x1,
+    /* CA_LE_ADV_DISABLE   = 0x1,   // disable BLE advertisement. */
+
+    /** enable BLE advertisement.*/
+    OC_LE_ADV_ENABLE    = 0x2,
+    /* CA_LE_ADV_ENABLE    = 0x2,   // enable BLE advertisement. */
+
+    /** disable gatt server.*/
+    OC_LE_SERVER_DISABLE = (1 << 4),
+    /* CA_LE_SERVER_DISABLE = (1 << 4),   // disable gatt server. */
+
+    /** disable rfcomm server.*/
+    OC_EDR_SERVER_DISABLE = (1 << 7)
+    // flags for EDR transport
+    /* CA_EDR_SERVER_DISABLE = (1 << 7) */
+} OCTransportBTFlags_t;
+/* } CATransportBTFlags_t; */
+
+#if INTERFACE
+/*
+ * CAUtilConfig_t structure.
+ */
+/* //src/comm/util/ble_manager/android/caleconnectionmanager.c */
+typedef struct
+{
+    CATransportBTFlags_t bleFlags;
+    CAConnectUserPref_t connUserPref;
+} CAUtilConfig_t;
+#endif	/* INTERFACE */
 
 static const jint SUPPORT_ADNROID_API_LEVEL = 18;
 static const jint AUTH_FAIL = 5;
@@ -48,7 +101,7 @@ static jobject g_connectedDeviceSet = NULL;
 CAResult_t CASetLEClientAutoConnectionDeviceInfo(const char* address)
 {
     OIC_LOG(DEBUG, TAG, "CASetClientAutoConnectionDeviceInfo");
-    VERIFY_NON_NULL(address, TAG, "address");
+    VERIFY_NON_NULL_MSG(address, TAG, "address");
 
     bool isAttached = false;
     JNIEnv* env = NULL;
@@ -124,7 +177,7 @@ error_exit:
 CAResult_t CAUnsetLEClientAutoConnectionDeviceInfo(const char* address)
 {
     OIC_LOG(DEBUG, TAG, "CAUnsetClientAutoConnectionDeviceInfo");
-    VERIFY_NON_NULL(address, TAG, "address");
+    VERIFY_NON_NULL_MSG(address, TAG, "address");
 
     bool isAttached = false;
     JNIEnv* env = NULL;
@@ -197,9 +250,9 @@ error_exit:
 CAResult_t CAManagerLEClientInitialize(JNIEnv *env, JavaVM *jvm, jobject context)
 {
     OIC_LOG(DEBUG, TAG, "CAManagerClientInitialize");
-    VERIFY_NON_NULL(env, TAG, "env");
-    VERIFY_NON_NULL(jvm, TAG, "jvm");
-    VERIFY_NON_NULL(context, TAG, "context");
+    VERIFY_NON_NULL_MSG(env, TAG, "env");
+    VERIFY_NON_NULL_MSG(jvm, TAG, "jvm");
+    VERIFY_NON_NULL_MSG(context, TAG, "context");
 
     jint jni_int_sdk = CALEGetBuildVersion(env);
     if (jni_int_sdk < SUPPORT_ADNROID_API_LEVEL)
@@ -247,7 +300,7 @@ CAResult_t CAManagerLEClientInitialize(JNIEnv *env, JavaVM *jvm, jobject context
 CAResult_t CAManagerLEClientTerminate(JNIEnv *env)
 {
     OIC_LOG(DEBUG, TAG, "CAManagerClientTerminate");
-    VERIFY_NON_NULL(env, TAG, "env");
+    VERIFY_NON_NULL_MSG(env, TAG, "env");
 
     // stop gatt connection
     CAResult_t res = CALEClientDisconnectAll(env);

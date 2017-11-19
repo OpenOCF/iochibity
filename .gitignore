@@ -18,6 +18,9 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+## ignore all headers! we generate them a build time using makeheaders
+*.h
+
 # autotools
 autom4te*
 config.guess

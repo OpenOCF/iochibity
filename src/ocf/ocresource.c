@@ -27,45 +27,402 @@
 #define _GNU_SOURCE
 #endif
 
-#include "iotivity_config.h"
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-
-#include "coap/coap.h"
-
 #include "ocresource.h"
-#include "ocresourcehandler.h"
-#include "ocobserve.h"
-#include "occollection.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "logger.h"
-#include "ocpayload.h"
-#include "secureresourcemanager.h"
-#include "cacommon.h"
-#include "cainterface.h"
-#include "oickeepalive.h"
-#include "payload_logging.h"
-#include "ocendpoint.h"
-#include "ocstackinternal.h"
-#include "oickeepalive.h"
-#include "ocpayloadcbor.h"
-#include "psinterface.h"
 
-#ifdef ROUTING_GATEWAY
-#include "routingmanager.h"
+/* #include "iotivity_config.h" */
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
 #endif
+
+
+/* #include "coap/coap.h" */
+#include "cbor.h"
+
+/* #include "ocresource.h" */
+/* #include "ocresourcehandler.h" */
+/* #include "ocobserve.h" */
+/* #include "occollection.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "logger.h" */
+/* #include "ocpayload.h" */
+/* #include "secureresourcemanager.h" */
+/* #include "cacommon.h" */
+/* #include "cainterface.h" */
+/* #include "oickeepalive.h" */
+/* #include "payload_logging.h" */
+/* #include "ocendpoint.h" */
+/* #include "ocstackinternal.h" */
+/* #include "oickeepalive.h" */
+/* #include "ocpayloadcbor.h" */
+/* #include "psinterface.h" */
+
+/* #ifdef ROUTING_GATEWAY */
+/* #include "routingmanager.h" */
+/* #endif */
 
 /// Module Name
 #define TAG "OIC_RI_RESOURCE"
 
+/**
+ * Common JSON string components used by the stack to build JSON strings.
+ * These details are exposed in ocstackconfig.h file in the form of documentation.
+ * Remember to update the documentation there if these are changed.
+ */
+#define OC_JSON_PREFIX                     "{\"oic\":["
+#define OC_JSON_PREFIX_LEN                 (sizeof(OC_JSON_PREFIX) - 1)
+#define OC_JSON_SUFFIX                     "]}"
+#define OC_JSON_SUFFIX_LEN                 (sizeof(OC_JSON_SUFFIX) - 1)
+#define OC_JSON_SEPARATOR                  ','
+#define OC_JSON_SEPARATOR_STR              ","
+
+/**
+ * Static values for various JSON attributes.
+ */
+#define OC_RESOURCE_OBSERVABLE   1
+#define OC_RESOURCE_SECURE       1
+
+/**
+ *  OIC Virtual resources supported by every OIC device.
+ */
+#if INTERFACE
+typedef enum
+{
+    /** unknown URI.*/
+    OC_UNKNOWN_URI =0,
+
+    /** "/oic/res".*/
+    OC_WELL_KNOWN_URI,
+
+    /** "/oic/d" .*/
+    OC_DEVICE_URI,
+
+    /** "/oic/p" .*/
+    OC_PLATFORM_URI,
+
+    /** "/oic/res/d/type" .*/
+    OC_RESOURCE_TYPES_URI,
+#ifdef ROUTING_GATEWAY
+    /** "/oic/gateway" .*/
+    OC_GATEWAY_URI,
+#endif
+#ifdef WITH_PRESENCE
+    /** "/oic/ad" .*/
+    OC_PRESENCE,
+#endif
+
+#ifdef MQ_BROKER
+    /** "/oic/ps" .*/
+    OC_MQ_BROKER_URI,
+#endif
+
+#ifdef TCP_ADAPTER
+    /** "/oic/ping" .*/
+    OC_KEEPALIVE_RESOURCE_URI,
+#endif
+
+    /** "/oic/introspection" .*/
+    OC_INTROSPECTION_URI,
+
+    /** "/oic/introspection/payload" .*/
+    OC_INTROSPECTION_PAYLOAD_URI,
+
+    /** Max items in the list */
+    OC_MAX_VIRTUAL_RESOURCES    //<s Max items in the list
+
+} OCVirtualResources;
+
+/**
+ * The type of handling required to handle a request.
+ */
+typedef enum
+{
+    OC_RESOURCE_VIRTUAL = 0,
+    OC_RESOURCE_NOT_COLLECTION_WITH_ENTITYHANDLER,
+    OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER,
+    OC_RESOURCE_COLLECTION_WITH_ENTITYHANDLER,
+    OC_RESOURCE_COLLECTION_DEFAULT_ENTITYHANDLER,
+    OC_RESOURCE_DEFAULT_DEVICE_ENTITYHANDLER,
+    OC_RESOURCE_NOT_SPECIFIED
+} ResourceHandling;
+#endif	/* INTERFACE */
+
+#if EXPORT_INTERFACE
+
+/** Macro Definitions for observers */
+
+/** Observer not interested. */
+#define OC_OBSERVER_NOT_INTERESTED       (0)
+
+/** Observer still interested. */
+#define OC_OBSERVER_STILL_INTERESTED     (1)
+
+/** Failed communication. */
+#define OC_OBSERVER_FAILED_COMM          (2)
+
+/** Introspection URI.*/
+#define OC_RSRVD_INTROSPECTION_URI_PATH            "/introspection"
+
+/** Introspection payload URI.*/
+#define OC_RSRVD_INTROSPECTION_PAYLOAD_URI_PATH    "/introspection/payload"
+
+/**
+ * Forward declarations
+ */
+
+/* struct rsrc_t; */
+
+/**
+ * following structure will be created in occollection.
+ */
+
+typedef struct occapability {
+    /** Linked list; for multiple capabilities.*/
+    struct occapability* next;
+
+    /** It is a name about resource capability. */
+    char *capability;
+
+    /** It is mean status of capability. */
+    char *status;
+} OCCapability;
+
+/**
+ * following structure will be created in occollection.
+ */
+
+typedef struct ocaction {
+    /** linked list; for multiple actions. */
+    struct ocaction *next;
+
+    /** Target Uri. It will be used to execute the action. */
+    char *resourceUri;
+
+    /** head pointer of a linked list of capability nodes.*/
+    OCCapability* head;
+} OCAction;
+
+/**
+ * following structure will be created in occollection.
+ */
+
+typedef struct ocactionset
+{
+    /** linked list; for list of action set. */
+    struct ocactionset *next;
+
+    /** Name of the action set.*/
+    char *actionsetName;
+
+    /** Time stamp.*/
+    long int timesteps;
+
+    /** Type of action.*/
+    unsigned int type;
+
+    /** head pointer of a linked list of Actions.*/
+    OCAction* head;
+} OCActionSet;
+
+/**
+ * Data structure for holding name and data types for each OIC resource.
+ */
+typedef struct resourcetype_t {
+
+    /** linked list; for multiple types on resource. */
+    struct resourcetype_t *next;
+
+    /**
+     * Name of the type; this string is ‘.’ (dot) separate list of segments where each segment is a
+     * namespace and the final segment is the type; type and sub-types can be separate with
+     * ‘-‘ (dash) usually only two segments would be defined. Either way this string is meant to be
+     * human friendly and is used opaquely and not parsed by code. This name is used in the “rt=”
+     * parameter of a resource description when resources are introspected and is also use in the
+     * " <base URI>/types " list of available types.
+    */
+    char *resourcetypename;
+} OCResourceType;
+
+/**
+ * Data structure for data type and definition for attributes that the resource exposes.
+ */
+typedef struct OCAttribute /* was: attr_t */ {
+
+    /** Points to next resource in list.*/
+    struct OCAttribute *next;
+
+    /** The name of the attribute; used to look up the attribute in list.
+     *  for a given attribute SHOULD not be changed once assigned.
+     */
+    char *attrName;
+
+    /** value of the attribute as void. To support both string and ::OCStringLL value*/
+    void *attrValue;
+} OCAttribute;
+
+/**
+ * Data structure for holding a resource interface
+ */
+typedef struct resourceinterface_t {
+
+    /** linked list; for multiple interfaces on resource.*/
+    struct resourceinterface_t *next;
+
+    /** Name of the interface; this is ‘.’ (dot) separate list of segments where each segment is a
+     * namespace and the final segment is the interface; usually only two segments would be
+     * defined. Either way this string is opaque and not parsed by segment.*/
+    char *name ;
+
+    /** Supported content types to serialize request and response on this interface
+     * (REMOVE for V1 – only jSON for all but core.ll that uses Link Format)*/
+#if 0
+    char *inputContentType ;
+    char *outputContentType ;
+#endif
+    /** Future placeholder for access control and policy.*/
+} OCResourceInterface;
+
+/**
+ * Data structure for holding child resources associated with a collection
+ */
+typedef struct OCChildResource {
+    struct OCResource *rsrcResource;
+    struct OCChildResource *next;
+} OCChildResource;
+
+/**
+ * Data structure for holding data type and definition for OIC resource.
+ */
+typedef struct OCResource {
+
+    /** Points to next resource in list.*/
+    struct OCResource *next;
+
+    /** Relative path on the device; will be combined with base url to create fully qualified path.*/
+    char *uri;
+
+    /** Resource type(s); linked list.*/
+    OCResourceType *rsrcType;
+
+    /** Resource interface(s); linked list.*/
+    OCResourceInterface *rsrcInterface;
+
+    /** Resource attributes; linked list.*/
+    OCAttribute *rsrcAttributes;
+
+    /** Array of pointers to resources; can be used to represent a container of resources.
+     * (i.e. hierarchies of resources) or for reference resources (i.e. for a resource collection).*/
+
+    /** Child resource(s); linked list.*/
+    OCChildResource *rsrcChildResourcesHead;
+
+    /** Pointer to function that handles the entity bound to the resource.
+     *  This handler has to be explicitly defined by the programmer.*/
+    OCEntityHandler entityHandler;
+
+    /** Callback parameter.*/
+    void * entityHandlerCallbackParam;
+
+    /** Properties on the resource – defines meta information on the resource.
+     * (ACTIVE, DISCOVERABLE etc ). */
+
+    OCResourceProperty resourceProperties ;
+
+    /* @note: Methods supported by this resource should be based on the interface targeted
+     * i.e. look into the interface structure based on the query request Can be removed here;
+     * place holder for the note above.*/
+    /* method_t methods; */
+
+    /** Observer(s); linked list.*/
+    ResourceObserver *observersHead;
+
+    /** Sequence number for observable resources. Per the CoAP standard it is a 24 bit value.*/
+    uint32_t sequenceNum;
+
+    /** Pointer of ActionSet which to support group action.*/
+    OCActionSet *actionsetHead;
+
+    /** The instance identifier for this web link in an array of web links - used in links. */
+    union
+    {
+        /** An ordinal number that is not repeated - must be unique in the collection context. */
+        int64_t ins;
+        /** Any unique string including a URI. */
+        char *uniqueStr;
+        /** Use UUID for universal uniqueness - used in /oic/res to identify the device. */
+        OCIdentity uniqueUUID;
+    };
+
+    /** Resource endpoint type(s). */
+    OCTpsSchemeFlags endpointType;
+} OCResource;
+
+/**
+ * Resource Properties.
+ * The value of a policy property is defined as bitmap.
+ * The LSB represents OC_DISCOVERABLE and Second LSB bit represents OC_OBSERVABLE and so on.
+ * Not including the policy property is equivalent to zero.
+ *
+ */
+typedef enum
+{
+    /** When none of the bits are set, the resource is non-secure, non-discoverable &
+     *  non-observable by the client.*/
+    OC_RES_PROP_NONE = (0),
+
+    /** When this bit is set, the resource is allowed to be discovered by clients.*/
+    OC_DISCOVERABLE  = (1 << 0),
+
+    /** When this bit is set, the resource is allowed to be observed by clients.*/
+    OC_OBSERVABLE    = (1 << 1),
+
+    /** When this bit is set, the resource is initialized, otherwise the resource
+     *  is 'inactive'. 'inactive' signifies that the resource has been marked for
+     *  deletion or is already deleted.*/
+    OC_ACTIVE        = (1 << 2),
+
+    /** When this bit is set, the resource has been marked as 'slow'.
+     * 'slow' signifies that responses from this resource can expect delays in
+     *  processing its requests from clients.*/
+    OC_SLOW          = (1 << 3),
+
+    /** When this bit is set, the resource supports access via non-secure endpoints. */
+    OC_NONSECURE     = (1 << 6),
+
+#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+    /** When this bit is set, the resource is a secure resource.*/
+    OC_SECURE        = (1 << 4),
+#else
+    OC_SECURE        = (0),
+#endif
+
+    /** When this bit is set, the resource is allowed to be discovered only
+     *  if discovery request contains an explicit querystring.
+     *  Ex: GET /oic/res?rt=oic.sec.acl */
+    OC_EXPLICIT_DISCOVERABLE   = (1 << 5)
+
+#ifdef WITH_MQ
+    /** When this bit is set, the resource is allowed to be published */
+    // @todo
+    // Since this property is not defined on OCF Spec. it should be set 0 until define it
+    ,OC_MQ_PUBLISHER     = (0)
+#endif
+
+#ifdef MQ_BROKER
+    /** When this bit is set, the resource is allowed to be notified as MQ broker.*/
+    // @todo
+    // Since this property is not defined on OCF Spec. it should be set 0 until define it
+    ,OC_MQ_BROKER        = (0)
+#endif
+} OCResourceProperty;
+
+#endif	/* EXPORT_INTERFACE */
+
 // Using 1k as block size since most persistent storage implementations use a power of 2.
 #define INTROSPECTION_FILE_SIZE_BLOCK  1024
 
-#define VERIFY_SUCCESS(op) { if (op != (OC_STACK_OK)) \
-            {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} }
+/* #define VERIFY_SUCCESS(op) { if (op != (OC_STACK_OK)) \
+ *             {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} } */
 
 /**
  * Default cbor payload size. This value is increased in case of CborErrorOutOfMemory.
@@ -80,23 +437,6 @@ static const uint16_t CBOR_MAX_SIZE = 4400;
 
 extern OCResource *headResource;
 extern bool g_multicastServerStopped;
-
-/**
- * Prepares a Payload for response.
- */
-static OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
-                                                  OCDiscoveryPayload *payload,
-                                                  OCDevAddr *endpoint,
-                                                  CAEndpoint_t *networkInfo,
-                                                  size_t infoSize);
-
-/**
- * Sets the value of an attribute on a resource.
- */
-static OCStackResult SetAttributeInternal(OCResource *resource,
-                                          const char *attribute,
-                                          const void *value,
-                                          bool updateDatabase);
 
 //-----------------------------------------------------------------------------
 // Default resource entity handler function
@@ -167,6 +507,15 @@ OCStackResult GetTCPPortInfo(OCDevAddr *endpoint, uint16_t *port, bool secured)
  * If both filters are of the same supported type, the 2nd one will be picked.
  * Resource and device filters in the SAME query are NOT validated
  * and resources will likely not clear filters.
+ */
+/**
+ * Extract interface and resource type from the query.
+ *
+ * @param query is the request received from the client
+ * @param filterOne will include result if the interface is included in the query.
+ * @param filterTwo will include result if the resource type is included in the query.
+ *
+ * @return ::OC_STACK_OK on success, some other value upon failure
  */
 OCStackResult ExtractFiltersFromQuery(const char *query, char **filterOne, char **filterTwo)
 {
@@ -1262,7 +1611,10 @@ exit:
     return OC_STACK_OK;
 }
 
-OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
+/**
+ * Prepares a Payload for response.
+ */
+static OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
                                            OCDiscoveryPayload *payload,
                                            OCDevAddr *devAddr,
                                            CAEndpoint_t *networkInfo,
@@ -1923,7 +2275,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
 
         discoveryResult = getQueryParamsForFiltering (virtualUriInRequest, request->query,
                 &interfaceQuery, &resourceTypeQuery);
-        VERIFY_SUCCESS(discoveryResult);
+        VERIFY_SUCCESS_1(discoveryResult);
 
         if (!interfaceQuery && !resourceTypeQuery)
         {
@@ -1933,13 +2285,13 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
 
         discoveryResult = discoveryPayloadCreateAndAddDeviceId(&payload);
         VERIFY_PARAM_NON_NULL(TAG, payload, "Failed creating Discovery Payload.");
-        VERIFY_SUCCESS(discoveryResult);
+        VERIFY_SUCCESS_1(discoveryResult);
 
         OCDiscoveryPayload *discPayload = (OCDiscoveryPayload *)payload;
         if (interfaceQuery && 0 == strcmp(interfaceQuery, OC_RSRVD_INTERFACE_DEFAULT))
         {
             discoveryResult = addDiscoveryBaselineCommonProperties(discPayload);
-            VERIFY_SUCCESS(discoveryResult);
+            VERIFY_SUCCESS_1(discoveryResult);
         }
         OCResourceProperty prop = OC_DISCOVERABLE;
 #ifdef MQ_BROKER
@@ -2120,7 +2472,7 @@ HandleDefaultDeviceEntityHandler(OCServerRequest *request)
     OCEntityHandlerRequest ehRequest = {0};
     OIC_LOG(INFO, TAG, "Entering HandleResourceWithDefaultDeviceEntityHandler");
     OCStackResult result = EHRequest(&ehRequest, PAYLOAD_TYPE_REPRESENTATION, request, NULL);
-    VERIFY_SUCCESS(result);
+    VERIFY_SUCCESS_1(result);
 
     // At this point we know for sure that defaultDeviceHandler exists
     ehResult = defaultDeviceHandler(OC_REQUEST_FLAG, &ehRequest,
@@ -2166,7 +2518,7 @@ HandleResourceWithEntityHandler(OCServerRequest *request,
     }
 
     result = EHRequest(&ehRequest, type, request, resource);
-    VERIFY_SUCCESS(result);
+    VERIFY_SUCCESS_1(result);
 
     if(ehRequest.obsInfo.action == OC_OBSERVE_NO_OPTION)
     {
@@ -2196,7 +2548,7 @@ HandleResourceWithEntityHandler(OCServerRequest *request,
         }
 
         result = GenerateObserverId(&ehRequest.obsInfo.obsId);
-        VERIFY_SUCCESS(result);
+        VERIFY_SUCCESS_1(result);
 
         result = AddObserver ((const char*)(request->resourceUrl),
                 (const char *)(request->query),
@@ -2401,8 +2753,8 @@ OCStackResult OC_CALL OCSetPlatformInfo(OCPlatformInfo info)
         goto exit;
     }
     OIC_LOG(INFO, TAG, "Entering OCSetPlatformInfo");
-    VERIFY_SUCCESS(OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_PLATFORM_ID, info.platformID));
-    VERIFY_SUCCESS(OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_MFG_NAME, info.manufacturerName));
+    VERIFY_SUCCESS_1(OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_PLATFORM_ID, info.platformID));
+    VERIFY_SUCCESS_1(OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_MFG_NAME, info.manufacturerName));
     OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_MFG_URL, info.manufacturerUrl);
     OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_MODEL_NUM, info.modelNumber);
     OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_MFG_DATE, info.dateOfManufacture);
@@ -2439,15 +2791,15 @@ OCStackResult OC_CALL OCSetDeviceInfo(OCDeviceInfo info)
         goto exit;
     }
 
-    VERIFY_SUCCESS(OCSetPropertyValue(PAYLOAD_TYPE_DEVICE, OC_RSRVD_DEVICE_NAME, info.deviceName));
+    VERIFY_SUCCESS_1(OCSetPropertyValue(PAYLOAD_TYPE_DEVICE, OC_RSRVD_DEVICE_NAME, info.deviceName));
     for (OCStringLL *temp = info.types; temp; temp = temp->next)
     {
         if (temp->value)
         {
-            VERIFY_SUCCESS(OCBindResourceTypeToResource(resource, temp->value));
+            VERIFY_SUCCESS_1(OCBindResourceTypeToResource(resource, temp->value));
         }
     }
-    VERIFY_SUCCESS(OCSetPropertyValue(PAYLOAD_TYPE_DEVICE, OC_RSRVD_SPEC_VERSION, info.specVersion ?
+    VERIFY_SUCCESS_1(OCSetPropertyValue(PAYLOAD_TYPE_DEVICE, OC_RSRVD_SPEC_VERSION, info.specVersion ?
         info.specVersion: OC_SPEC_VERSION));
 
     if (info.dataModelVersions)
@@ -2456,11 +2808,11 @@ OCStackResult OC_CALL OCSetDeviceInfo(OCDeviceInfo info)
         VERIFY_PARAM_NON_NULL(TAG, dmv, "Failed allocating dataModelVersions");
         OCStackResult r = OCSetPropertyValue(PAYLOAD_TYPE_DEVICE, OC_RSRVD_DATA_MODEL_VERSION, dmv);
         OICFree(dmv);
-        VERIFY_SUCCESS(r);
+        VERIFY_SUCCESS_1(r);
     }
     else
     {
-        VERIFY_SUCCESS(OCSetPropertyValue(PAYLOAD_TYPE_DEVICE, OC_RSRVD_DATA_MODEL_VERSION,
+        VERIFY_SUCCESS_1(OCSetPropertyValue(PAYLOAD_TYPE_DEVICE, OC_RSRVD_DATA_MODEL_VERSION,
             OC_DATA_MODEL_VERSION));
     }
     OIC_LOG(INFO, TAG, "Device parameter initialized successfully.");
@@ -2470,7 +2822,7 @@ exit:
     return OC_STACK_ERROR;
 }
 
-OCStackResult OC_CALL OCGetAttribute(const OCResource *resource, const char *attribute, void **value)
+static OCStackResult OC_CALL OCGetAttribute(const OCResource *resource, const char *attribute, void **value)
 {
     if (!resource || !attribute)
     {
@@ -2557,7 +2909,10 @@ OCStackResult OC_CALL OCGetPropertyValue(OCPayloadType type, const char *prop, v
     return res;
 }
 
-static OCStackResult SetAttributeInternal(OCResource *resource,
+/**
+ * Sets the value of an attribute on a resource.
+ */
+LOCAL OCStackResult SetAttributeInternal(OCResource *resource,
                                           const char *attribute,
                                           const void *value,
                                           bool updateDatabase)

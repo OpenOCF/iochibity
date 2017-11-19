@@ -29,6 +29,34 @@
 // Logging tag.
 #define TAG "BLE_RECV"
 
+/**
+ * Information used to keep track of received data fragments.
+ */
+typedef struct _CAGattRecvInfo
+{
+
+    /**
+     * @name Peer Connection-specific Fields
+     *
+     * These fields are valid only as long as the peer is connected.
+     */
+    //@{
+    /// Peer address.
+    char * peer;
+
+    /// Callback invoked upon receiving all data from GATT peer.
+    CABLEDataReceivedCallback on_packet_received;
+
+    /**
+     * Context object containing lock used for synchronized access to
+     * the @c on_packet_received callback since that callback is actually
+     * owned by it.
+     */
+    CALEContext * context;
+    //@}
+
+} CAGattRecvInfo;
+
 static CAGattRecvInfo const g_null_info =
     {
         .peer = NULL

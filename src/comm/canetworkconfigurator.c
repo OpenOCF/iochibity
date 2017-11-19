@@ -18,13 +18,14 @@
  *
  ******************************************************************/
 
+#include "canetworkconfigurator.h"
+
 #include <stdlib.h>
 
-#include "canetworkconfigurator.h"
-#include "cainterfacecontroller.h"
-#include "cainterface.h"
-#include "uarraylist.h"
-#include "logger.h"
+/* #include "cainterfacecontroller.h" */
+/* #include "cainterface.h" */
+/* #include "uarraylist.h" */
+/* #include "logger.h" */
 
 #define TAG "OIC_CA_NW_CONFIG"
 

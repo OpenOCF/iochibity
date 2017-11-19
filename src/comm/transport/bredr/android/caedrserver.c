@@ -1,4 +1,4 @@
-/* ****************************************************************
+]/* ****************************************************************
  *
  * Copyright 2014 Samsung Electronics All Rights Reserved.
  *
@@ -18,21 +18,23 @@
  *
  ******************************************************************/
 
+#include "caedrserver.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <jni.h>
 
-#include "caedrinterface.h"
-#include "caedrutils.h"
-#include "caedrserver.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "cathreadpool.h" /* for thread pool */
-#include "octhread.h"
-#include "uarraylist.h"
-#include "caadapterutils.h"
-#include "org_iotivity_ca_CaEdrInterface.h"
-#include "oic_string.h"
+/* #include "caedrinterface.h"
+ * #include "caedrutils.h"
+ * #include "caedrserver.h"
+ * #include "logger.h"
+ * #include "oic_malloc.h"
+ * #include "cathreadpool.h" /\* for thread pool *\/
+ * #include "octhread.h"
+ * #include "uarraylist.h"
+ * #include "caadapterutils.h"
+ * #include "org_iotivity_ca_CaEdrInterface.h"
+ * #include "oic_string.h" */
 
 #define TAG PCF("OIC_CA_EDR_SERVER")
 
@@ -446,7 +448,7 @@ void CAEDRServerJniInit()
 CAResult_t CAEDRServerInitialize(ca_thread_pool_t handle)
 {
     OIC_LOG(DEBUG, TAG, "CAEDRServerInitialize");
-    VERIFY_NON_NULL(handle, TAG, "handle is NULL");
+    VERIFY_NON_NULL_MSG(handle, TAG, "handle is NULL");
 
     g_threadPoolHandle = handle;
     CAEDRServerJniInit();

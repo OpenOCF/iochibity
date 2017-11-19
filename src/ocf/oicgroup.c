@@ -24,19 +24,21 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "iotivity_config.h"
+#include "oicgroup.h"
+
+/* #include "iotivity_config.h" */
 
 #include <string.h>
 
-#include "oicgroup.h"
-#include "cbor.h"
-#include "ocpayload.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "octhread.h"
-#include "occollection.h"
-#include "logger.h"
-#include "octimer.h"
+/* #include "oicgroup.h" */
+/* #include "cbor.h" */
+/* #include "ocpayload.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "octhread.h" */
+/* #include "occollection.h" */
+/* #include "logger.h" */
+/* #include "octimer.h" */
 
 #define TAG "OIC_RI_GROUP"
 
@@ -80,6 +82,7 @@ enum ACTION_TYPE
     NONE = 0, SCHEDULED, RECURSIVE
 };
 
+#if INTERFACE
 typedef struct scheduledresourceinfo
 {
     OCResource *resource;
@@ -92,6 +95,7 @@ typedef struct scheduledresourceinfo
     time_t time;
     struct scheduledresourceinfo* next;
 } ScheduledResourceInfo;
+#endif
 
 ScheduledResourceInfo *g_scheduleResourceList = NULL;
 
@@ -237,6 +241,7 @@ void RemoveScheduledResource(ScheduledResourceInfo **head,
     oc_mutex_unlock(g_scheduledResourceLock);
 }
 
+#if INTERFACE
 typedef struct aggregatehandleinfo
 {
     OCServerRequest *ehRequest;
@@ -245,6 +250,7 @@ typedef struct aggregatehandleinfo
 
     struct aggregatehandleinfo *next;
 } ClientRequestInfo;
+#endif
 
 ClientRequestInfo *clientRequstList = NULL;
 

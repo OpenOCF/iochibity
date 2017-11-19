@@ -20,9 +20,8 @@
 #include "pthread_create.h"
 #include <windows.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef void* pthread_t;
+typedef void pthread_attr_t;
 
 int pthread_create(
     pthread_t *thread,
@@ -34,8 +33,3 @@ int pthread_create(
     *thread = CreateThread(NULL, 0, (PTHREAD_START_ROUTINE)start_routine, arg, 0, NULL);
     return (*thread == NULL) ? GetLastError() : 0;
 }
-
-#ifdef __cplusplus
-}
-#endif
-

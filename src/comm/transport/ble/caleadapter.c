@@ -23,25 +23,25 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-#include "cafragmentation.h"
-
-#include "caleinterface.h"
-#include "cacommon.h"
-#include "octhread.h"
-#include "caadapterutils.h"
-#ifdef __WITH_DTLS__
-#include "ca_adapter_net_ssl.h"
-#endif
-#ifndef SINGLE_THREAD
-#include "caqueueingthread.h"
-#endif
-#if defined(__TIZEN__) || defined(__ANDROID__)
-#include "caleserver.h"
-#include "caleclient.h"
-#endif
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "caremotehandler.h"
+/* #include "cafragmentation.h"
+ * 
+ * #include "caleinterface.h"
+ * #include "cacommon.h"
+ * #include "octhread.h"
+ * #include "caadapterutils.h"
+ * #ifdef __WITH_DTLS__
+ * #include "ca_adapter_net_ssl.h"
+ * #endif
+ * #ifndef SINGLE_THREAD
+ * #include "caqueueingthread.h"
+ * #endif
+ * #if defined(__TIZEN__) || defined(__ANDROID__)
+ * #include "caleserver.h"
+ * #include "caleclient.h"
+ * #endif
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * #include "caremotehandler.h" */
 #include <coap/pdu.h>
 
 /**
@@ -50,6 +50,23 @@
 #define CALEADAPTER_TAG "OIC_CA_LE_ADAP"
 
 /**
+ * Information needed for registering an LE advertisement with BlueZ.
+ */
+typedef struct CALeadvertisement
+{
+    /// OIC LE advertisement D-Bus interface skeleton object.
+    LEAdvertisement1 * advertisement;
+
+    /**
+     * Proxies to the BlueZ D-Bus objects that implement the
+     * "org.bluez.LEAdvertisingManager1" interface with which the @c
+     * advertisement is registered.
+     */
+    GList * managers;
+
+} CALEAdvertisement;
+
+
  * Stores information of all the senders.
  *
  * This structure will be used to track and defragment all incoming data packet.
@@ -1851,7 +1868,7 @@ static void CALEDataReceiverHandlerSingleThread(const uint8_t *data,
 {
     OIC_LOG(DEBUG, CALEADAPTER_TAG, "IN");
 
-    VERIFY_NON_NULL(data, CALEADAPTER_TAG, "Param data is NULL");
+    VERIFY_NON_NULL_MSG(data, CALEADAPTER_TAG, "Param data is NULL");
 
     //packet parsing
     CABLEPacketStart_t startFlag = CA_BLE_PACKET_NOT_START;
@@ -1969,7 +1986,7 @@ static CAResult_t CALEServerSendDataSingleThread(const uint8_t *data,
 {
     OIC_LOG(DEBUG, CALEADAPTER_TAG, "IN");
 
-    VERIFY_NON_NULL(data, CALEADAPTER_TAG, "Param data is NULL");
+    VERIFY_NON_NULL_MSG(data, CALEADAPTER_TAG, "Param data is NULL");
 
     uint32_t midPacketCount = 0;
     size_t remainingLen = 0;
@@ -2694,10 +2711,10 @@ CAResult_t CAInitializeLE(CARegisterConnectivityCallback registerCallback,
     OIC_LOG(DEBUG, CALEADAPTER_TAG, "CAInitializeLE");
 
     //Input validation
-    VERIFY_NON_NULL(registerCallback, CALEADAPTER_TAG, "RegisterConnectivity callback is null");
-    VERIFY_NON_NULL(reqRespCallback, CALEADAPTER_TAG, "PacketReceived Callback is null");
-    VERIFY_NON_NULL(netCallback, CALEADAPTER_TAG, "NetworkChange Callback is null");
-    VERIFY_NON_NULL(connCallback, CALEADAPTER_TAG, "ConnectionChange Callback is null");
+    VERIFY_NON_NULL_MSG(registerCallback, CALEADAPTER_TAG, "RegisterConnectivity callback is null");
+    VERIFY_NON_NULL_MSG(reqRespCallback, CALEADAPTER_TAG, "PacketReceived Callback is null");
+    VERIFY_NON_NULL_MSG(netCallback, CALEADAPTER_TAG, "NetworkChange Callback is null");
+    VERIFY_NON_NULL_MSG(connCallback, CALEADAPTER_TAG, "ConnectionChange Callback is null");
 
     CAResult_t result = CA_STATUS_OK;
     result = CAInitLEAdapterMutex();
@@ -3146,7 +3163,7 @@ static CAResult_t CAGetLEInterfaceInformation(CAEndpoint_t **info, size_t *size)
 {
     OIC_LOG(DEBUG, CALEADAPTER_TAG, "IN");
 
-    VERIFY_NON_NULL(info, CALEADAPTER_TAG, "CALocalConnectivity info is null");
+    VERIFY_NON_NULL_MSG(info, CALEADAPTER_TAG, "CALocalConnectivity info is null");
 
     char *local_address = NULL;
 
@@ -3374,7 +3391,7 @@ static CAResult_t CALEAdapterClientSendData(const CAEndpoint_t *remoteEndpoint,
                                             const uint8_t *data,
                                             uint32_t dataLen)
 {
-    VERIFY_NON_NULL(data, CALEADAPTER_TAG, "Param data is NULL");
+    VERIFY_NON_NULL_MSG(data, CALEADAPTER_TAG, "Param data is NULL");
 #ifndef SINGLE_THREAD
     VERIFY_NON_NULL_RET(g_bleClientSendQueueHandle, CALEADAPTER_TAG,
                         "g_bleClientSendQueueHandle is  NULL",
@@ -3405,7 +3422,7 @@ static CAResult_t CALEAdapterServerSendData(const CAEndpoint_t *remoteEndpoint,
 {
     OIC_LOG(DEBUG, CALEADAPTER_TAG, "IN");
 
-    VERIFY_NON_NULL(data, CALEADAPTER_TAG, "Param data is NULL");
+    VERIFY_NON_NULL_MSG(data, CALEADAPTER_TAG, "Param data is NULL");
 
 #ifdef SINGLE_THREAD
     if (!CAIsLEConnected())
@@ -3461,8 +3478,8 @@ static CAResult_t CALEAdapterServerReceivedData(const char *remoteAddress,
     OIC_LOG(DEBUG, CALEADAPTER_TAG, "IN");
 
     //Input validation
-    VERIFY_NON_NULL(data, CALEADAPTER_TAG, "Data is null");
-    VERIFY_NON_NULL(sentLength, CALEADAPTER_TAG, "Sent data length holder is null");
+    VERIFY_NON_NULL_MSG(data, CALEADAPTER_TAG, "Data is null");
+    VERIFY_NON_NULL_MSG(sentLength, CALEADAPTER_TAG, "Sent data length holder is null");
 
 #ifdef SINGLE_THREAD
     CALEDataReceiverHandlerSingleThread(data, dataLength);
@@ -3536,8 +3553,8 @@ static CAResult_t CALEAdapterClientReceivedData(const char *remoteAddress,
                                                 uint32_t *sentLength)
 {
     //Input validation
-    VERIFY_NON_NULL(data, CALEADAPTER_TAG, "Data is null");
-    VERIFY_NON_NULL(sentLength, CALEADAPTER_TAG, "Sent data length holder is null");
+    VERIFY_NON_NULL_MSG(data, CALEADAPTER_TAG, "Data is null");
+    VERIFY_NON_NULL_MSG(sentLength, CALEADAPTER_TAG, "Sent data length holder is null");
 #ifndef SINGLE_THREAD
     VERIFY_NON_NULL_RET(g_bleClientReceiverQueue, CALEADAPTER_TAG,
                         "g_bleClientReceiverQueue",
@@ -3705,7 +3722,7 @@ static CAResult_t CALEGetPortsFromSenderInfo(const char *leAddress,
                                             u_arraylist_t *senderInfoList,
                                             u_arraylist_t *portList)
 {
-    VERIFY_NON_NULL(leAddress,
+    VERIFY_NON_NULL_MSG(leAddress,
                     CALEADAPTER_TAG,
                     "NULL BLE address argument");
 

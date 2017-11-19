@@ -18,25 +18,88 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include <string.h>
-#include "ocstack.h"
-#include "logger.h"
-#include "cainterface.h"
-#include "resourcemanager.h"
-#include "credresource.h"
-#include "policyengine.h"
-#include "srmutility.h"
-#include "oic_string.h"
-#include "oic_malloc.h"
 #include "secureresourcemanager.h"
-#include "srmresourcestrings.h"
-#include "ocresourcehandler.h"
-#include "ocrandom.h"
 
-#if defined( __WITH_TLS__) || defined(__WITH_DTLS__)
-#include "pkix_interface.h"
-#endif //__WITH_TLS__ or __WITH_DTLS__
+#include <string.h>
+/* #include "ocstack.h" */
+/* #include "logger.h" */
+/* #include "cainterface.h" */
+/* #include "resourcemanager.h" */
+/* #include "credresource.h" */
+/* #include "policyengine.h" */
+/* #include "srmutility.h" */
+/* #include "oic_string.h" */
+/* #include "oic_malloc.h" */
+/* #include "secureresourcemanager.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "ocresourcehandler.h" */
+/* #include "ocrandom.h" */
+
+/* #if defined( __WITH_TLS__) || defined(__WITH_DTLS__) */
+/* #include "pkix_interface.h" */
+/* #endif //__WITH_TLS__ or __WITH_DTLS__ */
+
 #define TAG  "OIC_SRM"
+
+#if INTERFACE
+typedef enum  OicSecSvrType_t
+{
+    OIC_RESOURCE_TYPE_ERROR = 0,
+    OIC_R_ACL_TYPE,
+    OIC_R_AMACL_TYPE,
+    OIC_R_CRED_TYPE,
+    OIC_R_CRL_TYPE,
+    OIC_R_DOXM_TYPE,
+    OIC_R_DPAIRING_TYPE,
+    OIC_R_PCONF_TYPE,
+    OIC_R_PSTAT_TYPE,
+    OIC_R_SACL_TYPE,
+    OIC_R_SVC_TYPE,
+    OIC_R_CSR_TYPE,
+    OIC_R_ACL2_TYPE,
+    OIC_R_ROLES_TYPE,
+    OIC_SEC_SVR_TYPE_COUNT, //define the value to number of SVR
+    NOT_A_SVR_RESOURCE = 99
+} OicSecSvrType_t;
+
+/* typedef unsigned int OicSecSvrType_t; */
+
+typedef enum SubjectIdentityType
+{
+    SUBJECT_ID_TYPE_ERROR = 0,
+    SUBJECT_ID_TYPE_UUID,     // Subject refers to a UUID
+    SUBJECT_ID_TYPE_ROLE,     // Subject refers to a Role
+} SubjectIdentityType_t;
+
+/**
+ * The context for a single request to be processed by the Security
+ * Resource Manager.
+ */
+typedef struct SRMRequestContext
+{
+    const CAEndpoint_t      *endPoint;                          // ptr to the Endpoint for this request
+    OicSecSvrType_t         resourceType;                       // SVR type (or "not an SVR")
+    char                    resourceUri[MAX_URI_LENGTH + 1];    // URI of the requested resource
+    uint16_t                requestedPermission;                // bitmask permissions of request
+    CAResponseInfo_t        responseInfo;                       // The response for this request
+    bool                    responseSent;                       // Is servicing this request complete?
+    SRMAccessResponse_t     responseVal;                        // The SRM internal response code
+    const CARequestInfo_t   *requestInfo;                       // ptr to info for this request
+    bool                    secureChannel;                      // Was request recv'd over secure channel?
+    bool                    slowResponseSent;                   // Is a full response still needed?
+    OicSecDiscoverable_t    discoverable;                       // Is resource discoverable?
+    SubjectIdentityType_t   subjectIdType;                      // The type of Subject ID in this
+                                                                // request.
+    OicUuid_t               subjectUuid;                        // The UUID of the Subject (valid
+                                                                // iff IdType is UUID_TYPE).
+    // Developer note: when adding support for an additional type (e.g.
+    // ROLE_TYPE) suggest adding a new var to hold the Subject ID for that type.
+#ifdef MULTIPLE_OWNER
+    uint8_t*                payload;
+    size_t                  payloadSize;
+#endif //MULTIPLE_OWNER
+} SRMRequestContext_t;
+#endif
 
 //Request Callback handler
 static CARequestCallback gRequestHandler = NULL;

@@ -18,27 +18,28 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include <string.h>
 #include "resourcemanager.h"
-#include "aclresource.h"
-#include "pstatresource.h"
-#include "doxmresource.h"
-#include "credresource.h"
-#include "amaclresource.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "logger.h"
-#include "utlist.h"
-#include "psinterface.h"
 
+#include <string.h>
+/* #include "resourcemanager.h" */
+/* #include "aclresource.h" */
+/* #include "pstatresource.h" */
+/* #include "doxmresource.h" */
+/* #include "credresource.h" */
+/* #include "amaclresource.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "logger.h" */
+/* #include "utlist.h" */
+/* #include "psinterface.h" */
 
 #define TAG "OIC_SRM_RM"
 
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-#include "crlresource.h"
-#include "csrresource.h"
-#include "rolesresource.h"
-#endif // __WITH_DTLS__ || __WITH_TLS__
+/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
+/* #include "crlresource.h" */
+/* #include "csrresource.h" */
+/* #include "rolesresource.h" */
+/* #endif // __WITH_DTLS__ || __WITH_TLS__ */
 
 OCStackResult SendSRMResponse(const OCEntityHandlerRequest *ehRequest,
         OCEntityHandlerResult ehRet, uint8_t *cborPayload, size_t size)

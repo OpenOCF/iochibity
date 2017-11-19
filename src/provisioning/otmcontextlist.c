@@ -18,15 +18,23 @@
  *
  * *****************************************************************/
 
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "octypes.h"
-#include "ownershiptransfermanager.h"
-#include "utlist.h"
 #include "otmcontextlist.h"
 
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include "octypes.h" */
+/* #include "ownershiptransfermanager.h" */
+/* #include "utlist.h" */
+/* #include "otmcontextlist.h" */
+
 #define TAG "OIC_OTM_CTX"
+
+typedef struct OTMContextItem {
+    OTMContext_t* otmCtx;
+    OCDevAddr endpoint;
+    struct OTMContextItem* next;
+}OTMContextItem_t;
 
 /**
  * List for saving the OTMContext to be used while ownership transfer.

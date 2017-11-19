@@ -17,8 +17,12 @@
 *
 ******************************************************************/
 
+#include "memmem.h"
 #include <stddef.h>
 #include <memory.h>
+
+// crtdefs.h is required for size_t
+#include <crtdefs.h>
 
 void *memmem(const void *haystack, size_t haystackLen, const void *needle, size_t needleLen)
 {

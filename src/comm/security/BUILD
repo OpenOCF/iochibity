@@ -15,33 +15,38 @@ cc_library(
     name = "security",
     alwayslink = True,
     copts = ["-Isrc",
-             "-Iexternal/openocf/src",
-             "-Isrc/comm/api",  # cacommon.h
-             "-Iexternal/openocf/src/comm/api",  # cacommon.h
-             "-Isrc/comm/common",  # cacommonutil.h
-             "-Iexternal/openocf/src/comm/common",  # cacommonutil.h
-             "-Isrc/comm/transport/util",
-             "-Iexternal/openocf/src/comm/transport/util",
-             "-Isrc/comm/interface",
-             "-Iexternal/openocf/src/comm/interface",
-             "-Isrc/logger",
-             "-Iexternal/openocf/src/logger",
-             "-Isrc/portability",
-             "-Iexternal/openocf/src/portability",
-             "-Isrc/util",
-             "-Iexternal/openocf/src/util",
+    #          "-Iexternal/openocf/src",
+    #          "-Isrc/comm/api",  # cacommon.h
+    #          "-Iexternal/openocf/src/comm/api",  # cacommon.h
+    #          "-Isrc/comm/common",  # cacommonutil.h
+    #          "-Iexternal/openocf/src/comm/common",  # cacommonutil.h
+    #          "-Isrc/comm/transport/util",
+    #          "-Iexternal/openocf/src/comm/transport/util",
+    #          "-Isrc/comm/interface",
+    #          "-Iexternal/openocf/src/comm/interface",
+    #          "-Isrc/logger",
+    #          "-Iexternal/openocf/src/logger",
+    #          "-Isrc/portability",
+    #          "-Iexternal/openocf/src/portability",
+    #          "-Isrc/util",
+    #          "-Iexternal/openocf/src/util",
+             "-Ithird_party/coap",
+             "-Iexternal/openocf/third_party/coap",
              "-Ithird_party/coap/include",
              "-Iexternal/openocf/third_party/coap/include",
-             "-Ithird_party/mbedtls/include"]
+             "-Ithird_party/mbedtls/include",
+             "-Iexternal/openocf/third_party/mbedtls/include",
+    ]
     + select({":windows": [],
               ":msvc": [],
               ":msys": [],
-              "//conditions:default": ["-std=c11"]}),
+              "//conditions:default": ["-std=c11",
+                                       "-U DEBUG"]}), # OS X
     deps  = ["//src:config",
-    	     "//src/comm/api",
+    	     # "//src/comm/api",
     	     "//src/comm/transport/util",
     	     "//src/comm/common",
-    	     "//src/comm/interface",
+    	     # "//src/comm/interface",
              "//src/logger",
              "//src/portability",
              "//src/util",

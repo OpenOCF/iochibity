@@ -19,10 +19,10 @@
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 #include "pkix_interface.h"
-#include "credresource.h"
-#include "crlresource.h"
-#include "srmresourcestrings.h"
-#include "logger.h"
+/* #include "credresource.h" */
+/* #include "crlresource.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "logger.h" */
 
 #define TAG "OIC_SRM_PKIX_INTERFACE"
 

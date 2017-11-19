@@ -19,16 +19,19 @@
  ******************************************************************/
 
 #include <jni.h>
-#include "cacommon.h"
-#include "caleclient.h"
-#include "camanagerleutil.h"
-#include "camanagerdevice.h"
+/* #include "cacommon.h"
+ * #include "caleclient.h"
+ * #include "camanagerleutil.h"
+ * #include "camanagerdevice.h" */
 #include "caleautoconnector.h"
-#include "cacommonutil.h"
-#include "logger.h"
-#include "octhread.h"
+/* #include "cacommonutil.h"
+ * #include "logger.h"
+ * #include "octhread.h" */
 
 #define TAG "OIC_CA_LE_AUTO_CONN"
+
+#define STATE_OFF 10
+#define START_RECOVERY 1
 
 static const size_t MAX_RETRY_COUNT = 5;
 static const size_t TIMEOUT = 1000000;
@@ -116,8 +119,8 @@ void CAManagerTerminateLEAutoConnection()
 
 CAResult_t CAManagerStartAutoConnection(JNIEnv *env, jstring remote_le_address)
 {
-    VERIFY_NON_NULL(env, TAG, "env is null");
-    VERIFY_NON_NULL(remote_le_address, TAG, "remote_le_address is null");
+    VERIFY_NON_NULL_MSG(env, TAG, "env is null");
+    VERIFY_NON_NULL_MSG(remote_le_address, TAG, "remote_le_address is null");
 
     OIC_LOG(DEBUG, TAG, "IN - CAManagerStartAutoConnection");
     oc_mutex_lock(g_connectRetryMutex);
@@ -168,8 +171,8 @@ CAResult_t CAManagerStartAutoConnection(JNIEnv *env, jstring remote_le_address)
 
 CAResult_t CAManagerConnectGatt(JNIEnv *env, jstring remote_le_address)
 {
-    VERIFY_NON_NULL(env, TAG, "env");
-    VERIFY_NON_NULL(remote_le_address, TAG, "remote_le_address");
+    VERIFY_NON_NULL_MSG(env, TAG, "env");
+    VERIFY_NON_NULL_MSG(remote_le_address, TAG, "remote_le_address");
 
     OIC_LOG(DEBUG, TAG, "IN - CAManagerConnectGatt");
 
@@ -203,7 +206,7 @@ CAResult_t CAManagerConnectGatt(JNIEnv *env, jstring remote_le_address)
 
 CAResult_t CAManagerProcessRecovery(JNIEnv *env, uint16_t adapter_state)
 {
-    VERIFY_NON_NULL(env, TAG, "env");
+    VERIFY_NON_NULL_MSG(env, TAG, "env");
     OIC_LOG(DEBUG, TAG, "IN - CAManagerProcessRecovery");
 
     oc_mutex_lock(g_recoveryMutex);

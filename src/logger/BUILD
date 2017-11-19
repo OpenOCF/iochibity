@@ -22,14 +22,15 @@ cc_library(
     + select({":windows": [],
               ":msvc": [],
               ":msys": [],
-              "//conditions:default": ["-std=c11"]}),
-    deps = ["//src:config"],
+              "//conditions:default": ["-std=c11",
+                                       "-U DEBUG"]}), # OS X
+    # deps = ["//src:config"],
     hdrs = ["logger.h"],
     linkopts = select({":ndk": ["-llog"],
                        # FIXME: select android_cc
-                       "//conditions:default": []}),
+              "//conditions:default": []}),
     srcs = ["logger.c",
-	    "logger_types.h",
+	    "logger.h",
             "trace.c",
             "trace.h"],
     visibility = ["//src:__subpackages__"]

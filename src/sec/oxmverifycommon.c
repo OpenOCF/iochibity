@@ -18,14 +18,63 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "ocstack.h"
-#include "logger.h"
-#include "base64.h"
-#include "srmresourcestrings.h"
-#include "cainterface.h"
 #include "oxmverifycommon.h"
 
+/* #include "ocstack.h" */
+/* #include "logger.h" */
+/* #include "base64.h" */
+/* #include "srmresourcestrings.h" */
+/* #include "cainterface.h" */
+/* #include "oxmverifycommon.h" */
+
 #define TAG "OIC_VERIFY_COMMON"
+
+#if INTERFACE
+/** Verification Number Length */
+#define MUTUAL_VERIF_NUM_LEN (3)
+
+/** Label Length */
+#define LABEL_LEN (30)
+
+/** Verification Method Option definition
+ * This type supports multiple bit set.
+ */
+ typedef enum VerifyOptionBitmask
+{
+    NOT_APPLICABLE              = 0x0,
+    DISPLAY_NUM                 = (0x1 << 0),
+    USER_CONFIRM                = (0x1 << 1)
+} VerifyOptionBitmask_t;
+
+/**
+ * Function pointer to display verification PIN
+ */
+typedef OCStackResult (*DisplayNumCallback)(void * ctx, uint8_t verifNum[MUTUAL_VERIF_NUM_LEN]);
+
+/**
+ * Function pointer to get user confirmation
+ */
+typedef OCStackResult (*UserConfirmCallback)(void * ctx);
+
+/**
+ * Context for displaying verification PIN
+ */
+typedef struct DisplayNumContext
+{
+    DisplayNumCallback callback;
+    void * context;
+} DisplayNumContext_t;
+
+/**
+ * Context for getting user confirmation
+ */
+typedef struct UserConfirmContext
+{
+    UserConfirmCallback callback;
+    void * context;
+} UserConfirmContext_t;
+
+#endif	/* INTERFACE */
 
 static VerifyOptionBitmask_t gVerifyOption = (DISPLAY_NUM | USER_CONFIRM);
 

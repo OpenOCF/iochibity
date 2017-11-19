@@ -24,7 +24,11 @@
 #include <stdlib.h>
 #include "oic_malloc.h"
 
-#include "iotivity_config.h"
+/* #include "iotivity_config.h" */
+
+#if EXPORT_INTERFACE
+#include <stdlib.h>
+#endif
 
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>

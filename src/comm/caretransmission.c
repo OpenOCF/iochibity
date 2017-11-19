@@ -38,10 +38,13 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "iotivity_config.h"
+#include "caretransmission.h"
+
+/* #include "iotivity_config.h" */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 #ifndef SINGLE_THREAD
 #ifdef HAVE_UNISTD_H
@@ -62,13 +65,13 @@
 #include <linux/time.h>
 #endif
 
-#include "caretransmission.h"
-#include "caremotehandler.h"
-#include "caprotocolmessage.h"
-#include "oic_malloc.h"
-#include "oic_time.h"
-#include "ocrandom.h"
-#include "logger.h"
+/* #include "caretransmission.h" */
+/* #include "caremotehandler.h" */
+/* #include "caprotocolmessage.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_time.h" */
+/* #include "ocrandom.h" */
+/* #include "logger.h" */
 
 #define TAG "OIC_CA_RETRANS"
 
