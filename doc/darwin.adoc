@@ -38,7 +38,7 @@ different.  Here is a list of the bits affecting Iotivity:
 * etc.
 
 
-=== prerequisits
+=== prerequisites
 
 ==== libraries
 
