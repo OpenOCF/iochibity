@@ -126,4 +126,4 @@
   */
  OCTpsSchemeFlags OCGetSupportedTpsFlags();
 
- #endif //OC_ENDPOINT_H
+#endif //OC_ENDPOINT_H
