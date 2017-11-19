@@ -310,6 +310,7 @@ static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family
 }
 
 /* GAR TODO: portable implementation */
+/* GAR: called by CASelectReturned */
 u_arraylist_t *CAFindInterfaceChange()
 {
     u_arraylist_t *iflist = NULL;
@@ -330,6 +331,7 @@ u_arraylist_t *CAFindInterfaceChange()
     {
         if (nh != NULL && (nh->nlmsg_type != RTM_DELADDR && nh->nlmsg_type != RTM_NEWADDR))
         {
+	    /* GAR: what about RTM_NEWLINK, RTM_DELLINK? */
             continue;
         }
 
@@ -354,12 +356,14 @@ u_arraylist_t *CAFindInterfaceChange()
         if (ifa)
         {
             int ifiIndex = ifa->ifa_index;
+	    /* FIXME: BUG. what if > 1 new addrs? only last will be in iflist */
             iflist = CAIPGetInterfaceInformation(ifiIndex);
             if (!iflist)
             {
                 OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
                 return NULL;
             }
+	    /* GAR: CAProcessNewInterfaceItem? (android) */
         }
     }
 #endif
@@ -418,6 +422,7 @@ static void CARemoveNetworkMonitorList(int ifiindex)
     return;
 }
 
+/* GAR FIXME: CAIPGetAllInterfaceInformation(), not CAIPGetInterfaceInformation(0) */
 u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
 {
 #if NETWORK_INTERFACE_CHANGED_LOGGING
@@ -463,13 +468,13 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
             continue;
         }
 
+	/* GAR: hidden semantics: if desiredIndex == 0, then every if will be added to list */
         int ifindex = if_nametoindex(ifa->ifa_name);
         if (desiredIndex && (ifindex != desiredIndex))
         {
             continue;
         }
 
-	/* GAR: we can only reach this point once if (name, index) pairs are unique?? */
         size_t length = u_arraylist_length(iflist);
         int already = false;
 #if NETWORK_INTERFACE_CHANGED_LOGGING
@@ -494,7 +499,7 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
         {
             continue;
         }
-
+	/* FIXME: CAInterface_t => CAIfAddress_t */
         CAInterface_t *ifitem = (CAInterface_t *)OICCalloc(1, sizeof(CAInterface_t));
         if (!ifitem)
         {
@@ -524,12 +529,14 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
         if (!result)
         {
             OIC_LOG(ERROR, TAG, "u_arraylist_add failed.");
+	    /* FIXME: free ifitem? */
             goto exit;
         }
 
         bool isFound = CACmpNetworkList(ifitem->index);
         if (!isFound)
         {
+	    /* GAR: use DupIfItem(ifitem) instead of NewIfItem, to clarify sense */
             CAInterface_t *newifitem = CANewInterfaceItem(ifitem->index, ifitem->name, ifitem->family,
                                                           ifitem->addr, ifitem->flags);
             CAResult_t ret = CAAddNetworkMonitorList(newifitem);

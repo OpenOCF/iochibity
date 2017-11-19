@@ -123,7 +123,7 @@ OCStackResult OC_CALL OCStartMulticastServer();
 OCStackResult OC_CALL OCStopMulticastServer();
 
 /**
- * This function is Called in main loop of OC client or server.
+ * This function is called in main loop of OC client or server.
  * Allows low-level processing of stack services.
  *
  * @return ::OC_STACK_OK on success, some other value upon failure.

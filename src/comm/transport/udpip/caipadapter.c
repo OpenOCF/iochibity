@@ -390,6 +390,7 @@ CAResult_t CAInitializeIP(CARegisterConnectivityCallback registerCallback,
 
 CAResult_t CAStartIP()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     //Initializing the Globals
     CAInitializeIPGlobals();
 
@@ -433,6 +434,7 @@ CAResult_t CAStartIP()
 
 #endif
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 

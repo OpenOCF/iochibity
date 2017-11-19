@@ -551,9 +551,9 @@ do \
 
 static void CARegisterForAddressChanges()
 {
-    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     caglobals.ip.netlinkFd = OC_INVALID_SOCKET;
-#ifdef __linux__		/* GAR FIXME: Darwin? */
+#if defined(__linux__) || defined(__ANDROID__)		/* GAR FIXME: Darwin? */
     // create NETLINK fd for interface change notifications
     struct sockaddr_nl sa = { AF_NETLINK, 0, 0,
                               RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR };
@@ -578,7 +578,7 @@ static void CARegisterForAddressChanges()
         }
     }
 #endif
-    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 static void CAInitializeFastShutdownMechanism()
@@ -628,6 +628,7 @@ static void CAInitializeFastShutdownMechanism()
 
 CAResult_t CAIPStartServer(const ca_thread_pool_t threadPool)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     CAResult_t res = CA_STATUS_OK;
 
     if (caglobals.ip.started)
@@ -704,6 +705,7 @@ CAResult_t CAIPStartServer(const ca_thread_pool_t threadPool)
     OIC_LOG(DEBUG, TAG, "CAReceiveHandler thread started successfully.");
 
     caglobals.ip.started = true;
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 
@@ -912,6 +914,7 @@ CAResult_t CAIPStopListenServer()
     return CA_STATUS_OK;
 }
 
+/* GAR: called by CASelectReturned (posix), ca_CaIpInterface_caIpStateEnabled (android) */
 void CAProcessNewInterface(CAInterface_t *ifitem)
 {
     if (!ifitem)

@@ -280,6 +280,7 @@ static void CASelectReturned(fd_set *readFds, int ret)
 #if NETWORK_INTERFACE_CHANGED_LOGGING
             OIC_LOG_V(DEBUG, TAG, "Netlink event detacted");
 #endif
+	    /* handle_network_change_message(); */
             u_arraylist_t *iflist = CAFindInterfaceChange();
             if (iflist)
             {
@@ -294,6 +295,8 @@ static void CASelectReturned(fd_set *readFds, int ret)
                 }
                 u_arraylist_destroy(iflist);
             }
+	    /* FIXME: FD_CLR, continue instead of break? */
+	    /* If readFds is really a set, we cannot count on order */
             break;
         }
         else if (FD_ISSET(caglobals.ip.shutdownFds[0], readFds))
@@ -302,7 +305,7 @@ static void CASelectReturned(fd_set *readFds, int ret)
             ssize_t len = read(caglobals.ip.shutdownFds[0], buf, sizeof (buf));
             if (-1 == len)
             {
-                continue;
+                continue;	/* FIXME: FD_CLR? */
             }
             break;
         }
@@ -897,11 +900,11 @@ static void CAInitializeFastShutdownMechanism()
     {
         ret = 0;
     }
-#elif defined(HAVE_PIPE2)
+#elif defined(HAVE_PIPE2)	/* Linux */
     ret = pipe2(caglobals.ip.shutdownFds, O_CLOEXEC);
     CHECKFD(caglobals.ip.shutdownFds[0]);
     CHECKFD(caglobals.ip.shutdownFds[1]);
-#else
+#else  /* Posix pipe */
     ret = pipe(caglobals.ip.shutdownFds);
     if (-1 != ret)
     {
