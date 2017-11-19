@@ -24,12 +24,13 @@
  * This file provides helper functions for EDR adapter.
  */
 
-#include "caedrutils.h"
+#include "caedrutils_tizen.h"
+/* #include "caedrutils.h" */
 
 #include <bluetooth.h>
 
-#include "logger.h"
-#include "uarraylist.h"
+/* #include "logger.h"
+ * #include "uarraylist.h" */
 
 /**
  * Pending devices list for data transfer.

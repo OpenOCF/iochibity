@@ -22,7 +22,8 @@
  * This file implements APIs related to atomic operations compatible with GCC compilers.
  */
 
-#include "../ocatomic.h"
+#include <stdint.h>
+#include "ocatomic_posix.h"
 
 int32_t oc_atomic_increment(volatile int32_t *addend)
 {

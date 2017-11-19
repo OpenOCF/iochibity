@@ -1095,7 +1095,7 @@ CAResult_t CAUpdateCharacteristicsToGattServerImpl(LEServerInfo *serverInfo,
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(serverInfo, TAG, "Server Info is NULL");
+    VERIFY_NON_NULL_MSG(serverInfo, TAG, "Server Info is NULL");
 
     CALEGattStopDeviceScanning();
 
@@ -1310,7 +1310,7 @@ CAResult_t CAUpdateCharacteristicsToGattServer(const char *remoteAddress,
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(data, TAG, "data is NULL");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is NULL");
 
     if (0 >= dataLen)
     {
@@ -1443,7 +1443,7 @@ CAResult_t CAUpdateCharacteristicsToAllGattServers(const uint8_t *data, uint32_t
 {
     OIC_LOG(DEBUG,  TAG, "IN");
 
-    VERIFY_NON_NULL(data, TAG, "data is NULL");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is NULL");
 
     if (0 >= dataLen)
     {

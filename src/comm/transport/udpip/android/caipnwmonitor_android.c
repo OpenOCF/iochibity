@@ -31,7 +31,7 @@
 /* #ifdef HAVE_LINUX_IF_H */
 #include <linux/if.h>
 /* #endif */
-#include <coap/utlist.h>
+/* #include <coap/utlist.h> */
 /* #ifdef HAVE_LINUX_NETLINK_H */
 #include <linux/netlink.h>
 /* #endif

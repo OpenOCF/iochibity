@@ -24,15 +24,17 @@
  * This file provides the APIs for EDR Network Monitor.
  */
 
+#include "caedrnwmonitor_tizen.h"
+
 #include <string.h>
 #include <bluetooth.h>
 
-#include "caedrinterface.h"
-#include "caedrdevicelist.h"
-#include "caedrutils.h"
-#include "caadapterutils.h"
-#include "caqueueingthread.h"
-#include "caremotehandler.h"
+/* #include "caedrinterface.h"
+ * #include "caedrdevicelist.h"
+ * #include "caedrutils.h"
+ * #include "caadapterutils.h"
+ * #include "caqueueingthread.h"
+ * #include "caremotehandler.h" */
 
 /**
  * @var g_edrNetworkChangeCallback
@@ -119,7 +121,7 @@ CAResult_t CAEDRGetInterfaceInformation(CAEndpoint_t **info)
     OIC_LOG(DEBUG, EDR_ADAPTER_TAG, "IN");
 
     // Input validation
-    VERIFY_NON_NULL(info, EDR_ADAPTER_TAG, "LocalConnectivity info is null");
+    VERIFY_NON_NULL_MSG(info, EDR_ADAPTER_TAG, "LocalConnectivity info is null");
 
     // Get the bluetooth adapter local address
     char *localAddress = NULL;
@@ -151,7 +153,7 @@ CAResult_t CAEDRGetInterfaceInformation(CAEndpoint_t **info)
 CAResult_t CAEDRGetAdapterEnableState(bool *state)
 {
     OIC_LOG(DEBUG, EDR_ADAPTER_TAG, "IN");
-    VERIFY_NON_NULL(state, EDR_ADAPTER_TAG, "state holder is NULL!");
+    VERIFY_NON_NULL_MSG(state, EDR_ADAPTER_TAG, "state holder is NULL!");
 
     bt_adapter_state_e adapterState;
     int err = bt_adapter_get_state(&adapterState);

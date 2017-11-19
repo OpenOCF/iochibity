@@ -17,6 +17,7 @@
 * limitations under the License.
 *
 ******************************************************************/
+#include "caipnwmonitor_posix.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -44,16 +45,56 @@
 #include <linux/rtnetlink.h>
 #endif
 
-#include "../caipserver.h"
-#include "../caipnwmonitor.h"
-#include "octhread.h"
-#include "caadapterutils.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include <coap/utlist.h>
+/* #include "../caipserver.h" */
+/* #include "../caipnwmonitor.h" */
+/* #include "octhread.h" */
+/* #include "caadapterutils.h" */
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
+/* #include <coap/utlist.h> */
 
 #define TAG "OIC_CA_IP_MONITOR"
+
+#if INTERFACE
+#include <stdint.h>
+#endif	/* INTERFACE */
+
+#if EXPORT_INTERFACE
+#define INTERFACE_NAME_MAX 16
+
+#include <stddef.h>
+/**
+ * Callback to be notified when IP adapter network state changes.
+ *
+ * @param[in]  adapter      Transport adapter.
+ * @param[in]  status       Connection status either ::CA_INTERFACE_UP or ::CA_INTERFACE_DOWN.
+ * @see CAIPSetConnectionStateChangeCallback() for registration.
+ */
+typedef void (*CAIPAdapterStateChangeCallback)(CATransportAdapter_t adapter,
+                                               CANetworkStatus_t status);
+
+/*
+ * Structure for IP address information, to be used to construct a CAEndpoint_t.  The
+ * structure name is a misnomer, as there is one entry per address not one per interface.
+ * An interface with 4 addresses should result in 4 instances of CAInterface_t.
+ */
+typedef struct
+{
+    char name[INTERFACE_NAME_MAX];
+    uint32_t index;
+    uint32_t flags;
+    uint16_t family;
+    char addr[MAX_ADDR_STR_SIZE_CA];
+} CAInterface_t;		/* GAR: CAIfAddress_t */
+
+typedef struct CAIPCBData_t
+{
+    struct CAIPCBData_t *next;
+    CATransportAdapter_t adapter;
+    CAIPAdapterStateChangeCallback callback;
+} CAIPCBData_t;
+#endif
 
 /*
  * Enable or disable log for network changed event
@@ -183,8 +224,8 @@ static bool CACmpNetworkList(uint32_t ifiindex)
 static CAResult_t CAAddNetworkMonitorList(CAInterface_t *ifitem)
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
-    VERIFY_NON_NULL(g_netInterfaceList, TAG, "g_netInterfaceList is NULL");
-    VERIFY_NON_NULL(ifitem, TAG, "ifitem is NULL");
+    VERIFY_NON_NULL_MSG(g_netInterfaceList, TAG, "g_netInterfaceList is NULL");
+    VERIFY_NON_NULL_MSG(ifitem, TAG, "ifitem is NULL");
 
     oc_mutex_lock(g_networkMonitorContextMutex);
     bool result = u_arraylist_add(g_netInterfaceList, (void *) ifitem);
@@ -478,12 +519,12 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
         size_t length = u_arraylist_length(iflist);
         int already = false;
 #if NETWORK_INTERFACE_CHANGED_LOGGING
-        OIC_LOG_V(DEBUG, TAG, "Iterating over %" PRIuPTR " interfaces.", length);
+        OIC_LOG_V(DEBUG, TAG, "Iterating over %d interfaces.", length); /*  " PRIuPTR " */
 #endif
         for (size_t i = 0; i < length; i++)
         {
 #if NETWORK_INTERFACE_CHANGED_LOGGING
-            OIC_LOG_V(DEBUG, TAG, "Checking interface %" PRIuPTR ".", i);
+            OIC_LOG_V(DEBUG, TAG, "Checking interface %d.", i); /* " PRIuPTR " */
 #endif
             CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
 

@@ -219,7 +219,7 @@ CAResult_t CAGetLEAddress(char **local_address)
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(local_address, TAG, "local_address is null")
+    VERIFY_NON_NULL_MSG(local_address, TAG, "local_address is null")
 
     char *address = NULL;
 

@@ -74,6 +74,43 @@
  */
 #define TAG "OIC_CA_IP_SERVER"
 
+/* /\**
+ *  * Enum for defining different server types.
+ *  *\/
+ * typedef enum
+ * {
+ *     CA_UNICAST_SERVER = 0,      /\**< Unicast Server *\/
+ *     CA_MULTICAST_SERVER,        /\**< Multicast Server *\/
+ *     CA_SECURED_UNICAST_SERVER   /\**< Secured Unicast Server *\/
+ * } CAAdapterServerType_t; */
+
+#if EXPORT_INTERFACE
+#pragma message "foo"
+/**
+ * Callback to be notified on reception of any data from remote OIC devices.
+ *
+ * @param[in]  sep         network endpoint description.
+ * @param[in]  data          Data received from remote OIC device.
+ * @param[in]  dataLength    Length of data in bytes.
+ * @pre  Callback must be registered using CAIPSetPacketReceiveCallback().
+ */
+typedef void (*CAIPPacketReceivedCallback)(const CASecureEndpoint_t *sep,
+                                           const void *data,
+                                           size_t dataLength);
+
+/**
+  * Callback to notify error in the IP adapter.
+  *
+  * @param[in]  endpoint       network endpoint description.
+  * @param[in]  data          Data sent/received.
+  * @param[in]  dataLength    Length of data in bytes.
+  * @param[in]  result        result of request from R.I.
+  * @pre  Callback must be registered using CAIPSetPacketReceiveCallback().
+ */
+typedef void (*CAIPErrorHandleCallback)(const CAEndpoint_t *endpoint, const void *data,
+                                        size_t dataLength, CAResult_t result);
+#endif
+
 /*
  * Enable or disable log for network changed event
  */
@@ -1150,8 +1187,8 @@ void CAIPSendData(CAEndpoint_t *endpoint, const void *data, size_t datalen,
 
 CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, size_t *size)
 {
-    VERIFY_NON_NULL(info, TAG, "info is NULL");
-    VERIFY_NON_NULL(size, TAG, "size is NULL");
+    VERIFY_NON_NULL_MSG(info, TAG, "info is NULL");
+    VERIFY_NON_NULL_MSG(size, TAG, "size is NULL");
 
     u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
     if (!iflist)

@@ -25,18 +25,20 @@
  * bluetooth device.
  */
 
+#include "caedrclient_tizen.h"
+
 #include <string.h>
 #include <bluetooth.h>
 #include <bluetooth_internal.h>
 
-#include "caedrinterface.h"
-#include "octhread.h"
-#include "caedrendpoint.h"
-#include "caadapterutils.h"
-#include "caedrutils.h"
-#include "logger.h"
-#include "cacommon.h"
-#include "caedrdevicelist.h"
+/* #include "caedrinterface.h"
+ * #include "octhread.h"
+ * #include "caedrendpoint.h"
+ * #include "caadapterutils.h"
+ * #include "caedrutils.h"
+ * #include "logger.h"
+ * #include "cacommon.h"
+ * #include "caedrdevicelist.h" */
 
 #define MICROSECS_PER_SEC 1000000
 
@@ -507,7 +509,7 @@ CAResult_t CAEDRStartServiceSearch(const char *remoteAddress)
     OIC_LOG(DEBUG, EDR_ADAPTER_TAG, "IN");
 
     // Input validation
-    VERIFY_NON_NULL(remoteAddress, EDR_ADAPTER_TAG, "Remote address is null");
+    VERIFY_NON_NULL_MSG(remoteAddress, EDR_ADAPTER_TAG, "Remote address is null");
     if (!remoteAddress[0])
     {
         OIC_LOG(ERROR, EDR_ADAPTER_TAG, "Remote address is empty!");
@@ -679,8 +681,8 @@ CAResult_t CAEDRClientSendUnicastData(const char *remoteAddress,
     EDRDevice *device = NULL;
 
     // Input validation
-    VERIFY_NON_NULL(remoteAddress, EDR_ADAPTER_TAG, "Remote address is null");
-    VERIFY_NON_NULL(data, EDR_ADAPTER_TAG, "Data is null");
+    VERIFY_NON_NULL_MSG(remoteAddress, EDR_ADAPTER_TAG, "Remote address is null");
+    VERIFY_NON_NULL_MSG(data, EDR_ADAPTER_TAG, "Data is null");
 
     if (0 >= dataLength)
     {
@@ -775,7 +777,7 @@ CAResult_t CAEDRClientSendMulticastData(const uint8_t *data,
     OIC_LOG(DEBUG, EDR_ADAPTER_TAG, "IN");
 
     // Input validation
-    VERIFY_NON_NULL(data, EDR_ADAPTER_TAG, "Data is null");
+    VERIFY_NON_NULL_MSG(data, EDR_ADAPTER_TAG, "Data is null");
 
     if (0 >= dataLength)
     {
@@ -884,8 +886,8 @@ CAResult_t CAEDRClientConnect(const char *remoteAddress, const char *serviceUUID
 {
     OIC_LOG(DEBUG, EDR_ADAPTER_TAG, "IN");
 
-    VERIFY_NON_NULL(remoteAddress, EDR_ADAPTER_TAG, "Remote address is null");
-    VERIFY_NON_NULL(serviceUUID, EDR_ADAPTER_TAG, "Service UUID is null");
+    VERIFY_NON_NULL_MSG(remoteAddress, EDR_ADAPTER_TAG, "Remote address is null");
+    VERIFY_NON_NULL_MSG(serviceUUID, EDR_ADAPTER_TAG, "Service UUID is null");
 
     size_t addressLen = strlen(remoteAddress);
     if (0 == addressLen || CA_MACADDR_SIZE - 1 != addressLen)

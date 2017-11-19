@@ -22,8 +22,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "logger.h"
-#include "oic_malloc.h"
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
 
 /**
  * @def NO_MESSAGES
@@ -36,6 +36,44 @@
  * @brief Logging tag for module name
  */
 #define TAG "OIC_UQUEUE"
+
+#if INTERFACE
+#include <stdint.h>
+/**
+ * Queue message format.
+ */
+typedef struct u_queue_message_t
+{
+    /** Pointer to message. */
+    void *msg;
+    /** message size. */
+    uint32_t size;
+} u_queue_message_t;
+
+/* typedef struct u_queue_element_t u_queue_element; */
+
+/**
+ * Queue element format.
+ */
+typedef struct u_queue_element
+{
+    /** pointer to queue message. */
+    u_queue_message_t *message;
+    /** Pointer to next queue element. */
+    u_queue_element *next;
+} u_queue_element_t;
+
+/**
+ * Queue structure.
+ */
+typedef struct u_queue_t
+{
+    /** Head of the queue. */
+    u_queue_element *element;
+    /** Number of messages in Queue. */
+    uint32_t count;
+} u_queue_t;
+#endif
 
 u_queue_t *u_queue_create()
 {

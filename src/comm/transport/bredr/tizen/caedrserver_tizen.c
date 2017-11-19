@@ -24,16 +24,18 @@
  * This file provides the APIs to start and stop RFCOMM server.
  */
 
+#include "caedrserver_tizen.h"
+
 #include <string.h>
 #include <bluetooth.h>
 
-#include "caedrinterface.h"
-#include "caadapterutils.h"
-#include "caedrutils.h"
-#include "logger.h"
-#include "octhread.h"
-#include "cacommon.h"
-#include "caedrdevicelist.h"
+/* #include "caedrinterface.h"
+ * #include "caadapterutils.h"
+ * #include "caedrutils.h"
+ * #include "logger.h"
+ * #include "octhread.h"
+ * #include "cacommon.h"
+ * #include "caedrdevicelist.h" */
 
 static int32_t g_maxPendingConnections = 10;
 

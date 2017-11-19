@@ -18,16 +18,18 @@
  *
  ******************************************************************/
 
+#include "caleconnectionmanager_tizen.h"
+
 #include <bluetooth.h>
 #include <bluetooth_type.h>
 #include <bluetooth_internal.h>
 
-#include "camanagerleinterface.h"
-#include "cacommon.h"
-#include "camessagehandler.h"
-#include "caleserver.h"
-#include "cagattservice.h"
-#include "logger.h"
+/* #include "camanagerleinterface.h"
+ * #include "cacommon.h"
+ * #include "camessagehandler.h"
+ * #include "caleserver.h"
+ * #include "cagattservice.h"
+ * #include "logger.h" */
 
 #define TAG "OIC_CA_MANAGER_TZ_LE"
 

@@ -22,17 +22,19 @@
  * @file
  * This file provides APIs related to mutex, semaphores, and threads.
  */
-#include "iotivity_config.h"
-#include "octhread.h"
+#include "octhread_windows.h"
+/* #include "iotivity_config.h" */
 #include <string.h>
 #include <time.h>
 #include <winsock2.h>
 #include <stdio.h>
 #include <errno.h>
-#include <oic_malloc.h>
+#include <stdint.h>
 
-#include "logger.h"
-#include "iotivity_debug.h"
+/* #include <oic_malloc.h> */
+
+/* #include "logger.h" */
+/* #include "iotivity_debug.h" */
 
 #define TAG "OIC_UMUTEX"
 

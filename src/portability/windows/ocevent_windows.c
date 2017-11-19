@@ -22,10 +22,10 @@
  * This file implements Event object for allowing threads to wait on.
  */
 
-#include "../ocevent.h"
-#include "../oic_malloc.h"
-#include "logger.h"
-#include "iotivity_debug.h"
+#include "ocevent_windows.h"
+/* #include "../oic_malloc.h" */
+/* #include "logger.h" */
+/* #include "iotivity_debug.h" */
 
 #include <assert.h>
 #ifdef HAVE_STDBOOL_H
@@ -46,6 +46,8 @@ typedef struct oc_event_t
     /* The event handle */
     HANDLE event;
 } oc_event_t;
+
+typedef struct oc_event_t *oc_event;
 
 oc_event oc_event_new()
 {

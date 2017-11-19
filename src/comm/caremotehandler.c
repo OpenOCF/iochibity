@@ -20,12 +20,49 @@
 
 #include <string.h>
 
-#include "oic_malloc.h"
-#include "oic_string.h"
+/* #include "oic_malloc.h" */
+/* #include "oic_string.h" */
 #include "caremotehandler.h"
-#include "logger.h"
+/* #include "logger.h" */
 
 #define TAG "OIC_CA_REMOTE_HANDLER"
+
+/*
+ * remoteEndpoint identity.
+ */
+#if INTERFACE
+typedef struct
+{
+    uint16_t id_length;
+    unsigned char id[CA_MAX_ENDPOINT_IDENTITY_LEN];
+} CARemoteId_t;
+#endif	/* INTERFACE */
+
+#if EXPORT_INTERFACE
+#ifdef RA_ADAPTER
+/**
+ * callback for bound JID
+ */
+typedef void (*jid_bound_cb)(char *jid);
+
+/**
+ * CA Remote Access information for XMPP Client
+ *
+ */
+typedef struct
+{
+    char *hostname;     /**< XMPP server hostname */
+    uint16_t   port;    /**< XMPP server serivce port */
+    char *xmpp_domain;  /**< XMPP login domain */
+    char *username;     /**< login username */
+    char *password;     /**< login password */
+    char *resource;     /**< specific resource for login */
+    char *user_jid;     /**< specific JID for login */
+    jid_bound_cb jidbound;  /**< callback when JID bound */
+} OCRAInfo_t;
+#endif  /* RA_ADAPTER */
+#endif	/* INTERFACE */
+
 
 CAEndpoint_t *CACloneEndpoint(const CAEndpoint_t *rep)
 {

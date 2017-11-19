@@ -18,20 +18,33 @@
 *
 ******************************************************************/
 
-#include "caleserver.h"
-#include "cacommon.h"
-#include "cacommonutil.h"
-#include "octhread.h"
-#include "caqueueingthread.h"
-#include "cagattservice.h"
-#include "oic_string.h"
-#include "oic_malloc.h"
-#include "caleutil.h"
+#include "caleserver_tizen.h"
+
+/* #include "cacommon.h"
+ * #include "cacommonutil.h"
+ * #include "octhread.h"
+ * #include "caqueueingthread.h"
+ * #include "cagattservice.h"
+ * #include "oic_string.h"
+ * #include "oic_malloc.h"
+ * #include "caleutil.h" */
+
+#include <bluetooth.h>
+#include <bluetooth_type.h>
+#include <bluetooth_internal.h>
 
 /**
  * Logging tag for module name
  */
 #define TAG "OIC_CA_LE_SERVER"
+
+/**
+ * Callback to be notified on reception of any data from remote devices.
+ * @param[in]  address           MAC address of remote device.
+ * @param[in]  data              Data received from remote device.
+ * @pre  Callback must be registered using CALEServerSetCallback(CAPacketReceiveCallback callback).
+ */
+/* typedef void (*CAPacketReceiveCallback)(const char *address, const uint8_t *data); */
 
 /**
  * Initial buffer size(attr value max size) for Gatt Server.
@@ -616,7 +629,7 @@ CAResult_t CAAddNewLEServiceInGattServer(const char *serviceUUID)
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(serviceUUID, TAG, "serviceUUID");
+    VERIFY_NON_NULL_MSG(serviceUUID, TAG, "serviceUUID");
 
     OIC_LOG_V(DEBUG, TAG, "service uuid %s", serviceUUID);
 
@@ -699,7 +712,7 @@ CAResult_t CARegisterLEServicewithGattServer(const bt_gatt_h svcPath)
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(svcPath, TAG, "svcPath");
+    VERIFY_NON_NULL_MSG(svcPath, TAG, "svcPath");
 
     OIC_LOG_V(DEBUG, TAG, "svcPath:%s", svcPath);
 
@@ -835,8 +848,8 @@ CAResult_t CAUpdateCharacteristicsToGattClient(const char *address, const uint8_
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(charValue, TAG, "charValue");
-    VERIFY_NON_NULL(address, TAG, "address");
+    VERIFY_NON_NULL_MSG(charValue, TAG, "charValue");
+    VERIFY_NON_NULL_MSG(address, TAG, "address");
 
     OIC_LOG_V(DEBUG, TAG, "Client's Unicast address for sending data [%s]", address);
 
@@ -879,7 +892,7 @@ CAResult_t CAUpdateCharacteristicsToAllGattClients(const uint8_t *charValue, uin
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(charValue, TAG, "charValue");
+    VERIFY_NON_NULL_MSG(charValue, TAG, "charValue");
 
     oc_mutex_lock(g_leCharacteristicMutex);
 

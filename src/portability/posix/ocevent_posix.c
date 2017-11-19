@@ -22,12 +22,12 @@
  * This file implements Event object for allowing threads to wait on.
  */
 
-#include "../ocevent.h"
-#include "../oic_malloc.h"
-#include "../oic_time.h"
-#include "../octhread.h"
-#include "logger.h"
-#include "iotivity_debug.h"
+#include "ocevent_posix.h"
+/* #include "../oic_malloc.h" */
+/* #include "../oic_time.h" */
+/* #include "../octhread.h" */
+/* #include "logger.h" */
+/* #include "iotivity_debug.h" */
 
 #include <assert.h>
 #include <stdbool.h>
@@ -39,7 +39,8 @@
  */
 #define TAG "OIC_EVENT"
 
-typedef struct oc_event_t
+#if LOCAL_INTERFACE
+struct oc_event_t
 {
     /* Mutex for protecting the members. */
     oc_mutex mutex;
@@ -47,7 +48,10 @@ typedef struct oc_event_t
     oc_cond cond;
     /* Whether the event is signaled. */
     bool signaled;
-} oc_event_t;
+};
+
+typedef struct oc_event_t *oc_event;
+#endif
 
 oc_event oc_event_new()
 {

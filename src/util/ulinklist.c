@@ -20,15 +20,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ulinklist.h"
-#include "logger.h"
-#include "oic_malloc.h"
-//GAR avoid circular deps #include "caadapterutils.h"
-#include "cacommonutil.h" //GAR
+/* #include "logger.h" */
+/* #include "oic_malloc.h" */
+/* //GAR avoid circular deps #include "caadapterutils.h" */
+/* #include "cacommonutil.h" //GAR */
 
 /**
  * Logging tag for module name.
  */
 #define TAG "OIC_ULINKLIST"
+
+#if EXPORT_INTERFACE
+/**
+ * link list structure
+ */
+typedef struct u_linklist_data_t u_linklist_data_t;
+
+typedef struct u_linklist_data_t u_linklist_iterator_t;
+
+typedef struct u_linklist
+{
+    u_linklist_data_t *list;
+    int size;
+}u_linklist_t;
+
+struct u_linklist_data_t
+{
+    void *data;
+    u_linklist_data_t *next;
+};
+#endif
 
 u_linklist_t *u_linklist_create()
 {
@@ -45,8 +66,8 @@ u_linklist_t *u_linklist_create()
 
 CAResult_t u_linklist_add_head(u_linklist_t *linklist, void *data)
 {
-    VERIFY_NON_NULL(linklist, TAG, "list is null");
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(linklist, TAG, "list is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     u_linklist_data_t *add_node = NULL;
     add_node = (u_linklist_data_t *) OICMalloc(sizeof(u_linklist_data_t));
@@ -64,8 +85,8 @@ CAResult_t u_linklist_add_head(u_linklist_t *linklist, void *data)
 
 CAResult_t u_linklist_add(u_linklist_t *linklist, void *data)
 {
-    VERIFY_NON_NULL(linklist, TAG, "list is null");
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(linklist, TAG, "list is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     u_linklist_data_t *add_node = NULL;
     u_linklist_data_t *node = linklist->list;
@@ -104,7 +125,7 @@ CAResult_t u_linklist_add(u_linklist_t *linklist, void *data)
 
 CAResult_t u_linklist_free(u_linklist_t **linklist)
 {
-    VERIFY_NON_NULL(linklist, TAG, "linklist is null");
+    VERIFY_NON_NULL_MSG(linklist, TAG, "linklist is null");
     if (!(*linklist))
     {
         OIC_LOG(DEBUG, TAG, "List is already Empty");
@@ -136,8 +157,8 @@ CAResult_t u_linklist_free(u_linklist_t **linklist)
 
 CAResult_t u_linklist_remove(u_linklist_t *linklist, u_linklist_iterator_t **iter)
 {
-    VERIFY_NON_NULL(linklist, TAG, "list is null");
-    VERIFY_NON_NULL(iter, TAG, "iterator is null");
+    VERIFY_NON_NULL_MSG(linklist, TAG, "list is null");
+    VERIFY_NON_NULL_MSG(iter, TAG, "iterator is null");
 
     if (NULL == *iter)
     {
