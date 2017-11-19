@@ -234,6 +234,8 @@ AS_IF([test "x$enable_tcpip" = "xyes"], [
   AC_DEFINE([TCP_ADAPTER], [], [Enable TCP/IP transport])
 ])
 
+dnl FIXME: --with-presence
+
 dnl AC_ARG_WITH([msvc],
 dnl             [AS_HELP_STRING([--with-msvc],
 dnl               [enable support for msvc toolchain])],
