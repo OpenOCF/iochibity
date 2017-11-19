@@ -58,7 +58,8 @@ cc_library(
     hdrs = ["base64.h",
             "byte_array.h",
             "configuration.h",
-            "ifaddrs.h",
+            # select ifaddrs.h only for platforms that do not have getifaddrs (e.g. Android)
+            # "ifaddrs.h",
             # "tree.h",
             # "utlist.h"
     ],
