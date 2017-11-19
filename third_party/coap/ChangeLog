@@ -1,3 +1,64 @@
+2016-02-16  Olaf Bergmann  <bergmann@tzi.org>
+
+	* Fixed build for Contiki3 and LwIP
+	* .travis.yml: Enabled continuous integration for platforms
+	  POSIX and Contiki
+
+2015-03-11  Olaf Bergmann  <bergmann@tzi.org>
+
+	* include/coap/resource.h: Replaced custom list structures by
+	utlist macros.
+
+2015-03-09  Olaf Bergmann  <bergmann@tzi.org>
+
+	* src/uri.c (coap_split_path): Fixed URI parser bug and
+	removed broken parse iterator.
+
+2015-03-05  Olaf Bergmann  <bergmann@tzi.org>
+
+	* src/coap_time.c (coap_ticks): Changed POSIX implementation
+	to fixed point arithmetic and removed clock_offset.
+
+2015-02-21  Olaf Bergmann  <bergmann@tzi.org>
+
+	* net.c (coap_send_confirmed): Use fixed point arithmetic
+	to calculate retransmission timeout.
+
+2015-02-20  Olaf Bergmann  <bergmann@tzi.org>
+
+	* coap_list.[hc]: Moved old list implementation into
+	sub-directory examples and replaced by linked lists
+	from utlist.h. As a result, the list must be sorted
+	explicitly with LL_SORT).
+
+2015-02-19  Olaf Bergmann  <bergmann@tzi.org>
+
+	* net.c (coap_send_confirmed): Fixed retransmission timeout
+	calculation and renamed transmission parameters according to
+	Section 4.8 of RFC 7252.
+
+2015-02-17  Olaf Bergmann  <bergmann@tzi.org>
+
+	* major rework to get Contiki and lwip running
+	* many fixed bugs and warnings
+
+2014-06-18  Olaf Bergmann  <bergmann@tzi.org>
+
+	* mem.c (coap_malloc_type): New functions for allocating memory.
+	On POSIX systems, coap_malloc_type() and coap_free_type() are just
+	wrapper functions for malloc() and free(), while on Contiki and
+	LWIP distinct arrays are used for each type.
+
+2014-03-09  Olaf Bergmann  <bergmann@tzi.org>
+
+	* net.c (coap_cancel): Removed 7.31 again and implemented new
+	method for cancelling observe relationships.
+
+2014-02-25  Olaf Bergmann  <bergmann@tzi.org>
+
+	* net.c (coap_cancel): Handling of 7.31 responses to cancel
+	notifications (see Section 4.6 of draft-ietf-core-observe-12)
+
 2014-02-04  Olaf Bergmann  <bergmann@tzi.org>
 
 	* resource.c (coap_print_link): This function now takes an offset

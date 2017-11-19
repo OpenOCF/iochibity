@@ -1,24 +1,27 @@
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 * -*- */
+
 /* coap_list.h -- CoAP list structures
  *
- * Copyright (C) 2010,2011 Olaf Bergmann <bergmann@tzi.org>
+ * Copyright (C) 2010,2011,2015 Olaf Bergmann <bergmann@tzi.org>
  *
- * This file is part of the CoAP library libcoap. Please see
- * README for terms of use.
+ * This file is part of the CoAP library libcoap. Please see README for terms of
+ * use.
  */
 
 #ifndef _COAP_LIST_H_
 #define _COAP_LIST_H_
 
-struct coap_linkedlistnode
-{
-    struct coap_linkedlistnode *next;
-    void *data;
+#include "utlist.h"
 
-    /**
-     * Callback function that is called from coap_delete to release
-     * additional memory allocated by data Set to NULL if you do not
-     * need this. Note that data is free'd automatically. */
-    void (*delete_func)(void *);
+struct coap_linkedlistnode {
+  struct coap_linkedlistnode *next;
+  void *data;
+
+  /**
+   * Callback function that is called from coap_delete to release
+   * additional memory allocated by data Set to NULL if you do not
+   * need this. Note that data is free'd automatically. */
+  void (*delete_func)(void *);
 };
 
 typedef struct coap_linkedlistnode coap_list_t;
