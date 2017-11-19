@@ -1,0 +1,4 @@
+things to propagate back to iotivity:
+
+caprotocolmessage.c uses several private (static) fns frmo libcoap:
+coap_malloc, coap_free, prng. use OICMalloc, OICFree and OCGetRandomBytes instead.
