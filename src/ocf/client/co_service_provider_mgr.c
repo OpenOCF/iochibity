@@ -4,6 +4,8 @@
 #include "oic_malloc.h"
 #include "logger.h"
 
+static struct OOCF_ResponseItem *g_responses;
+
 OCStackResult oocf_cosp_mgr_init()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);

@@ -25,8 +25,6 @@ struct OOCF_ResponseItem {
     struct OOCF_ResponseItem *next;
 };
 
-struct OOCF_ResponseItem *g_responses;
-
 OCStackResult oocf_cosp_mgr_init();
 OCStackResult oocf_cosp_mgr_terminate();
 void oocf_cosp_mgr_save_response(OCClientResponse *response);
