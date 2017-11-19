@@ -1,3 +1,6 @@
+# FIXME: ifaddrs to portability, do not process with makeheaders if platform has getifaddrs
+
+
 config_setting(
     name = "android",
     values = {"define": "target=android",

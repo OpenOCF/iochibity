@@ -28,6 +28,7 @@
  *	BSDI ifaddrs.h,v 2.5 2000/02/23 14:51:59 dab Exp
  */
 
+#if INTERFACE
 struct ifaddrs {
 	struct ifaddrs  *ifa_next;
 	char		*ifa_name;
@@ -37,6 +38,7 @@ struct ifaddrs {
 	struct sockaddr	*ifa_dstaddr;
 	void		*ifa_data;
 };
+#endif	/* INTERFACE */
 
 /*
  * This may have been defined in <net/if.h>.  Note that if <net/if.h> is
