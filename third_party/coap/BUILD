@@ -1,3 +1,21 @@
+#libcoap_repo_url = 'https://github.com/dthaler/libcoap'
+#libcoap_repo_url    = 'https://github.com/obgm/libcoap'
+# libcoap_version = 'IoTivity-1.2.1d'
+
+# git clone https://github.com/dthaler/libcoap.git . -b IoTivity-1.2.1d
+
+# 1. autoreconf -i
+# if that doesn't work:
+
+# 1. $ libtoolize (install ltmain.sh)
+# 2. $ aclocal
+# 3. $ autoheader
+# 4. $ autoconf
+# 5. $ automake
+
+# then: $ ./configure --disable-examples
+# this creates coap_config.h. now you can build with bazel
+
 licenses(["notice", "reciprocal"])
 
 config_setting(
@@ -16,67 +34,85 @@ config_setting(
 cc_library(
     name = "coap",
     alwayslink = True,
-    copts = ["-Isrc",
-             "-Iexternal/openocf/src",
-             "-Ithird_party/coap/include",
-             "-Iexternal/openocf/third_party/coap/include",
+    copts = ["-Ithird_party/coap",
              "-Ithird_party/coap/include/coap",
-             "-Iexternal/openocf/third_party/coap/include/coap"]
+             "-Isrc",
+             # "-Iexternal/openocf/src",
+             # "-Ithird_party/coap/include",
+             # "-Iexternal/openocf/third_party/coap/include",
+             # "-Ithird_party/coap/include/coap",
+             # "-Iexternal/openocf/third_party/coap/include/coap"
+    ]
     + select({"windows": [],
               "msvc": [],
               "msys": [],
               "//conditions:default": ["-std=c11"]}),
     defines = ["WITH_POSIX"],
     deps = ["//src:config"],
-    hdrs = ["include/coap/coap.h",
-            "include/coap/config.h",
+    hdrs = ["coap_config.h",
+            "include/coap/coap.h",
             "include/coap/uri.h",
             "include/coap/pdu.h",
             # if DEBUG_COAP
             "include/coap/debug.h"
     ],
-    srcs = ["include/coap/address.h",
-            "async.c",
+    srcs = ["src/address.c",
+            "include/coap/address.h",
+
+            "src/async.c",
             "include/coap/async.h",
+
             "include/coap/bits.h",
-            "block.c",
+
+            "src/block.c",
             "include/coap/block.h",
-            #"coap.h",
-            "coap_list.c",
+
+            "src/coap_io.c",
+            "include/coap/coap_io.h",
+
+            "src/coap_list.c",
             "include/coap/coap_list.h",
+
+            "src/coap_time.c",
             "include/coap/coap_time.h",
-            #"config.h",
-            #config.h.in
-            #configure.in
 
             #FIXME: only if --enable-debug flag:
-            "debug.c",
+            "src/debug.c",
             "include/coap/debug.h",
 
-            "encode.c",
+            "src/encode.c",
             "include/coap/encode.h",
-            #examples
-            "hashkey.c",
+
+            "src/hashkey.c",
             "include/coap/hashkey.h",
-            #makefile_arduino.mak
+
+            "include/coap/libcoap.h",
+
+            "src/mem.c",
             "include/coap/mem.h",
-            "net.c",
+
+            "src/net.c",
             "include/coap/net.h",
-            "option.c",
+
+            "src/option.c",
             "include/coap/option.h",
-            "pdu.c",
-            #"pdu.h",
+            "src/pdu.c",
+            # "include/coap/pdu.h",
+
             "include/coap/prng.h",
-            "resource.c",
+
+            "src/resource.c",
             "include/coap/resource.h",
-            "str.c",
+
+            "src/str.c",
             "include/coap/str.h",
-            "subscribe.c",
+
+            "src/subscribe.c",
             "include/coap/subscribe.h",
-            "include/coap/t_list.h",
-            #tests
-            "uri.c",
-            #"uri.h",
+
+            "src/uri.c",
+            "include/coap/uri.h",
+
             "include/coap/uthash.h",
             "include/coap/utlist.h"],
     visibility = ["//visibility:public"]

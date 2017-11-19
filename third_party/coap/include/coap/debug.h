@@ -1,15 +1,14 @@
-/* debug.h -- debug utilities
+/*
+ * debug.h -- debug utilities
  *
- * Copyright (C) 2010,2011 Olaf Bergmann <bergmann@tzi.org>
+ * Copyright (C) 2010-2011,2014 Olaf Bergmann <bergmann@tzi.org>
  *
- * This file is part of the CoAP library libcoap. Please see
- * README for terms of use.
+ * This file is part of the CoAP library libcoap. Please see README for terms
+ * of use.
  */
 
 #ifndef _COAP_DEBUG_H_
 #define _COAP_DEBUG_H_
-
-#include "config.h"
 
 #ifndef COAP_DEBUG_FD
 #define COAP_DEBUG_FD stdout
@@ -24,23 +23,34 @@
 typedef short coap_log_t;
 #else
 /** Pre-defined log levels akin to what is used in \b syslog. */
-typedef enum
-{   LOG_EMERG=0, LOG_ALERT, LOG_CRIT, LOG_WARNING,
-    LOG_NOTICE, LOG_INFO, LOG_DEBUG
-}coap_log_t;
+typedef enum {
+  LOG_EMERG=0,
+  LOG_ALERT,
+  LOG_CRIT,
+  LOG_ERR,
+  LOG_WARNING,
+  LOG_NOTICE,
+  LOG_INFO,
+  LOG_DEBUG
+} coap_log_t;
 #endif
 
 /** Returns the current log level. */
-coap_log_t coap_get_log_level();
+coap_log_t coap_get_log_level(void);
 
 /** Sets the log level to the specified value. */
 void coap_set_log_level(coap_log_t level);
 
+/** Returns a zero-terminated string with the name of this library. */
+const char *coap_package_name(void);
+
+/** Returns a zero-terminated string with the library version. */
+const char *coap_package_version(void);
+
 /**
- * Writes the given text to @c COAP_ERR_FD (for @p level <= @c
- * LOG_CRIT) or @c COAP_DEBUG_FD (for @p level >= @c LOG_WARNING). The
- * text is output only when @p level is below or equal to the log
- * level that set by coap_set_log_level().
+ * Writes the given text to @c COAP_ERR_FD (for @p level <= @c LOG_CRIT) or @c
+ * COAP_DEBUG_FD (for @p level >= @c LOG_WARNING). The text is output only when
+ * @p level is below or equal to the log level that set by coap_set_log_level().
  */
 void coap_log_impl(coap_log_t level, const char *format, ...);
 
@@ -59,8 +69,6 @@ void coap_log_impl(coap_log_t level, const char *format, ...);
 void coap_show_pdu(const coap_pdu_t *);
 
 struct coap_address_t;
-unsigned int print_readable(const unsigned char *data, unsigned int len, unsigned char *result,
-        unsigned int buflen, int encode_always);
 size_t coap_print_addr(const struct coap_address_t *, unsigned char *, size_t);
 
 #else
@@ -72,6 +80,6 @@ size_t coap_print_addr(const struct coap_address_t *, unsigned char *, size_t);
 #define coap_show_pdu(x)
 #define coap_print_addr(...)
 
-#endif
+#endif /* NDEBUG */
 
 #endif /* _COAP_DEBUG_H_ */
