@@ -35,6 +35,8 @@
 #include <sys/time.h>
 #endif
 
+#include <assert.h>
+
 /* #include "cacommon.h" */
 /* #include "cainterface.h" */
 
