@@ -48,7 +48,7 @@
 /* #include "srmutility.h" */
 /* #include "provisioningdatabasemanager.h" */
 /* #include "base64.h" */
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "ocpayload.h" */
 /* #include "srmutility.h" */
 /* #include "certhelpers.h" */

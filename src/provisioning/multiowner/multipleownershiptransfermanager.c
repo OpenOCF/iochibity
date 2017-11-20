@@ -32,7 +32,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "logger.h" */
 /* #include "oic_malloc.h" */
 /* #include "oic_string.h" */

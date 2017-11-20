@@ -48,7 +48,7 @@
 /* #include "oic_string.h" */
 /* #include "ocpayload.h" */
 /* #include "ocpayloadcbor.h" */
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "credresource.h" */
 /* #include "doxmresource.h" */
 /* #include "pstatresource.h" */

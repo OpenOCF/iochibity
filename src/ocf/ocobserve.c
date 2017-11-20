@@ -34,6 +34,8 @@
 /* #include "ocpresence.h" */
 /* #include "logger.h" */
 
+#include "utlist.h"
+
 #include "coap_config.h"
 #include "coap/pdu.h"
 #include "coap/coap_time.h"

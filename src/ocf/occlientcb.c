@@ -29,6 +29,9 @@
 /* #include "logger.h" */
 /* #include "trace.h" */
 /* #include "oic_malloc.h" */
+
+#include "utlist.h"
+
 #include <string.h>
 
 #ifdef HAVE_SYS_TIME_H

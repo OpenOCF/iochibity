@@ -30,7 +30,7 @@
 /* #include "oic_malloc.h" */
 /* #include "oic_string.h" */
 /* #include "logger.h" */
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "psinterface.h" */
 
 #define TAG "OIC_SRM_RM"

@@ -53,7 +53,7 @@
 /* #include "cacommon.h" */
 /* #include "cainterface.h" */
 /* #include "base64.h" */
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "srmresourcestrings.h" */
 /* #include "doxmresource.h" */
 /* #include "pstatresource.h" */

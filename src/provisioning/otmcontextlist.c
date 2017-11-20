@@ -25,7 +25,7 @@
 /* #include "oic_string.h" */
 /* #include "octypes.h" */
 /* #include "ownershiptransfermanager.h" */
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "otmcontextlist.h" */
 
 #define TAG "OIC_OTM_CTX"

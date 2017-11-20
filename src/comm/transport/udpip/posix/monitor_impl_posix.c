@@ -47,7 +47,7 @@
 #include "logger.h"
 #include "oic_malloc.h"
 #include "oic_string.h"
-#include <coap/utlist.h>
+/* #include <coap/utlist.h> */
 
 #define TAG "OIC_CA_IP_IMPL"
 

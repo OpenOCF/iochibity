@@ -219,7 +219,7 @@ cc_library(
              "-Iexternal/openocf/src/util",
              "-Ithird_party/coap",
              "-Ithird_party/coap/include",
-             "-Iexternal/openocf/third_party/coap/include",
+             # "-Iexternal/openocf/third_party/coap/include",
              "-Ithird_party/tinycbor/src",
              "-Iexternal/openocf/third_party/tinycbor/src"]
     + select({":windows": [],
@@ -236,6 +236,7 @@ cc_library(
             "//src/portability",
             "//src/sec",
             "//src/util",       # c_common
+            "//third_party/coap",
             "//third_party/tinycbor",
             "//third_party/cjson",
             "//src/routing",

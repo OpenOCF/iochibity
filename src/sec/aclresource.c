@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "ocstack.h" */
 /* #include "octypes.h" */
 /* #include "ocserverrequest.h" */

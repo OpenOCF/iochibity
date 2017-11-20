@@ -47,6 +47,7 @@
 
 #if INTERFACE
 #include "coap/pdu.h"
+#define UTLIST_H
 #include "coap/coap_list.h"
 #endif	/* INTERFACE */
 

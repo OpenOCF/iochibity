@@ -20,7 +20,7 @@
 
 #include "crlresource.h"
 
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "crl_logging.h" */
 /* #include "payload_logging.h" */
 /* #include "psinterface.h" */

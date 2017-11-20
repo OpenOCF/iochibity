@@ -34,7 +34,7 @@
 /* #include "secureresourceprovider.h" */
 /* #include "provisioningdatabasemanager.h" */
 /* #include "credresource.h" */
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "aclresource.h" //Note: SRM internal header */
 /* #include "psinterface.h" */
 /* #include "ocstackinternal.h" */

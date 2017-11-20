@@ -34,7 +34,7 @@
 /* /\* //src/comm/api *\/ */
 /* #include "cainterface.h" */
 
-/* #include "utlist.h" */
+#include "utlist.h"
 
 /* #ifdef WITH_PRESENCE */
 

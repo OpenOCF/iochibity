@@ -22,7 +22,7 @@
 
 #include "policyengine.h"
 
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "oic_malloc.h" */
 /* #include "ocrandom.h" */
 /* #include "policyengine.h" */

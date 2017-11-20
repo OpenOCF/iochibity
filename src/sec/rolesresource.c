@@ -48,7 +48,7 @@
 /* #include "srmutility.h" */
 /* #include "certhelpers.h" */
 /* #include "resourcemanager.h" */
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "ca_adapter_net_ssl.h" */
 /* #include "ocstackinternal.h" */
 /* #include "rolesresource.h" */

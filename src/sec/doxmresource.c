@@ -32,7 +32,7 @@
 /* #include "ocstack.h" */
 /* #include "oic_malloc.h" */
 /* #include "payload_logging.h" */
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "ocrandom.h" */
 /* #include "ocpayload.h" */
 /* #include "ocpayloadcbor.h" */

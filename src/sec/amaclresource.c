@@ -30,7 +30,7 @@
 /* #include "payload_logging.h" */
 /* #include "psinterface.h" */
 /* #include "resourcemanager.h" */
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "srmresourcestrings.h" */
 /* #include "srmutility.h" */
 /* #include "amaclresource.h" */

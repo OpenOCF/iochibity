@@ -43,7 +43,7 @@
 /* #include "oic_string.h" */
 /* #include "oic_time.h" */
 /* #include "logger.h" */
-/* #include "utlist.h" */
+#include "utlist.h"
 /* #include "ocpayload.h" */
 
 /* #include "srmresourcestrings.h" //@note: SRM's internal header */
