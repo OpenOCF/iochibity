@@ -8,10 +8,10 @@
 
 ################################################################
 # dev/debug options
-build -s --verbose_failures --sandbox_debug
+# build -s --verbose_failures --sandbox_debug
 # build --show_timestamps --keep_going --jobs 600
-build --color=yes
-query --keep_going
+# build --color=yes
+# query --keep_going
 
 ################################################################
 # OpenOCF build options
