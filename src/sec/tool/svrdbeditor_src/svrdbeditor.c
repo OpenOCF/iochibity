@@ -20,17 +20,17 @@
 
 #include <string.h>
 
-#include "octypes.h"
-#include "ocstack.h"
-#include "psinterface.h"
+/* #include "octypes.h"
+ * #include "ocstack.h"
+ * #include "psinterface.h"
+ * 
+ * #include "credresource.h" */
 
-#include "credresource.h"
-
-#include "svrdbeditorcommon.h"
-#include "svrdbeditoracl.h"
-#include "svrdbeditorcred.h"
-#include "svrdbeditordoxm.h"
-#include "svrdbeditorpstat.h"
+#include "svrdbeditor.h"
+/* #include "svrdbeditoracl.h"
+ * #include "svrdbeditorcred.h"
+ * #include "svrdbeditordoxm.h"
+ * #include "svrdbeditorpstat.h" */
 
 static bool g_allowedEditMenu[SVR_EDIT_IDX_SIZE] = {false/*unused*/, false, false, false, false};
 static char g_svrDbPath[SVR_DB_PATH_LENGTH];

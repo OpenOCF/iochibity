@@ -18,18 +18,20 @@
  *
  * *****************************************************************/
 
+#include "svrdbeditorcommon.h"
+
 #include <stdio.h>
 #include <string.h>
 
-#include "utlist.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-
-#include "srmresourcestrings.h"
-#include "experimental/securevirtualresourcetypes.h"
-#include "srmutility.h"
-
-#include "svrdbeditorcommon.h"
+/* #include "utlist.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * 
+ * #include "srmresourcestrings.h"
+ * #include "experimental/securevirtualresourcetypes.h"
+ * #include "srmutility.h"
+ * 
+ * #include "svrdbeditorcommon.h" */
 
 #define STR_UUID_LENGTH (UUID_LENGTH * 2 + 4 + 1) // length + dash length  + '\0'
 #define STR_UUID_ZERO "0"

@@ -18,14 +18,14 @@
  *
  * *****************************************************************/
 
-#include "octypes.h"
-#include "oic_malloc.h"
-
-#include "experimental/securevirtualresourcetypes.h"
-#include "srmresourcestrings.h"
-#include "psinterface.h"
-
-#include "pstatresource.h"
+/* #include "octypes.h"
+ * #include "oic_malloc.h"
+ * 
+ * #include "experimental/securevirtualresourcetypes.h"
+ * #include "srmresourcestrings.h"
+ * #include "psinterface.h"
+ * 
+ * #include "pstatresource.h" */
 #include "svrdbeditorpstat.h"
 
 #define DPM_CNT (8)

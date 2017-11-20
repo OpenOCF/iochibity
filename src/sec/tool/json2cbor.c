@@ -18,29 +18,32 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+#include "json2cbor.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-#include "utlist.h"
-#include "cJSON.h"
-#include "base64.h"
-#include "cainterface.h"
-#include "ocstack.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "ocpayload.h"
-#include "ocpayloadcbor.h"
-#include "payload_logging.h"
-#include "secureresourcemanager.h"
-#include "srmresourcestrings.h"
-#include "srmutility.h"
-#include "aclresource.h"
-#include "pstatresource.h"
-#include "doxmresource.h"
-#include "amaclresource.h"
-#include "credresource.h"
-#include "security_internals.h"
-#include "ocresourcehandler.h"
+
+/* #include "utlist.h"
+ * #include "cJSON.h"
+ * #include "base64.h"
+ * #include "cainterface.h"
+ * #include "ocstack.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * #include "ocpayload.h"
+ * #include "ocpayloadcbor.h"
+ * #include "payload_logging.h"
+ * #include "secureresourcemanager.h"
+ * #include "srmresourcestrings.h"
+ * #include "srmutility.h"
+ * #include "aclresource.h"
+ * #include "pstatresource.h"
+ * #include "doxmresource.h"
+ * #include "amaclresource.h"
+ * #include "credresource.h"
+ * #include "security_internals.h"
+ * #include "ocresourcehandler.h" */
 
 #define TAG  "OIC_JSON2CBOR"
 #define MAX_RANGE   SIZE_MAX

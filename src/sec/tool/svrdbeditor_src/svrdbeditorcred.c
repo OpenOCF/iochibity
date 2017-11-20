@@ -30,21 +30,22 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "utlist.h"
-#include "base64.h"
-#include "octypes.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "experimental/logger.h"
+/* #include "utlist.h"
+ * #include "base64.h"
+ * #include "octypes.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * #include "experimental/logger.h"
+ * 
+ * #include "srmresourcestrings.h"
+ * #include "pinoxmcommon.h"
+ * #include "credresource.h"
+ * 
+ * #include "security_internals.h"
+ * #include "psinterface.h"
+ * 
+ * #include "svrdbeditordoxm.h" */
 
-#include "srmresourcestrings.h"
-#include "pinoxmcommon.h"
-#include "credresource.h"
-
-#include "security_internals.h"
-#include "psinterface.h"
-
-#include "svrdbeditordoxm.h"
 #include "svrdbeditorcred.h"
 
 typedef enum CredModifyType

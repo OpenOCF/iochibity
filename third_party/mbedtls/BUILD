@@ -70,8 +70,8 @@ cc_library(
             "library/aesni.c",
             "include/mbedtls/aesni.h",
 
-            "library/arc4.c",
-            "include/mbedtls/arc4.h",
+            # "library/arc4.c",
+            # "include/mbedtls/arc4.h",
 
             "library/asn1parse.c",
             "include/mbedtls/asn1.h",
@@ -86,11 +86,11 @@ cc_library(
             "include/mbedtls/bignum.h",
             "include/mbedtls/bn_mul.h",
 
-            "library/blowfish.c",
-            "include/mbedtls/blowfish.h",
+            # "library/blowfish.c",
+            # "include/mbedtls/blowfish.h",
 
-            "library/camellia.c",
-            "include/mbedtls/camellia.h",
+            # "library/camellia.c",
+            # "include/mbedtls/camellia.h",
 
             "library/ccm.c",
             "include/mbedtls/ccm.h",
@@ -100,11 +100,11 @@ cc_library(
             "include/mbedtls/cipher.h",
             "include/mbedtls/cipher_internal.h",
 
-            "library/des.c",
-            "include/mbedtls/des.h",
+            # "library/des.c",
+            # "include/mbedtls/des.h",
 
-            "library/dhm.c",
-            "include/mbedtls/dhm.h",
+            # "library/dhm.c",
+            # "include/mbedtls/dhm.h",
 
             "library/ecdh.c",
             "include/mbedtls/ecdh.h",
@@ -112,8 +112,8 @@ cc_library(
             "library/ecdsa.c",
             "include/mbedtls/ecdsa.h",
 
-            "library/ecjpake.c",
-            "include/mbedtls/ecjpake.h",
+            # "library/ecjpake.c",
+            # "include/mbedtls/ecjpake.h",
 
             "library/ecp.c",
             "include/mbedtls/ecp.h",
@@ -139,8 +139,8 @@ cc_library(
             "library/gcm.c",
             "include/mbedtls/gcm.h",
 
-            "library/havege.c",
-            "include/mbedtls/havege.h",
+            # "library/havege.c",
+            # "include/mbedtls/havege.h",
 
             "library/hmac_drbg.c",
             "include/mbedtls/hmac_drbg.h",
@@ -148,27 +148,27 @@ cc_library(
             "library/md.c",
             "include/mbedtls/md.h",
 
-            "library/md2.c",
-            "include/mbedtls/md2.h",
+            # "library/md2.c",
+            # "include/mbedtls/md2.h",
 
-            "library/md4.c",
-            "include/mbedtls/md4.h",
+            # "library/md4.c",
+            # "include/mbedtls/md4.h",
 
-            "library/md5.c",
-            "include/mbedtls/md5.h",
-            "include/mbedtls/md_internal.h",
+            # "library/md5.c",
+            # "include/mbedtls/md5.h",
+            # "include/mbedtls/md_internal.h",
 
             "library/md_wrap.c",
 
-            "library/memory_buffer_alloc.c",
-            "include/mbedtls/memory_buffer_alloc.h",
+            # "library/memory_buffer_alloc.c",
+            # "include/mbedtls/memory_buffer_alloc.h",
 
             "library/oid.c",
             "include/mbedtls/oid.h",
             "include/mbedtls/x509.h",
 
-            "library/padlock.c",
-            "include/mbedtls/padlock.h",
+            # "library/padlock.c",
+            # "include/mbedtls/padlock.h",
 
             "library/pem.c",
             "include/mbedtls/pem.h",
@@ -179,8 +179,8 @@ cc_library(
 
             "library/pk_wrap.c",
 
-            "library/pkcs12.c",
-            "include/mbedtls/pkcs12.h",
+            # "library/pkcs12.c",
+            # "include/mbedtls/pkcs12.h",
 
             "library/pkcs5.c",
             "include/mbedtls/pkcs5.h",
@@ -189,12 +189,12 @@ cc_library(
 
             "library/pkwrite.c",
 
-            "library/platform.c",
-            "include/mbedtls/platform.h",
-            "include/mbedtls/platform_time.h",
+            # "library/platform.c",
+            # "include/mbedtls/platform.h",
+            # "include/mbedtls/platform_time.h",
 
-            "library/ripemd160.c",
-            "include/mbedtls/ripemd160.h",
+            # "library/ripemd160.c",
+            # "include/mbedtls/ripemd160.h",
 
             "library/rsa.c",
             "include/mbedtls/rsa.h",
@@ -208,8 +208,8 @@ cc_library(
             "library/sha512.c",
             "include/mbedtls/sha512.h",
 
-            "library/threading.c",
-            "include/mbedtls/threading.h",
+            # "library/threading.c",
+            # "include/mbedtls/threading.h",
 
             "library/timing.c",
             "include/mbedtls/timing.h",
@@ -219,8 +219,9 @@ cc_library(
 
             "library/version_features.c",
 
-            "library/xtea.c",
-            "include/mbedtls/xtea.h"],
+            # "library/xtea.c",
+            # "include/mbedtls/xtea.h"
+    ],
     visibility = ["//visibility:public"]
 )
 
@@ -237,11 +238,11 @@ cc_library(
     hdrs = glob(["include/mbedtls/*.h"]),
     srcs = [# "include/mbedtls/config.h",
 
-            "library/certs.c",
-            "include/mbedtls/certs.h",
+            # "library/certs.c",
+            # "include/mbedtls/certs.h",
 
-            "library/pkcs11.c",
-            "include/mbedtls/pkcs11.h",
+            # "library/pkcs11.c",
+            # "include/mbedtls/pkcs11.h",
 
             "library/x509.c",
             "include/mbedtls/x509.h",

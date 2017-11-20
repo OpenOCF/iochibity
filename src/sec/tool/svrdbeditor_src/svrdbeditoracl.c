@@ -18,19 +18,21 @@
  *
  * *****************************************************************/
 
+#include "svrdbeditoracl.h"
+
 #include <stdbool.h>
 
-#include "utlist.h"
-#include "octypes.h"
-#include "oic_malloc.h"
-
-#include "psinterface.h"
-
-#include "srmresourcestrings.h"
-#include "security_internals.h"
-#include "aclresource.h"
-
-#include "svrdbeditoracl.h"
+/* #include "utlist.h"
+ * #include "octypes.h"
+ * #include "oic_malloc.h"
+ * 
+ * #include "psinterface.h"
+ * 
+ * #include "srmresourcestrings.h"
+ * #include "security_internals.h"
+ * #include "aclresource.h"
+ * 
+ * #include "svrdbeditoracl.h" */
 
 #define ACL_PEMISN_CNT (5)
 #define ACE_MAX_ENTITY (256)
