@@ -1,0 +1,20 @@
+cc_library(
+    name = "darwin",
+    copts = ["-Isrc",
+             "-Isrc/util",
+             "-Isrc/logger",
+             "-Iexternal/openocf/src/logger",
+	     "-Ithird_party/coap/include",
+	     "-Iexternal/openocf/third_party/coap/include",
+             "-Iexternal/local_jdk/include",
+             "-Iexternal/local_jdk/include/darwin",
+             "-std=c11",
+             "-UDEBUG"],
+    deps = ["//src:config",
+            "//src/logger",
+            "//src/util",
+    ],
+    hdrs = glob(["*.h"]),
+    srcs = glob(["*.c"]),
+    visibility = ["//visibility:public"]
+)

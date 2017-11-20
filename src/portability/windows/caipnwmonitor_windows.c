@@ -17,9 +17,11 @@
 *
 ******************************************************************/
 
-#include "iotivity_config.h"
-#include "iotivity_debug.h"
-#include "caipserver.h"
+#include "caipnwmonitor_windows.h"
+
+/* #include "iotivity_config.h"
+ * #include "iotivity_debug.h"
+ * #include "caipserver.h" */
 
 #include <assert.h>
 #include <sys/types.h>
@@ -30,13 +32,14 @@
 #include <mstcpip.h>
 #include <iptypes.h>
 #include <stdbool.h>
-#include "octhread.h"
-#include "caadapterutils.h"
-#include "logger.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
-#include "caipnwmonitor.h"
-#include <coap/utlist.h>
+
+/* #include "octhread.h"
+ * #include "caadapterutils.h"
+ * #include "logger.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h"
+ * #include "caipnwmonitor.h"
+ * #include <coap/utlist.h> */
 
 #define TAG "IP_MONITOR"
 

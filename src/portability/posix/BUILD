@@ -1,4 +1,14 @@
 config_setting(
+    name = "androidx86",
+    values = {"fat_apk_cpu": "x86",
+              # "android_crosstool_top": "//platforms/ndk:toolchain"
+    }
+)
+config_setting(
+    name = "wrlinux",
+    values = { "crosstool_top": "//platforms/wrlinux:toolchain" }
+)
+config_setting(
     name = "windows",
     values = { "cpu": "x64_windows" }
 )
@@ -11,8 +21,49 @@ config_setting(
     values = { "cpu": "x64_windows_msys" }
 )
 
+# if platform != windows and defined(HAVE_LIBPTHREAD)
+# NB: for now we ignore platforms lacking pthreads
 cc_library(
     name = "posix",
+    # copts = ["-Isrc",
+    #          "-Iexternal/openocf/src",
+    #          "-Isrc/logger",
+    #          "-Iexternal/openocf/src/logger",
+    #          "-Isrc/portability"]
+    #          # "-Ithird_party/mbedtls/include"]
+    copts =  select({"windows": [],
+                     "msvc": [],
+                     "msys": [],
+                     "//conditions:default": ["-std=c11",
+                                              "-U DEBUG"]}), # OS X
+    deps = [#"//src:config",
+            "//src/logger",
+            # "//src/portability:hdrs",
+            "//third_party/mbedtls"],
+    linkopts = select({"windows": [],
+                       "msvc": [],
+                       "msys": ["-lpthread"],
+                       "wrlinux": ["-lpthread"],
+                       # "android": [],
+                       "androidx86": [],
+                       #"ndk": [],
+                       "//conditions:default": []}),
+    srcs = [#"oic_platform.c",
+            #"oic_platform.h",
+            "ocatomic_posix.c",
+            "ocatomic_posix.h",
+            "ocevent_posix.c",
+            "ocevent_posix.h",
+            "octhread_posix.c",
+            "octhread_posix.h",
+            "caipserver_posix.c",
+            "caipserver_posix.h",
+    ],
+    visibility = ["//visibility:public"]
+)
+
+cc_library(
+    name = "posixFOO",
     copts = [#"-I.",
              "-Isrc",
              # "-Iexternal/openocf/src/",
@@ -69,5 +120,5 @@ cc_library(
             "caipserver_posix.h",
             #"monitor_impl_posix.c"
     ],
-    visibility = ["//src/comm/transport/udpip:__pkg__"]
+    visibility = ["//visibility:public"]
 )

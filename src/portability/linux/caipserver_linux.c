@@ -25,8 +25,8 @@
 #define _GNU_SOURCE // for in6_pktinfo
 #endif
 
-#include "iotivity_config.h"
-#include "iotivity_debug.h"
+#include "caipserver_linux.c"
+/* #include "iotivity_debug.h" */
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_SOCKET_H
@@ -50,22 +50,22 @@
 #include <net/if.h>
 #endif
 #include <errno.h>
-#ifdef __linux__
+/* #ifdef __linux__ */
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
-#endif
+/* #endif */
 
 #include <coap/pdu.h>
 #include <inttypes.h>
-#include "caipserver.h"
-#include "caipnwmonitor.h"
-#include "caadapterutils.h"
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-#include "ca_adapter_net_ssl.h"
-#endif
-#include "octhread.h"
-#include "oic_malloc.h"
-#include "oic_string.h"
+/* #include "caipserver.h"
+ * #include "caipnwmonitor.h"
+ * #include "caadapterutils.h"
+ * #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+ * #include "ca_adapter_net_ssl.h"
+ * #endif
+ * #include "octhread.h"
+ * #include "oic_malloc.h"
+ * #include "oic_string.h" */
 
 #define USE_IP_MREQN
 
@@ -168,11 +168,11 @@ static char *ipv6mcnames[IPv6_DOMAINS] = {
 
 static CAIPErrorHandleCallback g_ipErrorHandler = NULL;
 
-static CAIPPacketReceivedCallback g_packetReceivedCallback = NULL;
+/* static CAIPPacketReceivedCallback g_packetReceivedCallback = NULL; */
 
-static void CAFindReadyMessage();
+/* static void CAFindReadyMessage(); */
 
-static void CASelectReturned(fd_set *readFds, int ret);
+/* static void CASelectReturned(fd_set *readFds, int ret); */
 
 static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags);
 
@@ -269,7 +269,7 @@ static void CAFindReadyMessage()
     }
 }
 
-static void CASelectReturned(fd_set *readFds, int ret)
+void CASelectReturned(fd_set *readFds, int ret)
 {
     (void)ret;
     CASocketFd_t fd = OC_INVALID_SOCKET;
@@ -336,6 +336,14 @@ void CAUnregisterForAddressChanges()
 
 void CADeInitializeIPGlobals()
 {
+ /* GAR: moved from caipserver.c:CACloseFDs */
+/* #if !defined(WSA_WAIT_EVENT_0) */
+    if (caglobals.ip.shutdownFds[0] != -1)
+    {
+        close(caglobals.ip.shutdownFds[0]);
+        caglobals.ip.shutdownFds[0] = -1;
+    }
+/* #endif */
     CLOSE_SOCKET(u6);
     CLOSE_SOCKET(u6s);
     CLOSE_SOCKET(u4);
@@ -586,11 +594,10 @@ do \
     CHECKFD(caglobals.ip.NAME.fd); \
 } while(0)
 
-static void CARegisterForAddressChanges()
+void CARegisterForAddressChanges()
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
     caglobals.ip.netlinkFd = OC_INVALID_SOCKET;
-#ifdef __linux__		/* GAR FIXME: Darwin? */
     // create NETLINK fd for interface change notifications
     struct sockaddr_nl sa = { AF_NETLINK, 0, 0,
                               RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR };
@@ -614,7 +621,6 @@ static void CARegisterForAddressChanges()
             CHECKFD(caglobals.ip.netlinkFd);
         }
     }
-#endif
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 
@@ -623,38 +629,38 @@ static void CAInitializeFastShutdownMechanism()
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
     caglobals.ip.selectTimeout = -1; // don't poll for shutdown
     int ret = -1;
-#if defined(HAVE_PIPE2)
+/* #if defined(HAVE_PIPE2) */
     ret = pipe2(caglobals.ip.shutdownFds, O_CLOEXEC);
     CHECKFD(caglobals.ip.shutdownFds[0]);
     CHECKFD(caglobals.ip.shutdownFds[1]);
-#else
-    ret = pipe(caglobals.ip.shutdownFds);
-    if (-1 != ret)
-    {
-        ret = fcntl(caglobals.ip.shutdownFds[0], F_GETFD);
-        if (-1 != ret)
-        {
-            ret = fcntl(caglobals.ip.shutdownFds[0], F_SETFD, ret|FD_CLOEXEC);
-        }
-        if (-1 != ret)
-        {
-            ret = fcntl(caglobals.ip.shutdownFds[1], F_GETFD);
-        }
-        if (-1 != ret)
-        {
-            ret = fcntl(caglobals.ip.shutdownFds[1], F_SETFD, ret|FD_CLOEXEC);
-        }
-        if (-1 == ret)
-        {
-            close(caglobals.ip.shutdownFds[1]);
-            close(caglobals.ip.shutdownFds[0]);
-            caglobals.ip.shutdownFds[0] = -1;
-            caglobals.ip.shutdownFds[1] = -1;
-        }
-    }
-    CHECKFD(caglobals.ip.shutdownFds[0]);
-    CHECKFD(caglobals.ip.shutdownFds[1]);
-#endif
+/* #else
+ *     ret = pipe(caglobals.ip.shutdownFds);
+ *     if (-1 != ret)
+ *     {
+ *         ret = fcntl(caglobals.ip.shutdownFds[0], F_GETFD);
+ *         if (-1 != ret)
+ *         {
+ *             ret = fcntl(caglobals.ip.shutdownFds[0], F_SETFD, ret|FD_CLOEXEC);
+ *         }
+ *         if (-1 != ret)
+ *         {
+ *             ret = fcntl(caglobals.ip.shutdownFds[1], F_GETFD);
+ *         }
+ *         if (-1 != ret)
+ *         {
+ *             ret = fcntl(caglobals.ip.shutdownFds[1], F_SETFD, ret|FD_CLOEXEC);
+ *         }
+ *         if (-1 == ret)
+ *         {
+ *             close(caglobals.ip.shutdownFds[1]);
+ *             close(caglobals.ip.shutdownFds[0]);
+ *             caglobals.ip.shutdownFds[0] = -1;
+ *             caglobals.ip.shutdownFds[1] = -1;
+ *         }
+ *     }
+ *     CHECKFD(caglobals.ip.shutdownFds[0]);
+ *     CHECKFD(caglobals.ip.shutdownFds[1]);
+ * #endif */
     if (-1 == ret)
     {
         OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR);
@@ -663,311 +669,313 @@ static void CAInitializeFastShutdownMechanism()
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 
-CAResult_t CAIPStartServer(const ca_thread_pool_t threadPool)
-{
-    CAResult_t res = CA_STATUS_OK;
+/* CAResult_t CAIPStartServer(const ca_thread_pool_t threadPool)
+ * {
+ *     CAResult_t res = CA_STATUS_OK;
+ * 
+ *     if (caglobals.ip.started)
+ *     {
+ *         return res;
+ *     }
+ *     if (!IPv4MulticastAddress.s_addr)
+ *     {
+ *         (void)inet_pton(AF_INET, IPv4_MULTICAST, &IPv4MulticastAddress);
+ *         (void)inet_pton(AF_INET6, IPv6_MULTICAST_INT, &IPv6MulticastAddressInt);
+ *         (void)inet_pton(AF_INET6, IPv6_MULTICAST_LNK, &IPv6MulticastAddressLnk);
+ *         (void)inet_pton(AF_INET6, IPv6_MULTICAST_RLM, &IPv6MulticastAddressRlm);
+ *         (void)inet_pton(AF_INET6, IPv6_MULTICAST_ADM, &IPv6MulticastAddressAdm);
+ *         (void)inet_pton(AF_INET6, IPv6_MULTICAST_SIT, &IPv6MulticastAddressSit);
+ *         (void)inet_pton(AF_INET6, IPv6_MULTICAST_ORG, &IPv6MulticastAddressOrg);
+ *         (void)inet_pton(AF_INET6, IPv6_MULTICAST_GLB, &IPv6MulticastAddressGlb);
+ *     }
+ * 
+ *     if (!caglobals.ip.ipv6enabled && !caglobals.ip.ipv4enabled)
+ *     {
+ *         caglobals.ip.ipv4enabled = true;  // only needed to run CA tests
+ *     }
+ * 
+ *     if (caglobals.ip.ipv6enabled)
+ *     {
+ *         NEWSOCKET(AF_INET6, u6, false);
+ *         NEWSOCKET(AF_INET6, u6s, false);
+ *         NEWSOCKET(AF_INET6, m6, true);
+ *         NEWSOCKET(AF_INET6, m6s, true);
+ *         OIC_LOG_V(INFO, TAG, "IPv6 unicast port: %u", caglobals.ip.u6.port);
+ *     }
+ *     if (caglobals.ip.ipv4enabled)
+ *     {
+ *         NEWSOCKET(AF_INET, u4, false);
+ *         NEWSOCKET(AF_INET, u4s, false);
+ *         NEWSOCKET(AF_INET, m4, true);
+ *         NEWSOCKET(AF_INET, m4s, true);
+ *         OIC_LOG_V(INFO, TAG, "IPv4 unicast port: %u", caglobals.ip.u4.port);
+ *     }
+ * 
+ *     OIC_LOG_V(DEBUG, TAG,
+ *               "socket summary: u6=%d, u6s=%d, u4=%d, u4s=%d, m6=%d, m6s=%d, m4=%d, m4s=%d",
+ *               caglobals.ip.u6.fd, caglobals.ip.u6s.fd, caglobals.ip.u4.fd, caglobals.ip.u4s.fd,
+ *               caglobals.ip.m6.fd, caglobals.ip.m6s.fd, caglobals.ip.m4.fd, caglobals.ip.m4s.fd);
+ * 
+ *     OIC_LOG_V(DEBUG, TAG,
+ *               "port summary: u6 port=%d, u6s port=%d, u4 port=%d, u4s port=%d, m6 port=%d,"
+ *               "m6s port=%d, m4 port=%d, m4s port=%d",
+ *               caglobals.ip.u6.port, caglobals.ip.u6s.port, caglobals.ip.u4.port,
+ *               caglobals.ip.u4s.port, caglobals.ip.m6.port, caglobals.ip.m6s.port,
+ *               caglobals.ip.m4.port, caglobals.ip.m4s.port);
+ *     // set up appropriate FD mechanism for fast shutdown
+ *     CAInitializeFastShutdownMechanism();
+ * 
+ *     // create source of network address change notifications
+ *     CARegisterForAddressChanges();
+ * 
+ *     caglobals.ip.selectTimeout = CAGetPollingInterval(caglobals.ip.selectTimeout);
+ * 
+ *     res = CAIPStartListenServer();
+ *     if (CA_STATUS_OK != res)
+ *     {
+ *         OIC_LOG_V(ERROR, TAG, "Failed to start listening server![%d]", res);
+ *         return res;
+ *     }
+ * 
+ *     caglobals.ip.terminate = false;
+ *     res = ca_thread_pool_add_task(threadPool, CAReceiveHandler, NULL);
+ *     if (CA_STATUS_OK != res)
+ *     {
+ *         OIC_LOG(ERROR, TAG, "thread_pool_add_task failed");
+ *         return res;
+ *     }
+ *     OIC_LOG(DEBUG, TAG, "CAReceiveHandler thread started successfully.");
+ * 
+ *     caglobals.ip.started = true;
+ *     return CA_STATUS_OK;
+ * } */
 
-    if (caglobals.ip.started)
-    {
-        return res;
-    }
-    if (!IPv4MulticastAddress.s_addr)
-    {
-        (void)inet_pton(AF_INET, IPv4_MULTICAST, &IPv4MulticastAddress);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_INT, &IPv6MulticastAddressInt);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_LNK, &IPv6MulticastAddressLnk);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_RLM, &IPv6MulticastAddressRlm);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_ADM, &IPv6MulticastAddressAdm);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_SIT, &IPv6MulticastAddressSit);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_ORG, &IPv6MulticastAddressOrg);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_GLB, &IPv6MulticastAddressGlb);
-    }
+/* caipserver_posix.c */
+/* void CAIPStopServer()
+ * {
+ *     caglobals.ip.terminate = true;
+ * 
+ *     if (caglobals.ip.shutdownFds[1] != -1)
+ *     {
+ *         close(caglobals.ip.shutdownFds[1]);
+ *         caglobals.ip.shutdownFds[1] = -1;
+ *         // receive thread will stop immediately
+ *     }
+ *     else
+ *     {
+ *         // receive thread will stop in SELECT_TIMEOUT seconds.
+ *     }
+ * 
+ *     if (!caglobals.ip.started)
+ *     { // Close fd's since receive handler was not started
+ *         CACloseFDs();
+ *     }
+ *     caglobals.ip.started = false;
+ * } */
 
-    if (!caglobals.ip.ipv6enabled && !caglobals.ip.ipv4enabled)
-    {
-        caglobals.ip.ipv4enabled = true;  // only needed to run CA tests
-    }
+/* caipserver_posix.c */
+/* void CAWakeUpForChange()
+ * {
+ *     if (caglobals.ip.shutdownFds[1] != -1)
+ *     {
+ *         ssize_t len = 0;
+ *         do
+ *         {
+ *             len = write(caglobals.ip.shutdownFds[1], "w", 1);
+ *         } while ((len == -1) && (errno == EINTR));
+ *         if ((len == -1) && (errno != EINTR) && (errno != EPIPE))
+ *         {
+ *             OIC_LOG_V(DEBUG, TAG, "write failed: %s", strerror(errno));
+ *         }
+ *     }
+ * } */
 
-    if (caglobals.ip.ipv6enabled)
-    {
-        NEWSOCKET(AF_INET6, u6, false);
-        NEWSOCKET(AF_INET6, u6s, false);
-        NEWSOCKET(AF_INET6, m6, true);
-        NEWSOCKET(AF_INET6, m6s, true);
-        OIC_LOG_V(INFO, TAG, "IPv6 unicast port: %u", caglobals.ip.u6.port);
-    }
-    if (caglobals.ip.ipv4enabled)
-    {
-        NEWSOCKET(AF_INET, u4, false);
-        NEWSOCKET(AF_INET, u4s, false);
-        NEWSOCKET(AF_INET, m4, true);
-        NEWSOCKET(AF_INET, m4s, true);
-        OIC_LOG_V(INFO, TAG, "IPv4 unicast port: %u", caglobals.ip.u4.port);
-    }
+/* static void applyMulticastToInterface4(uint32_t ifindex)
+ * {
+ *     if (!caglobals.ip.ipv4enabled)
+ *     {
+ *         return;
+ *     }
+ * 
+ * #if defined(USE_IP_MREQN)
+ *     struct ip_mreqn mreq = { .imr_multiaddr = IPv4MulticastAddress,
+ *                              .imr_address.s_addr = htonl(INADDR_ANY),
+ *                              .imr_ifindex = ifindex };
+ * #else
+ *     struct ip_mreq mreq  = { .imr_multiaddr.s_addr = IPv4MulticastAddress.s_addr,
+ *                              .imr_interface.s_addr = htonl(ifindex) };
+ * #endif
+ * 
+ *     int ret = setsockopt(caglobals.ip.m4.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+ *     if (OC_SOCKET_ERROR == ret)
+ *     {
+ *         if (EADDRINUSE != errno)
+ *         {
+ *             OIC_LOG_V(ERROR, TAG, "       IPv4 IP_ADD_MEMBERSHIP failed: %s", CAIPS_GET_ERROR);
+ *         }
+ *     }
+ *     ret = setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+ *     if (OC_SOCKET_ERROR == ret)
+ *     {
+ *         if (EADDRINUSE != errno)
+ *         {
+ *             OIC_LOG_V(ERROR, TAG, "SECURE IPv4 IP_ADD_MEMBERSHIP failed: %s", CAIPS_GET_ERROR);
+ *         }
+ *     }
+ * } */
 
-    OIC_LOG_V(DEBUG, TAG,
-              "socket summary: u6=%d, u6s=%d, u4=%d, u4s=%d, m6=%d, m6s=%d, m4=%d, m4s=%d",
-              caglobals.ip.u6.fd, caglobals.ip.u6s.fd, caglobals.ip.u4.fd, caglobals.ip.u4s.fd,
-              caglobals.ip.m6.fd, caglobals.ip.m6s.fd, caglobals.ip.m4.fd, caglobals.ip.m4s.fd);
+/* static void applyMulticast6(CASocketFd_t fd, struct in6_addr *addr, uint32_t ifindex)
+ * {
+ *     struct ipv6_mreq mreq = { .ipv6mr_interface = ifindex };
+ * 
+ *     // VS2013 has problems with struct copies inside struct initializers, so copy separately.
+ *     mreq.ipv6mr_multiaddr = *addr;
+ * 
+ *     int ret = setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, OPTVAL_T(&mreq), sizeof (mreq));
+ *     if (OC_SOCKET_ERROR == ret)
+ *     {
+ *         if (EADDRINUSE != errno)
+ *         {
+ *             OIC_LOG_V(ERROR, TAG, "IPv6 IPV6_JOIN_GROUP failed: %s", CAIPS_GET_ERROR);
+ *         }
+ *     }
+ * } */
 
-    OIC_LOG_V(DEBUG, TAG,
-              "port summary: u6 port=%d, u6s port=%d, u4 port=%d, u4s port=%d, m6 port=%d,"
-              "m6s port=%d, m4 port=%d, m4s port=%d",
-              caglobals.ip.u6.port, caglobals.ip.u6s.port, caglobals.ip.u4.port,
-              caglobals.ip.u4s.port, caglobals.ip.m6.port, caglobals.ip.m6s.port,
-              caglobals.ip.m4.port, caglobals.ip.m4s.port);
-    // set up appropriate FD mechanism for fast shutdown
-    CAInitializeFastShutdownMechanism();
+/* static void applyMulticastToInterface6(uint32_t ifindex)
+ * {
+ *     if (!caglobals.ip.ipv6enabled)
+ *     {
+ *         return;
+ *     }
+ *     //applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressInt, ifindex);
+ *     applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressLnk, ifindex);
+ *     applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressRlm, ifindex);
+ *     //applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressAdm, ifindex);
+ *     applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressSit, ifindex);
+ *     //applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressOrg, ifindex);
+ *     //applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressGlb, ifindex);
+ * 
+ *     //applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressInt, ifindex);
+ *     applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressLnk, ifindex);
+ *     applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressRlm, ifindex);
+ *     //applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressAdm, ifindex);
+ *     applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressSit, ifindex);
+ *     //applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressOrg, ifindex);
+ *     //applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressGlb, ifindex);
+ * } */
 
-    // create source of network address change notifications
-    CARegisterForAddressChanges();
-
-    caglobals.ip.selectTimeout = CAGetPollingInterval(caglobals.ip.selectTimeout);
-
-    res = CAIPStartListenServer();
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG_V(ERROR, TAG, "Failed to start listening server![%d]", res);
-        return res;
-    }
-
-    caglobals.ip.terminate = false;
-    res = ca_thread_pool_add_task(threadPool, CAReceiveHandler, NULL);
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG(ERROR, TAG, "thread_pool_add_task failed");
-        return res;
-    }
-    OIC_LOG(DEBUG, TAG, "CAReceiveHandler thread started successfully.");
-
-    caglobals.ip.started = true;
-    return CA_STATUS_OK;
-}
-
-void CAIPStopServer()
-{
-    caglobals.ip.terminate = true;
-
-    if (caglobals.ip.shutdownFds[1] != -1)
-    {
-        close(caglobals.ip.shutdownFds[1]);
-        caglobals.ip.shutdownFds[1] = -1;
-        // receive thread will stop immediately
-    }
-    else
-    {
-        // receive thread will stop in SELECT_TIMEOUT seconds.
-    }
-
-    if (!caglobals.ip.started)
-    { // Close fd's since receive handler was not started
-        CACloseFDs();
-    }
-    caglobals.ip.started = false;
-}
-
-void CAWakeUpForChange()
-{
-    if (caglobals.ip.shutdownFds[1] != -1)
-    {
-        ssize_t len = 0;
-        do
-        {
-            len = write(caglobals.ip.shutdownFds[1], "w", 1);
-        } while ((len == -1) && (errno == EINTR));
-        if ((len == -1) && (errno != EINTR) && (errno != EPIPE))
-        {
-            OIC_LOG_V(DEBUG, TAG, "write failed: %s", strerror(errno));
-        }
-    }
-}
-
-static void applyMulticastToInterface4(uint32_t ifindex)
-{
-    if (!caglobals.ip.ipv4enabled)
-    {
-        return;
-    }
-
-#if defined(USE_IP_MREQN)
-    struct ip_mreqn mreq = { .imr_multiaddr = IPv4MulticastAddress,
-                             .imr_address.s_addr = htonl(INADDR_ANY),
-                             .imr_ifindex = ifindex };
-#else
-    struct ip_mreq mreq  = { .imr_multiaddr.s_addr = IPv4MulticastAddress.s_addr,
-                             .imr_interface.s_addr = htonl(ifindex) };
-#endif
-
-    int ret = setsockopt(caglobals.ip.m4.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
-    if (OC_SOCKET_ERROR == ret)
-    {
-        if (EADDRINUSE != errno)
-        {
-            OIC_LOG_V(ERROR, TAG, "       IPv4 IP_ADD_MEMBERSHIP failed: %s", CAIPS_GET_ERROR);
-        }
-    }
-    ret = setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
-    if (OC_SOCKET_ERROR == ret)
-    {
-        if (EADDRINUSE != errno)
-        {
-            OIC_LOG_V(ERROR, TAG, "SECURE IPv4 IP_ADD_MEMBERSHIP failed: %s", CAIPS_GET_ERROR);
-        }
-    }
-}
-
-static void applyMulticast6(CASocketFd_t fd, struct in6_addr *addr, uint32_t ifindex)
-{
-    struct ipv6_mreq mreq = { .ipv6mr_interface = ifindex };
-
-    // VS2013 has problems with struct copies inside struct initializers, so copy separately.
-    mreq.ipv6mr_multiaddr = *addr;
-
-    int ret = setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, OPTVAL_T(&mreq), sizeof (mreq));
-    if (OC_SOCKET_ERROR == ret)
-    {
-        if (EADDRINUSE != errno)
-        {
-            OIC_LOG_V(ERROR, TAG, "IPv6 IPV6_JOIN_GROUP failed: %s", CAIPS_GET_ERROR);
-        }
-    }
-}
-
-static void applyMulticastToInterface6(uint32_t ifindex)
-{
-    if (!caglobals.ip.ipv6enabled)
-    {
-        return;
-    }
-    //applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressInt, ifindex);
-    applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressLnk, ifindex);
-    applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressRlm, ifindex);
-    //applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressAdm, ifindex);
-    applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressSit, ifindex);
-    //applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressOrg, ifindex);
-    //applyMulticast6(caglobals.ip.m6.fd, &IPv6MulticastAddressGlb, ifindex);
-
-    //applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressInt, ifindex);
-    applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressLnk, ifindex);
-    applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressRlm, ifindex);
-    //applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressAdm, ifindex);
-    applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressSit, ifindex);
-    //applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressOrg, ifindex);
-    //applyMulticast6(caglobals.ip.m6s.fd, &IPv6MulticastAddressGlb, ifindex);
-}
-
-CAResult_t CAIPStartListenServer()
-{
-    if (caglobals.ip.started)
-    {
-        OIC_LOG(DEBUG, TAG, "Adapter is started already");
-        return CA_STATUS_OK;
-    }
-
-    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
-    u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
-    if (!iflist)
-    {
-        OIC_LOG_V(ERROR, TAG, "CAIPGetInterfaceInformation() failed: %s", strerror(errno));
-        return CA_STATUS_FAILED;
-    }
-
-    size_t len = u_arraylist_length(iflist);
-    OIC_LOG_V(DEBUG, TAG, "IP network interfaces found: %" PRIuPTR, len);
-
-    for (size_t i = 0; i < len; i++)
-    {
-        CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
-
-        if (!ifitem)
-        {
-            continue;
-        }
-        if ((ifitem->flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS)
-        {
-            continue;
-        }
-        if (ifitem->family == AF_INET)
-        {
-#if NETWORK_INTERFACE_CHANGED_LOGGING
-            OIC_LOG_V(DEBUG, TAG, "Adding IPv4 interface(%i) to multicast group", ifitem->index);
-#endif
-            applyMulticastToInterface4(ifitem->index);
-        }
-        if (ifitem->family == AF_INET6)
-        {
-#if NETWORK_INTERFACE_CHANGED_LOGGING
-            OIC_LOG_V(DEBUG, TAG, "Adding IPv6 interface(%i) to multicast group", ifitem->index);
-#endif
-            applyMulticastToInterface6(ifitem->index);
-        }
-    }
-
-    u_arraylist_destroy(iflist);
-    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
-    return CA_STATUS_OK;
-}
-
-CAResult_t CAIPStopListenServer()
-{
-    u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
-    if (!iflist)
-    {
-        OIC_LOG_V(ERROR, TAG, "Get interface info failed: %s", strerror(errno));
-        return CA_STATUS_FAILED;
-    }
-
-    size_t len = u_arraylist_length(iflist);
-    OIC_LOG_V(DEBUG, TAG, "IP network interfaces found: %" PRIuPTR, len);
-
-    for (size_t i = 0; i < len; i++)
-    {
-        CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
-
-        if (!ifitem)
-        {
-            continue;
-        }
-        if ((ifitem->flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS)
-        {
-            continue;
-        }
-        if (ifitem->family == AF_INET)
-        {
-            CLOSE_SOCKET(m4);
-            CLOSE_SOCKET(m4s);
-            OIC_LOG_V(DEBUG, TAG, "IPv4 network interface: %s cloed", ifitem->name);
-        }
-        if (ifitem->family == AF_INET6)
-        {
-            CLOSE_SOCKET(m6);
-            CLOSE_SOCKET(m6s);
-            OIC_LOG_V(DEBUG, TAG, "IPv6 network interface: %s", ifitem->name);
-        }
-    }
-    u_arraylist_destroy(iflist);
-    return CA_STATUS_OK;
-}
-
-void CAProcessNewInterface(CAInterface_t *ifitem)
-{
-    if (!ifitem)
-    {
-        OIC_LOG(DEBUG, TAG, "ifitem is null");
-        return;
-    }
-
-    if (ifitem->family == AF_INET6)
-    {
-        OIC_LOG_V(DEBUG, TAG, "Adding a new IPv6 interface(%i) to multicast group", ifitem->index);
-        applyMulticastToInterface6(ifitem->index);
-    }
-    if (ifitem->family == AF_INET)
-    {
-        OIC_LOG_V(DEBUG, TAG, "Adding a new IPv4 interface(%i) to multicast group", ifitem->index);
-        applyMulticastToInterface4(ifitem->index);
-    }
-}
+/* CAResult_t CAIPStartListenServer()
+ * {
+ *     if (caglobals.ip.started)
+ *     {
+ *         OIC_LOG(DEBUG, TAG, "Adapter is started already");
+ *         return CA_STATUS_OK;
+ *     }
+ * 
+ *     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
+ *     u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
+ *     if (!iflist)
+ *     {
+ *         OIC_LOG_V(ERROR, TAG, "CAIPGetInterfaceInformation() failed: %s", strerror(errno));
+ *         return CA_STATUS_FAILED;
+ *     }
+ * 
+ *     size_t len = u_arraylist_length(iflist);
+ *     OIC_LOG_V(DEBUG, TAG, "IP network interfaces found: %" PRIuPTR, len);
+ * 
+ *     for (size_t i = 0; i < len; i++)
+ *     {
+ *         CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
+ * 
+ *         if (!ifitem)
+ *         {
+ *             continue;
+ *         }
+ *         if ((ifitem->flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS)
+ *         {
+ *             continue;
+ *         }
+ *         if (ifitem->family == AF_INET)
+ *         {
+ * #if NETWORK_INTERFACE_CHANGED_LOGGING
+ *             OIC_LOG_V(DEBUG, TAG, "Adding IPv4 interface(%i) to multicast group", ifitem->index);
+ * #endif
+ *             applyMulticastToInterface4(ifitem->index);
+ *         }
+ *         if (ifitem->family == AF_INET6)
+ *         {
+ * #if NETWORK_INTERFACE_CHANGED_LOGGING
+ *             OIC_LOG_V(DEBUG, TAG, "Adding IPv6 interface(%i) to multicast group", ifitem->index);
+ * #endif
+ *             applyMulticastToInterface6(ifitem->index);
+ *         }
+ *     }
+ * 
+ *     u_arraylist_destroy(iflist);
+ *     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
+ *     return CA_STATUS_OK;
+ * }
+ * 
+ * CAResult_t CAIPStopListenServer()
+ * {
+ *     u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
+ *     if (!iflist)
+ *     {
+ *         OIC_LOG_V(ERROR, TAG, "Get interface info failed: %s", strerror(errno));
+ *         return CA_STATUS_FAILED;
+ *     }
+ * 
+ *     size_t len = u_arraylist_length(iflist);
+ *     OIC_LOG_V(DEBUG, TAG, "IP network interfaces found: %" PRIuPTR, len);
+ * 
+ *     for (size_t i = 0; i < len; i++)
+ *     {
+ *         CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
+ * 
+ *         if (!ifitem)
+ *         {
+ *             continue;
+ *         }
+ *         if ((ifitem->flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS)
+ *         {
+ *             continue;
+ *         }
+ *         if (ifitem->family == AF_INET)
+ *         {
+ *             CLOSE_SOCKET(m4);
+ *             CLOSE_SOCKET(m4s);
+ *             OIC_LOG_V(DEBUG, TAG, "IPv4 network interface: %s cloed", ifitem->name);
+ *         }
+ *         if (ifitem->family == AF_INET6)
+ *         {
+ *             CLOSE_SOCKET(m6);
+ *             CLOSE_SOCKET(m6s);
+ *             OIC_LOG_V(DEBUG, TAG, "IPv6 network interface: %s", ifitem->name);
+ *         }
+ *     }
+ *     u_arraylist_destroy(iflist);
+ *     return CA_STATUS_OK;
+ * }
+ * 
+ * void CAProcessNewInterface(CAInterface_t *ifitem)
+ * {
+ *     if (!ifitem)
+ *     {
+ *         OIC_LOG(DEBUG, TAG, "ifitem is null");
+ *         return;
+ *     }
+ * 
+ *     if (ifitem->family == AF_INET6)
+ *     {
+ *         OIC_LOG_V(DEBUG, TAG, "Adding a new IPv6 interface(%i) to multicast group", ifitem->index);
+ *         applyMulticastToInterface6(ifitem->index);
+ *     }
+ *     if (ifitem->family == AF_INET)
+ *     {
+ *         OIC_LOG_V(DEBUG, TAG, "Adding a new IPv4 interface(%i) to multicast group", ifitem->index);
+ *         applyMulticastToInterface4(ifitem->index);
+ *     }
+ * } */
 
 void CAIPSetPacketReceiveCallback(CAIPPacketReceivedCallback callback)
 {

@@ -24,6 +24,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <coap/pdu.h>
+
 /* #include "caipnwmonitor.h" */
 /* #include "caipserver.h" */
 /* #include "caqueueingthread.h" */
@@ -240,6 +242,7 @@ static ssize_t CAIPPacketSendCB(CAEndpoint_t *endpoint, const void *data, size_t
 static void CAIPPacketReceivedCB(const CASecureEndpoint_t *sep, const void *data,
                           size_t dataLength)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_VOID(sep, TAG, "sep is NULL");
     VERIFY_NON_NULL_VOID(data, TAG, "data is NULL");
 

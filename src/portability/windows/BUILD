@@ -1,0 +1,47 @@
+cc_library(
+    name = "win",
+    # alwayslink = True,
+    # linkstatic = 1,
+    # copts = ["-Isrc",
+    #          "-Isrc/logger",
+    #          "-Isrc/portability",
+    #          "-Ithird_party/mbedtls/include"]
+    copts = select({"windows": [],
+              "msvc": [],
+              "msys": [],
+              "//conditions:default": ["-std=c11",
+                                       "-U DEBUG"]}), # OS X
+    deps = [#"//src:config",
+            "//src/logger",
+            # "//src/portability:hdrs",
+            "//third_party/mbedtls"],
+    # linkopts = ["-W,crypt32.lib"],
+    srcs = ["windows/ocatomic_windows.c",
+            "windows/ocatomic_windows.h",
+            "windows/ocevent_windows.c",
+            "windows/ocevent_windows.h",
+            "windows/octhread_windows.c",
+            "windows/octhread_windows.h",
+            "windows/pthread_create.c",
+            "windows/pthread_create.h",
+            "windows/getopt.c",
+            "windows/getopt.h",
+            "windows/memmem.c",
+            "windows/memmem.h",
+            "windows/snprintf.c",
+            "windows/snprintf.h",
+            "windows/strptime.c",
+            "windows/strptime.h",
+            "windows/vs12_snprintf.h",
+            "windows/win_sleep.c",
+            "windows/win_sleep.h",
+
+            "ocrandom.h",
+
+            "oic_platform.c",
+            "oic_platform.h",
+            # FIXME: convert to c11
+            "windows/oic_winplatform.cpp",
+
+            "oic_string.h"],
+)
