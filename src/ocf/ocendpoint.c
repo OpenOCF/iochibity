@@ -42,6 +42,7 @@
  */
 #if INTERFACE
 #include <stdint.h>
+#include <stdio.h>
 typedef struct CAEndpoint_s
 {
     CATransportAdapter_t    adapter;    // adapter type

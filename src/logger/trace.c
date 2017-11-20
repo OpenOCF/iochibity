@@ -26,6 +26,7 @@
 #if INTERFACE
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #ifdef __ANDROID__
 #define OIC_TRACE_BEGIN(MSG, ...) \
         oic_trace_begin("OIC:"#MSG, ##__VA_ARGS__)

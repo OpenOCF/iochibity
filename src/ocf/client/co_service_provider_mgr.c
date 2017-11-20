@@ -2,6 +2,7 @@
 
 #include "co_service_provider_mgr.h"
 #include <string.h>
+#include <stdio.h>
 /* #include "oic_malloc.h"
  * #include "logger.h" */
 
