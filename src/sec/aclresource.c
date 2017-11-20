@@ -75,8 +75,10 @@
  * @return ACL version
  */
 
-#define GET_ACL_VER(specVer) ((specVer)[0] == 'o' && (specVer)[1] == 'c' && (specVer)[2] == 'f' ?      \
+#if INTERFACE
+#define GET_ACL_VER(specVer) ((specVer)[0] == 'o' && (specVer)[1] == 'c' && (specVer)[2] == 'f' ? \
                              OIC_SEC_ACL_V2 : OIC_SEC_ACL_V1)
+#endif
 
 #if INTERFACE
 #define IS_OIC(specVer) ((specVer)[0] == 'c' && (specVer)[1] == 'o' && (specVer)[2] == 'r' && (specVer)[3] == 'e')
