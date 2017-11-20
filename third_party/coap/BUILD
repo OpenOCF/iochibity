@@ -33,7 +33,7 @@ config_setting(
 
 cc_library(
     name = "coap",
-    alwayslink = True,
+    # alwayslink = True,
     copts = ["-Ithird_party/coap",
              "-Ithird_party/coap/include/coap",
              "-Isrc",
@@ -51,8 +51,8 @@ cc_library(
     deps = ["//src:config"],
     hdrs = ["coap_config.h",
             "include/coap/coap.h",
-            "include/coap/uri.h",
             "include/coap/pdu.h",
+            "include/coap/uri.h",
             # if DEBUG_COAP
             "include/coap/debug.h"
     ],
@@ -111,10 +111,11 @@ cc_library(
             "include/coap/subscribe.h",
 
             "src/uri.c",
-            "include/coap/uri.h",
+            # "include/coap/uri.h",
 
             "include/coap/uthash.h",
-            "include/coap/utlist.h"],
+            "include/coap/utlist.h"
+    ],
     visibility = ["//visibility:public"]
 )
 
