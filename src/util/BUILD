@@ -56,19 +56,17 @@ cc_library(
     #         "//src/logger",
     #         "//src/portability"],
     hdrs = ["base64.h",
-            "byte_array.h",
+            # "byte_array.h",
             "configuration.h",
             # select ifaddrs.h only for platforms that do not have getifaddrs (e.g. Android)
             # "ifaddrs.h",
             # "tree.h",
-            # "utlist.h"
+            "utlist.h"
     ],
     srcs = ["base64.c",
             "base64.h",
-            "byte_array.c",
-            "byte_array.h",
-            "errcheck.c",
-            "errcheck.h",
+            # "byte_array.c",
+            # "errcheck.c",
             "uarraylist.c",
             "uarraylist.h",
             "ulinklist.c",
