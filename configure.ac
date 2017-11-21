@@ -8,6 +8,8 @@ AC_CONFIG_HEADERS([src/openocf_config.c])
 dnl AC_CONFIG_MACRO_DIRS([m4]
 AC_USE_SYSTEM_EXTENSIONS
 
+AH_TOP([#if INTERFACE])
+
 # Checks for programs.
 #AC_PROG_CXX
 AC_PROG_CC
@@ -236,6 +238,14 @@ AS_IF([test "x$enable_tcpip" = "xyes"], [
   AC_DEFINE([TCP_ADAPTER], [], [Enable TCP/IP transport])
 ])
 
+dnl Presence is on by default
+AC_ARG_ENABLE([presence],
+    AS_HELP_STRING([--disable-presence], [Disable PRESENCE (enabled by default)]))
+
+AS_IF([test "x$enable_presence" != "xno"], [
+  AC_DEFINE([WITH_PRESENCE], [], [Enable PRESENCE])
+])
+
 dnl FIXME: --with-presence
 
 dnl AC_ARG_WITH([msvc],
@@ -270,5 +280,6 @@ AH_BOTTOM([
 
 
 AH_BOTTOM([#include "system.h"])
+AH_BOTTOM([#endif /* INTERFACE */])
 
 AC_OUTPUT
