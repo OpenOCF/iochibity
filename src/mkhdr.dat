@@ -105,9 +105,6 @@ src/comm/util/cloud/caconnectionmanager.c
 src/comm/util/cloud/camanagerutil.c
 src/comm/util/cloud/camessagearbiter.c
 src/comm/util/cloud/capolicymanager.c
-src/iotivity_constants.h
-src/iotivity_debug.h
-src/msvc_config.h
 src/logger/logger.c
 src/logger/trace.c
 src/ocf/client/co_service_provider.c
