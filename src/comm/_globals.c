@@ -23,6 +23,11 @@ typedef struct
 #if defined(_WIN32)
         WSAEVENT addressChangeEvent;/**< Event used to signal address changes */
         WSAEVENT shutdownEvent;     /**< Event used to signal threads to stop */
+#elif defined(__APPLE__) && defined(__MACH__)
+	/* FIXME: use SystemConfiguration Framework? netlinkFd does not break but does not work */
+        int netlinkFd;              /**< netlink */
+        int shutdownFds[2];         /**< pipe used to signal threads to stop */
+        CASocketFd_t maxfd;         /**< highest fd (for select) */
 #else
 	/* GAR: netlink_socket, not int? */
         int netlinkFd;              /**< netlink */
