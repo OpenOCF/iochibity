@@ -275,8 +275,11 @@ cc_library(
             "ocstack.h",
             "oicgroup.c",
             "oicgroup.h",
-            "oickeepalive.c",
-            "oickeepalive.h",
+
+            # if --enable-tcp
+            # "oickeepalive.c",
+            # "oickeepalive.h",
+
             "presence.c",
             "presence.h",
 

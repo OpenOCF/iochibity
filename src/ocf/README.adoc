@@ -1,5 +1,12 @@
 = ocf package
 
+== makeheaders todo
+
+* oickeepalive.c - only compile on --enable-tcp
+* occonnectionmanager - --enable-tcp --with-cloud
+
+etc. conditional compilation
+
 === problems
 
 * octypes.h contains some `#ifdef __cplusplus` - why? e.g. struct
