@@ -4,7 +4,8 @@
 
 # git clone https://github.com/dthaler/libcoap.git . -b IoTivity-1.2.1d
 
-# 1. autoreconf -i
+# 1. ./autogen.sh
+# 2. autoreconf -i
 # if that doesn't work:
 
 # 1. $ libtoolize (install ltmain.sh)

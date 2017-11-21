@@ -41,6 +41,9 @@ OpenOCF uses the https://bazel.build/[Bazel] build system.
 
 Prerequisites: Bazel, GNU autotools. On Windows: msys2, mingw-64.
 
+You'll need to configure the third-party libs. (Just coap so far). The
+instructions are at the top of `third_party/coap/BUILD`
+
 [source,sh]
 ----
 $ automake --add-missing  # generates config.guess, config.sub (both required)
