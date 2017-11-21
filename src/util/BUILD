@@ -37,24 +37,25 @@ cc_library(
 cc_library(
     name = "util",
     # alwayslink = True,
-    # copts = ["-Isrc",
+    copts = [#"-Isrc",
     #          "-Iexternal/openocf/src",
-    #          "-Isrc/logger",
-    #          "-Iexternal/openocf/src/logger",
+             "-Isrc/logger",
+             "-Iexternal/openocf/src/logger",
     #          "-Isrc/portability",
     #          "-Iexternal/openocf/src/portability",
     #          "-Isrc/util",
     #          "-Iexternal/openocf/src/util"]
-    copts = ["-Ithird_party/tinycbor/src",
-             "-Iexternal/openocf/third_party/tinycbor/src"]
+        "-Ithird_party/tinycbor/src",
+        "-Iexternal/openocf/third_party/tinycbor/src"]
     + select({"windows": [],
               "msvc": [],
               "msys": [],
               "//conditions:default": ["-std=c11",
                                        "-UDEBUG"]}),
-    deps = ["//third_party/tinycbor"],
-    #         "//src/logger",
-    #         "//src/portability"],
+    deps = ["//third_party/tinycbor",
+            "//src/logger",
+    #         "//src/portability"
+    ],
     hdrs = ["base64.h",
             # "byte_array.h",
             "configuration.h",
