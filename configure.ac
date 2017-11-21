@@ -2,9 +2,11 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([Iochibity], [1.3.0], [dev@mobileink.com])
+AC_INIT([OpenOCF], [1.3.0], [dev@mobileink.com])
 #AC_CONFIG_SRCDIR([extlibs/rapidxml/rapidxml.hpp])
-AC_CONFIG_HEADERS([src/iotivity_config.h])
+AC_CONFIG_HEADERS([src/openocf_config.c])
+dnl AC_CONFIG_MACRO_DIRS([m4]
+AC_USE_SYSTEM_EXTENSIONS
 
 # Checks for programs.
 #AC_PROG_CXX
