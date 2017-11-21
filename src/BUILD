@@ -15,8 +15,8 @@ config_setting(
 cc_library(
     name = "config",
     hdrs = [# "openocf_config.h",
-            "iotivity_constants.h",
-            "iotivity_debug.h",
+            # "iotivity_constants.h",
+            # "iotivity_debug.h",
             # "system.h",
             # "transport_types.h"
     ]
