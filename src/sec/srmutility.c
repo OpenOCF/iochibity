@@ -55,7 +55,6 @@ typedef unsigned int SRMAccessResponseReasonCode_t;
 /**
  * Extract Reason Code from Access Response.
  */
-/* FIXME: makeheaders doesn't like INLINE_API */
 INLINE_API SRMAccessResponseReasonCode_t GetReasonCode(
     SRMAccessResponse_t response)
 {
