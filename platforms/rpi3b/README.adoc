@@ -1,0 +1,55 @@
+Building third-party libs:
+
+$ export PATH="${PATH}:/path/to/toolchain/bin"
+
+e.g. /Volumes/CrossToolNG/armv8-rpi3-linux-gnueabihf/bin"
+
+$ export COSYSROOT=$HOME/cosysroots/rpi3b
+
+Adjusted to match rpi3b builtin ncurses settings:
+
+ncurses:
+
+-P Inhibit generation of linemarkers in the output from the preprocessor
+
+$ ./configure --build=x86_64-apple-darwin \
+              --host=armv8-rpi3-linux-gnueabihf \
+              --enable-kernel=4.9.35 \
+              --prefix=/usr \
+	      --with-terminfo-dirs="/etc/terminfo:/lib/terminfo:/usr/share/terminfo" \
+	      --with-default-terminfo-dir="/etc/terminfo" \
+	      --mandir="/usr/share/man" \
+	      --without-manpages \
+	      --with-shared \
+	      --libdir="/usr/lib/arm-linux-gnueabihf" \
+              CPPFLAGS="-P"
+
+              // CPPFLAGS="-P -I$COSYSROOT/usr/include" \
+              // LDFLAGS="-L$COSYSROOT/lib \
+	      // -L$COSYSROOT/usr/lib"
+
+$ make
+$ make DESTDIR=$COSYSROOT install
+
+
+cdk: we installed ncurses in cosysroots/rpi3b, so we need to fix CPPFLAGS and LDFLAGS:
+
+$ ./configure --build=x86_64-apple-darwin \
+              --host=armv8-rpi3-linux-gnueabihf \
+              --enable-kernel=4.9.35 \
+              --prefix=/usr \
+	      --with-terminfo-dirs="/etc/terminfo:/lib/terminfo:/usr/share/terminfo" \
+	      --with-default-terminfo-dir="/etc/terminfo" \
+	      --mandir="/usr/share/man" \
+	      --without-manpages \
+	      --libdir="/usr/lib/arm-linux-gnueabihf" \
+              CPPFLAGS="-P -I$COSYSROOT/usr/include" \
+	      LDFLAGS="-L$COSYSROOT/usr/lib/arm-linux-gnueabihf"
+
+
+              // LDFLAGS="-L$COSYSROOT/lib \
+	      // -L$COSYSROOT/usr/lib"
+
+	      // --with-shared \
+$ make
+$ make DESTDIR=$COSYSROOT install
