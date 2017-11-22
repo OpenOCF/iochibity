@@ -29,6 +29,7 @@ cc_library(
     copts = ["-Isrc",
              "-Isrc/util",
              "-Ithird_party/coap/include",
+             "-Ithird_party/utlist",
              "-Iexternal/openocf/third_party/coap/include"
     ] + select({":windows": [],
               ":msvc": [],
@@ -44,6 +45,7 @@ cc_library(
     	    "//src/comm/transport/util",
             "//src/portability",
 	    "//third_party/coap",
+	    "//third_party/utlist",
             ]
     + select({":windows": ["//src/portability/windows"],
               #":msvc": ["windows/caipnwmonitor.c"],
