@@ -1,7 +1,10 @@
-src/portability/posix/caipserver_posix.c
-src/portability/darwin/caipserver_darwin.c
-src/portability/posix/caipnwmonitor_posix.c
-src/portability/darwin/caipnwmonitor_darwin.c
+src/comm/transport/udpip/caipadapter.c
+src/comm/transport/udpip/caipnwmonitor.c
+src/comm/transport/udpip/caipserver.c
+src/comm/transport/udpip/caipserver_posix.c
+src/comm/transport/udpip/caipserver_darwin.c
+src/comm/transport/udpip/caipnwmonitor_posix.c
+src/comm/transport/udpip/caipnwmonitor_darwin.c
 
 src/openocf_config.c:
 src/system.c:
@@ -85,10 +88,6 @@ src/comm/transport/nfc/canfcadapter.c
 src/comm/transport/tcpip/catcpadapter.c
 src/comm/transport/tcpip/catcpserver.c
 
-src/comm/transport/udpip/caipadapter.c
-src/comm/transport/udpip/caipnwmonitor.c
-src/comm/transport/udpip/caipserver.c
-
 src/comm/transport/util/caadapterutils.c
 
 src/comm/transport/xmpp/caraadapter.c
@@ -125,7 +124,6 @@ src/ocf/oicresourcedirectory.c
 src/ocf/payload_logging.c
 src/ocf/presence.c
 src/ocf/windows/ocsqlite3helper.c
-src/portability/darwin/caipnwmonitor_darwin.c
 src/portability/noop/oic_otherplatforms.c
 src/portability/ocrandom.c
 src/portability/octimer.c
