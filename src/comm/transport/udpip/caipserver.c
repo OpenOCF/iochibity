@@ -127,12 +127,7 @@ typedef void (*CAIPErrorHandleCallback)(const CAEndpoint_t *endpoint, const void
                                         size_t dataLength, CAResult_t result);
 #endif
 
-/*
- * Enable or disable log for network changed event
- */
 #if INTERFACE
-#define NETWORK_INTERFACE_CHANGED_LOGGING 1
-
 #define SELECT_TIMEOUT 1     // select() seconds (and termination latency)
 #endif
 
@@ -567,14 +562,14 @@ CAResult_t CAIPStartListenServer()
         }
         if (ifitem->family == AF_INET)
         {
-#if NETWORK_INTERFACE_CHANGED_LOGGING
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
             OIC_LOG_V(DEBUG, TAG, "Adding IPv4 interface(%i) to multicast group", ifitem->index);
 #endif
             applyMulticastToInterface4(ifitem->index);
         }
         if (ifitem->family == AF_INET6)
         {
-#if NETWORK_INTERFACE_CHANGED_LOGGING
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
             OIC_LOG_V(DEBUG, TAG, "Adding IPv6 interface(%i) to multicast group", ifitem->index);
 #endif
             applyMulticastToInterface6(ifitem->index);

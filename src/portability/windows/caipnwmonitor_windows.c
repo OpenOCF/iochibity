@@ -19,10 +19,6 @@
 
 #include "caipnwmonitor_windows.h"
 
-/* #include "iotivity_config.h"
- * #include "iotivity_debug.h"
- * #include "caipserver.h" */
-
 #include <assert.h>
 #include <sys/types.h>
 #include <string.h>
@@ -33,15 +29,9 @@
 #include <iptypes.h>
 #include <stdbool.h>
 
-/* #include "octhread.h"
- * #include "caadapterutils.h"
- * #include "logger.h"
- * #include "oic_malloc.h"
- * #include "oic_string.h"
- * #include "caipnwmonitor.h"
- * #include <coap/utlist.h> */
+#include "utlist.h"
 
-#define TAG "IP_MONITOR"
+#define TAG "IPNWMW"
 
 // When this is defined, a socket will be used to get address change events.  The
 // SIO_ADDRESS_LIST_CHANGE socket option is accessible on all versions of Windows
@@ -60,7 +50,8 @@
 /**
  * Mutex for synchronizing access to cached address information.
  */
-static oc_mutex g_CAIPNetworkMonitorMutex = NULL;
+/* GAR: why does windows have this? just use  g_networkMonitorContextMutex */
+/* static oc_mutex g_CAIPNetworkMonitorMutex = NULL; */
 
 static bool g_CAIPNetworkMonitorSomeAddressWentAway = false;
 
@@ -83,37 +74,34 @@ static CANewAddress_t *g_CAIPNetworkMonitorNewAddressQueue = NULL;
 /**
  * Transport adapter change callback list.
  */
-static struct CAIPCBData_t *g_CAIPNetworkMonitorAdapterCallbackList = NULL;
+/* GAR: what's wrong with g_adapterCallbackList? */
+/* static struct CAIPCBData_t *g_CAIPNetworkMonitorAdapterCallbackList = NULL; */
 
 static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t family,
                                           const char *addr, int flags);
 
-static u_arraylist_t *GetInterfaceInformation(int desiredIndex);
-
-static void CAIPDestroyNetworkMonitorList();
-
-static CAResult_t CAIPInitializeNetworkMonitorList()
-{
-    assert(!g_CAIPNetworkMonitorMutex);
-    assert(!g_CAIPNetworkMonitorAddressList);
-
-    g_CAIPNetworkMonitorMutex = oc_mutex_new();
-    if (!g_CAIPNetworkMonitorMutex)
-    {
-        OIC_LOG(ERROR, TAG, "oc_mutex_new has failed");
-        return CA_STATUS_FAILED;
-    }
-
-    g_CAIPNetworkMonitorAddressList = u_arraylist_create();
-    if (!g_CAIPNetworkMonitorAddressList)
-    {
-        OIC_LOG(ERROR, TAG, "u_arraylist_create has failed");
-        CAIPDestroyNetworkMonitorList();
-        return CA_STATUS_FAILED;
-    }
-
-    return CA_STATUS_OK;
-}
+/* static CAResult_t CAIPInitializeNetworkMonitorList()
+ * {
+ *     assert(!g_CAIPNetworkMonitorMutex);
+ *     assert(!g_CAIPNetworkMonitorAddressList);
+ * 
+ *     g_CAIPNetworkMonitorMutex = oc_mutex_new();
+ *     if (!g_CAIPNetworkMonitorMutex)
+ *     {
+ *         OIC_LOG(ERROR, TAG, "oc_mutex_new has failed");
+ *         return CA_STATUS_FAILED;
+ *     }
+ * 
+ *     g_CAIPNetworkMonitorAddressList = u_arraylist_create();
+ *     if (!g_CAIPNetworkMonitorAddressList)
+ *     {
+ *         OIC_LOG(ERROR, TAG, "u_arraylist_create has failed");
+ *         CAIPDestroyNetworkMonitorList();
+ *         return CA_STATUS_FAILED;
+ *     }
+ * 
+ *     return CA_STATUS_OK;
+ * } */
 
 /**
  * Destroy the network monitoring list.
@@ -136,10 +124,15 @@ static void CAIPDestroyNetworkMonitorList()
         g_CAIPNetworkMonitorAddressList = NULL;
     }
 
-    if (g_CAIPNetworkMonitorMutex)
+    /* if (g_CAIPNetworkMonitorMutex)
+     * {
+     *     oc_mutex_free(g_CAIPNetworkMonitorMutex);
+     *     g_CAIPNetworkMonitorMutex = NULL;
+     * } */
+    if (g_networkMonitorContextMutex)
     {
-        oc_mutex_free(g_CAIPNetworkMonitorMutex);
-        g_CAIPNetworkMonitorMutex = NULL;
+        oc_mutex_free(g_networkMonitorContextMutex);
+        g_networkMonitorContextMutex = NULL;
     }
 }
 
@@ -183,7 +176,8 @@ static void CALLBACK IpAddressChangeCallback(void *context,
     OC_UNUSED(row);
     OC_UNUSED(context);
 
-    oc_mutex_lock(g_CAIPNetworkMonitorMutex);
+    /* oc_mutex_lock(g_CAIPNetworkMonitorMutex); */
+    oc_mutex_lock(g_CAIPNetworkMonitorContextMutex);
 
     // Fetch new network address info.
     u_arraylist_t *newList = GetInterfaceInformation(0);
@@ -246,7 +240,8 @@ static void CALLBACK IpAddressChangeCallback(void *context,
     g_CAIPNetworkMonitorAddressList = newList;
     u_arraylist_destroy(oldList);
 
-    oc_mutex_unlock(g_CAIPNetworkMonitorMutex);
+    /* oc_mutex_unlock(g_CAIPNetworkMonitorMutex); */
+    oc_mutex_unlock(g_CAIPNetworkMonitorContextMutex);
 }
 
 #ifdef USE_SOCKET_ADDRESS_CHANGE_EVENT
@@ -493,18 +488,6 @@ CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 }
 
 /**
- * Let the network monitor update the polling interval.
- * @param[in] interval Current polling interval, in seconds
- *
- * @return  desired polling interval
- */
-int CAGetPollingInterval(int interval)
-{
-    // Don't change the polling interval.
-    return interval;
-}
-
-/**
  * Pass the changed network status through the stored callback.
  * Note that the current API doesn't allow us to specify which address changed,
  * the caller has to look at the return from CAFindInterfaceChange() to learn about
@@ -513,17 +496,17 @@ int CAGetPollingInterval(int interval)
  *
  * @param[in] status Network status to pass to the callback.
  */
-static void CAIPPassNetworkChangesToTransportAdapter(CANetworkStatus_t status)
-{
-    CAIPCBData_t *cbitem = NULL;
-    LL_FOREACH(g_CAIPNetworkMonitorAdapterCallbackList, cbitem)
-    {
-        if (cbitem && cbitem->adapter)
-        {
-            cbitem->callback(cbitem->adapter, status);
-        }
-    }
-}
+/* static void CAIPPassNetworkChangesToTransportAdapter(CANetworkStatus_t status)
+ * {
+ *     CAIPCBData_t *cbitem = NULL;
+ *     LL_FOREACH(g_CAIPNetworkMonitorAdapterCallbackList, cbitem)
+ *     {
+ *         if (cbitem && cbitem->adapter)
+ *         {
+ *             cbitem->callback(cbitem->adapter, status);
+ *         }
+ *     }
+ * } */
 
 /**
  * Set callback for receiving local IP/TCP adapter connection status.
@@ -532,38 +515,38 @@ static void CAIPPassNetworkChangesToTransportAdapter(CANetworkStatus_t status)
  * @param[in]  adapter      Transport adapter.
  * @return ::CA_STATUS_OK or an appropriate error code.
  */
-CAResult_t CAIPSetNetworkMonitorCallback(CAIPAdapterStateChangeCallback callback,
-                                         CATransportAdapter_t adapter)
-{
-    if (!callback)
-    {
-        OIC_LOG(ERROR, TAG, "callback is null");
-        return CA_STATUS_INVALID_PARAM;
-    }
-
-    CAIPCBData_t *cbitem = NULL;
-    LL_FOREACH(g_CAIPNetworkMonitorAdapterCallbackList, cbitem)
-    {
-        if ((adapter == cbitem->adapter) && (callback == cbitem->callback))
-        {
-            OIC_LOG(DEBUG, TAG, "this callback is already added");
-            return CA_STATUS_OK;
-        }
-    }
-
-    cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem));
-    if (!cbitem)
-    {
-        OIC_LOG(ERROR, TAG, "Malloc failed");
-        return CA_STATUS_FAILED;
-    }
-
-    cbitem->adapter = adapter;
-    cbitem->callback = callback;
-    LL_APPEND(g_CAIPNetworkMonitorAdapterCallbackList, cbitem);
-
-    return CA_STATUS_OK;
-}
+/* CAResult_t CAIPSetNetworkMonitorCallback(CAIPAdapterStateChangeCallback callback,
+ *                                          CATransportAdapter_t adapter)
+ * {
+ *     if (!callback)
+ *     {
+ *         OIC_LOG(ERROR, TAG, "callback is null");
+ *         return CA_STATUS_INVALID_PARAM;
+ *     }
+ * 
+ *     CAIPCBData_t *cbitem = NULL;
+ *     LL_FOREACH(g_CAIPNetworkMonitorAdapterCallbackList, cbitem)
+ *     {
+ *         if ((adapter == cbitem->adapter) && (callback == cbitem->callback))
+ *         {
+ *             OIC_LOG(DEBUG, TAG, "this callback is already added");
+ *             return CA_STATUS_OK;
+ *         }
+ *     }
+ * 
+ *     cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem));
+ *     if (!cbitem)
+ *     {
+ *         OIC_LOG(ERROR, TAG, "Malloc failed");
+ *         return CA_STATUS_FAILED;
+ *     }
+ * 
+ *     cbitem->adapter = adapter;
+ *     cbitem->callback = callback;
+ *     LL_APPEND(g_CAIPNetworkMonitorAdapterCallbackList, cbitem);
+ * 
+ *     return CA_STATUS_OK;
+ * } */
 
 /**
  * Unset callback for receiving local IP/TCP adapter connection status.
@@ -571,22 +554,22 @@ CAResult_t CAIPSetNetworkMonitorCallback(CAIPAdapterStateChangeCallback callback
  * @param[in]  adapter      Transport adapter.
  * @return CA_STATUS_OK.
  */
-CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)
-{
-    CAIPCBData_t *cbitem = NULL;
-    CAIPCBData_t *tmpCbitem = NULL;
-    LL_FOREACH_SAFE(g_CAIPNetworkMonitorAdapterCallbackList, cbitem, tmpCbitem)
-    {
-        if (cbitem && adapter == cbitem->adapter)
-        {
-            OIC_LOG(DEBUG, TAG, "remove specific callback");
-            LL_DELETE(g_CAIPNetworkMonitorAdapterCallbackList, cbitem);
-            OICFree(cbitem);
-            return CA_STATUS_OK;
-        }
-    }
-    return CA_STATUS_OK;
-}
+/* CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)
+ * {
+ *     CAIPCBData_t *cbitem = NULL;
+ *     CAIPCBData_t *tmpCbitem = NULL;
+ *     LL_FOREACH_SAFE(g_CAIPNetworkMonitorAdapterCallbackList, cbitem, tmpCbitem)
+ *     {
+ *         if (cbitem && adapter == cbitem->adapter)
+ *         {
+ *             OIC_LOG(DEBUG, TAG, "remove specific callback");
+ *             LL_DELETE(g_CAIPNetworkMonitorAdapterCallbackList, cbitem);
+ *             OICFree(cbitem);
+ *             return CA_STATUS_OK;
+ *         }
+ *     }
+ *     return CA_STATUS_OK;
+ * } */
 
 /**
  * Allocate a new CAInterface_t entry for a given IP address.
@@ -625,7 +608,8 @@ u_arraylist_t  *CAFindInterfaceChange()
         return NULL;
     }
 
-    oc_mutex_lock(g_CAIPNetworkMonitorMutex);
+    oc_mutex_lock(g_CAIPNetworkMonitorContextMutex);
+    /* oc_mutex_lock(g_CAIPNetworkMonitorMutex); */
 
     bool someAddressWentAway = g_CAIPNetworkMonitorSomeAddressWentAway;
     g_CAIPNetworkMonitorSomeAddressWentAway = false;
@@ -651,15 +635,18 @@ u_arraylist_t  *CAFindInterfaceChange()
         }
     }
 
-    oc_mutex_unlock(g_CAIPNetworkMonitorMutex);
+    oc_mutex_unlock(g_CAIPNetworkMonitorContextMutex);
+    /* oc_mutex_unlock(g_CAIPNetworkMonitorMutex); */
 
     if (someAddressWentAway)
     {
-        CAIPPassNetworkChangesToTransportAdapter(CA_INTERFACE_DOWN);
+        CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
+        /* CAIPPassNetworkChangesToTransportAdapter(CA_INTERFACE_DOWN); */
     }
     if (newAddress)
     {
-        CAIPPassNetworkChangesToTransportAdapter(CA_INTERFACE_UP);
+        CAIPPassNetworkChangesToAdapter(CA_INTERFACE_UP);
+        /* CAIPPassNetworkChangesToTransportAdapter(CA_INTERFACE_UP); */
     }
 
     return iflist;
@@ -905,7 +892,8 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
     }
 
     // Avoid extra kernel calls by just duplicating what's in our cache.
-    oc_mutex_lock(g_CAIPNetworkMonitorMutex);
+    oc_mutex_lock(g_CAIPNetworkMonitorContextMutex);
+    /* oc_mutex_lock(g_CAIPNetworkMonitorMutex); */
 
     size_t list_length = u_arraylist_length(g_CAIPNetworkMonitorAddressList);
     for (size_t list_index = 0; list_index < list_length; list_index++)
@@ -922,7 +910,8 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
         }
     }
 
-    oc_mutex_unlock(g_CAIPNetworkMonitorMutex);
+    oc_mutex_unlock(g_CAIPNetworkMonitorContextMutex);
+    /* oc_mutex_unlock(g_CAIPNetworkMonitorMutex); */
 
     return iflist;
 }

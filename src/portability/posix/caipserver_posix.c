@@ -49,12 +49,14 @@
 #include <net/if.h>
 #endif
 #include <errno.h>
-#ifdef __linux__
-#include <linux/netlink.h>
-#include <linux/rtnetlink.h>
-#endif
+/* #ifdef __linux__
+ * #include <linux/netlink.h>
+ * #include <linux/rtnetlink.h>
+ * #endif */
 
+#if INTERFACE
 #include <inttypes.h>
+#endif
 
 #define USE_IP_MREQN
 
@@ -306,4 +308,30 @@ void PORTABLE_sendto(CASocketFd_t fd,
         CALogSendStateInfo(endpoint->adapter, endpoint->addr, endpoint->port,
                            len, true, NULL);
     }
+}
+
+CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
+{
+    if (!zoneId || (*zoneId != NULL))
+    {
+        return CA_STATUS_INVALID_PARAM;
+    }
+
+    *zoneId = (char *)OICCalloc(IF_NAMESIZE, sizeof(char));
+    if (!(*zoneId))
+    {
+        OIC_LOG(ERROR, TAG, "OICCalloc failed in CAGetLinkLocalZoneIdInternal");
+        return CA_MEMORY_ALLOC_FAILED;
+    }
+
+    if (!if_indextoname(ifindex, *zoneId))
+    {
+        OIC_LOG(ERROR, TAG, "if_indextoname failed in CAGetLinkLocalZoneIdInternal");
+        OICFree(*zoneId);
+        *zoneId = NULL;
+        return CA_STATUS_FAILED;
+    }
+
+    OIC_LOG_V(DEBUG, TAG, "Given ifindex is %d parsed zoneId is %s", ifindex, *zoneId);
+    return CA_STATUS_OK;
 }

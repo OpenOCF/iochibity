@@ -142,27 +142,8 @@ void CASelectReturned(fd_set *readFds, int ret)
         else ISSET(m6s, readFds, CA_MULTICAST | CA_IPV6 | CA_SECURE)
         else ISSET(m4,  readFds, CA_MULTICAST | CA_IPV4)
         else ISSET(m4s, readFds, CA_MULTICAST | CA_IPV4 | CA_SECURE)
-        else if ((caglobals.ip.netlinkFd != OC_INVALID_SOCKET) && FD_ISSET(caglobals.ip.netlinkFd, readFds))
-        {
-#if NETWORK_INTERFACE_CHANGED_LOGGING
-            OIC_LOG_V(DEBUG, TAG, "Netlink event detected");
-#endif
-            u_arraylist_t *iflist = CAFindInterfaceChange();
-            if (iflist)
-            {
-                size_t listLength = u_arraylist_length(iflist);
-                for (size_t i = 0; i < listLength; i++)
-                {
-                    CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
-                    if (ifitem)
-                    {
-                        CAProcessNewInterface(ifitem);
-                    }
-                }
-                u_arraylist_destroy(iflist);
-            }
-            break;
-        }
+	/* not implemented - netlinkFd is always INVALID SOCKET on OS X */
+        /* else if ((caglobals.ip.netlinkFd != OC_INVALID_SOCKET) && FD_ISSET(caglobals.ip.netlinkFd, readFds)) */
         else if (FD_ISSET(caglobals.ip.shutdownFds[0], readFds))
         {
             char buf[10] = {0};

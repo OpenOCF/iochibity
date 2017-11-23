@@ -35,9 +35,7 @@
 #include <netdb.h>
 #include <errno.h>
 
-#include "utlist.h"
-
-#define TAG "OIC_DARWIN_CA_IP_MONITOR"
+#define TAG "IPNWMX"
 
 u_arraylist_t *CAFindInterfaceChange()
 {
@@ -45,65 +43,3 @@ u_arraylist_t *CAFindInterfaceChange()
     OIC_LOG_V(ERROR, TAG, "%s NOT YET IMPLEMENTED ON DARWIN", __func__);
     return iflist;
 }
-
-/* u_arraylist_t *CAFindInterfaceChange()
- * {
- *      OIC_LOG_V(ERROR, TAG, "%s ENTRY", __func__);
- * 
- *     u_arraylist_t *iflist = NULL;
- * #if defined(__linux__) || defined (__ANDROID__) /\* GAR:  Darwin support *\/
- *     char buf[4096] = { 0 };
- *     struct nlmsghdr *nh = NULL;
- *     struct sockaddr_nl sa = { .nl_family = 0 };
- *     struct iovec iov = { .iov_base = buf,
- *                          .iov_len = sizeof (buf) };
- *     struct msghdr msg = { .msg_name = (void *)&sa,
- *                           .msg_namelen = sizeof (sa),
- *                           .msg_iov = &iov,
- *                           .msg_iovlen = 1 };
- * 
- *     ssize_t len = recvmsg(caglobals.ip.netlinkFd, &msg, 0);
- * 
- *     for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len))
- *     {
- *         if (nh != NULL && (nh->nlmsg_type != RTM_DELADDR && nh->nlmsg_type != RTM_NEWADDR))
- *         {
- * 	    /\* GAR: what about RTM_NEWLINK, RTM_DELLINK? *\/
- *             continue;
- *         }
- * 
- *         if (RTM_DELADDR == nh->nlmsg_type)
- *         {
- *             struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
- *             if (ifa)
- *             {
- *                 int ifiIndex = ifa->ifa_index;
- *                 bool isFound = CACmpNetworkList(ifiIndex);
- *                 if (isFound)
- *                 {
- *                     CARemoveNetworkMonitorList(ifiIndex);
- *                     CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
- *                 }
- *             }
- *             continue;
- *         }
- * 
- *         // Netlink message type is RTM_NEWADDR.
- *         struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
- *         if (ifa)
- *         {
- *             int ifiIndex = ifa->ifa_index;
- * 	    /\* FIXME: BUG. what if > 1 new addrs? only last will be in iflist *\/
- *             iflist = CAIPGetInterfaceInformation(ifiIndex);
- *             if (!iflist)
- *             {
- *                 OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
- *                 return NULL;
- *             }
- * 	    /\* GAR: CAProcessNewInterfaceItem? (android) *\/
- *         }
- *     }
- * #endif
- *     return iflist;
- * } */
-

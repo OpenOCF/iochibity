@@ -33,13 +33,14 @@ config_setting(
 # NB: for now we ignore platforms lacking pthreads
 cc_library(
     name = "posix",
-    # copts = ["-Isrc",
+    copts = ["-Ithird_party/utlist",
+             "-DWITH_POSIX",
     #          "-Iexternal/openocf/src",
     #          "-Isrc/logger",
     #          "-Iexternal/openocf/src/logger",
     #          "-Isrc/portability"]
     #          # "-Ithird_party/mbedtls/include"]
-    copts =  select({"windows": [],
+    ] + select({"windows": [],
                      "msvc": [],
                      "msys": [],
                      "//conditions:default": ["-std=c11",
@@ -47,7 +48,8 @@ cc_library(
     deps = [#"//src:config",
             "//src/logger",
             # "//src/portability:hdrs",
-            "//third_party/mbedtls"],
+            # "//third_party/mbedtls",
+            "//third_party/utlist"],
     linkopts = select({"windows": [],
                        "msvc": [],
                        "msys": ["-lpthread"],
@@ -58,17 +60,7 @@ cc_library(
                        "androidx86": [],
                        #"ndk": [],
                        "//conditions:default": []}),
-    srcs = [#"oic_platform.c",
-            #"oic_platform.h",
-            "ocatomic_posix.c",
-            "ocatomic_posix.h",
-            "ocevent_posix.c",
-            "ocevent_posix.h",
-            "octhread_posix.c",
-            "octhread_posix.h",
-            "caipserver_posix.c",
-            "caipserver_posix.h",
-    ],
+    srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//visibility:public"]
 )
 
