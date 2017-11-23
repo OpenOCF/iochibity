@@ -21,6 +21,8 @@
 ## ignore all headers! we generate them a build time using makeheaders
 *.h
 
+src/openocf_confic.c
+
 # autotools
 autom4te*
 config.guess
