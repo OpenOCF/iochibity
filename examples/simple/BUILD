@@ -5,6 +5,10 @@ config_setting(
               "android_crosstool_top": "//platforms/ndk:toolchain" }
 )
 config_setting(
+    name = "linux",
+    values = { "cpu": "k8" }
+)
+config_setting(
     name = "wrlinux",
     values = { "crosstool_top": "//platforms/wrlinux:toolchain" }
 )
@@ -24,7 +28,12 @@ cc_binary(
              "-Isrc/portability",
              "-Ithird_party/cjson",
              "-Ithird_party/coap/include",
-             "-Ithird_party/tinycbor/src"]
+             "-Ithird_party/tinycbor/src",
+             "-Iexternal/usr_sys/include",
+             "-Iexternal/usr_sys/include/cdk",
+             # "-Iexternal/usr_local/include",
+             # "-Iexternal/usr_local/include/cdk"
+    ]
     + select({":rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/include",
                          "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
                          "-std=c11"],
@@ -47,10 +56,12 @@ cc_binary(
             "//third_party/cjson",
            "//third_party/coap"]
     + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
+              ":linux": ["@usr_local//:cdk"],
               ":android": ["@cosysroot_ndk//:cdk"],
               ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
-              "//conditions:default": ["@usr_local//:cdk"]}),
+              "//conditions:default": ["@usr_local//:cdkx"]}),
     linkstatic = 1,
+    # linkopts = ["-lcdk"],
     srcs = ["occlient.c",
             "occlient.h",
             "gui.h",
