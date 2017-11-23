@@ -1,4 +1,6 @@
-/* src/iotivity_config.h.in.  Generated from configure.ac by autoheader.  */
+/* src/openocf_config.c.in.  Generated from configure.ac by autoheader.  */
+
+#if INTERFACE
 
 /* COAP Debugging */
 #undef COAP_DEBUG_C
@@ -347,6 +349,9 @@
 /* Block-wise Transfer */
 #undef WITH_BWT
 
+/* Enable PRESENCE */
+#undef WITH_PRESENCE
+
 /* Define to 1 if on MINIX. */
 #undef _MINIX
 
@@ -466,3 +471,5 @@
 #endif
 
 #include "system.h"
+
+#endif /* INTERFACE */

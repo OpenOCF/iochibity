@@ -1,0 +1,2 @@
+src/portability/darwin/caipserver_darwin.c
+src/portability/darwin/caipnwmonitor_darwin.c
