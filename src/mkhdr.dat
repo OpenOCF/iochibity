@@ -2,7 +2,6 @@ src/portability/posix/caipserver_posix.c
 src/portability/darwin/caipserver_darwin.c
 src/portability/posix/caipnwmonitor_posix.c
 src/portability/darwin/caipnwmonitor_darwin.c
->>>>>>> Stashed changes
 
 src/openocf_config.c:
 src/system.c:
@@ -90,9 +89,7 @@ src/comm/transport/udpip/caipadapter.c
 src/comm/transport/udpip/caipnwmonitor.c
 src/comm/transport/udpip/caipserver.c
 
-src/comm/transport/util/android/caadapterutils_android.c
 src/comm/transport/util/caadapterutils.c
-src/comm/transport/util/java/caadapterutils_java.c
 
 src/comm/transport/xmpp/caraadapter.c
 src/comm/util/userprefs.c
