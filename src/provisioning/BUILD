@@ -89,8 +89,8 @@ cc_library(
              "-Iexternal/openocf/third_party/coap/include",
     #          "-Ithird_party/mbedtls/include",
     #          "-Iexternal/openocf/third_party/mbedtls/include",
-    #          "-Ithird_party/sqlite3",
-    #          "-Iexternal/openocf/third_party/sqlite3"
+             "-Ithird_party/sqlite3",
+             "-Iexternal/openocf/third_party/sqlite3"
     ] + select({":windows": [],
               ":msvc": [],
               ":msys": [],
