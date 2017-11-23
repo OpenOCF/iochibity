@@ -195,6 +195,14 @@ AS_IF([test "x$enable_logging" = "xyes"], [
   AC_DEFINE([TB_LOG], [], [Logging])
 ])
 
+dnl nw change event logging is on by default
+AC_ARG_ENABLE([nwchg-logging],
+    AS_HELP_STRING([--disable-nwchg-logging], [Disable Network Change Logging]))
+
+AS_IF([test "x$enable_nwchg" != "xno"], [
+  AC_DEFINE([NETWORK_INTERFACE_CHANGED_LOGGING], [], [Network Change Logging])
+])
+
 dnl enable adapters. default to IP_ADAPTER
 AC_ARG_ENABLE([udpip],
     AS_HELP_STRING([--disable-udpip], [Disable UDP/IP adapter (default: enabled)]))
