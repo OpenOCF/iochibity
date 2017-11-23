@@ -20,10 +20,10 @@
 
 #include "base64.h"
 
-#include <stdint.h>
 #include <stdio.h>
 
 #if INTERFACE
+#include <stdint.h>
 #include <stdlib.h>
 #endif	/* INTERFACE */
 
