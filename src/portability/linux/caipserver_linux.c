@@ -25,7 +25,7 @@
 #define _GNU_SOURCE // for in6_pktinfo
 #endif
 
-#include "caipserver_linux.c"
+#include "caipserver_linux.h"
 /* #include "iotivity_debug.h" */
 
 #include <sys/types.h>
@@ -65,7 +65,7 @@
  */
 #define TAG "OIC_CA_IP_SERVER"
 
-static void CAFindReadyMessage()
+void CAFindReadyMessage()
 {
     fd_set readFds;
     struct timeval timeout;
@@ -116,7 +116,7 @@ static void CAFindReadyMessage()
     }
 }
 
-static void CASelectReturned(fd_set *readFds, int ret)
+LOCAL void CASelectReturned(fd_set *readFds, int ret)
 {
     (void)ret;
     CASocketFd_t fd = OC_INVALID_SOCKET;
@@ -217,7 +217,7 @@ void CARegisterForAddressChanges()
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 
-static void CAInitializeFastShutdownMechanism()
+void CAInitializeFastShutdownMechanism()
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
     caglobals.ip.selectTimeout = -1; // don't poll for shutdown
@@ -225,7 +225,6 @@ static void CAInitializeFastShutdownMechanism()
     ret = pipe2(caglobals.ip.shutdownFds, O_CLOEXEC);
     CHECKFD(caglobals.ip.shutdownFds[0]);
     CHECKFD(caglobals.ip.shutdownFds[1]);
- * #endif */
     if (-1 == ret)
     {
         OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR);

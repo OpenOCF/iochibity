@@ -13,7 +13,7 @@ config_setting(
 
 cc_library(
     name = "linux",
-    copts = ["-Isrc",
+    copts = ["-I.",
              "-Iexternal/openocf/src/",
              "-Isrc/util",
              "-Iexternal/openocf/src/util",
@@ -47,19 +47,22 @@ cc_library(
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             # "//src/logger",
-            # "//src/util",
+            "//src/util",
     	    # "//src/comm/api",
     	    # "//src/comm/common",
     	    # "//src/comm:hdrs",
     	    # "//src/comm/interface",
-    	    "//src/comm/transport/udpip:hdrs",
+    	    # "//src/comm/transport/udpip:hdrs",
     	    # "//src/comm/transport/util",
             # "//src/comm/security",
             # "//src/portability",
 	    # "//third_party/coap"],
             ],
     srcs = [#"monitor_impl.c",
-            "caipserver_linux.c"
+	    "caipnwmonitor_linux.c",
+	    "caipnwmonitor_linux.h",
+            "caipserver_linux.c",
+            "caipserver_linux.h"
     ],
-    visibility = ["//src/comm/transport/udpip:__pkg__"]
+    visibility = ["//visibility:public"]
 )

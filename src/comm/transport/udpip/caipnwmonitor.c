@@ -133,19 +133,9 @@ static CAResult_t CAIPInitializeNetworkMonitorList();
 static void CAIPDestroyNetworkMonitorList();
 
 /**
- * Compare the interface with the already added interface in list.
- */
-static bool CACmpNetworkList(uint32_t ifiindex);
-
-/**
  * Add new network interface in list.
  */
 static CAResult_t CAAddNetworkMonitorList(CAInterface_t *ifitem);
-
-/**
- * Pass the changed network status through the stored callback.
- */
-static void CAIPPassNetworkChangesToAdapter(CANetworkStatus_t status);
 
 /**
  * Create new interface item.
@@ -193,7 +183,10 @@ static void CAIPDestroyNetworkMonitorList()
     }
 }
 
-static bool CACmpNetworkList(uint32_t ifiindex)
+/**
+ * Compare the interface with the already added interface in list.
+ */
+bool CACmpNetworkList(uint32_t ifiindex)
 {
 #if NETWORK_INTERFACE_CHANGED_LOGGING
     OIC_LOG_V(DEBUG, TAG, "IN %s: ifiindex = %ul", __func__, ifiindex);
@@ -263,7 +256,10 @@ int CAGetPollingInterval(int interval)
     return interval;
 }
 
-static void CAIPPassNetworkChangesToAdapter(CANetworkStatus_t status)
+/**
+ * Pass the changed network status through the stored callback.
+ */
+void CAIPPassNetworkChangesToAdapter(CANetworkStatus_t status)
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s: status = %d", __func__, status);
     CAIPCBData_t *cbitem = NULL;
@@ -366,9 +362,9 @@ static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family
  *                           .msg_namelen = sizeof (sa),
  *                           .msg_iov = &iov,
  *                           .msg_iovlen = 1 };
- * 
+ *
  *     ssize_t len = recvmsg(caglobals.ip.netlinkFd, &msg, 0);
- * 
+ *
  *     for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len))
  *     {
  *         if (nh != NULL && (nh->nlmsg_type != RTM_DELADDR && nh->nlmsg_type != RTM_NEWADDR))
@@ -376,7 +372,7 @@ static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family
  * 	    /\* GAR: what about RTM_NEWLINK, RTM_DELLINK? *\/
  *             continue;
  *         }
- * 
+ *
  *         if (RTM_DELADDR == nh->nlmsg_type)
  *         {
  *             struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
@@ -392,7 +388,7 @@ static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family
  *             }
  *             continue;
  *         }
- * 
+ *
  *         // Netlink message type is RTM_NEWADDR.
  *         struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
  *         if (ifa)
@@ -438,7 +434,7 @@ CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
     return CA_STATUS_OK;
 }
 
-LOCAL void CARemoveNetworkMonitorList(int ifiindex)
+void CARemoveNetworkMonitorList(int ifiindex)
 {
     VERIFY_NON_NULL_VOID(g_netInterfaceList, TAG, "g_netInterfaceList is NULL");
 
@@ -493,7 +489,7 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
         u_arraylist_destroy(iflist);
         return NULL;
     }
- 
+
     struct ifaddrs *ifa = NULL;
 #if NETWORK_INTERFACE_CHANGED_LOGGING
     OIC_LOG(DEBUG, TAG, "Iterating over interface addresses.");

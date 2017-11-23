@@ -1,10 +1,3 @@
-# this will contain crosscompiled third party libs (ncurses, cdk)
-new_local_repository(
-  name = "cosysroot_rpi3b",
-  path = "/Users/gar/cosysroots/rpi3b",
-  build_file = "platforms/rpi3b/cosysroot.BUILD"
-)
-
 ## toolchain repos
 new_local_repository(
   name = "toolchain_ndk",
@@ -14,7 +7,8 @@ new_local_repository(
 
 new_local_repository(
   name = "toolchain_rpi3b",
-  path = "/Volumes/CrossToolNG/armv8-rpi3-linux-gnueabihf",
+  path = "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf", # linux
+  # path = "/Volumes/CrossToolNG/armv8-rpi3-linux-gnueabihf", # os x
   build_file = 'platforms/rpi3b/toolchain.BUILD',
 )
 
@@ -25,9 +19,11 @@ new_local_repository(
 )
 
 # cross-compiled cosysroots
+# these will contain crosscompiled third party libs (ncurses, cdk)
 new_local_repository(
   name = "cosysroot_rpi3b",
-  path = "/Users/gar/cosysroots/rpi3b",
+  path = "/home/gar/cosysroots/rpi3b",
+  # path = "/Users/gar/cosysroots/rpi3b",
   build_file = "platforms/rpi3b/cosysroot.BUILD"
 )
 
@@ -45,9 +41,18 @@ new_local_repository(
 
 ## local repo, for access to stuff in /usr/local, e.g. cdk
 new_local_repository(
+    name = "usr_sys",
+    path = "/usr",
+    # build_file = "platforms/darwin/cosysroot.BUILD"
+    build_file = "platforms/linux/cosysroot.BUILD"
+)
+
+new_local_repository(
     name = "usr_local",
-    path = "/usr/local",
-    build_file = "platforms/darwin/cosysroot.BUILD"
+    #path = "/usr/lib",
+    path = "/usr/local", # macos
+    # build_file = "platforms/darwin/cosysroot.BUILD"
+    build_file = "platforms/linux/cosysroot.BUILD"
 )
 
 android_sdk_repository(
@@ -62,4 +67,3 @@ android_ndk_repository(
     path="/Users/gar/android/android-ndk-r14b",
     api_level=23,
 )
-

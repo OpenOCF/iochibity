@@ -9,6 +9,14 @@ config_setting(
     values = { "crosstool_top": "//platforms/wrlinux:toolchain" }
 )
 config_setting(
+    name = "linux",
+    values = { "cpu": "k8" }
+)
+config_setting(
+    name = "rpi3b",
+     values = { "crosstool_top": "//platforms/rpi3b:toolchain" }
+)
+config_setting(
     name = "windows",
     values = { "cpu": "x64_windows" }
 )
@@ -43,6 +51,8 @@ cc_library(
     linkopts = select({"windows": [],
                        "msvc": [],
                        "msys": ["-lpthread"],
+                       "linux": ["-lpthread"],
+                       "rpi3b": ["-lpthread"],
                        "wrlinux": ["-lpthread"],
                        # "android": [],
                        "androidx86": [],

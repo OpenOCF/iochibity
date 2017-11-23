@@ -1,16 +1,24 @@
 # TODO: tizen support
 config_setting(
+    name = "linux",
+    values = { "cpu": "k8" }
+)
+config_setting(
     name = "darwin",
-    values = { "cpu": "darwin" }
+    values = { "cpu": "darwinX" }
 )
 config_setting(
     name = "darwin64",
-    values = { "cpu": "darwin_x86_64" }
+    values = { "cpu": "darwin_x86_64X" }
 )
 config_setting(
     name = "android",
     # values = { "crosstool_top": "//external:android/crosstool."} # "@android_ndk//:toolchain-libcpp"
     values = {"cpu": "armeabi-v7a"}
+)
+config_setting(
+    name = "rpi3b",
+     values = { "crosstool_top": "//platforms/rpi3b:toolchain" }
 )
 config_setting(
     name = "ndk",
@@ -68,18 +76,25 @@ cc_library(
     # linkstatic = 1,
     copts = ["-Ithird_party/mbedtls/include",
              "-Iexternal/openocf/third_party/mbedtls/include",
+	     "-D_GNU_SOURCE",
+	     "-DWITH_POSIX",
     ] + select({":windows": [],
                 ":msvc": [],
                 ":msys": [],
-                ":darwin": ["-std=c11", "-UDEBUG"],
-                ":darwin64": ["-std=c11", "-UDEBUG"],
+                ":linux": ["-std=c11"],
+                # ":darwin": ["-std=c11", "-UDEBUG"],
+                # ":darwin64": ["-std=c11", "-UDEBUG"],
                 "//conditions:default": ["-std=c11"]}),
     deps = ["//src/logger",
             "//third_party/mbedtls",
             "//third_party/mbedtls:mbedtls-crypto",
             "//third_party/mbedtls:mbedtls-x509",
-    ] + select({":darwin": ["//src/portability/darwin"],
-                ":darwin64": ["//src/portability/darwin"],
+    ] + select({#":darwin": ["//src/portability/darwin"],
+                #":darwin64": ["//src/portability/darwin"],
+                ":linux": ["//src/portability/posix",
+			   "//src/portability/linux"],
+                ":rpi3b": ["//src/portability/posix",
+			   "//src/portability/linux"],
                 ":windows": ["//src/portability/windows"],
               ":msvc": ["//src/portability/windows"],
               ":msys": ["//src/portability/posix"],

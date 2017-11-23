@@ -17,8 +17,6 @@
  * limitations under the License.
  *
  ******************************************************************/
-
-/* #include "iotivity_config.h" */
 #include "caadapterutils.h"
 
 #include <string.h>
@@ -31,7 +29,6 @@
 #include <unistd.h>
 #endif	/* INTERFACE */
 
-
 #ifdef HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
 #endif
@@ -39,16 +36,19 @@
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
-#endif	/* INTERFACE */
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#endif	/* INTERFACE */
+
 #if defined(HAVE_WINSOCK2_H) && defined(HAVE_WS2TCPIP_H)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #endif
+#if INTERFACE
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
 #endif
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>

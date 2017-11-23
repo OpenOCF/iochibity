@@ -181,7 +181,7 @@ static char *ipv6mcnames[IPv6_DOMAINS] = {
 
 /* #if defined (_WIN32)
  * #define IFF_UP_RUNNING_FLAGS  (IFF_UP)
- * 
+ *
  *     char* caips_get_error(){
  *         static char buffer[32];
  *         snprintf(buffer, 32, "%i", WSAGetLastError());

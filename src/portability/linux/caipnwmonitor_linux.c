@@ -17,7 +17,7 @@
 * limitations under the License.
 *
 ******************************************************************/
-#include "caipnwmonitor_posix.h"
+#include "caipnwmonitor_linux.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -38,9 +38,12 @@
 #include <linux/if.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
+
 #include "utlist.h"
 
 #define TAG "OIC_LINUX_CA_IP_MONITOR"
+
+CANetworkStatus_t fixme_nws;	/* help makeheaders */
 
 u_arraylist_t *CAFindInterfaceChange()
 {

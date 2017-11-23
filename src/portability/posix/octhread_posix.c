@@ -33,8 +33,6 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-/* #include "iotivity_config.h" */
-/* #include "iotivity_debug.h" */
 #include "octhread_posix.h"
 
 #ifdef HAVE_STRING_H
@@ -636,4 +634,3 @@ OCWaitResult_t oc_cond_wait_for(oc_cond cond, oc_mutex mutex, uint64_t microseco
     }
     return retVal;
 }
-
