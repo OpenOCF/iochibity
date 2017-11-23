@@ -32,12 +32,20 @@ config_setting(
     values = { "cpu": "x64_windows_msys" }
 )
 
+# compile cmd from make:
+# /bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.    -fPIC -fPIE -I./include/coap -I./include/coap -pedantic -Wall -Wextra -Wformat-security -Winline -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wswitch-default -Wswitch-enum -Wunused  -Wlogical-op -Wunused-result -std=c99 -g -O2 -fdiagnostics-color -D_GNU_SOURCE -DWITH_POSIX -MT src/libcoap_1_la-coap_io.lo -MD -MP -MF src/.deps/libcoap_1_la-coap_io.Tpo -c -o src/libcoap_1_la-coap_io.lo `test -f 'src/coap_io.c' || echo './'`src/coap_io.c
+# libtool: compile:  gcc -DHAVE_CONFIG_H -I. -fPIC -I./include/coap -I./include/coap -pedantic -Wall -Wextra -Wformat-security -Winline -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wswitch-default -Wswitch-enum -Wunused -Wlogical-op -Wunused-result -std=c99 -g -O2 -fdiagnostics-color -D_GNU_SOURCE -DWITH_POSIX -MT src/libcoap_1_la-coap_io.lo -MD -MP -MF src/.deps/libcoap_1_la-coap_io.Tpo -c src/coap_io.c  -fPIC -DPIC -o src/.libs/libcoap_1_la-coap_io.o
+
 cc_library(
     name = "coap",
     # alwayslink = True,
     copts = ["-Ithird_party/coap",
              "-Ithird_party/coap/include/coap",
              "-Isrc",
+	     "-D_GNU_SOURCE",
+	     "-DWITH_POSIX",
+	     # "-D_POSIX_C_SOURCE=200809L",
+	     # "-D_DEFAULT_SOURCE",
              # "-Iexternal/openocf/src",
              # "-Ithird_party/coap/include",
              # "-Iexternal/openocf/third_party/coap/include",
@@ -119,4 +127,3 @@ cc_library(
     ],
     visibility = ["//visibility:public"]
 )
-

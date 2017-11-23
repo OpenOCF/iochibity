@@ -3,7 +3,7 @@
  * Copyright (C) 2012,2014 Olaf Bergmann <bergmann@tzi.org>
  *
  * This file is part of the CoAP library libcoap. Please see
- * README for terms of use. 
+ * README for terms of use.
  */
 
 #include "coap_config.h"
@@ -14,7 +14,7 @@
 
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
-#endif 
+#endif
 #ifdef HAVE_SYS_SOCKET_H
 # include <sys/socket.h>
 # define OPTVAL_T(t)         (t)
@@ -39,10 +39,10 @@
 #endif
 #ifdef HAVE_SYS_UIO_H
 # include <sys/uio.h>
-#endif 
+#endif
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
-#endif 
+#endif
 #include <errno.h>
 
 #ifdef WITH_CONTIKI
@@ -221,7 +221,7 @@ coap_new_endpoint(const coap_address_t *addr, int flags) {
     unsigned char addr_str[INET6_ADDRSTRLEN+8];
 
     if (coap_print_addr(&ep->addr, addr_str, INET6_ADDRSTRLEN+8)) {
-      debug("created %sendpoint %s\n", 
+      debug("created %sendpoint %s\n",
 	    ep->flags & COAP_ENDPOINT_DTLS ? "DTLS " : "",
 	    addr_str);
     }
@@ -247,7 +247,7 @@ coap_free_endpoint(coap_endpoint_t *ep) {
 
 #if defined(WITH_POSIX) != defined(HAVE_NETINET_IN_H)
 /* define struct in6_pktinfo and struct in_pktinfo if not available
-   FIXME: check with configure 
+   FIXME: check with configure
 */
 struct in6_pktinfo {
   struct in6_addr ipi6_addr;	/* src/dst IPv6 address */
@@ -279,7 +279,7 @@ coap_network_send(struct coap_context_t *context UNUSED_PARAM,
 		  unsigned char *data,
 		  size_t datalen) {
 
-  struct coap_endpoint_t *ep = 
+  struct coap_endpoint_t *ep =
     (struct coap_endpoint_t *)local_interface;
 
 #ifndef WITH_CONTIKI
@@ -335,10 +335,10 @@ coap_network_send(struct coap_context_t *context UNUSED_PARAM,
     cmsg->cmsg_level = IPPROTO_IPV6;
     cmsg->cmsg_type = IPV6_PKTINFO;
     cmsg->cmsg_len = CMSG_LEN(sizeof(struct in6_pktinfo));
-  
+
     pktinfo = (struct in6_pktinfo *)CMSG_DATA(cmsg);
     memset(pktinfo, 0, sizeof(struct in6_pktinfo));
-  
+
     pktinfo->ipi6_ifindex = ep->ifindex;
     if (coap_is_mcast(&local_interface->addr)) {
       /* We cannot send with multicast address as source address
@@ -427,7 +427,7 @@ coap_network_send(struct coap_context_t *context UNUSED_PARAM,
   /* FIXME: is there a way to check if send was successful? */
   (void)datalen;
   (void)data;
-  uip_udp_packet_sendto((struct uip_udp_conn *)ep->handle.conn, data, datalen, 
+  uip_udp_packet_sendto((struct uip_udp_conn *)ep->handle.conn, data, datalen,
 			&dst->addr, dst->port);
   return datalen;
 #endif /* WITH_CONTIKI */
@@ -510,7 +510,7 @@ coap_network_read(coap_endpoint_t *ep, coap_packet_t **packet) {
   ssize_t len = -1;
 
 #ifdef WITH_POSIX
-  char msg_control[CMSG_LEN(sizeof(struct sockaddr_storage))]; 
+  char msg_control[CMSG_LEN(sizeof(struct sockaddr_storage))];
   struct msghdr mhdr;
   struct iovec iov[1];
 #endif /* WITH_POSIX */
@@ -519,7 +519,7 @@ coap_network_read(coap_endpoint_t *ep, coap_packet_t **packet) {
   assert(packet);
 
   *packet = coap_malloc_packet();
-  
+
   if (!*packet) {
     warn("coap_network_read: insufficient memory, drop packet\n");
     return -1;
@@ -539,7 +539,7 @@ coap_network_read(coap_endpoint_t *ep, coap_packet_t **packet) {
 
   mhdr.msg_iov = iov;
   mhdr.msg_iovlen = 1;
-  
+
   mhdr.msg_control = msg_control;
   mhdr.msg_controllen = sizeof(msg_control);
   assert(sizeof(msg_control) == CMSG_LEN(sizeof(struct sockaddr_storage)));
@@ -566,7 +566,7 @@ coap_network_read(coap_endpoint_t *ep, coap_packet_t **packet) {
     /* Walk through ancillary data records until the local interface
      * is found where the data was received. */
     for (cmsg = CMSG_FIRSTHDR(&mhdr); cmsg; cmsg = CMSG_NXTHDR(&mhdr, cmsg)) {
-      
+
       /* get the local interface for IPv6 */
       if (cmsg->cmsg_level == IPPROTO_IPV6 && cmsg->cmsg_type == IPV6_PKTINFO) {
 	union {
@@ -576,7 +576,7 @@ coap_network_read(coap_endpoint_t *ep, coap_packet_t **packet) {
 	u.c = CMSG_DATA(cmsg);
 	(*packet)->ifindex = (int)(u.p->ipi6_ifindex);
 
-	memcpy(&(*packet)->dst.addr.sin6.sin6_addr, 
+	memcpy(&(*packet)->dst.addr.sin6.sin6_addr,
 	       &u.p->ipi6_addr, sizeof(struct in6_addr));
 
 	(*packet)->src.size = sizeof(struct sockaddr_in6);
@@ -603,7 +603,7 @@ coap_network_read(coap_endpoint_t *ep, coap_packet_t **packet) {
 	u.c = CMSG_DATA(cmsg);
 	(*packet)->ifindex = u.p->ipi_ifindex;
 
-	memcpy(&(*packet)->dst.addr.sin.sin_addr, 
+	memcpy(&(*packet)->dst.addr.sin.sin_addr,
 	       &u.p->ipi_addr, sizeof(struct in_addr));
 
 	(*packet)->src.size = sizeof(struct sockaddr_in);
@@ -659,7 +659,7 @@ coap_network_read(coap_endpoint_t *ep, coap_packet_t **packet) {
     }
 
     len = uip_datalen();
-    
+
     if (len > coap_get_max_packetlength(*packet)) {
       /* FIXME: we might want to send back a response */
       warn("discarded oversized packet\n");
@@ -673,7 +673,7 @@ coap_network_read(coap_endpoint_t *ep, coap_packet_t **packet) {
 #define INET6_ADDRSTRLEN 40
 #endif
       unsigned char addr_str[INET6_ADDRSTRLEN+8];
-      
+
       if (coap_print_addr(&(*packet)->src, addr_str, INET6_ADDRSTRLEN+8)) {
 	debug("received %zd bytes from %s\n", len, addr_str);
       }
