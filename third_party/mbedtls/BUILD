@@ -12,7 +12,10 @@ cc_library(
              "-Iexternal/openocf/src",
              "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include",
-             "-Ithird_party/mbedtls/include/mbedtls"],
+             "-Ithird_party/mbedtls/include/mbedtls",
+	     # expose getaddrinfo etc. on linux (ubuntu)
+	     "-DWITH_POSIX",
+	     "-D_GNU_SOURCE"],
     deps = ["//src:config",
             "mbedtls-crypto",
             "mbedtls-x509"],
@@ -276,4 +279,3 @@ cc_library(
             "library/x509write_csr.c"],
     visibility = ["//visibility:public"]
 )
-
