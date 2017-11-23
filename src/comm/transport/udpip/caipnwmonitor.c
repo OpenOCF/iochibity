@@ -240,4 +240,3 @@ CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)
 
 /* GAR FIXME: CAIPGetAllInterfaceInformation(), not CAIPGetInterfaceInformation(0) */
 /* DELEGATE: u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex) */
-

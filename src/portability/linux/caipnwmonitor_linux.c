@@ -69,8 +69,7 @@ static void CARemoveNetworkMonitorList(int ifiindex)
     oc_mutex_unlock(g_networkMonitorContextMutex);
     return;
 }
-
-CANetworkStatus_t fixme_nws;	/* help makeheaders */
+/* CANetworkStatus_t fixme_nws;	/\* help makeheaders *\/ */
 
 u_arraylist_t *CAFindInterfaceChange()
 {
