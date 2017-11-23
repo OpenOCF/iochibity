@@ -1,3 +1,4 @@
+src/portability/windows/pthread_create.c
 src/comm/transport/udpip/caipadapter.c
 src/comm/transport/udpip/caipnwmonitor.c
 src/comm/transport/udpip/caipserver.c
@@ -5,6 +6,7 @@ src/comm/transport/udpip/caipserver_posix.c
 src/comm/transport/udpip/caipserver_darwin.c
 src/comm/transport/udpip/caipnwmonitor_posix.c
 src/comm/transport/udpip/caipnwmonitor_darwin.c
+src/comm/transport/udpip/caipnwmonitor_windows.c
 
 src/openocf_config.c:
 src/system.c:
@@ -138,8 +140,10 @@ src/portability/posix/ocatomic_posix.c
 src/portability/posix/ocevent_posix.c
 src/portability/posix/octhread_posix.c
 src/portability/windows/getopt.c
-src/portability/windows/memmem.c
 src/portability/windows/ocatomic_windows.c
+src/portability/windows/ocevent_windows.c
+src/portability/windows/octhread_windows.c
+src/portability/windows/memmem.c
 src/portability/windows/snprintf.c
 src/portability/windows/strptime.c
 src/portability/windows/win_sleep.c

@@ -67,7 +67,13 @@ cc_library(
             "caipnwmonitor.h",
             "caipserver.c",
             "caipserver.h"
-    ] + select({":windows": ["windows/caipnwmonitor.c"],
+    ] + select({":windows": [#"caipadapter_windows.c",
+                             #"caipadapter_windows.h",
+                             "caipnwmonitor_windows.c",
+                             "caipnwmonitor_windows.h",
+                             #"caipserver_windows.c",
+                             #"caipserver_windows.h"
+    ],
                 #":msvc": ["windows/caipnwmonitor.c"],
                 #":msys": ["linux/caipnwmonitor.c"],
                 ":darwin": ["caipnwmonitor_posix.c",

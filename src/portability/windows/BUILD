@@ -1,3 +1,16 @@
+config_setting(
+    name = "windows",
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
+)
+
 cc_library(
     name = "win",
     # alwayslink = True,
@@ -16,32 +29,34 @@ cc_library(
             # "//src/portability:hdrs",
             "//third_party/mbedtls"],
     # linkopts = ["-W,crypt32.lib"],
-    srcs = ["windows/ocatomic_windows.c",
-            "windows/ocatomic_windows.h",
-            "windows/ocevent_windows.c",
-            "windows/ocevent_windows.h",
-            "windows/octhread_windows.c",
-            "windows/octhread_windows.h",
-            "windows/pthread_create.c",
-            "windows/pthread_create.h",
-            "windows/getopt.c",
-            "windows/getopt.h",
-            "windows/memmem.c",
-            "windows/memmem.h",
-            "windows/snprintf.c",
-            "windows/snprintf.h",
-            "windows/strptime.c",
-            "windows/strptime.h",
-            "windows/vs12_snprintf.h",
-            "windows/win_sleep.c",
-            "windows/win_sleep.h",
+    srcs = ["ocatomic_windows.c",
+            "ocatomic_windows.h",
+            "ocevent_windows.c",
+            "ocevent_windows.h",
+            "octhread_windows.c",
+            "octhread_windows.h",
+            "pthread_create.c",
+            "pthread_create.h",
+            "getopt.c",
+            "getopt.h",
+            "memmem.c",
+            "memmem.h",
+            "snprintf.c",
+            "snprintf.h",
+            "strptime.c",
+            "strptime.h",
+            # "vs12_snprintf.h",
+            "win_sleep.c",
+            "win_sleep.h",
 
-            "ocrandom.h",
+            # "ocrandom.h",
 
-            "oic_platform.c",
-            "oic_platform.h",
+            # "oic_platform.c",
+            # "oic_platform.h",
             # FIXME: convert to c11
-            "windows/oic_winplatform.cpp",
+            "oic_winplatform.cpp",
 
-            "oic_string.h"],
+            # "oic_string.h"
+    ],
+    visibility = ["//src/portability:__pkg__"]
 )
