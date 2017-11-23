@@ -136,7 +136,6 @@ dep/
 config.log
 os
 out/
-platform
 
 # Ignore downloaded dependencies
 extlibs/gtest/gtest-*
