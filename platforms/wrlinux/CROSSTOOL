@@ -1,10 +1,17 @@
 major_version: "local"
 minor_version: ""
 default_target_cpu: "x86_64"
+
+default_toolchain {
+  cpu: "k8"
+  toolchain_identifier: "x86_64-unknown-linux-gnu"
+}
+
 default_toolchain {
   cpu: "x86_64"
   toolchain_identifier: "x86_64-unknown-linux-gnu"
 }
+
 # without this, we get "No toolchain found for cpu 'darwin'", even when --cpu=androideabi-4.9
 default_toolchain {
   cpu: "darwin"
@@ -224,4 +231,3 @@ toolchain {
   linker_flag: "-no-canonical-prefixes"
 
 }
-

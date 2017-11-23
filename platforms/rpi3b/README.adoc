@@ -12,8 +12,11 @@ ncurses:
 
 -P Inhibit generation of linemarkers in the output from the preprocessor
 
+--build triple: run $ bash --version
+x86_64-pc-linux-gnu
+              # --host=armv8-rpi3-linux-gnueabihf \ apple crosstools-ng
 $ ./configure --build=x86_64-apple-darwin \
-              --host=armv8-rpi3-linux-gnueabihf \
+	      --host=arm-rpi-4.9.3-linux-gnueabihf \
               --enable-kernel=4.9.35 \
               --prefix=/usr \
 	      --with-terminfo-dirs="/etc/terminfo:/lib/terminfo:/usr/share/terminfo" \
