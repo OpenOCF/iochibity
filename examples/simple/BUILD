@@ -59,7 +59,7 @@ cc_binary(
               ":linux": ["@usr_local//:cdk"],
               ":android": ["@cosysroot_ndk//:cdk"],
               ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
-              "//conditions:default": ["@usr_local//:cdkx"]}),
+              "//conditions:default": ["@usr_local//:cdk"]}),
     linkstatic = 1,
     # linkopts = ["-lcdk"],
     srcs = ["occlient.c",
