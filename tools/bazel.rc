@@ -21,7 +21,7 @@ build --define=role=client
 ################################################################
 # target: Raspberry Pi 3B
 #build --crosstool_top=//platforms/rpi3b:toolchain
-#build --cpu=armv8
+#build --cpu=armv8 --host_cpu=k8
 
 ################################################################
 # target: Intel IoT Gateway running WindRiver Linux
@@ -49,4 +49,3 @@ build --define=role=client
 ################################################################
 # misc
 # build:memcheck --strip=never --test_timeout=3600
-
