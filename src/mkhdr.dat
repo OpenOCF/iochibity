@@ -1,6 +1,6 @@
-src/portability/darwin/caipserver_darwin.c
-src/portability/darwin/caipnwmonitor_darwin.c
 src/portability/posix/caipserver_posix.c
+src/portability/linux/caipserver_linux.c
+src/portability/linux/caipnwmonitor_linux.c
 
 src/openocf_config.c:
 src/system.c:
