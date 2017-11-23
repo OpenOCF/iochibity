@@ -71,8 +71,8 @@ cc_library(
                              #"caipadapter_windows.h",
                              "caipnwmonitor_windows.c",
                              "caipnwmonitor_windows.h",
-                             #"caipserver_windows.c",
-                             #"caipserver_windows.h"
+                             "caipserver_windows.c",
+                             "caipserver_windows.h"
     ],
                 #":msvc": ["windows/caipnwmonitor.c"],
                 #":msys": ["linux/caipnwmonitor.c"],
