@@ -25,14 +25,13 @@ config_setting(
     values = { "cpu": "x64_windows_msys" }
 )
 
-cc_library(
-    name = "hdrs",
-    hdrs = ["base64.h",
-            # "byte_array.h",
-            "configuration.h",
-            "utlist.h"],
-    visibility = ["//visibility:public"],
-)
+# cc_library(
+#     name = "hdrs",
+#     hdrs = ["base64.h",
+#             # "byte_array.h",
+#             "configuration.h"],
+#     visibility = ["//visibility:public"],
+# )
 
 cc_library(
     name = "util",
@@ -56,14 +55,13 @@ cc_library(
             "//src/logger",
     #         "//src/portability"
     ],
-    hdrs = ["base64.h",
-            # "byte_array.h",
-            "configuration.h",
-            # select ifaddrs.h only for platforms that do not have getifaddrs (e.g. Android)
-            # "ifaddrs.h",
-            # "tree.h",
-            "utlist.h"
-    ],
+    # hdrs = ["base64.h",
+    #         # "byte_array.h",
+    #         "configuration.h",
+    #         # select ifaddrs.h only for platforms that do not have getifaddrs (e.g. Android)
+    #         # "ifaddrs.h",
+    #         # "tree.h",
+    # ],
     srcs = ["base64.c",
             "base64.h",
             # "byte_array.c",

@@ -221,8 +221,9 @@ cc_library(
              "-Ithird_party/coap/include",
              # "-Iexternal/openocf/third_party/coap/include",
              "-Ithird_party/tinycbor/src",
-             "-Iexternal/openocf/third_party/tinycbor/src"]
-    + select({":windows": [],
+             "-Iexternal/openocf/third_party/tinycbor/src",
+             "-Ithird_party/utlist"
+    ] + select({":windows": [],
               ":msvc": [],
               ":msys": [],
               "//conditions:default": ["-std=c11",
@@ -241,7 +242,8 @@ cc_library(
             "//third_party/cjson",
             "//src/routing",
             "//src/comm",       # connectivity
-            "//src/provisioning"]
+            "//src/provisioning",
+	    "//third_party/utlist"]
     + select({":client_role": ["//src/ocf:client"],
               "//conditions:default": []}),
     hdrs = select({":client_role": ["client/co_service_provider_mgr.h"],

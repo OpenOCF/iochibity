@@ -89,8 +89,8 @@ cc_library(
              "-Iexternal/openocf/third_party/coap/include",
     #          "-Ithird_party/mbedtls/include",
     #          "-Iexternal/openocf/third_party/mbedtls/include",
-             "-Ithird_party/sqlite3",
-             "-Iexternal/openocf/third_party/sqlite3"
+             "-Ithird_party/utlist",
+    #          "-Iexternal/openocf/third_party/sqlite3"
     ] + select({":windows": [],
               ":msvc": [],
               ":msys": [],
@@ -112,7 +112,8 @@ cc_library(
             "//third_party/coap",
             "//third_party/mbedtls",
             "//third_party/tinycbor",
-	    "//third_party/sqlite3"
+	    "//third_party/sqlite3",
+	    "//third_party/utlist"
     ],
     # + select({"windows": ["//third_party/sqlite3"],
     #           "//conditions:default": []}),
