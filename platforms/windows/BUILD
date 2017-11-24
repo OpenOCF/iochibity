@@ -74,7 +74,7 @@ cc_toolchain(
     name = "cc-compiler-x64_windows",
     all_files = ":empty",
     compiler_files = ":empty",
-    cpu = "local",
+    cpu = "x64_windows_msys",
     dwp_files = ":empty",
     dynamic_runtime_libs = [":empty"],
     linker_files = ":empty",

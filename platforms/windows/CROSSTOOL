@@ -3,7 +3,7 @@ minor_version: ""
 default_target_cpu: "x64_windows"
 
 default_toolchain {
-  cpu: "x64_windows"
+  cpu: "x64_windows_msys"
   toolchain_identifier: "local_windows_msys64_mingw64"
 }
 
@@ -16,7 +16,7 @@ toolchain {
   host_system_name: "local"
   needsPic: false
   target_libc: "local"
-  target_cpu: "x64_windows"
+  target_cpu: "x64_windows_msys"
   target_system_name: "local"
   toolchain_identifier: "local_windows_msys64_mingw64"
 

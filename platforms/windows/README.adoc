@@ -1,0 +1,138 @@
+
+== msvc community edition
+
+https://support.microsoft.com/en-us/help/94248/how-to-use-the-c-run-time
+
+https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/how-to-set-environment-variables-for-the-visual-studio-command-line
+
+
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/Tools/VsDevCmd.bat
+
+
+
+Tools:
+
+Compiler:
+C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/HostX64/x64/cl.exe
+/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/x64/cl.exe
+
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/arm/cl.exe
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/x86/cl.exe
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/arm/cl.exe
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/x64/cl.exe
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/x86/cl.exe
+
+
+Linker:
+
+
+$ find /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Tools/MSVC/14.11.25503/ -name link*
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/atlmfc/include/res/link.ico
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/arm/1033/linkui.dll
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/arm/link.exe
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/arm/link.exe.config
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/x64/1033/linkui.dll
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/x64/link.exe
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/x64/link.exe.config
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/x86/1033/linkui.dll
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/x86/link.exe
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx64/x86/link.exe.config
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/arm/1033/linkui.dll
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/arm/link.exe
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/arm/link.exe.config
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/x64/1033/linkui.dll
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/x64/link.exe
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/x64/link.exe.config
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/x86/1033/linkui.dll
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/x86/link.exe
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/Hostx86/x86/link.exe.config
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/crt/src/linkopts
+
+Header search:
+
+Needed:
+
+/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/include/vcruntime.h
+
+
+
+Bazel dump:
+
+
+SET INCLUDE=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\include;
+
+/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Tools/MSVC/14.11.25503/atlmfc/
+
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include;
+/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Tools/MSVC/14.11.25503/include
+
+C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um;
+
+# urcr contains stdlib.h etc
+C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\ucrt;
+/c/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt
+
+C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\shared;
+C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\um;
+C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\winrt;
+
+
+SET LIB=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\lib\x64;
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\lib\x64;
+C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\lib\um\x64;
+C:\Program Files (x86)\Windows Kits\10\lib\10.0.15063.0\ucrt\x64;
+C:\Program Files (x86)\Windows Kits\10\lib\10.0.15063.0\um\x64;
+
+
+
+SET PATH=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\bin\HostX64\x64;
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCPackages;
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TestWindow;
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer;
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\bin\Roslyn;
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Team Tools\Performance Tools;
+C:\Program Files (x86)\Microsoft Visual Studio\Shared\Common\VSPerfCollectionTools\;
+C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\x64\;
+C:\Program Files (x86)\Windows Kits\10\bin\x64;
+C:\Program Files (x86)\Windows Kits\10\bin\10.0.15063.0\x64;
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\\MSBuild\15.0\bin;
+C:\windows\Microsoft.NET\Framework64\v4.0.30319;
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\;
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\;
+C:\windows\system32
+
+C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/HostX64/x64/cl.exe
+/c third_party/coap/src/resource.c
+/Fobazel-out/msvc_x64-fastbuild/bin/third_party/coap/_objs/coap/third_party/coap/src/resource.o
+/nologo
+/DCOMPILER_MSVC
+/DNOMINMAX
+/D_WIN32_WINNT=0x0600
+/D_CRT_SECURE_NO_DEPRECATE
+/D_CRT_SECURE_NO_WARNINGS
+/D_SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
+/bigobj
+/Zm500
+/J
+/Gy
+/GF
+/EHsc
+/wd4351
+/wd4291
+/wd4250
+/wd4996
+/I.
+/Ibazel-out/msvc_x64-fastbuild/genfiles
+/Iexternal/bazel_tools
+/Ibazel-out/msvc_x64-fastbuild/genfiles/external/bazel_tools
+/Iexternal/bazel_tools/tools/cpp/gcc3
+/showIncludes
+/MD
+/Od
+/Z7
+-Ithird_party/coap
+-Ithird_party/coap/include/coap
+-Isrc
+/DHAVE_WINSOCK2_H
+/DHAVE_WS2TCPIP_H
+/c
