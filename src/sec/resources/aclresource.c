@@ -20,7 +20,6 @@
 
 #include "aclresource.h"
 
-/* #include "iotivity_config.h" */
 #ifdef HAVE_STRING_H
 #include <string.h>
 #elif defined(HAVE_STRINGS_H)
@@ -30,28 +29,6 @@
 #include <inttypes.h>
 
 #include "utlist.h"
-/* #include "ocstack.h" */
-/* #include "octypes.h" */
-/* #include "ocserverrequest.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "ocrandom.h" */
-/* #include "ocpayload.h" */
-/* #include "utlist.h" */
-/* #include "acl_logging.h" */
-/* #include "payload_logging.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "doxmresource.h" */
-/* #include "rolesresource.h" */
-/* #include "resourcemanager.h" */
-/* #include "srmutility.h" */
-/* #include "psinterface.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "secureresourcemanager.h" */
-/* #include "deviceonboardingstate.h" */
-/* #include "octhread.h" */
-
-/* #include "security_internals.h" */
 
 #define TAG  "OIC_SRM_ACL"
 
@@ -2331,7 +2308,7 @@ OicSecAcl_t* CBORPayloadToAcl(const uint8_t *cborPayload, const size_t size)
     return CBORPayloadToAclVersionOpt(cborPayload, size, NULL);
 }
 
-#ifdef MULTIPLE_OWNER
+#ifdef MULTIPLE_OWNER		/* FIXME: move to sec/doxs */
 bool IsValidAclAccessForSubOwner(const OicUuid_t* uuid, const uint8_t *cborPayload, const size_t size)
 {
     bool retValue = false;
@@ -2657,7 +2634,7 @@ exit:
    return false;
 }
 
-static size_t GetNumberOfResource(OicSecRsrc_t* resources)
+static size_t GetNumberOfResource(OicSecRsrc_t* resources) /* FIXME: name: GetSecResourceCount */
 {
     size_t ret = 0;
     if(resources)
@@ -2671,7 +2648,7 @@ static size_t GetNumberOfResource(OicSecRsrc_t* resources)
     return ret;
 }
 
-static size_t GetNumberOfValidity(OicSecValidity_t* val)
+static size_t GetNumberOfValidity(OicSecValidity_t* val) /* FIXME: getSecValidityCount */
 {
     size_t ret = 0;
 
@@ -2686,7 +2663,7 @@ static size_t GetNumberOfValidity(OicSecValidity_t* val)
     return ret;
 }
 
-
+/* FIXME: move to //src/util */
 static bool IsSameStringArray(char** strArr1, size_t strArr1Len,
                               char** strArr2, size_t strArr2Len)
 {
@@ -2725,7 +2702,7 @@ static bool IsSameStringArray(char** strArr1, size_t strArr1Len,
 
     return false;
 }
-
+/* FIXME RENAME: IsSameSecResources */
 static bool IsSameResources(OicSecRsrc_t* resources1, OicSecRsrc_t* resources2)
 {
     size_t numOfRsrc1 = 0;
@@ -2824,7 +2801,7 @@ static bool IsSameValidities(OicSecValidity_t* validities1, OicSecValidity_t* va
 
     return false;
 }
-
+/* FIXME: move to sec/doxs */
 #ifdef MULTIPLE_OWNER
 static bool IsSameEowner(OicUuid_t* eowner1, OicUuid_t* eowner2)
 {
@@ -2902,7 +2879,7 @@ static bool IsSameACE(OicSecAce_t* ace1, OicSecAce_t* ace2)
  *     OC_STACK_RESOURCE_DELETED  - no errors
  *     Otherwise                  - error
  */
-static OCStackResult RemoveAllAce(const char *resource)
+static OCStackResult RemoveAllAce(const char *resource) /* FIXME: correct the name, e.g. winnow_aces */
 {
     OCStackResult ret = OC_STACK_ERROR;
     uint8_t* aclBackup = NULL;
@@ -2943,7 +2920,7 @@ static OCStackResult RemoveAllAce(const char *resource)
             }
         }
 
-        //Generate empty ACL payload
+        //Generate winnowed ACL payload
         ret = AclToCBORPayload(gAcl, OIC_SEC_ACL_V2, &payload, &size);
         if (OC_STACK_OK == ret )
         {
