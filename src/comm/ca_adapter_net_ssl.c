@@ -71,8 +71,12 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+#if EXPORT_INTERFACE
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#include <unistd.h>		/* for ssize_t */
+#else 				/* win */
+// see src/system.c
+#endif
 #endif
 
 /**
@@ -80,8 +84,8 @@
  */
 #define MAX_SUPPORTED_ADAPTERS 3
 
-#if INTERFACE
-#include <unistd.h>
+#if EXPORT_INTERFACE
+#include <stddef.h>
 typedef void (*CAPacketReceivedCallback)(const CASecureEndpoint_t *sep,
                                          const void *data, size_t dataLength);
 
@@ -94,7 +98,7 @@ typedef enum
     ADAPTER_CURVE_MAXIMUM
 } AdapterCurve_t;
 #define ADAPTER_CURVE_MAX 1
-#endif
+#endif	/* INTERFACE */
 
 #include "mbedtls/ecp.h"
 static mbedtls_ecp_group_id curve[ADAPTER_CURVE_MAX][2] =
@@ -150,7 +154,7 @@ static mbedtls_ecp_group_id curve[ADAPTER_CURVE_MAX][2] =
  * @def UUID_LENGTHPSK_LENGTH
  * @brief Identity max length
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define UUID_LENGTH (128/8)
 #endif	/* INTERFACE */
 /**
@@ -370,12 +374,14 @@ typedef ByteArray_t SslCacheMessage_t;
 /**
  * Data structure for holding the send and recv callbacks.
  */
+#if EXPORT_INTERFACE
 typedef struct TlsCallBacks
 {
     CAPacketReceivedCallback recvCallback;  /**< Callback used to send data to upper layer. */
     CAPacketSendCallback sendCallback;      /**< Callback used to send data to socket layer. */
     CAErrorHandleCallback errorCallback;    /**< Callback used to pass error to upper layer. */
 } SslCallbacks_t;
+#endif
 
 /**
  * Data structure for holding the mbedTLS interface related info.
