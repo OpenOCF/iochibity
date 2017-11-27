@@ -41,7 +41,7 @@
 
 #define TAG "OIC_SRM_PE"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum OicSecConntype
 {
     AUTH_CRYPT, // any subject requesting over authenticated and encrypted channel
@@ -49,7 +49,7 @@ typedef enum OicSecConntype
 } OicSecConntype_t;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     DISCOVERABLE_NOT_KNOWN = 0,
@@ -64,7 +64,7 @@ typedef OCStackResult (*GetSvrRownerId_t)(OicUuid_t *rowner);
  * Values used to create bit-maskable enums for single-value response with
  * embedded code.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define ACCESS_GRANTED_DEF                      (1 << 0)
 #define ACCESS_DENIED_DEF                       (1 << 1)
 #define INSUFFICIENT_PERMISSION_DEF             (1 << 2)
@@ -89,7 +89,7 @@ typedef OCStackResult (*GetSvrRownerId_t)(OicUuid_t *rowner);
  * 4th lsb:  D (Delete)
  * 5th lsb:  N (Notify)
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define PERMISSION_ERROR        (0x0)
 #define PERMISSION_CREATE       (1 << 0)
 #define PERMISSION_READ         (1 << 1)
@@ -103,7 +103,7 @@ typedef OCStackResult (*GetSvrRownerId_t)(OicUuid_t *rowner);
                                  PERMISSION_NOTIFY)
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * Returns 'true' iff request should be passed on to RI layer.
  */
