@@ -416,12 +416,13 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
 
     OIC_LOG_V(DEBUG, TAG, "coap_transport_type: %s, payload size: %" PRIuPTR,
               (*transport == COAP_UDP)? "UDP"
-#ifdef WITH_TCP
-	      : (*transport == COAP_TCP)? "TCP"
-	      : (*transport == COAP_TCP_8BIT)? "TCP_8BIT"
-	      : (*transport == COAP_TCP_16BIT)? "TCP_16BIT"
-	      : (*transport == COAP_TCP_32BIT)? "TCP_32BIT"
-#endif
+/* FIXME: MSVC chokes on this: */
+/* #ifdef WITH_TCP */
+/* 	      : (*transport == COAP_TCP)? "TCP" */
+/* 	      : (*transport == COAP_TCP_8BIT)? "TCP_8BIT" */
+/* 	      : (*transport == COAP_TCP_16BIT)? "TCP_16BIT" */
+/* 	      : (*transport == COAP_TCP_32BIT)? "TCP_32BIT" */
+/* #endif */
 	      : "INVALID",
 	      info->payloadSize);
 
