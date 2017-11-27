@@ -18,8 +18,8 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-## ignore all headers! we generate them a build time using makeheaders
-*.h
+## ignore all headers in src! we generate them a build time using makeheaders
+src/**/*.h
 
 src/openocf_config.c
 
