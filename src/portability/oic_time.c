@@ -29,22 +29,22 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "oic_time.h"
-/* #include "iotivity_config.h" */
 
 #include <stddef.h>        /* For NULL */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>	   /* for _POSIX_TIMERS */
 #endif
 
-#if defined(HAVE_WINDOWS_H)
+#if EXPORT_INTERFACE
+#ifdef _WIN32
+# include <winsock2.h>
 # include <windows.h>
 # define HAVE_QUERYPERFORMANCEFREQUENCY
-#elif !defined(WITH_ARDUINO)
-# if _POSIX_TIMERS > 0
+#elif _POSIX_TIMERS > 0
 #  include <time.h>        // For clock_gettime()
-# else
+#else
 #  include <sys/time.h>    // For gettimeofday()
-# endif  // _POSIX_TIMERS > 0
+#endif
 #endif
 
 #define TAG "OIC_TIME"
@@ -55,7 +55,7 @@
  *
  * @{
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define MS_PER_SEC  (1000)
 #define US_PER_SEC  (1000000)
 #define US_PER_MS   (1000)
@@ -66,22 +66,20 @@
 /** @} */
 
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 typedef enum
 {
     TIME_IN_MS = 0,     //!< milliseconds
     TIME_IN_US,         //!< microseconds
 } OICTimePrecision;
-#endif	/* INTERFACE */
+#endif	/* EXPORT_INTERFACE */
 
 uint64_t OICGetCurrentTime(OICTimePrecision precision)
 {
     uint64_t currentTime = 0;
 
-#ifdef WITH_ARDUINO
-    currentTime = (TIME_IN_MS == precision) ? millis() : micros();
-#elif defined(HAVE_QUERYPERFORMANCEFREQUENCY)
+#ifdef _WIN32
     static LARGE_INTEGER frequency = {0};
 
     if (!frequency.QuadPart)
@@ -133,7 +131,7 @@ uint64_t OICGetCurrentTime(OICTimePrecision precision)
             : (((uint64_t) current.tv_sec * US_PER_SEC) + (current.tv_usec));
     }
 # endif  // _POSIX_TIMERS > 0
-#endif  // WITH_ARDUINO
+#endif  // _WIN32
 
     return currentTime;
 }
