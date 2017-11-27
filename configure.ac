@@ -8,6 +8,19 @@ AC_CONFIG_HEADERS([src/openocf_config.c])
 dnl AC_CONFIG_MACRO_DIRS([m4]
 AC_USE_SYSTEM_EXTENSIONS
 
+dnl AC_EGREP_CPP(posix_200809L_supported,
+dnl              [#define _POSIX_C_SOURCE 200809L
+dnl               #include <unistd.h>
+dnl               #ifdef _POSIX_VERSION
+dnl               #if _POSIX_VERSION == 200809L
+dnl               posix_200809L_supported
+dnl               #endif
+dnl               #endif
+dnl              ],
+dnl              [],
+dnl              [AC_MSG_FAILURE([*** Implementation must conform to the POSIX.1-2008 standard.])]
+dnl )
+
 AH_TOP([#if INTERFACE])
 
 # Checks for programs.
@@ -69,7 +82,7 @@ AC_FUNC_STRERROR_R
 AC_FUNC_STRNLEN
 AC_FUNC_STRTOD
 
-AC_CHECK_FUNCS([bzero clock_gettime fdatasync floor getcwd getpagesize gettimeofday localtime_r memmove memset pow select socket strcasecmp strchr strerror strncasecmp strnlen _strnicmp strndup strrchr strstr strtok_r strtok_s strtol strtoul time tzset utime QueryPerformanceCounter QueryPerformanceFrequency])
+AC_CHECK_FUNCS([bzero clock_gettime fdatasync floor flockfile getcwd getpagesize gettimeofday localtime_r memmove memset pow select socket strcasecmp strchr strerror strncasecmp strnlen _strnicmp strndup strptime strrchr strstr strtok_r strtok_s strtol strtoul time tzset utime QueryPerformanceCounter QueryPerformanceFrequency])
 
 dnl /**
 dnl  * \def MBEDTLS_HAVE_TIME
