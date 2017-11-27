@@ -529,7 +529,7 @@ ClientCB* GetClientCBUsingHandle(const OCDoHandle handle)
     return NULL;
 }
 
-#ifdef WITH_PRESENCE		/* GAR: why? */
+#ifdef WITH_PRESENCE
 ClientCB* GetClientCBUsingUri(const char *requestUri)
 {
     if (!requestUri)
