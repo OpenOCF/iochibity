@@ -27,6 +27,9 @@ typedef struct
 
     CAPorts_t ports;
 
+  /* FIXME: split into platform-independent msg sockets,
+     platformm-dependent monitoring data, platform-independent
+     status indicators, */
     struct sockets
     {
         void *threadpool;           /**< threadpool between Initialize and Start */
@@ -101,8 +104,10 @@ typedef struct
         bool ipv6tcpenabled;    /**< IPv6 TCP enabled by OCInit flags */
     } tcp;
 #endif
-    CATransportBTFlags_t bleFlags;   /**< flags related BLE transport */
+  /* FIXME: move to comm/transport/ble
+  // CATransportBTFlags_t bleFlags;   /**< flags related BLE transport */
 } CAGlobals_t;
+/* NB: used for one global var in caconnectivitymanager.c */
 #endif	/* INTERFACE */
 
 /* extern CAGlobals_t caglobals; */
