@@ -93,7 +93,16 @@ cc_library(
     # hdrs = ["casecurityinterface.h"],
     # linkopts = ["-Lthird_party/coap",
     #             "-lcoap"],
-    srcs = ["cablockwisetransfer.c", # transport ALL or IP
+    srcs = ["caadapterinterface.c",
+            "caadapterinterface.h",
+
+            # not used:
+            # "caadapternetdtls.c",
+            # "caadapternetdtls.h",
+
+            "ca_adapter_net_ssl.c",
+            "ca_adapter_net_ssl.h",
+            "cablockwisetransfer.c", # transport ALL or IP
             "cablockwisetransfer.h",
             "caconnectivitymanager.c",
             "caconnectivitymanager.h",
@@ -112,6 +121,8 @@ cc_library(
             "caremotehandler.c",
             "caremotehandler.h",
 	    "caretransmission.c",
-	    "caretransmission.h"],
+	    "caretransmission.h",
+            "cathreadpool_pthreads.c",
+            "cathreadpool_pthreads.h"],
     visibility = ["//visibility:public"]
 )
