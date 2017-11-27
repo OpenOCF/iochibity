@@ -23,6 +23,16 @@ config_setting(
 )
 
 cc_binary(
+    name = "cnoh",
+    copts = select({"windows": [],
+              "msvc": [],
+              "msys": [],
+              "//conditions:default": ["-std=c11",
+                                       "-x c"]}),
+    srcs = ["cnoh.c"],
+)
+
+cc_binary(
     name = "makeheaders",
     copts = select({"windows": [],
               "msvc": [],
