@@ -1,3 +1,9 @@
+# FIXME: remove deps on third_party, should depend only on openocf
+
+config_setting(
+    name = "windows",
+    values = { "cpu": "x64_windows" }
+)
 config_setting(
     name = "android",
     values = {"define": "target=android",
@@ -27,7 +33,8 @@ cc_binary(
              "-Isrc/ocf/client",
              "-Isrc/portability",
              "-Ithird_party/cjson",
-             "-Ithird_party/coap/include",
+             # "-Ithird_party/coap",
+             # "-Ithird_party/coap/include",
              "-Ithird_party/tinycbor/src",
              "-Iexternal/usr_sys/include",
              "-Iexternal/usr_sys/include/cdk",
@@ -54,8 +61,8 @@ cc_binary(
             "//src/ocf:client",
             "//third_party/tinycbor",
             "//third_party/cjson",
-           "//third_party/coap"]
-    + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
+            # "//third_party/coap"
+    ] + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
               ":linux": ["@usr_local//:cdk"],
               ":android": ["@cosysroot_ndk//:cdk"],
               ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
@@ -76,6 +83,7 @@ cc_binary(
              "-Isrc/comm",
              "-Isrc/logger",
              "-Isrc/ocf",
+             "-Ithird_party/coap",
              "-Ithird_party/coap/include",
              "-Ithird_party/tinycbor/src"]
     + select({":rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/include",
@@ -84,17 +92,21 @@ cc_binary(
               ":android": ["-Iexternal/cosysroot_ndk/usr/include",
                          "-Iexternal/cosysroot_ndk/usr/include/cdk",
                          "-std=c11"],
+              ":windows": ["-Iexternal/usr_local/include",
+                           "-Iexternal/usr_local/include/cdk"],
               "//conditions:default": ["-Iexternal/usr_local/include",
-                                       "-Iexternal/usr_local/include/cdk",
+                                       "-Iexternal/usr_local/in[<clude/cdk",
                                        "-std=c11",
                                        "-U DEBUG"]}), # OS X
-    deps = ["//src:config",
-            "//src/ocf",
-            "//third_party/tinycbor"]
-    + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
-              ":android": ["@cosysroot_ndk//:cdk"],
-              ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
-              "//conditions:default": ["@usr_local//:cdk"]}),
+    deps = ["//src/ocf",
+            ## FIXME: remove all deps except //src/ocf
+            "//src:config",
+            "//third_party/coap",
+            "//third_party/tinycbor"],
+    # + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
+    #           ":android": ["@cosysroot_ndk//:cdk"],
+    #           ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
+    #           "//conditions:default": ["@usr_local//:cdk"]}),
     # linkopts = ["-Wl,-dead_strip"],
-    srcs = ["ocserver.c"]
+    srcs = ["server.c"]
 )
