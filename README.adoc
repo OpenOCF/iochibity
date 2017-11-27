@@ -1,4 +1,3 @@
-
 = OpenOCF
 
 OpenOCF a minimal implementation of the OCF protocol, derived from
@@ -42,7 +41,11 @@ OpenOCF uses the https://bazel.build/[Bazel] build system.
 Prerequisites: Bazel, GNU autotools. On Windows: msys2, mingw-64.
 
 You'll need to configure the third-party libs. (Just coap so far). The
-instructions are at the top of `third_party/coap/BUILD`
+instructions are at the top of `third_party/coap/BUILD`.
+
+WARNING: libcoap does not work with mingw64 out of the box; it
+requires some patches that have not been submitted yet. Search
+third_party/coap/src/coap_io.c for "GAR" to see what's needed.
 
 [source,sh]
 ----
