@@ -3,7 +3,7 @@
 /**
  * Hold interface index for keeping track of comings and goings.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     int32_t ifIndex; /**< network interface index */
@@ -14,7 +14,7 @@ typedef struct
  * Hold the port number assigned from application.
  * It will be used when creating a socket.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     struct udpports

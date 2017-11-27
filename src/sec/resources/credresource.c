@@ -34,42 +34,19 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include "cbor.h"
 #endif
 
-/* #include "cainterface.h" */
-/* #include "payload_logging.h" */
-/* #include "ocstack.h" */
-/* #include "ocrandom.h" */
-/* #include "base64.h" */
-/* #include "ocserverrequest.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "ocpayload.h" */
-/* #include "ocpayloadcbor.h" */
 #include "utlist.h"
-/* #include "credresource.h" */
-/* #include "doxmresource.h" */
-/* #include "pstatresource.h" */
-/* #include "iotvticalendar.h" */
-/* #include "pbkdf2.h" */
-/* #include "resourcemanager.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "srmutility.h" */
-/* #include "psinterface.h" */
-/* #include "pinoxmcommon.h" */
-/* #include "certhelpers.h" */
-/* #include "cacommon.h" */
-/* #include "secureresourcemanager.h" */
-/* #include "ocstackinternal.h" */
-/* #include "deviceonboardingstate.h" */
 
 #ifdef __unix__			/* FIXME: feature test */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #endif
 
 #if defined(__WITH_DTLS__) || defined (__WITH_TLS__)

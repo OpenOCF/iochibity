@@ -36,7 +36,7 @@
 
 #define fixme_srp_pp PstatProperty_t /* help makeheaders */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 // Enum type index for data types.
 typedef enum
 {

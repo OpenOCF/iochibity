@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 #include <stdlib.h>
 #endif	/* INTERFACE */
@@ -40,7 +40,7 @@
  * implemented.
  */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * Macro to calculate the size of 'output' buffer required for
  * a 'input' buffer of length x during Base64 encoding operation.

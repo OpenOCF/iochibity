@@ -66,7 +66,7 @@
 /**
  * Information about the network status.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     CA_INTERFACE_DOWN,   /**< Connection is not available */
@@ -74,7 +74,7 @@ typedef enum
 } CANetworkStatus_t;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * Callback function type for connection status changes delivery.
  * @param[out]   info           Remote endpoint information.

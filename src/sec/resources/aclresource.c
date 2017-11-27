@@ -38,7 +38,7 @@
 
 #define OIC_SEC_ACL_LATEST OIC_SEC_ACL_V2
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define SPEC_MAX_VER_LEN (sizeof("core.x.x.x") + 1) // Spec Version length.
 #endif	/* INTERFACE */
 
@@ -52,12 +52,12 @@
  * @return ACL version
  */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define GET_ACL_VER(specVer) ((specVer)[0] == 'o' && (specVer)[1] == 'c' && (specVer)[2] == 'f' ? \
                              OIC_SEC_ACL_V2 : OIC_SEC_ACL_V1)
 #endif
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define IS_OIC(specVer) ((specVer)[0] == 'c' && (specVer)[1] == 'o' && (specVer)[2] == 'r' && (specVer)[3] == 'e')
 #endif	/* INTERFACE */
 
@@ -205,7 +205,7 @@ static OicSecAcl_t *gAcl = NULL;
 static OCResourceHandle gAclHandle = NULL;
 static OCResourceHandle gAcl2Handle = NULL;
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define fixme_rp2 OCResourceProperty /* help makeheaders */
 typedef struct OicSecRsrc_t
 {
@@ -282,7 +282,7 @@ enum ACL_IDS
     ACE_ID_FIRST_FREE
 };
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct OicSecValidity_t
 {
     char* period; // 0:R:S:Y:String
@@ -2308,7 +2308,8 @@ OicSecAcl_t* CBORPayloadToAcl(const uint8_t *cborPayload, const size_t size)
     return CBORPayloadToAclVersionOpt(cborPayload, size, NULL);
 }
 
-#ifdef MULTIPLE_OWNER		/* FIXME: move to sec/doxs */
+/* FIXME: move to sec/doxs: */
+#ifdef MULTIPLE_OWNER
 bool IsValidAclAccessForSubOwner(const OicUuid_t* uuid, const uint8_t *cborPayload, const size_t size)
 {
     bool retValue = false;

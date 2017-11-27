@@ -394,7 +394,7 @@
 #define MAC_ADDR_BLOCKS (6)
 
 /** Max identity size. */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define MAX_IDENTITY_SIZE (37)
 #endif	/* INTERFACE */
 
@@ -687,7 +687,7 @@
 /**
  *  Maximum Length of the vendor specific header option
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define MAX_HEADER_OPTION_DATA_LENGTH (1024)
 #endif	/* INTERFACE */
 
@@ -704,7 +704,7 @@
 #endif	/* EXPORT_INTERFACE */
 
 /* debug stuff */
-#if INTERFACE
+#if EXPORT_INTERFACE
 
 #include <assert.h>
 

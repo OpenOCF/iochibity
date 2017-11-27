@@ -41,7 +41,7 @@
 
 #define fixme_amacl_rp OCResourceProperty /* help makeheaders */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * /oic/sec/amacl (Access Manager Service Accesss Control List) data type.
  * Derived from OIC Security Spec; see Spec for details.

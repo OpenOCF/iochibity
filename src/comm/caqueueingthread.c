@@ -37,7 +37,9 @@
 
 #define TAG PCF("OIC_CA_QING")
 
+#if EXPORT_INTERFACE
 #include <stdint.h>
+#endif
 
 /* #include "cathreadpool.h" */
 /* #include "octhread.h" */

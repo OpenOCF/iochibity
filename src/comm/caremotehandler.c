@@ -30,7 +30,7 @@
 /*
  * remoteEndpoint identity.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     uint16_t id_length;

@@ -117,7 +117,7 @@ static OCResourceHandle g_keepAliveHandle = NULL;
  */
 static u_arraylist_t *g_keepAliveConnectionTable = NULL;
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * KeepAlive table entries.
  */

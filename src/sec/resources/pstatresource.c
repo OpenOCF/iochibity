@@ -44,7 +44,7 @@
 /**
  * /oic/sec/pstat (Provisioning Status) data type.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 struct OicSecPstat
 {
     // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
@@ -64,7 +64,7 @@ typedef struct OicSecPstat OicSecPstat_t;
 
 #define fixme_pstat_rp OCResourceProperty /* help makeheaders */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum PstatProperty_t{
     PSTAT_DOS = 0,
     PSTAT_ISOP,

@@ -1,6 +1,6 @@
 #include "errcheck.h"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /* from ocstack.c: */
 /* NOT USED: #define VERIFY_SUCCESS(op, successCode) { if ((op) != (successCode)) \
  *             {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} } */

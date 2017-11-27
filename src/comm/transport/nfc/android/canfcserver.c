@@ -30,7 +30,7 @@
  */
 #define TAG "NFC_SERVER"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /* /\**
  *  * CAAdapterServerType_t.
  *  * Enum for defining different server types.

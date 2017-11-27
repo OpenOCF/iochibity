@@ -35,7 +35,7 @@
 
 #define TAG "OIC_CA_MANAGER_LE"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     CA_DEFAULT_BT_FLAGS = 0,
@@ -74,7 +74,7 @@ typedef enum
 } OCTransportBTFlags_t;
 /* } CATransportBTFlags_t; */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /*
  * CAUtilConfig_t structure.
  */

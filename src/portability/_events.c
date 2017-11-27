@@ -2,7 +2,7 @@
 /**
  * Enums for oc_cond_wait_for and oc_event_wait_for return values.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
    OC_WAIT_SUCCESS = 0,    /**< Condition or event is signaled. */

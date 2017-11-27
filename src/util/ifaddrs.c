@@ -28,7 +28,7 @@
  *	BSDI ifaddrs.h,v 2.5 2000/02/23 14:51:59 dab Exp
  */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 struct ifaddrs {
 	struct ifaddrs  *ifa_next;
 	char		*ifa_name;

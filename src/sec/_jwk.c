@@ -6,7 +6,7 @@
  */
 #define JWK_LENGTH 256/8 // 256 bit key length
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 struct OicSecKey
 {
     uint8_t                *data;

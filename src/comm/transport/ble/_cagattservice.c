@@ -16,7 +16,7 @@
  *
  ******************************************************************/
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * @name OIC GATT Transport Constants
  *

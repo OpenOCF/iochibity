@@ -40,7 +40,7 @@
  * Endpoint information for connectivities.
  * Must be identical to OCDevAddr.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 #include <stdio.h>
 typedef struct CAEndpoint_s
@@ -58,14 +58,14 @@ typedef struct CAEndpoint_s
 } CAEndpoint_t;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define CA_SECURE_ENDPOINT_PUBLIC_KEY_MAX_LENGTH    (512)
 #endif	/* INTERFACE */
 
 /**
  * Endpoint information for secure messages.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     CAEndpoint_t endpoint;      /**< endpoint */
@@ -83,25 +83,25 @@ typedef struct
  * bypasses Access Control Entry checks for SVR resources, while the device is
  * not ready for normal operation yet.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define CA_SECURE_ENDPOINT_ATTRIBUTE_ADMINISTRATOR  0x1
 #endif	/* INTERFACE */
 
 /**
  *Maximum length of the remoteEndpoint identity.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define CA_MAX_ENDPOINT_IDENTITY_LEN  CA_MAX_IDENTITY_SIZE
 #endif	/* INTERFACE */
 
 /**
  * Max identity size.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define CA_MAX_IDENTITY_SIZE (37)
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define OC_MAX_TPS_STR_SIZE          (12)
 #define OC_MAX_ADDR_STR_SIZE         (46)
 #define OC_MAX_PORT_STR_SIZE         (6)

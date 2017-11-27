@@ -1,5 +1,5 @@
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 struct OicSecOpt
 {
     uint8_t                *data;
@@ -16,7 +16,7 @@ typedef struct OicSecSvc OicSecSvc_t;
 
 typedef char *OicUrn_t; //TODO is URN type defined elsewhere?
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 typedef struct OicUuid OicUuid_t; //TODO is UUID type defined elsewhere?
 

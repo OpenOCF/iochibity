@@ -106,7 +106,7 @@ enum multiowner_status_fixme
     OIC_NUMBER_OF_MOM_TYPE = 3
 };
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef unsigned int OicSecMomType_t;
 #endif	/* INTERFACE */
 
@@ -135,7 +135,7 @@ struct OicSecMom{
 #define OXM_STRING_MAX_LENGTH 32
 #define WRONG_PIN_MAX_ATTEMP 5
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  *Callback for load secret for temporal secure session
  *

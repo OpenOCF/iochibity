@@ -1,4 +1,4 @@
-#if INTERFACE
+#if EXPORT_INTERFACE
 #if defined(TCP_ADAPTER) && defined(WITH_CLOUD)
 /**
  * User Preference of connectivity channel

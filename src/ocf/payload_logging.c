@@ -24,7 +24,7 @@
 
 LogLevel mkhdrs_pl_ll;
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #ifdef TB_LOG
 #define UUID_SIZE (16)
 
@@ -326,7 +326,7 @@ void OCPayloadLog(LogLevel level, OCPayload* payload)
             break;
     }
 }
-#if INTERFACE
+#if EXPORT_INTERFACE
 #ifdef TB_LOG
 #define OIC_LOG_PAYLOAD(level, payload) OCPayloadLog((level),(payload))
 #else

@@ -61,7 +61,7 @@
 /**
  * Device Information of discoverd unowned/owned device(s) for provisioning.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct OCProvisionDev
 {
     OCDevAddr       endpoint;        /**< target address **/
@@ -84,14 +84,14 @@ typedef struct OCProvisionDev
 /**
  * Result information for each target device.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct OCPMResult{
     OicUuid_t      deviceId;
     OCStackResult  res;
 }OCProvisionResult_t;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct OCPMGetCsrResult
 {
     OicUuid_t           deviceId;
@@ -102,7 +102,7 @@ typedef struct OCPMGetCsrResult
 } OCPMGetCsrResult_t;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct OCPMRoleCertChain
 {
     uint64_t            credId;         /**< credential ID */
@@ -110,7 +110,7 @@ typedef struct OCPMRoleCertChain
 } OCPMRoleCertChain_t;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct OCPMGetRolesResult
 {
     OicUuid_t           deviceId;       /**< responding device ID */
@@ -123,7 +123,7 @@ typedef struct OCPMGetRolesResult
 /**
  * Owner device type
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum OwnerType{
     SUPER_OWNER = 0,
     SUB_OWNER = 1
@@ -133,7 +133,7 @@ typedef enum OwnerType{
 /**
  * Index value to access OxM allow table
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum OxmAllowTableIdx {
     OXM_IDX_JUST_WORKS = 0,
     OXM_IDX_MV_JUST_WORKS,
@@ -158,7 +158,7 @@ typedef enum OxmAllowTableIdx {
  * @param[in] hasError - If there is no error, it's returned with 'false' but if there is a single
  *                        or more error is/are occured during operation, it will be 'true'.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef void (*OCProvisionResultCB)(void* ctx, size_t nOfRes, OCProvisionResult_t *arr, bool hasError);
 #endif	/* INTERFACE */
 
@@ -174,7 +174,7 @@ typedef void (*OCProvisionResultCB)(void* ctx, size_t nOfRes, OCProvisionResult_
  * @param[OUT] hasError - If all calls succeded, this will be false. One or more errors, and this will
  *                        be true. Examine the elements of arr to discover which failed.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef void (*OCGetCSRResultCB)(void* ctx, size_t nOfRes, OCPMGetCsrResult_t *arr, bool hasError);
 #endif	/* INTERFACE */
 
@@ -190,13 +190,13 @@ typedef void (*OCGetCSRResultCB)(void* ctx, size_t nOfRes, OCPMGetCsrResult_t *a
  * @param[OUT] hasError - If all calls succeeded, this will be false. One or more errors, and this will
  *                        be true. Examine the elements of arr to discover which failed.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef void (*OCGetRolesResultCB)(void* ctx, size_t nOfRes, OCPMGetRolesResult_t *arr, bool hasError);
 #endif	/* INTERFACE */
 
 #define DEFAULT_SECURE_PORT 5684
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define COAPS_PREFIX "coaps://"
 #define COAP_PREFIX "coap://"
 #define COAPS_QUERY "coaps://%s:%d%s"

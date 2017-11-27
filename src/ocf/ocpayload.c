@@ -50,7 +50,7 @@
 /**
  * Format indicating which encoding has been used on the payload.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     CA_FORMAT_UNDEFINED = 0,            /**< Undefined enoding format */
@@ -70,7 +70,7 @@ typedef enum
 /**
  * Payload information from resource model.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef uint8_t *CAPayload_t;
 #endif	/* INTERFACE */
 
@@ -231,7 +231,7 @@ typedef struct
 
 #endif	/* EXPORT_INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  *  Formats for payload encoding.
  */
@@ -245,7 +245,7 @@ typedef enum
 } OCPayloadFormat;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 struct OCRepPayloadValueArray
 {
     OCRepPayloadPropType type;

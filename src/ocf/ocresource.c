@@ -85,7 +85,7 @@
 /**
  *  OIC Virtual resources supported by every OIC device.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     /** unknown URI.*/

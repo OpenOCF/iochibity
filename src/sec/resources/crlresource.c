@@ -40,7 +40,7 @@
 
 #define TAG  "OIC_SRM_CRL"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 typedef struct OicSecCrl OicSecCrl_t;
 #endif /* __WITH_DTLS__ or __WITH_TLS__*/

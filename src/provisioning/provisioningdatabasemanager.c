@@ -84,7 +84,7 @@ typedef struct OCPairList_t
 /* #endif */
 /* #endif */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <limits.h>
 #define PDM_VERIFY_STATEMENT_SIZE(stmt) \
     static_assert(sizeof(stmt) < INT_MAX, #stmt " must be shorter than INT_MAX.")

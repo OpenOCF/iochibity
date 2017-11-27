@@ -1,4 +1,3 @@
-
 /**
  * This structure is expected as input for device properties.
  * device name is mandatory and expected from the application.
@@ -22,7 +21,7 @@ typedef struct
 /**
  * Device properties persistent store name.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define OC_DEVICE_PROPS_FILE_NAME  "device_properties.dat"
 
 /**

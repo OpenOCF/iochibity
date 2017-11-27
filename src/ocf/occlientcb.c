@@ -90,7 +90,7 @@ typedef struct resourcetype_t OCResourceType;
  * Data structure for holding client's callback context, methods and Time to Live,
  * connectivity Types, presence and resource type, request uri etc.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct ClientCB {
     /** callback method defined in application address space. */
     OCClientResponseHandler callBack; /* Always set errno = 0 before calling!  */

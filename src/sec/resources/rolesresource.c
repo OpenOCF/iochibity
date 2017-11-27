@@ -60,7 +60,7 @@
  * /oic/sec/role (Role) data type.
  * Derived from OIC Security Spec; see Spec for details.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 struct OicSecRole
 {
     // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
@@ -75,7 +75,7 @@ typedef struct OicSecRole OicSecRole_t;
 
 #define fixme_rp OCResourceProperty /* help makeheaders find the enum */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct RoleCertChain {
     uint32_t                credId;             /**< locally assigned ID number for use with DELETE */
     OicSecKey_t             certificate;        /**< certificate chain including leaf and intermediate CA certificates */

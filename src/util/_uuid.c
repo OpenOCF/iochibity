@@ -2,7 +2,7 @@
  * Node to construct UUID linked list.
  */
 /* typedef struct OCUuidList  OCUuidList_t; */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct OCUuidList_t
 {
     OicUuid_t dev;

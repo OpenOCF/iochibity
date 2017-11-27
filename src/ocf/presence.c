@@ -29,7 +29,7 @@
 /* #define VERIFY_NON_NULL_V(arg) { if (!arg) {OIC_LOG(FATAL, __FILE__, #arg " is NULL");\ */
 /*     goto exit;} } */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * The OCPresenceTrigger enum delineates the three spec-compliant modes for
  * "Trigger." These enum values are then mapped to  strings
@@ -51,7 +51,7 @@ typedef enum
 
 /* #endif */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /* #ifdef WITH_PRESENCE */
 typedef struct			/* from octypes.h */
 {
@@ -82,7 +82,7 @@ typedef struct OCPresence
 /* #endif // WITH_PRESENCE */
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /** from ocresource.h
  *Virtual Resource Presence Attributes
  */

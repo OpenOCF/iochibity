@@ -48,7 +48,7 @@ enum access_reason_fixme
     RESOURCE_NOT_FOUND = RESOURCE_NOT_FOUND_DEF,
 };
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef unsigned int SRMAccessResponseReasonCode_t;
 #endif	/* INTERFACE */
 

@@ -54,7 +54,7 @@
  * The maximum height of a red-black tree is 2lg (n+1).
  */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 
 #define SPLAY_HEAD(name, type)						\
 struct name {								\

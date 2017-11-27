@@ -33,7 +33,7 @@ typedef enum
     CA_ADAPTER_ENABLED     /**< Adapter is Enabled */
 } CAAdapterState_t;
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * Starting connectivity adapters and each adapter have transport specific behavior.
  * Transport Specific Behavior:

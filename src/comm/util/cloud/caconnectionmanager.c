@@ -44,7 +44,7 @@
 /**
  * User Preference of connectivity channel for connection manager
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     /** Cloud TCP (Default) */

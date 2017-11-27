@@ -48,7 +48,7 @@
  * some other device, so it cannot be used as the ID of the oic/res
  * host device! */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 struct CoServiceProvider {
     OCClientResponse* discovery_response;
     OCDiscoveryPayload* device;	/* this struct is a linked list, so we need a ptr to it */

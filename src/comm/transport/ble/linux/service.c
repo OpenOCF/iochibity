@@ -94,7 +94,7 @@ typedef struct CAGattService
  */
 //@{
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * Root object path of the GATT service hierarchy.
  *

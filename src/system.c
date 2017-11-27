@@ -1,7 +1,7 @@
 /* #ifndef SYSTEM_H */
 /* #define SYSTEM_H */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /* /\* definition to expand macro then apply to pragma message *\/ */
 /* #define VALUE_TO_STRING(x) #x */
 /* #define VALUE(x) VALUE_TO_STRING(x) */
@@ -151,4 +151,4 @@
  */
 #define OC_UNUSED(x) (void)(x)
 
-#endif	/* INTERFACE */
+#endif	/* EXPORT_INTERFACE */

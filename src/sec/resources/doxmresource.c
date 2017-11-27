@@ -79,7 +79,7 @@ typedef enum OicSecOxm_t
 
 /* typedef unsigned int OicSecOxm_t; */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 // NOTE that this enum must match the gDoxmPropertyAccessModes
 // table in doxmresource.c
 typedef enum DoxmProperty_t{
@@ -2140,7 +2140,7 @@ OCStackResult DeInitDoxmResource()
 }
 
 #if defined(__WITH_DTLS__) || defined (__WITH_TLS__)
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 #endif	/* INTERFACE */
 OCStackResult SetDoxmDeviceIDSeed(const uint8_t* seed, size_t seedSize)

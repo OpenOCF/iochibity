@@ -76,7 +76,7 @@ typedef enum _PSDatabase
     PS_DATABASE_DEVICEPROPERTIES
 } PSDatabase;
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 #endif	/* INTERFACE */
 

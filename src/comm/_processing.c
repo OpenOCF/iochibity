@@ -1,4 +1,4 @@
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * Enums for CA return values.
  */

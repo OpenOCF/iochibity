@@ -1,7 +1,7 @@
 /* src/openocf_config.c.  Generated from openocf_config.c.in by configure.  */
 /* src/openocf_config.c.in.  Generated from configure.ac by autoheader.  */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 
 /* COAP Debugging */
 /* #undef COAP_DEBUG_C */

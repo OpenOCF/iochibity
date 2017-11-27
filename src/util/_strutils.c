@@ -1,5 +1,5 @@
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct OCStringLL
 {
     struct OCStringLL *next;

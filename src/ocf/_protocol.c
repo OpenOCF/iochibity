@@ -1,14 +1,14 @@
 /**
  * URI for the OIC base.CA considers relative URI as the URI.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef char *CAURI_t;
 #endif	/* INTERFACE */
 
 /**
  * option types - the highest option number 63.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define CA_OPTION_IF_MATCH 1
 #define CA_OPTION_ETAG 4
 #define CA_OPTION_IF_NONE_MATCH 5
@@ -26,14 +26,14 @@ typedef char *CAURI_t;
 /**
 * Max token length.
 */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define CA_MAX_TOKEN_LEN (8)
 #endif	/* INTERFACE */
 
 /**
  * Max URI length.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define CA_MAX_URI_LENGTH 512 /* maximum size of URI for other platforms*/
 #endif	/* INTERFACE */
 
@@ -195,7 +195,7 @@ typedef enum
 
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /** Bit mask for scope.*/
 #define OC_MASK_SCOPE    (0x000F)
 
@@ -207,7 +207,7 @@ typedef enum
 /**
  * End point identity.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     /** Identity Length */
@@ -221,7 +221,7 @@ typedef struct
 /**
  * Universally unique identifier.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     /** identitifier string.*/
@@ -395,7 +395,7 @@ typedef enum
 /**
  * Transport Protocol IDs.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     /** For invalid ID.*/
@@ -410,7 +410,7 @@ typedef enum
  * Sequence number is a 24 bit field,
  * per https://tools.ietf.org/html/rfc7641.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define MAX_SEQUENCE_NUMBER              (0xFFFFFF)
 #endif	/* INTERFACE */
 
@@ -418,7 +418,7 @@ typedef enum
  * This structure will be used to define the vendor specific header options to be included
  * in communication packets.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct OCHeaderOption
 {
     /** The protocol ID this option applies to.*/
@@ -457,7 +457,7 @@ typedef struct OCHeaderOption
 /**
  *  This enum type for indicate Transport Protocol Suites
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     /** For initialize */

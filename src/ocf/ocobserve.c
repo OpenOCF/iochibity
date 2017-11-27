@@ -39,14 +39,14 @@
  * observers to be notified of resource changes.
  * There can be maximum of 256 observations per server.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef uint8_t OCObservationId;
 #endif	/* INTERFACE */
 
 /**
  * Action associated with observation.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     /** To Register. */
@@ -64,7 +64,7 @@ typedef enum
 /**
  * Possible returned values from entity handler.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     /** Action associated with observation request.*/
@@ -103,7 +103,7 @@ typedef struct resourcetype_t OCResourceType;
 /**
  * Data structure to hold informations for each registered observer.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct ResourceObserver
 {
     /** Observation Identifier for request.*/

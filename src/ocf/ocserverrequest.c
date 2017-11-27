@@ -186,7 +186,7 @@ typedef enum
     CA_HEADER_OPTION_ID_LOCATION_QUERY = 20
 } CAHeaderOptionId_t;
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * The signature of the internal call back functions to handle responses from entity handler
  */
@@ -301,7 +301,7 @@ typedef struct OCServerResponse
 //-------------------------------------------------------------------------------------------------
 // Local functions for RB tree
 //-------------------------------------------------------------------------------------------------
-/* #if INTERFACE */
+/* #if EXPORT_INTERFACE */
 LOCAL int RBRequestTokenCmp(OCServerRequest *target, OCServerRequest *treeNode)
 {
     return memcmp(target->requestToken, treeNode->requestToken, target->tokenLength);

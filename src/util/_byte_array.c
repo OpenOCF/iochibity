@@ -35,7 +35,7 @@
  * Contains pointer to array of bytes and it's length.
  */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stddef.h>
 #include <stdint.h>
 typedef struct ByteArray
@@ -46,7 +46,7 @@ typedef struct ByteArray
 #endif	/* INTERFACE */
 
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**@def BYTE_ARRAY_INITIALIZER
  *
  * Initializes of existing byte array pointer to \a NULL.

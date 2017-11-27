@@ -37,7 +37,7 @@
  */
 #define TAG "OIC_UQUEUE"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 /**
  * Queue message format.

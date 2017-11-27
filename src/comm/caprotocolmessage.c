@@ -61,7 +61,7 @@
 /**
  * Message Type for Base source code.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     CA_MSG_CONFIRM = 0,  /**< confirmable message (requires ACK/RST) */
@@ -75,7 +75,7 @@ typedef enum
 /**
  * Allowed method to be used by resource model.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     CA_GET = 1, /**< GET Method  */
@@ -88,14 +88,14 @@ typedef enum
 /**
  * Max header options data length.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024
 #endif	/* INTERFACE */
 
 /**
  * Token information for mapping the request and responses by resource model.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef char *CAToken_t;
 #endif	/* INTERFACE */
 
@@ -107,7 +107,7 @@ typedef char *CAToken_t;
 /**
  * Transport Protocol IDs for additional options.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     CA_INVALID_ID = (1 << 0),   /**< Invalid ID */
@@ -115,7 +115,7 @@ typedef enum
 } CATransportProtocolID_t;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 typedef struct
 {
@@ -127,7 +127,7 @@ typedef struct
 } CAHeaderOption_t;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef uint32_t code_t;
 
 #define CA_RESPONSE_CLASS(C) (((C) >> 5)*100)

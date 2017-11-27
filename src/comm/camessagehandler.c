@@ -40,7 +40,7 @@
  *
  * This structure is used to hold request & response base information.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     CAMessageType_t type;       /**< Qos for the request */
@@ -77,7 +77,7 @@ typedef char *CAToken_t;
  * if there is some failure before send data on network.
  * Type will be set as error type for error callback.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum
 {
     CA_REQUEST_DATA = 1,
@@ -90,7 +90,7 @@ typedef enum
 #define CA_MEMORY_ALLOC_CHECK(arg) { if (NULL == arg) {OIC_LOG(ERROR, TAG, "Out of memory"); \
 goto memory_error_exit;} }
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /** IP, EDR, LE. **/
 #define DEFAULT_RETRANSMISSION_TYPE (CA_ADAPTER_IP | \
                                      CA_ADAPTER_RFCOMM_BTEDR | \
