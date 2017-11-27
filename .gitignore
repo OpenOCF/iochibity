@@ -20,6 +20,8 @@
 
 ## ignore all headers in src! we generate them a build time using makeheaders
 src/**/*.h
+src/**/*.h.in
+include/*h
 
 src/openocf_config.c
 
