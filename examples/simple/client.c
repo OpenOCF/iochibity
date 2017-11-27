@@ -38,7 +38,7 @@
 #include <windows.h>
 #endif
 
-#define TAG ("occlient")
+#define TAG ("client")
 
 pthread_t ocf_thread;
 int gQuitFlag = 0;
