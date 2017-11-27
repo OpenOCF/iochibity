@@ -28,9 +28,9 @@
 /* #include "iotvticalendar.h" */
 /* #include "oic_string.h" */
 
-#ifndef HAVE_STRPTIME
-char *strptime(const char *buf, const char *fmt, struct tm *tm);
-#endif
+/* #ifndef HAVE_STRPTIME */
+/* char *strptime(const char *buf, const char *fmt, struct tm *tm); */
+/* #endif */
 
 #define FREQ_DAILY (1)
 #define MAX_BYDAY_SIZE (7)     //7 days of week
@@ -39,7 +39,7 @@ char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #define TM_DST_OFFSET (1)      //c-lang tm struct Daylight Saving Time offset.
 #define TOTAL_HOURS (24)       //Total hours in a day.
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <time.h>
 typedef struct IotvtICalRecur IotvtICalRecur_t;
 typedef struct IotvtICalPeriod IotvtICalPeriod_t;
@@ -81,7 +81,7 @@ typedef enum
     SATURDAY    = (0x1 << 6)
 } IotvtICalWeekdayBM_t;
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 
 /**
  * Result code for IotvtICalendar.
