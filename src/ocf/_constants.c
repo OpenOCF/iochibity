@@ -1,4 +1,7 @@
 #if EXPORT_INTERFACE
+
+#define OIC_UUID_LENGTH     16
+
 /**
  * @def UUID_PREFIX
  * @brief uuid prefix in certificate subject field

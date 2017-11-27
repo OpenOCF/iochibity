@@ -91,7 +91,6 @@ typedef enum
     OIC_PLATFORM_ERROR = 255	/* GAR disallow? */
     /** Error status code - END HERE.*/
 } OICPlatformResult_t;
-#define OIC_UUID_LENGTH     16
 #endif
 
 /*GAR #if defined(__unix__) || defined(_WIN32) */
