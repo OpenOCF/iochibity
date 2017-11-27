@@ -29,7 +29,7 @@
 
 #define TAG "OIC_VERIFY_COMMON"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /** Verification Number Length */
 #define MUTUAL_VERIF_NUM_LEN (3)
 

@@ -37,7 +37,7 @@
 
 #define TAG "OIC_SRM_DOS"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum OicSecDeviceOnboardingState
 {
     DOS_RESET = 0,
@@ -49,7 +49,7 @@ typedef enum OicSecDeviceOnboardingState
 } OicSecDeviceOnboardingState_t;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct OicSecDostype
 {
     OicSecDeviceOnboardingState_t state;

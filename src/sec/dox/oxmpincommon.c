@@ -42,7 +42,7 @@
 #define NUMBER_OF_PINNUM (10)
 #define NUMBER_OF_ALPHABET (26)
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define OXM_RANDOM_PIN_DEFAULT_SIZE (8)
 #define OXM_RANDOM_PIN_DEFAULT_PIN_TYPE (NUM_PIN | LOWERCASE_CHAR_PIN | UPPERCASE_CHAR_PIN)
 #define OXM_RANDOM_PIN_MIN_SIZE (4)
@@ -53,7 +53,7 @@
 /** Number of PIN type */
 #define OXM_PIN_TYPE_COUNT 3
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * PIN type definition.
  * This type supports multiple bit set.
