@@ -41,7 +41,7 @@
 
 // headers required for mbed TLS
 #include "mbedtls/config.h"
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include "mbedtls/pk.h"
 #endif
 #include "mbedtls/platform.h"
@@ -447,7 +447,7 @@ static const mbedtls_x509_crt_profile s_certProfile = {
     0                                                   /* RSA minimum key length - not used because we only use EC key pairs */
 };
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <time.h>		/* expose struct tm for interface sigs */
 #endif	/* INTERFACE */
 OCStackResult OCInternalVerifyRoleCertificate(const OicSecKey_t *certificateChain, const uint8_t *trustedCaCerts,

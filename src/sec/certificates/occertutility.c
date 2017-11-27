@@ -83,7 +83,7 @@ typedef void OicSecCert_t;
  * @param[IN] trustCertChain - trustcertchain binary blob.
  * @param[IN] chainSize - size of trustchain
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stddef.h>		/* size_t */
 #include <stdint.h>		/* uintXX_t, etc. */
 typedef void (*TrustCertChainChangeCB)(void *ctx, uint16_t credId, uint8_t *trustCertChain,
@@ -93,7 +93,7 @@ typedef void (*TrustCertChainChangeCB)(void *ctx, uint16_t credId, uint8_t *trus
 /**
  * certChain context structure.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct trustCertChainContext
 {
     TrustCertChainChangeCB callback;
