@@ -326,6 +326,12 @@ case $host in
     #AC_SUBST(OS_LINUX)
     ;;
 
+dnl FIXME GAR: submit this as a patch to libcoap
+    x86_64-w64-mingw32)
+    AC_MSG_RESULT([Mingw-w64])
+    ADDITIONAL_CFLAGS="-D_GNU_SOURCE -DWITH_POSIX"
+    ;;
+
     *-solaris*)
     AC_MSG_RESULT([Solaris])
     # set _XOPEN_SOURCE and _XOPEN_SOURCE_EXTENDED to enable XPG4v2 (POSIX 2004)

@@ -27,6 +27,8 @@
 #endif
 #ifdef HAVE_WS2TCPIP_H
 # include <ws2tcpip.h>
+/* # include <mswsock.h>		/\* GAR: FIXME mingw for WSA_CMSG_* *\/ */
+/* # include <ws2def_msvc.h>		/\* GAR: FIXME mingw for struct cmsghdr *\/ */
 # define OPTVAL_T(t)         (const char*)(t)
 # define CLOSE_SOCKET(fd)    { closesocket(fd); WSACleanup(); }
 # define COAP_SOCKET_ERROR   SOCKET_ERROR
@@ -320,6 +322,7 @@ coap_network_send(struct coap_context_t *context UNUSED_PARAM,
   switch (dst->addr.sa.sa_family) {
   case AF_INET6: {
     struct cmsghdr *cmsg;
+    /* PWSACMSGHDR cmsg;		/\* FIXME: GAR mingw *\/ */
     struct in6_pktinfo *pktinfo;
 
 #ifdef WSA_CMSG_SPACE
@@ -355,6 +358,7 @@ coap_network_send(struct coap_context_t *context UNUSED_PARAM,
   }
   case AF_INET: {
 #if defined(IP_PKTINFO)
+    /* PWSACMSGHDR cmsg;		/\* FIXME: GAR mingw *\/ */
     struct cmsghdr *cmsg;
     struct in_pktinfo *pktinfo;
 
@@ -550,6 +554,7 @@ coap_network_read(coap_endpoint_t *ep, coap_packet_t **packet) {
     coap_log(LOG_WARNING, "coap_network_read: %s\n", strerror(errno));
     goto error;
   } else {
+    /* PWSACMSGHDR cmsg;		/\* FIXME: GAR mingw *\/ */
     struct cmsghdr *cmsg;
 
     coap_log(LOG_DEBUG, "received %d bytes on fd %d\n", (int)len, ep->handle.fd);

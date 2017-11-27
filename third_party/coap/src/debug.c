@@ -169,6 +169,7 @@ size_t
 coap_print_addr(const struct coap_address_t *addr, unsigned char *buf, size_t len) {
 #if defined(HAVE_ARPA_INET_H) || defined(HAVE_WS2TCPIP_H)
   const void *addrptr = NULL;
+typedef int in_port_t;		/* FIXME: windows */
   in_port_t port;
   unsigned char *p = buf;
 

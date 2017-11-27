@@ -7,7 +7,8 @@ cc_library(
 
 cc_library(
     name = "mbedtls",
-    alwayslink=True,
+    # alwayslink=True,
+    # linkstatic = 1,
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
              "-Ithird_party/mbedtls",
@@ -19,7 +20,6 @@ cc_library(
     deps = ["//src:config",
             "mbedtls-crypto",
             "mbedtls-x509"],
-    linkstatic = 1,
     srcs = ["include/mbedtls/config.h",
             "include/mbedtls/config_mbedtls.h",
             "include/mbedtls/check_config.h",
@@ -192,9 +192,9 @@ cc_library(
 
             "library/pkwrite.c",
 
-            # "library/platform.c",
-            # "include/mbedtls/platform.h",
-            # "include/mbedtls/platform_time.h",
+            "library/platform.c",
+            "include/mbedtls/platform.h",
+            "include/mbedtls/platform_time.h",
 
             # "library/ripemd160.c",
             # "include/mbedtls/ripemd160.h",

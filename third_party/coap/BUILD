@@ -1,3 +1,5 @@
+# WARNING!  mingw requires some patching. see coap_io.c
+
 #libcoap_repo_url = 'https://github.com/dthaler/libcoap'
 #libcoap_repo_url    = 'https://github.com/obgm/libcoap'
 # libcoap_version = 'IoTivity-1.2.1d'
@@ -42,88 +44,19 @@ cc_library(
     copts = ["-Ithird_party/coap",
              "-Ithird_party/coap/include/coap",
              "-Isrc",
-	     "-D_GNU_SOURCE",
-	     "-DWITH_POSIX",
-	     # "-D_POSIX_C_SOURCE=200809L",
-	     # "-D_DEFAULT_SOURCE",
-             # "-Iexternal/openocf/src",
-             # "-Ithird_party/coap/include",
-             # "-Iexternal/openocf/third_party/coap/include",
-             # "-Ithird_party/coap/include/coap",
-             # "-Iexternal/openocf/third_party/coap/include/coap"
-    ]
-    + select({"windows": [],
+    ] + select({"msys": [],
               "msvc": [],
-              "msys": [],
+              "windows": [
+                  "-DHAVE_WINSOCK2_H",
+                  "-DHAVE_WS2TCPIP_H"],
               "//conditions:default": ["-std=c11"]}),
-    defines = ["WITH_POSIX"],
     deps = ["//src:config"],
-    hdrs = ["coap_config.h",
-            "include/coap/coap.h",
-            "include/coap/pdu.h",
-            "include/coap/uri.h",
-            # if DEBUG_COAP
-            "include/coap/debug.h"
-    ],
-    srcs = ["src/address.c",
-            "include/coap/address.h",
-
-            "src/async.c",
-            "include/coap/async.h",
-
-            "include/coap/bits.h",
-
-            "src/block.c",
-            "include/coap/block.h",
-
-            "src/coap_io.c",
-            "include/coap/coap_io.h",
-
-            "src/coap_list.c",
-            "include/coap/coap_list.h",
-
-            "src/coap_time.c",
-            "include/coap/coap_time.h",
-
-            #FIXME: only if --enable-debug flag:
-            "src/debug.c",
-            "include/coap/debug.h",
-
-            "src/encode.c",
-            "include/coap/encode.h",
-
-            "src/hashkey.c",
-            "include/coap/hashkey.h",
-
-            "include/coap/libcoap.h",
-
-            "src/mem.c",
-            "include/coap/mem.h",
-
-            "src/net.c",
-            "include/coap/net.h",
-
-            "src/option.c",
-            "include/coap/option.h",
-            "src/pdu.c",
-            # "include/coap/pdu.h",
-
-            "include/coap/prng.h",
-
-            "src/resource.c",
-            "include/coap/resource.h",
-
-            "src/str.c",
-            "include/coap/str.h",
-
-            "src/subscribe.c",
-            "include/coap/subscribe.h",
-
-            "src/uri.c",
-            # "include/coap/uri.h",
-
-            "include/coap/uthash.h",
-            "include/coap/utlist.h"
-    ],
+    hdrs = ["coap_config.h"] + glob(["include/**/*.h"],
+                                    exclude = ["include/coap/lwippools.h"]),
+    # windows: ntohs etc. are in ws2_32.lib
+    linkopts = select({":msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 ws2_32.lib"],
+                       ":msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lws2_32"],
+                       "//conditions:default": []}),
+    srcs = glob(["src/*.c"], exclude = ["src/coap_io_lwip.c"]),
     visibility = ["//visibility:public"]
 )
