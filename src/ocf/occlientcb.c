@@ -23,8 +23,10 @@
 /* #include "iotivity_config.h" */
 /* #include "occlientcb_api.h" */
 
+/* #if LOCAL_INTERFACE */
 #include "coap_config.h"
 #include "coap/coap_time.h"
+/* #endif */
 
 /* #include "logger.h" */
 /* #include "trace.h" */
