@@ -64,12 +64,9 @@
 # include <stdbool.h>
 #else
 # ifndef HAVE__BOOL
-#  ifdef __cplusplus
-typedef bool _Bool;
-#  else
 #   define _Bool signed char
 #  endif
-# endif
+/* # endif */
 # define bool _Bool
 # define false 0
 # define true 1

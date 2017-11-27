@@ -30,16 +30,7 @@
 
 #include <stdio.h>
 #include <string.h>
-
-/* #include "oicgroup.h" */
-/* #include "cbor.h" */
-/* #include "ocpayload.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "octhread.h" */
-/* #include "occollection.h" */
-/* #include "logger.h" */
-/* #include "octimer.h" */
+#include <assert.h>
 
 #define TAG "OIC_RI_GROUP"
 
@@ -83,7 +74,7 @@ enum ACTION_TYPE
     NONE = 0, SCHEDULED, RECURSIVE
 };
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct scheduledresourceinfo
 {
     OCResource *resource;
@@ -242,7 +233,7 @@ void RemoveScheduledResource(ScheduledResourceInfo **head,
     oc_mutex_unlock(g_scheduledResourceLock);
 }
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct aggregatehandleinfo
 {
     OCServerRequest *ehRequest;

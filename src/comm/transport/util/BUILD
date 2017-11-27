@@ -22,9 +22,7 @@ cc_library(
               "//conditions:default": ["-std=c11",
                                        "-U DEBUG"]}), # OS X
     deps  = ["//src:config",
-    	     # "//src/comm/api",
-    	     "//src/comm/common",
-    	     # "//src/comm/interface",
+    	     # "//src/comm",
              "//src/logger",
              "//src/portability",
              "//src/util",
@@ -38,6 +36,7 @@ cc_library(
     srcs  = [#"ca_adapter_net_ssl.c",
              "caadapterutils.c",
     ],
-    visibility = ["//src/comm:__subpackages__",
-                  "//src/sec:__pkg__"]
+    visibility = ["//visibility:public"]
+# "//src/comm:__subpackages__",
+#                   "//src/sec/resources:__pkg__"]
 )

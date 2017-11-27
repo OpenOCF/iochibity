@@ -30,35 +30,22 @@
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
 
-/* #if EXPORT_INTERFACE */
-/* #include "iotivity_config.h" */
-/* #endif */
-
 #include "cablockwisetransfer.h"
 
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
-
-/* #include "caadapterutils.h" */
-/* #include "cainterface.h" */
-/* #include "camessagehandler.h" */
-/* #include "caremotehandler.h" */
-/* #include "cablockwisetransfer.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "octhread.h" */
-/* #include "logger.h" */
 
 #define TAG "OIC_CA_BWT"
 
-/* #include "coap_config.h" */
-
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include "coap_config.h"
 #include "coap/block.h"
-/* #include "coap/coap_list.h" */
+#endif
+
+#if EXPORT_INTERFACE
 /**
  * Callback to send block data.
  * @param[in]   data    send data.
@@ -1579,8 +1566,9 @@ CAResult_t CAUpdateMessageId(coap_pdu_t *pdu, const CABlockDataID_t *blockID)
     return CA_STATUS_OK;
 }
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <limits.h>
+#include <stdint.h>
 #endif	/* INTERFACE */
 CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
                             const CAEndpoint_t *endpoint, coap_list_t **options)

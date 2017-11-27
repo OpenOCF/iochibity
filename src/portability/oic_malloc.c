@@ -21,13 +21,10 @@
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <stdlib.h>
 #include "oic_malloc.h"
 
-/* #include "iotivity_config.h" */
-
 #if EXPORT_INTERFACE
-#include <stdlib.h>
+#include <stdlib.h>		/* size_t */
 #endif
 
 #ifdef HAVE_WINDOWS_H

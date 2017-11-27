@@ -37,8 +37,6 @@
 
 #include "ocstack.h"
 
-/* #include "iotivity_config.h" */
-/* #include "iotivity_debug.h" */
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -47,77 +45,9 @@
 #endif
 #include <errno.h>
 #include <limits.h>		/* UINT_MAX */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 #endif	/* INTERFACE */
-
-/* #include "ocstack.h" */
-/* #include "ocstackinternal.h" */
-
-/* //src/ocf */
-/* #include "ocresourcehandler.h" */
-/* #include "occlientcb.h" */
-/* #include "occlientcb_api.h" */
-/* #include "ocobserve.h" */
-/* #include "ocserverrequest.h" */
-/* #include "ocpayload.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "oicgroup.h" */
-/* #include "ocendpoint.h" */
-/* #include "presence_methods.h" */
-
-/* FIXME: ifdef ROLE_CLIENT //src/ocf:client */
-/* #include "co_service_provider_mgr.h" */
-
-/* //src/portability */
-/* #include "ocrandom.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "ocatomic.h" */
-/* #include "oic_platform.h" */
-
-/* //src/logger */
-/* #include "logger.h" */
-/* #include "trace.h" */
-
-
-/* //src/sec */
-/* #include "secureresourcemanager.h" */
-/* #include "psinterface.h" */
-
-/* /\* //src/sec/doxm *\/ */
-/* #include "doxmresource.h" */
-
-/* /\* //src/comm/common *\/ */
-/* #include "cacommon.h" */
-
-/* /\* //src/comm/api *\/ */
-/* #include "cainterface.h" */
-
-/* /\* //src/comm/util *\/ */
-/* #include "cautilinterface.h" */
-
-/* /\* //src/comm/interface *\/ */
-/* #include "caprotocolmessage.h" */
-
-/* #ifdef UWP_APP */
-/* #include "ocsqlite3helper.h" */
-/* #endif // UWP_APP */
-
-/* #if defined(TCP_ADAPTER) && defined(WITH_CLOUD) */
-/* #include "occonnectionmanager.h" */
-/* #endif */
-
-/* #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
-/* #include "routingutility.h" */
-/* #ifdef ROUTING_GATEWAY */
-/* #include "routingmanager.h" */
-/* #endif */
-/* #endif */
-
-/* #ifdef TCP_ADAPTER */
-/* #include "oickeepalive.h" */
-/* #endif */
 
 #ifdef HAVE_ARDUINO_TIME_H
 #include "Time.h"

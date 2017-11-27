@@ -14,25 +14,10 @@
 #endif
 
 #include "presence.h"
+
+#ifdef HAVE_STRINGS_H
 #include <strings.h>
-
-/* #include "iotivity_config.h" */
-/* #include "iotivity_debug.h" */
-
-/* #include "occlientcb.h" */
-/* #include "occlientcb_api.h" */
-/* #include "ocobserve.h" */
-/* #include "ocpayload.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "presence_methods.h" */
-/* #include "ocserverrequest.h" */
-/* #include "ocstackinternal.h" */
-/* #include "ocrandom.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-
-/* /\* //src/comm/api *\/ */
-/* #include "cainterface.h" */
+#endif
 
 #include "utlist.h"
 

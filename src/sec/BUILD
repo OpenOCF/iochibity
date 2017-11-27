@@ -11,11 +11,11 @@ config_setting(
     values = { "cpu": "x64_windows_msys" }
 )
 
-cc_library(
-    name = "pbkdf2",
-    srcs = ["pbkdf2.c",
-            "pbkdf2.h"]
-)
+# cc_library(
+#     name = "pbkdf2",
+#     srcs = ["pbkdf2.c",
+#             "pbkdf2.h"]
+# )
 
 cc_library(
     name = "strings",
@@ -36,7 +36,7 @@ cc_library(
             # "securevirtualresourcetypes.h"
     ],
     visibility = ["//src/provisioning:__pkg__",
-    "//src/sec:__pkg__"]
+    "//src/sec/resources:__pkg__"]
 )
 
 # cc_library(
@@ -86,23 +86,6 @@ cc_library(
     alwayslink = 1,
     linkstatic = True,
     copts = ["-Isrc",
-    #          "-Iexternal/openocf/src",
-    #          "-Isrc/comm/api",
-    #          "-Iexternal/openocf/src/comm/api",
-    #          "-Isrc/comm/common",
-    #          "-Iexternal/openocf/src/comm/common",
-    #          "-Isrc/logger",
-    #          "-Iexternal/openocf/src/logger",
-    #          "-Isrc/ocf",
-    #          "-Iexternal/openocf/src/ocf",
-    #          "-Isrc/portability",
-    #          "-Iexternal/openocf/src/portability",
-    #          "-Isrc/provisioning/include",
-    #          "-Iexternal/openocf/src/provisioning/include",
-    #          "-Isrc/sec/security",
-    #          "-Iexternal/openocf/src/sec/security",
-    #          "-Isrc/util",
-    #          "-Iexternal/openocf/src/util",
              "-Ithird_party/mbedtls/include",
              "-Iexternal/openocf/third_party/mbedtls/include",
              "-Ithird_party/coap",
@@ -117,10 +100,11 @@ cc_library(
                                        "-U DEBUG"]}), # OS X
     deps = ["//src:config",
             # "//src/comm/api",
-            "//src/comm/common",
+            # "//src/comm/common",
             "//src/logger",
             # "//src/ocf:hdrs",
             "//src/portability",
+            "//src/sec/certificates",
             "//src/sec:strings",
             "//src/util",
             "//third_party/mbedtls",
@@ -129,147 +113,142 @@ cc_library(
             "//third_party/coap",
             "//third_party/tinycbor"],
     # hdrs = ["securevirtualresourcetypes.h"],
-    srcs = ["certhelpers.c",
-            "certhelpers.h",
+    srcs = [#"certhelpers.c",
+            #"certhelpers.h",
             # "doxmresource.c",
             # "doxmresource.h",
             "srmutility.c",
             "srmutility.h"],
-    visibility = ["//src/sec:__pkg__",
+    visibility = ["//src/sec/resources:__pkg__",
                   "//src/ocf:__pkg__",
                   "//src/provisioning:__pkg__"]
 )
 
-cc_library(
-    name = "resources",
-    alwayslink = 1,
-    linkstatic = True,
-    copts = ["-Isrc",
-    #          "-Iexternal/openocf/src",
-    #          "-Isrc/comm/transport/util",
-    #          "-Iexternal/openocf/src/comm/transport/util",
-    #          "-Isrc/comm/api",
-    #          "-Iexternal/openocf/src/comm/api",
-    #          "-Isrc/comm/common",
-    #          "-Iexternal/openocf/src/comm/common",
-    #          "-Isrc/comm/interface",
-    #          "-Iexternal/openocf/src/comm/interface",
-    #          "-Isrc/comm/security",
-    #          "-Iexternal/openocf/src/comm/security",
-    #          "-Isrc/logger",
-    #          "-Iexternal/openocf/src/logger",
-    #          "-Isrc/ocf",
-    #          "-Iexternal/openocf/src/ocf",
-    #          "-Isrc/portability",
-    #          "-Iexternal/openocf/src/portability",
-    #          "-Isrc/sec/security",
-    #          "-Iexternal/openocf/src/sec/security",
-             "-Isrc/util",
-             "-Iexternal/openocf/src/util",
-             "-Ithird_party/mbedtls/include",
-             "-Iexternal/openocf/third_party/mbedtls/include",
-             # "-Ithird_party/coap",
-             # "-Iexternal/openocf/third_party/coap",
-             "-Ithird_party/coap/include",
-             # "-Iexternal/openocf/third_party/coap/include",
-             "-Ithird_party/tinycbor/src",
-             "-Iexternal/openocf/third_party/tinycbor/src",
-             "-Ithird_party/utlist",
-    ] + select({":windows": [],
-              ":msvc": [],
-              ":msys": [],
-              "//conditions:default": ["-std=c11",
-                                       "-U DEBUG"]}), # OS X
-    deps = ["//src:config",
-            "//src/comm/transport/util",
-            # "//src/comm/api",
-            "//src/comm/common",
-            # "//src/comm/interface",
-            "//src/comm/security",
-            "//src/logger",
-            # "//src/ocf:hdrs",
-            "//src/portability",
-            "//src/sec:helpers",
-            "//src/sec:strings",
-            "//src/util",
-            "//third_party/mbedtls",
-            "//third_party/mbedtls:mbedtls-crypto",
-            "//third_party/mbedtls:mbedtls-x509",
-            "//third_party/tinycbor",
-            "//third_party/utlist",
-    ],
-    # hdrs = ["securevirtualresourcetypes.h"],
-    srcs = ["aclresource.c",
-            "aclresource.h",
-            # "acl_logging.h",
+# cc_library(
+#     name = "resources",
+#     alwayslink = 1,
+#     linkstatic = True,
+#     copts = ["-Isrc",
+#     #          "-Iexternal/openocf/src",
+#     #          "-Isrc/comm/transport/util",
+#     #          "-Iexternal/openocf/src/comm/transport/util",
+#     #          "-Isrc/comm/api",
+#     #          "-Iexternal/openocf/src/comm/api",
+#     #          "-Isrc/comm/common",
+#     #          "-Iexternal/openocf/src/comm/common",
+#     #          "-Isrc/comm/interface",
+#     #          "-Iexternal/openocf/src/comm/interface",
+#     #          "-Isrc/comm/security",
+#     #          "-Iexternal/openocf/src/comm/security",
+#     #          "-Isrc/logger",
+#     #          "-Iexternal/openocf/src/logger",
+#     #          "-Isrc/ocf",
+#     #          "-Iexternal/openocf/src/ocf",
+#     #          "-Isrc/portability",
+#     #          "-Iexternal/openocf/src/portability",
+#     #          "-Isrc/sec/security",
+#     #          "-Iexternal/openocf/src/sec/security",
+#              "-Isrc/util",
+#              "-Iexternal/openocf/src/util",
+#              "-Ithird_party/mbedtls/include",
+#              "-Iexternal/openocf/third_party/mbedtls/include",
+#              # "-Ithird_party/coap",
+#              # "-Iexternal/openocf/third_party/coap",
+#              "-Ithird_party/coap/include",
+#              # "-Iexternal/openocf/third_party/coap/include",
+#              "-Ithird_party/tinycbor/src",
+#              "-Iexternal/openocf/third_party/tinycbor/src",
+#              "-Ithird_party/utlist",
+#     ] + select({":windows": [],
+#               ":msvc": [],
+#               ":msys": [],
+#               "//conditions:default": ["-std=c11",
+#                                        "-U DEBUG"]}), # OS X
+#     deps = ["//src:config",
+#             "//src/comm/transport/util",
+#             # "//src/comm/api",
+#             "//src/comm/common",
+#             # "//src/comm/interface",
+#             "//src/comm/security",
+#             "//src/logger",
+#             # "//src/ocf:hdrs",
+#             "//src/portability",
+#             "//src/sec:helpers",
+#             "//src/sec:strings",
+#             "//src/util",
+#             "//third_party/mbedtls",
+#             "//third_party/mbedtls:mbedtls-crypto",
+#             "//third_party/mbedtls:mbedtls-x509",
+#             "//third_party/tinycbor",
+#             "//third_party/utlist",
+#     ],
+#     # hdrs = ["securevirtualresourcetypes.h"],
+#     srcs = ["aclresource.c",
+#             "aclresource.h",
+#             # "acl_logging.h",
 
-	    "amaclresource.c",
-	    "amaclresource.h",
+# 	    "amaclresource.c",
+# 	    "amaclresource.h",
 
-            "credresource.c",
-            "credresource.h",
+#             "credresource.c",
+#             "credresource.h",
 
-            "doxmresource.c",
-            "doxmresource.h",
+#             "doxmresource.c",
+#             "doxmresource.h",
 
-            # "pinoxmcommon.h",    # included by doxmresource.c
-            # "oxmverifycommon.h", # included by doxmresource.c
+#             # "pinoxmcommon.h",    # included by doxmresource.c
+#             # "oxmverifycommon.h", # included by doxmresource.c
 
-            # if env.get('DTLS_WITH_X509') == '1':  # and env.get('SECURED'):
-	    "crlresource.c",    # SECURED=1
-	    "crlresource.h",    # SECURED=1
-            # "crl_logging.h",
+#             # if env.get('DTLS_WITH_X509') == '1':  # and env.get('SECURED'):
+# 	    "crlresource.c",    # SECURED=1
+# 	    "crlresource.h",    # SECURED=1
+#             # "crl_logging.h",
 
-            "csrresource.c",
-            "csrresource.h",
+#             "csrresource.c",
+#             "csrresource.h",
 
-	    "pstatresource.c",
-	    "pstatresource.h",
+# 	    "pstatresource.c",
+# 	    "pstatresource.h",
 
-            "deviceonboardingstate.c",
-            "deviceonboardingstate.h",
+#             "deviceonboardingstate.c",
+#             "deviceonboardingstate.h",
 
-            "rolesresource.c",
-            "rolesresource.h",
+#             "rolesresource.c",
+#             "rolesresource.h",
 
-            "resourcemanager.c",
-            "resourcemanager.h",
+#             "resourcemanager.c",
+#             "resourcemanager.h",
 
-            "secureresourcemanager.c",
-            "secureresourcemanager.h",
-            "policyengine.h",   # included by secureresourcemanager.c
-            "policyengine.c",
-            # "srmresourcestrings.c",
-            # "srmresourcestrings.h",
+#             "secureresourcemanager.c",
+#             "secureresourcemanager.h",
+#             "policyengine.h",   # included by secureresourcemanager.c
+#             "policyengine.c",
+#             # "srmresourcestrings.c",
+#             # "srmresourcestrings.h",
 
-            # "iotvticalendar.c",
-            "iotvticalendar.h",
+#             # "iotvticalendar.c",
+#             "iotvticalendar.h",
 
-            "psinterface.h",
-            "srmutility.h",
-            "pbkdf2.h",
-            "pkix_interface.h",
-            # "security_internals.h"
-    ],
-    visibility = ["//src/sec:__pkg__",
-                  "//src/ocf:__pkg__",
-                  "//src/provisioning:__pkg__"]
-)
+#             "psinterface.h",
+#             "srmutility.h",
+#             "pbkdf2.h",
+#             "pkix_interface.h",
+#             # "security_internals.h"
+#     ],
+#     visibility = ["//src/sec:__pkg__",
+#                   "//src/ocf:__pkg__",
+#                   "//src/provisioning:__pkg__"]
+# )
 
 
 cc_library(
     name = "sec",
-    alwayslink = True,
+    # alwayslink = True,
+    linkstatic = True,
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
              "-Isrc/comm",
              "-Iexternal/openocf/src/comm",
-             # "-Isrc/comm/api",
-             # "-Iexternal/openocf/src/comm/api",
-             "-Isrc/comm/common",
-             "-Iexternal/openocf/src/comm/common",
-             # "-Isrc/comm/interface",
-             # "-Iexternal/openocf/src/comm/interface",
              "-Isrc/comm/include",
              "-Iexternal/openocf/src/comm/include",
              "-Isrc/logger",
@@ -295,8 +274,10 @@ cc_library(
              "-Ithird_party/mbedtls/include",
              "-Iexternal/openocf/third_party/mbedtls/include",
              "-Ithird_party/tinycbor/src",
-             "-Iexternal/openocf/third_party/tinycbor/src"]
-    + select({":windows": [],
+             "-Iexternal/openocf/third_party/tinycbor/src",
+             "-Ithird_party/utlist",
+             "-Iexternal/openocf/third_party/utlist"
+    ] + select({":windows": [],
               ":msvc": [],
               ":msys": [],
               "//conditions:default": ["-std=c11",
@@ -310,12 +291,14 @@ cc_library(
             #"//src/ocf",
             "//src/portability",
             "//src/provisioning",
-            #"//src/sec/acl",
-            #"//src/sec/doxm",
+            "//src/sec/certificates",
+            "//src/sec/crypto",
+            "//src/sec/dox",
             # "//src/sec:interface",
-            "//src/sec:resources",
+            "//src/sec/resources",
             # "//src/sec:strings",
             "//src/util",
+            "//third_party/utlist",
             "//third_party/tinycbor",
             "//third_party/cjson",
             "//third_party/coap",
@@ -323,34 +306,22 @@ cc_library(
             "//third_party/mbedtls:mbedtls-crypto",
             "//third_party/mbedtls:mbedtls-x509"],
     # hdrs = ["securevirtualresourcetypes.h"],
-    srcs = ["dtls.c",
-            "dtls.h",
-
-            "iotvticalendar.c",
-	    "iotvticalendar.h",
-
-            "occertutility.c",  # SECURED=1
-            "occertutility.h",  # SECURED=1
+    srcs = [#"occertutility.c",  # SECURED=1
+            #"occertutility.h",  # SECURED=1
 
             "ocsecurity.c",
             "ocsecurity.h",
 
-            "oxmpincommon.c",   # SECURED=1
-            "oxmpincommon.h",   # SECURED=1
-
-            "oxmverifycommon.c", # SECURED=1
-            "oxmverifycommon.h", # SECURED=1
-
-            "pbkdf2.c",         # SECURED=1
-            "pbkdf2.h",        # SECURED=1
+            # "pbkdf2.c",         # SECURED=1
+            # "pbkdf2.h",        # SECURED=1
 
 	    #DEPRECATED "pconfresource.c",  # pairing config
 	    #DEPRECATED "pconfresource.h",
 
             # "pinoxmcommon.h",
 
-            "pkix_interface.c", # SECURED=1
-            "pkix_interface.h", # SECURED=1
+            # "pkix_interface.c", # SECURED=1
+            # "pkix_interface.h", # SECURED=1
 
 	    # "policyengine.c",
 	    # "policyengine.h",

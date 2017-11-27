@@ -18,30 +18,11 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#ifdef WITH_ARDUINO
-#define __STDC_LIMIT_MACROS
-#endif
-
 #include "psinterface.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-
-/* #include "cainterface.h" */
-/* #include "logger.h" */
-/* #include "ocpayload.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "ocstack.h" */
-/* #include "oic_malloc.h" */
-/* #include "payload_logging.h" */
-/* #include "resourcemanager.h" */
-/* #include "secureresourcemanager.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "srmutility.h" */
-/* #include "pstatresource.h" */
-/* #include "doxmresource.h" */
-/* #include "ocresourcehandler.h" */
 
 #include "cbor.h"
 

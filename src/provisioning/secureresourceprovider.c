@@ -28,35 +28,7 @@
 #endif
 #include <errno.h>
 
-/* #include "ocprovisioningmanager.h" */
-/* #include "secureresourceprovider.h" */
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "aclresource.h" */
-/* #include "pstatresource.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "credresource.h" */
-/* #include "csrresource.h" */
-/* #include "rolesresource.h" */
-/* #include "doxmresource.h" */
-/* #include "credentialgenerator.h" */
-/* #include "cainterface.h" */
-/* #include "oic_string.h" */
-/* #include "pmtypes.h" */
-/* #include "pmutility.h" */
-/* #include "srmutility.h" */
-/* #include "provisioningdatabasemanager.h" */
-/* #include "base64.h" */
 #include "utlist.h"
-/* #include "ocpayload.h" */
-/* #include "srmutility.h" */
-/* #include "certhelpers.h" */
-/* #include "ocstackinternal.h" */
-
-/* #ifdef __WITH_DTLS__ */
-/* #include "crlresource.h" */
-/* #endif */
 
 #define DEFAULT_URI_LENGTH (MAX_URI_LENGTH + MAX_QUERY_LENGTH)
 

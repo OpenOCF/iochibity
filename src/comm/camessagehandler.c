@@ -21,31 +21,10 @@
 #include "camessagehandler.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#if EXPORT_INTERFACE
+#include <stdlib.h>
 #include <stdint.h>
-
-/* #include "cainterface.h" */
-/* #include "camessagehandler.h" */
-/* #include "caremotehandler.h" */
-/* #include "caprotocolmessage.h" */
-/* #include "logger.h" */
-/* #include "trace.h" */
-/* #ifndef WITH_UPSTREAM_LIBCOAP */
-/* #include "coap/config.h" */
-/* #endif */
-/* #include "oic_malloc.h" */
-/* #include "canetworkconfigurator.h" */
-/* #include "caadapterutils.h" */
-/* #include "cainterfacecontroller.h" */
-/* #include "caretransmission.h" */
-/* #include "oic_string.h" */
-
-/* #ifdef WITH_BWT */
-/* #include "cablockwisetransfer.h" */
-/* #endif */
-
-#if INTERFACE
 #include "coap/pdu.h"
 #define UTLIST_H
 #include "coap/coap_list.h"

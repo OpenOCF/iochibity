@@ -21,18 +21,6 @@
 #include "ocobserve.h"
 
 #include <string.h>
-/* #include "ocstack.h" */
-/* #include "ocstackconfig.h" */
-/* #include "ocstackinternal.h" */
-/* #include "ocobserve.h" */
-/* #include "ocresourcehandler.h" */
-/* #include "ocrandom.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "ocpayload.h" */
-/* #include "ocserverrequest.h" */
-/* #include "ocpresence.h" */
-/* #include "logger.h" */
 
 #include "utlist.h"
 

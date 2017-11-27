@@ -26,18 +26,13 @@
 #include <stdlib.h>
 
 #include "sqlite3.h"
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
-/* #include "provisioningdatabasemanager.h" */
-/* #include "pmutility.h" */
-/* #include "oic_string.h" */
 #include "utlist.h"
 
 #define DB_FILE "PDM.db"
 
 #define TAG "OIC_PDM"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef enum PdmDeviceState {
     PDM_DEVICE_ACTIVE = 0,
     PDM_DEVICE_STALE = 1,

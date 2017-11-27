@@ -25,15 +25,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* #include "ocrandom.h" */
-/* #include "cainterface.h" */
-/* #include "caremotehandler.h" */
-/* #include "camessagehandler.h" */
-/* #include "caprotocolmessage.h" */
-/* #include "canetworkconfigurator.h" */
-/* #include "cainterfacecontroller.h" */
-/* #include "logger.h" */
-
 /* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
 /* #include "ca_adapter_net_ssl.h" */
 /* #endif // __WITH_DTLS__ or __WITH_TLS__ */

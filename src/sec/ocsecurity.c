@@ -20,29 +20,14 @@
 
 #include "ocsecurity.h"
 
-/* #include "iotivity_config.h" */
-
 #if defined(__WITH_TLS__) || defined(__WITH_DTLS__)
 
-/* #include "logger.h" */
 #include <stddef.h>
 #include <string.h>
-/* #include "oic_malloc.h" */
-/* #include "cacommon.h" */
-
-/* #include "ocsecurity.h" */
-
-/* #include "rolesresource.h" */
-/* #include "credresource.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "ocstackinternal.h" */
-/* #include "pmutility.h" */
-/* #include "srmutility.h" */
-/* #include "ocpayload.h" */
 
 #define TAG "OIC_SECURITY"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * Callback function used when calling OCAssertRoles
  *

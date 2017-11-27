@@ -29,11 +29,6 @@
 #include <stdio.h>
 #include <errno.h>
 #include <inttypes.h>
-// #include "logger.h"
-// #include "iotivity_debug.h"
-// #include "oic_platform.h"
-// #include "oic_string.h"
-// #include "oic_malloc.h"
 
 #ifdef UWP_APP
 #include <cstdint>
