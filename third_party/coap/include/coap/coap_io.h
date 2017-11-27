@@ -13,6 +13,12 @@
 #include <assert.h>
 #include <sys/types.h>
 
+/* FIXME GAR: we need this for ssize_t */
+#ifdef _WIN32
+#include <BaseTsd.h>
+#define ssize_t SSIZE_T
+#endif
+
 #include "address.h"
 
 #ifdef HAVE_WS2TCPIP_H
