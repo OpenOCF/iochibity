@@ -1,6 +1,21 @@
-<= implementation guide
+= implementation guide
 
-code conventions, acronyms, etc.
+== tools
+
+=== windows
+
+Use msys and mingw64. Install the mingw64 version of all the tools you need, including emacs:
+
+`pacman -S mingw-w64-x86_64-emacs`
+
+To use ggtags with emacs: `pacman -S mingw-w64-x86_64-global`
+
+Also: libtool, autconf etc.  pkg-conf.  
+
+
+
+
+=== code conventions, acronyms, etc.
 
 
 * TPS Transport Protocol Suite, e.g. coap, coaps, coap+tcp,

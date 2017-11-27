@@ -1,3 +1,32 @@
+Toolchains:
+
+cpu = x64_windows, compiler = cl.exe (msvc) - default windows tc
+
+cpu = x64_windows_msvc - same toolchain as x64_windows?
+
+cpu = x64_windows_msys, compiler = mingw64-gcc
+
+
+Windows: msvc v. mingw
+
+see platforms/windows/README
+
+Linking to windows libs must be handled differently for each
+ toolchain.  grep for them:
+
+* lbcrypt:  src/portability/BUILD
+
+* lcrypt32: src/sec/resources/BUILD
+
+* lwinsock2: src/comm/transport/udpip/BUILD
+
+* liphlpapi: src/comm/transport/udpip/BUILD
+
+* lws2_32: src/comm/transport/udpip/BUILD, third_party/coap/BUILD
+
+* lm
+
+
 UPGRADING:
 
 The source structure has been rearranged. To merge updates from master:

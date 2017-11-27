@@ -77,13 +77,30 @@ oic.r.roles	    oic.r.roles		     p. 164
 
 === Principles of Operation
 
+==== alcresource implementation
+
+e.g. aclresource.c
+
+* lifecycle routines: init, start, stop, etc. calloc/free, etc.
+
+* conversion routines: internal structs to and from cbor
+
+* ace database mgmt - create, add, delete ACEs in db
+
+* ocf request query string parsing routines
+
+* stats: sec resource count, etc
+
+* comparison ops: is_same_ace etc.
+
+
 ==== Initialization
 
 (Ignoring TCP here)
 
 ocstack.c/OCInit
   ocstack.c/OCInit1
-    ocstack.c/OCInit2
+    ocstack.c/OCInit2 
       ocstack.c/OCInitializeInternal
 
 BEGIN OCInitializeInternal

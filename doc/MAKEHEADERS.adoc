@@ -1,0 +1,25 @@
+= c without headers using makeheaders
+
+== problems
+
+1. Sometimes you need a #define to preceed a header, in order to
+select some feature. For example, _POSIX_C_SOURCE before including
+standard headers.
+
+The problem is that makeheaders has no way of knowing that the header
+depends on the define.
+
+Unfortunately this won't work:
+
+#if EXPORT_INTERFACE
+#ifndef FOO
+#define FOO 1
+#endif
+#include <bar.h>
+#endif
+
+That would insert the bar.h include at the top of the header, but not
+the define - it would end up at the bottom of the header. Dunno why.
+
+The rule seems to be: a #define within a #IF INTERFACE clause only
+applies to the C file, not the generated header.
