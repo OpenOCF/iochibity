@@ -1,7 +1,7 @@
 #include "dtls.h"
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-#if INTERFACE
+#if EXPORT_INTERFACE
 /**
  * @enum CADtlsPskCredType_t
  * Type of PSK credential required during DTLS handshake
@@ -67,7 +67,7 @@ typedef void (*CAgetPkixInfoHandler)(PkiInfo_t * inf);
  */
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef void (*CAgetCredentialTypesHandler)(bool * list, const char* deviceId);
 #endif	/* INTERFACE */
 

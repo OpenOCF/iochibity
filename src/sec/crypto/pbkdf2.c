@@ -23,7 +23,7 @@
 /* #include "logger.h" */
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/md.h"
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stddef.h>
 #include <inttypes.h>
 #endif	/* INTERFACE */
@@ -35,7 +35,7 @@
  * As specified in the OCF Security Specification. This choice is required for
  * interoperability in the Random PIN OTM.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define PBKDF_ITERATIONS 1000
 #endif	/* INTERFACE */
 
