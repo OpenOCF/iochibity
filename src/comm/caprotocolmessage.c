@@ -39,10 +39,9 @@
 #include <time.h>
 #endif
 
-/* #include "openocf_config.h" */
-#if LOCAL_INTERFACE
+
+#if INTERFACE
 #include "coap_config.h"
-/* #include "coap/coap_list.h" */
 #include "coap/mem.h"
 #include "coap/pdu.h"
 #include "coap/prng.h"
