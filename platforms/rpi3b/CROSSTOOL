@@ -53,40 +53,17 @@ toolchain {
   target_cpu: "armv8"		# armv7l for 32 bits
   target_system_name: "armv8-rpi3-linux-gnueabihf"
 
-  tool_path { name: "ar"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-ar"
-  }
-  tool_path { name: "compat-ld"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-ld"
-  }
-  tool_path { name: "cpp"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-cpp"
-  }
-  tool_path { name: "dwp"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-dwp"
-  }
-  tool_path { name: "gcc"
-    ## path: "gcc"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc"
-  }
-  tool_path { name: "gcov"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-gcov"
-  }
-  tool_path { name: "ld"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-ld"
-  }
-  tool_path { name: "nm"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-nm"
-  }
-  tool_path { name: "objcopy"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-objcopy"
-  }
-  tool_path { name: "strip"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-strip"
-  }
-  tool_path { name: "objdump"
-    path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-objdump"
-  }
+  tool_path { name: "ar" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-ar" }
+  tool_path { name: "compat-ld" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-ld" }
+  tool_path { name: "cpp" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-cpp" }
+  tool_path { name: "dwp" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-dwp" }
+  tool_path { name: "gcc" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc" }
+  tool_path { name: "gcov" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-gcov" }
+  tool_path { name: "ld" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-ld" }
+  tool_path { name: "nm" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-nm" }
+  tool_path { name: "objcopy" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-objcopy" }
+  tool_path { name: "objdump" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-objdump" }
+  tool_path { name: "strip" path: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-strip" }
   objcopy_embed_flag: "-I"
 
   compiler_flag: "-std=c11"
@@ -99,7 +76,6 @@ toolchain {
 # /home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/include
 
   cxx_builtin_include_directory: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/lib/gcc/arm-linux-gnueabihf/4.9.3/include"
-
   cxx_builtin_include_directory: "/home/gar/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/lib/gcc/arm-linux-gnueabihf/4.9.3/include-fixed"
 
   # without the next cxx_builtin_include_directory we get error messsages like:

@@ -1,13 +1,13 @@
 package(default_visibility = ["//visibility:public"])
 
-cc_toolchain_suite(
-    name = "toolchain",
-    toolchains = {
-        # --cpu | --compiler : <cc_toolchain name>
-        "armv8|gcc": "cc-compiler-armv8-rpi3",
-        # "k8|compiler": "cc-compiler-k8",
-    },
-)
+# cc_toolchain_suite(
+#     name = "toolchain",
+#     toolchains = {
+#         # --cpu | --compiler : <cc_toolchain name>
+#         "armv8|gcc": "cc-compiler-armv8-rpi3",
+#         # "k8|compiler": "cc-compiler-k8",
+#     },
+# )
 
 filegroup(
     name = "toolchain_fg",
