@@ -1,5 +1,11 @@
 ## toolchain repos
 new_local_repository(
+  name = "toolchain_mingw64",
+  path = "c:/tools/msys64/mingw64",
+  build_file = 'platforms/windows/toolchain.BUILD',
+)
+
+new_local_repository(
   name = "toolchain_ndk",
   path = "/Users/gar/android/android-ndk-r14b",
   build_file = 'platforms/ndk/toolchain.BUILD',

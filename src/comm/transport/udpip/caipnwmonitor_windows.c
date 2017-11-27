@@ -1,3 +1,6 @@
+/* NOTES: */
+/* * replace g_CAIPNetworkMonitorMutex with g_networkMonitorContextMutex - use the same mutex for all platforms */
+
 /* *****************************************************************
 *
 * Copyright 2016 Microsoft
@@ -22,12 +25,32 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <string.h>
+
+#define NOOP() foo
+
+#if INTERFACE
+#ifndef NDIS_SUPPORT_NDIS6
+#define NDIS_SUPPORT_NDIS6 1
+#include ""
+#endif
+#endif
+
+#define WIN32_LEAN_AND_MEAN
+
+#if EXPORT_INTERFACE
 #include <winsock2.h>
+#include <windows.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
+#include <ntddndis.h>
+#include <netioapi.h>
+#include <in6addr.h>
 #include <mstcpip.h>
 #include <iptypes.h>
+
 #include <stdbool.h>
+#include <stdint.h>
+#endif
 
 #include "utlist.h"
 
@@ -106,7 +129,7 @@ static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t 
 /**
  * Destroy the network monitoring list.
  */
-static void CAIPDestroyNetworkMonitorList()
+void CAIPDestroyNetworkMonitorList()
 {
     // Free any new addresses waiting to be indicated up.
     while (g_CAIPNetworkMonitorNewAddressQueue)
@@ -177,7 +200,7 @@ static void CALLBACK IpAddressChangeCallback(void *context,
     OC_UNUSED(context);
 
     /* oc_mutex_lock(g_CAIPNetworkMonitorMutex); */
-    oc_mutex_lock(g_CAIPNetworkMonitorContextMutex);
+    oc_mutex_lock(g_networkMonitorContextMutex);
 
     // Fetch new network address info.
     u_arraylist_t *newList = GetInterfaceInformation(0);
@@ -241,7 +264,7 @@ static void CALLBACK IpAddressChangeCallback(void *context,
     u_arraylist_destroy(oldList);
 
     /* oc_mutex_unlock(g_CAIPNetworkMonitorMutex); */
-    oc_mutex_unlock(g_CAIPNetworkMonitorContextMutex);
+    oc_mutex_unlock(g_networkMonitorContextMutex);
 }
 
 #ifdef USE_SOCKET_ADDRESS_CHANGE_EVENT
@@ -608,7 +631,7 @@ u_arraylist_t  *CAFindInterfaceChange()
         return NULL;
     }
 
-    oc_mutex_lock(g_CAIPNetworkMonitorContextMutex);
+    oc_mutex_lock(g_networkMonitorContextMutex);
     /* oc_mutex_lock(g_CAIPNetworkMonitorMutex); */
 
     bool someAddressWentAway = g_CAIPNetworkMonitorSomeAddressWentAway;
@@ -635,7 +658,7 @@ u_arraylist_t  *CAFindInterfaceChange()
         }
     }
 
-    oc_mutex_unlock(g_CAIPNetworkMonitorContextMutex);
+    oc_mutex_unlock(g_networkMonitorContextMutex);
     /* oc_mutex_unlock(g_CAIPNetworkMonitorMutex); */
 
     if (someAddressWentAway)
@@ -784,6 +807,7 @@ bool AddAddresses(PIP_ADAPTER_ADDRESSES pAdapterAddr, u_arraylist_t *iflist, int
  *
  * @return List of network adapters.
  */
+#include <iphlpapi.h>
 PIP_ADAPTER_ADDRESSES GetAdapters()
 {
     ULONG ulOutBufLen = 0;
@@ -841,7 +865,7 @@ PIP_ADAPTER_ADDRESSES GetAdapters()
  * @param[in]  desiredIndex      Network interface index, or 0 for all.
  * @return  List of CAInterface_t items.
  */
-static u_arraylist_t *GetInterfaceInformation(int desiredIndex)
+LOCAL u_arraylist_t *GetInterfaceInformation(int desiredIndex)
 {
     if (desiredIndex < 0)
     {
@@ -892,7 +916,7 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
     }
 
     // Avoid extra kernel calls by just duplicating what's in our cache.
-    oc_mutex_lock(g_CAIPNetworkMonitorContextMutex);
+    oc_mutex_lock(g_networkMonitorContextMutex);
     /* oc_mutex_lock(g_CAIPNetworkMonitorMutex); */
 
     size_t list_length = u_arraylist_length(g_CAIPNetworkMonitorAddressList);
@@ -910,7 +934,7 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
         }
     }
 
-    oc_mutex_unlock(g_CAIPNetworkMonitorContextMutex);
+    oc_mutex_unlock(g_networkMonitorContextMutex);
     /* oc_mutex_unlock(g_CAIPNetworkMonitorMutex); */
 
     return iflist;

@@ -18,7 +18,9 @@
 ******************************************************************/
 
 #include "memmem.h"
-#include <stddef.h>
+#if INTERFACE
+#include <stddef.h>		/* size_t */
+#endif
 #include <memory.h>
 
 // crtdefs.h is required for size_t

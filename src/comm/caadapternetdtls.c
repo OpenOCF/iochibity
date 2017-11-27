@@ -28,9 +28,10 @@
  * typedef void (*CAPacketSendCallback)(CAEndpoint_t *endpoint,
  *                                      const void *data, size_t dataLength); */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
-#endif	/* INTERFACE */
+#endif
 
 /**
  * Data structure for holding the send and recv callbacks.
@@ -105,7 +106,7 @@ typedef struct CACacheMessage
     uint32_t dataLen;
     stCADtlsAddrInfo_t destSession;
 } stCACacheMessage_t;
-
+#endif	/* INTERFACE */
 
 /**
  * Used set send and recv callbacks for different adapters(WIFI,EtherNet).

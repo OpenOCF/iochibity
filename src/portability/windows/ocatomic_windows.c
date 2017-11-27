@@ -23,7 +23,10 @@
  */
 
 #include "ocatomic_windows.h"
+#if EXPORT_INTERFACE
+#include <stdint.h>
 #include <windows.h>
+#endif
 
 int32_t oc_atomic_increment(volatile int32_t *addend)
 {

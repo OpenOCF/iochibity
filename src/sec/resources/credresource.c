@@ -83,12 +83,13 @@
 
 #define mkhdrs_cred_rp OCResourceProperty /* help makeheaders */
 
+#if EXPORT_INTERFACE
 #ifdef HAVE_WINDOWS_H
+#include <winsock2.h>
+#include <windows.h>
 #include <wincrypt.h>
 #include <intsafe.h>
 #endif
-
-#if INTERFACE
 
 /* FIXME: put this in secresource.c, it's shared across r types */
 typedef enum OicEncodingType_t

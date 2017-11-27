@@ -18,15 +18,18 @@ cc_library(
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
              "-Isrc/portability",
-             "-Iexternal/openocf/src/portability"]
-    + select({"windows": [],
+             "-Iexternal/openocf/src/portability",
+             # if windows:
+             "-DCJSON_HIDE_SYMBOLS"]
+    + select({"windows": ["-DCJSON_HIDE_SYMBOLS"],
               "msvc": [],
               "msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/portability"],
     hdrs = ["cJSON.h"],
-    linkopts = ["-lm"],
+    # FIXME: -lm needed for linux? darwin? but not msvc
+    # linkopts = ["-lm"],
     srcs = ["cJSON.c"],
     visibility = ["//visibility:public"]
 )

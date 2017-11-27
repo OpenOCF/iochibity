@@ -17,7 +17,7 @@
 * limitations under the License.
 *
 ******************************************************************/
-#include "caipnwmonitor.h"
+#include "caipnwmonitor0.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -25,18 +25,30 @@
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
+#ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
-/* #ifdef HAVE_SYS_IFADDRS_H */
+#endif
+#ifdef HAVE_SYS_IFADDRS_H
 #include <ifaddrs.h>
 /* #else */
 /* #include "ifaddrs.h" 		/\* netlink impl in portability layer *\/ */
-/* #endif */
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <fcntl.h>
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#ifdef HAVE_NET_IF_H
 #include <net/if.h>
+#endif
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
 #include <errno.h>
 
 /* #if defined(__linux__) || defined(__ANDROID__) /\* FIXM: use HAVE_NETLINK_H etc *\/
@@ -49,7 +61,7 @@
 
 #define TAG "IPNWM"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 #endif	/* INTERFACE */
 
@@ -64,7 +76,7 @@
  * @param[in]  status       Connection status either ::CA_INTERFACE_UP or ::CA_INTERFACE_DOWN.
  * @see CAIPSetConnectionStateChangeCallback() for registration.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef void (*CAIPAdapterStateChangeCallback)(CATransportAdapter_t adapter,
                                                CANetworkStatus_t status);
 #endif
@@ -74,7 +86,7 @@ typedef void (*CAIPAdapterStateChangeCallback)(CATransportAdapter_t adapter,
  * structure name is a misnomer, as there is one entry per address not one per interface.
  * An interface with 4 addresses should result in 4 instances of CAInterface_t.
  */
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     char name[INTERFACE_NAME_MAX];
@@ -85,7 +97,7 @@ typedef struct
 } CAInterface_t;		/* GAR: CAIfAddress_t */
 #endif
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct CAIPCBData_t
 {
     struct CAIPCBData_t *next;
@@ -97,7 +109,7 @@ typedef struct CAIPCBData_t
 /**
  * Mutex for synchronizing access to cached interface and IP address information.
  */
-/* #if INTERFACE */
+/* #if EXPORT_INTERFACE */
 oc_mutex g_networkMonitorContextMutex = NULL;
 /* #endif */
 

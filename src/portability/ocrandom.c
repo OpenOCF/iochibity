@@ -48,9 +48,21 @@
 #if defined(__ANDROID__)
 #include <ctype.h>
 #endif
+#if EXPORT_INTERFACE
 #ifdef HAVE_WINDOWS_H
+#include <winsock2.h>
 #include <windows.h>
-#endif
+#include <Bcrypt.h>
+/* #endif */
+
+/* /\* http://kirkshoop.blogspot.com/2011/09/ntstatus.html *\/ */
+/* #define WIN32_NO_STATUS */
+/* #include <windows.h> */
+/* #undef WIN32_NO_STATUS */
+/* #include <winternl.h> */
+/* #include <ntstatus.h> */
+#endif	/* HAVE_WINDOWS_H */
+#endif	/* EXPORT_INTERFACE */
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -63,6 +75,7 @@
 #if EXPORT_INTERFACE
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
  /* Number of bytes in a UUID. */
 #define UUID_SIZE (16)
@@ -87,6 +100,7 @@
 * @brief Logging tag for module name
 */
 #define OCRANDOM_TAG "OIC_OCRANDOM"
+
 
 bool OCGetRandomBytes(uint8_t * output, size_t len)
 {

@@ -54,7 +54,7 @@
  * #include <linux/rtnetlink.h>
  * #endif */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <inttypes.h>
 #endif
 
@@ -67,22 +67,8 @@
 
 #define SELECT_TIMEOUT 1     // select() seconds (and termination latency)
 
-/*
- * Buffer size for the receive message buffer
- */
-#define RECV_MSG_BUF_LEN 16384
-
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define IFF_UP_RUNNING_FLAGS  (IFF_UP|IFF_RUNNING)
-#endif
-
-#if INTERFACE
-#define CLOSE_SOCKET(TYPE) \
-    if (caglobals.ip.TYPE.fd != OC_INVALID_SOCKET) \
-    { \
-        OC_CLOSE_SOCKET(caglobals.ip.TYPE.fd); \
-        caglobals.ip.TYPE.fd = OC_INVALID_SOCKET; \
-    }
 
 #define SET(TYPE, FDS) \
     if (caglobals.ip.TYPE.fd != OC_INVALID_SOCKET) \
@@ -220,7 +206,7 @@ CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
     return CA_STATUS_OK;
 }
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define CHECKFD(FD) \
 do \
 { \
@@ -273,9 +259,9 @@ void CAWakeUpForChange()
 
 bool PORTABLE_check_setsockopt_err() { return EADDRINUSE != errno; }
 
-bool PORTABLE_check_setsockopt_m4s_err() { return EADDRINUSE != errno; }
+bool PORTABLE_check_setsockopt_m4s_err(mreq, ret) { return EADDRINUSE != errno; }
 
-bool PORTABLE_check_setsockopt_m6_err() { return EADDRINUSE != errno; }
+bool PORTABLE_check_setsockopt_m6_err(fd, mreq, ret) { return EADDRINUSE != errno; }
 
 void PORTABLE_sendto(CASocketFd_t fd,
                      const void *data,

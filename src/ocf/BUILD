@@ -1,4 +1,8 @@
 config_setting(
+    name = "darwin",
+    values = { "cpu": "darwin" }
+)
+config_setting(
     name = "windows",
     values = { "cpu": "x64_windows" }
 )
@@ -27,11 +31,13 @@ config_setting(
 cc_binary(
     # name = "libopenocf.dylib",
     name = "libopenocf.so",
-    copts = select({":windows": [],
+    copts = ["-Ithird_party/coap",
+             "-Ithird_party/coap/include"
+    ] + select({":windows": [],
                     ":msvc": [],
                     ":msys": [],
-              "//conditions:default": ["-std=c11",
-                                       "-U DEBUG"]}), # OS X
+                    ":darwin":["-std=c11", "-U DEBUG"],
+                    "//conditions:default": []}),
     deps = ["//src:config",
             # "//src/ocf:interface",
             # "//src/ocf:hdrs",
@@ -41,8 +47,9 @@ cc_binary(
             # "//src/comm/api",
             "//src/portability",
             "//src/provisioning",
-            "//src/sec"]
-    + select({":client_role": ["//src/ocf:client"],
+            "//src/sec",
+            "//third_party/coap"
+    ] + select({":client_role": ["//src/ocf:client"],
               "//conditions:default": []}),
     linkshared = 1,
     visibility = ["//visibility:public"]
@@ -50,13 +57,15 @@ cc_binary(
 
 cc_library(
     name = "ocf",
-    copts = select({":windows": [],
-                    ":msvc": [],
-                    ":msys": [],
-              "//conditions:default": ["-std=c11",
-                                       "-U DEBUG"]}), # OS X
+    copts = ["-Ithird_party/coap",
+             "-Ithird_party/coap/include"
+    ] + select({":windows": [],
+                ":msvc": [],
+                ":msys": [],
+                ":darwin": ["-std=c11", "-U DEBUG"],
+                "//conditions:default": []}),
     linkstatic = 1,
-    alwayslink = True,
+    # alwayslink = True,
     deps = ["//src:config",
             # "//src/ocf:interface",
             # "//src/ocf:hdrs",
@@ -66,7 +75,8 @@ cc_library(
             # "//src/comm/api",
             "//src/portability",
             "//src/provisioning",
-            "//src/sec"]
+            "//src/sec",
+            "//third_party/coap"]
     + select({":client_role": ["//src/ocf:client"],
               "//conditions:default": []}),
     # hdrs = ["openocf.h"],
@@ -92,8 +102,8 @@ cc_library(
     + select({":windows": [],
               ":msvc": [],
               ":msys": [],
-              "//conditions:default": ["-std=c11",
-                                       "-U DEBUG"]}), # OS X
+              ":darwin": ["-std=c11", "-U DEBUG"],
+              "//conditions:default": []}),
     deps = ["//src:config",
             # "//src/comm/api",
             # "//src/ocf:hdrs",
@@ -197,10 +207,8 @@ cc_library(
              "-Iexternal/openocf/src/portability",
              # "-Isrc/comm/api",
              # "-Iexternal/openocf/src/comm/api",
-             "-Isrc/comm/common",
-             "-Iexternal/openocf/src/comm/common",
-             "-Isrc/comm/include",
-             "-Iexternal/openocf/src/comm/include",
+             # "-Isrc/comm/common",
+             # "-Iexternal/openocf/src/comm/common",
              # "-Isrc/comm/interface",
              # "-Iexternal/openocf/src/comm/interface",
              "-Isrc/comm/util",
@@ -224,14 +232,14 @@ cc_library(
              "-Iexternal/openocf/third_party/tinycbor/src",
              "-Ithird_party/utlist"
     ] + select({":windows": [],
-              ":msvc": [],
-              ":msys": [],
-              "//conditions:default": ["-std=c11",
-                                       "-U DEBUG"]}), # OS X
+                ":msvc": [],
+                ":msys": [],
+                ":darwin": ["-std=c11", "-U DEBUG"],
+                "//conditions:default": []}),
     deps = ["//src:config",
             # "//src/ocf:interface",
             # "//src/comm/api",
-            "//src/comm/common",
+            # "//src/comm/common",
             # "//src/comm/interface",
             "//src/logger",
             "//src/portability",

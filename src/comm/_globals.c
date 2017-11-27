@@ -1,5 +1,23 @@
 
-#if INTERFACE
+#if EXPORT_INTERFACE
+#ifdef HAVE_WINSOCK2_H
+#  define OPTVAL_T(t)    (const char*)(t)
+#  define OC_CLOSE_SOCKET(s) closesocket(s)
+#else
+#  define OPTVAL_T(t)    (t)
+#  define OC_CLOSE_SOCKET(s) close(s)
+#endif
+#endif
+
+/* FIXME: split up this global monstrosity: ip-stuff, udp-stuff, tcp-stuff, and other stuff */
+
+#if EXPORT_INTERFACE
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <windows.h>
+#include <mswsock.h>
+#endif
 typedef struct
 {
     CATransportFlags_t clientFlags; /**< flag for client */

@@ -35,8 +35,6 @@ cc_library(
             "ocevent_windows.h",
             "octhread_windows.c",
             "octhread_windows.h",
-            "pthread_create.c",
-            "pthread_create.h",
             "getopt.c",
             "getopt.h",
             "memmem.c",
@@ -54,9 +52,14 @@ cc_library(
             # "oic_platform.c",
             # "oic_platform.h",
             # FIXME: convert to c11
-            "oic_winplatform.cpp",
+            # "oic_winplatform.cpp",
 
             # "oic_string.h"
-    ],
+    ] + select({"msvc": ["pthread_create.c",
+                         "pthread_create.h"],
+                "windows": ["pthread_create.c",
+                            "pthread_create.h"],
+                "msys": [],
+              "//conditions:default": []}),
     visibility = ["//src/portability:__pkg__"]
 )

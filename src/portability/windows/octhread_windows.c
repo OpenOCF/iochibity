@@ -16,25 +16,22 @@
 * limitations under the License.
 *
 ******************************************************************/
-
-
 /**
  * @file
  * This file provides APIs related to mutex, semaphores, and threads.
  */
 #include "octhread_windows.h"
-/* #include "iotivity_config.h" */
+
 #include <string.h>
 #include <time.h>
-#include <winsock2.h>
 #include <stdio.h>
 #include <errno.h>
 #include <stdint.h>
 
-/* #include <oic_malloc.h> */
-
-/* #include "logger.h" */
-/* #include "iotivity_debug.h" */
+#ifdef HAVE_WINSOCK2_H
+/* #include <windows.h> */
+#include <winsock2.h>
+#endif
 
 #define TAG "OIC_UMUTEX"
 

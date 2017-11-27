@@ -18,24 +18,21 @@
  *
  ******************************************************************/
 
-/* #ifndef __APPLE_USE_RFC_3542
- * #define __APPLE_USE_RFC_3542 // for PKTINFO
- * #endif */
+#ifndef __APPLE_USE_RFC_3542
+#define __APPLE_USE_RFC_3542 // for PKTINFO
+#endif
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE // for in6_pktinfo
 #endif
 
-#include "iotivity_config.h"
-#include "iotivity_debug.h"
+#include "caipserver_windows.h"
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
-#ifdef HAVE_WINSOCK2_H
+#if EXPORT_INTERFACE
 #include <winsock2.h>
-#endif
-#ifdef HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
 #endif
 #include <stdio.h>
@@ -55,14 +52,19 @@
 #ifdef HAVE_NET_IF_H
 #include <net/if.h>
 #endif
+
 #include <errno.h>
-#ifdef __linux__
-#include <linux/netlink.h>
-#include <linux/rtnetlink.h>
-#endif
+/* #ifdef __linux__ */
+/* #include <linux/netlink.h> */
+/* #include <linux/rtnetlink.h> */
+/* #endif */
 
 /* #include <coap/pdu.h> */
+
+#if EXPORT_INTERFACE
 #include <inttypes.h>
+#include <Ws2tcpip.h>
+#endif
 
 /* #define USE_IP_MREQN
  * #if defined(_WIN32)
@@ -74,7 +76,16 @@
  */
 #define TAG "OIC_CA_IP_SERVER"
 
+#define USE_IP_MREQN
+#if defined(_WIN32)
+#undef USE_IP_MREQN
+#endif
+
+#if EXPORT_INTERFACE
 #define IFF_UP_RUNNING_FLAGS  (IFF_UP)
+
+typedef int socklen_t;
+#endif
 
 char* caips_get_error(){
     static char buffer[32];
@@ -146,7 +157,7 @@ char* caips_get_error(){
 
 #define EVENT_ARRAY_SIZE  10
 
-static void CAFindReadyMessage()
+void CAFindReadyMessage()
 {
     CASocketFd_t socketArray[EVENT_ARRAY_SIZE];
     HANDLE eventArray[EVENT_ARRAY_SIZE];
@@ -268,7 +279,7 @@ static void CAFindReadyMessage()
     }
 }
 
-static void CAEventReturned(CASocketFd_t socket)
+LOCAL void CAEventReturned(CASocketFd_t socket)
 {
     CASocketFd_t fd = OC_INVALID_SOCKET;
     CATransportFlags_t flags = CA_DEFAULT_FLAGS;
@@ -302,7 +313,7 @@ void CADeInitializeMonitorGlobals()
 	}
 }
 
-static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
+LOCAL CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
 {
     char recvBuffer[RECV_MSG_BUF_LEN] = {0};
     int level = 0;
@@ -420,7 +431,7 @@ static CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
     return CA_STATUS_OK;
 }
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define CHECKFD(FD)
 #endif
 
@@ -436,7 +447,7 @@ void CARegisterForAddressChanges()
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 
-static void CAInitializeFastShutdownMechanism()
+void CAInitializeFastShutdownMechanism()
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
     caglobals.ip.selectTimeout = -1; // don't poll for shutdown
@@ -479,9 +490,9 @@ void CAWakeUpForChange()
     }
 }
 
-INLINE_API PORTABLE_check_setsockopt_err() { return WSAEINVAL != WSAGetLastError(); }
+PORTABLE_check_setsockopt_err() { return WSAEINVAL != WSAGetLastError(); }
 
-INLINE_API bool PORTABLE_check_setsockopt_m4s_err()
+bool PORTABLE_check_setsockopt_m4s_err(mreq, ret)
 {
     if (WSAEINVAL == WSAGetLastError())
         {
@@ -489,15 +500,13 @@ INLINE_API bool PORTABLE_check_setsockopt_m4s_err()
             // If the interface has gone down and come back up, the socket might be in
             // an inconsistent state where it still thinks we're joined when the interface
             // doesn't think we're joined.  So try to leave and rejoin the group just in case.
-            setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, OPTVAL_T(&mreq),
-		       sizeof(mreq));
-            ret = setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq),
-                             sizeof(mreq));
+            setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, OPTVAL_T(&mreq), sizeof(mreq));
+            ret = setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof(mreq));
         }
     return (OC_SOCKET_ERROR == ret);
 }
 
-INLINE_API bool PORTABLE_check_setsockopt_m6_err()
+bool PORTABLE_check_setsockopt_m6_err(fd, mreq, ret)
 {
         if (WSAEINVAL == WSAGetLastError())
         {
@@ -562,50 +571,4 @@ void PORTABLE_sendto(CASocketFd_t fd,
             }
         }
     } while ((OC_SOCKET_ERROR == len) && ((WSAEWOULDBLOCK == err) || (WSAENOBUFS == err)) || (sent < dlen));
-}
-
-void CAIPSetErrorHandler(CAIPErrorHandleCallback errorHandleCallback)
-{
-    g_ipErrorHandler = errorHandleCallback;
-}
-
-CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
-{
-    if (!zoneId || (*zoneId != NULL))
-    {
-        return CA_STATUS_INVALID_PARAM;
-    }
-
-    PIP_ADAPTER_ADDRESSES pAdapters = GetAdapters();
-
-    if (!pAdapters)
-    {
-        OICFree(pAdapters);
-        return CA_STATUS_FAILED;
-    }
-
-    PIP_ADAPTER_ADDRESSES pCurrAdapter = NULL;
-    pCurrAdapter = pAdapters;
-
-    while (pCurrAdapter)
-    {
-        if (ifindex == pCurrAdapter->IfIndex)
-        {
-            OIC_LOG_V(DEBUG, TAG, "Given ifindex is %d parsed zoneId is %d",
-                      ifindex, pCurrAdapter->ZoneIndices[ScopeLevelLink]);
-            *zoneId = (char *)OICCalloc(IF_NAMESIZE, sizeof(char));
-            _ultoa(pCurrAdapter->ZoneIndices[ScopeLevelLink], *zoneId, 10);
-            break;
-        }
-        pCurrAdapter = pCurrAdapter->Next;
-    }
-
-    OICFree(pAdapters);
-
-    if (!*zoneId)
-    {
-        return CA_STATUS_FAILED;
-    }
-
-    return CA_STATUS_OK;
 }

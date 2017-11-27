@@ -21,7 +21,9 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#if INTERFACE
 #include <time.h>
+#endif
 #include <memory.h>
 #include <stdbool.h>
 

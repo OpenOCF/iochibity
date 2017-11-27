@@ -55,7 +55,9 @@
 #endif
 /* #endif */
 
+/* #include "logger.h" */
 #include <string.h>
+/* #include "logger_types.h" */
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -65,14 +67,6 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-
-/* FIXME: flockfile on mingw? */
-/* #ifdef __MINGW64__ */
-/* #define _POSIX_THREAD_SAFE_FUNCTIONS */
-/* #include <stdlib.h> */
-/* #include <pthread_unistd.h> */
-/* #endif */
-
 
 #if EXPORT_INTERFACE
 typedef enum
@@ -238,37 +232,37 @@ static int g_level = DEBUG;
 
 static bool g_hidePrivateLogEntries = true;
 
-oc_log_ctx_t *logCtx = 0;
+static oc_log_ctx_t *logCtx = 0;
 
-/* #if defined(_MSC_VER) */
-/* #define LINE_BUFFER_SIZE (16 * 2) + 16 + 1  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination */
-/* #else */
-/* static const uint16_t LINE_BUFFER_SIZE = (16 * 2) + 16 + 1;  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination */
-/* #endif //defined(_MSC_VER) */
+#if defined(_MSC_VER)
+#define LINE_BUFFER_SIZE (16 * 2) + 16 + 1  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination
+#else
+static const uint16_t LINE_BUFFER_SIZE = (16 * 2) + 16 + 1;  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination
+#endif //defined(_MSC_VER)
 
-/* #ifdef __ANDROID__ */
-#if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
-oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO,
+#ifdef __ANDROID__
+#elif defined __linux__ || defined __APPLE__ || defined _WIN32
+static oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO,
                                       OC_LOG_WARNING, OC_LOG_ERROR, OC_LOG_FATAL};
 #endif
 
-/* // Convert LogLevel to platform-specific severity level.  Store in PROGMEM on Arduino */
-/* #ifdef __ANDROID__ */
-/* #ifdef ADB_SHELL */
-/*     static const char *LEVEL[] = */
-/*     {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL"}; */
+// Convert LogLevel to platform-specific severity level.  Store in PROGMEM on Arduino
+#ifdef __ANDROID__
+#ifdef ADB_SHELL
+    static const char *LEVEL[] =
+    {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL"};
 
-/* #else */
-/*     static android_LogPriority LEVEL[] = */
-/*     {ANDROID_LOG_DEBUG, ANDROID_LOG_INFO, ANDROID_LOG_WARN, ANDROID_LOG_ERROR, ANDROID_LOG_FATAL}; */
-/* #endif */
-/* #elif defined(__linux__) || defined(__APPLE__) || defined(__msys_nt__) */
-/*     static const char * LEVEL[] __attribute__ ((unused)) = {"\e[0;32mDEBUG\033[0m", "\e[0;33mINFO\033[0m", "\e[0;35mWARNING\033[0m", "\e[0;31mERROR\033[0m", "\e[0;31mFATAL\033[0m"}; */
-/* #elif defined(_MSC_VER) */
-/*     static const char * LEVEL[] = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL"}; */
-/* #endif */
-/*     /\* static const char *LEVEL[] __attribute__ ((unused)) = *\/ */
-/*     /\* {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL"}; *\/ */
+#else
+    static android_LogPriority LEVEL[] =
+    {ANDROID_LOG_DEBUG, ANDROID_LOG_INFO, ANDROID_LOG_WARN, ANDROID_LOG_ERROR, ANDROID_LOG_FATAL};
+#endif
+#elif defined(__linux__) || defined(__APPLE__) || defined(__msys_nt__)
+    static const char * LEVEL[] __attribute__ ((unused)) = {"\e[0;32mDEBUG\033[0m", "\e[0;33mINFO\033[0m", "\e[0;35mWARNING\033[0m", "\e[0;31mERROR\033[0m", "\e[0;31mFATAL\033[0m"};
+#elif defined(_MSC_VER)
+    static const char * LEVEL[] = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL"};
+#endif
+    /* static const char *LEVEL[] __attribute__ ((unused)) = */
+    /* {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL"}; */
 
 /**
  * Checks if a message should be logged, based on its priority level, and removes
@@ -278,7 +272,7 @@ oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO,
  *
  * @return true if the message should be logged, false otherwise
  */
-bool AdjustAndVerifyLogLevel(int* level)
+static bool AdjustAndVerifyLogLevel(int* level)
 {
     int localLevel = *level;
 
@@ -338,7 +332,6 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
         return;
     }
 
-/* #ifdef _MSC_VER			/\* compiler is msvc cl.exe *\/ */
 #ifdef _WIN32
 #else    
     flockfile(stdout);
@@ -437,6 +430,93 @@ void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
     vsnprintf(buffer, sizeof(buffer) - 1, format, args);
     va_end(args);
     OCLog(level, tagbuffer, buffer);
+}
+
+/**
+ * Output a log string with the specified priority level.
+ * Only defined for Linux and Android
+ *
+ * @param level  - One of DEBUG, INFO, WARNING, ERROR, or FATAL plus possibly the OC_LOG_PRIVATE_DATA bit
+ * @param tag    - Module name
+ * @param logStr - log string
+ */
+void OCLog(int level, const char * tag, const char * logStr)
+{
+    if (!logStr || !tag)
+    {
+       return;
+    }
+
+    if (!AdjustAndVerifyLogLevel(&level))
+    {
+        return;
+    }
+
+    switch(level)
+    {
+        case DEBUG_LITE:
+            level = DEBUG;
+            break;
+        case INFO_LITE:
+            level = INFO;
+            break;
+        default:
+            break;
+    }
+
+   #ifdef __ANDROID__
+
+   #ifdef ADB_SHELL
+       printf("%s: %s: %s\n", LEVEL[level], tag, logStr);
+   #else
+       __android_log_write(LEVEL[level], tag, logStr);
+   #endif
+
+   #else  /* not ANDROID */
+       if (logCtx && logCtx->write_level)
+       {
+           logCtx->write_level(logCtx, LEVEL_XTABLE[level], logStr);
+
+       }
+       else
+	   {
+	       int min = 0;
+	       int sec = 0;
+	       int ms = 0;
+#if defined(_POSIX_TIMERS) && _POSIX_TIMERS > 0
+	       struct timespec when = { .tv_sec = 0, .tv_nsec = 0 };
+	       clockid_t clk = CLOCK_REALTIME;
+#ifdef CLOCK_REALTIME_COARSE
+	       clk = CLOCK_REALTIME_COARSE;
+#endif
+	       if (!clock_gettime(clk, &when))
+		   {
+		       min = (when.tv_sec / 60) % 60;
+		       sec = when.tv_sec % 60;
+		       ms = when.tv_nsec / 1000000;
+		   }
+#elif defined(_WIN32)
+	       //#include <windows.h>
+	       SYSTEMTIME systemTime = {0};
+	       GetLocalTime(&systemTime);
+	       min = (int)systemTime.wMinute;
+	       sec = (int)systemTime.wSecond;
+	       ms  = (int)systemTime.wMilliseconds;
+#else  /* not posix, not win32 */
+	       struct timeval now;
+	       if (!gettimeofday(&now, NULL))
+		   {
+		       min = (now.tv_sec / 60) % 60;
+		       sec = now.tv_sec % 60;
+		       ms = now.tv_usec * 1000;
+		   }
+#endif	/*  */
+	       /* GAR FIXME: make a separate Log fn for timestamped msgs */
+	       /* printf("%02d:%02d.%03d %s: %s: %s\n", min, sec, ms, LEVEL[level], tag, logStr); */
+	       /* printf("%s %s %s\n", LEVEL[level], tag, logStr); */
+	       write_log("%s %s %s\n", LEVEL[level], tag, logStr);
+	   }
+#endif	/* not android */
 }
 
 #if EXPORT_INTERFACE

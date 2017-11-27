@@ -27,7 +27,9 @@
 #endif
 #include <sys/select.h>
 #include <ifaddrs.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>

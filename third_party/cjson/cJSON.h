@@ -83,7 +83,7 @@ typedef struct cJSON_Hooks
   //FIXME: use std bool if available?
 typedef int cJSON_bool;
 
-#if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
+#if !defined(__WINDOWS__) && ((defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32)))
 #define __WINDOWS__
 #endif
 #ifdef __WINDOWS__

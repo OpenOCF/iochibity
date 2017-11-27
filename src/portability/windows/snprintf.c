@@ -20,6 +20,10 @@
 #include "snprintf.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include <limits.h>
+#if INTERFACE
+#include <stddef.h>		/* size_t */
+#endif
 
 int vs12_snprintf(char *buffer, size_t count, const char *format, ...)
 {

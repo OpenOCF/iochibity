@@ -1,6 +1,20 @@
+# prereq: you are running under the msys/mingw64 shell (usually c:\tools\msys64\mingw64)
+
+# bash --version:  x86_64-pc-msys
+# uname -a: MINGW64_NT-6.1 HP-DLK51G2 2.8.2(0.313/5/3) 2017-07-14 08:19 x86_64 Msys
+
+# configure reports:
+# checking build system type... x86_64-w64-mingw32
+# checking host system type... x86_64-w64-mingw32
+
 major_version: "local"
 minor_version: ""
 default_target_cpu: "x64_windows"
+
+default_toolchain {
+  cpu: "x64_windows"
+  toolchain_identifier: "local_windows_msys64_mingw64"
+}
 
 default_toolchain {
   cpu: "x64_windows_msys"
@@ -8,6 +22,7 @@ default_toolchain {
 }
 
 toolchain {
+  toolchain_identifier: "local_windows_msys64_mingw64"
   abi_version: "local"
   abi_libc_version: "local"
   builtin_sysroot: ""
@@ -16,29 +31,76 @@ toolchain {
   host_system_name: "local"
   needsPic: false
   target_libc: "local"
-  target_cpu: "x64_windows_msys"
+  target_cpu: "x64_windows"
   target_system_name: "local"
-  toolchain_identifier: "local_windows_msys64_mingw64"
 
+  # $ cygpath -w `which ar`
   tool_path { name: "ar" path: "C:/tools/msys64/mingw64/bin/ar" }
   tool_path { name: "compat-ld" path: "C:/tools/msys64/mingw64/bin/ld" }
   tool_path { name: "cpp" path: "C:/tools/msys64/mingw64/bin/cpp" }
   tool_path { name: "dwp" path: "C:/tools/msys64/mingw64/bin/dwp" }
   tool_path { name: "gcc" path: "C:/tools/msys64/mingw64/bin/gcc" }
-  cxx_flag: "-std=c++0x"
-  # TODO(bazel-team): In theory, the path here ought to exactly match the path
-  # used by gcc. That works because bazel currently doesn't track files at
-  # absolute locations and has no remote execution, yet. However, this will need
-  # to be fixed, maybe with auto-detection?
-  cxx_builtin_include_directory: "C:/tools/msys64/mingw64/x86_64-w64-mingw32/include"
   tool_path { name: "gcov" path: "C:/tools/msys64/mingw64/bin/gcov" }
   tool_path { name: "ld" path: "C:/tools/msys64/mingw64/bin/ld" }
   tool_path { name: "nm" path: "C:/tools/msys64/mingw64/bin/nm" }
   tool_path { name: "objcopy" path: "C:/tools/msys64/mingw64/bin/objcopy" }
-  objcopy_embed_flag: "-I"
-  objcopy_embed_flag: "binary"
   tool_path { name: "objdump" path: "C:/tools/msys64/mingw64/bin/objdump" }
   tool_path { name: "strip" path: "C:/tools/msys64/mingw64/bin/strip" }
+  objcopy_embed_flag: "-I"
+  objcopy_embed_flag: "binary"
+
+# header search dirs: echo | gcc -E -Wp,-v -
+# ignoring duplicate directory "C:/tools/msys64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/7.2.0/include"
+# ignoring nonexistent directory "C:/building/msys64/mingw64/include"
+# ignoring nonexistent directory "/mingw64/include"
+# ignoring duplicate directory "C:/tools/msys64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/7.2.0/include-fixed"
+# ignoring duplicate directory "C:/tools/msys64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/7.2.0/../../../../x86_64-w64-mingw32/include"
+# ignoring nonexistent directory "C:/building/msys64/mingw64/x86_64-w64-mingw32/include"
+# #include "..." search starts here:
+# #include <...> search starts here:
+#  C:/tools/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/7.2.0/include
+#  C:/tools/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/7.2.0/../../../../include
+#  C:/tools/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/7.2.0/include-fixed
+#  C:/tools/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/7.2.0/../../../../x86_64-w64-mingw32/include
+# End of search list.
+
+  ## builtin_sysroot: "external/toolchain_mingw64/x86_64-w64-mingw32"
+
+  cxx_builtin_include_directory: "C:/tools/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/7.2.0/include"
+  cxx_builtin_include_directory: "C:/tools/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/7.2.0/include-fixed"
+
+# if (when) you get errors like this:
+# this rule is missing dependency declarations for the following files included by 'src/util/configuration.c':
+#   'C:/tools/msys64/mingw64/x86_64-w64-mingw32/include/string.h'
+# it means you must create the right filegroups and cc_toolchain rules in BUILD
+  cxx_builtin_include_directory: "C:/tools/msys64/mingw64/x86_64-w64-mingw32/include"
+  cxx_builtin_include_directory: "C:/tools/msys64/mingw64/x86_64-w64-mingw32/include"
+
+
+  # unfiltered_cxx_flag: "-IC:/Program Files (x86)/Windows Kits/10/include/10.0.15063.0/shared"
+  # # unfiltered_cxx_flag: "-IC:/Program Files (x86)/Windows Kits/10/include/10.0.15063.0/um"
+
+  cxx_flag: "-std=c++11"
+ # Make C++ compilation deterministic. Use linkstamping instead of these
+  # compiler symbols.
+  unfiltered_cxx_flag: "-Wno-builtin-macro-redefined"
+  unfiltered_cxx_flag: "-D__DATE__=\"redacted\""
+  unfiltered_cxx_flag: "-D__TIMESTAMP__=\"redacted\""
+  unfiltered_cxx_flag: "-D__TIME__=\"redacted\""
+
+  compiler_flag: "-U_FORTIFY_SOURCE"
+  compiler_flag: "-std=c11"
+  # All warnings are enabled. Maybe enable -Werror as well?
+  compiler_flag: "-Wall"
+  compiler_flag: "-Wextra"
+  compiler_flag: "-Wno-unknown-pragmas"
+  # Enable a few more warnings that aren't part of -Wall.
+  compiler_flag: "-Wunused-but-set-parameter"
+  # But disable some that are problematic.
+  compiler_flag: "-Wno-free-nonheap-object" # has false positives
+  # Keep stack frames for debugging, even in opt mode.
+  compiler_flag: "-fno-omit-frame-pointer"
+
   linking_mode_flags { mode: DYNAMIC }
 }
 

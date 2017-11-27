@@ -24,27 +24,31 @@
 /* #if defined(__ANDROID__)	   /\* FIXME: android x86 toolchain broken *\/ */
 /* #  define OC_STATIC_ASSERT */
 /* #else */
-# if (__STDC_VERSION__ >= 201112L) /* C11 */
+#if (__STDC_VERSION__ >= 201112L) /* C11 */
 #   include <assert.h>
 #   define OC_STATIC_ASSERT(condition, msg) static_assert(condition, msg)
-# else  /* pre-C11 c compiler  */
+#else  /* non-C11, non-MS c compiler  */
 #  error "OpenOCF requires C11; you are using a compiler with __STDC_VERSION_ =" __STDC_VERSION__
-# endif
-/* # endif */
+#endif
+#endif
+
+#if defined(_MSC_VER) 
+#   include <assert.h>
+#   define OC_STATIC_ASSERT(condition, msg) static_assert(condition, msg)
 #endif
 
 /* OpenOCF is C only, no GLIBCXX */
 
 // see https://gustedt.wordpress.com/2010/11/29/myth-and-reality-about-inline-in-c99/
 /* #ifndef INLINE_API */
-#ifdef _MSC_VER /* or _WIN32? */
+#ifdef _MSC_VER
 #define INLINE_API static __inline
 #else
 #define INLINE_API static inline
 #endif
 /* #endif */
 
-#ifdef _MSC_VER /* better: _WIN32? */
+#ifdef _MSC_VER
 #  define OC_ANNOTATE_UNUSED
 #else
 #  define OC_ANNOTATE_UNUSED  __attribute__((unused))
@@ -88,7 +92,8 @@ typedef bool _Bool;
 /* #    include "windows/include/vs12_snprintf.h" */
 /* #  endif */
 
-#  define ssize_t SSIZE_T	/* POSIX */
+#  include <BaseTsd.h>
+#  define ssize_t SSIZE_T
 #  define SHUT_RDWR           SD_BOTH
 #  define sleep(SECS)         Sleep(1000*(SECS))
 #endif
@@ -99,29 +104,26 @@ typedef bool _Bool;
 /* #  include "windows/include/pthread_create.h" */
 
 #ifdef HAVE_STRNCASECMP
-# ifdef _MSC_VER		/* must be msys2 autoconf */
+# ifdef _MSC_VER
 #  undef HAVE_STRNCASECMP
-#  ifdef HAVE__STRNICMP		/* windows */
+#  ifdef HAVE__STRNICMP
+#    include <string.h>
 #    define strncasecmp _strnicmp
 #  else
-#    error "No strncasecmp (posix), no _strnicmp (windows)"
+#    include <string.h>
+#    define strncasecmp _strnicmp
+/* #    error "No strncasecmp (posix), no _strnicmp (windows)" */
 #  endif
+# else
+#    include <string.h>
 # endif
 #else
-#  ifdef HAVE__STRNICMP		/* windows */
+#  ifdef HAVE__STRNICMP		
+#    include <string.h>
 #    define strncasecmp _strnicmp
 #  else
 #    error "No strncasecmp (posix), no _strnicmp (windows)"
 #  endif
-#endif
-
-
-#ifdef HAVE_WINSOCK2_H
-#  define OPTVAL_T(t)    (const char*)(t)
-#  define OC_CLOSE_SOCKET(s) closesocket(s)
-#else
-#  define OPTVAL_T(t)    (t)
-#  define OC_CLOSE_SOCKET(s) close(s)
 #endif
 
 //GAR: todo: find an AC macro that does this
@@ -138,7 +140,7 @@ typedef bool _Bool;
 #  define SIZE_MAX ((size_t)-1)
 #endif
 
-#ifdef _WIN32 			/* i.e. target is windows, any compiler */
+#ifdef _WIN32
 /*
  * Set to __stdcall for Windows, consistent with WIN32 APIs.
  */

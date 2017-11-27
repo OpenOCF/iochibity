@@ -1082,14 +1082,23 @@ static void CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
     coap_delete_pdu(pdu);
 
 exit:
+    /* atomic write to stdout */
+#ifdef _WIN32
+    /* use LockFile or LockFileEx on stdout? */
+#else    
+    /* FIXME: flockfile is neither std C nor POSIX */
     flockfile(stdout);		/* FIXME: macroize this to make it conditional on TB_LOG */
+#endif
     OIC_LOG(DEBUG, TAG, "received pdu data :");
     OIC_LOG_BUFFER(DEBUG, TAG,  data, dataLen);
 
     OIC_TRACE_END();
     OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
     fflush(stdout);
+#ifdef _WIN32
+#else
     funlockfile(stdout);
+#endif
 }
 
 void CAHandleRequestResponseCallbacks()

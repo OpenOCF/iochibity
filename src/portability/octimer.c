@@ -30,13 +30,13 @@
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
 #endif
+
+#if EXPORT_INTERFACE
 #ifdef HAVE_LIBPTHREAD
-#if INTERFACE
 #include <pthread.h>
-#endif	/* INTERFACE */
-#else
-#include "windows/pthread_create.h"
 #endif
+#endif	/* INTERFACE */
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -80,7 +80,7 @@ typedef void(*TimerCallback)(void *ctx);
 #define TIMEOUT_USED   1
 #define TIMEOUT_UNUSED  2
 
-LOCAL pthread_t thread_id = 0; // 0: initial thread id (meaningless)
+pthread_t thread_id = 0; // 0: initial thread id (meaningless)
 
 struct timelist_t
 {

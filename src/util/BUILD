@@ -40,7 +40,7 @@ cc_library(
     #          "-Iexternal/openocf/src",
              "-Isrc/logger",
              "-Iexternal/openocf/src/logger",
-    #          "-Isrc/portability",
+             "-Isrc/portability",
     #          "-Iexternal/openocf/src/portability",
     #          "-Isrc/util",
     #          "-Iexternal/openocf/src/util"]
@@ -53,7 +53,7 @@ cc_library(
                                        "-UDEBUG"]}),
     deps = ["//third_party/tinycbor",
             "//src/logger",
-    #         "//src/portability"
+            "//src/portability"
     ],
     # hdrs = ["base64.h",
     #         # "byte_array.h",

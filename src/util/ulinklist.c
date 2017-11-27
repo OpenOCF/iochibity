@@ -20,10 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ulinklist.h"
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
-/* //GAR avoid circular deps #include "caadapterutils.h" */
-/* #include "cacommonutil.h" //GAR */
 
 /**
  * Logging tag for module name.
@@ -31,6 +27,8 @@
 #define TAG "OIC_ULINKLIST"
 
 #if EXPORT_INTERFACE
+#include <stdint.h>
+
 /**
  * link list structure
  */

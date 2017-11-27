@@ -18,15 +18,19 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-/* #include "iotivity_config.h" */
 #include "trace.h"
 
 /* #if (defined(__ANDROID__)) || (defined(__TIZEN__) && defined(OIC_SUPPORT_TIZEN_TRACE)) */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stddef.h>
 #include <stdint.h>
+#endif
+
 #include <stdio.h>
+
+#if EXPORT_INTERFACE
+
 #ifdef __ANDROID__
 #define OIC_TRACE_BEGIN(MSG, ...) \
         oic_trace_begin("OIC:"#MSG, ##__VA_ARGS__)
@@ -51,13 +55,13 @@
         traceEnd(TTRACE_TAG_APP)
 # define OIC_TRACE_BUFFER(MSG, BUF, SIZ) \
         oic_trace_buffer(MSG, BUF, SIZ)
-#else
+#else  /* tizen, not tizen_trace  */
  #define OIC_TRACE_BEGIN(MSG, ...)
  #define OIC_TRACE_END()
  #define OIC_TRACE_MARK(MSG, ...)
  #define OIC_TRACE_BUFFER(MSG, BUF, SIZ)
 #endif
-#else
+#else  /* not android, not tizen */
 #define OIC_TRACE_BEGIN(MSG, ...)
 #define OIC_TRACE_END()
 #define OIC_TRACE_MARK(MSG, ...)
@@ -93,7 +97,7 @@ void oic_trace_buffer(const char *name, const uint8_t * buffer, size_t bufferSiz
         remainSize -= 2;
     }
 
-    OIC_TRACE_BEGIN(%s:%s, name, lineBuffer);
+    OIC_TRACE_BEGIN("%s:%s", name, lineBuffer);
     OIC_TRACE_END();
 }
 

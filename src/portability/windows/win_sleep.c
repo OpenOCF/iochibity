@@ -17,10 +17,10 @@
 *
 ******************************************************************/
 
+#include "win_sleep.h"
 #include <assert.h>
 #include <windows.h>
 #include <errno.h>
-#include "win_sleep.h"
 
 /* #include "logger.h" */
 #define TAG  "WIN_SLEEP"
@@ -34,6 +34,8 @@ struct timespec
     time_t tv_sec;  // Seconds - >= 0
     long   tv_nsec; // Nanoseconds - [0, 999999999]
 };
+#else
+#include <time.h>
 #endif
 
 #define ASSERT_AND_FAIL(EXPRESSION) {    \
@@ -52,6 +54,8 @@ int usleep(unsigned int usec)
     return 0;
 }
 
+/* FIXME GAR mingw has nanosleep, msvc does not */
+#ifdef _MSC_VER
 int nanosleep(const struct timespec *req, struct timespec *rem)
 {
     if (req == NULL)
@@ -67,4 +71,4 @@ int nanosleep(const struct timespec *req, struct timespec *rem)
 
     return 0;
 }
-
+#endif

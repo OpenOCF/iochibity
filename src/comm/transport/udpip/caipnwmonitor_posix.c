@@ -26,7 +26,9 @@
 #include <sys/socket.h>
 #endif
 #include <sys/select.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -46,14 +48,14 @@
 
 #include "utlist.h"
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <stdint.h>
 #endif
 
 
 #define TAG "IPNWMP"
 
-/* #if INTERFACE
+/* #if EXPORT_INTERFACE
  * #include <stdint.h>
  * #endif	/\* INTERFACE *\/
  * 

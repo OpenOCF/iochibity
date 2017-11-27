@@ -25,18 +25,20 @@
 #define _GNU_SOURCE // for in6_pktinfo
 #endif
 
-#include "caipserver.h"
-/* #include "iotivity_config.h" */
-/* #include "iotivity_debug.h" */
+#include "caipserver0.h"
 
 #include <stdbool.h>
 
-#if INTERFACE
+#if EXPORT_INTERFACE
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
-#endif
+#include <stdint.h>
+#endif	/* EXPORT_INTERFACE */
+
 #ifdef HAVE_WINSOCK2_H
 #include <winsock2.h>
 #endif
@@ -54,7 +56,7 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
-#if INTERFACE
+#if EXPORT_INTERFACE
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -62,28 +64,20 @@
 #ifdef HAVE_NET_IF_H
 #include <net/if.h>
 #endif
+
 #include <errno.h>
-#ifdef __linux__
-#include <linux/netlink.h>
-#include <linux/rtnetlink.h>
-#endif
+/* #ifdef __linux__ */
+/* #include <linux/netlink.h> */
+/* #include <linux/rtnetlink.h> */
+/* #endif */
 
 #include <coap/pdu.h>
 #include <inttypes.h>
-/* #include "caipserver.h" */
-/* #include "caipnwmonitor.h" */
-/* #include "caadapterutils.h" */
-/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
-/* #include "ca_adapter_net_ssl.h" */
-/* #endif */
-/* #include "octhread.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
 
 #define USE_IP_MREQN
-/* #if defined(_WIN32)
- * #undef USE_IP_MREQN
- * #endif */
+#if defined(_WIN32)
+#undef USE_IP_MREQN
+#endif
 
 /*
  * Logging tag for module name
@@ -127,7 +121,7 @@ typedef void (*CAIPErrorHandleCallback)(const CAEndpoint_t *endpoint, const void
                                         size_t dataLength, CAResult_t result);
 #endif
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define SELECT_TIMEOUT 1     // select() seconds (and termination latency)
 #endif
 
@@ -153,7 +147,9 @@ static struct in6_addr IPv6MulticastAddressGlb;
 /*
  * Buffer size for the receive message buffer
  */
+#if EXPORT_INTERFACE
 #define RECV_MSG_BUF_LEN 16384
+#endif
 
 static char *ipv6mcnames[IPv6_DOMAINS] = {
     NULL,
@@ -187,7 +183,7 @@ static char *ipv6mcnames[IPv6_DOMAINS] = {
  * #else */
 /* #define IFF_UP_RUNNING_FLAGS  (IFF_UP|IFF_RUNNING) */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 #include <string.h>
 #define CAIPS_GET_ERROR strerror(errno)
 #endif
@@ -226,6 +222,15 @@ static void CAReceiveHandler(void *data)
 
 /* NEW DELEGATE: CADeInitializeMonitorGlobals(); */
 
+#if EXPORT_INTERFACE
+#define CLOSE_SOCKET(TYPE) \
+    if (caglobals.ip.TYPE.fd != OC_INVALID_SOCKET) \
+    { \
+        OC_CLOSE_SOCKET(caglobals.ip.TYPE.fd); \
+        caglobals.ip.TYPE.fd = OC_INVALID_SOCKET; \
+    }
+#endif
+
 void CADeInitializeIPGlobals()
 {
     CLOSE_SOCKET(u6);
@@ -247,17 +252,38 @@ void CAIPPullData()
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 
+/*
+ * misnamed. it: 1) creates a socket; 2) sets socket options ; 3) if
+ * port is passed as art, sets the port but not the ip addr; 4) binds
+ * an address to the socket; 5) if port is assigned by OS, return it
+ * as port out-param; 6) return the socket's FD.  It only does this
+ * for the pre-designated sockets in the caglobal var (type
+ * CAGlobals_t), of which there are 8 (e.g. caglobals.ip.u6), each of
+ * which is a CASocket_t, with fd and port members.
+ *
+ * more accurate naming? initialize_ocf_socket, prepare_ocf_socket,
+ * etc.  point is these are ocf-specific sockets (the socket options
+ * reflect this), not just any sockets.
+ *
+ * 8 ocf sockets: uni/mult; ipv4/ipv6; secure/insecure
+ *
+ * PROBLEM: same errcode OC_INVALID_SOCKET, for multiple routines.
+ *
+ */
 static CASocketFd_t CACreateSocket(int family, uint16_t *port, bool isMulticast)
 {
     int socktype = SOCK_DGRAM;
 #ifdef SOCK_CLOEXEC
     socktype |= SOCK_CLOEXEC;
 #endif
+    /* NB: CASocketFd_t is for (windows) portability */
     CASocketFd_t fd = socket(family, socktype, IPPROTO_UDP);
+    /* if (POSIX_SOCKET_ERROR == fd) */
     if (OC_INVALID_SOCKET == fd)
     {
         OIC_LOG_V(ERROR, TAG, "create socket failed: %s", CAIPS_GET_ERROR);
         return OC_INVALID_SOCKET;
+	/* FIXME: retry here rather than in calling routine? */
     }
 
 #if !defined(SOCK_CLOEXEC) && defined(FD_CLOEXEC)
@@ -341,6 +367,7 @@ static CASocketFd_t CACreateSocket(int family, uint16_t *port, bool isMulticast)
 
 /* DELEGATED: #define CHECKFD(FD) */
 
+/* FIXME: eliminate this heinous macro! */
 #define NEWSOCKET(FAMILY, NAME, MULTICAST) \
 do \
 { \
@@ -384,7 +411,16 @@ CAResult_t CAIPStartServer(const ca_thread_pool_t threadPool)
 
     if (caglobals.ip.ipv6enabled)
     {
-        NEWSOCKET(AF_INET6, u6, false);
+	/* NEWSOCKET(AF_INET6, u6, false); */
+	caglobals.ip.u6.fd = CACreateSocket(AF_INET6, &caglobals.ip.u6.port, /* MULTICAST */ false);
+	if (caglobals.ip.u6.fd == OC_INVALID_SOCKET) { /* invalid sock? WTF? */
+	/* FIXME: check errno? */
+	    caglobals.ip.u6.port = 0;
+	    caglobals.ip.u6.fd = CACreateSocket(AF_INET6, &caglobals.ip.u6.port, /* MULTICAST */ false);
+	}
+	CHECKFD(caglobals.ip.NAME.fd);
+
+
         NEWSOCKET(AF_INET6, u6s, false);
         NEWSOCKET(AF_INET6, m6, true);
         NEWSOCKET(AF_INET6, m6s, true);
@@ -482,7 +518,7 @@ void applyMulticastToInterface4(uint32_t ifindex)
     ret = setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
-	if (PORTABLE_check_setsockopt_m4s_err())
+	if (PORTABLE_check_setsockopt_m4s_err(mreq, ret))
         {
             OIC_LOG_V(ERROR, TAG, "SECURE IPv4 IP_ADD_MEMBERSHIP failed: %s", CAIPS_GET_ERROR);
         }
@@ -499,7 +535,7 @@ void applyMulticast6(CASocketFd_t fd, struct in6_addr *addr, uint32_t ifindex)
     int ret = setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
-	if (PORTABLE_check_setsockopt_m6_err())
+	if (PORTABLE_check_setsockopt_m6_err(fd, mreq, ret))
         {
             OIC_LOG_V(ERROR, TAG, "IPv6 IPV6_JOIN_GROUP failed: %s", CAIPS_GET_ERROR);
         }

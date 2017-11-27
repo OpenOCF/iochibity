@@ -17,7 +17,7 @@
  * limitations under the License.
  *
  ******************************************************************/
-#include "caipadapter.h"
+#include "caipadapter0.h"
 
 #include <stdio.h>
 #include <stdlib.h>

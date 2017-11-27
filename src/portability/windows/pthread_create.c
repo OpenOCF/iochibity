@@ -20,9 +20,16 @@
 #include "pthread_create.h"
 #include <windows.h>
 
+#if EXPORT_INTERFACE
+#ifdef _MSC_VER
 typedef void* pthread_t;
 typedef void pthread_attr_t;
+#else
+#include <pthread.h>
+#endif
+#endif
 
+#ifdef _MSC_VER
 int pthread_create(
     pthread_t *thread,
     const pthread_attr_t *attr,
@@ -33,3 +40,4 @@ int pthread_create(
     *thread = CreateThread(NULL, 0, (PTHREAD_START_ROUTINE)start_routine, arg, 0, NULL);
     return (*thread == NULL) ? GetLastError() : 0;
 }
+#endif

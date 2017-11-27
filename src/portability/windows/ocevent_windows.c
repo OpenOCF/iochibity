@@ -23,17 +23,14 @@
  */
 
 #include "ocevent_windows.h"
-/* #include "../oic_malloc.h" */
-/* #include "logger.h" */
-/* #include "iotivity_debug.h" */
 
 #include <assert.h>
-#ifdef HAVE_STDBOOL_H
-#include <stdbool.h>
-#endif
+/* #ifdef HAVE_STDBOOL_H */
+/* #include <stdbool.h> */
+/* #endif */
 
 #include <stdlib.h>
-#include <windows.h>
+#include <stdint.h>
 
 /**
  * TAG
@@ -41,13 +38,17 @@
  */
 #define TAG "OIC_EVENT"
 
-typedef struct oc_event_t
-{
-    /* The event handle */
-    HANDLE event;
-} oc_event_t;
-
-typedef struct oc_event_t *oc_event;
+/* FIXME: this does not work embedded here. must go in manual header _events.h */
+/* #if EXPORT_INTERFACE */
+/* #ifdef HAVE_WINDOWS_H */
+/* #include <windows.h> */
+/* typedef struct oc_event_t */
+/* { */
+/*     HANDLE event; */
+/* } oc_event_t; */
+/* typedef struct oc_event_t* oc_event; */
+/* #endif */
+/* #endif */
 
 oc_event oc_event_new()
 {

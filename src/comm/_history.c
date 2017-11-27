@@ -1,8 +1,8 @@
-#if INTERFACE
+#if EXPORT_INTERFACE
 #define HISTORYSIZE (4)
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     CATransportFlags_t flags;
@@ -13,7 +13,7 @@ typedef struct
 } CAHistoryItem_t;
 #endif	/* INTERFACE */
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 typedef struct
 {
     int nextIndex;

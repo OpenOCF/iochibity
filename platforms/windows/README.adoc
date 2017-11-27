@@ -64,6 +64,7 @@ SET INCLUDE=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Too
 /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Tools/MSVC/14.11.25503/atlmfc/
 
 C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include;
+
 /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Tools/MSVC/14.11.25503/include
 
 C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um;
@@ -73,15 +74,34 @@ C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\ucrt;
 /c/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt
 
 C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\shared;
+
 C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\um;
+/C/Program\ Files\ \(x86\)/Windows\ Kits/10/include/10.0.15063.0/um
+=> WinSock2.h
+
 C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\winrt;
+/C/Program\ Files\ \(x86\)/Windows\ Kits/10/include/10.0.15063.0/winrt
 
 
 SET LIB=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\lib\x64;
+
+/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Tools/MSVC/14.11.25503/ATLMFC/lib/x64
+
 C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\lib\x64;
+
+/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Tools/MSVC/14.11.25503/lib/x64
+
 C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\lib\um\x64;
+
+/c/Program\ Files\ \(x86\)/Windows\ Kits/NETFXSDK/4.6.1/lib/um/x64
+
 C:\Program Files (x86)\Windows Kits\10\lib\10.0.15063.0\ucrt\x64;
+
+/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/ucrt/x64
+
 C:\Program Files (x86)\Windows Kits\10\lib\10.0.15063.0\um\x64;
+/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64
+==> contains bcrypt.lib, crypt32.lib, iphlpapi.lib
 
 
 
