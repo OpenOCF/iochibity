@@ -28,7 +28,7 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "oic_time.h"
+#include "oic_time_posix.h"
 
 #include <stddef.h>        /* For NULL */
 #ifdef HAVE_UNISTD_H
@@ -78,7 +78,7 @@ uint64_t OICGetCurrentTime(OICTimePrecision precision)
 {
     uint64_t currentTime = 0;
 
-#ifdef (_WIN32)
+#ifdef _WIN32
     static LARGE_INTEGER frequency = {0};
 
     if (!frequency.QuadPart)

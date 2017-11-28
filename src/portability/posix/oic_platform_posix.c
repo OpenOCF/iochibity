@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  ******************************************************************/
-#include "oic_platform.h"
-/* #include "iotivity_config.h" */
+#include "oic_platform_posix.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -65,11 +64,6 @@
 #include <stddef.h>
 #include <errno.h>
 #include <mbedtls/md.h>
-/* #include "logger.h" */
-/* #include "iotivity_debug.h" */
-/* #include "oic_platform.h" */
-/* #include "ocrandom.h" */
-/* #include "oic_string.h" */
 
 #define TAG "OIC_PLATFORM"
 
