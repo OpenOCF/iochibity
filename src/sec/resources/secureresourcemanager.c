@@ -234,7 +234,7 @@ static void SetDiscoverable(SRMRequestContext_t *context)
         context->discoverable = DISCOVERABLE_NOT_KNOWN;
         return;
     }
-    if (NULL == context->resourceUri)
+    if ( 0 == *(context->resourceUri) )
     {
         OIC_LOG_V(ERROR, TAG, "%s: Null resourceUri.", __func__);
         context->discoverable = DISCOVERABLE_NOT_KNOWN;
