@@ -16,7 +16,8 @@ cc_library(
              "-Isrc/util",
              "-Ithird_party/coap",
              "-Ithird_party/coap/include",
-             "-Ithird_party/tinycbor/src"
+             "-Ithird_party/tinycbor/src",
+             "-Ithird_party/utlist"
     ] + select({"windows": [],
                 "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
@@ -25,6 +26,7 @@ cc_library(
             "//src/sec/calendar",
             "//src/util",
             "//third_party/coap",
+            "//third_party/utlist",
             "//third_party/tinycbor"],
     srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//visibility:public"],

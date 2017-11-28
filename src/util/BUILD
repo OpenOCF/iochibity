@@ -53,7 +53,7 @@ cc_library(
                                        "-UDEBUG"]}),
     deps = ["//third_party/tinycbor",
             "//src/logger",
-            "//src/portability"
+            # "//src/portability"
     ],
     # hdrs = ["base64.h",
     #         # "byte_array.h",

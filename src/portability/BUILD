@@ -5,11 +5,11 @@ config_setting(
 )
 config_setting(
     name = "darwin",
-    values = { "cpu": "darwinX" }
+    values = { "cpu": "darwin" }
 )
 config_setting(
     name = "darwin64",
-    values = { "cpu": "darwin_x86_64X" }
+    values = { "cpu": "darwin_x86_64" }
 )
 config_setting(
     name = "android",
@@ -96,16 +96,17 @@ cc_library(
                 ":windows": ["//src/portability/windows:win"],
                 ":msvc": ["//src/portability/windows:win"],
                 ":msys": ["//src/portability/posix"],
-                #":darwin": ["//src/portability/darwin"],
-                #":darwin64": ["//src/portability/darwin"],
+                ":darwin": ["//src/portability/posix",
+                            "//src/portability/darwin"],
+                ":darwin64": ["//src/portability/posix",
+                              "//src/portability/darwin"],
               "//conditions:default": ["//src/portability/posix"]}),
-    hdrs = glob(["*.h"]),
+    # hdrs = glob(["*.h"]),
     linkopts = select({":msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 bcrypt.lib"],
                        ":msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lbcrypt"],
                        ":windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 bcrypt.lib"],
                        "//conditions:default": []}),
-    srcs = glob(["*.c"],
-                exclude = ["_events.c"]),
+    srcs = glob(["*.c"], exclude = ["_events.c"]) + glob(["*.h"]),
     visibility = ["//src:__subpackages__",
                   "//third_party:__subpackages__"]
  )
