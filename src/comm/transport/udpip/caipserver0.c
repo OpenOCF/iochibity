@@ -56,11 +56,13 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
+
 #if EXPORT_INTERFACE
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
 #endif
+
 #ifdef HAVE_NET_IF_H
 #include <net/if.h>
 #endif
@@ -418,7 +420,7 @@ CAResult_t CAIPStartServer(const ca_thread_pool_t threadPool)
 	    caglobals.ip.u6.port = 0;
 	    caglobals.ip.u6.fd = CACreateSocket(AF_INET6, &caglobals.ip.u6.port, /* MULTICAST */ false);
 	}
-	CHECKFD(caglobals.ip.NAME.fd);
+	CHECKFD(caglobals.ip.u6.fd);
 
 
         NEWSOCKET(AF_INET6, u6s, false);
@@ -518,7 +520,7 @@ void applyMulticastToInterface4(uint32_t ifindex)
     ret = setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
-	if (PORTABLE_check_setsockopt_m4s_err(mreq, ret))
+ 	if (PORTABLE_check_setsockopt_m4s_err(mreq, ret))
         {
             OIC_LOG_V(ERROR, TAG, "SECURE IPv4 IP_ADD_MEMBERSHIP failed: %s", CAIPS_GET_ERROR);
         }

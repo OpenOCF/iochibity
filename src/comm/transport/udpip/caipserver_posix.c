@@ -257,11 +257,20 @@ void CAWakeUpForChange()
     }
 }
 
-bool PORTABLE_check_setsockopt_err() { return EADDRINUSE != errno; }
+bool PORTABLE_check_setsockopt_err()
+{
+    return EADDRINUSE != errno;
+}
 
-bool PORTABLE_check_setsockopt_m4s_err(mreq, ret) { return EADDRINUSE != errno; }
+bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn mreq, int ret)
+{
+    return EADDRINUSE != errno;
+}
 
-bool PORTABLE_check_setsockopt_m6_err(fd, mreq, ret) { return EADDRINUSE != errno; }
+bool PORTABLE_check_setsockopt_m6_err(fd, mreq, ret)
+{
+    return EADDRINUSE != errno;
+}
 
 void PORTABLE_sendto(CASocketFd_t fd,
                      const void *data,

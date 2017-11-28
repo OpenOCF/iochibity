@@ -490,7 +490,7 @@ void CAWakeUpForChange()
     }
 }
 
-PORTABLE_check_setsockopt_err() { return WSAEINVAL != WSAGetLastError(); }
+bool PORTABLE_check_setsockopt_err() { return WSAEINVAL != WSAGetLastError(); }
 
 bool PORTABLE_check_setsockopt_m4s_err(mreq, ret)
 {
