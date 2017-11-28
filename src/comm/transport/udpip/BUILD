@@ -35,7 +35,8 @@ cc_library(
              "-Isrc/util",
              "-Ithird_party/coap/include",
              "-Ithird_party/utlist",
-             "-Iexternal/openocf/third_party/coap/include"
+             "-Iexternal/openocf/third_party/coap/include",
+             "-Wall", "-Wextra"
     ] + select({":windows": [],
               ":msvc": [],
               ":msys": [],
