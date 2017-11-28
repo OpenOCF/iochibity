@@ -4,7 +4,7 @@
 AC_PREREQ([2.69])
 AC_INIT([OpenOCF], [1.3.0], [dev@mobileink.com])
 #AC_CONFIG_SRCDIR([extlibs/rapidxml/rapidxml.hpp])
-AC_CONFIG_HEADERS([src/openocf_config.c])
+AC_CONFIG_HEADERS([src/_openocf_config.h])
 dnl AC_CONFIG_MACRO_DIRS([m4]
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -21,7 +21,7 @@ dnl              [],
 dnl              [AC_MSG_FAILURE([*** Implementation must conform to the POSIX.1-2008 standard.])]
 dnl )
 
-AH_TOP([#if INTERFACE])
+dnl AH_TOP([#if INTERFACE])
 
 # Checks for programs.
 #AC_PROG_CXX
@@ -301,6 +301,6 @@ AH_BOTTOM([
 
 
 AH_BOTTOM([#include "system.h"])
-AH_BOTTOM([#endif /* INTERFACE */])
+dnl AH_BOTTOM([#endif /* INTERFACE */])
 
 AC_OUTPUT
