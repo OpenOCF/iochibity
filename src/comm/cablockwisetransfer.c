@@ -40,12 +40,12 @@
 
 #define TAG "OIC_CA_BWT"
 
-#if EXPORT_INTERFACE
+#if INTERFACE
 #include "coap_config.h"
 #include "coap/block.h"
 #endif
 
-#if EXPORT_INTERFACE
+#if INTERFACE
 /**
  * Callback to send block data.
  * @param[in]   data    send data.
@@ -157,10 +157,11 @@ typedef enum
 #define CA_DEFAULT_BLOCK_SIZE       CA_BLOCK_SIZE_1024_BYTE
 #endif
 
-#define BLOCKWISE_OPTION_BUFFER    (sizeof(unsigned int))
+#if INTERFACE
 #define BLOCK_NUMBER_IDX           4
 #define BLOCK_M_BIT_IDX            3
 #define PORT_LENGTH                2
+#endif
 
 #define BLOCK_SIZE(arg) (1 << ((arg) + 4))
 
@@ -1588,37 +1589,6 @@ CAResult_t CAAddOptionToPDU(coap_pdu_t *pdu, coap_list_t **options)
     }
 
     OIC_LOG_V(DEBUG, TAG, "[%d] pdu length after option", pdu->length);
-
-    return CA_STATUS_OK;
-}
-
-CAResult_t CAAddBlockSizeOption(coap_pdu_t *pdu, uint16_t sizeType, size_t dataLength,
-                                coap_list_t **options)
-{
-    OIC_LOG(DEBUG, TAG, "IN-CAAddBlockSizeOption");
-    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
-    VERIFY_NON_NULL_MSG(options, TAG, "options");
-    VERIFY_TRUE((dataLength <= UINT_MAX), TAG, "dataLength");
-
-    if (sizeType != COAP_OPTION_SIZE1 && sizeType != COAP_OPTION_SIZE2)
-    {
-        OIC_LOG(ERROR, TAG, "unknown option type");
-        return CA_STATUS_FAILED;
-    }
-
-    unsigned char value[BLOCKWISE_OPTION_BUFFER] = { 0 };
-    unsigned int optionLength = coap_encode_var_bytes(value,
-                                                      (unsigned int)dataLength);
-
-    int ret = coap_insert(options,
-                          CACreateNewOptionNode(sizeType, optionLength, (char *) value),
-                          CAOrderOpts);
-    if (ret <= 0)
-    {
-        return CA_STATUS_INVALID_PARAM;
-    }
-
-    OIC_LOG(DEBUG, TAG, "OUT-CAAddBlockSizeOption");
 
     return CA_STATUS_OK;
 }
