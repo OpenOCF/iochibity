@@ -16,7 +16,6 @@
  *
  ******************************************************************/
 
-#if EXPORT_INTERFACE
 /**
  * @name OIC GATT Transport Constants
  *
@@ -68,5 +67,3 @@
  */
 #define CA_GATT_RESPONSE_CONFIG_DESC "0001"
 //@}
-
-#endif	/* INTERFACE */

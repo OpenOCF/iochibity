@@ -1,14 +1,11 @@
 /**
  * URI for the OIC base.CA considers relative URI as the URI.
  */
-#if EXPORT_INTERFACE
 typedef char *CAURI_t;
-#endif	/* INTERFACE */
 
 /**
  * option types - the highest option number 63.
  */
-#if EXPORT_INTERFACE
 #define CA_OPTION_IF_MATCH 1
 #define CA_OPTION_ETAG 4
 #define CA_OPTION_IF_NONE_MATCH 5
@@ -21,21 +18,16 @@ typedef char *CAURI_t;
 #define CA_OPTION_URI_QUERY 15
 #define CA_OPTION_ACCEPT 17
 #define CA_OPTION_LOCATION_QUERY 20
-#endif	/* INTERFACE */
 
 /**
 * Max token length.
 */
-#if EXPORT_INTERFACE
 #define CA_MAX_TOKEN_LEN (8)
-#endif	/* INTERFACE */
 
 /**
  * Max URI length.
  */
-#if EXPORT_INTERFACE
 #define CA_MAX_URI_LENGTH 512 /* maximum size of URI for other platforms*/
-#endif	/* INTERFACE */
 
 /**
  * TODO: Move these COAP defines to CoAP lib once approved.
@@ -46,7 +38,6 @@ typedef char *CAURI_t;
   /* CA_ prefix: from //src/comm/api/cacommon.h: */
   /* OC_ prefix: from //src/ocf/octypes.h: */
 
-#if EXPORT_INTERFACE
 typedef enum
 {
     /** value zero indicates discovery.*/
@@ -102,12 +93,10 @@ typedef enum
 
     CA_ALL_ADAPTERS          = 0xffffffff
 } CATransportAdapter_t;
-#endif	/* INTERFACE */
 
 /**
  *  Enum layout assumes some targets have 16-bit integer (e.g., Arduino).
  */
-#if EXPORT_INTERFACE
 typedef enum
 {
     /** default flag is 0*/
@@ -193,21 +182,16 @@ typedef enum
 #define CA_IPFAMILY_MASK (CA_IPV6|CA_IPV4)
 #define CA_SCOPE_MASK 0xf     // mask scope bits above
 
-#endif	/* INTERFACE */
-
-#if EXPORT_INTERFACE
 /** Bit mask for scope.*/
 #define OC_MASK_SCOPE    (0x000F)
 
 /** Bit mask for Mods.*/
 #define OC_MASK_MODS     (0x0FF0)
 #define OC_MASK_FAMS     (OC_IP_USE_V6|OC_IP_USE_V4)
-#endif	/* INTERFACE */
 
 /**
  * End point identity.
  */
-#if EXPORT_INTERFACE
 typedef struct
 {
     /** Identity Length */
@@ -216,24 +200,20 @@ typedef struct
     /** Array of end point identity.*/
     unsigned char id[MAX_IDENTITY_SIZE];
 } OCIdentity;
-#endif	/* INTERFACE */
 
 /**
  * Universally unique identifier.
  */
-#if EXPORT_INTERFACE
 typedef struct
 {
     /** identitifier string.*/
     unsigned char id[UUID_IDENTITY_SIZE];
 } OCUUIdentity;
-#endif	/* INTERFACE */
 
 /**
  * Data structure to encapsulate IPv4/IPv6/Contiki/lwIP device addresses.
  * OCDevAddr must be the same as CAEndpoint (in CACommon.h).
  */
-#if EXPORT_INTERFACE
 #include <stdint.h>
 typedef struct
 {
@@ -259,7 +239,6 @@ typedef struct
     char                    remoteId[MAX_IDENTITY_SIZE];
 
 } OCDevAddr;
-#endif	/* EXPORT_INTERFACE */
 
 /**
  * This enum type includes elements of both ::OCTransportAdapter and ::OCTransportFlags.
@@ -269,7 +248,6 @@ typedef struct
  *
  * This structure must directly correspond to ::OCTransportAdapter and ::OCTransportFlags.
  */
-#if EXPORT_INTERFACE
 typedef enum
 {
     /** use when defaults are ok. */
@@ -340,12 +318,10 @@ typedef enum
 
 /** Mask Adapter.*/
 #define CT_MASK_ADAPTER 0xFFFF0000
-#endif	/* EXPORT_INTERFACE */
 
 /**
  *  OCDoResource methods to dispatch the request
  */
-#if EXPORT_INTERFACE
 typedef enum
 {
     OC_REST_NOMETHOD       = 0,
@@ -375,12 +351,10 @@ typedef enum
     /** Allows OCDoResource caller to do discovery.*/
     OC_REST_DISCOVER       = (1 << 8)
 } OCMethod;
-#endif	/* INTERFACE */
 
 /**
  * Host Mode of Operation.
  */
-#if EXPORT_INTERFACE
 typedef enum
 {
     OC_CLIENT = 0,
@@ -390,12 +364,10 @@ typedef enum
 } OCMode;
 
 #define OC_MASK_RESOURCE_SECURE    (OC_NONSECURE | OC_SECURE)
-#endif	/* INTERFACE */
 
 /**
  * Transport Protocol IDs.
  */
-#if EXPORT_INTERFACE
 typedef enum
 {
     /** For invalid ID.*/
@@ -404,21 +376,17 @@ typedef enum
     /* For coap ID.*/
     OC_COAP_ID      = (1 << 1)
 } OCTransportProtocolID;
-#endif	/* INTERFACE */
 
 /**
  * Sequence number is a 24 bit field,
  * per https://tools.ietf.org/html/rfc7641.
  */
-#if EXPORT_INTERFACE
 #define MAX_SEQUENCE_NUMBER              (0xFFFFFF)
-#endif	/* INTERFACE */
 
 /**
  * This structure will be used to define the vendor specific header options to be included
  * in communication packets.
  */
-#if EXPORT_INTERFACE
 typedef struct OCHeaderOption
 {
     /** The protocol ID this option applies to.*/
@@ -452,12 +420,10 @@ typedef struct OCHeaderOption
  *     }
  * #endif // __cplusplus */
 } OCHeaderOption;
-#endif	/* INTERFACE */
 
 /**
  *  This enum type for indicate Transport Protocol Suites
  */
-#if EXPORT_INTERFACE
 typedef enum
 {
     /** For initialize */
@@ -502,9 +468,7 @@ typedef enum
     /** Allow all endpoint.*/
     OC_ALL       = 0xffff
 } OCTpsSchemeFlags;
-#endif	/* INTERFACE */
 
-#if EXPORT_INTERFACE
 /**
  * Possible return values from client application callback
  *
@@ -519,7 +483,6 @@ typedef enum
     OC_STACK_KEEP_TRANSACTION,
     OC_STACK_KEEP_RESPONSE	/* GAR client responsible for freeing response */
 } OCStackApplicationResult;
-#endif	/* INTERFACE */
 
 /**
  * Application server implementations must implement this callback to consume requests OTA.
@@ -549,10 +512,8 @@ typedef enum
  *
  * return OC_EH_OK;
  */
-#if EXPORT_INTERFACE
 typedef OCEntityHandlerResult (*OCEntityHandler)
 (OCEntityHandlerFlag flag, OCEntityHandlerRequest * entityHandlerRequest, void* callbackParam);
-#endif
 
 /**
  * Device Entity handler need to use this call back instead of OCEntityHandler.
@@ -581,11 +542,5 @@ typedef OCEntityHandlerResult (*OCEntityHandler)
  *
  * return OC_EH_OK;
  */
-#if EXPORT_INTERFACE
 typedef OCEntityHandlerResult (*OCDeviceEntityHandler)
 (OCEntityHandlerFlag flag, OCEntityHandlerRequest * entityHandlerRequest, char* uri, void* callbackParam);
-#endif	/* EXPORT_INTERFACE */
-
-
-
-

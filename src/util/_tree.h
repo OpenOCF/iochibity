@@ -54,8 +54,6 @@
  * The maximum height of a red-black tree is 2lg (n+1).
  */
 
-#if EXPORT_INTERFACE
-
 #define SPLAY_HEAD(name, type)						\
 struct name {								\
 	struct type *sph_root; /* root of the tree */			\
@@ -1044,4 +1042,3 @@ RBT_GENERATE_INTERNAL(_name, _type, _field, _cmp, _name##_RBT_AUGMENT)
 #endif /* _KERNEL */
 
 /* #endif	/\* _SYS_TREE_H_ *\/ */
-#endif	/* INTERFACE */

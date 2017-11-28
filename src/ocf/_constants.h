@@ -1,5 +1,3 @@
-#if EXPORT_INTERFACE
-
 #define OIC_UUID_LENGTH     16
 
 /**
@@ -65,10 +63,8 @@
 /** Sets the default time to live (TTL) for presence.*/
 #define OC_DEFAULT_PRESENCE_TTL_SECONDS       (60)
 
-#if EXPORT_INTERFACE
 /** For multicast Discovery mechanism.*/
 #define OC_MULTICAST_DISCOVERY_URI            "/oic/res"
-#endif	/* INTERFACE */
 
 /** Separator for multiple query string.*/
 #define OC_QUERY_SEPARATOR                    "&;"
@@ -320,12 +316,10 @@
 /** Device specification version.*/
 #define OC_SPEC_VERSION                  "ocf.1.1.0"
 
-#if EXPORT_INTERFACE
 /** Integer value of spec version (OCF1.0 0b0000:1000:0000:0000).*/
 #define OC_SPEC_VERSION_VALUE            2048
 #define OCF_VERSION_1_0_0 OC_SPEC_VERSION_VALUE
 #define OCF_VERSION_1_1_0                2112
-#endif	/* INTERFACE */
 
 /** Device Data Model version.*/
 #define OC_DATA_MODEL_VERSION            "ocf.res.1.1.0,ocf.sh.1.1.0"
@@ -397,9 +391,7 @@
 #define MAC_ADDR_BLOCKS (6)
 
 /** Max identity size. */
-#if EXPORT_INTERFACE
 #define MAX_IDENTITY_SIZE (37)
-#endif	/* INTERFACE */
 
 /** Universal unique identity size. */
 #define UUID_IDENTITY_SIZE (128/8)
@@ -641,13 +633,11 @@
  */
 #define MAX_URI_LENGTH (256)
 
-#if EXPORT_INTERFACE
 /**
  * Maximum length of the query supported by client/server while processing
  * REST requests/responses.
  */
 #define MAX_QUERY_LENGTH (256)
-#endif	/* INTERFACE */
 
 /**
  * Maximum length of the Manufacturer name supported by the server
@@ -690,9 +680,7 @@
 /**
  *  Maximum Length of the vendor specific header option
  */
-#if EXPORT_INTERFACE
 #define MAX_HEADER_OPTION_DATA_LENGTH (1024)
-#endif	/* INTERFACE */
 
 /**
  * Sets the time to live (TTL) for response callback(s).
@@ -704,11 +692,7 @@
  */
 #define MAX_CB_TIMEOUT_SECONDS   (2 * 60 * 60)  // 2 hours = 7200 seconds.
 
-#endif	/* EXPORT_INTERFACE */
-
 /* debug stuff */
-#if EXPORT_INTERFACE
-
 #include <assert.h>
 
 // Macro used to avoid the need for a local variable just for an assert. Using
@@ -726,4 +710,3 @@
 #define VALUE(x) VALUE_TO_STRING(x)
 #define VAR_NAME_VALUE(var) #var "="  VALUE(var)
 /* #pragma message VAR_NAME_VALUE(foo) */
-#endif

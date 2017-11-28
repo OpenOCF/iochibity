@@ -1,4 +1,3 @@
-#if EXPORT_INTERFACE
 /**
  * Enums for CA return values.
  */
@@ -55,4 +54,3 @@ typedef enum
     CA_PROXY_NOT_SUPPORTED = 505            /**< Proxy not enabled to service a request */
     /* Response status code - END HERE */
 } CAResponseResult_t;
-#endif	/* INTERFACE */

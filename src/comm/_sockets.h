@@ -1,7 +1,6 @@
 /*
  * Socket types and error definitions.
  */
-#if EXPORT_INTERFACE
 #ifdef HAVE_WINSOCK2_H
 #include <Winsock2.h>
 #include <windows.h>
@@ -21,9 +20,6 @@
 #define CASocketFd_t int
 #endif
 
-#endif	/* EXPORT_INTERFACE */
-
-#if EXPORT_INTERFACE
 /**
  * Hold global variables for CA layer. (also used by RI layer)
  */
@@ -32,4 +28,3 @@ typedef struct
     CASocketFd_t fd;    /**< socket fd */
     uint16_t port;      /**< socket port */
 } CASocket_t;
-#endif	/* INTERFACE */

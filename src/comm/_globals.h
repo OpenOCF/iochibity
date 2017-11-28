@@ -1,5 +1,4 @@
-
-#if EXPORT_INTERFACE
+/* #if EXPORT_INTERFACE */
 #ifdef HAVE_WINSOCK2_H
 #  define OPTVAL_T(t)    (const char*)(t)
 #  define OC_CLOSE_SOCKET(s) closesocket(s)
@@ -7,11 +6,11 @@
 #  define OPTVAL_T(t)    (t)
 #  define OC_CLOSE_SOCKET(s) close(s)
 #endif
-#endif
+/* #endif */
 
 /* FIXME: split up this global monstrosity: ip-stuff, udp-stuff, tcp-stuff, and other stuff */
 
-#if EXPORT_INTERFACE
+/* #if EXPORT_INTERFACE */
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
@@ -104,10 +103,11 @@ typedef struct
         bool ipv6tcpenabled;    /**< IPv6 TCP enabled by OCInit flags */
     } tcp;
 #endif
-  /* FIXME: move to comm/transport/ble
-  // CATransportBTFlags_t bleFlags;   /**< flags related BLE transport */
+/* FIXME: move to comm/transport/ble */
+//  CATransportBTFlags_t bleFlags;   /**< flags related BLE transport */
 } CAGlobals_t;
 /* NB: used for one global var in caconnectivitymanager.c */
-#endif	/* INTERFACE */
+
+/* #endif	/\* INTERFACE *\/ */
 
 /* extern CAGlobals_t caglobals; */
