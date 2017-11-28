@@ -49,41 +49,11 @@
 
 /* typedef struct oc_event_t *oc_event; */
 
-/**
- * TAG
- * Logging tag for module name
- */
-#define TAG PCF("OIC_UMUTEX")
+#define TAG PCF("OIC_POSIX_OCTHREAD")
 
-static const uint64_t USECS_PER_SEC         = 1000000;
-static const uint64_t NANOSECS_PER_USECS    = 1000;
-static const uint64_t NANOSECS_PER_SEC      = 1000000000L;
-
-/* #if EXPORT_INTERFACE */
-/* /\** */
-/*  * Value used for the owner field of an oc_mutex that doesn't have an owner. */
-/*  *\/ */
-/* #define OC_INVALID_THREAD_ID    0 */
-
-/* typedef enum */
-/* { */
-/*     OC_THREAD_SUCCESS = 0, */
-/*     OC_THREAD_ALLOCATION_FAILURE = 1, */
-/*     OC_THREAD_CREATE_FAILURE=2, */
-/*     OC_THREAD_INVALID=3, */
-/*     OC_THREAD_WAIT_FAILURE=4, */
-/*     OC_THREAD_INVALID_PARAMETER=5 */
-/* } OCThreadResult_t; */
-/* #endif */
-
-#ifndef NDEBUG
-static pthread_t oc_get_current_thread_id()
-{
-    pthread_t id = pthread_self();
-    assert(OC_INVALID_THREAD_ID != id);
-    return id;
-}
-#endif
+/* const uint64_t USECS_PER_SEC      = 1000000;
+ * const uint64_t NANOSECS_PER_USECS = 1000;
+ * const uint64_t NANOSECS_PER_SEC   = 1000000000L; */
 
 typedef struct _tagMutexInfo_t
 {
@@ -111,24 +81,14 @@ typedef struct _tagThreadInfo_t
     pthread_attr_t  threadattr;
 } oc_thread_internal;
 
-/* #include <stdint.h> */
-/* #ifdef HAVE_TIME_H */
-/* #include <time.h> */
-/* #endif */
-/* #ifdef HAVE_SYS_TIME_H */
-/* #include <sys/time.h> */
-/* #endif */
-/* typedef struct oc_mutex_internal *oc_mutex; */
-/* typedef struct oc_cond_internal *oc_cond; */
-/* typedef struct oc_thread_internal *oc_thread; */
-/* #ifndef NDEBUG */
-/* static pthread_t oc_get_current_thread_id() */
-/* { */
-/*     pthread_t id = pthread_self(); */
-/*     assert(OC_INVALID_THREAD_ID != id); */
-/*     return id; */
-/* } */
-/* #endif */
+#ifndef NDEBUG
+static pthread_t oc_get_current_thread_id()
+{
+    pthread_t id = pthread_self();
+    assert(OC_INVALID_THREAD_ID != id);
+    return id;
+}
+#endif
 
 OCThreadResult_t oc_thread_new(oc_thread *t, void *(*start_routine)(void *), void *arg)
 {

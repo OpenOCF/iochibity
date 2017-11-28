@@ -35,8 +35,6 @@
 
 #define TAG "OIC_UMUTEX"
 
-static const uint64_t USECS_PER_MSEC = 1000;
-
 typedef struct _tagMutexInfo_t
 {
     CRITICAL_SECTION mutex;
@@ -51,15 +49,6 @@ typedef struct _tagMutexInfo_t
 #endif
 } oc_mutex_internal;
 
-#ifndef NDEBUG
-static DWORD oc_get_current_thread_id()
-{
-    DWORD id = GetCurrentThreadId();
-    assert(OC_INVALID_THREAD_ID != id);
-    return id;
-}
-#endif
-
 typedef struct _tagEventInfo_t
 {
     CONDITION_VARIABLE cond;
@@ -69,6 +58,15 @@ typedef struct _tagThreadInfo_t
 {
     HANDLE handle;
 } oc_thread_internal;
+
+#ifndef NDEBUG
+static DWORD oc_get_current_thread_id()
+{
+    DWORD id = GetCurrentThreadId();
+    assert(OC_INVALID_THREAD_ID != id);
+    return id;
+}
+#endif
 
 OCThreadResult_t oc_thread_new(oc_thread *t, void *(*start_routine)(void *), void *arg)
 {
