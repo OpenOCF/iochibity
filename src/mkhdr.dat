@@ -1,4 +1,5 @@
-src/comm/_addressing.h
+src/_openocf_config.h
+src/_system.h:
 
 src/portability/_events.c:
 src/portability/ocrandom.c
@@ -9,6 +10,8 @@ src/portability/posix/oic_platform_posix.c
 src/portability/oic_string.c
 src/portability/oic_time.c
 src/portability/posix/oic_time_posix.c
+
+src/portability/posix/ocatomic_posix.c
 
 src/portability/octhread.c
 src/portability/posix/octhread_posix.c
@@ -21,31 +24,30 @@ src/comm/transport/udpip/caipserver0.c
 src/comm/transport/udpip/caipserver_posix.c
 src/comm/transport/udpip/caipserver_darwin.c
 
-src/openocf_config.c
-src/system.c:
-src/comm/_coap.c:
-src/comm/_error.c:
-src/comm/_globals.c:
-src/comm/_history.c:
-src/comm/_network.c:
-src/comm/_processing.c:
-src/comm/_request.c:
-src/comm/_response.c:
-src/comm/_sockets.c:
-src/comm/transport/_bt.c:
-src/comm/transport/_ipif.c:
-src/comm/transport/ble/_cagattservice.c:
-src/ocf/_constants.c:
-src/ocf/_device.c
-src/ocf/_platform.c:
-src/ocf/_protocol.c:
-src/sec/_jwk.c:
-src/sec/_misc.c:
+src/comm/_addressing.h
+src/comm/_coap.h
+src/comm/_error.h
+src/comm/_globals.h
+src/comm/_history.h
+src/comm/_network.h
+src/comm/_processing.h
+src/comm/_request.h
+src/comm/_response.h
+src/comm/_sockets.h
+src/comm/transport/_bt.h
+src/comm/transport/_ipif.h
+src/comm/transport/ble/_cagattservice.h
+src/ocf/_constants.h
+src/ocf/_device.h
+src/ocf/_platform.h
+src/ocf/_protocol.h
+src/sec/_jwk.h
+src/sec/_misc.h
 src/util/_byte_array.c:
-src/util/_errcheck.c:
-src/util/_strutils.c:
-src/util/_tree.c:
-src/util/_uuid.c:
+src/util/_errcheck.h
+src/util/_strutils.h
+src/util/_tree.h
+src/util/_uuid.h
 
 src/comm/caadapterinterface.c
 src/comm/cablockwisetransfer.c
