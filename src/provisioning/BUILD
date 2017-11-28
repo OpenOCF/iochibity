@@ -40,7 +40,7 @@ cc_library(
             "//src/portability",
             "//src/sec:strings",
             # "//src/sec:interface",
-            "//src/sec/resources",
+            "//src/sec/svrs",
             "//src/util",
             "//include",
             "//third_party/coap",

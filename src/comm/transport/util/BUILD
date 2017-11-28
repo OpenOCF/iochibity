@@ -38,5 +38,5 @@ cc_library(
     ],
     visibility = ["//visibility:public"]
 # "//src/comm:__subpackages__",
-#                   "//src/sec/resources:__pkg__"]
+#                   "//src/sec/svrs:__pkg__"]
 )

@@ -1,3 +1,5 @@
+# svrs = Security Virtual Resources
+
 config_setting(
     name = "darwin",
     values = { "cpu": "darwin" })
@@ -24,7 +26,7 @@ cc_library(
 )
 
 cc_library(
-    name = "resources",
+    name = "svrs",
     # alwayslink = 1,
     linkstatic = True,
     copts = ["-Isrc",

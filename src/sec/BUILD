@@ -36,7 +36,7 @@ cc_library(
             # "securevirtualresourcetypes.h"
     ],
     visibility = ["//src/provisioning:__pkg__",
-    "//src/sec/resources:__pkg__"]
+    "//src/sec/svrs:__pkg__"]
 )
 
 # cc_library(
@@ -119,7 +119,7 @@ cc_library(
             # "doxmresource.h",
             "srmutility.c",
             "srmutility.h"],
-    visibility = ["//src/sec/resources:__pkg__",
+    visibility = ["//src/sec/svrs:__pkg__",
                   "//src/ocf:__pkg__",
                   "//src/provisioning:__pkg__"]
 )
@@ -294,7 +294,7 @@ cc_library(
             "//src/sec/certificates",
             "//src/sec/crypto",
             "//src/sec/dox",
-            "//src/sec/resources",
+            "//src/sec/svrs",
             "//src/util",
             "//third_party/utlist",
             "//third_party/tinycbor",
