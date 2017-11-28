@@ -78,10 +78,6 @@ static int camutex_cond_timedwait_relative(pthread_cond_t*, pthread_mutex_t*, co
         __attribute__ ((weakref("__pthread_cond_timedwait_relative")));
 #endif /* __ANDROID__ */
 
-static const uint64_t USECS_PER_SEC         = 1000000;
-static const uint64_t NANOSECS_PER_USECS    = 1000;
-static const uint64_t NANOSECS_PER_SEC      = 1000000000L;
-
 typedef struct _tagMutexInfo_t
 {
     pthread_mutex_t mutex;
