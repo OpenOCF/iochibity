@@ -33,14 +33,14 @@ cc_library(
     copts = [#"-Isrc",
              "-Ithird_party/coap",
              "-Ithird_party/coap/include",
-             "-Iexternal/openocf/third_party/coap/include"
+             "-Iexternal/openocf/third_party/coap/include",
+             "-Ithird_party/utlist",
     ] + select({":windows": [],
               ":msvc": [],
               ":msys": [],
               "//conditions:default": ["-std=c11",
                                        "-U DEBUG"]}), # OS X
     deps = ["//src:config",
-            "//third_party/coap",
             "//src/comm/transport/util",
             # "//src/comm/api",
             # "//src/comm:hdrs",
@@ -54,6 +54,8 @@ cc_library(
             "//src/logger",
             "//src/portability",
             "//src/util",
+            "//third_party/coap",
+            "//third_party/utlist",
     ],
     srcs  = ["cainterfacecontroller.c",
 	     "cainterfacecontroller.h",
@@ -87,6 +89,7 @@ cc_library(
 	    # "//src/comm/security",
             # FIXME: select for this
             "//src/comm/transport/udpip",
+            # "//third_party/utlist",
             "//third_party/mbedtls",
             "//third_party/mbedtls:mbedtls-crypto",
             "//third_party/mbedtls:mbedtls-x509"],
