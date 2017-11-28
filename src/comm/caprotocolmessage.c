@@ -43,6 +43,15 @@
 #define TAG "OIC_CA_PRTCL_MSG"
 
 #if INTERFACE
+#include "coap_config.h"
+#include "coap/block.h"
+#include "coap/coap_list.h"
+#include "coap/mem.h"
+#include "coap/pdu.h"
+#include "coap/prng.h"
+#endif
+
+#if INTERFACE
 /**
  * Message Type for Base source code.
  */
