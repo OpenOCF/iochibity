@@ -58,7 +58,9 @@
  */
 #define TAG "OIC_DARWIN_CA_IP_SERVER"
 
-/* FIXME: use mac stuff instead of netlink */
+/* FIXME: this works for data messages but not for network status
+ change messages (netlinkFd).  use mac stuff for that instead of
+ netlink. */
 void CAFindReadyMessage()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
