@@ -22,13 +22,19 @@
 
 #include <stdio.h>
 #include <string.h>
-#if EXPORT_INTERFACE
+#include <limits.h>
+
+#if INTERFACE
 #include <stdlib.h>
 #include <stdint.h>
-#include "coap/pdu.h"
+#endif	/* INTERFACE */
+
 #define UTLIST_H
 #include "coap/coap_list.h"
-#endif	/* INTERFACE */
+
+/* #if INTERFACE */
+#include "coap/pdu.h"
+/* #endif */
 
 /**
  * TAG of Analyzer log.
