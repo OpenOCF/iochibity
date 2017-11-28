@@ -65,7 +65,6 @@
 #endif	/* INTERFACE */
 /** @} */
 
-
 #if EXPORT_INTERFACE
 #include <stdint.h>
 typedef enum

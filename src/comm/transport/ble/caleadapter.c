@@ -23,25 +23,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-/* #include "cafragmentation.h"
- * 
- * #include "caleinterface.h"
- * #include "cacommon.h"
- * #include "octhread.h"
- * #include "caadapterutils.h"
- * #ifdef __WITH_DTLS__
- * #include "ca_adapter_net_ssl.h"
- * #endif
- * #ifndef SINGLE_THREAD
- * #include "caqueueingthread.h"
- * #endif
- * #if defined(__TIZEN__) || defined(__ANDROID__)
- * #include "caleserver.h"
- * #include "caleclient.h"
- * #endif
- * #include "oic_malloc.h"
- * #include "oic_string.h"
- * #include "caremotehandler.h" */
 #include <coap/pdu.h>
 
 /**

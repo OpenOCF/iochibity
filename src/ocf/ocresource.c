@@ -29,7 +29,6 @@
 
 #include "ocresource.h"
 
-/* #include "iotivity_config.h" */
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
@@ -38,28 +37,7 @@
 /* #include "coap/coap.h" */
 #include "cbor.h"
 
-/* #include "ocresource.h" */
-/* #include "ocresourcehandler.h" */
-/* #include "ocobserve.h" */
-/* #include "occollection.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "logger.h" */
-/* #include "ocpayload.h" */
-/* #include "secureresourcemanager.h" */
-/* #include "cacommon.h" */
-/* #include "cainterface.h" */
-/* #include "oickeepalive.h" */
-/* #include "payload_logging.h" */
-/* #include "ocendpoint.h" */
-/* #include "ocstackinternal.h" */
-/* #include "oickeepalive.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "psinterface.h" */
-
-/* #ifdef ROUTING_GATEWAY */
-/* #include "routingmanager.h" */
-/* #endif */
+#include "utlist.h"
 
 /// Module Name
 #define TAG "OIC_RI_RESOURCE"

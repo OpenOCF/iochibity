@@ -25,36 +25,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-/* #include "iotivity_config.h" */
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
-/* #include "caadapterutils.h" */
-/* #include "canetworkconfigurator.h" */
-/* #include "cainterfacecontroller.h" */
-/* #ifdef EDR_ADAPTER */
-/* #include "caedradapter.h" */
-/* #endif */
-/* #ifdef LE_ADAPTER */
-/* #include "caleadapter.h" */
-/* #endif */
-/* #ifdef NFC_ADAPTER */
-/* #include "canfcadapter.h" */
-/* #endif */
-/* #ifdef IP_ADAPTER */
-/* #include "caipadapter.h" */
-/* #endif */
-/* #ifdef RA_ADAPTER */
-/* #include "caraadapter.h" */
-/* #endif */
-/* #ifdef TCP_ADAPTER */
-/* #include "catcpadapter.h" */
-/* #endif */
-
-
-/* #include "caremotehandler.h" */
-/* #include "cathreadpool.h" */
-/* #include "cainterface.h" */
-/* #include <coap/utlist.h> */
+#include "utlist.h"
 
 #ifndef SINGLE_THREAD
 #include <assert.h>

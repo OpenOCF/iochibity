@@ -18,12 +18,9 @@
  *
  ******************************************************************/
 
-#include <string.h>
-
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
 #include "caremotehandler.h"
-/* #include "logger.h" */
+
+#include <string.h>
 
 #define TAG "OIC_CA_REMOTE_HANDLER"
 

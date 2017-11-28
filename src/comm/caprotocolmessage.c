@@ -30,37 +30,22 @@
 
 #include "caprotocolmessage.h"
 
-/* #include "iotivity_config.h" */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <limits.h>
+
 #ifdef HAVE_TIME_H
 #include <time.h>
 #endif
 
-
-#if INTERFACE
-#include "coap_config.h"
-#include "coap/mem.h"
-#include "coap/pdu.h"
-#include "coap/prng.h"
-#endif	/* INTERFACE */
-
-/* #include "caprotocolmessage.h" */
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "ocrandom.h" */
-/* #include "cacommonutil.h" */
-/* #include "cablockwisetransfer.h" */
-
 #define TAG "OIC_CA_PRTCL_MSG"
 
+#if INTERFACE
 /**
  * Message Type for Base source code.
  */
-#if EXPORT_INTERFACE
 typedef enum
 {
     CA_MSG_CONFIRM = 0,  /**< confirmable message (requires ACK/RST) */
@@ -69,12 +54,10 @@ typedef enum
     CA_MSG_RESET         /**< used to indicates not-interested or error (lack of context)in
                                                   received messages */
 } CAMessageType_t;
-#endif	/* INTERFACE */
 
 /**
  * Allowed method to be used by resource model.
  */
-#if EXPORT_INTERFACE
 typedef enum
 {
     CA_GET = 1, /**< GET Method  */
@@ -82,21 +65,16 @@ typedef enum
     CA_PUT,     /**< PUT Method */
     CA_DELETE   /**< DELETE Method */
 } CAMethod_t;
-#endif	/* INTERFACE */
 
 /**
  * Max header options data length.
  */
-#if EXPORT_INTERFACE
 #define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024
-#endif	/* INTERFACE */
 
 /**
  * Token information for mapping the request and responses by resource model.
  */
-#if EXPORT_INTERFACE
 typedef char *CAToken_t;
-#endif	/* INTERFACE */
 
 /**
  * Header options structure to be filled.
@@ -106,15 +84,12 @@ typedef char *CAToken_t;
 /**
  * Transport Protocol IDs for additional options.
  */
-#if EXPORT_INTERFACE
 typedef enum
 {
     CA_INVALID_ID = (1 << 0),   /**< Invalid ID */
     CA_COAP_ID = (1 << 1)       /**< COAP ID */
 } CATransportProtocolID_t;
-#endif	/* INTERFACE */
 
-#if EXPORT_INTERFACE
 #include <stdint.h>
 typedef struct
 {
@@ -124,13 +99,12 @@ typedef struct
     uint16_t optionLength;                                  /**< Option Length **/
     char optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];      /**< Optional data values**/
 } CAHeaderOption_t;
-#endif	/* INTERFACE */
 
-#if EXPORT_INTERFACE
 typedef uint32_t code_t;
 
 #define CA_RESPONSE_CLASS(C) (((C) >> 5)*100)
 #define CA_RESPONSE_CODE(C) (CA_RESPONSE_CLASS(C) + (C - COAP_RESPONSE_CODE(CA_RESPONSE_CLASS(C))))
+
 #endif	/* INTERFACE */
 
 #define HAVE_TIME_H 1

@@ -17,7 +17,6 @@
  * limitations under the License.
  *
  ******************************************************************/
-
 #ifndef __APPLE_USE_RFC_3542
 #define __APPLE_USE_RFC_3542 // for PKTINFO
 #endif
@@ -26,7 +25,6 @@
 #endif
 
 #include "caipserver_darwin.h"
-/* #include "iotivity_debug.h" */
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_SOCKET_H
@@ -51,17 +49,7 @@
 #endif
 #include <errno.h>
 
-/* #include <coap/pdu.h> */
 #include <inttypes.h>
-/* #include "caipserver.h"
- * #include "caipnwmonitor.h"
- * #include "caadapterutils.h"
- * #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
- * #include "ca_adapter_net_ssl.h"
- * #endif
- * #include "octhread.h"
- * #include "oic_malloc.h"
- * #include "oic_string.h" */
 
 #define USE_IP_MREQN
 

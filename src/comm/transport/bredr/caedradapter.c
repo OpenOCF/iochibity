@@ -26,12 +26,6 @@
 
 #include "caedradapter.h"
 
-#include "caedrinterface.h"
-#include "caadapterutils.h"
-#include "logger.h"
-#include "caqueueingthread.h"
-#include "oic_malloc.h"
-#include "caremotehandler.h"
 #include <coap/pdu.h>
 
 /**

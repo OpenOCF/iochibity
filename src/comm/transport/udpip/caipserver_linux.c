@@ -17,7 +17,6 @@
  * limitations under the License.
  *
  ******************************************************************/
-
 #ifndef __APPLE_USE_RFC_3542
 #define __APPLE_USE_RFC_3542 // for PKTINFO
 #endif
@@ -26,7 +25,6 @@
 #endif
 
 #include "caipserver_linux.h"
-/* #include "iotivity_debug.h" */
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_SOCKET_H
@@ -55,7 +53,6 @@
 #include <linux/rtnetlink.h>
 /* #endif */
 
-/* #include <coap/pdu.h> */
 #include <inttypes.h>
 
 #define USE_IP_MREQN
@@ -63,7 +60,7 @@
 /*
  * Logging tag for module name
  */
-#define TAG "OIC_CA_IP_SERVER"
+#define TAG "OIC_LINUX_CA_IP_SERVER"
 
 void CAFindReadyMessage()
 {
