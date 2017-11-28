@@ -137,16 +137,16 @@ src/provisioning/pmutility.c
 src/provisioning/provisioningdatabasemanager.c
 src/provisioning/secureresourceprovider.c
 
-src/sec/resources/aclresource.c
-src/sec/resources/amaclresource.c
-src/sec/resources/credresource.c
-src/sec/resources/crlresource.c
-src/sec/resources/csrresource.c
-src/sec/resources/doxmresource.c
-src/sec/resources/pstatresource.c
-src/sec/resources/rolesresource.c
-src/sec/resources/resourcemanager.c
-src/sec/resources/secureresourcemanager.c
+src/sec/svrs/aclresource.c
+src/sec/svrs/amaclresource.c
+src/sec/svrs/credresource.c
+src/sec/svrs/crlresource.c
+src/sec/svrs/csrresource.c
+src/sec/svrs/doxmresource.c
+src/sec/svrs/pstatresource.c
+src/sec/svrs/rolesresource.c
+src/sec/svrs/resourcemanager.c
+src/sec/svrs/secureresourcemanager.c
 
 src/sec/certificates/certhelpers.c
 src/sec/certificates/occertutility.c
