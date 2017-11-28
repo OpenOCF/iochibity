@@ -80,6 +80,7 @@ const uint64_t NANOSECS_PER_SEC   = 1000000000L;
 const uint64_t USECS_PER_MSEC     = 1000;
 const uint64_t NANOSECS_PER_USECS = 1000;
 
+/* GAR FIXME: refactor */
 uint64_t OICGetCurrentTime(OICTimePrecision precision)
 {
     uint64_t currentTime = 0;
