@@ -17,7 +17,12 @@
 # 5. $ automake
 
 # then: $ ./configure --disable-examples this creates
-# coap_config.h. unfortunately, its feature tests are based on the
+# coap_config.h.
+
+# DARWIN: define WITH_POSIX in coap_config.h
+
+# WINDOWS:
+# unfortunately, its feature tests are based on the
 # mingw environment; you must adjust it for the msvc environment. Edit
 # coap_config.h to undefine the following:
 #undef HAVE_LIBPTHREAD
