@@ -247,10 +247,10 @@ oc_log_ctx_t *logCtx = 0;
 /* #endif //defined(_MSC_VER) */
 
 /* #ifdef __ANDROID__ */
-#if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
+/* #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32) */
 oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO,
                                       OC_LOG_WARNING, OC_LOG_ERROR, OC_LOG_FATAL};
-#endif
+/* #endif */
 
 /* // Convert LogLevel to platform-specific severity level.  Store in PROGMEM on Arduino */
 /* #ifdef __ANDROID__ */
@@ -380,7 +380,6 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
     funlockfile(stdout);
 #endif
 }
-/* #endif	/\* INTERFACE *\/ */
 
 /* EXPORT void OCSetLogLevel(LogLevel level, bool hidePrivateLogEntries); */
 void OCSetLogLevel(LogLevel level, bool hidePrivateLogEntries)

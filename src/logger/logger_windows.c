@@ -82,9 +82,7 @@
 #include <stdarg.h>
 
 #if INTERFACE
-/* #if defined(_MSC_VER) */
 #define LINE_BUFFER_SIZE (16 * 2) + 16 + 1  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination
-/* #endif //defined(_MSC_VER) */
 #endif
 
 #if defined(__MINGW64__) || defined(__MINGW32__)

@@ -3,8 +3,15 @@ config_setting(
     values = { "crosstool_top": "//platforms/ndk:toolchain" }
 )
 config_setting(
+    name = "darwin",
+    values = { "cpu": "darwin" }
+)
+config_setting(
+    name = "darwin64",
+    values = { "cpu": "darwin_x86_64" }
+)
+config_setting(
     name = "windows",
-# FIXME: make sure this is mingw64
     values = { "cpu": "x64_windows" }
 )
 config_setting(
@@ -39,6 +46,7 @@ cc_library(
     ] + select({":windows": ["logger_windows.c", "logger_windows.h"],
                 ":msvc": ["logger_windows.c", "logger_windows.h"],
                 ":msys": ["logger_windows.c", "logger_windows.h"],
-                "//conditions:default": []}),
+                ":darwin": ["logger_posix.c", "logger_posix.h"],
+                "//conditions:default": ["logger_posix.c", "logger_posix.hX"]}),
     visibility = ["//src:__subpackages__"]
 )
