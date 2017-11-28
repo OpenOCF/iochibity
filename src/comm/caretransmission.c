@@ -89,9 +89,9 @@ typedef struct
     uint32_t size;                      /**< coap PDU size */
 } CARetransmissionData_t;
 
-static const uint64_t USECS_PER_SEC = 1000000;
-static const uint64_t USECS_PER_MSEC = 1000;
-static const uint64_t MSECS_PER_SEC = 1000;
+/* static const uint64_t USECS_PER_SEC = 1000000;
+ * static const uint64_t USECS_PER_MSEC = 1000;
+ * static const uint64_t MSECS_PER_SEC = 1000; */
 
 #ifndef SINGLE_THREAD
 /**
