@@ -520,7 +520,7 @@ void applyMulticastToInterface4(uint32_t ifindex)
     ret = setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
- 	if (PORTABLE_check_setsockopt_m4s_err(mreq, ret))
+ 	if ( PORTABLE_check_setsockopt_m4s_err(&mreq, ret) )
         {
             OIC_LOG_V(ERROR, TAG, "SECURE IPv4 IP_ADD_MEMBERSHIP failed: %s", CAIPS_GET_ERROR);
         }
@@ -537,7 +537,7 @@ void applyMulticast6(CASocketFd_t fd, struct in6_addr *addr, uint32_t ifindex)
     int ret = setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
-	if (PORTABLE_check_setsockopt_m6_err(fd, mreq, ret))
+	if (PORTABLE_check_setsockopt_m6_err(fd, &mreq, ret))
         {
             OIC_LOG_V(ERROR, TAG, "IPv6 IPV6_JOIN_GROUP failed: %s", CAIPS_GET_ERROR);
         }
@@ -716,7 +716,7 @@ static void sendData(CASocketFd_t fd, const CAEndpoint_t *endpoint,
     {
         socklen = sizeof(struct sockaddr_in);
     }
-    PORTABLE_sendto(fd, data, dlen, 0, (struct sockaddr *)&sock, socklen, endpoint, cast, fam);
+    PORTABLE_sendto(fd, data, dlen, 0, &sock, socklen, endpoint, cast, fam);
 }
 
 static void sendMulticastData6(const u_arraylist_t *iflist,

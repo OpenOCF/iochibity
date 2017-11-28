@@ -45,16 +45,15 @@
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#ifdef HAVE_NETINET_IP_H
+#include <netinet/ip.h>
+#endif
 #ifdef HAVE_NET_IF_H
 #include <net/if.h>
 #endif
 #include <errno.h>
-/* #ifdef __linux__
- * #include <linux/netlink.h>
- * #include <linux/rtnetlink.h>
- * #endif */
 
-#if EXPORT_INTERFACE
+#if INTERFACE
 #include <inttypes.h>
 #endif
 
@@ -67,7 +66,7 @@
 
 #define SELECT_TIMEOUT 1     // select() seconds (and termination latency)
 
-#if EXPORT_INTERFACE
+#if INTERFACE
 #define IFF_UP_RUNNING_FLAGS  (IFF_UP|IFF_RUNNING)
 
 #define SET(TYPE, FDS) \
@@ -258,17 +257,25 @@ void CAWakeUpForChange()
 }
 
 bool PORTABLE_check_setsockopt_err()
+EXPORT
 {
     return EADDRINUSE != errno;
 }
 
-bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn mreq, int ret)
+bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn *mreq, int ret)
 {
+    /* args not used in posix, used in windows */
+    (void)mreq;		      
+    (void)ret;
     return EADDRINUSE != errno;
 }
 
-bool PORTABLE_check_setsockopt_m6_err(fd, mreq, ret)
+bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq,  int ret)
 {
+    /* args not used in posix, used in windows */
+    (void)fd;
+    (void)mreq;		      
+    (void)ret;
     return EADDRINUSE != errno;
 }
 
@@ -276,16 +283,18 @@ void PORTABLE_sendto(CASocketFd_t fd,
                      const void *data,
 		     size_t dlen,
 		     int flags,
-		     struct sockaddr * sockaddrptr,
+		     struct sockaddr_storage * sockaddrptr,
 		     socklen_t socklen,
 		     const CAEndpoint_t *endpoint,
 		     const char *cast, const char *fam)
+EXPORT
 {
+    (void)flags;
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
 #ifdef TB_LOG
     const char *secure = (endpoint->flags & CA_SECURE) ? "secure " : "insecure ";
 #endif
-    ssize_t len = sendto(fd, data, dlen, 0, sockaddrptr, socklen);
+    ssize_t len = sendto(fd, data, dlen, 0, (struct sockaddr *)sockaddrptr, socklen);
     if (OC_SOCKET_ERROR == len)
     {
          // If logging is not defined/enabled.
@@ -306,6 +315,7 @@ void PORTABLE_sendto(CASocketFd_t fd,
 }
 
 CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
+EXPORT
 {
     if (!zoneId || (*zoneId != NULL))
     {
