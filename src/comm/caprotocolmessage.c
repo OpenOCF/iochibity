@@ -596,6 +596,68 @@ CAResult_t CAParseUriPartial(const unsigned char *str, size_t length, uint16_t t
     return CA_STATUS_OK;
 }
 
+static CAResult_t CAParsePayloadFormatHeadOption(uint16_t formatOption, CAPayloadFormat_t format,
+        uint16_t versionOption, uint16_t version, coap_list_t **optlist)
+{
+    coap_list_t* encodeNode = NULL;
+    coap_list_t* versionNode = NULL;
+    uint8_t encodeBuf[CA_ENCODE_BUFFER_SIZE] = { 0 };
+    uint8_t versionBuf[CA_ENCODE_BUFFER_SIZE] = { 0 };
+
+    switch (format)
+    {
+        case CA_FORMAT_APPLICATION_CBOR:
+            encodeNode = CACreateNewOptionNode(formatOption,
+                    coap_encode_var_bytes(encodeBuf,
+                            (unsigned short) COAP_MEDIATYPE_APPLICATION_CBOR), (char *) encodeBuf);
+            break;
+        case CA_FORMAT_APPLICATION_VND_OCF_CBOR:
+            encodeNode = CACreateNewOptionNode(formatOption,
+                    coap_encode_var_bytes(encodeBuf,
+                            (unsigned short) COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR),
+                    (char *) encodeBuf);
+            break;
+        default:
+            OIC_LOG_V(ERROR, TAG, "Format option:[%d] not supported", format);
+    }
+    if (!encodeNode)
+    {
+        OIC_LOG(ERROR, TAG, "Format option not created");
+        return CA_STATUS_INVALID_PARAM;
+    }
+    int ret = coap_insert(optlist, encodeNode, CAOrderOpts);
+    if (0 >= ret)
+    {
+        coap_delete(encodeNode);
+        OIC_LOG(ERROR, TAG, "Format option not inserted in header");
+        return CA_STATUS_INVALID_PARAM;
+    }
+
+    if ((OCF_ACCEPT_CONTENT_FORMAT_VERSION == versionOption ||
+         OCF_CONTENT_FORMAT_VERSION == versionOption) &&
+        CA_FORMAT_APPLICATION_VND_OCF_CBOR == format)
+    {
+        versionNode = CACreateNewOptionNode(versionOption,
+                coap_encode_var_bytes(versionBuf, version), (char *) versionBuf);
+
+        if (!versionNode)
+        {
+            OIC_LOG(ERROR, TAG, "Version option not created");
+            coap_delete(encodeNode);
+            return CA_STATUS_INVALID_PARAM;
+        }
+        ret = coap_insert(optlist, versionNode, CAOrderOpts);
+        if (0 >= ret)
+        {
+            coap_delete(versionNode);
+            coap_delete(encodeNode);
+            OIC_LOG(ERROR, TAG, "Content version option not inserted in header");
+            return CA_STATUS_INVALID_PARAM;
+        }
+    }
+    return CA_STATUS_OK;
+}
+
 CAResult_t CAParseHeadOption(uint32_t code, const CAInfo_t *info, coap_list_t **optlist)
 {
     (void)code;
@@ -655,68 +717,6 @@ CAResult_t CAParseHeadOption(uint32_t code, const CAInfo_t *info, coap_list_t **
         CAParsePayloadFormatHeadOption(COAP_OPTION_ACCEPT, info->acceptFormat, OCF_ACCEPT_CONTENT_FORMAT_VERSION, info->acceptVersion, optlist);
     }
 
-    return CA_STATUS_OK;
-}
-
-CAResult_t CAParsePayloadFormatHeadOption(uint16_t formatOption, CAPayloadFormat_t format,
-        uint16_t versionOption, uint16_t version, coap_list_t **optlist)
-{
-    coap_list_t* encodeNode = NULL;
-    coap_list_t* versionNode = NULL;
-    uint8_t encodeBuf[CA_ENCODE_BUFFER_SIZE] = { 0 };
-    uint8_t versionBuf[CA_ENCODE_BUFFER_SIZE] = { 0 };
-
-    switch (format)
-    {
-        case CA_FORMAT_APPLICATION_CBOR:
-            encodeNode = CACreateNewOptionNode(formatOption,
-                    coap_encode_var_bytes(encodeBuf,
-                            (unsigned short) COAP_MEDIATYPE_APPLICATION_CBOR), (char *) encodeBuf);
-            break;
-        case CA_FORMAT_APPLICATION_VND_OCF_CBOR:
-            encodeNode = CACreateNewOptionNode(formatOption,
-                    coap_encode_var_bytes(encodeBuf,
-                            (unsigned short) COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR),
-                    (char *) encodeBuf);
-            break;
-        default:
-            OIC_LOG_V(ERROR, TAG, "Format option:[%d] not supported", format);
-    }
-    if (!encodeNode)
-    {
-        OIC_LOG(ERROR, TAG, "Format option not created");
-        return CA_STATUS_INVALID_PARAM;
-    }
-    int ret = coap_insert(optlist, encodeNode, CAOrderOpts);
-    if (0 >= ret)
-    {
-        coap_delete(encodeNode);
-        OIC_LOG(ERROR, TAG, "Format option not inserted in header");
-        return CA_STATUS_INVALID_PARAM;
-    }
-
-    if ((OCF_ACCEPT_CONTENT_FORMAT_VERSION == versionOption ||
-         OCF_CONTENT_FORMAT_VERSION == versionOption) &&
-        CA_FORMAT_APPLICATION_VND_OCF_CBOR == format)
-    {
-        versionNode = CACreateNewOptionNode(versionOption,
-                coap_encode_var_bytes(versionBuf, version), (char *) versionBuf);
-
-        if (!versionNode)
-        {
-            OIC_LOG(ERROR, TAG, "Version option not created");
-            coap_delete(encodeNode);
-            return CA_STATUS_INVALID_PARAM;
-        }
-        ret = coap_insert(optlist, versionNode, CAOrderOpts);
-        if (0 >= ret)
-        {
-            coap_delete(versionNode);
-            coap_delete(encodeNode);
-            OIC_LOG(ERROR, TAG, "Content version option not inserted in header");
-            return CA_STATUS_INVALID_PARAM;
-        }
-    }
     return CA_STATUS_OK;
 }
 
