@@ -33,8 +33,8 @@ cc_binary(
              "-Isrc/ocf/client",
              "-Isrc/portability",
              "-Ithird_party/cjson",
-             # "-Ithird_party/coap",
-             # "-Ithird_party/coap/include",
+             "-Ithird_party/coap",
+             "-Ithird_party/coap/include",
              "-Ithird_party/tinycbor/src",
              "-Iexternal/usr_sys/include",
              "-Iexternal/usr_sys/include/cdk",
@@ -61,7 +61,7 @@ cc_binary(
             "//src/ocf:client",
             "//third_party/tinycbor",
             "//third_party/cjson",
-            # "//third_party/coap"
+            "//third_party/coap"
     ] + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
               ":linux": ["@usr_local//:cdk"],
               ":android": ["@cosysroot_ndk//:cdk"],
@@ -69,8 +69,7 @@ cc_binary(
               "//conditions:default": ["@usr_local//:cdk"]}),
     linkstatic = 1,
     # linkopts = ["-lcdk"],
-    srcs = ["occlient.c",
-            "occlient.h",
+    srcs = ["client.c",
             "gui.h",
             "gui.c",]
 )
