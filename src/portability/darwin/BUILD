@@ -14,7 +14,8 @@ cc_library(
             "//src/logger",
             "//src/util",
     ],
-    hdrs = glob(["*.h"]),
-    srcs = glob(["*.c"]),
+    # hdrs = glob(["*.h"]),
+    srcs = ["ocevent_darwin.c",
+            "ocevent_darwin.h"],
     visibility = ["//visibility:public"]
 )

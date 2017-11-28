@@ -1,4 +1,10 @@
 config_setting(
+    name = "darwin",
+    values = { "cpu": "darwin" })
+config_setting(
+    name = "darwin64",
+    values = { "cpu": "darwin_x86_64" })
+config_setting(
     name = "windows",
     values = { "cpu": "x64_windows" }
 )
@@ -32,10 +38,11 @@ cc_library(
              "-Iexternal/openocf/third_party/tinycbor/src",
              "-Ithird_party/utlist",
     ] + select({":windows": [],
-              ":msvc": [],
-              ":msys": [],
-              "//conditions:default": ["-std=c11",
-                                       "-U DEBUG"]}), # OS X
+                ":msvc": [],
+                ":msys": [],
+                "darwin": ["-std=c11", "-UDEBUG"],
+                "darwin64": ["-std=c11", "UDEBUG"],
+                "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/comm/transport/util",
             # "//src/comm/api",
