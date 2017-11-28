@@ -1,31 +1,25 @@
 src/comm/_addressing.h
-src/portability/_thread.h
-src/portability/windows/_events.h
 
 src/portability/_events.c:
 src/portability/ocrandom.c
 src/portability/octimer.c
 src/portability/oic_malloc.c
 src/portability/oic_platform.c
+src/portability/posix/oic_platform_posix.c
 src/portability/oic_string.c
 src/portability/oic_time.c
+src/portability/posix/oic_time_posix.c
 
-
-src/portability/windows/getopt.c
-src/portability/windows/memmem.c
-src/portability/windows/ocatomic_windows.c
-src/portability/windows/ocevent_windows.c
-src/portability/windows/octhread_windows.c
-src/portability/windows/pthread_create.c
-src/portability/windows/snprintf.c
-src/portability/windows/strptime.c
-src/portability/windows/win_sleep.c
+src/portability/octhread.c
+src/portability/posix/octhread_posix.c
 
 src/comm/transport/udpip/caipadapter0.c
 src/comm/transport/udpip/caipnwmonitor0.c
+src/comm/transport/udpip/caipnwmonitor_posix.c
+src/comm/transport/udpip/caipnwmonitor_darwin.c
 src/comm/transport/udpip/caipserver0.c
-src/comm/transport/udpip/caipserver_windows.c
-src/comm/transport/udpip/caipnwmonitor_windows.c
+src/comm/transport/udpip/caipserver_posix.c
+src/comm/transport/udpip/caipserver_darwin.c
 
 src/openocf_config.c
 src/system.c:
@@ -107,7 +101,7 @@ src/comm/util/cloud/camanagerutil.c
 src/comm/util/cloud/camessagearbiter.c
 src/comm/util/cloud/capolicymanager.c
 src/logger/logger.c
-src/logger/logger_windows.c
+src/logger/logger_posix.c
 src/logger/trace.c
 src/ocf/client/co_service_provider.c
 src/ocf/client/co_service_provider_mgr.c
@@ -127,7 +121,6 @@ src/ocf/oickeepalive.c
 src/ocf/oicresourcedirectory.c
 src/ocf/payload_logging.c
 src/ocf/presence.c
-src/ocf/windows/ocsqlite3helper.c
 
 src/provisioning/credentialgenerator.c
 src/provisioning/multiowner/multipleownershiptransfermanager.c
