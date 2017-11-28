@@ -40,7 +40,7 @@
  * implemented.
  */
 
-#if EXPORT_INTERFACE
+#if INTERFACE
 /**
  * Macro to calculate the size of 'output' buffer required for
  * a 'input' buffer of length x during Base64 encoding operation.

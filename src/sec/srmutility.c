@@ -65,7 +65,7 @@ INLINE_API SRMAccessResponseReasonCode_t GetReasonCode(
 
 /* typedef struct OicSecValidity OicSecValidity_t; */
 
-#if EXPORT_INTERFACE
+#if INTERFACE
 #include "coap/uri.h"
 
 typedef struct OicParseQueryIter OicParseQueryIter_t;
