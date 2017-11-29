@@ -2396,13 +2396,17 @@ OCStackResult OC_CALL OCInit(const char *ipAddr, uint16_t port, OCMode mode) EXP
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     (void) ipAddr;
     (void) port;
-    return OCInit1(mode, OC_DEFAULT_FLAGS, OC_DEFAULT_FLAGS);
+    OCStackResult r = OCInit1(mode, OC_DEFAULT_FLAGS, OC_DEFAULT_FLAGS);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return r;
 }
 
 OCStackResult OC_CALL OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlags clientFlags)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    return OCInit2(mode, serverFlags, clientFlags, OC_DEFAULT_ADAPTER);
+    OCStackResult r = OCInit2(mode, serverFlags, clientFlags, OC_DEFAULT_ADAPTER);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT, rc: %d", __func__, r);
+    return r;
 }
 
 OCStackResult OC_CALL OCInit2(OCMode mode, OCTransportFlags serverFlags, OCTransportFlags clientFlags,
@@ -2430,7 +2434,7 @@ OCStackResult OC_CALL OCInit2(OCMode mode, OCTransportFlags serverFlags, OCTrans
     }
 
     OCLeaveInitializer();
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT, rc: %d", __func__, result);
     return result;
 }
 
