@@ -19,11 +19,11 @@ cc_library(
             # "iotivity_debug.h",
             "_system.h",
             # "transport_types.h"
-    ]
-    + select({":windows": ["msvc_config.h"],
-              ":msvc": ["msvc_config.h"],
-              ":msys": [],
-              "//conditions:default": []}),
+    ],
+    # + select({":windows": ["_openocf_config_msvc.h"],
+    #           ":msvc": ["_openocf_config_msvc.h"],
+    #           ":msys": [],
+    #           "//conditions:default": []}),
     visibility = ["//visibility:public"]
 )
 
