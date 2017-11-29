@@ -11,6 +11,9 @@ src/portability/oic_string.c
 src/portability/oic_time.c
 src/portability/posix/oic_time_posix.c
 
+src/portability/darwin/ocevent_darwin.c
+src/portability/posix/ocevent_posix.c
+
 src/portability/posix/ocatomic_posix.c
 
 src/portability/octhread.c
