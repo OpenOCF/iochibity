@@ -170,6 +170,7 @@ cc_library(
               "//conditions:default": []}),
     hdrs = select({":client_role": ["client/co_service_provider_mgr.h"],
               "//conditions:default": []}),
+    # FIXME: enable occonnectionmanager if cloud is enabled
     srcs = glob(["*.c"], exclude=["occonnectionmanager.c"])
          + glob(["*.h"], exclude=["occonnectionmanager.h"]),
     # if windows, and UWP_APP = 1:

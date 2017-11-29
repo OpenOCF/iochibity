@@ -54,6 +54,19 @@ $ autoheader && autoconf && ./configure --enable-logging
 $ bazel build <target>`
 ----
 
+WARNING: if you are using msys/mingw on windows, the config will be
+based on the mingw environment, but the default toolchain is msvc,
+which is a different environment. so you have to #undef the following:
+
+-#undef HAVE_LIBPTHREAD
+-#undef HAVE_PTHREAD_H
+-#undef HAVE_STRINGS_H
+-#undef HAVE_SYS_SOCKET_H
+-#undef HAVE_SYS_TIME_H
+-#undef TIME_WITH_SYS_TIME
+-#undef HAVE_UNISTD_H
+-#undef HAVE_SYS_UNISTD_H
+
 WARNING: Configuration support for cross-compiling is WIP.
 
 Targets are defined by BUILD files; cross-compilation by flags. Before
