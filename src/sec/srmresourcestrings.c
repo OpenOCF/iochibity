@@ -20,12 +20,7 @@
 
 #include "srmresourcestrings.h"
 
-/* #include "iotivity_config.h" */
-/* #include "iotivity_constants.h" */
-
 #include <stdlib.h>
-/* #include "securevirtualresourcetypes.h" */
-/* #include "octypes.h" *\/ */
 
 const char * SVR_DB_FILE_NAME = OC_SECURITY_DB_FILE_NAME;
 const char * SVR_DB_DAT_FILE_NAME = OC_SECURITY_DB_DAT_FILE_NAME;
