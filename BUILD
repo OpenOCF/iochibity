@@ -20,3 +20,31 @@ cc_library(
 # cc_library(
 #     name = "mbed",
 #     deps = ["@mbedtls//:mbedtls-lib"])
+
+load("//tools/makeheaders:makeheaders.bzl", "prep_headers", "make_headers")
+
+# genrule(
+#     name = "headers",
+#     srcs = [],
+#     outs = [],
+#     cmd = "./$(location makeheaders)",
+#     tools = ["//tools/makeheaders"],
+# )
+
+# filegroup(
+#   name = "mh_srcs",
+#   srcs = glob(["src/**/*.c"]),
+# )
+
+prep_headers(
+    name = "mkhdrs",
+    # out = "foo.dat",
+    # srcs = [":mh_srcs"],
+    hdr_deps = ["//src/ocf"],
+            # "//tools/makeheaders"]
+)
+
+make_headers(
+    name = "headers",
+    deps = [":mkhdrs"]
+)
