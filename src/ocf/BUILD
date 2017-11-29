@@ -79,7 +79,6 @@ cc_library(
             "//third_party/coap"]
     + select({":client_role": ["//src/ocf:client"],
               "//conditions:default": []}),
-    # hdrs = ["openocf.h"],
     visibility = ["//visibility:public"]
 )
 
@@ -116,87 +115,6 @@ cc_library(
             "client/co_service_provider_mgr.c"],
     visibility = ["//visibility:public"]
 )
-
-# cc_library(
-#     name = "hdrs",
-#     copts = ["-Isrc",
-#              "-Iexternal/openocf/src",
-#              # "-Isrc/comm/api",
-#              # "-Iexternal/openocf/src/comm/api",
-#              "-Isrc/ocf",
-#              "-Iexternal/openocf/src/ocf",]
-#     + select({":windows": [],
-#               ":msvc": [],
-#               ":msys": [],
-#               "//conditions:default": ["-std=c11"]}),
-#     deps = ["//src:config",
-#             # "//src/comm/api",
-#             "//third_party/coap"
-#     ],
-#     hdrs = ["octypes.h",
-#             "ocstack.h",
-#             "ocpayload.h",
-#             "ocpayloadcbor.h",
-#             "ocpresence.h",
-#             "presence_methods.h",
-#             "payload_logging.h"],
-#     srcs = ["ocserverrequest.h",
-#             "ocstackinternal.h", # included by sec/doxmresource.c
-#             "ocstackconfig.h",   # included by ocstackinternal.h
-#             "occlientcb.h",      # included by ocstackinternal.h
-#             "occlientcb_api.h",      # included by ocstackinternal.h
-#             "ocresource.h",      # included by occlientcb.h
-#             "ocobserve.h",       # included by ocobserve.h
-#             "ocresourcehandler.h", # included by sec/secureresourcemanager.c
-#             "tree.h"],
-#     visibility = ["//visibility:public"]
-#     # visibility = ["//src/sec:__pkg__",
-#     #               "//src/ocf/stack:__pkg__",
-#     #               "//src/provisioning:__pkg__",
-#     #               "//src/sec:__subpackages__"]
-# )
-
-# cc_library(
-#     name = "interface",
-#     copts = [#"-Isrc/comm/api",
-#              "-Isrc/sec/ocsecurity"]
-#     + select({":windows": [],
-#               ":msvc": [],
-#               ":msys": [],
-#               "//conditions:default": ["-std=c11"]}),
-#     deps = [# "//src/comm/api",
-#     #         "//src/util",       # c_common
-#     #         "//third_party/cbor",
-#     #         "//third_party/cjson",
-#     #         "//src/routing",
-#     #         "//src/comm"],
-#             "//src/sec:interface",
-#     #         #"//src/provisioning"],
-#     ],
-#     hdrs = ["ocpayload.h",      # sec/psinterface.c
-#             "payload_logging.h",
-#             # "ocstack.h",
-#             # "ocstackconfig.h",
-#             "ocpresence.h",
-#             "presence_methods.h",
-
-#     ],
-#     srcs = ["ocpayloadcbor.h",
-#             "occlientcb.h",
-#             "occlientcb_api.h",
-#             "ocobserve.h",
-#             "ocresource.h",
-#             "ocresourcehandler.h",
-#             "ocserverrequest.h", # sec/aclresource.c
-#             "ocstack.h",
-#             "ocstackinternal.h",
-#             "octypes.h",
-#             "tree.h"],
-#     visibility = ["//src/sec:__pkg__",
-#                   "//src/ocf:__pkg__",
-#                   "//src/provisioning:__pkg__",
-#                   "//src/sec:__subpackages__"]
-# )
 
 cc_library(
     name = "impl",
@@ -237,10 +155,6 @@ cc_library(
                 ":darwin": ["-std=c11", "-U DEBUG"],
                 "//conditions:default": []}),
     deps = ["//src:config",
-            # "//src/ocf:interface",
-            # "//src/comm/api",
-            # "//src/comm/common",
-            # "//src/comm/interface",
             "//src/logger",
             "//src/portability",
             "//src/sec",
@@ -256,50 +170,8 @@ cc_library(
               "//conditions:default": []}),
     hdrs = select({":client_role": ["client/co_service_provider_mgr.h"],
               "//conditions:default": []}),
-    srcs = ["occlientcb.c",
-            "occlientcb.h",
-            "occollection.c",
-            "occollection.h",
-
-            # if --with-cloud:
-            # "occonnectionmanager.c",
-            # "occonnectionmanager.h",
-
-            "ocendpoint.c",
-            "ocendpoint.h",
-            "ocobserve.c",
-            "ocobserve.h",
-            "ocpayload.c",
-            "ocpayload.h",
-            "payload_logging.c",
-            "payload_logging.h",
-            "ocpayloadconvert.c",
-            "ocpayloadconvert.h",
-            "ocpayloadparse.c",
-            "ocpayloadparse.h",
-            "ocresource.c",
-            "ocresource.h",
-            "ocserverrequest.c",
-            "ocserverrequest.h",
-            "ocstack.c",
-            "ocstack.h",
-            "oicgroup.c",
-            "oicgroup.h",
-
-            # if --enable-tcp
-            # "oickeepalive.c",
-            # "oickeepalive.h",
-
-            "presence.c",
-            "presence.h",
-
-            # if SERVER in rd_mode:
-            # "oicresourcedirectory.c",
-            # "oicresourcedirectory.h",
-
-            # "payload_logging.h"
-    ]
-
+    srcs = glob(["*.c"], exclude=["occonnectionmanager.c"])
+         + glob(["*.h"], exclude=["occonnectionmanager.h"]),
     # if windows, and UWP_APP = 1:
     # "ocsqlite3helper.c"
     # "ocsqlite3helper.h"

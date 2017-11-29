@@ -32,14 +32,8 @@ cc_library(
     linkstatic = 1,
     deps = ["//src:config",
             "//src/comm",
-            # "//src/comm/api",
-            # "//src/comm/interface",
             "//src/logger",
-            # "//src/ocf:interface",
-            #  "//src/ocf",
             "//src/portability",
-            "//src/sec:strings",
-            # "//src/sec:interface",
             "//src/sec/svrs",
             "//src/util",
             "//include",
@@ -49,48 +43,13 @@ cc_library(
 	    "//third_party/sqlite3",
 	    "//third_party/utlist"
     ],
+    #         # if MULTIPLE_OWNER
+    #         #"//src/provisioning/multiowner"
+    #         # if WITH_TCP
+    #         # "//src/provitioning/cloud"
     # + select({"windows": ["//third_party/sqlite3"],
     #           "//conditions:default": []}),
-    # hdrs = ["include/pmtypes.h",
-    #         "include/pmutility.h"],
-    srcs = ["credentialgenerator.c",
-            "credentialgenerator.h",
-            "ocprovisioningmanager.c",
-            "ocprovisioningmanager.h",
-            "otmcontextlist.c",
-            "otmcontextlist.h",
-            "ownershiptransfermanager.c",
-            "ownershiptransfermanager.h",
-            "oxmjustworks.c",
-            "oxmjustworks.h",
-
-            "oxmmanufacturercert.c",
-            "oxmmanufacturercert.h",
-
-            "oxmrandompin.c",
-            "oxmrandompin.h",
-            "pmutility.c",
-            "pmutility.h",
-            # "pmutilityinternal.h",
-            "provisioningdatabasemanager.c",
-            "provisioningdatabasemanager.h",
-            "secureresourceprovider.c",
-            "secureresourceprovider.h",
-
-            # if MULTIPLE_OWNER
-            #"multipleownershiptransfermanager.c",
-            #"multipleownershiptransfermanager.h",
-            #"oxmpreconfpin.c"
-            #"oxmpreconfpin.h"
-
-            # if WITH_TCP
-            # "cloud/utils.c",
-            # "cloud/crl.c",
-            # "cloud/aclgroup.c",
-            # "cloud/aclinvite.c",
-            # "cloud/aclid.c",
-            # "cloud/csr.c"
-    ],
+    srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//src/ocf:__pkg__",
                   "//src/sec/acl:__pkg__",
                   "//src/sec:__pkg__"]

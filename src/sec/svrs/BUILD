@@ -21,8 +21,7 @@ config_setting(
 
 cc_library(
     name = "pbkdf2",
-    srcs = ["pbkdf2.c",
-            "pbkdf2.h"]
+    srcs = glob(["pbkdf2.*"])
 )
 
 cc_library(
@@ -47,15 +46,9 @@ cc_library(
                 "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/comm/transport/util",
-            # "//src/comm/api",
-            # "//src/comm/common",
-            # "//src/comm/interface",
-            # "//src/comm/security",
             "//src/logger",
             "//src/portability",
             "//src/sec/authorization",
-            "//src/sec:helpers",
-            "//src/sec:strings",
             "//src/util",
             "//third_party/mbedtls",
             "//third_party/mbedtls:mbedtls-crypto",
@@ -68,38 +61,7 @@ cc_library(
                        ":windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 crypt32.lib"],
               "//conditions:default": []}),
     srcs = glob(["*.c"], exclude = ["_events.c"])
-     + glob(["*.h"]),
-    # srcs = ["aclresource.c",
-    #         "aclresource.h",
-
-    #         "amaclresource.c",
-    #         "amaclresource.h",
-
-    #         "credresource.c",
-    #         "credresource.h",
-
-    #         "doxmresource.c",
-    #         "doxmresource.h",
-
-    #         # if env.get('DTLS_WITH_X509') == '1':  # and env.get('SECURED'):
-    #         "crlresource.c",    # SECURED=1
-    #         "crlresource.h",    # SECURED=1
-
-    #         "csrresource.c",
-    #         "csrresource.h",
-
-    #         "pstatresource.c",
-    #         "pstatresource.h",
-
-    #         "rolesresource.c",
-    #         "rolesresource.h",
-
-    #         "resourcemanager.c",
-    #         "resourcemanager.h",
-
-    #         "secureresourcemanager.c",
-    #         "secureresourcemanager.h",
-    # ],
+    + glob(["*.h"]),
     visibility = ["//visibility:public"]
 )
 

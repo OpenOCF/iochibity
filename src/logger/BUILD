@@ -39,14 +39,12 @@ cc_library(
               "//conditions:default": []}),
     # alwayslink = True,
     linkstatic = 1,
-    srcs = ["logger.c",
-	    "logger.h",
-            "trace.c",
-            "trace.h"
-    ] + select({":windows": ["logger_windows.c", "logger_windows.h"],
-                ":msvc": ["logger_windows.c", "logger_windows.h"],
-                ":msys": ["logger_windows.c", "logger_windows.h"],
-                ":darwin": ["logger_posix.c", "logger_posix.h"],
+    srcs = glob(["*.c"], exclude=["logger_*.c"])
+    + glob(["*.h"], exclude=["logger_*.h"])
+    + select({":windows":  glob(["logger_windows.*"]),
+                ":msvc":   glob(["logger_windows.*"]),
+                ":msys":   glob(["logger_windows.*"]),
+                ":darwin": glob(["logger_posix.*"]),
                 "//conditions:default": ["logger_posix.c", "logger_posix.hX"]}),
     visibility = ["//src:__subpackages__"]
 )

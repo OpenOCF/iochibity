@@ -106,7 +106,7 @@ cc_library(
                        ":msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lbcrypt"],
                        ":windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 bcrypt.lib"],
                        "//conditions:default": []}),
-    srcs = glob(["*.c"], exclude = ["_events.c"]) + glob(["*.h"]),
+    srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//src:__subpackages__",
                   "//third_party:__subpackages__"]
  )

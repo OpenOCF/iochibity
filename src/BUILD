@@ -14,10 +14,10 @@ config_setting(
 # needed by third_party libs
 cc_library(
     name = "config",
-    hdrs = [# "openocf_config.h",
+    srcs = ["_openocf_config.h",
             # "iotivity_constants.h",
             # "iotivity_debug.h",
-            # "system.h",
+            "_system.h",
             # "transport_types.h"
     ]
     + select({":windows": ["msvc_config.h"],

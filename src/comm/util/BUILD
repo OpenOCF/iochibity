@@ -17,14 +17,8 @@ cc_library(
              "-Iexternal/openocf/src/",
              "-Isrc/comm",
              "-Iexternal/openocf/src/comm",
-             # "-Isrc/comm/api",
-             # "-Iexternal/openocf/src/comm/api",
              "-Isrc/comm/transport/util",
              "-Iexternal/openocf/src/comm/transport/util",
-             # "-Isrc/comm/common",
-             # "-Iexternal/openocf/src/comm/common",
-             # "-Isrc/comm/interface",
-             # "-Iexternal/openocf/src/comm/interface",
              "-Isrc/comm/util",
              "-Iexternal/openocf/src/comm/util",
              "-Isrc/logger",
@@ -42,22 +36,10 @@ cc_library(
                                        "-U DEBUG"]}), # OS X
     deps = ["//src:config",
             "//src/comm/transport/util",
-    	    # "//src/comm/common",
-    	    # "//src/comm/interface",
             "//src/logger",
     	    "//src/portability",
             "//src/util",
             "//third_party/coap"],
-    hdrs = ["cautilinterface.h",
-            "userprefs.h"],
-            # "commdefs.h"],
-    srcs = ["cautilinterface.c"],
-            # "camanagerleinterface.h",
-            # "cabtpairinginterface.h"],
-# if with_cloud and with_tcp:
-# "caconnectionmanager.c",
-# "camanagerutil.c",
-# "camessagearbiter.c",
-# "capolicymanager.c"
+    srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//src/comm:__subpackages__"]
 )

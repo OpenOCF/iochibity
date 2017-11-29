@@ -25,14 +25,6 @@ config_setting(
     values = { "cpu": "x64_windows_msys" }
 )
 
-# cc_library(
-#     name = "hdrs",
-#     hdrs = ["base64.h",
-#             # "byte_array.h",
-#             "configuration.h"],
-#     visibility = ["//visibility:public"],
-# )
-
 cc_library(
     name = "util",
     # alwayslink = True,
@@ -41,9 +33,6 @@ cc_library(
              "-Isrc/logger",
              "-Iexternal/openocf/src/logger",
              "-Isrc/portability",
-    #          "-Iexternal/openocf/src/portability",
-    #          "-Isrc/util",
-    #          "-Iexternal/openocf/src/util"]
         "-Ithird_party/tinycbor/src",
         "-Iexternal/openocf/third_party/tinycbor/src"]
     + select({"windows": [],
@@ -55,32 +44,13 @@ cc_library(
             "//src/logger",
             # "//src/portability"
     ],
-    # hdrs = ["base64.h",
-    #         # "byte_array.h",
-    #         "configuration.h",
-    #         # select ifaddrs.h only for platforms that do not have getifaddrs (e.g. Android)
-    #         # "ifaddrs.h",
-    #         # "tree.h",
-    # ],
-    srcs = ["base64.c",
-            "base64.h",
-            # "byte_array.c",
-            # "errcheck.c",
-            "uarraylist.c",
-            "uarraylist.h",
-            "ulinklist.c",
-            "ulinklist.h",
-            "uqueue.c",
-            "uqueue.h",
-            "configuration.c",
-            "configuration.h"]
+    srcs = glob(["*.c"], exclude=["ifaddrs.*"]) + glob(["*.h"])
     + select({#":ndk": ["ifaddrs.c",
               #         "ifaddrs.h"],
               ":android": ["ifaddrs.c",
                            "ifaddrs.h"
               ],
               "//conditions:default": []}),
-    visibility = ["//src:__subpackages__"]
-    # "//src/comm:__pkg__",
-#		  "//src]
+    visibility = ["//src:__subpackages__",
+                  "//tools/makeheaders:__pkg__"]
 )

@@ -15,7 +15,6 @@ cc_library(
             "//src/util",
     ],
     # hdrs = glob(["*.h"]),
-    srcs = ["ocevent_darwin.c",
-            "ocevent_darwin.h"],
+    srcs = glob(["ocevent_darwin.*"]),
     visibility = ["//visibility:public"]
 )
