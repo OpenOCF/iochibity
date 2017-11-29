@@ -280,11 +280,11 @@ dnl   AC_CHECK_HEADER(sys/time.h)
 dnl   AC_CHECK_HEADER(foo.h)
 dnl ])
 
-AH_BOTTOM([
-#ifdef _MSC_VER
-#include "msvc_config.h"
-#endif
-])
+dnl AH_BOTTOM([
+dnl #ifdef _MSC_VER
+dnl #include "msvc_config.h"
+dnl #endif
+dnl ])
 
 AH_BOTTOM([
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
