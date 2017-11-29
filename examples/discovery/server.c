@@ -21,8 +21,6 @@
 
 #include "openocf.h"
 
-/* #include "iotivity_config.h" */
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -66,6 +64,7 @@ int main() {
         OIC_LOG(ERROR, TAG, "OCStack init error");
         return 0;
     }
+    OIC_LOG(INFO, TAG, "OCStack initialized");
 
     /*
      * Declare and create the example resource: Light
