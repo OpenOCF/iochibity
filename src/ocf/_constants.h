@@ -15,9 +15,11 @@
 /**
 * TODO: Move these COAP defines to CoAP lib once approved.
 */
+#if EXPORT_INTERFACE
 #define COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR 10000 // application/vnd.ocf+cbor
 #define OCF_ACCEPT_CONTENT_FORMAT_VERSION 2049
 #define OCF_CONTENT_FORMAT_VERSION 2053
+#endif
 
 // The Accept Version and Content-Format Version for OCF 1.0.0 (0b0000 1000 0000 0000).
 #define DEFAULT_VERSION_VALUE 2048
@@ -64,7 +66,9 @@
 #define OC_DEFAULT_PRESENCE_TTL_SECONDS       (60)
 
 /** For multicast Discovery mechanism.*/
+#if EXPORT_INTERFACE
 #define OC_MULTICAST_DISCOVERY_URI            "/oic/res"
+#endif
 
 /** Separator for multiple query string.*/
 #define OC_QUERY_SEPARATOR                    "&;"
@@ -317,9 +321,11 @@
 #define OC_SPEC_VERSION                  "ocf.1.1.0"
 
 /** Integer value of spec version (OCF1.0 0b0000:1000:0000:0000).*/
+#if EXPORT_INTERFACE
 #define OC_SPEC_VERSION_VALUE            2048
 #define OCF_VERSION_1_0_0 OC_SPEC_VERSION_VALUE
 #define OCF_VERSION_1_1_0                2112
+#endif
 
 /** Device Data Model version.*/
 #define OC_DATA_MODEL_VERSION            "ocf.res.1.1.0,ocf.sh.1.1.0"

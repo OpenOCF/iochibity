@@ -29,12 +29,6 @@ typedef char *CAURI_t;
  */
 #define CA_MAX_URI_LENGTH 512 /* maximum size of URI for other platforms*/
 
-/**
- * TODO: Move these COAP defines to CoAP lib once approved.
- */
-#define OCF_ACCEPT_CONTENT_FORMAT_VERSION 2049
-#define OCF_CONTENT_FORMAT_VERSION        2053
-
   /* CA_ prefix: from //src/comm/api/cacommon.h: */
   /* OC_ prefix: from //src/ocf/octypes.h: */
 
