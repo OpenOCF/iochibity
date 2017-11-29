@@ -36,12 +36,13 @@ cc_library(
              "-Ithird_party/coap/include",
              "-Ithird_party/utlist",
              "-Iexternal/openocf/third_party/coap/include",
-             "-Wall", "-Wextra"
+             "-Wall"
     ] + select({":windows": [],
               ":msvc": [],
               ":msys": [],
-              "//conditions:default": ["-std=c11",
-                                       "-UDEBUG"]}), # OS X
+              ":darwin": ["-UDEBUG"],
+              ":darwin64": ["-UDEBUG"],
+              "//conditions:default": ["-std=c11", "-Wextra"]}),
     linkstatic = 1,
     deps = ["//src:config",
             "//src/logger",

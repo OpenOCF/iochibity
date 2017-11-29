@@ -23,7 +23,8 @@ cc_library(
             # "//src/portability:hdrs",
             "//third_party/mbedtls"],
     # linkopts = ["-W,crypt32.lib"],
-    srcs = glob([*.c], exclude=["pthread_create.c"]) + glob(["*.h"], exclude=["pthread_create.h"]),
+    srcs = glob(["*.c"], exclude=["pthread_create.c"])
+    + glob(["*.h"], exclude=["pthread_create.h"])
     + select({"msvc": glob(["pthread_create.*"]),
               "windows": glob(["pthread_create.*"]),
               "msys": [],
