@@ -73,6 +73,7 @@
 /* #include <pthread_unistd.h> */
 /* #endif */
 
+oc_mutex printf_mutex = NULL;
 
 #if EXPORT_INTERFACE
 typedef enum
@@ -340,6 +341,7 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
 
 /* #ifdef _MSC_VER			/\* compiler is msvc cl.exe *\/ */
 #ifdef _WIN32
+    /* oc_mutex_lock(printf_mutex); */
 #else    
     flockfile(stdout);
 #endif
@@ -351,7 +353,7 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
 
     // No idea why the static initialization won't work here, it seems the compiler is convinced
     // that this is a variable-sized object.
-    char lineBuffer[LINE_BUFFER_SIZE];
+    static char lineBuffer[LINE_BUFFER_SIZE];
     memset(lineBuffer, 0, sizeof lineBuffer);
     size_t byte_index = 0;	/* 2 hex chars plus 1 space per byte */
     size_t line_index = 0;
@@ -376,6 +378,7 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
     }
     fflush(stdout);
 #ifdef _WIN32
+    /* oc_mutex_unlock(printf_mutex); */
 #else
     funlockfile(stdout);
 #endif
@@ -395,11 +398,15 @@ void OCLogConfig(oc_log_ctx_t *ctx)
 
 void OCLogInit()
 {
-
+    if (NULL == printf_mutex)
+    {
+        printf_mutex = oc_mutex_new();
+    }
 }
 
 void OCLogShutdown()
 {
+    oc_mutex_free(printf_mutex);
 #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
     if (logCtx && logCtx->destroy)
     {
@@ -427,10 +434,10 @@ void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
         return;
     }
 
-    char tagbuffer[MAX_LOG_V_BUFFER_SIZE] = {0};
+    static char tagbuffer[MAX_LOG_V_BUFFER_SIZE] = {0};
     sprintf(tagbuffer, "%s:%d", tag, line_nbr);
 
-    char buffer[MAX_LOG_V_BUFFER_SIZE] = {0};
+    static char buffer[MAX_LOG_V_BUFFER_SIZE] = {0};
     va_list args;
     va_start(args, format);
     vsnprintf(buffer, sizeof(buffer) - 1, format, args);
