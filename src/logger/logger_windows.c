@@ -27,7 +27,7 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "logger.h"
+#include "logger_windows.h"
 
 /* MINGW64: */
 /* uname -s MINGW64_NT-6.1 */
@@ -78,7 +78,7 @@
 #include <string.h>
 /* #include "logger_types.h" */
 
-/* #include <stdio.h> */
+#include <stdio.h>
 #include <stdarg.h>
 
 #if INTERFACE
@@ -146,5 +146,6 @@ void OCLog(int level, const char * tag, const char * logStr)
 	    /* printf("%02d:%02d.%03d %s: %s: %s\n", min, sec, ms, LEVEL[level], tag, logStr); */
 	    /* printf("%s %s %s\n", LEVEL[level], tag, logStr); */
 	    write_log("%s %s %s\n", LEVEL[level], tag, logStr);
+	    fflush(stdout);
 	}
 }
