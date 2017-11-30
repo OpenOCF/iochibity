@@ -55,7 +55,7 @@ def _prep_headers_rule_impl(ctx):
     fnames = "\n".join([name.path for name in sorted(files)
                         if (name.path.endswith("c")
                             or name.basename.startswith("_"))])
-    print(fnames)
+    # print("\n" + fnames)
     dat = ctx.outputs.dat
     ctx.actions.write(output=dat,
                       content=fnames)
