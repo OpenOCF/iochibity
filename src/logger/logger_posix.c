@@ -408,6 +408,29 @@ and have most functions only take the inner context: */
  *     OCLog(level, tagbuffer, buffer);
  * } */
 
+/* void OCLogStr(const char *format, ...) */
+/* void OCLogStr(int level, const char * tag, const char * logStr)
+ * /\* void OCLogStr(int level, const char * tag, int line_nbr, const char * format, ...) *\/
+ * {
+ *     if (!logStr || !tag)
+ *     {
+ *        return;
+ *     }
+ * 
+ *     if (!AdjustAndVerifyLogLevel(&level))
+ *     {
+ *         return;
+ *     }
+ * 
+ *     va_list args;
+ * 
+ *     va_start(args, format);
+ *     // printf(format, args);
+ *     /\* fprintf(logfd, "goodbye %s\n", "world"); *\/
+ *     vfprintf(logfd, format, args);
+ *     va_end(args);
+ * } */
+
 /**
  * Output a log string with the specified priority level.
  * Only defined for Linux and Android
