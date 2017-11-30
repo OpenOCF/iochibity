@@ -1,2 +1,5 @@
+= discovery demo
 
-cdk:  http://invisible-island.net/datafiles/release/cdk.tar.gz
+This simple example demonstrates resource discovery. The server
+creates a pseudo resource, the client sends a discovery request, logs
+the result, and exits.

@@ -41,7 +41,7 @@ cc_binary(
     deps = ["//src:config",
             # "//src/ocf:interface",
             # "//src/ocf:hdrs",
-            "//src/ocf:impl",
+            "//src/ocf",
             "//src/logger",
             "//src/comm",
             # "//src/comm/api",
@@ -56,7 +56,7 @@ cc_binary(
 )
 
 cc_library(
-    name = "ocf",
+    name = "openocf",
     copts = ["-Ithird_party/coap",
              "-Ithird_party/coap/include"
     ] + select({":windows": [],
@@ -67,12 +67,9 @@ cc_library(
     linkstatic = 1,
     # alwayslink = True,
     deps = ["//src:config",
-            # "//src/ocf:interface",
-            # "//src/ocf:hdrs",
-            "//src/ocf:impl",
+            "//src/ocf",
             "//src/logger",
             "//src/comm",
-            # "//src/comm/api",
             "//src/portability",
             "//src/provisioning",
             "//src/sec",
@@ -117,8 +114,8 @@ cc_library(
 )
 
 cc_library(
-    name = "impl",
-    alwayslink = True,
+    name = "ocf",
+    # alwayslink = True,
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
              "-Isrc/portability",
@@ -176,4 +173,5 @@ cc_library(
     # if windows, and UWP_APP = 1:
     # "ocsqlite3helper.c"
     # "ocsqlite3helper.h"
+    visibility = ["//visibility:public"]
 )

@@ -86,6 +86,8 @@ typedef enum
 // Example:  OIC_LOG(INFO, TAG, PCF("Entering function"));
 #define PCF(str) str
 
+#define LINE_BUFFER_SIZE (16 * 2) + 16 + 1  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination
+
 typedef enum
 {
     OC_LOG_MIN_VAL__   = -1,

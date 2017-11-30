@@ -27,7 +27,7 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "logger.h"
+#include "logger_posix.h"
 
 // Pull in _POSIX_TIMERS feature test macro to check for
 // clock_gettime() support.
@@ -233,7 +233,7 @@ and have most functions only take the inner context: */
  * 
  * static oc_log_ctx_t *logCtx = 0; */
 
-const uint16_t LINE_BUFFER_SIZE = (16 * 2) + 16 + 1;  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination
+/* const uint16_t LINE_BUFFER_SIZE = (16 * 2) + 16 + 1;  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination */
 
 /* #if defined __linux__ || defined __APPLE__ || defined _WIN32
  * static oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO,
