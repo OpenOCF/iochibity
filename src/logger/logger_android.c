@@ -234,11 +234,11 @@ static bool g_hidePrivateLogEntries = true;
 
 static oc_log_ctx_t *logCtx = 0;
 
-#if defined(_MSC_VER)
+/* #if defined(_MSC_VER) */
 #define LINE_BUFFER_SIZE (16 * 2) + 16 + 1  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination
-#else
-static const uint16_t LINE_BUFFER_SIZE = (16 * 2) + 16 + 1;  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination
-#endif //defined(_MSC_VER)
+/* #else
+ * static const uint16_t LINE_BUFFER_SIZE = (16 * 2) + 16 + 1;  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination
+ * #endif //defined(_MSC_VER) */
 
 #ifdef __ANDROID__
 #elif defined __linux__ || defined __APPLE__ || defined _WIN32

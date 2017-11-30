@@ -44,7 +44,7 @@ cc_library(
     + select({":windows":  glob(["logger_windows.*"]),
               ":msvc":   glob(["logger_windows.*"]),
               ":msys":   glob(["logger_windows.*"]),
-              ":darwin": glob(["logger_posix.*"]),
-              "//conditions:default": ["logger_posix.c", "logger_posix.hX"]}),
+              ":darwin": ["logger_posix.c", "logger_posix.h"],
+              "//conditions:default": glob(["logger_posix.*"])}),
     visibility = ["//src:__subpackages__"]
 )
