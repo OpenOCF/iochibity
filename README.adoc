@@ -85,13 +85,29 @@ $ bazel build :mkhdrs
 ----
 
 This creates `./bazel-bin/mkhdrs.dat`. We process this to create our
-headers. First build makeheaders, then use it:
+headers. First build the makeheaders program:
 
 [source,]
 ----
-$ bazel build tools/makeheaders -f bazel-bin/mkhdrs.dat
-$ bazel build tools/makeheaders -f bazel-bin/mkhdrs.dat -H > include/openocf_h.h
+$ bazel build tools/makeheaders
 ----
+
+The result will be `./bazel-bin/tools/makeheaders/makeheaders`. Since makeheaders is extremely unlikely to change, you can copy it to a directory on your path, e.g.
+
+[source,sh]
+----
+$ cp ./bazel-bin/tools/makeheaders/makeheaders $HOME/bin
+----
+
+Now use it to produces the internal library headers, then the public
+API exposed to application developers:
+
+[source,sh]
+----
+$ ./bazel-bin/tools/makeheaders -f bazel-bin/mkhdrs.dat
+$ ./bazel-bin/tools/makeheaders -f bazel-bin/mkhdrs.dat -H > include/openocf_h.h
+----
+
 
 
 Targets are defined by BUILD files; cross-compilation by flags. Before
