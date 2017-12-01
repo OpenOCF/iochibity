@@ -59,7 +59,7 @@ going overboard with macros.
 ====
 
 IMPORTANT: Status: OpenOCF is based on Iotivity 1.3.0 and will be
-upgraded to new versions as they are release. On the Mac, network
+upgraded to new versions as they are released. On the Mac, network
 monitoring is not yet implemented. It runs, but will not detect
 network changes.
 
