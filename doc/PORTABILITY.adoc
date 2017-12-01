@@ -11,7 +11,7 @@ out of the source code (where it is implemented using e.g. `#ifdef
 _WIN32 ... #endif`) and into the build logic. Ideally all
 platform-specific `#ifdef` code should be eliminated.
 
-The build logic is then reponsible for selecting files for
+The build logic is then responsible for selecting files for
 composition. For example, Linux has a lot of support for POSIX
 networking, but for network monitoring it uses Netlink sockets, which
 are Linux-specific. So on Linux the build system will compose the
