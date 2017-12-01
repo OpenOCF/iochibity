@@ -36,16 +36,23 @@ WARNING:  The source tree has been reorganized substantially:
 
 == Building
 
+First configure, then build.
+
+OpenOCF uses GNU autotools (autoconf, etc.) for configuration.  You
+will also need to configure the third-party libs. (Just coap so far). The
+instructions are at the top of `third_party/coap/BUILD`.
+
 OpenOCF uses the https://bazel.build/[Bazel] build system.
+
+OpenOCF is written in the c-without-include-headers style made
+possible by https://www.hwaci.com/sw/mkhdr/[makeheaders]. This
+requires a preprocessing step as part of the build.
 
 Prerequisites: Bazel, GNU autotools. On Windows: msys2, mingw-64.
 
-You'll need to configure the third-party libs. (Just coap so far). The
-instructions are at the top of `third_party/coap/BUILD`.
+WARNING: See notes below if you are building on Windows.
 
-WARNING: libcoap does not work with mingw64 out of the box; it
-requires some patches that have not been submitted yet. Search
-third_party/coap/src/coap_io.c for "GAR" to see what's needed.
+=== configuration
 
 [source,sh]
 ----
@@ -54,44 +61,97 @@ $ autoheader && autoconf && ./configure --enable-logging
 $ bazel build <target>`
 ----
 
-WARNING: if you are using msys/mingw on windows, the config will be
-based on the mingw environment, but the default toolchain is msvc,
-which is a different environment. so you have to #undef the following:
-
--#undef HAVE_LIBPTHREAD
--#undef HAVE_PTHREAD_H
--#undef HAVE_STRINGS_H
--#undef HAVE_SYS_SOCKET_H
--#undef HAVE_SYS_TIME_H
--#undef TIME_WITH_SYS_TIME
--#undef HAVE_UNISTD_H
--#undef HAVE_SYS_UNISTD_H
-
 WARNING: Configuration support for cross-compiling is WIP.
+
+Run `./configure --help` to see the `--enable-feature` and `--with-lib` options.
+
+=== building
+
+Prep: first we construct the list of files to be processed by
+makeheaders; this list varies by platform, so we use a Bazel target:
+
+[source,sh]
+----
+$ bazel build :mkhdrs
+----
+
+This creates `./bazel-bin/mkhdrs.dat`. We process this to create our
+headers. First build makeheaders, then use it:
+
+[source,]
+----
+$ bazel build tools/makeheaders -f bazel-bin/mkhdrs.dat
+$ bazel build tools/makeheaders -f bazel-bin/mkhdrs.dat -H > include/openocf_h.h
+----
+
 
 Targets are defined by BUILD files; cross-compilation by flags. Before
 building, see link:tools/bazel.rc[tools/bazel.rc] and make sure you've
-got the right ones.  Examples:
+got the right ones.  You can build any target.  Examples:
 
 * `$ bazel build src/provisioning`
 * `$ bazel build src/comm`
 * etc
 
-Run `./configure --help` to see the `--enable-feature` and `--with-lib` options.
+The main target for building OpenOCF for use by an application is
+`//:openocf`. You can build it like so: `$ bazel build :openocf`.
 
-Build test apps:
+Now build test apps:
 
 [source,shell]
 ----
-$ bazel build examples/simple:server
-$ bazel build examples/simple:client
+$ bazel build examples/discovery:server
+$ bazel build examples/discovery:client
 ----
 
-Output executables will be in `./bazel-bin/examples/simple
+Output executables will be in `./bazel-bin/examples/discovery
 
-Testing on OS X is up to date. Testing on Linux and Windows is a bit
-behind (it does build and run on those platforms but recent work to
-support cross-compiling has not yet been tested there).
+This example has been built and tested on Ubuntu (16.04.3 LTS), macOS
+Sierra (10.12.6), Windows 7, Raspberry Pi 3b, and Wind River Linux.
+
+
+IMPORTANT: As you develop code, you will need to rerun makeheaders
+whenever you make a change affecting the visibility of your code
+(fortunately makeheaders is lightning-fast). For example, if you
+change a function prototype or add code that refers to something in
+another file. If you add or remove source files, you will also need to
+rerun `$ bazel build :mkhdrs` before rerunning makeheaders. In the
+future I hope to automate all this so a single bazel command will do
+the all the right things.
+
+==== windows
+
+Prerequisites: mingw shell and GNU tools (autoheader, autoconf,
+etc.). Recommend using http://www.msys2.org/[msys2]. Use pacman to
+install needed packages.
+
+IMPORTANT: Currently only the MSVC compiler is supported. That's the
+default for Bazel builds.  Support for the Mingw GCC compiler is
+almost complete but there are still a few unresolved bugs. Patches
+welcome.
+
+Libcoap (in `third_party/coap`) does not work with mingw64 out of the
+box; it requires some patches that have not been submitted yet. Search
+third_party/coap/src/coap_io.c for "GAR" to see what's needed.
+
+Windows needs some special therapy.  Since we're using mingw-based
+tools for feature test configuration but compiling with MSVC tools, we
+get some false positives: headers that exist in the mingw environment
+but not the MSVC environment. Specifically, the generated
+`src/_openocf_config.h` file will #define the following:
+
+HAVE_LIBPTHREAD
+HAVE_PTHREAD_H
+HAVE_STRINGS_H
+HAVE_SYS_SOCKET_H
+HAVE_SYS_TIME_H
+TIME_WITH_SYS_TIME
+HAVE_UNISTD_H
+HAVE_SYS_UNISTD_H
+
+These must be #undefined if compiling with the MSVC toolchain. As a
+convenience we provide `src/_openocf_config_win.h` which you can copy
+to `src/_openocf_config.h` instead of running `./configure`.
 
 === cross-compiling
 
