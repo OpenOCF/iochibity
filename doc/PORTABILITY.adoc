@@ -19,22 +19,22 @@ network monitor by selecting the following files for preprocessing,
 compilation, and linkage:
 
 * `capinwmonitor0.c`
-* `capinwmonitor0_posix.c`
-* `capinwmonitor0_linux.c`
+* `capinwmonitor_posix.c`
+* `capinwmonitor_linux.c`
 
 The Mac does not support Netlink sockets, so a different
 implementation is required. This is not yet implemented, but it will
 go in `capinwmonitor0_darwin.c`, and the composition will be:
 
 * `capinwmonitor0.c`
-* `capinwmonitor0_posix.c`
-* `capinwmonitor0_darwin.c`
+* `capinwmonitor_posix.c`
+* `capinwmonitor_darwin.c`
 
 Windows has some POSIX support, but it is sufficiently weird that the
 build skips the POSIX file:
 
 * `capinwmonitor0.c`
-* `capinwmonitor0_windows.c`
+* `capinwmonitor_windows.c`
 
 WARNING: This strategy is not yet fully implemented. It is most fully
 implemented in `src/comm/transport/udpip` and some of the code in
