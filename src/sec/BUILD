@@ -81,45 +81,6 @@ config_setting(
 #                   "//src/provisioning:__pkg__"]
 # )
 
-# cc_library(
-#     name = "helpers",
-#     alwayslink = 1,
-#     linkstatic = True,
-#     copts = ["-Isrc",
-#              "-Ithird_party/mbedtls/include",
-#              "-Iexternal/openocf/third_party/mbedtls/include",
-#              "-Ithird_party/coap",
-#              "-Ithird_party/coap/include",
-#              "-Iexternal/openocf/third_party/coap/include",
-#              "-Ithird_party/tinycbor/src",
-#              "-Iexternal/openocf/third_party/tinycbor/src"
-#     ] + select({":windows": [],
-#               ":msvc": [],
-#               ":msys": [],
-#               "//conditions:default": ["-std=c11",
-#                                        "-U DEBUG"]}), # OS X
-#     deps = ["//src:config",
-#             # "//src/comm/api",
-#             # "//src/comm/common",
-#             "//src/logger",
-#             # "//src/ocf:hdrs",
-#             "//src/portability",
-#             "//src/sec/certificates",
-#             "//src/sec:strings",
-#             "//src/util",
-#             "//third_party/mbedtls",
-#             "//third_party/mbedtls:mbedtls-crypto",
-#             "//third_party/mbedtls:mbedtls-x509",
-#             "//third_party/coap",
-#             "//third_party/tinycbor"],
-#     # hdrs = ["securevirtualresourcetypes.h"],
-#     srcs = glob(["srmutility.*"]),
-#             # "srmutility.h"],
-#     visibility = ["//src/sec/svrs:__pkg__",
-#                   "//src/ocf:__pkg__",
-#                   "//src/provisioning:__pkg__"]
-# )
-
 cc_library(
     name = "sec",
     # alwayslink = True,

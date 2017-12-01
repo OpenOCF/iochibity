@@ -32,6 +32,7 @@ cc_library(
             # "//src/ocf:hdrs",
             "//src/portability",
             "//src/sec/crypto",
+            "//src/sec/util",
             "//src/util",
             "//third_party/coap",
             "//third_party/tinycbor"],
@@ -40,6 +41,3 @@ cc_library(
                   "//src/sec:__pkg__",
                   "//src/ocf:__pkg__"]
 )
-
-
-
