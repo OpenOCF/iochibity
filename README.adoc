@@ -6,15 +6,17 @@ https://github.com/iotivity/iotivity[Iotivity].
 Differences:
 
 * Minimal, 100% C11 - only the C code from Iotivity, none of the C++ stuff
+* The build system is https://bazel.build/[Bazel] instead of Scons.
+* The code has been converted (reorganized) to a
+  c-without-include-headers style, using
+  https://www.hwaci.com/sw/mkhdr/[makeheaders] from D.Richard Hipp of
+  Sqlite fame.
 * Refactoring and renaming.
 ** API is the same, but source layout and some filenames have been changed.
-* The build system is https://bazel.build/[Bazel] instead of Scons.
 ** Easy cross-compilation (current targets: Raspberry Pi 3B, WindRiver Linux on Intel IoT Gateway, ARM, Android NDK)
 * Arduino code is removed.
 * Java/Android support has been migrated to a separate repo, https://github.com/OpenOCF/iochibity-java[iochibity-java]
 ** No Android-specific code in OpenOCF (Work In Progress). Android support in Iotivity involves having the stack call into Android to create objects etc. This has been removed.
-
-WARNING: Developed on OS X. Linux and Windows testing is a little bit behind.
 
 The source is in `src/` and `third_party/`.
 
@@ -26,13 +28,14 @@ WARNING:  The source tree has been reorganized substantially:
 
 * security/provisioning -> //src/provisioning
 
-* etc.
-
 * src and include subdirs have been removed - source and header files
   go in same director (bazel treats header files as source; this makes
   good sense imho)
 
-* etc.
+* most header files are generated at build time, using
+  makeheaders. The exceptions are .h files whose names have a leading
+  underscore, e.g. `src/ocf/_device.h`; such files are processed by
+  makeheaders, but are not #included anywhere.
 
 == Building
 
@@ -54,16 +57,22 @@ WARNING: See notes below if you are building on Windows.
 
 === configuration
 
+Start by configuring coap; see the comments in
+`third_party/coap/BUILD` for instructions.
+
+Then configure OpenOCF:
+
 [source,sh]
 ----
 $ automake --add-missing  # generates config.guess, config.sub (both required)
-$ autoheader && autoconf && ./configure --enable-logging
-$ bazel build <target>`
+$ autoheader && autoconf
+$ ./configure --enable-logging
 ----
+
+Run `./configure --help` to see the `--enable-feature` and `--with-lib` options.
 
 WARNING: Configuration support for cross-compiling is WIP.
 
-Run `./configure --help` to see the `--enable-feature` and `--with-lib` options.
 
 === building
 
