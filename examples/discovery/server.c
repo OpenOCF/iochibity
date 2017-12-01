@@ -58,6 +58,9 @@ void handleSigInt(int signum) {
 }
 
 int main() {
+    OCLogInit();
+    /* logfd = fopen("./logs/server.log", "w"); */
+    /* OCLogHookFd(logfd); */
 
     OIC_LOG_V(INFO, TAG, "Starting ocserver");
     if (OCInit(NULL, 0, OC_SERVER) != OC_STACK_OK) {

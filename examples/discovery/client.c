@@ -647,12 +647,8 @@ void* ocf_routine(void *arg) {
 
 int main ()
 {
-    /* logfd = stdout; */
-    logfd = fopen("./logs/client.log", "w");
-    /* fprintf(logfd, "hello %s\n", "world"); */
-    /* oocf_log_hook_stdout((log_writer_t)&log_msg); */
-    /* fflush(logfd); */
     OCLogInit();
+    /* logfd = fopen("./logs/client.log", "w"); */
     /* OCLogHookFd(logfd); */
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self());
 
