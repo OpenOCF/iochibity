@@ -1,0 +1,41 @@
+= portability
+
+OpenOCF follows a simple strategy of composition to support multiple
+platforms.  All platform-specific code is sequestered in
+platform-specific files, e.g. `caipnwmonitor_posix.c`,
+`caipnwmonitor_darwin.c`, etc.  Platform-independent code goes in
+e.g. `caipnwmonitor0.c` (the 0 suffix is for sorting).
+
+The idea is that selection of platform-specific code should be moved
+out of the source code (where it is implemented using e.g. `#ifdef
+_WIN32 ... #endif`) and into the build logic. Ideally all
+platform-specific `#ifdef` code should be eliminated.
+
+The build logic is then reponsible for selecting files for
+composition. For example, Linux has a lot of support for POSIX
+networking, but for network monitoring it uses Netlink sockets, which
+are Linux-specific. So on Linux the build system will compose the
+network monitor by selecting the following files for preprocessing,
+compilation, and linkage:
+
+* `capinwmonitor0.c`
+* `capinwmonitor0_posix.c`
+* `capinwmonitor0_linux.c`
+
+The Mac does not support Netlink sockets, so a different
+implementation is required. This is not yet implemented, but it will
+go in `capinwmonitor0_darwin.c`, and the composition will be:
+
+* `capinwmonitor0.c`
+* `capinwmonitor0_posix.c`
+* `capinwmonitor0_darwin.c`
+
+Windows has some POSIX support, but it is sufficiently weird that the
+build skips the POSIX file:
+
+* `capinwmonitor0.c`
+* `capinwmonitor0_windows.c`
+
+WARNING: This strategy is not yet fully implemented. It is most fully
+implemented in `src/comm/transport/udpip` and some of the code in
+`src/portability`.
