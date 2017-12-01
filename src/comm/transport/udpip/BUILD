@@ -1,4 +1,8 @@
 config_setting(
+    name = "linux",
+    values = { "cpu": "k8" }
+)
+config_setting(
     name = "windows",
     # compiler: cl.exe, from msvc
     values = { "cpu": "x64_windows" }
@@ -76,6 +80,8 @@ cc_library(
               ":windows": glob(["caipnwmonitor_windows.*"]) + glob(["caipserver_windows.*"]),
               ":darwin": glob(["caipnwmonitor_posix.*"]) + glob(["caipnwmonitor_darwin.*"])
               + glob(["caipserver_posix.*"]) + glob(["caipserver_darwin.*"]),
+              ":linux": glob(["caipnwmonitor_posix.*"]) + glob(["caipnwmonitor_linux.*"])
+              + glob(["caipserver_posix.*"]) + glob(["caipserver_linux.*"]),
                 # ":ndk": ["//src/comm/transport/udpip/android"],
                 # ":android": ["//src/comm/transport/udpip/android"],
         "//conditions:default": []}),

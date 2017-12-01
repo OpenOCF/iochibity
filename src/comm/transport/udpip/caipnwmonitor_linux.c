@@ -45,6 +45,13 @@
 
 #define TAG "IPNWML"
 
+/* FIXME: use HAVE_NETLINK_H etc */
+#if defined(__linux__)
+#include <linux/if.h>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+#endif
+
 /* GAR: called by CASelectReturned */
 static void CARemoveNetworkMonitorList(int ifiindex)
 {
@@ -131,4 +138,3 @@ u_arraylist_t *CAFindInterfaceChange()
 #endif
     return iflist;
 }
-

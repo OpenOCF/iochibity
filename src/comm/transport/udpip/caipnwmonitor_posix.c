@@ -40,11 +40,19 @@
 #include <ifaddrs.h>
 /* #endif */
 
-/* #if defined(__linux__) || defined(__ANDROID__) /\* FIXM: use HAVE_NETLINK_H etc *\/
- * #include <linux/if.h>
- * #include <linux/netlink.h>
- * #include <linux/rtnetlink.h>
- * #endif */
+/* FIXME: use HAVE_NETLINK_H etc */
+#if defined(__linux__)
+#include <linux/if.h>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+#endif
+
+/* FIXME: refactor to caipnwmonitor_linux? use HAVE_NETLINK_H etc */
+#if defined(__linux__)
+#include <linux/if.h>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+#endif
 
 #include "utlist.h"
 
@@ -58,12 +66,12 @@
 /* #if EXPORT_INTERFACE
  * #include <stdint.h>
  * #endif	/\* INTERFACE *\/
- * 
+ *
  * #if EXPORT_INTERFACE
  * #define INTERFACE_NAME_MAX 16
  * #include <stddef.h>
  * #endif	/\*  *\/
- * 
+ *
  * /\**
  *  * Callback to be notified when IP adapter network state changes.
  *  *
@@ -87,34 +95,34 @@
  *     uint16_t family;
  *     char addr[MAX_ADDR_STR_SIZE_CA];
  * } CAInterface_t;		/\* GAR: CAIfAddress_t *\/
- * 
+ *
  * typedef struct CAIPCBData_t
  * {
  *     struct CAIPCBData_t *next;
  *     CATransportAdapter_t adapter;
  *     CAIPAdapterStateChangeCallback callback;
  * } CAIPCBData_t;
- * 
+ *
  * /\**
  *  * Mutex for synchronizing access to cached interface and IP address information.
  *  *\/
  * static oc_mutex g_networkMonitorContextMutex = NULL;
- * 
+ *
  * /\**
  *  * Used to storing network interface.
  *  *\/
  * static u_arraylist_t *g_netInterfaceList = NULL;
- * 
+ *
  * /\**
  *  * Used to storing adapter changes callback interface.
  *  *\/
  * static struct CAIPCBData_t *g_adapterCallbackList = NULL;
- * 
+ *
  * /\**
  *  * Destroy the network interface monitoring list.
  *  *\/
  * static void CAIPDestroyNetworkMonitorList();
- * 
+ *
  * /\**
  *  * Pass the changed network status through the stored callback.
  *  *\/
@@ -271,7 +279,7 @@ u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
         u_arraylist_destroy(iflist);
         return NULL;
     }
- 
+
     struct ifaddrs *ifa = NULL;
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
     OIC_LOG(DEBUG, TAG, "Iterating over interface addresses.");
