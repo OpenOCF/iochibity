@@ -31,7 +31,6 @@ config_setting(
     values = { "define": "role=clientserver" }
 )
 
-
 cc_binary(
     # name = "libopenocf.dylib",
     name = "libopenocf.so",
@@ -53,7 +52,7 @@ cc_binary(
             "//src/provisioning",
             "//src/sec",
             "//third_party/coap"
-    ] + select({":client_role": ["//src/ocf:client"],
+    ] + select({":client_role": ["//src/ocf/ocf_services_client"],
               "//conditions:default": []}),
     linkshared = 1,
     visibility = ["//visibility:public"]
@@ -78,42 +77,8 @@ cc_library(
             "//src/provisioning",
             "//src/sec",
             "//third_party/coap"]
-    + select({":client_role": ["//src/ocf:client"],
+    + select({":client_role": ["//src/ocf/ocf_services_client"],
               "//conditions:default": []}),
-    visibility = ["//visibility:public"]
-)
-
-cc_library(
-    name = "client",
-    linkstatic = 1,
-    # alwayslink = True,
-    copts = ["-Isrc",
-             "-Iexternal/openocf/src",
-             # "-Isrc/comm/api",
-             # "-Iexternal/openocf/src/comm/api",
-             "-Isrc/ocf",
-             "-Iexternal/openocf/src/ocf",
-             "-Isrc/ocf/client",
-             "-Iexternal/openocf/src/ocf/client",
-             "-Isrc/logger",
-             "-Iexternal/openocf/src/logger",
-             "-Isrc/portability",
-             "-Iexternal/openocf/src/portability"]
-    + select({":windows": [],
-              ":msvc": [],
-              ":msys": [],
-              ":darwin": ["-std=c11", "-U DEBUG"],
-              "//conditions:default": []}),
-    deps = ["//src:config",
-            # "//src/comm/api",
-            # "//src/ocf:hdrs",
-            "//src/logger",
-            # "//src/portability:hdrs",
-            "//src/portability"],
-    hdrs = ["client/co_service_provider.h",
-            "client/co_service_provider_mgr.h"],
-    srcs = ["client/co_service_provider.c",
-            "client/co_service_provider_mgr.c"],
     visibility = ["//visibility:public"]
 )
 
@@ -168,10 +133,10 @@ cc_library(
             "//src/comm",       # connectivity
             "//src/provisioning",
 	    "//third_party/utlist"]
-    + select({":client_role": ["//src/ocf:client"],
+    + select({":client_role": ["//src/ocf/ocf_services_client"],
               "//conditions:default": []}),
-    hdrs = select({":client_role": ["client/co_service_provider_mgr.h"],
-              "//conditions:default": []}),
+    # hdrs = select({":client_role": ["client/co_service_provider_mgr.h"],
+    #           "//conditions:default": []}),
     # FIXME: enable occonnectionmanager if cloud is enabled
     srcs = glob(["*.c"], exclude=["occonnectionmanager.c"])
          + glob(["*.h"], exclude=["occonnectionmanager.h"]),
