@@ -58,7 +58,7 @@ cc_binary(
     deps = ["//src:config",
             "//include",
             "//src/ocf",
-            "//src/ocf:client",
+            # "//src/ocf:client",
             "//third_party/tinycbor",
             "//third_party/cjson",
             "//third_party/coap"
@@ -69,9 +69,9 @@ cc_binary(
               "//conditions:default": ["@usr_local//:cdk"]}),
     linkstatic = 1,
     # linkopts = ["-lcdk"],
-    srcs = ["client.c",
-            "gui.h",
-            "gui.c",]
+    srcs = ["client_threaded.c",
+            "client_ui.h",
+            "client_ui.c",]
 )
 
 cc_binary(

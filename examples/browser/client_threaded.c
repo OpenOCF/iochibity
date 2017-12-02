@@ -650,11 +650,15 @@ void* ocf_routine(void *arg) {
 
 int main ()
 {
-    logfd = stdout;
-    /* logfd = fopen("./logs/client.log", "w"); */
-    /* fprintf(logfd, "hello %s\n", "world"); */
-    oocf_log_hook_stdout((log_writer_t)&log_msg);
-    fflush(logfd);
+    logfd = fopen("./logs/client.log", "w");
+    if (logfd)
+	OCLogInit(logfd);
+    else {
+	printf("Logfile fopen failed\n");
+	exit(EXIT_FAILURE);
+    }
+    /* OCLogHookFd(logfd); */
+
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self());
 
     /* Initialize OCStack. Do this here rather than in the work
@@ -671,8 +675,8 @@ int main ()
     else
 	OIC_LOG_V(DEBUG, TAG, "\n OCF thread created successfully\n");
 
-    /* UI thread here. For this demo we just make a discover request */
-    discover_resources();
+    /* discover_resources(); */
+    run_gui();
     pthread_join(ocf_thread, NULL);
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
