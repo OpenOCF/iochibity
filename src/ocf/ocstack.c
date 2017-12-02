@@ -2413,9 +2413,6 @@ OCStackResult OC_CALL OCInit2(OCMode mode, OCTransportFlags serverFlags, OCTrans
                               OCTransportAdapter transportType)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-#ifdef TB_LOG
-    OCLogInit();
-#endif
     // Serialize calls to start and stop the stack.
     OCEnterInitializer();
 
