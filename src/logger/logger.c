@@ -230,8 +230,6 @@ typedef enum
 
 FILE *logfd = NULL;
 
-/* log_writer_t write_log = fprintf; */
-
 /* void oocf_log_hook_stdout(log_writer_t hook) */
 void OCLogHookFd(FILE *fd)
 EXPORT
@@ -239,19 +237,6 @@ EXPORT
     logfd = fd;
     printf("hooking logger\n");
     /* hook("Hello %s\n", "world"); */
-    /* write_log = hook; */
-    /* write_log("writing %s\n", "log"); */
-}
-
-void write_log(const char *format, ...)
-{
-    va_list args;
-
-    va_start(args, format);
-    // printf(format, args);
-    /* fflush(logfd); */
-    vfprintf(logfd, format, args);
-    va_end(args);
 }
 
 // log level
@@ -417,10 +402,13 @@ void OCLogConfig(oc_log_ctx_t *ctx)
     logCtx = ctx;
 }
 
-void OCLogInit()
+void OCLogInit(FILE *fd)
 EXPORT
 {
-    logfd = stdout;
+    if (fd)
+	logfd = fd;
+    else
+	logfd = stdout;
     if (NULL == printf_mutex)
     {
         printf_mutex = oc_mutex_new();
