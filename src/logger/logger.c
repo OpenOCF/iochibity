@@ -76,7 +76,7 @@
 /* #include <pthread_unistd.h> */
 /* #endif */
 
-oc_mutex printf_mutex = NULL;
+oc_mutex log_mutex = NULL;
 
 #if EXPORT_INTERFACE
 typedef enum
@@ -310,6 +310,7 @@ bool AdjustAndVerifyLogLevel(int* level)
 
 static void OCLogHexBuffer(int level, const char * tag, int line_nbr, const char * format, ...)
 {
+    oc_mutex_lock(log_mutex);
     if (!format || !tag) {
         return;
     }
@@ -328,6 +329,7 @@ static void OCLogHexBuffer(int level, const char * tag, int line_nbr, const char
     vsnprintf(buffer, sizeof buffer - 1, format, args);
     va_end(args);
     OCLog(level, tagbuffer, buffer);
+    oc_mutex_unlock(log_mutex);
 }
 
 /**
@@ -347,7 +349,7 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
 
 /* #ifdef _MSC_VER			/\* compiler is msvc cl.exe *\/ */
 #ifdef _WIN32
-    /* oc_mutex_lock(printf_mutex); */
+    /* oc_mutex_lock(log_mutex); */
 #else    
     /* flockfile(logfd); */
 #endif
@@ -384,7 +386,7 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
     }
     fflush(logfd);
 #ifdef _WIN32
-    /* oc_mutex_unlock(printf_mutex); */
+    /* oc_mutex_unlock(log_mutex); */
 #else
     /* funlockfile(logfd); */
 #endif
@@ -409,15 +411,15 @@ EXPORT
 	logfd = fd;
     else
 	logfd = stdout;
-    if (NULL == printf_mutex)
+    if (NULL == log_mutex)
     {
-        printf_mutex = oc_mutex_new();
+        log_mutex = oc_mutex_new();
     }
 }
 
 void OCLogShutdown()
 {
-    oc_mutex_free(printf_mutex);
+    oc_mutex_free(log_mutex);
 #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
     if (logCtx && logCtx->destroy)
     {
@@ -436,6 +438,7 @@ void OCLogShutdown()
  */
 void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
 {
+    oc_mutex_lock(log_mutex);
     if (!format || !tag) {
         return;
     }
@@ -444,7 +447,6 @@ void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
     {
         return;
     }
-
     static char tagbuffer[MAX_LOG_V_BUFFER_SIZE] = {0};
     sprintf(tagbuffer, "%s:%d", tag, line_nbr);
 
@@ -454,6 +456,7 @@ void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
     vsnprintf(buffer, sizeof(buffer) - 1, format, args);
     va_end(args);
     OCLog(level, tagbuffer, buffer);
+    oc_mutex_unlock(log_mutex);
 }
 
 /**

@@ -154,7 +154,10 @@ void OCLog(int level, const char * tag, const char * logStr)
 	       /* printf("%02d:%02d.%03d %s: %s: %s\n", min, sec, ms, LEVEL[level], tag, logStr); */
 	       /* printf("%s %s %s\n", LEVEL[level], tag, logStr); */
 	       /* write_log("%s %s %s\n", LEVEL[level], tag, logStr); */
+	       flockfile(logfd);
 	       fprintf(logfd, "%s %s %s\n", LEVEL[level], tag, logStr);
+	       fflush(logfd);
+	       funlockfile(logfd);
 	   }
 #endif	/* not android */
 }
