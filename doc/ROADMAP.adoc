@@ -1,0 +1,8 @@
+= roadmap
+
+Things to do:
+
+
+* replace sqlite, it's way too big.  maybe use
+  https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database[lmdb]?
+  code: https://github.com/LMDB/lmdb[lmdb]
