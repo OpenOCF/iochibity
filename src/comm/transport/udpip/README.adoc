@@ -133,25 +133,142 @@ caipinterface.h - misnamed, it's really the caipserver.h
 CAProcessNewInterface - misnamed, really means AddIfToMulticastGroups, defined and used in caipserver.c
 
 
-== servers
+=== initialization
+
+[source,]
+----
+OCInitializeInternal(mode, TransportFlags, OCTransportFlags, OCTransportAdapter/type)
+=> InitializeScheduleResourceList
+=> CAInitialize((CATransportAdapter_t)transportType)
+=> OCSelectNetwork(transportType)
+=> CARegisterNetworkMonitorHandler
+=> client: CARegisterHandler, CAStartDiscoveryServer
+=> server: SRMRegisterHandler, CAStartListeningServer
+=> both:  SRMRegisterHandler, CAStartListeningServer, CAStartDiscoveryServer
+=> not client: initResources
+----
+
+=== network monitor
+
+[source,]
+----
+OCInitializeInternal passes default handlers:
+=> CARegisterNetworkMonitorHandler (comm/util/cautilinterface.c) # 1-line wrapper
+==> CASetNetworkMonitorCallbacks (comm/util/cautilinterface.c) # 1-line wrapper
+===> AddNetworkStateChangedCallback (cainterfacecontroller.c)
+
+handlers:
+OCDefaultAdapterStateChangedHandler (ocstack.c)
+OCDefaultConnectionStateChangedHandler (ocstack.c)
+----
+
+CAInitializeAdapters (cainterfacecontroller.c), passing CBs to:
+=> CAInitializeIP (caipadapter0.c) 
+        CARegisterCallback (cainterfacecontroller.c)
+	    (will be passed ipHandler struct of CBs, uses it to initialize g_adapterHandler)
+	CAReceivedPacketCallback (cainterfacecontroller.c)
+	CAAdapterChangedCallback (cainterfacecontroller.c)
+	CAAdapterErrorHandleCallback (cainterfacecontroller.c)
+
+global handlers list: g_networkChangeCallbackList (cainterfacecontroller.c)
+
+
+CAIPStartNetworkMonitor (caipnwmonitor_<platform>.c)
+=> CAIPInitializeNetworkMonitorList (caipnwmonitor0.c)
+=> CAIPSetNetworkMonitorCallback (caipnwmonitor0.c) arg: CAIPAdapterStateChangeCallback
+
+Monitoring for network changes is conflated with listening for inbound data messages:
+
+[source,]
+----
+CAIpStartServer (caipserver.c/) # adds CAReceiveHandler to threadpool
+=> cCAReceiveHandler (caipserver.c) # while (!caglobals.ip.terminate) { CAFindReadyMessage(); }
+==> CAFindReadyMessage (caipserver_<platform>.c) #
+===> CASelectReturned (caipserver_<platform>.c) # loops, recving msgs
+        for netlinkFd events, we know sth has changed, so:
+            => CAFindInterfaceChange  // use netlink to get RTM_DELADDR, RTM_NEWADDR
+                foreach RTM_NEWADDR: we have its index, so:
+		    => caipnwmonitor.c/CAIPGetInterfaceInformation(idx) (complicated, see below)
+	foreach found interface call caipserver/CAProcessNewInterface to add it to multicast group
+----
+
+how is this related to the network monitor callbacks? CAAdapterChangedCallback, etc.
+
+
+
+
+=== servers
 
 We have:
 
-caipserver.c/CAIPStartListenServer: calls
-CAIPGetInterfaceInformation(0), iterates over resulting iflist, adding each if
-to multicast group, then destroys the iflist
+Services are organized in a struct which is initialized in `caipadapter0.c::CAInitializeIP`:
 
-caipadapter.c/CAStartIPListeningServer calls CAIPStartListenServer, nothing else
+[source,]
+----
+    static const CAConnectivityHandler_t ipHandler =
+        {
+            .startAdapter = CAStartIP,
+            .stopAdapter = CAStopIP,
+            .startListenServer = CAStartIPListeningServer,
+            .stopListenServer = CAStopIPListeningServer,
+            .startDiscoveryServer = CAStartIPDiscoveryServer,
+            .sendData = CASendIPUnicastData,
+            .sendDataToAll = CASendIPMulticastData,
+            .GetnetInfo = CAGetIPInterfaceInformation,
+            .readData = CAReadIPData,
+            .terminate = CATerminateIP,
+            .cType = CA_ADAPTER_IP
+        };
+----
 
-caipadapter.c/CAStartIPDiscoveryServer calls Castartiplisteningserver, nothing else
+[source,]
+----
+OCInitializeInternal (ocstack.c)
+=> OCSelectNetwork (ocstack.c)
+==> CASelectNetwork (connectivitymanager.c)
+===> CAAddNetworkType (canetworkconfigurator.c) for each nw
+====> CAStartAdapter (cainterfacecontroller.c)
+=====> CAStartIP (caipadapter0.c) == g_adapterHandler[index].startAdapter() (cainterfacecontroller.c)
+======> CAInitializeIPGlobals (caipadapter0)
+======> CAIPStartNetworkMonitor (caipnwmonitor_<platform>.c)
+=======> CAIPInitializeNetworkMonitorList (caipnwmonitor0.c)
+=======> CAIPSetNetworkMonitorCallback (caipnwmonitor0.c)
+======> CAIPInitializeQueueHandles (caipadapter0)
+======> CAQueueingThreadStart(g_sendQueueHandle) (comm/caqueueingthread.c)
+======> CAIPStartServer (caipserver0.c)
+=======> create sockets
+=======> CAInitializeFastShutdownMechanism
+=======> CARegisterForAddressChanges (platform-specific nw status monitoring)
+=======> CAIPStartListenServer (caipserver0.c)
+========> (see above; CAIPStartListenServer is called twice during initialization)
+=======> ca_thread_pool_add_task(threadPool, CAReceiveHandler, NULL);
+----
 
-cainterfacecontroller.c/CAStartDiscoveryServerAdapters calls the
-startDiscoveryServer on each adapterhandler (i.e. CA_ADAPTER_* enabled
-at compile time)
 
-* caipserver.c/CAIPStartListenServer - called by:
-<== caipadapter.c/CAStartIPListeningServer (called by caipadapter.c/CAStartIPDiscoveryServer, from ipHandler.startDiscoveryServer set in CAInitializeIP, .startDiscoveryServer called by cainterfacecontroller.c/CAStartDiscoveryServerAdapters, by caconnectivitymanager.c/CAStartDiscoveryServer, by ocstack.c/OCInitializeInternal)
-<== caipserver.c/CAIPStartServer (called by caipadapter.c/CAStartIP(), which is also ipHandler.startAdapter from CAInitializeIP, which is called by cainterfacecontroller.c/CAStartAdapter, called by canetworkconfigurator.c/CAAddNetworkType, called by connectivitymanager.c/CASelectNetwork,called by ocstack.c/OCSelectNetwork, called by ocstack.c/OCInitializeInternal, by OCInit2, by OCInit1, by OCInit, by application)
+[source,]
+----
+OCInitializeInternal (ocf/ocstack.c)
+=>CAStartDiscoveryServer (comm/caconnectivitymanager.c)
+==> CAStartDiscoveryServerAdapters (comm/cainterfacecontroller.c) uses ipHandler above to call:
+===> CAGetSelectedNetworkList (comm/canetworkconfigurator.c); for each nw:
+===> CAStartIPDiscoveryServer (caipadapter0.c) # one-line wrapper around call to:
+====> CAStartIPListeningServer (caipadapter0.c) # only calls:
+=====> CAIPStartListenServer (caipadapter0.c)
+======> CAIPGetInterfaceInformation(0)
+======> applyMulticastToInterface[46] (caipserver0.c) for IFs returned by CAIPGetInterfaceInformation
+========> setsockopt on caglobals.ip.m[46]s?.fd with IP_ADD_MEMBERSHIP (4) or IPV6_JOIN_GROUP (6)
+----
+
+NOTE: CAStartIPDiscoveryServer and CAStartIPListeningServer are otiose
+and can be eliminated; CAStartDiscoveryServerAdapters cann call
+CAIPStartListenServer (which should be renamed to e.g. CAStartIPDiscoveryListener) directly.
+
+CAReceiveHandler == callback that loops calling CAFindReadyMessage
+
+
+ ipHandler.startAdapter from
+ (called by caipadapter.c/CAStartIP()
+caipserver.c/CAIPStartServer
 
 == network monitor
 
