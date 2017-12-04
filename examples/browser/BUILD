@@ -70,8 +70,9 @@ cc_binary(
     linkstatic = 1,
     # linkopts = ["-lcdk"],
     srcs = ["client_threaded.c",
-            "client_ui.h",
-            "client_ui.c",]
+            "client_ui.c",
+            "action_dialog.c",
+            "client.h"]
 )
 
 cc_binary(

@@ -20,7 +20,7 @@
 
 #include "openocf.h"
 
-#include "gui.h"
+#include "client.h"
 #include "cJSON.h"
 #include "coap/pdu.h"
 
