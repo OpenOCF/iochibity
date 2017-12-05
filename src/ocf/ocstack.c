@@ -1428,7 +1428,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
             response->sequenceNumber = MAX_SEQUENCE_NUMBER + 1;
             CopyEndpointToDevAddr(endPoint, &response->devAddr);
             FixUpClientResponse(response);
-            response->resourceUri = responseInfo->info.resourceUri;
+	    response->resourceUri = OICStrdup(responseInfo->info.resourceUri);
             memcpy(response->identity.id, responseInfo->info.identity.id,
                                                 sizeof (response->identity.id));
             response->identity.id_length = responseInfo->info.identity.id_length;
