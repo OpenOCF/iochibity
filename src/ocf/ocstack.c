@@ -1708,6 +1708,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
 		/* FIXME: delete from co_sp_mgr db */
 		oocf_cosp_mgr_free_response(response);
 		OCPayloadDestroy(response->payload);
+		OICFree(response->resourceUri);
 		OICFree(response);
 	    }
         }
