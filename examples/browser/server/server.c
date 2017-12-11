@@ -40,7 +40,7 @@
 
 #define TAG ("ocserver")
 
-int gQuitFlag = 0;
+static int g_quit_flag = 0;
 OCStackResult createLightResource();
 
 typedef struct LIGHTRESOURCE{
@@ -50,10 +50,10 @@ typedef struct LIGHTRESOURCE{
 
 static LightResource Light;
 
-/* SIGINT handler: set gQuitFlag to 1 for graceful termination */
+/* SIGINT handler: set g_quit_flag to 1 for graceful termination */
 void handleSigInt(int signum) {
     if (signum == SIGINT) {
-        gQuitFlag = 1;
+        g_quit_flag = 1;
     }
 }
 
@@ -82,7 +82,7 @@ int main() {
     // Break from loop with Ctrl-C
     OIC_LOG(INFO, TAG, "Entering ocserver main loop...");
     signal(SIGINT, handleSigInt);
-    while (!gQuitFlag) {
+    while (!g_quit_flag) {
 
         if (OCProcess() != OC_STACK_OK) {
             OIC_LOG(ERROR, TAG, "OCStack process error");
