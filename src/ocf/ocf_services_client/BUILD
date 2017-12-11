@@ -50,7 +50,10 @@ cc_library(
     #         "client/co_service_provider_mgr.h"],
     # srcs = ["ocf_services_client/co_service_provider.c",
     #         "ocf_services_client/co_service_provider_mgr.c"],
-    srcs = glob(["*.c"]) + glob(["*.h"]),
+    srcs = ["coresource_db_mgr.c",
+            "coresource_db_mgr.h",
+            "coresource_mgr.c",
+            "coresource_mgr.h"],
     visibility = ["//visibility:public"]
 )
 
