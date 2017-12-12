@@ -47,33 +47,33 @@
 #endif
 #endif
 
-#define TAG "OIC_TIME"
+#define TAG "OIC_TIME_WINDOWS"
 
-/**
- * @name
- * Useful constants for time unit conversions.
- *
- * @{
- */
-#if EXPORT_INTERFACE
-#define MS_PER_SEC  (1000)
-#define US_PER_SEC  (1000000)
-#define US_PER_MS   (1000)
-#define NS_PER_US   (1000)
-#define NS_PER_MS   (1000000)
-#define HNS_PER_US  (10)
-#endif	/* INTERFACE */
-/** @} */
+/* /\** */
+/*  * @name */
+/*  * Useful constants for time unit conversions. */
+/*  * */
+/*  * @{ */
+/*  *\/ */
+/* #if EXPORT_INTERFACE */
+/* #define MS_PER_SEC  (1000) */
+/* #define US_PER_SEC  (1000000) */
+/* #define US_PER_MS   (1000) */
+/* #define NS_PER_US   (1000) */
+/* #define NS_PER_MS   (1000000) */
+/* #define HNS_PER_US  (10) */
+/* #endif	/\* INTERFACE *\/ */
+/* /\** @} *\/ */
 
 
-#if EXPORT_INTERFACE
-#include <stdint.h>
-typedef enum
-{
-    TIME_IN_MS = 0,     //!< milliseconds
-    TIME_IN_US,         //!< microseconds
-} OICTimePrecision;
-#endif	/* EXPORT_INTERFACE */
+/* #if EXPORT_INTERFACE */
+/* #include <stdint.h> */
+/* typedef enum */
+/* { */
+/*     TIME_IN_MS = 0,     //!< milliseconds */
+/*     TIME_IN_US,         //!< microseconds */
+/* } OICTimePrecision; */
+/* #endif	/\* EXPORT_INTERFACE *\/ */
 
 uint64_t OICGetCurrentTime(OICTimePrecision precision)
 {

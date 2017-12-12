@@ -44,39 +44,39 @@
 #endif
 #endif
 
-#define TAG "OIC_TIME"
+#define TAG "OIC_TIME_POSIX"
 
-/**
- * @name
- * Useful constants for time unit conversions.
- *
- * @{
- */
-#if EXPORT_INTERFACE
-#include <stdint.h>
-#define MS_PER_SEC  (1000)
-#define US_PER_SEC  (1000000)
-#define US_PER_MS   (1000)
-#define NS_PER_US   (1000)
-#define NS_PER_MS   (1000000)
-#define HNS_PER_US  (10)
-#endif	/* INTERFACE */
-/** @} */
+/* /\** */
+/*  * @name */
+/*  * Useful constants for time unit conversions. */
+/*  * */
+/*  * @{ */
+/*  *\/ */
+/* #if EXPORT_INTERFACE */
+/* #include <stdint.h> */
+/* #define MS_PER_SEC  (1000) */
+/* #define US_PER_SEC  (1000000) */
+/* #define US_PER_MS   (1000) */
+/* #define NS_PER_US   (1000) */
+/* #define NS_PER_MS   (1000000) */
+/* #define HNS_PER_US  (10) */
+/* #endif	/\* INTERFACE *\/ */
+/* /\** @} *\/ */
 
-const uint64_t USECS_PER_SEC      = 1000000;
-const uint64_t MSECS_PER_SEC      = 1000;
-const uint64_t NANOSECS_PER_SEC   = 1000000000L;
-const uint64_t USECS_PER_MSEC     = 1000;
-const uint64_t NANOSECS_PER_USECS = 1000;
+/* const uint64_t USECS_PER_SEC      = 1000000; */
+/* const uint64_t MSECS_PER_SEC      = 1000; */
+/* const uint64_t NANOSECS_PER_SEC   = 1000000000L; */
+/* const uint64_t USECS_PER_MSEC     = 1000; */
+/* const uint64_t NANOSECS_PER_USECS = 1000; */
 
-#if EXPORT_INTERFACE
-#include <stdint.h>
-typedef enum
-{
-    TIME_IN_MS = 0,     //!< milliseconds
-    TIME_IN_US,         //!< microseconds
-} OICTimePrecision;
-#endif	/* EXPORT_INTERFACE */
+/* #if EXPORT_INTERFACE */
+/* #include <stdint.h> */
+/* typedef enum */
+/* { */
+/*     TIME_IN_MS = 0,     //!< milliseconds */
+/*     TIME_IN_US,         //!< microseconds */
+/* } OICTimePrecision; */
+/* #endif	/\* EXPORT_INTERFACE *\/ */
 
 uint64_t OICGetCurrentTime(OICTimePrecision precision)
 {
