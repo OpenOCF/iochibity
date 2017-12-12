@@ -131,7 +131,7 @@ LOCAL void CASelectReturned(fd_set *readFds, int ret)
         else ISSET(m4s, readFds, CA_MULTICAST | CA_IPV4 | CA_SECURE)
         else if ((caglobals.ip.netlinkFd != OC_INVALID_SOCKET) && FD_ISSET(caglobals.ip.netlinkFd, readFds))
         {
-#if NETWORK_INTERFACE_CHANGED_LOGGING
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
             OIC_LOG_V(DEBUG, TAG, "Netlink event detacted");
 #endif
             u_arraylist_t *iflist = CAFindInterfaceChange();

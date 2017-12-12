@@ -3,6 +3,10 @@ config_setting(
     values = { "crosstool_top": "//platforms/ndk:toolchain" }
 )
 config_setting(
+    name = "linux",
+    values = { "cpu": "k8" }
+)
+config_setting(
     name = "darwin",
     values = { "cpu": "darwin" }
 )
@@ -45,6 +49,7 @@ cc_library(
               ":msvc":   glob(["logger_windows.*"]),
               ":msys":   glob(["logger_windows.*"]),
               ":darwin": ["logger_posix.c", "logger_posix.h"],
+              ":linux": ["logger_posix.c", "logger_posix.h"],
               "//conditions:default": glob(["logger_posix.*"])}),
     visibility = ["//src:__subpackages__"]
 )

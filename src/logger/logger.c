@@ -63,7 +63,10 @@
 #include <dlog.h>
 #endif
 
+#if INTERFACE
 #include <stdio.h>
+#endif
+
 #include <stdarg.h>
 
 /* FIXME: flockfile on mingw? */
@@ -73,7 +76,7 @@
 /* #include <pthread_unistd.h> */
 /* #endif */
 
-oc_mutex printf_mutex = NULL;
+oc_mutex log_mutex = NULL;
 
 #if EXPORT_INTERFACE
 typedef enum
@@ -139,8 +142,9 @@ typedef int    (*oc_log_unlock_t)        (oc_log_ctx_t *);
 typedef int    (*oc_log_try_lock_t)      (oc_log_ctx_t *);
 
 /* printf function type */
-typedef int (*log_writer_t)(const char * format, ...);
-void oocf_log_hook_stdout(log_writer_t hook);
+/* typedef int (*log_writer_t)(const char * format, ...); */
+void oocf_log_hook_stdout(FILE *fd);
+/* void oocf_log_hook_stdout(log_writer_t hook); */
 
 /* For printing __LINE__ */
 #define STRINGIFY(x) #x
@@ -224,15 +228,15 @@ typedef enum
     OC_LOG_LEVEL_INFO,                // debug level is disabled.
 } OCLogLevel;
 
+FILE *logfd = NULL;
 
-log_writer_t write_log = printf;
-
-void oocf_log_hook_stdout(log_writer_t hook)
+/* void oocf_log_hook_stdout(log_writer_t hook) */
+void OCLogHookFd(FILE *fd)
+EXPORT
 {
-    /* printf("hooking logger\n");
-     * hook("Hello %s\n", "world"); */
-    write_log = hook;
-    /* write_log("writing %s\n", "log"); */
+    logfd = fd;
+    printf("hooking logger\n");
+    /* hook("Hello %s\n", "world"); */
 }
 
 // log level
@@ -306,12 +310,15 @@ bool AdjustAndVerifyLogLevel(int* level)
 
 static void OCLogHexBuffer(int level, const char * tag, int line_nbr, const char * format, ...)
 {
+    /* oc_mutex_lock(log_mutex); */
     if (!format || !tag) {
+	/* oc_mutex_unlock(log_mutex); */
         return;
     }
 
     if (!AdjustAndVerifyLogLevel(&level))
     {
+	/* oc_mutex_unlock(log_mutex); */
         return;
     }
 
@@ -324,6 +331,7 @@ static void OCLogHexBuffer(int level, const char * tag, int line_nbr, const char
     vsnprintf(buffer, sizeof buffer - 1, format, args);
     va_end(args);
     OCLog(level, tagbuffer, buffer);
+    /* oc_mutex_unlock(log_mutex); */
 }
 
 /**
@@ -336,20 +344,24 @@ static void OCLogHexBuffer(int level, const char * tag, int line_nbr, const char
  */
 void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buffer, size_t bufferSize)
 {
+    oc_mutex_lock(log_mutex);
+
     if (!buffer || !tag || (bufferSize == 0))
     {
+	oc_mutex_unlock(log_mutex);
         return;
     }
 
 /* #ifdef _MSC_VER			/\* compiler is msvc cl.exe *\/ */
 #ifdef _WIN32
-    /* oc_mutex_lock(printf_mutex); */
+    /* oc_mutex_lock(log_mutex); */
 #else    
-    flockfile(stdout);
+    /* flockfile(logfd); */
 #endif
 
     if (!AdjustAndVerifyLogLevel(&level))
     {
+	oc_mutex_unlock(log_mutex);
         return;
     }
 
@@ -378,12 +390,13 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
     {
         OCLogHexBuffer(level, "\t", line_index * 16, "%s", lineBuffer);
     }
-    fflush(stdout);
+    fflush(logfd);
 #ifdef _WIN32
-    /* oc_mutex_unlock(printf_mutex); */
+    /* oc_mutex_unlock(log_mutex); */
 #else
-    funlockfile(stdout);
+    /* funlockfile(logfd); */
 #endif
+    oc_mutex_unlock(log_mutex);
 }
 
 /* EXPORT void OCSetLogLevel(LogLevel level, bool hidePrivateLogEntries); */
@@ -398,17 +411,22 @@ void OCLogConfig(oc_log_ctx_t *ctx)
     logCtx = ctx;
 }
 
-void OCLogInit()
+void OCLogInit(FILE *fd)
+EXPORT
 {
-    if (NULL == printf_mutex)
+    if (fd)
+	logfd = fd;
+    else
+	logfd = stdout;
+    if (NULL == log_mutex)
     {
-        printf_mutex = oc_mutex_new();
+        log_mutex = oc_mutex_new();
     }
 }
 
 void OCLogShutdown()
 {
-    oc_mutex_free(printf_mutex);
+    oc_mutex_free(log_mutex);
 #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
     if (logCtx && logCtx->destroy)
     {
@@ -427,15 +445,17 @@ void OCLogShutdown()
  */
 void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
 {
+    oc_mutex_lock(log_mutex);
     if (!format || !tag) {
+	oc_mutex_unlock(log_mutex);
         return;
     }
 
     if (!AdjustAndVerifyLogLevel(&level))
     {
+	oc_mutex_unlock(log_mutex);
         return;
     }
-
     static char tagbuffer[MAX_LOG_V_BUFFER_SIZE] = {0};
     sprintf(tagbuffer, "%s:%d", tag, line_nbr);
 
@@ -445,6 +465,42 @@ void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
     vsnprintf(buffer, sizeof(buffer) - 1, format, args);
     va_end(args);
     OCLog(level, tagbuffer, buffer);
+    oc_mutex_unlock(log_mutex);
+}
+
+/**
+ * Output a variable argument list log string with the specified priority level.
+ * Log string may be of any length..
+ *
+ * @param level  - One of DEBUG, INFO, WARNING, ERROR, or FATAL plus possibly the OC_LOG_PRIVATE_DATA bit
+ * @param tag    - Module name
+ * @param format - variadic log string
+ */
+void OCLogStr(int level, const char * tag, int line_nbr, const char * header, const char * format, ...)
+{
+    oc_mutex_lock(log_mutex);
+    if (!format || !tag) {
+	oc_mutex_unlock(log_mutex);
+        return;
+    }
+
+    if (!AdjustAndVerifyLogLevel(&level))
+    {
+	oc_mutex_unlock(log_mutex);
+        return;
+    }
+
+    static char tagbuffer[MAX_LOG_V_BUFFER_SIZE] = {0};
+    sprintf(tagbuffer, "%s:%d", tag, line_nbr);
+
+    OCLog(level, tagbuffer, header);
+
+    /* static char buffer[MAX_LOG_V_BUFFER_SIZE] = {0}; */
+    va_list args;
+    va_start(args, format);
+    vfprintf(logfd, format, args);
+    va_end(args);
+    oc_mutex_unlock(log_mutex);
 }
 
 #if EXPORT_INTERFACE
@@ -466,7 +522,9 @@ void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
 #define OIC_LOG(level, tag, logStr) \
     do { \
     if (((int)OC_MINIMUM_LOG_LEVEL) <= ((int)(level & (~OC_LOG_PRIVATE_DATA)))) \
+	    oc_mutex_lock(log_mutex); \
 	    OCLog((level), (__FILE__ ":" TOSTRING(__LINE__)), (logStr));	\
+	    oc_mutex_unlock(log_mutex); \
     } while(0)
 
 // Define variable argument log function for Linux, Android, and Win32
@@ -475,11 +533,19 @@ void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
     if (((int)OC_MINIMUM_LOG_LEVEL) <= ((int)(level & (~OC_LOG_PRIVATE_DATA)))) \
 	    OCLogv((level), __FILE__, __LINE__, __VA_ARGS__); \
     } while(0)
+
+// Print a string of any length
+#define OIC_LOG_STR(level, tag, ...) \
+    do { \
+    if (((int)OC_MINIMUM_LOG_LEVEL) <= ((int)(level & (~OC_LOG_PRIVATE_DATA)))) \
+	    OCLogStr((level), __FILE__, __LINE__, __VA_ARGS__); \
+    } while(0)
 #else // TB_LOG
 #define OIC_LOG_CONFIG(ctx)
 #define OIC_LOG_SHUTDOWN()
 #define OIC_LOG(level, tag, logStr)
 #define OIC_LOG_V(level, tag, ...)
+#define OIC_LOG_STR(level, tag, ...)
 #define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)
 #define OIC_LOG_CA_BUFFER(level, tag, buffer, bufferSize, isHeader)
 #define OIC_LOG_INIT()

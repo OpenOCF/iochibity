@@ -1,22 +1,18 @@
-//******************************************************************
-//
-// Copyright 2014 Intel Mobile Communications GmbH All Rights Reserved.
-//
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+/* Copyright 2014 Intel Mobile Communications GmbH All Rights Reserved.
+ *
+ * -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http:*www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
 
 #include "openocf.h"
 
@@ -24,7 +20,6 @@
 #include "coap/pdu.h"
 
 #include <limits.h>
-#include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +34,8 @@
 
 #define TAG ("client")
 
-pthread_t ocf_thread;
+/* static oc_thread ocf_thread; */
+
 int gQuitFlag = 0;
 
 FILE *logfd;
@@ -562,8 +558,9 @@ void log_discovery_message(OCClientResponse *clientResponse)
 
     cJSON *discovery_json = discovery_to_json(clientResponse);
     char* rendered = cJSON_Print(discovery_json);
-    OIC_LOG(INFO, TAG, "Discovery payload:\n");
-    log_msg("%s\n", rendered);
+    /* OIC_LOG(INFO, TAG, "Discovery payload:\n"); */
+    OIC_LOG_STR(DEBUG, TAG, "Discovery payload:", "%s\n", rendered);
+    /* log_msg("%s\n", rendered); */
     free(rendered);
 }
 
@@ -579,8 +576,9 @@ OCStackApplicationResult resource_discovery_cb(void* ctx,
 
     log_discovery_message(clientResponse);
 
-    /* for this demo we exit as soon as discovery is done */
-    gQuitFlag = 1;
+    /* WARNING: for this demo we exit as soon as discovery is done;
+       that means we only get the first such message. */
+    /* gQuitFlag = 1; */
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     //return OC_STACK_DELETE_TRANSACTION;
     return OC_STACK_KEEP_TRANSACTION | OC_STACK_KEEP_RESPONSE;
@@ -649,11 +647,9 @@ void* ocf_routine(void *arg) {
 
 int main ()
 {
-    logfd = stdout;
+    OCLogInit();
     /* logfd = fopen("./logs/client.log", "w"); */
-    /* fprintf(logfd, "hello %s\n", "world"); */
-    oocf_log_hook_stdout((log_writer_t)&log_msg);
-    fflush(logfd);
+    /* OCLogHookFd(logfd); */
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self());
 
     /* Initialize OCStack. Do this here rather than in the work
@@ -664,15 +660,42 @@ int main ()
         return 0;
     }
 
-    int err = pthread_create(&(ocf_thread), NULL, &ocf_routine, NULL);
-    if (err != 0)
-	OIC_LOG_V(DEBUG, TAG, "Can't create OCF thread :[%s]", strerror(err));
-    else
-	OIC_LOG_V(DEBUG, TAG, "\n OCF thread created successfully\n");
-
-    /* UI thread here. For this demo we just make a discover request */
+    /* We send a discovery request before we start processing incoming
+       messages. */
     discover_resources();
-    pthread_join(ocf_thread, NULL);
+
+    OIC_LOG(INFO, TAG, "Entering client message processing loop...");
+    /* Since this demo does not provide a UI for user interaction, we
+     * can run this loop on the main thread. If we had a UI, we would
+     * need to run it on a worker thread. */
+    signal(SIGINT, handleSigInt); /* Control-C to exit */
+    while (!gQuitFlag) {
+	static int i = 0;
+	OIC_LOG_V(INFO, TAG, "process loop %d, tid %d", i++, pthread_self());
+	/* "OCProcess" means "receive incoming messages and dispatch
+	   to application handers - in this case,
+	   resource_discovery_cb. Each incoming message is dispatched
+	   on its own thread. */
+        if (OCProcess() != OC_STACK_OK) {
+            OIC_LOG(ERROR, TAG, "OCStack process error");
+            return 0;
+        }
+	fflush(logfd);		/* FIXME */
+        sleep(1);
+    }
+
+    OIC_LOG(INFO, TAG, "Exiting client main loop...");
+
+    if (OCStop() != OC_STACK_OK) {
+        OIC_LOG(ERROR, TAG, "OCStack stop error");
+    }
+
+
+    /* int err = pthread_create(&(ocf_thread), NULL, &ocf_routine, NULL);
+     * if (err != 0)
+     * 	OIC_LOG_V(DEBUG, TAG, "Can't create OCF thread :[%s]", strerror(err));
+     * else
+     * 	OIC_LOG_V(DEBUG, TAG, "\n OCF thread created successfully\n"); */
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     /* pthread_exit(NULL); */

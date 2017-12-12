@@ -50,6 +50,7 @@ struct u_linklist_data_t
 #endif
 
 u_linklist_t *u_linklist_create()
+EXPORT
 {
     u_linklist_t *header = (u_linklist_t *)OICMalloc(sizeof(u_linklist_t));
     if (!header)
@@ -63,6 +64,7 @@ u_linklist_t *u_linklist_create()
 }
 
 CAResult_t u_linklist_add_head(u_linklist_t *linklist, void *data)
+EXPORT
 {
     VERIFY_NON_NULL_MSG(linklist, TAG, "list is null");
     VERIFY_NON_NULL_MSG(data, TAG, "data is null");
@@ -82,6 +84,7 @@ CAResult_t u_linklist_add_head(u_linklist_t *linklist, void *data)
 }
 
 CAResult_t u_linklist_add(u_linklist_t *linklist, void *data)
+EXPORT
 {
     VERIFY_NON_NULL_MSG(linklist, TAG, "list is null");
     VERIFY_NON_NULL_MSG(data, TAG, "data is null");
@@ -122,6 +125,7 @@ CAResult_t u_linklist_add(u_linklist_t *linklist, void *data)
 }
 
 CAResult_t u_linklist_free(u_linklist_t **linklist)
+EXPORT
 {
     VERIFY_NON_NULL_MSG(linklist, TAG, "linklist is null");
     if (!(*linklist))
@@ -154,6 +158,7 @@ CAResult_t u_linklist_free(u_linklist_t **linklist)
 }
 
 CAResult_t u_linklist_remove(u_linklist_t *linklist, u_linklist_iterator_t **iter)
+EXPORT
 {
     VERIFY_NON_NULL_MSG(linklist, TAG, "list is null");
     VERIFY_NON_NULL_MSG(iter, TAG, "iterator is null");
@@ -204,6 +209,7 @@ CAResult_t u_linklist_remove(u_linklist_t *linklist, u_linklist_iterator_t **ite
 
 
 uint32_t u_linklist_length(const u_linklist_t *linklist)
+EXPORT
 {
     if (NULL == linklist)
     {
@@ -214,6 +220,7 @@ uint32_t u_linklist_length(const u_linklist_t *linklist)
 }
 
 void u_linklist_init_iterator(const u_linklist_t *linklist, u_linklist_iterator_t **iter)
+EXPORT
 {
     VERIFY_NON_NULL_VOID(linklist, TAG, "list is null");
     VERIFY_NON_NULL_VOID(iter, TAG, "iterator is null");
@@ -222,6 +229,7 @@ void u_linklist_init_iterator(const u_linklist_t *linklist, u_linklist_iterator_
 }
 
 void *u_linklist_get_data(const u_linklist_iterator_t *iter)
+EXPORT
 {
     VERIFY_NON_NULL_RET(iter, TAG, "iterator is null", NULL);
 
@@ -229,6 +237,7 @@ void *u_linklist_get_data(const u_linklist_iterator_t *iter)
 }
 
 void *u_linklist_get_next(u_linklist_iterator_t **iter)
+EXPORT
 {
     VERIFY_NON_NULL_RET(iter, TAG, "iterator is null", NULL);
     *iter = (*iter)->next;

@@ -1,4 +1,8 @@
 config_setting(
+    name = "linux",
+    values = { "cpu": "k8" }
+)
+config_setting(
     name = "windows",
     # compiler: cl.exe, from msvc
     values = { "cpu": "x64_windows" }
@@ -68,14 +72,14 @@ cc_library(
                        ":msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
                        ":windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
                        "//conditions:default": []}),
-    srcs = glob(["caipadapter0.*"])
-    + glob(["caipnwmonitor0.*"])
-    + glob(["caipserver0.*"])
-    + select({":msvc": glob(["caipnwmonitor_windows.*"]) + glob(["caipserver_windows.*"]),
-              ":msys": glob(["caipnwmonitor_windows.*"]) + glob(["caipserver_windows.*"]),
-              ":windows": glob(["caipnwmonitor_windows.*"]) + glob(["caipserver_windows.*"]),
-              ":darwin": glob(["caipnwmonitor_posix.*"]) + glob(["caipnwmonitor_darwin.*"])
-              + glob(["caipserver_posix.*"]) + glob(["caipserver_darwin.*"]),
+    srcs = glob(["*0.c"])
+    + glob(["*0.h"])
+    + select({":msvc": glob(["*_windows.c"]) + glob(["*_windows.h"]),
+              ":msys": glob(["*_windows.c"]) + glob(["*_windows.h"]),
+              ":windows": glob(["*_windows.c"]) + glob(["*_windows.h"]),
+              ":darwin": glob(["*_posix.c"]) + glob(["*_posix.h"])
+              + glob(["*_darwin.c"]) + glob(["*_darwin.h"]),
+              ":linux": glob(["*_posix.c"]) + glob(["*_linux.h"]),
                 # ":ndk": ["//src/comm/transport/udpip/android"],
                 # ":android": ["//src/comm/transport/udpip/android"],
         "//conditions:default": []}),

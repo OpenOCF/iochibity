@@ -1,0 +1,3 @@
+= todo
+
+* make sure scroller selection never scrolls offscreen

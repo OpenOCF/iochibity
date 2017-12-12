@@ -19,18 +19,23 @@
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 #include "openocf.h"
+#include "client_main.h"
 
-#include "gui.h"
 #include "cJSON.h"
 #include "coap/pdu.h"
 
 #include <limits.h>
 #include <pthread.h>
+#if INTERFACE
+#include <cdk_test.h>
+#include <semaphore.h>
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <time.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -38,14 +43,53 @@
 #include <windows.h>
 #endif
 
+#include <errno.h>
+
 #define TAG ("client")
 
-pthread_t ocf_thread;
-int gQuitFlag = 0;
+/* #if INTERFACE */
+int       g_quit_flag;
+sem_t           *quit_semaphore;
+pthread_t        quit_thread;
 
-FILE *logfd;
+CDKSCREEN  *cdkscreen;
 
-void log_msg(const char *format, ...)
+pthread_mutex_t display_mutex;
+pthread_mutex_t msgs_mutex;
+pthread_mutex_t dirty_mutex;
+
+sem_t *inbound_msg_semaphore;
+sem_t *inbound_msg_log_ready_semaphore;
+
+sem_t *outgoing_msg_semaphore;
+sem_t *outgoing_msg_log_ready_semaphore;
+
+u_linklist_t    *inbound_msgs;
+u_linklist_t    *outgoing_msgs;
+
+static CDKLABEL *infoBox;
+
+/* #endif */
+
+int g_quit_flag = 0;
+
+sem_t *inbound_msg_semaphore = NULL;
+sem_t *inbound_msg_log_ready_semaphore = NULL;
+
+sem_t *outgoing_msg_semaphore = NULL;
+sem_t *outgoing_msg_log_ready_semaphore = NULL;
+
+static oc_thread        response_msg_dispatcher_thread;
+
+/* static pthread_t        inbound_msg_display_thread;
+ * 
+ * static pthread_t        outgoing_msg_display_thread; */
+
+static pthread_t        discovery_thread; /* just for testing */
+
+FILE                   *logfd;
+
+static void log_msg(const char *format, ...)
 {
     va_list args;
 
@@ -56,14 +100,37 @@ void log_msg(const char *format, ...)
     va_end(args);
 }
 
-/* SIGINT handler: set gQuitFlag to 1 for graceful termination */
-void handleSigInt(int signum) {
+static void quit_routine(void)
+{
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    int rc = sem_wait(quit_semaphore);
+    if (rc < 0) {
+	OIC_LOG_V(ERROR, TAG, "sem_wait(quit_semaphore) rc: %s", strerror(errno));
+    }
+    OIC_LOG_V(INFO, TAG, "%s acquired quit_semaphore", __func__);
+    rc = pthread_mutex_lock(&msgs_mutex);
+    if (rc < 0) {
+	OIC_LOG_V(ERROR, TAG, "mutex lock failed on msgs_mutex rc: %s", strerror(errno));
+    }
+    g_quit_flag = 1;
+    sem_post(inbound_msg_semaphore);
+    sem_post(outgoing_msg_semaphore);
+    pthread_mutex_unlock(&msgs_mutex);
+    OIC_LOG_V(INFO, TAG, "%s EXIT %d", __func__, g_quit_flag);
+}
+
+/* SIGINT handler: set g_quit_flag to 1 for graceful termination */
+static void handleSigInt(int signum) {
     if (signum == SIGINT) {
-        gQuitFlag = 1;
+	g_quit_flag = 1;
+	int rc = sem_post(quit_semaphore);
+	if (rc < 0) {
+	    OIC_LOG_V(ERROR, TAG, "sem_wait(quit_semaphore) rc: %s", strerror(errno));
+	}
     }
 }
 
-void print_json(OCDiscoveryPayload *payload)
+static void print_json(OCDiscoveryPayload *payload)
 {
     cJSON *root;
     cJSON *fmt;
@@ -81,7 +148,7 @@ void print_json(OCDiscoveryPayload *payload)
     OIC_LOG_V(INFO, TAG, "JSON:\n%s", rendered);
 }
 
-cJSON* links_to_json(OCClientResponse *msg) /* FIXME: split header logging from payload logging */
+static cJSON* links_to_json(OCClientResponse *msg) /* FIXME: split header logging from payload logging */
 {
     cJSON *links;
     links = cJSON_CreateArray();
@@ -184,7 +251,7 @@ cJSON* links_to_json(OCClientResponse *msg) /* FIXME: split header logging from 
      * OIC_LOG_V(INFO, TAG, "Resource ep port: %d", res->eps->port); */
 }
 
-cJSON* discovery_to_json(OCClientResponse *msg)
+static cJSON* discovery_to_json(OCClientResponse *msg)
 {
     OCDiscoveryPayload *payload = (OCDiscoveryPayload*)msg->payload;
     cJSON *root;
@@ -215,7 +282,7 @@ cJSON* discovery_to_json(OCClientResponse *msg)
     return root;
 }
 
-void log_header_options (OCClientResponse *clientResponse)
+static void log_header_options (OCClientResponse *clientResponse)
 {
     /* COAP option numbers enumerated in libcoap pdu.h; except for the
        OCF custom ones: OCF-Content-Format-Version (2049) and
@@ -395,7 +462,7 @@ void log_header_options (OCClientResponse *clientResponse)
     }
 }
 
-void log_endpoint_info(OCClientResponse *clientResponse)
+static void log_endpoint_info(OCClientResponse *clientResponse)
 {
     OIC_LOG_V(INFO, TAG, "Origin addr: %s:%d", clientResponse->devAddr.addr, clientResponse->devAddr.port);
     OIC_LOG_V(INFO, TAG, "Origin ifindex: %d", clientResponse->devAddr.ifindex);
@@ -510,7 +577,7 @@ void log_endpoint_info(OCClientResponse *clientResponse)
     	OIC_LOG_V(INFO, TAG, "\tGlobal");
 }
 
-void log_payload_type(OCPayload *payload)
+static void log_payload_type(OCPayload *payload)
 {
     switch (payload->type) {
     case PAYLOAD_TYPE_INVALID:
@@ -546,7 +613,7 @@ void log_payload_type(OCPayload *payload)
     }
 }
 
-void log_discovery_message(OCClientResponse *clientResponse)
+static void log_discovery_message(OCClientResponse *clientResponse)
 {
     OIC_LOG(INFO, TAG, "================ Response Message ================");
     /* payload type should be 1 */
@@ -564,29 +631,89 @@ void log_discovery_message(OCClientResponse *clientResponse)
     cJSON *discovery_json = discovery_to_json(clientResponse);
     char* rendered = cJSON_Print(discovery_json);
     OIC_LOG(INFO, TAG, "Discovery payload:\n");
-    log_msg("%s\n", rendered);
+    /* log_msg("%s\n", rendered); */
+
+    /* char cwd[256];
+     * if (getcwd(cwd, sizeof(cwd)) != NULL)
+     * 	OIC_LOG_V(INFO, TAG, "cwd: %s", cwd); */
+
+    char fname[256];
+    sprintf(fname, "./logs/client/msg_%p.txt", clientResponse);
+    OIC_LOG_V(INFO, TAG, "json filename: %s", fname);
+    FILE *fd = fopen(fname, "w");
+    if (fd == NULL) {
+	OIC_LOG_V(INFO, TAG, "fopen err: %s", strerror(errno));
+    }
+    fprintf(fd, "%s", rendered);
+    fclose(fd);
+
     free(rendered);
 }
 
+void log_discovered_resources(OCClientResponse *clientResponse)
+{
+    cJSON *discovery_json = discovery_to_json(clientResponse);
+    char* rendered = cJSON_Print(discovery_json);
+
+    char fname[256];
+    sprintf(fname, "./logs/client/msg_%p.txt", clientResponse);
+    OIC_LOG_V(INFO, TAG, "json filename: %s", fname);
+    FILE *fd = fopen(fname, "w");
+    if (fd == NULL) {
+	OIC_LOG_V(INFO, TAG, "fopen err: %s", strerror(errno));
+    }
+    fprintf(fd, "%s", rendered);
+    fclose(fd);
+}
 
 // This is a function called back when resources are discovered
-OCStackApplicationResult resource_discovery_cb(void* ctx,
-						  OCDoHandle h,
+static OCStackApplicationResult resource_discovery_cb(void* ctx,
+						  OCDoHandle handle,
 						  OCClientResponse * clientResponse) {
-    OIC_LOG(INFO, TAG, "Entering resource_discovery_cb (Application Layer CB)");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self());
 
-    /* 1. update behaviors_observed_log */
-    /*  */
+    int rc;
+    /* MAX_ADDR_STR_SIZE + MAX_URI_LENGTH + separators + \0 */
+    char inbound_msg[66 + 256 + 3] = { '\0' };
+    int sz = sizeof(inbound_msg) + sizeof(void*);
 
-    log_discovery_message(clientResponse);
+    char *ptrstr;
+    char *endptr;
+    unsigned long val;
+    OCClientResponse *msg;
 
+    log_discovered_resources(clientResponse);
 
+    /* notify display mgr */
+    rc = sem_wait(inbound_msg_log_ready_semaphore);
+    if (rc < 0) {
+	OIC_LOG_V(ERROR, TAG, "sem_wait(inbound_msg_log_ready_semaphore) rc: %s", strerror(errno));
+    /* } else {
+     * 	OIC_LOG_V(DEBUG, TAG, "PRODUCER acquired inbound_msg_log_ready_semaphore"); */
+    }
+
+    /* pthread_mutex_lock(&dirty_mutex); */
+    cosp_mgr_register_coresource(clientResponse);
+    inbound_msg_scroller_dirty = true;
+    coresource_scroller_dirty = true;
+    /* pthread_mutex_unlock(&dirty_mutex); */
+
+    errno = 0;
+    rc = sem_post(inbound_msg_semaphore);
+    if (rc < 0) {
+	OIC_LOG_V(DEBUG, TAG, "sem_post(inbound_msg_semaphore) rc: %s", strerror(errno));
+    /* } else {
+     * 	OIC_LOG_V(DEBUG, TAG, "PRODUCER sem_post(inbound_msg_semaphore)"); */
+    }
+
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     //return OC_STACK_DELETE_TRANSACTION;
     return OC_STACK_KEEP_TRANSACTION | OC_STACK_KEEP_RESPONSE;
 }
 
 void discover_resources ()
 {
+    OCDoHandle *request_handle;
     /* Start a discovery query*/
     OCCallbackData cbData;
     cbData.cb = resource_discovery_cb;
@@ -594,48 +721,53 @@ void discover_resources ()
     cbData.cd = NULL;
     char szQueryUri[MAX_QUERY_LENGTH] = { 0 };
     strcpy(szQueryUri, OC_MULTICAST_DISCOVERY_URI);
-    OIC_LOG_V(INFO, TAG, "Starting Discovery >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-    if (OCDoResource(NULL,
-		     OC_REST_DISCOVER,
-		     szQueryUri,
-		     NULL, NULL,
-		     CT_DEFAULT,
-		     OC_LOW_QOS,
-		     &cbData, NULL, 0) != OC_STACK_OK) {
-        OIC_LOG(ERROR, TAG, "OCStack resource error");
+
+    for (;;) {
+	if (OCDoResource(&request_handle,
+			 OC_REST_DISCOVER,
+			 szQueryUri,
+			 NULL, NULL,
+			 CT_DEFAULT,
+			 OC_LOW_QOS,
+			 &cbData, NULL, 0) != OC_STACK_OK) {
+	    OIC_LOG(ERROR, TAG, "OCStack resource error");
+	}
+	/* notify display mgr */
+	char *outgoing_msg = "GET <multicast>/oic/res";
+	int sz = sizeof(outgoing_msg) + sizeof(void*);
+	pthread_mutex_lock(&msgs_mutex);
+	sem_wait(outgoing_msg_log_ready_semaphore);
+	if (outgoing_msgs) {
+	    char *s = malloc(sz);
+	    snprintf(s, sz, "%s %p", outgoing_msg, request_handle);
+	    u_linklist_add(outgoing_msgs, s);
+	    OIC_LOG(INFO, TAG, s);
+	} else {
+	    OIC_LOG_V(ERROR, TAG, "outgoing_msgs not initialized");
+	    exit(EXIT_FAILURE);
+	}
+	pthread_mutex_unlock(&msgs_mutex);
+	static int rc;
+	rc = sem_post(outgoing_msg_semaphore);
+	if (rc < 0) {
+	    OIC_LOG_V(ERROR, TAG, "sem_post(outgoing_msg_semaphore) rc: %s", strerror(errno));
+	}
+	/* if (g_quit_flag)
+	 *     break;
+	 * else sleep(5); */
+	break;
+	/* OIC_LOG_V(ERROR, TAG, "DISCOVERY LOOP"); */
     }
 }
 
-void list_resource_uris ()
-{
-    char **ruris = oocf_cosp_list_resource_uris();
-    if (NULL == ruris)
-	OIC_LOG(DEBUG, TAG, "oocf_cosp_list_resource_uris fail");
-
-    /* OIC_LOG_V(DEBUG, TAG, "ruris: %p", ruris); */
-
-    while (*ruris) {
-    	OIC_LOG_V(DEBUG, TAG, "Resource URI %s", *ruris);
-    	ruris++;
-    }
-}
-
-void* ocf_routine(void *arg) {
-    OIC_LOG_V(INFO, TAG, "Starting occlient");
-
-    /* Initialize OCStack*/
-    if (OCInit(NULL, 0, OC_CLIENT) != OC_STACK_OK) {
-        OIC_LOG(ERROR, TAG, "OCStack init error");
-        return 0;
-    }
-
-
+static void* response_msg_dispatcher(void *arg) {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY, tid: %x", __func__, pthread_self());
 
     // Break from loop with Ctrl+C
-    OIC_LOG(INFO, TAG, "Entering occlient main loop...");
     signal(SIGINT, handleSigInt);
-    while (!gQuitFlag) {
-
+    int i = 0;
+    while (!g_quit_flag) {
+	/* OIC_LOG_V(INFO, TAG, "process loop %d, tid %d", i++, pthread_self()); */
         if (OCProcess() != OC_STACK_OK) {
             OIC_LOG(ERROR, TAG, "OCStack process error");
             return 0;
@@ -644,28 +776,268 @@ void* ocf_routine(void *arg) {
         sleep(1);
     }
 
-    OIC_LOG(INFO, TAG, "Exiting occlient main loop...");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return 0;
+}
 
-    if (OCStop() != OC_STACK_OK) {
-        OIC_LOG(ERROR, TAG, "OCStack stop error");
+/* generate data for testing only */
+static void* inbound_msg_display_handler(void *arg) {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY, tid: %x", __func__, pthread_self());
+    srand((unsigned int)time(NULL));
+
+    inbound_msgs = u_linklist_create();
+    if (!inbound_msgs) {
+	OIC_LOG_V(ERROR, TAG, "u_linklist_create inbound_msgs");
+	exit(EXIT_FAILURE);
     }
 
+    char *inbound_msg = "inbound_msg";
+
+    int sz = sizeof(inbound_msg) + 32;
+    static int rc;
+    while (1) {
+	/* OIC_LOG_V(DEBUG, TAG, "PRODUCER waiting on inbound_msg_log_ready_semaphore"); */
+	rc = sem_wait(inbound_msg_log_ready_semaphore);
+	if (rc < 0) {
+	    OIC_LOG_V(ERROR, TAG, "sem_wait(inbound_msg_log_ready_semaphore) rc: %s", strerror(errno));
+	} else {
+	    /* OIC_LOG_V(DEBUG, TAG, "PRODUCER acquired inbound_msg_log_ready_semaphore"); */
+	}
+	static i = 1;
+	pthread_mutex_lock(&msgs_mutex);
+	if (inbound_msgs) {
+	    char *s = malloc(sz);
+	    snprintf(s, sz, "%s %d", inbound_msg, i++);
+	    u_linklist_add(inbound_msgs, s);
+	    /* OIC_LOG(INFO, TAG, s); */
+	}
+	pthread_mutex_unlock(&msgs_mutex);
+	errno = 0;
+	rc = sem_post(inbound_msg_semaphore);
+	if (rc < 0) {
+	    OIC_LOG_V(DEBUG, TAG, "sem_post(inbound_msg_semaphore) rc: %s", strerror(errno));
+	} else {
+	    /* OIC_LOG_V(DEBUG, TAG, "PRODUCER sem_post(inbound_msg_semaphore)"); */
+	}
+        sleep(3);
+        /* sleep((float)rand()/(float)(RAND_MAX/2)); */
+    }
+
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return 0;
+}
+
+/* generate data for testing only */
+static void* outgoing_msg_display_handler(void *arg) {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY, tid: %x", __func__, pthread_self());
+    srand((unsigned int)time(NULL));
+
+    outgoing_msgs = u_linklist_create();
+
+    char *outgoing_msg = "outgoing_msg";
+    int sz = sizeof(outgoing_msg) + 32;
+    while (1) {
+	static i = 1;
+	pthread_mutex_lock(&msgs_mutex);
+	sem_wait(outgoing_msg_log_ready_semaphore);
+	if (outgoing_msgs) {
+	    char *s = malloc(sz);
+	    snprintf(s, sz, "%s %d", outgoing_msg, i++);
+	    u_linklist_add(outgoing_msgs, s);
+	    /* OIC_LOG(INFO, TAG, s); */
+	}
+	pthread_mutex_unlock(&msgs_mutex);
+	static int rc;
+	rc = sem_post(outgoing_msg_semaphore);
+	if (rc < 0) {
+	    OIC_LOG_V(ERROR, TAG, "sem_post(outgoing_msg_semaphore) rc: %s", strerror(errno));
+	}
+        sleep(2);
+        /* sleep((float)rand()/(float)(RAND_MAX/2)); */
+    }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return 0;
 }
 
 int main ()
 {
-    logfd = fopen("./logs/client.log", "w");
-    /* fprintf(logfd, "hello %s\n", "world"); */
-    oocf_log_hook_stdout(log_msg);
-    fflush(logfd);
+    int err;
 
-    int err = pthread_create(&(ocf_thread), NULL, &ocf_routine, NULL);
-    if (err != 0)
-	log_msg("\nCan't create OCF thread :[%s]", strerror(err));
-    else
-	log_msg("\n OCF thread created successfully\n");
+    /* OCLogInit(NULL); */
+    logfd = fopen("./logs/client.log", "w");
+    if (logfd)
+    	OCLogInit(logfd);
+    else {
+    	printf("Logfile fopen failed\n");
+    	exit(EXIT_FAILURE);
+    }
+
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self());
+
+    pthread_mutex_init(&msgs_mutex, NULL);
+    pthread_mutex_init(&display_mutex, NULL);
+    pthread_mutex_init(&dirty_mutex, NULL);
+
+    /* msg lists for passing to display mgr */
+    inbound_msgs = u_linklist_create();
+    if (!inbound_msgs) {
+	OIC_LOG_V(ERROR, TAG, "u_linklist_create inbound_msgs");
+	exit(EXIT_FAILURE);
+    } else {
+	OIC_LOG_V(INFO, TAG, "EXIT u_linklist_create inbound_msgs");
+    }
+
+    outgoing_msgs = u_linklist_create();
+    if (!outgoing_msgs) {
+	OIC_LOG_V(ERROR, TAG, "u_linklist_create outgoing_msgs");
+	exit(EXIT_FAILURE);
+    } else {
+	OIC_LOG_V(INFO, TAG, "EXIT u_linklist_create outgoing_msgs");
+    }
+
+    sem_unlink("/oocf/quit/sem");
+    if ((quit_semaphore = sem_open("/oocf/quit/sem", O_CREAT | O_EXCL, 0644, 0)) == SEM_FAILED ) {
+    	OIC_LOG_V(ERROR, TAG, "sem_open(\"/oocf/quit/sem\") rc: %s", strerror(errno));
+    	exit(EXIT_FAILURE);
+    /* } else {
+     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/oocf/quit/sem) returned: %p", quit_semaphore);
+     * 	/\* sem_wait(quit_semaphore); *\/
+     * 	int val;
+     * 	sem_getvalue(quit_semaphore, &val);
+     * 	OIC_LOG_V(DEBUG, TAG, "quit_semaphore val %d", val); */
+    }
+
+    /* enable quit handler */
+    err = pthread_create(&(quit_thread), NULL, &quit_routine, NULL);
+    if (err != 0) {
+    	OIC_LOG_V(DEBUG, TAG, "Can't create quit_thread :[%s]", strerror(err));
+    	exit(EXIT_FAILURE);
+    }
+
+    /* OS X does not support unnamed semaphores (sem_init) */
+    sem_unlink("/inbound/msg");
+    if ((inbound_msg_semaphore = sem_open("/inbound/msg", O_CREAT, 0644, 0)) == SEM_FAILED ) {
+	OIC_LOG_V(ERROR, TAG, "sem_open(\"/inbound/msg\") rc: %s", strerror(errno));
+	exit(EXIT_FAILURE);
+    /* } else {
+     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/inbound/msg) returned: %p", inbound_msg_semaphore); */
+    }
+
+    sem_unlink("/inbound/msg/log/ready");
+    if ((inbound_msg_log_ready_semaphore = sem_open("/inbound/msg/log/ready", O_CREAT, 0644, 0)) == SEM_FAILED ) {
+	OIC_LOG_V(ERROR, TAG, "sem_open(\"/inbound/msg/log/ready\") rc: %s", strerror(errno));
+	exit(EXIT_FAILURE);
+    /* } else {
+     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/inbound/msg/log/ready) returned: %p", inbound_msg_log_ready_semaphore); */
+    }
+
+    sem_unlink("/outgoing/msg/semaphore");
+    if ((outgoing_msg_semaphore = sem_open("/outgoing/msg/semaphore", O_CREAT, 0644, 1)) == SEM_FAILED ) {
+	OIC_LOG_V(ERROR, TAG, "sem_open(\"/outgoing/msg\") rc: %s", strerror(errno));
+	exit(EXIT_FAILURE);
+    /* } else {
+     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/outgoing/msg) returned: %p", outgoing_msg_semaphore); */
+    }
+
+    sem_unlink("/outgoing/msg/log/ready");
+    if ((outgoing_msg_log_ready_semaphore = sem_open("/outgoing/msg/log/ready", O_CREAT, 0644, 0)) == SEM_FAILED ) {
+	OIC_LOG_V(ERROR, TAG, "sem_open(\"/outgoing/msg/log/ready\") rc: %s", strerror(errno));
+	exit(EXIT_FAILURE);
+    /* } else {
+     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/outgoing/msg/log/ready) returned: %p", outgoing_msg_log_ready_semaphore); */
+    }
+
+    /* Initialize OCStack. Do this here rather than in the work
+       thread, to ensure initialization is complete before sending any
+       request. */
+    if (OCInit(NULL, 0, OC_CLIENT) != OC_STACK_OK) {
+        OIC_LOG(ERROR, TAG, "OCStack init error");
+	exit(EXIT_FAILURE);
+    }
+
+    /* now dispatch inbound msgs */
+    err = pthread_create(&(response_msg_dispatcher_thread), NULL, &response_msg_dispatcher, NULL);
+    if (err != 0) {
+	OIC_LOG_V(DEBUG, TAG, "Can't create response_msg_dispatcher_thread :[%s]", strerror(err));
+	exit(EXIT_FAILURE);
+    }
+
+    /* err = pthread_create(&(inbound_msg_display_thread), NULL, &inbound_msg_display_handler, NULL);
+     * if (err != 0) {
+     * 	OIC_LOG_V(DEBUG, TAG, "Can't create inbound_msg_display_handler thread :[%s]", strerror(err));
+     * 	exit(EXIT_FAILURE);
+     * } */
+
+    /* err = pthread_create(&(outgoing_msg_display_thread), NULL, &outgoing_msg_display_handler, NULL);
+     * if (err != 0) {
+     * 	OIC_LOG_V(DEBUG, TAG, "Can't create msg thread :[%s]", strerror(err));
+     * 	exit(EXIT_FAILURE);
+     * } */
+
+    /* generate some traffic, for testing */
+    err = pthread_create(&(discovery_thread), NULL, &discover_resources, NULL);
+    if (err != 0) {
+	OIC_LOG_V(DEBUG, TAG, "Can't create discovery_thread :[%s]", strerror(err));
+	exit(EXIT_FAILURE);
+    }
 
     run_gui();
-    fclose(logfd);
+
+    pthread_join(response_msg_dispatcher_thread, NULL);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT joined", __func__);
+
+    /* quiting: cleanup msg lists */
+    int mutex_rc = pthread_mutex_lock(&msgs_mutex);
+    if (mutex_rc) {
+	    OIC_LOG_V(INFO, TAG, "FAIL: pthread_mutex_lock(&msgs_mutex), rc: %s",
+		    (mutex_rc == EINVAL)? "EINVAL"
+		    :(mutex_rc == EDEADLK) ? "EDEADLLK"
+		    : "UNKNOWN ERROR");
+    } else {
+	int lllen = u_linklist_length(inbound_msgs);
+	OIC_LOG_V(INFO, TAG, "inbound msg count: %d", lllen);
+	/* free the strings, then the list */
+	u_linklist_iterator_t *iterTable = NULL;
+	u_linklist_init_iterator(inbound_msgs, &iterTable);
+	while (NULL != iterTable)
+	    {
+		char *s = u_linklist_get_data(iterTable);
+		OIC_LOG_V(INFO, TAG, "freeing msg: %s", s);
+		free(s);
+		u_linklist_get_next(&iterTable);
+	    }
+	u_linklist_free(&inbound_msgs);
+
+	lllen = u_linklist_length(outgoing_msgs);
+	OIC_LOG_V(INFO, TAG, "outgoing msg count: %d", lllen);
+	/* free the strings, then the list */
+	iterTable = NULL;
+	u_linklist_init_iterator(outgoing_msgs, &iterTable);
+	while (NULL != iterTable)
+	    {
+		char *s = u_linklist_get_data(iterTable);
+		OIC_LOG_V(INFO, TAG, "freeing msg: %s", s);
+		free(s);
+		u_linklist_get_next(&iterTable);
+	    }
+	u_linklist_free(&outgoing_msgs);
+    }
+    pthread_mutex_unlock(&msgs_mutex);
+
+    if (OCStop() != OC_STACK_OK) {
+        OIC_LOG(ERROR, TAG, "OCStack stop error");
+    }
+
+    oocf_coresource_mgr_reset();
+
+ /* FIXME: semaphores */
+
+    pthread_mutex_destroy(&msgs_mutex);
+    pthread_mutex_destroy(&display_mutex);
+    pthread_mutex_destroy(&dirty_mutex);
+
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    /* pthread_exit(NULL); */
+
+    /* fclose(logfd); */
 }

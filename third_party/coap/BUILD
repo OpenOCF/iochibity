@@ -67,6 +67,10 @@ config_setting(
     name = "msys",
     values = { "cpu": "x64_windows_msys" }
 )
+config_setting(
+    name = "linux",
+    values = { "cpu": "k8" }
+)
 
 cc_library(
     name = "coap",
@@ -77,6 +81,7 @@ cc_library(
     ] + select({"msys": [],
                 "msvc": [],
                 "windows": [],
+                "linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config"],
     hdrs = ["coap_config.h"] + glob(["include/**/*.h"],

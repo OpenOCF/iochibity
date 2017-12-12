@@ -19,7 +19,11 @@ You can safely ignore this - we are not generating a makefile, so our `configure
 
 5.  ./configure - generates `src/iotivity_config.h`
 
-== iotivity_config.h.in
+
+
+== _openocf_config.h
+
+WARNING: this section is obsolete. the problem remains but not the solution
 
 If you regenerate iotivity_config.h.in using `autoheader`, you must
 modify the result as described below.  This is because ...

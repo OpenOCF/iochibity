@@ -1428,7 +1428,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
             response->sequenceNumber = MAX_SEQUENCE_NUMBER + 1;
             CopyEndpointToDevAddr(endPoint, &response->devAddr);
             FixUpClientResponse(response);
-            response->resourceUri = responseInfo->info.resourceUri;
+	    response->resourceUri = OICStrdup(responseInfo->info.resourceUri);
             memcpy(response->identity.id, responseInfo->info.identity.id,
                                                 sizeof (response->identity.id));
             response->identity.id_length = responseInfo->info.identity.id_length;
@@ -1663,11 +1663,6 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                     HandleBatchResponse(cbNode->requestUri, (OCRepPayload **)&response->payload);
                 }
 
-		/* If discovery response, then save msg to
-		   co_service_provider_manager. do this here so that
-		   co_sp API will be available to application's
-		   handler code */
-		oocf_cosp_mgr_save_response(response);
 		OIC_LOG_V(INFO, TAG, "%s: calling user CB", __func__);
 		errno = 0;
 		appFeedback = cbNode->callBack(cbNode->context,
@@ -1703,11 +1698,13 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
 	    /* FIXME: always free the msg; if not KEEP_PAYLOAD, then also remove it from the co_sp_mgr */
 	    if (appFeedback & OC_STACK_KEEP_RESPONSE) { /* GAR */
 		OIC_LOG(INFO, TAG, "retaining OCClientResponse");
+		/* Client app is responsible for retaining
+		   (cosp_mgr_register) and freeing
+		   (cosp_mgr_unregister) the message. */
 	    } else {
 		OIC_LOG(INFO, TAG, "removing OCClientResponse");
-		/* FIXME: delete from co_sp_mgr db */
-		oocf_cosp_mgr_free_response(response);
 		OCPayloadDestroy(response->payload);
+		OICFree(response->resourceUri);
 		OICFree(response);
 	    }
         }
@@ -2413,7 +2410,6 @@ OCStackResult OC_CALL OCInit2(OCMode mode, OCTransportFlags serverFlags, OCTrans
                               OCTransportAdapter transportType)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-
     // Serialize calls to start and stop the stack.
     OCEnterInitializer();
 
@@ -3450,7 +3446,8 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
     result = OCSendRequest(&endpoint, &requestInfo);
     if (OC_STACK_OK != result)
     {
-        goto exit;
+	OIC_LOG_V(ERROR, TAG, "%s: OCSendRequest error: %d", __func__, result);
+       goto exit;
     }
 
     if (handle)

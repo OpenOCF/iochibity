@@ -1,8 +1,9 @@
-/* co_service_provider.c */
+/* coresource.c */
 
-#include "co_service_provider.h"
+#include "coresource_mgr.h"
 
-/*
+/* A coresource is a co-service-provider.
+ *
  * A co_service_provider is a client-side proxy for a service_provider
  * ("resource") on the server side. We use the OCClientReponse to
  * discovery requests as a database of such co_service_providers. The
