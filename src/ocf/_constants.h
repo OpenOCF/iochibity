@@ -15,14 +15,25 @@
 /**
 * TODO: Move these COAP defines to CoAP lib once approved.
 */
+/* CoAP Option numbers and values */
+/* https://www.iana.org/assignments/core-parameters/core-parameters.xhtml */
+/* OCF spec 12.2.5 */
 #if EXPORT_INTERFACE
-#define COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR 10000 // application/vnd.ocf+cbor
-#define OCF_ACCEPT_CONTENT_FORMAT_VERSION 2049
-#define OCF_CONTENT_FORMAT_VERSION 2053
-#endif
+#define OCF_ACCEPT_CONTENT_FORMAT_VERSION       2049  /* CoAP option number */
+#define OCF_CONTENT_FORMAT_VERSION              2053  /* CoAP Option number */
+
+/** Integer value of spec version (OCF v1.0 0 = b0000:1000:0000:0000 = 2048).*/
+/* These are values for the OCF version CoAP Options above */
+#define OCF_VERSION_1_0_0                2048
+#define OCF_VERSION_1_1_0                2112
+#define OC_SPEC_VERSION_VALUE            OCF_VERSION_1_0_0
+
+#define COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR 10000 /* application/vnd.ocf+cbor */
 
 // The Accept Version and Content-Format Version for OCF 1.0.0 (0b0000 1000 0000 0000).
-#define DEFAULT_VERSION_VALUE 2048
+#define DEFAULT_VERSION_VALUE            OCF_VERSION_1_0_0
+#endif
+
 
 /** Version of IoTivity. */
 #define IOTIVITY_VERSION                      "1.3.1"
@@ -319,13 +330,6 @@
 
 /** Device specification version.*/
 #define OC_SPEC_VERSION                  "ocf.1.1.0"
-
-/** Integer value of spec version (OCF1.0 0b0000:1000:0000:0000).*/
-#if EXPORT_INTERFACE
-#define OC_SPEC_VERSION_VALUE            2048
-#define OCF_VERSION_1_0_0 OC_SPEC_VERSION_VALUE
-#define OCF_VERSION_1_1_0                2112
-#endif
 
 /** Device Data Model version.*/
 #define OC_DATA_MODEL_VERSION            "ocf.res.1.1.0,ocf.sh.1.1.0"
