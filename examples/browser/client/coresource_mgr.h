@@ -8,10 +8,13 @@ extern CDKSCREEN *cdkscreen;
 void initialize_coresource_scroller(void);
 extern CDKLABEL *msg_box;
 int run_coresource_inspector(int index);
-extern int coresource_current_item;
+extern CDKLABEL *infoBox;
 void update_coresource_scroller(void);
 extern int inbound_current_item;
-extern CDKSCROLL *coresource_scroller;
 void reinitialize_coresource_scroller();
-#define MSG_MAX 20
+extern int coresource_current_item;
+extern CDKSCROLL *coresource_scroller;
+#define MSG_MAX 40
 extern bool coresource_scroller_dirty;
+#define CORESOURCES 2
+#define INBOUND 0

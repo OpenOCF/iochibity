@@ -6,10 +6,6 @@ static CDKDIALOG *inbound_msg_inspector  = 0;
 
 static bool initialized = false;
 
-#if INTERFACE
-#define MSG_MAX 20
-#endif
-
 static const char *msg_ptr[MSG_MAX];
 static char msg_str[MSG_MAX][80];		/* since msg_ptr is const we need a work buffer */
 static int msg_count;
@@ -441,7 +437,7 @@ int run_inbound_msg_inspector(CDKSCREEN *cdkscreen, int index)
 
     /* eraseCDKDialog(inbound_msg_inspector); */
     destroyCDKDialog(inbound_msg_inspector);
-    draw_scrollers();
+    draw_msg_scrollers();
     /* Clean up. */
     /* destroyCDKDialog (inbound_msg_inspector);
      * destroyCDKScreen (cdkscreen); */

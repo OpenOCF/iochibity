@@ -5,9 +5,10 @@
 #include "inbound_msg_db_mgr.h"
 
 #define ENUMERATE false
-#define INBOUND 0
-#define OUTGOING 1
-#define CORESOURCES 2
+
+/* #define INBOUND 0
+ * #define OUTBOUND 1
+ * #define CORESOURCES 2 */
 
 CDKSCROLL *inbound_msg_scroller;
 
@@ -22,9 +23,13 @@ static char **msgs = NULL;
 static char **s = NULL;
 static int msg_count = 0;
 
-static char temp[100];
+/* static char temp[100]; */
 static int selection;
 
+/* FIXME: this routine is obsolete. It was intended so support
+   realtime updating of the msg log. Since ncurses is not thread-safe
+   that does not work so well. Now we just update the display when the
+   user navigates to it. */
 void* inbound_msg_ui_writer(void *arg)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY, tid: %x", __func__, pthread_self());
@@ -45,50 +50,36 @@ void* inbound_msg_ui_writer(void *arg)
 	    	break;
 	    }
 	    pthread_mutex_lock(&msgs_mutex);
-	    if (inbound_msg_scroller) {
-		OIC_LOG_V(DEBUG, TAG, "CONSUMER acquired inbound_msg_semaphore");
-		/* len = u_linklist_length(inbound_msgs); */
-		/* len = oocf_coresource_db_count(); */
-		reset_scroller(inbound_msg_scroller);
-		OIC_LOG_V(DEBUG, TAG, "MSG COUNT: %d", msg_count);
-		if (msg_count > 0) {
-		    /* for(int i=0; i<msg_count; i++) { */
-		    OIC_LOG_V(DEBUG, TAG, "FREEing inbound msg labels");
-		    OICFree(msgs[0]);
-		    /* } */
-		    OICFree(msgs);
-		}
-		OIC_LOG_V(DEBUG, TAG, "Constructing inbound msg labels");
-		msg_count = oocf_coresource_db_msg_labels(&msgs);
-		for (int i=0; i<msg_count; i++) {
-			OIC_LOG_V(DEBUG, TAG, "Inbound msg str: %s", msgs[i]);
-		}
-		/* msgs = OICCalloc(len, sizeof(char*));
-		 * s = &(msgs[len-1]);
-		 * /\* s = msgs; *\/
-		 * OIC_LOG_V(INFO, TAG, "<<<<<<<<<<<<<<<< Inbound msg count: %d", len);
-		 * u_linklist_iterator_t *iterTable = NULL;
-		 * u_linklist_init_iterator(inbound_msgs, &iterTable);
-		 * while (NULL != iterTable) {
-		 *     *s-- = (char*) u_linklist_get_data(iterTable);
-		 *     u_linklist_get_next(&iterTable);
-		 * } */
-		flockfile(stdout);
-		setCDKScrollItems (inbound_msg_scroller, (CDK_CSTRING2) msgs, msg_count, ENUMERATE);
-		setCDKScrollCurrentItem(inbound_msg_scroller,
-					inbound_msg_scroller->listSize - inbound_current_item);
+	    OIC_LOG_V(DEBUG, TAG, "CONSUMER acquired inbound_msg_semaphore");
+	    /* /\* len = u_linklist_length(inbound_msgs); *\/ */
+	    /* /\* len = oocf_coresource_db_count(); *\/ */
+	    /* OIC_LOG_V(DEBUG, TAG, "MSG COUNT: %d", msg_count); */
+	    /* if (msg_count > 0) { */
+	    /* 	/\* for(int i=0; i<msg_count; i++) { *\/ */
+	    /* 	OIC_LOG_V(DEBUG, TAG, "FREEing inbound msg labels"); */
+	    /* 	OICFree(msgs[0]); */
+	    /* 	/\* } *\/ */
+	    /* 	OICFree(msgs); */
+	    /* } */
 
-		/* pthread_mutex_lock(&display_mutex); */
-		drawCDKScroll(inbound_msg_scroller,  /* boxed? */ TRUE);
-		/* pthread_mutex_unlock(&display_mutex); */
+	    /* reinitialize_inbound_msg_scroller(); */
+	    /* msg_count = oocf_coresource_db_msg_labels(&msgs); */
+	    /* if (inbound_msg_scroller != NULL) { */
+	    /* 	reset_scroller(inbound_msg_scroller); */
+	    /* 	flockfile(stdout); */
+	    /* 	setCDKScrollItems (inbound_msg_scroller, (CDK_CSTRING2) msgs, msg_count, ENUMERATE); */
+	    /* 	setCDKScrollCurrentItem(inbound_msg_scroller, */
+	    /* 				inbound_msg_scroller->listSize - inbound_current_item); */
 
-		funlockfile(stdout);
-	    } else {
-		OIC_LOG_V(ERROR, TAG, "inbound_msg_scroller not initialized");
-		exit(EXIT_FAILURE);
-	    }
+	    /* 	/\* pthread_mutex_lock(&display_mutex); *\/ */
+	    /* 	/\* FIXME *\/ */
+	    /* 	/\* drawCDKScroll(inbound_msg_scroller,  /\\* boxed? *\\/ TRUE); *\/ */
+	    /* 	/\* pthread_mutex_unlock(&display_mutex); *\/ */
+
+	    /* 	funlockfile(stdout); */
+	    /* } */
 	    pthread_mutex_unlock(&msgs_mutex);
-	    update_coresource_scroller();
+	    /* update_coresource_scroller(); */
 	}
 	if (rc < 0) {
 	    OIC_LOG_V(ERROR, TAG, "sem_post(inbound_msg_log_ready_semaphore) rc: %s", strerror(errno));
@@ -124,35 +115,35 @@ static int inbound_msg_scroller_pre_process (EObjectType cdktype GCC_UNUSED,
     int i;
 
     switch(input) {
-    case KEY_ESC:
-    	OIC_LOG_V(DEBUG, TAG, "Keystroke: ESC; running inbound_msg_dbm");
-	flockfile(stdout);
-	int rc = run_inbound_msg_db_mgr_dlg();
-	OIC_LOG_V(DEBUG, TAG, "inbound_msg_db_mgr_dlg return: %d", rc);
-	funlockfile(stdout);
-	draw_scrollers();
-	drawCDKScroll(inbound_msg_scroller,  /* boxed? */ TRUE);
-	switch(rc) {
-	case -1:			/* ESC */
-	    OIC_LOG_V(DEBUG, TAG, "inbound_msg_db_mgr_dlg return: ESC");
-	    return 0;		/* no further action - same as cancel */
-	case 0:				/* purge */
-	    OIC_LOG_V(DEBUG, TAG, "inbound_msg_db_mgr_dlg return: purge");
-	    return 1;		/* 0 = no further action */
-	    break;
-	case 1:			/* cancel */
-	    OIC_LOG_V(DEBUG, TAG, "inbound_msg_db_mgr_dlg return: cancel");
-	    return 0;		/* no further action */
-	    break;
-	case 2:			/* quit */
-	    OIC_LOG_V(DEBUG, TAG, "inbound_msg_db_mgr_dlg return: quit");
-	    /* return 0; */
-	    break;
-	/* default:
-	 *     return 0;		/\* remain in scroller activation *\/ */
-	}
-	return 1;
-	break;
+    /* case KEY_ESC:
+     * 	OIC_LOG_V(DEBUG, TAG, "Keystroke: ESC; running inbound_msg_dbm");
+     * 	flockfile(stdout);
+     * 	int rc = run_inbound_msg_db_mgr_dlg();
+     * 	OIC_LOG_V(DEBUG, TAG, "inbound_msg_db_mgr_dlg return: %d", rc);
+     * 	funlockfile(stdout);
+     * 	draw_msg_scrollers();
+     * 	drawCDKScroll(inbound_msg_scroller,  /\* boxed? *\/ TRUE);
+     * 	switch(rc) {
+     * 	case -1:			/\* ESC *\/
+     * 	    OIC_LOG_V(DEBUG, TAG, "inbound_msg_db_mgr_dlg return: ESC");
+     * 	    return 0;		/\* no further action - same as cancel *\/
+     * 	case 0:				/\* purge *\/
+     * 	    OIC_LOG_V(DEBUG, TAG, "inbound_msg_db_mgr_dlg return: purge");
+     * 	    return 1;		/\* 0 = no further action *\/
+     * 	    break;
+     * 	case 1:			/\* cancel *\/
+     * 	    OIC_LOG_V(DEBUG, TAG, "inbound_msg_db_mgr_dlg return: cancel");
+     * 	    return 0;		/\* no further action *\/
+     * 	    break;
+     * 	case 2:			/\* quit *\/
+     * 	    OIC_LOG_V(DEBUG, TAG, "inbound_msg_db_mgr_dlg return: quit");
+     * 	    /\* return 0; *\/
+     * 	    break;
+     * 	/\* default:
+     * 	 *     return 0;		/\\* remain in scroller activation *\\/ *\/
+     * 	}
+     * 	return 1;
+     * 	break; */
     case KEY_ENTER:
     	OIC_LOG_V(DEBUG, TAG, "Keystroke: ENTER; running msg inspector");
 	/* the_item = chtype2Char (inbound_msg_scroller->item[getCDKScrollCurrentItem(scroller)]);
@@ -269,18 +260,23 @@ void initialize_inbound_msg_scroller(void)
 	}
     setCDKScrollPreProcess (inbound_msg_scroller, inbound_msg_scroller_pre_process, NULL);
     setCDKScrollPostProcess (inbound_msg_scroller, inbound_msg_scroller_post_process, NULL);
-    bindCDKObject(vSCROLL, inbound_msg_scroller, 'q', inbound_msg_scroller_quit, 0);
+    /* bindCDKObject(vSCROLL, inbound_msg_scroller, 'q', inbound_msg_scroller_quit, 0); */
 }
 
 void reinitialize_inbound_msg_scroller()
 {
-    int ct = inbound_msg_scroller->listSize;
-    for (int i=0; i< ct; i++) {
-	deleteCDKScrollItem(inbound_msg_scroller, i);
-    }
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
-    char **msgs;
-    int msg_count = oocf_coresource_db_msg_labels(&msgs);
+    flockfile(stdout);
+
+    destroyCDKScroll(inbound_msg_scroller);
+    initialize_inbound_msg_scroller();
+
+    msg_count = oocf_coresource_db_msg_labels(&msgs);
+
+    for (int i=0; i<msg_count; i++) {
+	OIC_LOG_V(DEBUG, TAG, "Inbound msg str: %s", msgs[i]);
+    }
 
     /* for (int i=0; i < len; i++) {
      * 	sprintf(text[i], "%s%s", msg->devAddr.addr, msg->devAddr.port, msg->resourceUri);
@@ -291,17 +287,20 @@ void reinitialize_inbound_msg_scroller()
 			    inbound_msg_scroller->listSize - inbound_current_item);
 
     /* pthread_mutex_lock(&display_mutex); */
-    drawCDKScroll(inbound_msg_scroller,  /* boxed? */ TRUE);
+    /* drawCDKScroll(inbound_msg_scroller,  /\* boxed? *\/ TRUE); */
+    /* erase_msg_scrollers(); */
     inbound_msg_scroller_dirty = false;
+    funlockfile(stdout);
 }
 
-void run_inbound_msg_db_mgr(void) /* called by client_ui::run_gui */
+int run_inbound_msg_db_mgr(void) /* called by client_ui::run_gui */
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     static int msg_selection;
     static int sz;
 
+    reinitialize_outbound_msg_scroller(); /* FIXME: why is this needed? */
     reinitialize_inbound_msg_scroller();
 
     setCDKScrollBackgroundColor(inbound_msg_scroller, "</31>");
@@ -317,6 +316,7 @@ void run_inbound_msg_db_mgr(void) /* called by client_ui::run_gui */
     setCDKScrollCurrentItem(inbound_msg_scroller, sz - inbound_current_item);
     OIC_LOG_V(DEBUG, TAG, "set current item to: %d", inbound_current_item);
 
+    draw_msg_scrollers();
     /* pthread_mutex_lock(&display_mutex); */
     msg_selection = activateCDKScroll(inbound_msg_scroller, 0);
     /* pthread_mutex_unlock(&display_mutex); */
@@ -324,22 +324,24 @@ void run_inbound_msg_db_mgr(void) /* called by client_ui::run_gui */
     inbound_current_item
 	= inbound_msg_scroller->listSize - getCDKScrollCurrentItem(inbound_msg_scroller);
     /* OIC_LOG_V(DEBUG, TAG, "msg_selection: %d", msg_selection); */
-    /* Determine how the widget was exited. */
+    setCDKScrollBackgroundColor(inbound_msg_scroller, "<!31>");
     if (msg_selection < 0) {
 	OIC_LOG_V(DEBUG, TAG, "msg_selection: %d (ESC)", msg_selection);
-	if (g_quit_flag)
-	    setCDKScrollBackgroundColor(inbound_msg_scroller, "<!31>");
+	/* if (g_quit_flag) */
+	/*     setCDKScrollBackgroundColor(inbound_msg_scroller, "<!31>"); */
+	destroy_msg_scrollers();
+	refreshCDKScreen(cdkscreen);
     } else {
 	OIC_LOG_V(DEBUG, TAG, "msg_selection: %d", msg_selection);
-	setCDKScrollBackgroundColor(inbound_msg_scroller, "<!31>");
-	next_scroller = CORESOURCES;
-	ungetch(KEY_TAB); /* NB: this is from ncurses */
+	next_scroller = OUTBOUND; // CORESOURCES;
+	/* ungetch(KEY_TAB); /\* NB: this is from ncurses *\/ */
+	draw_msg_scrollers();
     }
-    draw_scrollers();
-    drawCDKScroll(inbound_msg_scroller,  /* boxed? */ TRUE);
-    drawCDKScroll(outgoing_msg_scroller,  /* boxed? */ TRUE);
-    drawCDKLabel(msg_box, TRUE);
+    /* drawCDKScroll(inbound_msg_scroller,  /\* boxed? *\/ TRUE); */
+    /* drawCDKScroll(outbound_msg_scroller,  /\* boxed? *\/ TRUE); */
+    /* drawCDKLabel(msg_box, TRUE); */
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return msg_selection;
 }
 
 static void initialize_dlg(void)

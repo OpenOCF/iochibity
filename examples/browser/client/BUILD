@@ -83,7 +83,16 @@ cc_binary(
             "inbound_msg_db_mgr.h",
             "inbound_msg_inspector.c",
             "inbound_msg_inspector.h",
+            "logging.c",
+            "logging.h",
+            "menu.c",
+            "menu.h",
             "msg_scrollers.c",
-            "msg_scrollers.h"]
+            "msg_scrollers.h",
+            "outbound_msg_db_mgr.c",
+            "outbound_msg_db_mgr.h",
+            # "subwindow.c",
+            # "subwindow.h"
+    ]
 )
 

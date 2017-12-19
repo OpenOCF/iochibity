@@ -20,7 +20,10 @@ static char **msgs = NULL;
 static char **s = NULL;
 static int msg_count = 0;
 
-static char text[MSG_MAX][80];		/* since message is const we need a work buffer */
+CDKSCROLL *coresource_scroller;
+int coresource_current_item;
+
+/* static char text[MSG_MAX][80];		/\* since message is const we need a work buffer *\/ */
 
 void reinitialize_coresource_scroller()
 {
@@ -84,13 +87,14 @@ void update_coresource_scroller(void)
 				coresource_scroller->listSize - coresource_current_item);
 
 	/* pthread_mutex_lock(&display_mutex); */
+/* FIXME */
 	drawCDKScroll(coresource_scroller,  /* boxed? */ TRUE);
 	/* pthread_mutex_unlock(&display_mutex); */
 
 	funlockfile(stdout);
-    } else {
-	OIC_LOG_V(ERROR, TAG, "coresource_scroller not initialized");
-	exit(EXIT_FAILURE);
+    /* } else {
+     * 	OIC_LOG_V(ERROR, TAG, "coresource_scroller not initialized");
+     * 	exit(EXIT_FAILURE); */
     }
     /* pthread_mutex_unlock(&msgs_mutex); */
     OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
@@ -205,7 +209,7 @@ void initialize_coresource_scroller(void)
 					RIGHT,                 /* scrollbar */
 					-5,                    /* H, 0 = max  */
 					64,                    /* W */
-					"<C></U/05>Coresources",  /* title */
+					"<C></U/05>Coresource Links",  /* title */
 					0,                     /* item list - list of strings or 0 */
 					0,                     /* item count */
 					ENUMERATE,          /* numbered */
@@ -226,6 +230,7 @@ void initialize_coresource_scroller(void)
     setCDKScrollPreProcess (coresource_scroller, coresource_scroller_pre_process, NULL);
     setCDKScrollPostProcess (coresource_scroller, coresource_scroller_post_process, NULL);
     bindCDKObject(vSCROLL, coresource_scroller, 'q', coresource_scroller_quit, 0);
+    eraseCDKScroll(coresource_scroller);
 }
 
 void browse_coresource_json(OCClientResponse *msg)
@@ -352,14 +357,16 @@ void run_coresource_mgr(void)
     if (msg_selection < 0) {
 	OIC_LOG(DEBUG, TAG, "User struck ESC");
 	setCDKScrollBackgroundColor(coresource_scroller, "<!31>");
-	drawCDKScroll(coresource_scroller,  /* boxed? */ TRUE);
+/* FIXME */
+	/* drawCDKScroll(coresource_scroller,  /\* boxed? *\/ TRUE); */
     } else {
 	OIC_LOG(DEBUG, TAG, "User struck TAB");
 	ungetch(KEY_TAB); // , stdin);
 	setCDKScrollBackgroundColor(coresource_scroller, "<!31>");
 	next_scroller = OUTGOING;
     }
-    drawCDKScroll(coresource_scroller,  /* boxed? */ TRUE);
+/* FIXME */
+    /* drawCDKScroll(coresource_scroller,  /\* boxed? *\/ TRUE); */
     drawCDKLabel(msg_box, TRUE);
     /* draw_scrollers(); */
 }

@@ -87,7 +87,7 @@ int run_action_dialog (CDKSCREEN *cdkscreen, char* item)
     funlockfile(stdout);
 
     eraseCDKDialog(dlg_action);
-    draw_scrollers();
+    draw_msg_scrollers();
     /* Clean up. */
     /* destroyCDKDialog (dlg_action);
      * destroyCDKScreen (cdkscreen); */
