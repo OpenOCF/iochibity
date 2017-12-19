@@ -62,61 +62,6 @@ EXPORT
     u_linklist_add_head(g_responses, (void*) data);
 
     /* FIXME: should we remove duplicates? */
-    /* struct OOCF_ResponseMsg *new_r = OICMalloc(sizeof(struct OOCF_ResponseMsg));
-     * if (NULL == new_r) OIC_LOG_V(FATAL, TAG, "Malloc fail for struct OOCF_ResponseMsg");
-     * new_r->data = data;
-     * new_r->next = g_responses;
-     * g_responses = new_r; */
-
-    /* struct OOCF_ResponseMsg *last_r = g_responses;
-     * int i = 0; */
-    /* if (last_r) {
-     * 	while (last_r->next) {
-     * 	    /\* check for dup: matching URI and device ID *\/
-     * 	    if (0 == strncmp(last_r->data->resourceUri,
-     * 			     data->resourceUri,
-     * 			     strlen(data->resourceUri))) {
-     * 		if (0 == strncmp(last_r->data->devAddr.remoteId,
-     * 				 data->devAddr.remoteId,
-     * 				 MAX_IDENTITY_SIZE)) {
-     * 		    OIC_LOG_V(DEBUG, TAG, "Found duplicate ResponseItem at index %d", i);
-     * 		    OICFree(new_r);
-     * 		    OCPayloadDestroy(last_r->data->payload);
-     * 		    OICFree(last_r->data);
-     * 		    last_r->data = data;
-     * 		    goto exit;
-     * 		}
-     * 	    }
-     * 	    last_r = last_r->next;
-     * 	    i++;
-     * 	}
-     * 	/\* last node: check for dup *\/
-     * 	if (0 == strncmp(last_r->data->resourceUri,
-     * 			 data->resourceUri,
-     * 			 strlen(data->resourceUri))) {
-     * 	    if (0 == strncmp(last_r->data->devAddr.remoteId,
-     * 			     data->devAddr.remoteId,
-     * 			     MAX_IDENTITY_SIZE)) {
-     * 		OIC_LOG_V(DEBUG, TAG, "Found duplicate ResponseItem at index %d; replacing", i);
-     * 		OICFree(new_r);
-     * 		OCPayloadDestroy(last_r->data->payload);
-     * 		OICFree(last_r->data);
-     * 		last_r->data = data;
-     * 		goto exit;
-     * 	    }
-     * 	}
-     * 	OIC_LOG_V(DEBUG, TAG, "Adding new ResponseItem at index %d; replacing", i);
-     * 	OIC_LOG_V(DEBUG, TAG, "URI: %s, device ID: %s",
-     * 		  data->resourceUri, data->devAddr.remoteId);
-     * 	last_r->next = new_r;
-     * 	i++;
-     * } else {
-     * 	/\* this is the first item *\/
-     * 	OIC_LOG_V(DEBUG, TAG, "Adding new ResponseItem at root node");
-     * 	OIC_LOG_V(DEBUG, TAG, "URI: %s, device ID: %s",
-     * 		  data->resourceUri, data->devAddr.remoteId);
-     * 	g_responses = new_r;
-     * } */
  exit:
     oc_mutex_unlock(g_responses_mutex);
     OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
@@ -131,6 +76,7 @@ EXPORT
     u_linklist_iterator_t *iterTable = NULL;
     u_linklist_init_iterator(g_responses, &iterTable);
 
+    /* FIXME: free msg, not just list node! */
     u_linklist_remove(g_responses, iterTable);
 
     // find response in list, then remove it
@@ -187,7 +133,28 @@ EXPORT
     return NULL;
 }
 
-OCResourcePayload *oocf_coresource_db_mgr_get_coresource(int index)
+int oocf_ocf_version(OCClientResponse *msg)
+EXPORT
+{
+    uint8_t vOptionData[MAX_HEADER_OPTION_DATA_LENGTH];
+    size_t vOptionDataSize = sizeof(vOptionData);
+    uint16_t actualDataSize = 0;
+    OCGetHeaderOption(msg->rcvdVendorSpecificHeaderOptions,
+		      msg->numRcvdVendorSpecificHeaderOptions,
+		      OCF_CONTENT_FORMAT_VERSION,
+		      vOptionData,
+		      vOptionDataSize,
+		      &actualDataSize);
+    if (actualDataSize) {
+	/* content_format_version */
+	return (vOptionData[0] * 0x0100) + vOptionData[1];
+    } else {
+	/* missing OCF_CONTENT_FORMAT_VERSION header means pre-ocf 1.0.0? */
+	return -1;
+    }
+}
+
+OCResourcePayload *oocf_coresource_db_mgr_get_coresource(int index, /* [out] */ int *ocf_version)
 EXPORT
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY, index %d", __func__, index);
@@ -210,6 +177,7 @@ EXPORT
 	    while(coresource_pl) {
 		OIC_LOG_V(INFO, TAG, "testing coresource %d", i);
 		if (i == index) {
+		    *ocf_version = oocf_ocf_version(msg);
 		    oc_mutex_unlock(g_responses_mutex);
 		    OIC_LOG_V(INFO, TAG, "matched coresource %d, %p", i, coresource_pl);
 		    return coresource_pl;
@@ -217,15 +185,14 @@ EXPORT
 		coresource_pl = coresource_pl->next;
 		i++;
 	    }
-	    u_linklist_get_next(&iter);
+	    /* u_linklist_get_next(&iter); */
 	} else {
 	    OIC_LOG_V(DEBUG, TAG, "NO PAYLOAD");
 	}
         u_linklist_get_next(&iter);
-	i++;
     }
+    OIC_LOG_V(ERROR, TAG, "Resource index %d not found", index);
     oc_mutex_unlock(g_responses_mutex);
-    OIC_LOG_V(ERROR, TAG, "Msg %d not found", index);
 
     OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return NULL;
