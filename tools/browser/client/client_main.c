@@ -177,8 +177,9 @@ void discover_resources ()
 	if (OCDoResource(&request_handle,
 			 OC_REST_DISCOVER,
 			 szQueryUri,
-			 NULL, NULL,
-			 CT_DEFAULT,
+			 NULL,	/* endpoint - NULL for multicast */
+			 NULL,	/* payload */
+			 CT_DEFAULT, /* connectivity type */
 			 OC_LOW_QOS,
 			 &cbData, NULL, 0) != OC_STACK_OK) {
 	    OIC_LOG(ERROR, TAG, "OCStack resource error");

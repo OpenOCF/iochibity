@@ -45,8 +45,10 @@ static construct_coresource_hdr(OCResourcePayload *coresource)
 
 static void initialize_coresource_dlg()
 {
-    const char *buttons[] = {"</B/16>Cancel",
-			     "<C>Exit",
+    const char *buttons[] = {"</B/16>Retrieve",
+			     "</B/16>Update",
+			     "</B/16>Delete",
+			     "<C>Dismiss",
 			     "<C>Help",
     };
 
@@ -54,7 +56,7 @@ static void initialize_coresource_dlg()
 				   CENTER,
 				   CENTER,
 				   (CDK_CSTRING2) msg, msg_count,
-				   (CDK_CSTRING2) buttons, 3,
+				   (CDK_CSTRING2) buttons, 5,
 				   COLOR_PAIR (2) | A_REVERSE,
 				   TRUE,
 				   TRUE,
@@ -94,32 +96,27 @@ int run_coresource_inspector(int index)
 	     * msg[2] = "<C>Press any key to continue.";
 	     * popupLabel (cdkscreen, (CDK_CSTRING2) msg, 3); */
 	}
-    else if (dlg_coresource->exitType == vNORMAL)
-	{
+    else if (dlg_coresource->exitType == vNORMAL) {
 	    switch (selection) {
-	    case 0:
-		sprintf (temp, "<C>You selected Browse");
-		/* browse_coresource_json(msg); */
+	    case 0:		/* RETRIEVE */
+		/* steps: pick an ep, construct query string, send request */
 		break;
-	    case 1:
-		sprintf (temp, "<C>You selected Exit");
+	    case 1:		/* UPDATE */
 		break;
-	    case 2:
-		sprintf (temp, "<C>You selected Help");
+	    case 2:		/* DELETE */
+		break;
+	    case 3:		/* DISMISS */
+		break;
+	    case 4:		/* HELP */
 		break;
 	    }
-	    /* OIC_LOG_V(DEBUG, TAG, "%s NORMAL", __func__);
-	     * sprintf (temp, "<C>You selected button #%d", selection); */
-	    /* msg[0] = temp;
-	     * msg[1] = "";
-	     * msg[2] = "<C>Press any key to continue.";
-	     * popupLabel (cdkscreen, (CDK_CSTRING2) msg, 3); */
+	    /* OIC_LOG_V(DEBUG, TAG, "%s NORMAL", __func__); */
 	}
     funlockfile(stdout);
 
     /* eraseCDKDialog(dlg_coresource); */
     destroyCDKDialog(dlg_coresource);
-    draw_msg_scrollers();
+    /* draw_msg_scrollers(); */
     /* Clean up. */
     /* destroyCDKDialog (dlg_coresource);
      * destroyCDKScreen (cdkscreen); */
