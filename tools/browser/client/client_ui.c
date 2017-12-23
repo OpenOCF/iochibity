@@ -278,15 +278,15 @@ int main_ui (void)
 
     /* Start curses. */
     /* (void) initCDKScreen (NULL); */
-    curs_set (0);
-    cbreak();			/* ncurses: disable line buffering */
 
     /* Create a basic window. */
     /* subWindow = newwin (LINES - 5, COLS - 10, 2, 5); */
 
     /* Start Cdk. */
     cdkscreen = initCDKScreen (NULL);
-    keypad(cdkscreen, TRUE);
+    curs_set (0);
+    cbreak();			/* ncurses: disable line buffering */
+    /* keypad(cdkscreen, TRUE); */
 
     /* Start CDK color. */
     initCDKColor ();
@@ -337,4 +337,3 @@ int main_ui (void)
 	exit_ui();
 	OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
-
