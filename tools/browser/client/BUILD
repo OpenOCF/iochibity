@@ -20,7 +20,8 @@ config_setting(
 )
 config_setting(
     name = "rpi3b",
-     values = { "crosstool_top": "//platforms/rpi3b:toolchain" }
+     values = { "cpu": "k8",
+     "crosstool_top": "//platforms/rpi3b:toolchain" }
 )
 
 cc_binary(
@@ -36,10 +37,6 @@ cc_binary(
              "-Ithird_party/coap",
              "-Ithird_party/coap/include",
              "-Ithird_party/tinycbor/src",
-             "-Iexternal/usr_sys/include",
-             "-Iexternal/usr_sys/include/cdk",
-             # "-Iexternal/usr_local/include",
-             # "-Iexternal/usr_local/include/cdk"
     ]
     + select({":rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/include",
                          "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
@@ -51,6 +48,8 @@ cc_binary(
                          "-Iexternal/cosysroot_wrlinux/usr/local/include/cdk",
                          "-Iexternal/cosysroot_wrlinux/usr/include",
                          "-std=c11"],
+              ":linux": ["-Iexternal/usr_local_linux/include",
+                         "-Iexternal/usr_local_linux/include/cdk"],
               "//conditions:default": ["-Iexternal/usr_local/include",
                                        "-Iexternal/usr_local/include/cdk",
                                        "-std=c11",
@@ -63,7 +62,8 @@ cc_binary(
             "//third_party/cjson",
             "//third_party/coap"
     ] + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
-              ":linux": ["@usr_local//:cdk"],
+              ":linux": ["@usr_local_linux//:cdk"],
+                         # "@usr_local_linux//:ncurses"],
               ":android": ["@cosysroot_ndk//:cdk"],
               ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
               "//conditions:default": ["@usr_local//:cdk"]}),
@@ -95,4 +95,3 @@ cc_binary(
             # "subwindow.h"
     ]
 )
-

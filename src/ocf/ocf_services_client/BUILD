@@ -34,17 +34,20 @@ cc_library(
              "-Isrc/logger",
              "-Iexternal/openocf/src/logger",
              "-Isrc/portability",
-             "-Iexternal/openocf/src/portability"]
+             "-Iexternal/openocf/src/portability",
+             "-Isrc/util",
+             "-Iexternal/openocf/src/util"]
     + select({":windows": [],
               ":msvc": [],
               ":msys": [],
               ":darwin": ["-std=c11", "-U DEBUG"],
+              ":linux": ["-std=c11"],
               "//conditions:default": []}),
     deps = ["//src:config",
             # "//src/comm/api",
             # "//src/ocf:hdrs",
             "//src/logger",
-            # "//src/portability:hdrs",
+            "//src/util",
             "//src/portability"],
     # hdrs = ["client/co_service_provider.h",
     #         "client/co_service_provider_mgr.h"],
@@ -56,4 +59,3 @@ cc_library(
             "coresource_mgr.h"],
     visibility = ["//visibility:public"]
 )
-

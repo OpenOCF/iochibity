@@ -78,8 +78,9 @@ cc_library(
               ":msys": glob(["*_windows.c"]) + glob(["*_windows.h"]),
               ":windows": glob(["*_windows.c"]) + glob(["*_windows.h"]),
               ":darwin": glob(["*_posix.c"]) + glob(["*_posix.h"])
-              + glob(["*_darwin.c"]) + glob(["*_darwin.h"]),
-              ":linux": glob(["*_posix.c"]) + glob(["*_linux.h"]),
+	      		 + glob(["*_darwin.c"]) + glob(["*_darwin.h"]),
+              ":linux": glob(["*_posix.c"]) + glob(["*_posix.h"])
+	      	      + glob(["*_linux.c"]) + glob(["*_linux.h"]),
                 # ":ndk": ["//src/comm/transport/udpip/android"],
                 # ":android": ["//src/comm/transport/udpip/android"],
         "//conditions:default": []}),

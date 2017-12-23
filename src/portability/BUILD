@@ -18,7 +18,8 @@ config_setting(
 )
 config_setting(
     name = "rpi3b",
-     values = { "crosstool_top": "//platforms/rpi3b:toolchain" }
+     values = { "cpu": "k8",
+                "crosstool_top": "//platforms/rpi3b:toolchain" }
 )
 config_setting(
     name = "ndk",
