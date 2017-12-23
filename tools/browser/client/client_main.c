@@ -25,6 +25,9 @@
 #include <pthread.h>
 #if INTERFACE
 #include <cdk_test.h>
+#include <sys/stat.h>		/* symbolic permission bits (linux)  */
+#include <fcntl.h>           /* For O_* constants */
+#include <sys/stat.h>        /* For mode constants */
 #include <semaphore.h>
 #endif
 #include <stdarg.h>
@@ -77,7 +80,7 @@ sem_t *outbound_msg_log_ready_semaphore = NULL;
 static oc_thread        response_msg_dispatcher_thread;
 
 /* static pthread_t        inbound_msg_display_thread;
- * 
+ *
  * static pthread_t        outbound_msg_display_thread; */
 
 static pthread_t        discovery_thread; /* just for testing */
@@ -343,12 +346,19 @@ int main ()
 	OIC_LOG_V(INFO, TAG, "EXIT u_linklist_create outbound_msgs");
     }
 
-    sem_unlink("/oocf/quit/sem");
-    if ((quit_semaphore = sem_open("/oocf/quit/sem", O_CREAT | O_EXCL, 0644, 0)) == SEM_FAILED ) {
-    	OIC_LOG_V(ERROR, TAG, "sem_open(\"/oocf/quit/sem\") rc: %s", strerror(errno));
+    errno = 0;
+    int rc = sem_unlink("/oocf_quit_sem");
+    if (rc != 0) {
+      if (errno != ENOENT) {
+    	OIC_LOG_V(ERROR, TAG, "sem_unlink(\"/oocf_quit_sem\") rc: %d %s", errno, strerror(errno));
+    	exit(EXIT_FAILURE);
+      }
+    }
+    if ((quit_semaphore = sem_open("/oocf_quit_sem", O_CREAT | O_EXCL, 0644, 0)) == SEM_FAILED ) {
+      OIC_LOG_V(ERROR, TAG, "sem_open(\"/oocf_quit_sem\") rc: %d %s", errno, strerror(errno));
     	exit(EXIT_FAILURE);
     /* } else {
-     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/oocf/quit/sem) returned: %p", quit_semaphore);
+     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/oocf_quit_sem) returned: %p", quit_semaphore);
      * 	/\* sem_wait(quit_semaphore); *\/
      * 	int val;
      * 	sem_getvalue(quit_semaphore, &val);
@@ -363,36 +373,36 @@ int main ()
     }
 
     /* OS X does not support unnamed semaphores (sem_init) */
-    sem_unlink("/inbound/msg");
-    if ((inbound_msg_semaphore = sem_open("/inbound/msg", O_CREAT, 0644, 0)) == SEM_FAILED ) {
-	OIC_LOG_V(ERROR, TAG, "sem_open(\"/inbound/msg\") rc: %s", strerror(errno));
+    sem_unlink("/inbound_msg");
+    if ((inbound_msg_semaphore = sem_open("/inbound_msg", O_CREAT, 0644, 0)) == SEM_FAILED ) {
+	OIC_LOG_V(ERROR, TAG, "sem_open(\"/inbound_msg\") rc: %s", strerror(errno));
 	exit(EXIT_FAILURE);
     /* } else {
-     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/inbound/msg) returned: %p", inbound_msg_semaphore); */
+     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/inbound_msg) returned: %p", inbound_msg_semaphore); */
     }
 
-    sem_unlink("/inbound/msg/log/ready");
-    if ((inbound_msg_log_ready_semaphore = sem_open("/inbound/msg/log/ready", O_CREAT, 0644, 0)) == SEM_FAILED ) {
-	OIC_LOG_V(ERROR, TAG, "sem_open(\"/inbound/msg/log/ready\") rc: %s", strerror(errno));
+    sem_unlink("/inbound_msg_log_ready");
+    if ((inbound_msg_log_ready_semaphore = sem_open("/inbound_msg_log_ready", O_CREAT, 0644, 0)) == SEM_FAILED ) {
+	OIC_LOG_V(ERROR, TAG, "sem_open(\"/inbound_msg_log_ready\") rc: %s", strerror(errno));
 	exit(EXIT_FAILURE);
     /* } else {
-     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/inbound/msg/log/ready) returned: %p", inbound_msg_log_ready_semaphore); */
+     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/inbound_msg_log_ready) returned: %p", inbound_msg_log_ready_semaphore); */
     }
 
-    sem_unlink("/outbound/msg/semaphore");
-    if ((outbound_msg_semaphore = sem_open("/outbound/msg/semaphore", O_CREAT, 0644, 0)) == SEM_FAILED ) {
-	OIC_LOG_V(ERROR, TAG, "sem_open(\"/outbound/msg\") rc: %s", strerror(errno));
+    sem_unlink("/outbound_msg_semaphore");
+    if ((outbound_msg_semaphore = sem_open("/outbound_msg_semaphore", O_CREAT, 0644, 0)) == SEM_FAILED ) {
+	OIC_LOG_V(ERROR, TAG, "sem_open(\"/outbound_msg\") rc: %s", strerror(errno));
 	exit(EXIT_FAILURE);
     /* } else {
-     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/outbound/msg) returned: %p", outbound_msg_semaphore); */
+     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/outbound_msg) returned: %p", outbound_msg_semaphore); */
     }
 
-    sem_unlink("/outbound/msg/log/ready");
-    if ((outbound_msg_log_ready_semaphore = sem_open("/outbound/msg/log/ready", O_CREAT, 0644, 1)) == SEM_FAILED ) {
-	OIC_LOG_V(ERROR, TAG, "sem_open(\"/outbound/msg/log/ready\") rc: %s", strerror(errno));
+    sem_unlink("/outbound_msg_log_ready");
+    if ((outbound_msg_log_ready_semaphore = sem_open("/outbound_msg_log_ready", O_CREAT, 0644, 1)) == SEM_FAILED ) {
+	OIC_LOG_V(ERROR, TAG, "sem_open(\"/outbound_msg_log_ready\") rc: %s", strerror(errno));
 	exit(EXIT_FAILURE);
     /* } else {
-     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/outbound/msg/log/ready) returned: %p", outbound_msg_log_ready_semaphore); */
+     * 	OIC_LOG_V(DEBUG, TAG, "sem_open(\"/outbound_msg_log_ready) returned: %p", outbound_msg_log_ready_semaphore); */
     }
 
     /* Initialize OCStack. Do this here rather than in the work
