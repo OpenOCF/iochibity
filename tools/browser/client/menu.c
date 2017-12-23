@@ -34,7 +34,7 @@ static CDKMENU *menu        = 0;
 static char *mesg[10];
 static int menu_selection;
 /* const char *mesg[5]; */
-static static char temp[256];
+static char temp[256];
 
 
 static const char *menulist[MAX_MENU_ITEMS][MAX_SUB_ITEMS];

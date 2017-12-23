@@ -43,7 +43,7 @@ char *msg_box_msg[1];
 static char *mesg[10];
 /* static int menu_selection; */
 /* const char *mesg[5]; */
-static static char temp[256];
+static char temp[256];
 
 static int displayCallback (EObjectType cdktype, void *object,
 			    void *clientData,
