@@ -659,9 +659,9 @@ void log_discovery_msg(OCClientResponse *clientResponse)
     OIC_LOG_V(INFO, TAG, "json filename: %s", fname);
     FILE *fd = fopen(fname, "w");
     if (fd == NULL) {
-	OIC_LOG_V(INFO, TAG, "fopen err: %s", strerror(errno));
+        OIC_LOG_V(INFO, TAG, "fopen %s err: %s", fname, strerror(errno));
+	exit(EXIT_FAILURE);
     }
     fprintf(fd, "%s", rendered);
     fclose(fd);
 }
-
