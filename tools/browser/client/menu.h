@@ -1,5 +1,6 @@
 /* This file was automatically generated.  Do not edit! */
 void gui_view_resources();
+void run_coresource_mgr(void);
 void run_msg_logs(void);
 #define INBOUND 0
 extern int next_scroller;

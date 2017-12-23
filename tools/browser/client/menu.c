@@ -216,6 +216,9 @@ void run_menu()
 		    if (menu_selection % 100 == 2) {
 			OIC_LOG_V(INFO, TAG, "discovering resources");
 			discover_resources();
+			dismiss_menu();
+			next_scroller = INBOUND;
+			run_msg_logs();
 		    }
 		    break;
 		case 1:
@@ -225,6 +228,11 @@ void run_menu()
 			next_scroller = INBOUND;
 			run_msg_logs();
 			/* erase_msg_scrollers(); */
+			break;
+		    case 1:
+			OIC_LOG_V(INFO, TAG, "viewing coresources");
+			dismiss_menu();
+			run_coresource_mgr();
 			break;
 		    case 3:
 			OIC_LOG_V(INFO, TAG, "viewing resources");

@@ -98,13 +98,30 @@ int decode_resource(int index, char *ptrs[], char *buffer, int *count)
     }
 
 
-     /* cJSON_AddItemToObject(l, "n", cJSON_CreateNull()); /\* name *\/
-     * cJSON_AddItemToObject(l, "id", cJSON_CreateNull()); /\* resource identifier *\/
-     *
-     * cJSON_AddItemToObject(l, "di", cJSON_CreateNull()); /\* device id *\/
-     * cJSON_AddItemToObject(l, "title", cJSON_CreateNull());
-     * cJSON_AddItemToObject(l, "type", cJSON_CreateArray()); /\* media type *\/
-     */
+    /* cJSON_AddItemToObject(l, "n", cJSON_CreateNull()); /\* name *\/ */
+    sprintf(buffer, " n:\t%s", "(null)");
+    buffer += strlen(buffer) + 1;
+    ptrs[i++] = buffer;
+
+    /* cJSON_AddItemToObject(l, "id", cJSON_CreateNull()); /\* resource identifier *\/ */
+    sprintf(buffer, " id:\t%s", "(null)");
+    buffer += strlen(buffer) + 1;
+    ptrs[i++] = buffer;
+
+    /* cJSON_AddItemToObject(l, "di", cJSON_CreateNull()); /\* device id *\/ */
+    sprintf(buffer, " di:\t%s", "(null)");
+    buffer += strlen(buffer) + 1;
+    ptrs[i++] = buffer;
+
+    /* cJSON_AddItemToObject(l, "title", cJSON_CreateNull()); */
+    sprintf(buffer, " title:\t%s", "(null)");
+    buffer += strlen(buffer) + 1;
+    ptrs[i++] = buffer;
+
+    /* cJSON_AddItemToObject(l, "type", cJSON_CreateArray()); /\* media type *\/ */
+    sprintf(buffer, " media type:\t%s", "(null)");
+    buffer += strlen(buffer) + 1;
+    ptrs[i++] = buffer;
 
     /* bm constants are in struct OCResourceProperty */
     sprintf(buffer, " policy bm: discoverable? %s", (resource->bitmap & OC_DISCOVERABLE) ? "T" : "F");
@@ -664,4 +681,3 @@ void log_discovery_msg(OCClientResponse *clientResponse)
     fprintf(fd, "%s", rendered);
     fclose(fd);
 }
-

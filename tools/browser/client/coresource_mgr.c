@@ -21,42 +21,17 @@ static char **s = NULL;
 static int msg_count = 0;
 
 CDKSCROLL *coresource_scroller;
-int coresource_current_item;
+int coresource_current_item = 0;
+
+static char **coresource_uris = NULL;
+static int coresource_count;
+static int rc;
 
 /* static char text[MSG_MAX][80];		/\* since message is const we need a work buffer *\/ */
-
-void reinitialize_coresource_scroller()
-{
-    int ct = coresource_scroller->listSize;
-    for (int i=0; i< ct; i++) {
-	deleteCDKScrollItem(coresource_scroller, i);
-    }
-
-    char **msgs;
-    int msg_count = oocf_cosp_mgr_list_coresource_uris(&msgs);
-
-    /* for (int i=0; i < len; i++) {
-     * 	sprintf(text[i], "%s%s", msg->devAddr.addr, msg->devAddr.port, msg->resourceUri);
-     * } */
-
-    setCDKScrollItems (coresource_scroller, (CDK_CSTRING2) msgs, msg_count, ENUMERATE);
-    setCDKScrollCurrentItem(coresource_scroller,
-			    coresource_scroller->listSize - inbound_current_item);
-
-    /* pthread_mutex_lock(&display_mutex); */
-    drawCDKScroll(coresource_scroller,  /* boxed? */ TRUE);
-    coresource_scroller_dirty = false;
-}
 
 void update_coresource_scroller(void)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY, tid: %x", __func__, pthread_self());
-    int len = 0;
-    char **coresource_uris = NULL;
-    char **s = NULL;
-    int coresource_count;
-    static int rc;
-
     if (coresource_scroller_dirty) {
 	if (coresource_uris) {
 	    for (int i=0; i<coresource_count; i++) {
@@ -201,38 +176,6 @@ static int coresource_scroller_quit (EObjectType cdktype GCC_UNUSED,
     return TRUE;
 }
 
-void initialize_coresource_scroller(void)
-{
-    coresource_scroller = newCDKScroll (cdkscreen,
-					CENTER,                /* x */
-					CENTER,                /* y */
-					RIGHT,                 /* scrollbar */
-					-5,                    /* H, 0 = max  */
-					64,                    /* W */
-					"<C></U/05>Coresource Links",  /* title */
-					0,                     /* item list - list of strings or 0 */
-					0,                     /* item count */
-					ENUMERATE,          /* numbered */
-					A_REVERSE,             /* highlighting */
-					TRUE,                  /* boxed */
-					FALSE);                /* shadowed */
-
-    /* Is the scrolling list null? */
-    if (coresource_scroller == 0)
-	{
-	    /* Exit CDK. */
-	    destroyCDKScreen (cdkscreen);
-	    endCDK ();
-
-	    printf ("Cannot make coresource_scroller. Is the window too small?\n");
-	    ExitProgram (EXIT_FAILURE);
-	}
-    setCDKScrollPreProcess (coresource_scroller, coresource_scroller_pre_process, NULL);
-    setCDKScrollPostProcess (coresource_scroller, coresource_scroller_post_process, NULL);
-    bindCDKObject(vSCROLL, coresource_scroller, 'q', coresource_scroller_quit, 0);
-    eraseCDKScroll(coresource_scroller);
-}
-
 void browse_coresource_json(OCClientResponse *msg)
 {
    CDKVIEWER *json_viewer   = 0;
@@ -327,17 +270,86 @@ void browse_coresource_json(OCClientResponse *msg)
    destroyCDKViewer (json_viewer);
 }
 
+void initialize_coresource_scroller(void)
+{
+    coresource_scroller = newCDKScroll (cdkscreen,
+					CENTER,                /* x */
+					CENTER,                /* y */
+					RIGHT,                 /* scrollbar */
+					-5,                    /* H, 0 = max  */
+					64,                    /* W */
+					"<C></U/05>Coresource Links",  /* title */
+					0,                     /* item list - list of strings or 0 */
+					0,                     /* item count */
+					ENUMERATE,          /* numbered */
+					A_REVERSE,             /* highlighting */
+					TRUE,                  /* boxed */
+					FALSE);                /* shadowed */
+
+    /* Is the scrolling list null? */
+    if (coresource_scroller == 0)
+	{
+	    /* Exit CDK. */
+	    destroyCDKScreen (cdkscreen);
+	    endCDK ();
+
+	    printf ("Cannot make coresource_scroller. Is the window too small?\n");
+	    ExitProgram (EXIT_FAILURE);
+	}
+    setCDKScrollPreProcess (coresource_scroller, coresource_scroller_pre_process, NULL);
+    setCDKScrollPostProcess (coresource_scroller, coresource_scroller_post_process, NULL);
+    /* bindCDKObject(vSCROLL, coresource_scroller, 'q', coresource_scroller_quit, 0); */
+    /* eraseCDKScroll(coresource_scroller); */
+}
+
+void reinitialize_coresource_scroller()
+{
+    OIC_LOG_V(INFO, TAG, "%s ENTRY, tid: %x", __func__, pthread_self());
+    flockfile(stdout);
+
+    destroyCDKScroll(coresource_scroller);
+    initialize_coresource_scroller();
+
+    coresource_count = oocf_cosp_mgr_list_coresource_uris(&coresource_uris);
+    OIC_LOG_V(DEBUG, TAG, "Coresource count: %d", coresource_count);
+    for (int i=0; i<coresource_count; i++) {
+	OIC_LOG_V(DEBUG, TAG, "Coresource uri: %s", coresource_uris[i]);
+    }
+
+    setCDKScrollItems (coresource_scroller,
+		       (CDK_CSTRING2) coresource_uris,
+		       coresource_count,
+		       ENUMERATE);
+
+    setCDKScrollCurrentItem(coresource_scroller,
+			    coresource_scroller->listSize - coresource_current_item);
+
+    drawCDKScroll(coresource_scroller,  /* boxed? */ TRUE);
+    coresource_scroller_dirty = false;
+    funlockfile(stdout);
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
+}
+
 void run_coresource_mgr(void)
 {
     static int msg_selection;
     static int sz;
 
-    if (coresource_scroller_dirty) {
-	reinitialize_coresource_scroller();
-    }
+    /* if (coresource_scroller_dirty) { */
+    reinitialize_coresource_scroller();
+    /* } */
+
+    msg_box_msg[0] = "                                                                                ";
+    msg_box = newCDKLabel (cdkscreen, CENTER, BOTTOM,
+			   (CDK_CSTRING2) msg_box_msg,
+			   1,
+			   TRUE, FALSE);
+
+    drawCDKLabel(msg_box, TRUE);
 
     setCDKScrollBackgroundColor(coresource_scroller, "</31>");
     sz = coresource_scroller->listSize;
+    OIC_LOG_V(DEBUG, TAG, "list sz: %d, curritem %d", sz, coresource_current_item);
     if (sz > 0) {
 	int sel = sz - coresource_current_item;
 	char *tmp = chtype2Char (coresource_scroller->item[sel]);
@@ -367,6 +379,7 @@ void run_coresource_mgr(void)
     }
 /* FIXME */
     /* drawCDKScroll(coresource_scroller,  /\* boxed? *\/ TRUE); */
-    drawCDKLabel(msg_box, TRUE);
+    /* drawCDKLabel(msg_box, TRUE); */
     /* draw_scrollers(); */
+    destroyCDKScroll(coresource_scroller);
 }
