@@ -45,7 +45,7 @@ new_local_repository(
   build_file = "platforms/ndk/cosysroot.BUILD"
 )
 
-## local repo, for access to stuff in /usr/local, e.g. cdk
+## local repo, for access to stuff in /usr, e.g. cdk
 new_local_repository(
     name = "usr_sys",
     path = "/usr",
@@ -54,11 +54,15 @@ new_local_repository(
 )
 
 new_local_repository(
-    name = "usr_local",
-    #path = "/usr/lib",
-    path = "/usr/local", # macos
-    # build_file = "platforms/darwin/cosysroot.BUILD"
-    build_file = "platforms/linux/cosysroot.BUILD"
+    name = "usr_local_linux",
+    path = "/usr/local",
+    build_file = "platforms/linux/sysroot.BUILD"
+)
+
+new_local_repository(
+    name = "usr_local_mac",
+    path = "/usr/local",
+    build_file = "platforms/darwin/cosysroot.BUILD"
 )
 
 android_sdk_repository(

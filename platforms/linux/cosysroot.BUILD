@@ -8,7 +8,8 @@ cc_library(
    linkstatic = 1,
    linkopts = ["-lncurses"],
    # srcs = ["lib/libcdk.a"],
-   srcs = ["lib/libcdk.a"],
+   # srcs = ["lib/libcdk.a"],
+   srcs = ["lib/x86_64-linux-gnu/libcdk.so"],
    visibility = ["//visibility:public"],
 )
 
