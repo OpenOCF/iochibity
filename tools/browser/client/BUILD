@@ -15,6 +15,14 @@ config_setting(
     values = { "cpu": "k8" }
 )
 config_setting(
+    name = "macos",
+    values = { "cpu": "darwin" }
+)
+config_setting(
+    name = "macos64",
+    values = { "cpu": "darwin_x86_64" }
+)
+config_setting(
     name = "wrlinux",
     values = { "crosstool_top": "//platforms/wrlinux:toolchain" }
 )
@@ -48,6 +56,10 @@ cc_binary(
                          "-Iexternal/cosysroot_wrlinux/usr/local/include/cdk",
                          "-Iexternal/cosysroot_wrlinux/usr/include",
                          "-std=c11"],
+              ":macos": ["-Iexternal/usr_local_macos/include",
+                         "-Iexternal/usr_local_macos/include/cdk"],
+              ":macos64": ["-Iexternal/usr_local_macos/include",
+                           "-Iexternal/usr_local_macos/include/cdk"],
               ":linux": ["-Iexternal/usr_local_linux/include",
                          "-Iexternal/usr_local_linux/include/cdk"],
               "//conditions:default": ["-Iexternal/usr_local/include",
@@ -62,6 +74,8 @@ cc_binary(
             "//third_party/cjson",
             "//third_party/coap"
     ] + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
+              ":macos": ["@usr_local_macos//:cdk"],
+              ":macos64": ["@usr_local_macos//:cdk"],
               ":linux": ["@usr_local_linux//:cdk"],
                          # "@usr_local_linux//:ncurses"],
               ":android": ["@cosysroot_ndk//:cdk"],

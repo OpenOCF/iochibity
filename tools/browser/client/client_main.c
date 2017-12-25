@@ -348,7 +348,8 @@ int main ()
     }
 
     errno = 0;
-    int rc = sem_unlink("/oocf_quit_sem");
+    int rc = 0;
+    rc = sem_unlink("/oocf_quit_sem");
     if (rc != 0) {
       if (errno != ENOENT) {
     	OIC_LOG_V(ERROR, TAG, "sem_unlink(\"/oocf_quit_sem\") rc: %d %s", errno, strerror(errno));
@@ -375,6 +376,12 @@ int main ()
 
     /* OS X does not support unnamed semaphores (sem_init) */
     sem_unlink("/inbound_msg");
+    if (rc != 0) {
+      if (errno != ENOENT) {
+    	OIC_LOG_V(ERROR, TAG, "sem_unlink(\"/inbound_msg\") rc: %d %s", errno, strerror(errno));
+    	exit(EXIT_FAILURE);
+      }
+    }
     if ((inbound_msg_semaphore = sem_open("/inbound_msg", O_CREAT, 0644, 0)) == SEM_FAILED ) {
 	OIC_LOG_V(ERROR, TAG, "sem_open(\"/inbound_msg\") rc: %s", strerror(errno));
 	exit(EXIT_FAILURE);
