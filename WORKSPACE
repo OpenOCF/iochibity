@@ -60,7 +60,7 @@ new_local_repository(
 )
 
 new_local_repository(
-    name = "usr_local_mac",
+    name = "usr_local_macos",
     path = "/usr/local",
     build_file = "platforms/darwin/cosysroot.BUILD"
 )
