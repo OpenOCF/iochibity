@@ -19,9 +19,10 @@ int inbound_current_item   = 1;
 static CDKDIALOG *inbound_msg_mgr_dlg  = 0;
 static const char *mesg[3];
 
-static char **msgs = NULL;
+static char **inbound_msgs = NULL;
 static char **s = NULL;
-static int msg_count = 0;
+static int inbound_msg_count = 0;
+static int dlg_msg_count = 0;
 
 /* static char temp[100]; */
 static int selection;
@@ -200,7 +201,7 @@ static int inbound_msg_scroller_post_process (EObjectType cdktype GCC_UNUSED,
 
 	/* i = getCDKScrollCurrentItem(scroller);
 	 * the_item = chtype2Char (scroller->item[i]);
-	 * 
+	 *
 	 * OIC_LOG_V(DEBUG, TAG, "SELECTION: index %d, %s", i, the_item);
 	 * sprintf (temp, "<C>%.*s", (int)(sizeof (temp) - 20), the_item);
 	 * mesg[1] = temp;
@@ -234,61 +235,55 @@ static int inbound_msg_scroller_quit (EObjectType cdktype GCC_UNUSED,
 
 void initialize_inbound_msg_scroller(void)
 {
-    inbound_msg_scroller = newCDKScroll (cdkscreen,
-					  RIGHT, /* x */
-					  CENTER, /* y */
-					  RIGHT,  /* scrollbar */
-					  -5,     /* H, 0 = max  */
-					  36,     /* W */
-					  "<C></U/05>Inbound Response Messages", /* title */
-					  0, /* item list - list of strings or 0 */
-					  0,     /* item count */
-					  ENUMERATE,  /* numbered */
-					  A_REVERSE, /* highlighting */
-					  TRUE,	 /* boxed */
-					  FALSE);	 /* shadowed */
+  inbound_msg_scroller = newCDKScroll (cdkscreen,
+				       RIGHT, /* x */
+				       CENTER, /* y */
+				       RIGHT,  /* scrollbar */
+				       -5,     /* H, 0 = max  */
+				       56,     /* W */
+				       "<C></U/05>Inbound Response Messages", /* title */
+				       0, /* item list - list of strings or 0 */
+				       0,     /* item count */
+				       ENUMERATE,  /* numbered */
+				       A_REVERSE, /* highlighting */
+				       TRUE,	 /* boxed */
+				       FALSE);	 /* shadowed */
 
-    /* Is the scrolling list null? */
-    if (inbound_msg_scroller == 0)
-	{
-	    /* Exit CDK. */
-	    destroyCDKScreen (cdkscreen);
-	    endCDK ();
+  /* Is the scrolling list null? */
+  if (inbound_msg_scroller == 0)
+    {
+      /* Exit CDK. */
+      destroyCDKScreen (cdkscreen);
+      endCDK ();
 
-	    printf ("Cannot make inbound_msg_scroller. Is the window too small?\n");
-	    ExitProgram (EXIT_FAILURE);
-	}
-    setCDKScrollPreProcess (inbound_msg_scroller, inbound_msg_scroller_pre_process, NULL);
-    setCDKScrollPostProcess (inbound_msg_scroller, inbound_msg_scroller_post_process, NULL);
-    /* bindCDKObject(vSCROLL, inbound_msg_scroller, 'q', inbound_msg_scroller_quit, 0); */
+      printf ("Cannot make inbound_msg_scroller. Is the window too small?\n");
+      ExitProgram (EXIT_FAILURE);
+    }
+  setCDKScrollPreProcess (inbound_msg_scroller, inbound_msg_scroller_pre_process, NULL);
+  setCDKScrollPostProcess (inbound_msg_scroller, inbound_msg_scroller_post_process, NULL);
+  /* bindCDKObject(vSCROLL, inbound_msg_scroller, 'q', inbound_msg_scroller_quit, 0); */
 }
 
 void reinitialize_inbound_msg_scroller()
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    static int rc;
 
     flockfile(stdout);
 
     destroyCDKScroll(inbound_msg_scroller);
     initialize_inbound_msg_scroller();
 
-    msg_count = oocf_coresource_db_msg_labels(&msgs);
+    inbound_msg_count = oocf_coresource_db_msg_labels(&inbound_msgs);
 
-    for (int i=0; i<msg_count; i++) {
-	OIC_LOG_V(DEBUG, TAG, "Inbound msg str: %s", msgs[i]);
+    for (int i=0; i<inbound_msg_count; i++) {
+	OIC_LOG_V(DEBUG, TAG, "Inbound msg str: %s", inbound_msgs[i]);
     }
 
-    /* for (int i=0; i < len; i++) {
-     * 	sprintf(text[i], "%s%s", msg->devAddr.addr, msg->devAddr.port, msg->resourceUri);
-     * } */
-
-    setCDKScrollItems (inbound_msg_scroller, (CDK_CSTRING2) msgs, msg_count, ENUMERATE);
+    setCDKScrollItems (inbound_msg_scroller, (CDK_CSTRING2) inbound_msgs, inbound_msg_count, ENUMERATE);
     setCDKScrollCurrentItem(inbound_msg_scroller,
 			    inbound_msg_scroller->listSize - inbound_current_item);
 
-    /* pthread_mutex_lock(&display_mutex); */
-    /* drawCDKScroll(inbound_msg_scroller,  /\* boxed? *\/ TRUE); */
-    /* erase_msg_scrollers(); */
     inbound_msg_scroller_dirty = false;
     funlockfile(stdout);
 }
@@ -300,7 +295,7 @@ int run_inbound_msg_db_mgr(void) /* called by client_ui::run_gui */
     static int msg_selection;
     static int sz;
 
-    reinitialize_outbound_msg_scroller(); /* FIXME: why is this needed? */
+    /* reinitialize_outbound_msg_scroller(); /\* FIXME: why is this needed? *\/ */
     reinitialize_inbound_msg_scroller();
 
     setCDKScrollBackgroundColor(inbound_msg_scroller, "</31>");
@@ -317,9 +312,8 @@ int run_inbound_msg_db_mgr(void) /* called by client_ui::run_gui */
     OIC_LOG_V(DEBUG, TAG, "set current item to: %d", inbound_current_item);
 
     draw_msg_scrollers();
-    /* pthread_mutex_lock(&display_mutex); */
+
     msg_selection = activateCDKScroll(inbound_msg_scroller, 0);
-    /* pthread_mutex_unlock(&display_mutex); */
 
     inbound_current_item
 	= inbound_msg_scroller->listSize - getCDKScrollCurrentItem(inbound_msg_scroller);
@@ -354,7 +348,7 @@ static void initialize_dlg(void)
     inbound_msg_mgr_dlg = newCDKDialog (cdkscreen,
 			     CENTER,
 			     CENTER,
-			     (CDK_CSTRING2) mesg, msg_count,
+			     (CDK_CSTRING2) mesg, dlg_msg_count,
 			     (CDK_CSTRING2) buttons, 3,
 			     COLOR_PAIR (2) | A_REVERSE,
 			     TRUE,
@@ -380,7 +374,7 @@ int run_inbound_msg_db_mgr_dlg(void)
     mesg[0] = "<C>Inbound Message DB Manager";
     mesg[1] = "<Purge> to delete local msg database.";
     mesg[2] = "<Exit> to quit application.";
-    msg_count = 3;
+    dlg_msg_count = 3;
 
     initialize_dlg();
 

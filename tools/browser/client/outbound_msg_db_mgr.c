@@ -163,12 +163,13 @@ static int outbound_msg_scroller_quit (EObjectType cdktype GCC_UNUSED,
 
 void initialize_outbound_msg_scroller(void)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     outbound_msg_scroller = newCDKScroll (cdkscreen,
 					  LEFT, /* x */
 					  CENTER, /* y */
 					  RIGHT,  /* scrollbar */
 					  -5,     /* H, 0 = max  */
-					  36,     /* W */
+					  56,     /* W */
 					  "<C></U/05>Outbound Request Messages", /* title */
 					  0, /* item list - list of strings or 0 */
 					  0,     /* item count */
@@ -190,6 +191,7 @@ void initialize_outbound_msg_scroller(void)
     setCDKScrollPreProcess (outbound_msg_scroller, outbound_msg_scroller_pre_process, NULL);
     setCDKScrollPostProcess (outbound_msg_scroller, outbound_msg_scroller_post_process, NULL);
     /* bindCDKObject(vSCROLL, outbound_msg_scroller, 'q', outbound_msg_scroller_quit, 0); */
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 }
 
 void reinitialize_outbound_msg_scroller()
@@ -198,6 +200,7 @@ void reinitialize_outbound_msg_scroller()
     static int rc;
 
     flockfile(stdout);
+
     destroyCDKScroll(outbound_msg_scroller);
     initialize_outbound_msg_scroller();
     /* erase_msg_scrollers(); */
@@ -213,23 +216,9 @@ void reinitialize_outbound_msg_scroller()
 	*s-- = (char*) u_linklist_get_data(iterTable);
 	u_linklist_get_next(&iterTable);
     }
-    /* if (outbound_msg_scroller) { */
-	/* reset_scroller(outbound_msg_scroller); */
-	/* reinitialize_outbound_msg_scroller(); */
-	/* flockfile(stdout); */
-	setCDKScrollItems (outbound_msg_scroller, (CDK_CSTRING2) msgs, msg_count, ENUMERATE);
-	setCDKScrollCurrentItem(outbound_msg_scroller,
-				outbound_msg_scroller->listSize - outbound_current_item);
-    /* } */
-    /* char **msgs; */
-    /* int msg_count = oocf_coresource_db_msg_labels(&msgs); */
-
-    /* setCDKScrollItems (outbound_msg_scroller, (CDK_CSTRING2) msgs, msg_count, ENUMERATE);
-     * setCDKScrollCurrentItem(outbound_msg_scroller,
-     * 			    outbound_msg_scroller->listSize - outbound_current_item); */
-
-    /* pthread_mutex_lock(&display_mutex); */
-    /* drawCDKScroll(outbound_msg_scroller,  /\* boxed? *\/ TRUE); */
+    setCDKScrollItems (outbound_msg_scroller, (CDK_CSTRING2) msgs, msg_count, ENUMERATE);
+    setCDKScrollCurrentItem(outbound_msg_scroller,
+			    outbound_msg_scroller->listSize - outbound_current_item);
     outbound_msg_scroller_dirty = false;
     funlockfile(stdout);
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
@@ -259,8 +248,9 @@ int run_outbound_msg_db_mgr(void)
     /* pthread_mutex_lock(&display_mutex); */
     /* drawCDKScroll(inbound_msg_scroller,  /\* boxed? *\/ TRUE); */
 
+    draw_msg_scrollers();
+
     msg_selection = activateCDKScroll(outbound_msg_scroller, 0);
-    /* pthread_mutex_unlock(&display_mutex); */
 
     outbound_current_item
 	= outbound_msg_scroller->listSize - getCDKScrollCurrentItem(outbound_msg_scroller);
@@ -282,5 +272,3 @@ int run_outbound_msg_db_mgr(void)
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return msg_selection;
 }
-
-

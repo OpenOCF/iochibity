@@ -11,7 +11,6 @@ bool coresource_scroller_dirty;
 
 static const char *msg[3];
 static char temp[100];
-static int selection;
 
 static bool initialized = false;
 
@@ -144,7 +143,7 @@ static int coresource_scroller_post_process (EObjectType cdktype GCC_UNUSED,
 
 	/* i = getCDKScrollCurrentItem(scroller);
 	 * the_item = chtype2Char (scroller->item[i]);
-	 * 
+	 *
 	 * OIC_LOG_V(DEBUG, TAG, "SELECTION: index %d, %s", i, the_item);
 	 * sprintf (temp, "<C>%.*s", (int)(sizeof (temp) - 20), the_item);
 	 * mesg[1] = temp;
@@ -332,7 +331,7 @@ void reinitialize_coresource_scroller()
 
 void run_coresource_mgr(void)
 {
-    static int msg_selection;
+    static int selection;
     static int sz;
 
     /* if (coresource_scroller_dirty) { */
@@ -360,22 +359,21 @@ void run_coresource_mgr(void)
     setCDKScrollCurrentItem(coresource_scroller, sz - coresource_current_item);
 
     /* pthread_mutex_lock(&display_mutex); */
-    msg_selection = activateCDKScroll(coresource_scroller, 0);
+    selection = activateCDKScroll(coresource_scroller, 0);
     /* pthread_mutex_unlock(&display_mutex); */
 
     coresource_current_item
 	= coresource_scroller->listSize - getCDKScrollCurrentItem(coresource_scroller);
     OIC_LOG(DEBUG, TAG, "coresource_scroller EXIT");
-    if (msg_selection < 0) {
+    if (selection < 0) {
 	OIC_LOG(DEBUG, TAG, "User struck ESC");
 	setCDKScrollBackgroundColor(coresource_scroller, "<!31>");
 /* FIXME */
 	/* drawCDKScroll(coresource_scroller,  /\* boxed? *\/ TRUE); */
     } else {
 	OIC_LOG(DEBUG, TAG, "User struck TAB");
-	ungetch(KEY_TAB); // , stdin);
+	/* ungetch(KEY_TAB); // , stdin); */
 	setCDKScrollBackgroundColor(coresource_scroller, "<!31>");
-	next_scroller = OUTGOING;
     }
 /* FIXME */
     /* drawCDKScroll(coresource_scroller,  /\* boxed? *\/ TRUE); */

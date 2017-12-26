@@ -217,15 +217,16 @@ void run_menu()
 			OIC_LOG_V(INFO, TAG, "discovering resources");
 			discover_resources();
 			dismiss_menu();
-			next_scroller = INBOUND;
+			next_scroller = OUTBOUND;
 			run_msg_logs();
 		    }
 		    break;
 		case 1:
 		    switch (menu_selection % 100) {
 		    case 0:
+			OIC_LOG_V(INFO, TAG, "viewing msgs");
 			dismiss_menu();
-			next_scroller = INBOUND;
+			next_scroller = OUTBOUND;
 			run_msg_logs();
 			/* erase_msg_scrollers(); */
 			break;

@@ -64,7 +64,7 @@ sem_t *inbound_msg_log_ready_semaphore;
 sem_t *outbound_msg_semaphore;
 sem_t *outbound_msg_log_ready_semaphore;
 
-u_linklist_t    *inbound_msgs;
+/* u_linklist_t    *inbound_msgs; */
 u_linklist_t    *outbound_msgs;
 
 /* #endif */
@@ -233,83 +233,85 @@ static void* response_msg_dispatcher(void *arg) {
 }
 
 /* generate data for testing only */
-static void* inbound_msg_display_handler(void *arg) {
-    OIC_LOG_V(INFO, TAG, "%s ENTRY, tid: %x", __func__, pthread_self());
-    srand((unsigned int)time(NULL));
+/* static void* inbound_msg_display_handler(void *arg) */
+/* { */
+/*     OIC_LOG_V(INFO, TAG, "%s ENTRY, tid: %x", __func__, pthread_self()); */
+/*     srand((unsigned int)time(NULL)); */
 
-    inbound_msgs = u_linklist_create();
-    if (!inbound_msgs) {
-	OIC_LOG_V(ERROR, TAG, "u_linklist_create inbound_msgs");
-	exit(EXIT_FAILURE);
-    }
+/*     inbound_msgs = u_linklist_create(); */
+/*     if (!inbound_msgs) { */
+/* 	OIC_LOG_V(ERROR, TAG, "u_linklist_create inbound_msgs"); */
+/* 	exit(EXIT_FAILURE); */
+/*     } */
 
-    char *inbound_msg = "inbound_msg";
+/*     char *inbound_msg = "inbound_msg"; */
 
-    int sz = sizeof(inbound_msg) + 32;
-    static int rc;
-    while (1) {
-	/* OIC_LOG_V(DEBUG, TAG, "PRODUCER waiting on inbound_msg_log_ready_semaphore"); */
-	rc = sem_wait(inbound_msg_log_ready_semaphore);
-	if (rc < 0) {
-	    OIC_LOG_V(ERROR, TAG, "sem_wait(inbound_msg_log_ready_semaphore) rc: %s", strerror(errno));
-	} else {
-	    /* OIC_LOG_V(DEBUG, TAG, "PRODUCER acquired inbound_msg_log_ready_semaphore"); */
-	}
-	static i = 1;
-	pthread_mutex_lock(&msgs_mutex);
-	if (inbound_msgs) {
-	    char *s = malloc(sz);
-	    snprintf(s, sz, "%s %d", inbound_msg, i++);
-	    u_linklist_add(inbound_msgs, s);
-	    /* OIC_LOG(INFO, TAG, s); */
-	}
-	pthread_mutex_unlock(&msgs_mutex);
-	errno = 0;
-	rc = sem_post(inbound_msg_semaphore);
-	if (rc < 0) {
-	    OIC_LOG_V(DEBUG, TAG, "sem_post(inbound_msg_semaphore) rc: %s", strerror(errno));
-	} else {
-	    /* OIC_LOG_V(DEBUG, TAG, "PRODUCER sem_post(inbound_msg_semaphore)"); */
-	}
-        sleep(3);
-        /* sleep((float)rand()/(float)(RAND_MAX/2)); */
-    }
+/*     int sz = sizeof(inbound_msg) + 32; */
+/*     static int rc; */
+/*     while (1) { */
+/* 	/\* OIC_LOG_V(DEBUG, TAG, "PRODUCER waiting on inbound_msg_log_ready_semaphore"); *\/ */
+/* 	rc = sem_wait(inbound_msg_log_ready_semaphore); */
+/* 	if (rc < 0) { */
+/* 	    OIC_LOG_V(ERROR, TAG, "sem_wait(inbound_msg_log_ready_semaphore) rc: %s", strerror(errno)); */
+/* 	} else { */
+/* 	    /\* OIC_LOG_V(DEBUG, TAG, "PRODUCER acquired inbound_msg_log_ready_semaphore"); *\/ */
+/* 	} */
+/* 	static i = 1; */
+/* 	pthread_mutex_lock(&msgs_mutex); */
+/* 	if (inbound_msgs) { */
+/* 	    char *s = malloc(sz); */
+/* 	    snprintf(s, sz, "%s %d", inbound_msg, i++); */
+/* 	    u_linklist_add(inbound_msgs, s); */
+/* 	    /\* OIC_LOG(INFO, TAG, s); *\/ */
+/* 	} */
+/* 	pthread_mutex_unlock(&msgs_mutex); */
+/* 	errno = 0; */
+/* 	rc = sem_post(inbound_msg_semaphore); */
+/* 	if (rc < 0) { */
+/* 	    OIC_LOG_V(DEBUG, TAG, "sem_post(inbound_msg_semaphore) rc: %s", strerror(errno)); */
+/* 	} else { */
+/* 	    /\* OIC_LOG_V(DEBUG, TAG, "PRODUCER sem_post(inbound_msg_semaphore)"); *\/ */
+/* 	} */
+/*         sleep(3); */
+/*         /\* sleep((float)rand()/(float)(RAND_MAX/2)); *\/ */
+/*     } */
 
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-    return 0;
-}
+/*     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
+/*     return 0; */
+/* } */
 
 /* generate data for testing only */
-static void* outbound_msg_display_handler(void *arg) {
-    OIC_LOG_V(INFO, TAG, "%s ENTRY, tid: %x", __func__, pthread_self());
-    srand((unsigned int)time(NULL));
+/* static void* outbound_msg_display_handler(void *arg) */
+/* { */
+/*     OIC_LOG_V(INFO, TAG, "%s ENTRY, tid: %x", __func__, pthread_self()); */
+/*     srand((unsigned int)time(NULL)); */
 
-    outbound_msgs = u_linklist_create();
+/*     outbound_msgs = u_linklist_create(); */
 
-    char *outbound_msg = "outbound_msg";
-    int sz = sizeof(outbound_msg) + 32;
-    while (1) {
-	static i = 1;
-	pthread_mutex_lock(&msgs_mutex);
-	sem_wait(outbound_msg_log_ready_semaphore);
-	if (outbound_msgs) {
-	    char *s = malloc(sz);
-	    snprintf(s, sz, "%s %d", outbound_msg, i++);
-	    u_linklist_add(outbound_msgs, s);
-	    /* OIC_LOG(INFO, TAG, s); */
-	}
-	pthread_mutex_unlock(&msgs_mutex);
-	static int rc;
-	rc = sem_post(outbound_msg_semaphore);
-	if (rc < 0) {
-	    OIC_LOG_V(ERROR, TAG, "sem_post(outbound_msg_semaphore) rc: %s", strerror(errno));
-	}
-        sleep(2);
-        /* sleep((float)rand()/(float)(RAND_MAX/2)); */
-    }
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-    return 0;
-}
+/*     char *outbound_msg = "outbound_msg"; */
+/*     int sz = sizeof(outbound_msg) + 32; */
+/*     while (1) { */
+/* 	static i = 1; */
+/* 	pthread_mutex_lock(&msgs_mutex); */
+/* 	sem_wait(outbound_msg_log_ready_semaphore); */
+/* 	if (outbound_msgs) { */
+/* 	    char *s = malloc(sz); */
+/* 	    snprintf(s, sz, "%s %d", outbound_msg, i++); */
+/* 	    u_linklist_add(outbound_msgs, s); */
+/* 	    /\* OIC_LOG(INFO, TAG, s); *\/ */
+/* 	} */
+/* 	pthread_mutex_unlock(&msgs_mutex); */
+/* 	static int rc; */
+/* 	rc = sem_post(outbound_msg_semaphore); */
+/* 	if (rc < 0) { */
+/* 	    OIC_LOG_V(ERROR, TAG, "sem_post(outbound_msg_semaphore) rc: %s", strerror(errno)); */
+/* 	} */
+/*         sleep(2); */
+/*         /\* sleep((float)rand()/(float)(RAND_MAX/2)); *\/ */
+/*     } */
+/*     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
+/*     return 0; */
+/* } */
 
 int main ()
 {
@@ -331,20 +333,20 @@ int main ()
     pthread_mutex_init(&dirty_mutex, NULL);
 
     /* msg lists for passing to display mgr */
-    inbound_msgs = u_linklist_create();
-    if (!inbound_msgs) {
-	OIC_LOG_V(ERROR, TAG, "u_linklist_create inbound_msgs");
-	exit(EXIT_FAILURE);
-    } else {
-	OIC_LOG_V(INFO, TAG, "EXIT u_linklist_create inbound_msgs");
-    }
+    /* inbound_msgs = u_linklist_create(); */
+    /* if (!inbound_msgs) { */
+    /* 	OIC_LOG_V(ERROR, TAG, "u_linklist_create inbound_msgs"); */
+    /* 	exit(EXIT_FAILURE); */
+    /* } else { */
+    /* 	OIC_LOG_V(INFO, TAG, "EXIT u_linklist_create inbound_msgs"); */
+    /* } */
 
     outbound_msgs = u_linklist_create();
     if (!outbound_msgs) {
-	OIC_LOG_V(ERROR, TAG, "u_linklist_create outbound_msgs");
-	exit(EXIT_FAILURE);
+    	OIC_LOG_V(ERROR, TAG, "u_linklist_create outbound_msgs");
+    	exit(EXIT_FAILURE);
     } else {
-	OIC_LOG_V(INFO, TAG, "EXIT u_linklist_create outbound_msgs");
+    	OIC_LOG_V(INFO, TAG, "EXIT u_linklist_create outbound_msgs");
     }
 
     errno = 0;
@@ -460,33 +462,33 @@ int main ()
 		    :(mutex_rc == EDEADLK) ? "EDEADLLK"
 		    : "UNKNOWN ERROR");
     } else {
-	int lllen = u_linklist_length(inbound_msgs);
-	OIC_LOG_V(INFO, TAG, "inbound msg count: %d", lllen);
-	/* free the strings, then the list */
-	u_linklist_iterator_t *iterTable = NULL;
-	u_linklist_init_iterator(inbound_msgs, &iterTable);
-	while (NULL != iterTable)
-	    {
-		char *s = u_linklist_get_data(iterTable);
-		OIC_LOG_V(INFO, TAG, "freeing msg: %s", s);
-		free(s);
-		u_linklist_get_next(&iterTable);
-	    }
-	u_linklist_free(&inbound_msgs);
+	/* int lllen = u_linklist_length(inbound_msgs); */
+	/* OIC_LOG_V(INFO, TAG, "inbound msg count: %d", lllen); */
+	/* /\* free the strings, then the list *\/ */
+	/* u_linklist_iterator_t *iterTable = NULL; */
+	/* u_linklist_init_iterator(inbound_msgs, &iterTable); */
+	/* while (NULL != iterTable) */
+	/*     { */
+	/* 	char *s = u_linklist_get_data(iterTable); */
+	/* 	OIC_LOG_V(INFO, TAG, "freeing msg: %s", s); */
+	/* 	free(s); */
+	/* 	u_linklist_get_next(&iterTable); */
+	/*     } */
+	/* u_linklist_free(&inbound_msgs); */
 
-	lllen = u_linklist_length(outbound_msgs);
-	OIC_LOG_V(INFO, TAG, "outbound msg count: %d", lllen);
-	/* free the strings, then the list */
-	iterTable = NULL;
-	u_linklist_init_iterator(outbound_msgs, &iterTable);
-	while (NULL != iterTable)
-	    {
-		char *s = u_linklist_get_data(iterTable);
-		OIC_LOG_V(INFO, TAG, "freeing msg: %s", s);
-		free(s);
-		u_linklist_get_next(&iterTable);
-	    }
-	u_linklist_free(&outbound_msgs);
+	/* lllen = u_linklist_length(outbound_msgs); */
+	/* OIC_LOG_V(INFO, TAG, "outbound msg count: %d", lllen); */
+	/* /\* free the strings, then the list *\/ */
+	/* iterTable = NULL; */
+	/* u_linklist_init_iterator(outbound_msgs, &iterTable); */
+	/* while (NULL != iterTable) */
+	/*     { */
+	/* 	char *s = u_linklist_get_data(iterTable); */
+	/* 	OIC_LOG_V(INFO, TAG, "freeing msg: %s", s); */
+	/* 	free(s); */
+	/* 	u_linklist_get_next(&iterTable); */
+	/*     } */
+	/* u_linklist_free(&outbound_msgs); */
     }
     pthread_mutex_unlock(&msgs_mutex);
 

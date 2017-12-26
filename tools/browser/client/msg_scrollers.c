@@ -53,6 +53,7 @@ void reset_scroller(CDKSCROLL *scroller)
 
 void draw_msg_scrollers()
 {
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     /* flockfile(stdout); */
     if (outbound_msg_scroller)
 	drawCDKScroll(outbound_msg_scroller,  /* boxed? */ TRUE);
@@ -60,15 +61,18 @@ void draw_msg_scrollers()
 	drawCDKScroll(inbound_msg_scroller,  /* boxed? */ TRUE);
     /* drawCDKScroll(coresource_scroller,    /\* boxed? *\/ TRUE); */
     /* funlockfile(stdout); */
+    /* OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
 }
 
 void destroy_msg_scrollers()
 {
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     /* erase does not seem to work */
     destroyCDKScroll(inbound_msg_scroller);
     destroyCDKScroll(outbound_msg_scroller);
     destroyCDKLabel(msg_box);
     /* eraseCDKScroll(coresource_scroller); */
+    /* OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
 }
 
 /* void init_msg_log_scrollers() */
@@ -134,6 +138,10 @@ void run_msg_logs (void)
 
     int sz;
 
+    reinitialize_outbound_msg_scroller();
+    reinitialize_inbound_msg_scroller();
+    draw_msg_scrollers();
+
     while(1) {
 	switch(next_scroller) {
 	case INBOUND:
@@ -179,4 +187,3 @@ void run_msg_logs (void)
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return;
 }
-

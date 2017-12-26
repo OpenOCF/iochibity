@@ -97,21 +97,28 @@ int run_coresource_inspector(int index)
 	     * popupLabel (cdkscreen, (CDK_CSTRING2) msg, 3); */
 	}
     else if (dlg_coresource->exitType == vNORMAL) {
-	    switch (selection) {
-	    case 0:		/* RETRIEVE */
-		/* steps: pick an ep, construct query string, send request */
-		break;
-	    case 1:		/* UPDATE */
-		break;
-	    case 2:		/* DELETE */
-		break;
-	    case 3:		/* DISMISS */
-		break;
-	    case 4:		/* HELP */
-		break;
-	    }
-	    /* OIC_LOG_V(DEBUG, TAG, "%s NORMAL", __func__); */
+	OIC_LOG_V(DEBUG, TAG, "exitType vNORMAL");
+	switch (selection) {
+	case 0:		/* RETRIEVE */
+	    OIC_LOG_V(DEBUG, TAG, "case 0: RETRIEVE");
+	    /* steps: pick an ep, construct query string, send request */
+	    retrieve_coresource(index);
+	    break;
+	case 1:		/* UPDATE */
+	    OIC_LOG_V(DEBUG, TAG, "case 1: UPDATE");
+	    break;
+	case 2:		/* DELETE */
+	    OIC_LOG_V(DEBUG, TAG, "case 2: DELETE");
+	    break;
+	case 3:		/* DISMISS */
+	    OIC_LOG_V(DEBUG, TAG, "case 3: DISMISS");
+	    break;
+	case 4:		/* HELP */
+	    OIC_LOG_V(DEBUG, TAG, "case 4: HELP");
+	    break;
 	}
+	/* OIC_LOG_V(DEBUG, TAG, "%s NORMAL", __func__); */
+    }
     funlockfile(stdout);
 
     /* eraseCDKDialog(dlg_coresource); */
@@ -122,4 +129,3 @@ int run_coresource_inspector(int index)
      * destroyCDKScreen (cdkscreen); */
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
-
