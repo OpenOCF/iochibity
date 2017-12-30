@@ -102,6 +102,7 @@ int run_coresource_inspector(int index)
 	case 0:		/* RETRIEVE */
 	    OIC_LOG_V(DEBUG, TAG, "case 0: RETRIEVE");
 	    /* steps: pick an ep, construct query string, send request */
+	    eraseCDKDialog(dlg_coresource);
 	    retrieve_coresource(index);
 	    break;
 	case 1:		/* UPDATE */

@@ -268,6 +268,7 @@ void run_menu()
 		popupLabel (cdkscreen, (CDK_CSTRING2) mesg, 3);
 		break;
 	    }
+	    menu_selection = 0;
 	    OIC_LOG_V(INFO, TAG, "%s LOOP", __func__);
 	}
  exit:

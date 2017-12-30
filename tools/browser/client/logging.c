@@ -34,7 +34,7 @@ static void print_json(OCDiscoveryPayload *payload)
     OIC_LOG_V(INFO, TAG, "JSON:\n%s", rendered);
 }
 
- /* FIXME: split header logging from payload logging */
+/* FIXME: move to coresource_inspector.c */
 /* static char text[MSG_MAX][80];		/\* since message is const we need a work buffer *\/ */
 
 int decode_resource(int index, char *ptrs[], char *buffer, int *count)
@@ -46,7 +46,7 @@ int decode_resource(int index, char *ptrs[], char *buffer, int *count)
     int i = 0;
 
     ptrs[i++] = buffer;
-    sprintf(buffer, "<C></R>Coresource Link Inspector<!R>");
+    sprintf(buffer, "<C>                    </R>Coresource Link Inspector<!R>                    ");
     buffer += strlen(buffer) + 1;
     ptrs[i++] = buffer;
 

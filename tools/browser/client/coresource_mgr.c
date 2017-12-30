@@ -80,8 +80,8 @@ static int coresource_scroller_pre_process (EObjectType cdktype GCC_UNUSED,
 			      chtype input)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    CDKSCROLL *scroller        = (CDKSCROLL *)object;
-    CDKLABEL *infoBox    = (CDKLABEL *)clientData;
+    CDKSCROLL *scroller = (CDKSCROLL *)object;
+    CDKLABEL *infoBox   = (CDKLABEL *)clientData;
     const char *mesg[5];
     char temp[256];
     char *the_item;
@@ -93,7 +93,7 @@ static int coresource_scroller_pre_process (EObjectType cdktype GCC_UNUSED,
 	the_item = chtype2Char (coresource_scroller->item[getCDKScrollCurrentItem(scroller)]);
 	OIC_LOG_V(DEBUG, TAG, "the_item: %s, %d", the_item, getCDKScrollCurrentItem(scroller));
 	run_coresource_inspector(getCDKScrollCurrentItem(scroller));
-	return 0;		/* no further action */
+	/* return 0;		/\* no further action *\/ */
     	break;
     case '<':
 	OIC_LOG_V(DEBUG, TAG, "Keystroke: <");

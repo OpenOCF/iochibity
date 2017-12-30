@@ -355,7 +355,7 @@ int main ()
     if (rc != 0) {
       if (errno != ENOENT) {
     	OIC_LOG_V(ERROR, TAG, "sem_unlink(\"/oocf_quit_sem\") rc: %d %s", errno, strerror(errno));
-    	exit(EXIT_FAILURE);
+    	/* exit(EXIT_FAILURE); */
       }
     }
     if ((quit_semaphore = sem_open("/oocf_quit_sem", O_CREAT | O_EXCL, 0644, 0)) == SEM_FAILED ) {
@@ -381,7 +381,7 @@ int main ()
     if (rc != 0) {
       if (errno != ENOENT) {
     	OIC_LOG_V(ERROR, TAG, "sem_unlink(\"/inbound_msg\") rc: %d %s", errno, strerror(errno));
-    	exit(EXIT_FAILURE);
+    	/* exit(EXIT_FAILURE); */
       }
     }
     if ((inbound_msg_semaphore = sem_open("/inbound_msg", O_CREAT, 0644, 0)) == SEM_FAILED ) {
