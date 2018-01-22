@@ -73,15 +73,28 @@ typedef void (*CAgetPkixInfoHandler)(PkiInfo_t * inf);
 typedef void (*CAgetCredentialTypesHandler)(bool * list, const char* deviceId);
 #endif	/* INTERFACE */
 
+LOCAL bool ValueWithinBounds(uint64_t value, uint64_t maxValue)
+{
+    if (value > maxValue)
+    {
+        OIC_LOG_V(ERROR, TAG, "The value (%" PRId64 ") is greater than allowed maximum of %" PRId64 ".", value, maxValue);
+        return false;
+    }
+
+    return true;
+}
+
 int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
               const uint8_t *desc, size_t desc_len,
               uint8_t *result, size_t result_length)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     int32_t ret = -1;
 
     if (NULL == result)
     {
-        return ret;
+        OIC_LOG_V(DEBUG, TAG, "%s: NULL result param; exiting.", __func__);
+        goto exit;
     }
 
     switch (type)
@@ -291,6 +304,9 @@ int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
             }
             break;
     }
+
+ exit:
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT; returning %d.", __func__, ret);
 
     return ret;
 }

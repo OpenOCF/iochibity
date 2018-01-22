@@ -919,7 +919,7 @@ static OCStackResult SaveOwnerPSK(OCProvisionDev_t *selectedDeviceInfo)
         //Generating new credential for provisioning tool
         OicSecCred_t *cred = GenerateCredential(&selectedDeviceInfo->doxm->deviceID,
                                   SYMMETRIC_PAIR_WISE_KEY, NULL,
-                                  &ownerKey, &ownerDeviceID, NULL);
+                                  &ownerKey, /* &ownerDeviceID, */ NULL);
         OICClearMemory(ownerPSK, sizeof(ownerPSK));
         VERIFY_NOT_NULL(TAG, cred, ERROR);
 

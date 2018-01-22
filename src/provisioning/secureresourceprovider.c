@@ -1496,7 +1496,7 @@ OCStackResult SRPProvisionCertificate(void *ctx,
     deviceCert.encoding = OIC_ENCODING_PEM;
 
     OicSecCred_t *cred = GenerateCredential(&pDev->doxm->deviceID, SIGNED_ASYMMETRIC_KEY,
-        &deviceCert, NULL, &provTooldeviceID, NULL);
+        &deviceCert, NULL, /* &provTooldeviceID, */ NULL);
     VERIFY_NOT_NULL(TAG, cred, ERROR);
     certData->credInfo = cred;
 
@@ -1653,7 +1653,7 @@ OCStackResult SRPProvisionCredentials(void *ctx, OicSecCredType_t type, size_t k
             /* Create a credential object */
             OicSecCred_t* cred =  GenerateCredential(&pDev1->doxm->deviceID, SIGNED_ASYMMETRIC_KEY,
                     &deviceCert, NULL, // oic.sec.cred.publicdata = deviceCert, .privatedata = NULL
-                    &provTooldeviceID, NULL); // rowner is the provisioning tool and no eowner
+                    /* &provTooldeviceID, */ NULL); // rowner is the provisioning tool and no eowner
             VERIFY_NOT_NULL_RETURN(TAG, cred, ERROR, OC_STACK_ERROR);
 
             cred->publicData.encoding = OIC_ENCODING_PEM;

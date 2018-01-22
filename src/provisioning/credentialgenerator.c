@@ -73,11 +73,11 @@ OCStackResult PMGeneratePairWiseCredentials(OicSecCredType_t type, size_t keySiz
     }
 
     // TODO: currently owner array is 1. only provisioning tool's id.
-    tempFirstCred =  GenerateCredential(secondDeviceId, type, NULL, &privKey, ptDeviceId, NULL);
+    tempFirstCred =  GenerateCredential(secondDeviceId, type, NULL, &privKey, /* ptDeviceId, */ NULL);
     VERIFY_NOT_NULL(TAG, tempFirstCred, ERROR);
 
     // TODO: currently owner array is 1. only provisioning tool's id.
-    tempSecondCred =  GenerateCredential(firstDeviceId, type, NULL, &privKey, ptDeviceId, NULL);
+    tempSecondCred =  GenerateCredential(firstDeviceId, type, NULL, &privKey, /* ptDeviceId, */ NULL);
     VERIFY_NOT_NULL(TAG, tempSecondCred, ERROR);
 
     // firstRole and secondRole are the roles granted to the client when authenticating with this credential;
