@@ -1940,7 +1940,7 @@ CAResult_t CAencryptSsl(const CAEndpoint_t *endpoint,
     {
         OIC_LOG(ERROR, NET_SSL_TAG, "TLS handshake failed");
         oc_mutex_unlock(g_sslContextMutex);
-        return CA_STATUS_FAILED;
+        return CA_DTLS_HANDSHAKE_FAILURE;
     }
 
     if (MBEDTLS_SSL_HANDSHAKE_OVER == tep->ssl.state)
