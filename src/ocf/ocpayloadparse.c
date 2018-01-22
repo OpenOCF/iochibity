@@ -84,9 +84,11 @@ OCStackResult OCParsePayload(OCPayload **outPayload, OCPayloadFormat payloadForm
         case PAYLOAD_TYPE_REPRESENTATION:
             result = OCParseRepPayload(outPayload, &rootValue);
             break;
+#ifdef WITH_PRESENCE
         case PAYLOAD_TYPE_PRESENCE:
             result = OCParsePresencePayload(outPayload, &rootValue);
             break;
+#endif
         case PAYLOAD_TYPE_DIAGNOSTIC:
             result = OCParseDiagnosticPayload(outPayload, &rootValue);
             break;
@@ -1315,6 +1317,7 @@ exit:
     return ret;
 }
 
+#ifdef WITH_PRESENCE
 static OCStackResult OCParsePresencePayload(OCPayload **outPayload, CborValue *rootValue)
 {
     OCStackResult ret = OC_STACK_INVALID_PARAM;
@@ -1381,9 +1384,12 @@ static OCStackResult OCParsePresencePayload(OCPayload **outPayload, CborValue *r
     }
 exit:
     OIC_LOG(ERROR, TAG, "CBOR error Parse Presence Payload");
+#ifdef WITH_PRESENCE
     OCPresencePayloadDestroy(payload);
+#endif
     return ret;
 }
+#endif
 
 static OCStackResult OCParseDiagnosticPayload(OCPayload **outPayload, CborValue *rootValue)
 {

@@ -138,8 +138,9 @@ cc_library(
     # hdrs = select({":client_role": ["client/co_service_provider_mgr.h"],
     #           "//conditions:default": []}),
     # FIXME: enable occonnectionmanager if cloud is enabled
-    srcs = glob(["*.c"], exclude=["occonnectionmanager.c"])
-         + glob(["*.h"], exclude=["occonnectionmanager.h"]),
+    # FIXME: presence support
+    srcs = glob(["*.c"], exclude=["occonnectionmanager.c"]) # , "presence.c"])
+         + glob(["*.h"], exclude=["occonnectionmanager.h"]), # "presence.h"]),
     # if windows, and UWP_APP = 1:
     # "ocsqlite3helper.c"
     # "ocsqlite3helper.h"

@@ -384,8 +384,10 @@ OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
         cbNode->interestingPresenceResourceType = NULL;
 #endif // WITH_PRESENCE
 
-        if (method == OC_REST_PRESENCE ||
-            method == OC_REST_OBSERVE  ||
+        if (method == OC_REST_OBSERVE  ||
+#ifdef WITH_PRESENCE
+	    method == OC_REST_PRESENCE ||
+#endif
             method == OC_REST_OBSERVE_ALL)
         {
             cbNode->TTL = 0;

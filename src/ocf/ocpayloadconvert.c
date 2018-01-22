@@ -51,8 +51,10 @@ static int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadF
         uint8_t *outPayload, size_t *size);
 static int64_t OCConvertRepPayload(OCRepPayload *payload, uint8_t *outPayload, size_t *size);
 static int64_t OCConvertRepMap(CborEncoder *map, const OCRepPayload *payload);
+#ifdef WITH_PRESENCE
 static int64_t OCConvertPresencePayload(OCPresencePayload *payload, uint8_t *outPayload,
         size_t *size);
+#endif
 static int64_t OCConvertDiagnosticPayload(OCDiagnosticPayload *payload, uint8_t *outPayload,
         size_t *size);
 static int64_t OCConvertSecurityPayload(OCSecurityPayload *payload, uint8_t *outPayload,
@@ -158,8 +160,10 @@ static int64_t OCConvertPayloadHelper(OCPayload* payload, OCPayloadFormat format
                     outPayload, size);
         case PAYLOAD_TYPE_REPRESENTATION:
             return OCConvertRepPayload((OCRepPayload*)payload, outPayload, size);
+#ifdef WITH_PRESENCE
         case PAYLOAD_TYPE_PRESENCE:
             return OCConvertPresencePayload((OCPresencePayload*)payload, outPayload, size);
+#endif
         case PAYLOAD_TYPE_DIAGNOSTIC:
             return OCConvertDiagnosticPayload((OCDiagnosticPayload*)payload, outPayload, size);
         case PAYLOAD_TYPE_SECURITY:
@@ -991,6 +995,7 @@ exit:
     return checkError(err, &encoder, outPayload, size);
 }
 
+#ifdef WITH_PRESENCE
 static int64_t OCConvertPresencePayload(OCPresencePayload *payload, uint8_t *outPayload,
         size_t *size)
 {
@@ -1035,6 +1040,7 @@ static int64_t OCConvertPresencePayload(OCPresencePayload *payload, uint8_t *out
 exit:
     return checkError(err, &encoder, outPayload, size);
 }
+#endif
 
 static int64_t OCConvertDiagnosticPayload(OCDiagnosticPayload *payload, uint8_t *outPayload,
         size_t *size)

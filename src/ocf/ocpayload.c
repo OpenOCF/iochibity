@@ -305,9 +305,11 @@ void OC_CALL OCPayloadDestroy(OCPayload* payload)
         case PAYLOAD_TYPE_DISCOVERY:
             OCDiscoveryPayloadDestroy((OCDiscoveryPayload*)payload);
             break;
+#ifdef WITH_PRESENCE
         case PAYLOAD_TYPE_PRESENCE:
             OCPresencePayloadDestroy((OCPresencePayload*)payload);
             break;
+#endif
         case PAYLOAD_TYPE_DIAGNOSTIC:
             OCDiagnosticPayloadDestroy((OCDiagnosticPayload*)payload);
             break;

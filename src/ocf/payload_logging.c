@@ -28,8 +28,10 @@ LogLevel mkhdrs_pl_ll;
 #ifdef TB_LOG
 #define UUID_SIZE (16)
 
+#ifdef WITH_PRESENCE
 const char *OC_CALL convertTriggerEnumToString(OCPresenceTrigger trigger);
 OCPresenceTrigger OC_CALL convertTriggerStringToEnum(const char * triggerStr);
+#endif
 #endif
 #endif	/* INTERFACE */
 
@@ -270,14 +272,18 @@ void OCPayloadLogDiscovery(LogLevel level, OCDiscoveryPayload* payload)
     }
 }
 
+#ifdef WITH_PRESENCE
 void OCPayloadLogPresence(LogLevel level, OCPresencePayload* payload)
 {
     OIC_LOG(level, __FILE__, "Payload Type: Presence");
     OIC_LOG_V(level, __FILE__, "\tSequence Number:%u", payload->sequenceNumber);
     OIC_LOG_V(level, __FILE__, "\tMax Age:%d", payload->maxAge);
+#ifdef WITH_PRESENCE
     OIC_LOG_V(level, __FILE__, "\tTrigger:%s", convertTriggerEnumToString(payload->trigger));
+#endif
     OIC_LOG_V(level, __FILE__, "\tResource Type:%s", payload->resourceType);
 }
+#endif
 
 void OCPayloadLogSecurity(LogLevel level, OCSecurityPayload* payload)
 {
@@ -315,9 +321,11 @@ void OCPayloadLog(LogLevel level, OCPayload* payload)
         case PAYLOAD_TYPE_DISCOVERY:
             OCPayloadLogDiscovery(level, (OCDiscoveryPayload*)payload);
             break;
+#ifdef WITH_PRESENCE
         case PAYLOAD_TYPE_PRESENCE:
             OCPayloadLogPresence(level, (OCPresencePayload*)payload);
             break;
+#endif
         case PAYLOAD_TYPE_SECURITY:
             OCPayloadLogSecurity(level, (OCSecurityPayload*)payload);
             break;
@@ -333,4 +341,3 @@ void OCPayloadLog(LogLevel level, OCPayload* payload)
 #define OIC_LOG_PAYLOAD(level, payload)
 #endif
 #endif	/* INTERFACE */
-
