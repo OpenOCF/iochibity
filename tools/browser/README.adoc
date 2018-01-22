@@ -1,37 +1,168 @@
 
+Initial screen:
 
+
+Discover View Ownership Provisioning                         Help           Exit
+├─────────┐
+│Platforms│
+│Devices  │
+│Resources│
+└─────────┘
+
+
+Select Resources and hit enter:
+
+
+┌───────────────────────────────────────────────────────┐                     ┌───────────────────────────────────────────────────────┐
+│              Outbound Request Messages                │                     │              Inbound Response Messages                │
+│GET <multicast>    <== selected by default             │                     │fe80::acae:3ea4:1b96:fc9d%wlan0:38873/oic/res          │
+│                                                       │                     │                                                       │
+│                                                       │                     │                                                       │
+...
+│                                                       │                     │                                                       │
+│                                                       │                     │                                                       │
+└───────────────────────────────────────────────────────┘                     └───────────────────────────────────────────────────────┘
+                              ┌────────────────────────────────────────────────────────────────────────────────┐
+                              │GET <multicast>                                                                 │
+                              └────────────────────────────────────────────────────────────────────────────────┘
+
+Tab to the inbound response messages, select a message, hit enter:
+
+ ┌────────────────────────────────────────────────────────────┐
+ │Sequence nbr:     16777216                                  │
+ │Remote device ID: b813de3f-f954-305d-13d5-d13c64c3fe3f      │
+ │Identity:                                                   │
+ │Address:        fe80::acae:3ea4:1b96:fc9d%wlan0:38873       │
+ │Resource URI:   /oic/res                                    │
+ │Transport:      UDP/IP                                      │
+ │Network:        IPv6                                        │
+ │IPv6 Scopes:    FIXME                                       │
+ │OC Security:    0                                           │
+ │CT Security:    0                                           │
+ │Multicast?:     FALSE                                       │
+ │Header Options: 2                                           │
+ │    Content-Format (12) = application/vnd.ocf+cbor (10000)  │
+ │    OCF-Content_Version-Format (2053) = OCF 1.0.0 (2048)    │
+ │Payload type: DISCOVERY                                     │
+ ├────────────────────────────────────────────────────────────┤
+ │                 Browse Payload Cancel Help                 │
+ └────────────────────────────────────────────────────────────┘
+
+Select Browse Payload, hit enter, and you get a view of the log file in which the payload has been dumped:
+
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│1/246  0%                                       Filename:logs/client/msg_0x7f9f340008c0.txt                                                │
+│{
+│        "href": "oic/res",                                                                                                                 │
+│        "rt":   ["oic.wk.res"],                                                                                                            │
+│        "if":   ["oic.if.baseline", "oic.if.ll"],                                                                                          │
+│        "n":    null,                                                                                                                      │
+│        "mpro": null,                                                                                                                      │
+│        "di":   "b813de3f-f954-305d-13d5-d13c64c3fe3f",                                                                                    │
+│        "links":        [{                                                                                                                 │
+│                        "ins":  1,                                                                                                         │
+│                        "href": "/oic/sec/doxm",                                                                                           │
+│                        "rt":   ["oic.r.doxm"],                                                                                            │
+│                        "if":   ["oic.if.baseline"],                                                                                       │
+│                        "n":    null,                                                                                                      │
+│                        "id":   null,                                                                                                      │
+│                        "di":   null,                                                                                                      │
+│                        "title":        null,                                                                                              │
+│                        "type": [],                                                                                                        │
+│                        "anchor":       "ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f",                                                      │
+│                        "p":    {                                                                                                          │
+│                                "bm":   1                                                                                                  │
+│                        },                                                                                                                 │
+│                        "eps":  [{                                                                                                         │
+│                                        "ep":   "coap://192.168.0.6:38065",                                                                │
+│                                        "pri":  1                                                                                          │
+│                                }, {                                                                                                       │
+│                                        "ep":   "coaps://192.168.0.6:39073",                                                               │
+│                                        "pri":  1                                                                                          │
+│                                }, {                                                                                                       │
+│                                        "ep":   "coap://2605:6000:2989:bc00::3:38873",                                                     │
+│                                        "pri":  1                                                                                          │
+│                                }, {                                                                                                       │
+│                                        "ep":   "coaps://2605:6000:2989:bc00::3:60599",                                                    │
+│                                        "pri":  1                                                                                          │
+│                                }]                                                                                                         │
+│                }, {                                                                                                                       │
+│                        "ins":  2,                                                                                                         │
+│                        "href": "/oic/sec/pstat",                                                                                          │
+... (scoll) ...
+├───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                          <OK>                                          <Cancel>                                           │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Cancel/ESC back out to the menu and view the discovered resources:
+
+Discover View Ownership Provisioning                              Help           Exit
+         ├────────────┐
+         │Message Logs│
+         │CoResources │ <=== select, then enter
+         │Platforms   │
+         │Devices     │
+         │Resources   │
+         └────────────┘
+
+You'll see the list of links:
+
+           ┌───────────────────────────────────────────────────────────────┐
+           │                       Coresource Links                        │
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/oic/sec/doxm       ▒│
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/oic/sec/pstat      ▒│
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/oic/sec/acl2       ▒│
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/oic/sec/cred       ▒│
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/oic/sec/crl        ▒│
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/oic/sec/csr        ▒│
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/oic/sec/roles      ▒│
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/oic/d              ▒│
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/oic/p              ▒│
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/introspection      ▒│
+           │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/a/light            ▒│
+           │                                                              ▒│
+ 	       ... scroll ...
+           │                                                               │
+           └───────────────────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────────────────────────┐
+  │ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/a/light                              │
+  └────────────────────────────────────────────────────────────────────────────────┘
+
+Select a resource link and hit enter:
 
 ┌───────────────────────────────────────────────────────────────────┐
 │                     Coresource Link Inspector                     │
-│ anchor: ocf://80c56a70-191c-4c03-ce0a-0508dad95c88                │
-│*href:  /oic/d                                                     │
+│ anchor: ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f                │
+│*href:  /a/light                                                   │
 │ rel:   (null)                                                     │
-│*rt[]:  oic.wk.d                                                   │
+│*rt[]:  core.light                                                 │
 │*if[]:  oic.if.baseline                                            │
-│        oic.if.r                                                   │
+│        core.rw                                                    │
 │ n:     (null)                                                     │
 │ id:    (null)                                                     │
 │ di:    (null)                                                     │
 │ title: (null)                                                     │
 │ media type:    (null)                                             │
 │ policy bm: discoverable? T                                        │
-│            observable?   F                                        │
-│ eps:   coap://fe80::1c1b:9a07:d6ce:9338%25en1:51815 pri: 1        │
-│        coap://192.168.1.187:50699 pri: 1                          │
+│            observable?   T                                        │
+│ eps:   coaps://192.168.0.6:39073 pri: 1                           │
+│        coaps://2605:6000:2989:bc00::3:60599 pri: 1                │
 ├───────────────────────────────────────────────────────────────────┤
 │                Retrieve Update Delete Dismiss Help                │
 └───────────────────────────────────────────────────────────────────┘
 
-┌──────────────────────────────────────────────────────┐
-│                 Retrieve Coresource                  │
-│                                                      │
-│ GET ocf://80c56a70-191c-4c03-ce0a-0508dad95c88/oic/d │
-├──────────────────────────────────────────────────────┤
-│Select an Endpoint:                                   │
-│                                                      │
-│[#] coap://fe80::1c1b:9a07:d6ce:9338%25en1:51815      │
-│[ ] coap://192.168.1.187:50699                        │
-│                                                      │
-├──────────────────────────────────────────────────────┤
-│     SUBMIT             Cancel             Help       │
-└──────────────────────────────────────────────────────┘
+Select Retrieve, hit enter:
+
+┌────────────────────────────────────────────────────────┐
+│                  Retrieve Coresource                   │
+│                                                        │
+│ GET ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f/a/light │
+├────────────────────────────────────────────────────────┤
+│Select an Endpoint:                                     │
+│                                                        │
+│[#] coaps://192.168.0.6:39073                           │
+│[ ] coaps://2605:6000:2989:bc00::3:60599                │
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│     SUBMIT              Cancel              Help       │
+└────────────────────────────────────────────────────────┘
