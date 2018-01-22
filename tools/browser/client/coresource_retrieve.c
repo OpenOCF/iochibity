@@ -331,22 +331,25 @@ OCStackApplicationResult get_cb(void* ctx, OCDoHandle handle,
         {
             if (((OCHeaderOption)rcvdOptions[i]).protocolID == OC_COAP_ID)
             {
-                OIC_LOG_V(INFO, TAG, "Received option with OC_COAP_ID and ID %u with",
-                        ((OCHeaderOption)rcvdOptions[i]).optionID );
-               if (OCF_CONTENT_FORMAT_VERSION == ((OCHeaderOption)rcvdOptions[i]).optionID)
-               {
-                    uint16_t versionValue = rcvdOptions[i].optionData[0] * 256
-                            + rcvdOptions[i].optionData[1];
-                    OIC_LOG_V(INFO, TAG, "Received version value of %u", versionValue);
-               }
-               if (COAP_OPTION_CONTENT_FORMAT == ((OCHeaderOption)rcvdOptions[i]).optionID)
-               {
-                    uint16_t formatValue = rcvdOptions[i].optionData[0] * 256
-                            + rcvdOptions[i].optionData[1];
-                   OIC_LOG_V(INFO, TAG, "Received format value of %u", formatValue);
-               }
+		if (OCF_CONTENT_FORMAT_VERSION == ((OCHeaderOption)rcvdOptions[i]).optionID) { /* 2053 */
+		    uint16_t versionValue = rcvdOptions[i].optionData[0] * 256 + rcvdOptions[i].optionData[1];
+		    OIC_LOG_V(INFO, TAG, "CoAP Option %u (OCF_CONTENT_FORMAT_VERSION), value: %s (%u)",
+			      ((OCHeaderOption)rcvdOptions[i]).optionID,
+			      (versionValue == 2048)? "1.0.0"
+			      : (versionValue == 2112)? "1.1.0"
+			      : "UNKNOWN",
+			      versionValue);
+
+		} else {
+		    if (COAP_OPTION_CONTENT_FORMAT == ((OCHeaderOption)rcvdOptions[i]).optionID) { /* 12 */
+			uint16_t formatValue = rcvdOptions[i].optionData[0] * 256 + rcvdOptions[i].optionData[1];
+			OIC_LOG_V(INFO, TAG, "CoAP Option %u (CONTENT_FORMAT), value: %u",
+				  ((OCHeaderOption)rcvdOptions[i]).optionID, formatValue);
+		    }
+		}
+		OIC_LOG_V(INFO, TAG, "Option buffer:");
                 OIC_LOG_BUFFER(INFO, TAG, ((OCHeaderOption)rcvdOptions[i]).optionData,
-                    MAX_HEADER_OPTION_DATA_LENGTH);
+			       MAX_HEADER_OPTION_DATA_LENGTH);
             }
         }
     }

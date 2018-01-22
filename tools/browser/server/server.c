@@ -40,6 +40,8 @@
 
 #define TAG ("ocserver")
 
+FILE                   *logfd;
+
 static int g_quit_flag = 0;
 OCStackResult createLightResource();
 
@@ -61,8 +63,12 @@ FILE *logfd;
 
 int main() {
     /* logfd = fopen("./logs/server.log", "w"); */
-    OCLogInit(NULL);		/* default is stdout */
-    /* OCLogHookFd(logfd); */
+    /* if (logfd) */
+    	OCLogInit(NULL);
+    /* else { */
+    /* 	printf("fopen failed on ./logs/server.log\n"); */
+    /* 	exit(EXIT_FAILURE); */
+    /* } */
 
     OIC_LOG_V(INFO, TAG, "Starting ocserver");
     if (OCInit(NULL, 0, OC_SERVER) != OC_STACK_OK) {
@@ -97,7 +103,7 @@ int main() {
     if (OCStop() != OC_STACK_OK) {
         OIC_LOG(ERROR, TAG, "OCStack process error");
     }
-
+    /* fclose(logfd); */
     return 0;
 }
 
@@ -109,6 +115,7 @@ OCStackResult createLightResource() {
 					 "/a/light",
 					 0,
 					 NULL,
-					 OC_SECURE|OC_DISCOVERABLE|OC_OBSERVABLE);
+					 OC_SECURE | OC_NONSECURE | /* Transport-level security */
+					 OC_DISCOVERABLE|OC_OBSERVABLE);
     return res;
 }
