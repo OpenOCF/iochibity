@@ -1,0 +1,7 @@
+= tools
+
+== json, edn
+
+https://www.npmjs.com/package/edn-to-json[edn-to-json]
+
+https://stedolan.github.io/jq/[jq]  a lightweight and flexible command-line JSON processor.
