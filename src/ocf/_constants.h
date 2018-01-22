@@ -325,8 +325,10 @@
 /** Device model number */
 #define OC_RSRVD_DEVICE_MODEL_NUM        "dmno"
 
+#if EXPORT_INTERFACE
 /** Protocol-Independent ID.*/
 #define OC_RSRVD_PROTOCOL_INDEPENDENT_ID "piid"
+#endif
 
 /** Device specification version.*/
 #define OC_SPEC_VERSION                  "ocf.1.1.0"
