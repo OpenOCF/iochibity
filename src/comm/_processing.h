@@ -18,9 +18,10 @@ typedef enum
     CA_DESTINATION_DISCONNECTED,    /**< 11 Destination is disconnected */
     CA_NOT_SUPPORTED,               /**< 12 Not supported */
     CA_STATUS_NOT_INITIALIZED,      /**< 13 Not Initialized*/
-    CA_DTLS_AUTHENTICATION_FAILURE, /**< 14 Decryption error in DTLS */
-    CA_CONTINUE_OPERATION,          /**< 15 Error happens but current operation should continue */
-    CA_HANDLE_ERROR_OTHER_MODULE,   /**< 16 Error happens but it should be handled in other module */
+    CA_DTLS_HANDSHAKE_FAILURE,      /**< 14 DTLS handshake failed */
+    CA_DTLS_AUTHENTICATION_FAILURE, /**< 15 Decryption error in DTLS */
+    CA_CONTINUE_OPERATION,          /**< 16 Error happens but current operation should continue */
+    CA_HANDLE_ERROR_OTHER_MODULE,   /**< 17 Error happens but it should be handled in other module */
     CA_STATUS_FAILED =255           /**< 255 Failure */
     /* Result code - END HERE */
 } CAResult_t;
