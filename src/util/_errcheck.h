@@ -55,7 +55,6 @@
  */
 #define VERIFY_SUCCESS(tag, op, logLevel) do{ if (!(op)) \
             {OIC_LOG((logLevel), tag, #op " failed!!"); goto exit; } }while(0)
-
 /**
  * Macro to verify expression evaluates to bool true.
  * eg: VERIFY_TRUE_OR_EXIT(TAG, OC_STACK_OK == foo(), ERROR);

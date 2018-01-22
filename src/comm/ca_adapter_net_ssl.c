@@ -1401,13 +1401,14 @@ static int InitPskIdentity(mbedtls_ssl_config * config)
  *
  * @return  true on success or false on error
  */
-static bool SetupCipher(mbedtls_ssl_config * config, CATransportAdapter_t adapter,
+static bool SetupCipher(mbedtls_ssl_config * config,
+			CATransportAdapter_t adapter,
                         const char* deviceId)
 {
     int index = 0;
     OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
 
-    VERIFY_NON_NULL_RET(config, NET_SSL_TAG, "Invailid param", false);
+    VERIFY_NON_NULL_RET(config, NET_SSL_TAG, "Invalid param", false);
     VERIFY_NON_NULL_RET(g_caSslContext, NET_SSL_TAG, "SSL Context is NULL", false);
     VERIFY_NON_NULL_RET(g_getCredentialTypesCallback, NET_SSL_TAG, "Param callback is null", false);
 
@@ -1848,6 +1849,7 @@ CAResult_t CAinitSslAdapter()
     }
 #endif // __WITH_DTLS__
 
+    OIC_LOG_V(DEBUG, NET_SSL_TAG, "setting cipher and cert flds");
     // set default cipher
     g_caSslContext->cipher = SSL_CIPHER_MAX;
 
@@ -1904,6 +1906,7 @@ SslCacheMessage_t *NewCacheMessage(uint8_t * data, size_t dataLen)
 
 /* Send data via TLS connection.
  */
+/* FIXME: function is encrypt _and send_!!! fix the name  */
 CAResult_t CAencryptSsl(const CAEndpoint_t *endpoint,
                         const void *data, size_t dataLen)
 {

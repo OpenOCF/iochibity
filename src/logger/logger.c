@@ -355,7 +355,7 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
 /* #ifdef _MSC_VER			/\* compiler is msvc cl.exe *\/ */
 #ifdef _WIN32
     /* oc_mutex_lock(log_mutex); */
-#else    
+#else
     /* flockfile(logfd); */
 #endif
 

@@ -246,14 +246,14 @@ CAResult_t CAregisterPkixInfoHandler(CAgetPkixInfoHandler getPkixInfoHandler)
 
 CAResult_t CAregisterGetCredentialTypesHandler(CAgetCredentialTypesHandler getCredTypesHandler)
 {
-    OIC_LOG_V(DEBUG, TAG, "In %s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     if (!g_isInitialized)
     {
         return CA_STATUS_NOT_INITIALIZED;
     }
     CAsetCredentialTypesCallback(getCredTypesHandler);
-    OIC_LOG_V(DEBUG, TAG, "Out %s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 #endif // __WITH_DTLS__ or __WITH_TLS__

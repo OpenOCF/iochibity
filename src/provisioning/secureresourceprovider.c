@@ -514,7 +514,7 @@ static OCStackApplicationResult ProvisionCredentialDosCB1(void *ctx, OCDoHandle 
                 // A second device was not specified. Add the cred to the local cred store.
                 res = ProvisionLocalCredential(ctx, credInfo);
             }
-            
+
             if ((NULL != deviceInfo) || (OC_STACK_OK != res))
             {
                 DeleteCredList(credInfo);
@@ -707,7 +707,7 @@ static OCStackResult ProvisionLocalCredential(void *ctx, OicSecCred_t *cred)
     CredentialData_t *credData = (CredentialData_t *)((Data_t *)ctx)->ctx;
 
     OCStackResult res = AddCredential(cred);
-    
+
     /* Call the result callback directly. */
     registerResultForCredProvisioning(credData, OC_STACK_RESOURCE_CHANGED, DEVICE_LOCAL_FINISHED);
     (credData->resultCallback)(credData->ctx, credData->numOfResults, credData->resArr, false);
@@ -1430,7 +1430,7 @@ static OCStackApplicationResult ProvisionCertificateCB(void *ctx, OCDoHandle han
     OCCallbackData cbData =  {.context = ctx, .cb = ProvisionCB, .cd = NULL};
     OCDoHandle lHandle = NULL;
 
-    ret = OCDoResource(&lHandle, OC_REST_POST, query, 
+    ret = OCDoResource(&lHandle, OC_REST_POST, query,
                                 &pDev->endpoint, (OCPayload *)secPayload,
                                 pDev->connType, OC_HIGH_QOS, &cbData, NULL, 0);
     OIC_LOG_V(DEBUG, TAG, "POST:%s ret:%d", query, ret);

@@ -578,26 +578,27 @@ void CAIPSendDataThread(void *threadData)
     if (ipData->isMulticast)
     {
         //Processing for sending multicast
-        OIC_LOG(DEBUG, TAG, "Send Multicast Data is called");
+        OIC_LOG(DEBUG, TAG, "Sending Multicast");
         CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, true);
     }
     else
     {
         //Processing for sending unicast
+        OIC_LOG(DEBUG, TAG, "Sending Unicast");
 #ifdef __WITH_DTLS__
         if (ipData->remoteEndpoint && ipData->remoteEndpoint->flags & CA_SECURE)
         {
-            OIC_LOG(DEBUG, TAG, "DTLS encrypt called");
+            OIC_LOG(DEBUG, TAG, "Sending encrypted");
             CAResult_t result = CAencryptSsl(ipData->remoteEndpoint, ipData->data, ipData->dataLen);
             if (CA_STATUS_OK != result)
             {
-                OIC_LOG(ERROR, TAG, "CAencryptSsl failed!");
+                OIC_LOG_V(ERROR, TAG, "CAencryptSsl failed: %d", result);
             }
             OIC_LOG_V(DEBUG, TAG, "CAencryptSsl returned with result[%d]", result);
         }
         else
         {
-            OIC_LOG(DEBUG, TAG, "Send Unicast Data is called");
+            OIC_LOG(DEBUG, TAG, "Sending unencrypted");
             CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, false);
         }
 #else

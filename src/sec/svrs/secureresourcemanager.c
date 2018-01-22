@@ -484,6 +484,7 @@ OCPersistentStorage* SRMGetPersistentStorageHandler()
 
 OCStackResult SRMInitSecureResources()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     // TODO: temporarily returning OC_STACK_OK every time until default
     // behavior (for when SVR DB is missing) is settled.
     InitSecureResources();
@@ -497,6 +498,7 @@ OCStackResult SRMInitSecureResources()
     CAregisterPkixInfoHandler(GetPkixInfo);
     CAregisterGetCredentialTypesHandler(InitCipherSuiteList);
 #endif // __WITH_DTLS__ or __WITH_TLS__
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return ret;
 }
 

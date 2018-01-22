@@ -387,29 +387,29 @@ typedef enum
 /* typedef enum
  * {
  *     OC_REST_NOMETHOD       = 0,
- * 
+ *
  *     /\** Read.*\/
  *     OC_REST_GET            = (1 << 0),
- * 
+ *
  *     /\** Write.*\/
  *     OC_REST_PUT            = (1 << 1),
- * 
+ *
  *     /\** Update.*\/
  *     OC_REST_POST           = (1 << 2),
- * 
+ *
  *     /\** Delete.*\/
  *     OC_REST_DELETE         = (1 << 3),
- * 
+ *
  *     /\** Register observe request for most up date notifications ONLY.*\/
  *     OC_REST_OBSERVE        = (1 << 4),
- * 
+ *
  *     /\** Register observe request for all notifications, including stale notifications.*\/
  *     OC_REST_OBSERVE_ALL    = (1 << 5),
- * 
+ *
  * #ifdef WITH_PRESENCE
  *     /\** Subscribe for all presence notifications of a particular resource.*\/
  *     OC_REST_PRESENCE       = (1 << 7),
- * 
+ *
  * #endif
  *     /\** Allows OCDoResource caller to do discovery.*\/
  *     OC_REST_DISCOVER       = (1 << 8)
@@ -2427,6 +2427,8 @@ OCStackResult OC_CALL OCInit2(OCMode mode, OCTransportFlags serverFlags, OCTrans
         assert(g_ocStackStartCount != UINT_MAX);
         assert(stackState == OC_STACK_INITIALIZED);
         g_ocStackStartCount++;
+    } else {
+	OIC_LOG_V(DEBUG, TAG, "%s WTF? rc: %d", __func__, result);
     }
 
     OCLeaveInitializer();
@@ -2595,13 +2597,13 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
 exit:
     if(result != OC_STACK_OK)
     {
-        OIC_LOG(ERROR, TAG, "Stack initialization error");
+        OIC_LOG_V(ERROR, TAG, "Stack initialization error: %d", result);
         TerminateScheduleResourceList();
         deleteAllResources();
         CATerminate();
         stackState = OC_STACK_UNINITIALIZED;
     }
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT, rc: %d", __func__, result);
     return result;
 }
 
@@ -3669,6 +3671,9 @@ EXPORT
                                   callbackParam,
                                   resourceProperties,
                                   OC_ALL);
+    if (r != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "OCCreateResourceWithEp %s rc: %d", uri, r);
+    }
     OIC_LOG_V(INFO, TAG, "%s %s EXIT <<<<<<<<<<<<<<<<", __func__, uri);
     return r;
 }
@@ -3689,6 +3694,7 @@ OCStackResult OC_CALL OCCreateResourceWithEp(OCResourceHandle *handle,
 
     if(myStackMode == OC_CLIENT)
     {
+	OIC_LOG_V(ERROR, TAG, "%s: invalid stack mode OC_CLIENT", __func__);
         return OC_STACK_INVALID_PARAM;
     }
     // Validate parameters
