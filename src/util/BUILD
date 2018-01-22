@@ -40,8 +40,8 @@ cc_library(
               "msys": [],
               "//conditions:default": ["-std=c11",
                                        "-UDEBUG"]}),
-    deps = ["//third_party/tinycbor",
-            "//src/logger",
+    deps = ["//src/logger",
+            "//third_party/tinycbor",
             # "//src/portability"
     ],
     srcs = glob(["*.c"], exclude=["ifaddrs.*"]) + glob(["*.h"])
@@ -52,5 +52,6 @@ cc_library(
               ],
               "//conditions:default": []}),
     visibility = ["//src:__subpackages__",
-                  "//tools/makeheaders:__pkg__"]
+                  "//tools/makeheaders:__pkg__",
+                  "//tools/cbor:__subpackages__"]
 )

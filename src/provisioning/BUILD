@@ -52,5 +52,6 @@ cc_library(
     srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//src/ocf:__pkg__",
                   "//src/sec/acl:__pkg__",
-                  "//src/sec:__pkg__"]
+                  "//src/sec:__pkg__",
+                  "//tools/cbor:__subpackages__"]
     )

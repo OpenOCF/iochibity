@@ -109,5 +109,6 @@ cc_library(
                        "//conditions:default": []}),
     srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//src:__subpackages__",
-                  "//third_party:__subpackages__"]
+                  "//third_party:__subpackages__",
+                  "//tools/cbor:__subpackages__"]
  )
