@@ -4685,107 +4685,128 @@ LOCAL OCStackResult initResources()
             NULL,
             NULL,
             OC_OBSERVABLE);
+    if (result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "OCCreateResource %s rc: %d", OC_RSRVD_PRESENCE_URI, result);
+	goto exit;
+    }
     //make resource inactive
     result = OCChangeResourceProperty(
             &(((OCResource *) presenceResource.handle)->resourceProperties),
             OC_ACTIVE, 0);
+    if (result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "OCChangeResourceProperty rc: %d", result);
+    }
 #endif
-    if (result == OC_STACK_OK)
-    {
-        result = SRMInitSecureResources();
+    result = SRMInitSecureResources();
+    if (result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "SRMInitSecureResources rc: %d", result);
+	goto exit;
     }
 
-    if(result == OC_STACK_OK)
-    {
-        result = OCCreateResource(&wellKnownResource,
-                                  OC_RSRVD_RESOURCE_TYPE_RES,
-                                  OC_RSRVD_INTERFACE_LL,
-                                  OC_RSRVD_WELL_KNOWN_URI,
-                                  NULL,
-                                  NULL,
-                                  0);
-        if(result == OC_STACK_OK)
-        {
-            result = BindResourceInterfaceToResource((OCResource *)wellKnownResource,
+    result = OCCreateResource(&wellKnownResource,
+			      OC_RSRVD_RESOURCE_TYPE_RES,
+			      OC_RSRVD_INTERFACE_LL,
+			      OC_RSRVD_WELL_KNOWN_URI,
+			      NULL,
+			      NULL,
+			      0);
+    if(result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "OCCreateResource %s rc: %d", OC_RSRVD_WELL_KNOWN_URI, result);
+	goto exit;
+    }
+
+    result = BindResourceInterfaceToResource((OCResource *)wellKnownResource,
                                                      OC_RSRVD_INTERFACE_DEFAULT);
-        }
+    if(result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "BindResourceInterfaceToResource %s :: %s rc: %d",
+		  OC_RSRVD_INTERFACE_DEFAULT, OC_RSRVD_WELL_KNOWN_URI, result);
+	goto exit;
     }
 
-    if(result == OC_STACK_OK)
-    {
-        CreateResetProfile();
-        result = OCCreateResource(&deviceResource,
-                                  OC_RSRVD_RESOURCE_TYPE_DEVICE,
-                                  OC_RSRVD_INTERFACE_DEFAULT,
-                                  OC_RSRVD_DEVICE_URI,
-                                  NULL,
-                                  NULL,
-                                  OC_DISCOVERABLE);
-        if(result == OC_STACK_OK)
-        {
-            result = BindResourceInterfaceToResource((OCResource *)deviceResource,
-                                                     OC_RSRVD_INTERFACE_READ);
-        }
+    CreateResetProfile();
+    result = OCCreateResource(&deviceResource,
+			      OC_RSRVD_RESOURCE_TYPE_DEVICE,
+			      OC_RSRVD_INTERFACE_DEFAULT,
+			      OC_RSRVD_DEVICE_URI,
+			      NULL,
+			      NULL,
+			      OC_DISCOVERABLE);
+    if(result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "OCCreateResource %s rc: %d", OC_RSRVD_DEVICE_URI, result);
+	goto exit;
     }
 
-    if(result == OC_STACK_OK)
-    {
-        result = OCCreateResource(&platformResource,
-                                  OC_RSRVD_RESOURCE_TYPE_PLATFORM,
-                                  OC_RSRVD_INTERFACE_DEFAULT,
-                                  OC_RSRVD_PLATFORM_URI,
-                                  NULL,
-                                  NULL,
-                                  OC_DISCOVERABLE);
-        if(result == OC_STACK_OK)
-        {
-            result = BindResourceInterfaceToResource((OCResource *)platformResource,
-                                                     OC_RSRVD_INTERFACE_READ);
-        }
+    result = BindResourceInterfaceToResource((OCResource *)deviceResource,
+					     OC_RSRVD_INTERFACE_READ);
+    if(result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "BindResourceInterfaceToResource %s :: %s rc: %d",
+		  OC_RSRVD_INTERFACE_READ, OC_RSRVD_DEVICE_URI, result);
     }
 
-    if (result == OC_STACK_OK)
-    {
-        result = OCCreateResource(&introspectionResource,
-                                  OC_RSRVD_RESOURCE_TYPE_INTROSPECTION,
-                                  OC_RSRVD_INTERFACE_DEFAULT,
-                                  OC_RSRVD_INTROSPECTION_URI_PATH,
-                                  NULL,
-                                  NULL,
-                                  OC_DISCOVERABLE | OC_SECURE);
-        if (result == OC_STACK_OK)
-        {
-            result = BindResourceInterfaceToResource((OCResource *)introspectionResource,
-                                                     OC_RSRVD_INTERFACE_READ);
-        }
+    result = OCCreateResource(&platformResource,
+			      OC_RSRVD_RESOURCE_TYPE_PLATFORM,
+			      OC_RSRVD_INTERFACE_DEFAULT,
+			      OC_RSRVD_PLATFORM_URI,
+			      NULL,
+			      NULL,
+			      OC_DISCOVERABLE);
+    if(result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "OCCreateResource %s rc: %d", OC_RSRVD_PLATFORM_URI, result);
+	goto exit;
+    }
+    result = BindResourceInterfaceToResource((OCResource *)platformResource,
+					     OC_RSRVD_INTERFACE_READ);
+    if (result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "BindResourceInterfaceToResource %s :: %s rc: %d",
+		  OC_RSRVD_INTERFACE_READ, OC_RSRVD_PLATFORM_URI, result);
     }
 
-    if (result == OC_STACK_OK)
-    {
-        result = OCCreateResource(&introspectionPayloadResource,
-                                  OC_RSRVD_RESOURCE_TYPE_INTROSPECTION_PAYLOAD,
-                                  OC_RSRVD_INTERFACE_DEFAULT,
-                                  OC_RSRVD_INTROSPECTION_PAYLOAD_URI_PATH,
-                                  NULL,
-                                  NULL,
-                                  0);
-        if (result == OC_STACK_OK)
-        {
-            result = BindResourceInterfaceToResource((OCResource *)introspectionPayloadResource,
-                                                     OC_RSRVD_INTERFACE_READ);
-        }
+    result = OCCreateResource(&introspectionResource,
+			      OC_RSRVD_RESOURCE_TYPE_INTROSPECTION,
+			      OC_RSRVD_INTERFACE_DEFAULT,
+			      OC_RSRVD_INTROSPECTION_URI_PATH,
+			      NULL,
+			      NULL,
+			      OC_DISCOVERABLE | OC_SECURE);
+    if (result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "OCCreateResource %s rc: %d", OC_RSRVD_INTROSPECTION_URI_PATH, result);
+	goto exit;
+    }
+
+    result = BindResourceInterfaceToResource((OCResource *)introspectionResource,
+					     OC_RSRVD_INTERFACE_READ);
+    if (result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "BindResourceInterfaceToResource %s :: %s rc: %d",
+		  OC_RSRVD_INTERFACE_READ, OC_RSRVD_INTROSPECTION_URI_PATH, result);
+    }
+
+    result = OCCreateResource(&introspectionPayloadResource,
+			      OC_RSRVD_RESOURCE_TYPE_INTROSPECTION_PAYLOAD,
+			      OC_RSRVD_INTERFACE_DEFAULT,
+			      OC_RSRVD_INTROSPECTION_PAYLOAD_URI_PATH,
+			      NULL,
+			      NULL,
+			      0);
+    if (result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "OCCreateResource %s rc: %d", OC_RSRVD_INTROSPECTION_PAYLOAD_URI_PATH, result);
+	goto exit;
+    }
+    result = BindResourceInterfaceToResource((OCResource *)introspectionPayloadResource,
+					     OC_RSRVD_INTERFACE_READ);
+    if (result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "BindResourceInterfaceToResource %s :: %s rc: %d",
+		  OC_RSRVD_INTERFACE_READ, OC_RSRVD_INTROSPECTION_PAYLOAD_URI_PATH, result);
     }
 
     // Initialize Device Properties
-    if (OC_STACK_OK == result)
-    {
-        result = InitializeDeviceProperties();
+    result = InitializeDeviceProperties();
+    if (result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "InitializeDeviceProperties rc: %d", result);
     }
 
     // Initialize platform ID of OC_RSRVD_RESOURCE_TYPE_PLATFORM.
     // Multiple devices or applications running on the same IoTivity platform should have the same
     // platform ID.
-    if (OC_STACK_OK == result)
     {
         uint8_t platformID[OIC_UUID_LENGTH];
         char uuidString[UUID_STRING_SIZE];
@@ -4802,14 +4823,15 @@ LOCAL OCStackResult initResources()
             // Application can overwrite the value set here by calling similar
             // OCSetPropertyValue(OC_RSRVD_PLATFORM_ID, ...).
             result = OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, OC_RSRVD_PLATFORM_ID, uuidString);
-        }
-        else
-        {
+	    if (OC_STACK_OK != result) {
+	    }
+	} else {
             result = OC_STACK_ERROR;
             OIC_LOG(ERROR, TAG, "Failed OCConvertUuidToString() for platform ID.");
         }
     }
 
+ exit:
     return result;
 }
 
