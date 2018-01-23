@@ -182,7 +182,6 @@ void CALogSendStateInfo(CATransportAdapter_t adapter,
 #endif
 
     OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "%s ENTRY", __func__);
-    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
 
     if (true == isSuccess)
     {
@@ -196,7 +195,7 @@ void CALogSendStateInfo(CATransportAdapter_t adapter,
 
     CALogAdapterTypeInfo(adapter);
     OIC_LOG_V(DEBUG, ANALYZER_TAG, "Address = [%s]:[%d]", addr, port);
-    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
+    OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "%s EXIT", __func__);
 }
 
 void CALogAdapterTypeInfo(CATransportAdapter_t adapter)
