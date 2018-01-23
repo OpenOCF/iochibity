@@ -105,11 +105,11 @@ typedef enum
 
     /** IPv4 & IPv6 auto-selection is the default.*/
     /** IP & TCP adapter only.*/
-    OC_IP_USE_V6       = (1 << 5),
+    OC_IP_USE_V6       = (1 << 5), /* 0x20 */
     /* CA_IPV6            = (1 << 5),   // IP adapter only */
 
     /** IP & TCP adapter only.*/
-    OC_IP_USE_V4       = (1 << 6),
+    OC_IP_USE_V4       = (1 << 6), /* 0x40 */
     /* CA_IPV4            = (1 << 6),   // IP adapter only */
 
     /** Multicast only.*/
@@ -405,7 +405,7 @@ typedef struct OCHeaderOption
  *           optionID(optId),
  *           optionLength(optlen)
  *     {
- * 
+ *
  *         // parameter includes the null terminator.
  *         optionLength = optionLength < MAX_HEADER_OPTION_DATA_LENGTH ?
  *                         optionLength : MAX_HEADER_OPTION_DATA_LENGTH;

@@ -2758,6 +2758,7 @@ static OCStackResult ParseRequestUri(const char *fullUri,
                                         char **resourceType)
 {
     VERIFY_NON_NULL(fullUri, FATAL, OC_STACK_INVALID_CALLBACK);
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     OCStackResult result = OC_STACK_OK;
     OCDevAddr *da = NULL;
@@ -2962,6 +2963,7 @@ error:
     {
         OICFree(*resourceType);
     }
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return result;
 }
 
@@ -3134,7 +3136,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
             result = OC_STACK_NO_MEMORY;
             goto exit;
         }
-        OIC_LOG(DEBUG, TAG, "devAddr is set as destination");
+        OIC_LOG(DEBUG, TAG, "new devAddr is set as destination");
         *devAddr = *destination;
     }
 

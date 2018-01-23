@@ -139,24 +139,22 @@ int decode_resource(int index, char *ptrs[], char *buffer, int *count)
 
 	OCEndpointPayload *endpoint = resource->eps;
 	while(endpoint) {
-	    /* cJSON *ep = cJSON_CreateObject(); */
-	    /* char port[INT_MAX + 1];
-	     * snprintf(port, INT_MAX, "%d", endpoint->port); */
+	    OIC_LOG_V(DEBUG, TAG, "ENDPOINT RAW ADDR: %s", endpoint->addr);
+	    /* OIC_LOG_V(DEBUG, TAG, "ENDPOINT FAMILY: 0x%X", endpoint->family); */
 	    int eplen = strlen(endpoint->tps)
 		+ 3		/* :// */
 		+ strlen(endpoint->addr)
+		+ 2				/* [  ] */
 		+ 10				/* "pri: %d" */
 		+ 1; 		/* : */
 	    char *epstring = malloc(eplen + 6); /* largest val for port is 5 chars (uint16) */
-	    snprintf(buffer, eplen + 6, "\t%s://%s:%d pri: %d",
-		     endpoint->tps, endpoint->addr, endpoint->port, endpoint->pri);
-	    /* cJSON_AddItemToObject(ep, "ep", cJSON_CreateString(epstring));
-	     * free(epstring);
-	     * /\* cJSON_AddItemToObject(ep, "tps", cJSON_CreateString(endpoint->tps));
-	     *  * cJSON_AddItemToObject(ep, "addr", cJSON_CreateString(endpoint->addr));
-	     *  * cJSON_AddNumberToObject(ep, "port", endpoint->port); *\/
-	     * cJSON_AddNumberToObject(ep, "pri", endpoint->pri);
-	     * cJSON_AddItemToArray(eps, ep); */
+	    if (endpoint->family == OC_IP_USE_V6) { /* (1 << 5) */
+		snprintf(buffer, eplen + 6, "\t%s://[%s]:%d pri: %d",
+			 endpoint->tps, endpoint->addr, endpoint->port, endpoint->pri);
+	    } else {
+		snprintf(buffer, eplen + 6, "\t%s://%s:%d pri: %d",
+			 endpoint->tps, endpoint->addr, endpoint->port, endpoint->pri);
+	    }
 	    endpoint = endpoint->next;
 	    buffer += strlen(buffer) + 1;
 	    ptrs[i++] = buffer;
