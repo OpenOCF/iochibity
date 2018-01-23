@@ -227,16 +227,23 @@ int get_eps()
     		+ 10				/* "pri: %d" */
     		+ 1; 		/* : */
     	    /* char *epstring = malloc(eplen + 6); /\* largest val for port is 5 chars (uint16) *\/ */
-    	    snprintf(buffer, eplen + 6, " %s://%s:%d ",
-    		     endpoint->tps, endpoint->addr, endpoint->port);
+	    if (endpoint->family == OC_IP_USE_V6) { /* (1 << 5) */
+		snprintf(buffer, eplen + 6, " %s://[%s]:%d ",
+			 endpoint->tps, endpoint->addr, endpoint->port);
+		/* snprintf(buffer, eplen + 6, "\t%s://[%s]:%d pri: %d", */
+		/* 	 endpoint->tps, endpoint->addr, endpoint->port, endpoint->pri); */
+	    } else {
+		snprintf(buffer, eplen + 6, " %s://%s:%d ",
+			 endpoint->tps, endpoint->addr, endpoint->port);
+	    }
 	    OIC_LOG_V(INFO, TAG, "ep %d: %s", i, buffer);
     	    endpoint = endpoint->next;
     	    epstrings[i++] = buffer;
     	    buffer += strlen(buffer) + 1;
     	}
     } else {
-	OIC_LOG_V(INFO, TAG, "Unsupported OCF version %d", ocf_version);
-	exit(EXIT_FAILURE);
+	OIC_LOG_V(ERROR, TAG, "Unsupported OCF version %d", ocf_version);
+	/* exit(EXIT_FAILURE); */
     }
     ep_count = i;
     return 0;
@@ -381,11 +388,6 @@ void send_get_msg ()
     OIC_LOG_V(DEBUG, TAG, "query: %s", szQueryUri);
 
     /* construct destination from eps[selected_ep] */
-    /* int i; */
-    /* OCEndpointPayload* reps = resource->eps; */
-    /* for (i=0; i<=selected_ep; i++) { */
-    /* 	reps = reps->next; */
-    /* } */
     int i = 0;
     for (i; i<tps_maps_count; i++) {
 	if (strcmp(tps_maps[i].tps_string, eps[selected_ep]->tps) == 0)
