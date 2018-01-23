@@ -1153,7 +1153,7 @@ static OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload,
                         {
                             assert(zoneId != NULL);
                             // put zoneId to end of addr
-                            OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, "%25");
+                            OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, "%"); /* GAR FIXME: percent-encoding */
                             OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, zoneId);
                             OICFree(zoneId);
                         }
