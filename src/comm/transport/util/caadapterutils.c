@@ -107,6 +107,8 @@ CAResult_t CAConvertNameToAddr(const char *host, uint16_t port, struct sockaddr_
     VERIFY_NON_NULL_RET(sockaddr, CA_ADAPTER_UTILS_TAG, "sockaddr is null",
                         CA_STATUS_INVALID_PARAM);
 
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, host: %s, port: %d", __func__, host, port);
+
     struct addrinfo *addrs = NULL;
     struct addrinfo hints = { .ai_family = AF_UNSPEC,
                               .ai_flags = AI_NUMERICHOST };
