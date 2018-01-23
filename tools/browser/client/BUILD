@@ -95,6 +95,8 @@ cc_binary(
             "coresource_mgr.h",
             "coresource_retrieve.c",
             "coresource_retrieve.h",
+	    "discovery.c",
+	    "discovery.h",
             "inbound_msg_db_mgr.c",
             "inbound_msg_db_mgr.h",
             "inbound_msg_inspector.c",
