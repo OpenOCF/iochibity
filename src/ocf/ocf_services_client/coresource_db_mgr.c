@@ -172,20 +172,23 @@ EXPORT
     {
         msg = (OCClientResponse*)u_linklist_get_data(iter);
 	if (msg->payload) {
-	    discovery_pl = (OCDiscoveryPayload*) msg->payload;
-	    coresource_pl = (OCResourcePayload*) discovery_pl->resources;
-	    while(coresource_pl) {
-		OIC_LOG_V(INFO, TAG, "testing coresource %d", i);
-		if (i == index) {
-		    *ocf_version = oocf_ocf_version(msg);
-		    oc_mutex_unlock(g_responses_mutex);
-		    OIC_LOG_V(INFO, TAG, "matched coresource %d, %p", i, coresource_pl);
-		    return coresource_pl;
+	    if (msg->payload->type == PAYLOAD_TYPE_DISCOVERY) {
+		discovery_pl = (OCDiscoveryPayload*) msg->payload;
+		coresource_pl = (OCResourcePayload*) discovery_pl->resources;
+		while(coresource_pl) {
+		    OIC_LOG_V(INFO, TAG, "testing coresource %d", i);
+		    if (i == index) {
+			*ocf_version = oocf_ocf_version(msg);
+			oc_mutex_unlock(g_responses_mutex);
+			OIC_LOG_V(INFO, TAG, "matched coresource %d, %p", i, coresource_pl);
+			return coresource_pl;
+		    }
+		    coresource_pl = coresource_pl->next;
+		    i++;
 		}
-		coresource_pl = coresource_pl->next;
-		i++;
 	    }
 	    /* u_linklist_get_next(&iter); */
+	    OIC_LOG_V(DEBUG, TAG, "SKIPPING MSG TYPE %d", msg->payload->type);
 	} else {
 	    OIC_LOG_V(DEBUG, TAG, "NO PAYLOAD");
 	}
@@ -282,10 +285,17 @@ EXPORT
     u_linklist_init_iterator(g_responses, &iter);
 
     int i = 0;
+    int payload_type;
     while (NULL != iter) {
 	msg = (OCClientResponse*)u_linklist_get_data(iter);
+	payload_type = msg->payload->type;
 	if (msg != NULL) {
-	    sprintf(labelp, "%s:%d%s", msg->devAddr.addr, msg->devAddr.port, msg->resourceUri);
+	    sprintf(labelp, "%s %s:%d%s",
+		    (payload_type == PAYLOAD_TYPE_DISCOVERY)? "DISC"
+		    :(payload_type == PAYLOAD_TYPE_REPRESENTATION)? "REP"
+		    :(payload_type == PAYLOAD_TYPE_SECURITY)? "SEC"
+		    : "MISC",
+		    msg->devAddr.addr, msg->devAddr.port, msg->resourceUri);
 	    /* OIC_LOG_V(DEBUG, TAG, "LABEL: %s (%p)", labelp, labelp); */
 	    *label_ptrs = labelp;
 	    /* OIC_LOG_V(DEBUG, TAG, "LABEL PTR: %p, %p", label_ptrs, *label_ptrs); */
@@ -329,12 +339,14 @@ int oocf_cosp_mgr_list_coresource_uris(/* out */ const char ***uri_list)
 	msg = (OCClientResponse*)u_linklist_get_data(iter);
 	if (msg != NULL) {
 	    if (msg->payload) {
-		discovery_pl = (OCDiscoveryPayload*)msg->payload;
-		coresource_pl = discovery_pl->resources;
-		/* cosp_count++; /\* 1 for anchor *\/ */
-		while(coresource_pl) {
-		    cosp_count++;
-		    coresource_pl = coresource_pl->next;
+		if (msg->payload->type == PAYLOAD_TYPE_DISCOVERY) {
+		    discovery_pl = (OCDiscoveryPayload*)msg->payload;
+		    coresource_pl = discovery_pl->resources;
+		    /* cosp_count++; /\* 1 for anchor *\/ */
+		    while(coresource_pl) {
+			cosp_count++;
+			coresource_pl = coresource_pl->next;
+		    }
 		}
 		u_linklist_get_next(&iter);
 	    } else {
@@ -369,16 +381,18 @@ int oocf_cosp_mgr_list_coresource_uris(/* out */ const char ***uri_list)
 	msg = (OCClientResponse*)u_linklist_get_data(iter);
 	if (msg != NULL) {
 	    if (msg->payload) {
-		discovery_pl = (OCDiscoveryPayload*)msg->payload;
-		coresource_pl = discovery_pl->resources;
-		/* urip = coresource_pl->anchor;
-		 * urip += strlen(coresource_pl->anchor); */
-		while(coresource_pl) {
-		    sprintf(urip, "%s%s", coresource_pl->anchor, coresource_pl->uri);
-		    /* OIC_LOG_V(DEBUG, TAG, "URI: %s (%d)", urip, strlen(urip)); */
-		    *uri_ptrs++ = urip;
-		    urip += strlen(urip) + 1;
-		    coresource_pl = coresource_pl->next;
+		if (msg->payload->type == PAYLOAD_TYPE_DISCOVERY) {
+		    discovery_pl = (OCDiscoveryPayload*)msg->payload;
+		    coresource_pl = discovery_pl->resources;
+		    /* urip = coresource_pl->anchor;
+		     * urip += strlen(coresource_pl->anchor); */
+		    while(coresource_pl) {
+			sprintf(urip, "%s%s", coresource_pl->anchor, coresource_pl->uri);
+			/* OIC_LOG_V(DEBUG, TAG, "URI: %s (%d)", urip, strlen(urip)); */
+			*uri_ptrs++ = urip;
+			urip += strlen(urip) + 1;
+			coresource_pl = coresource_pl->next;
+		    }
 		}
 		u_linklist_get_next(&iter);
 	    } else {
