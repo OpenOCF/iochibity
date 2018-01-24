@@ -209,23 +209,6 @@ static bool IsPropertyReadOnly(DoxmProperty_t p,
     return ret;
 }
 
-/**
- * Internal method converts CBOR into DOXM data, and determines if a read-only
- *  Property was parsed in the CBOR payload.
- *
- * @param[in] cborPayload The doxm data in cbor format.
- * @param[in] size Size of the cborPayload. In case 0 is provided it assigns CBOR_SIZE (255) value.
- * @param[out] doxm Pointer to @ref OicSecDoxm_t.
- * @param[out] roParsed Ptr to bool marked "true" iff a read-only Property is parsed
- * @param[in] stateForReadOnlyCheck The state to use when determining if a Property is
- *                              read-only.
- *
- * @return ::OC_STACK_OK for Success, otherwise some error value.
-*/
-static OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t size,
-                                OicSecDoxm_t **doxm, bool *roParsed,
-                                OicSecDeviceOnboardingState_t stateForReadOnlyCheck);
-
 void DeleteDoxmBinData(OicSecDoxm_t* doxm)
 {
     if (doxm)
@@ -513,18 +496,38 @@ OCStackResult DoxmToCBORPayload(const OicSecDoxm_t *doxm,
     return DoxmToCBORPayloadPartial(doxm, payload, size, allProps);
 }
 
-OCStackResult CBORPayloadToDoxm(const uint8_t *cborPayload, size_t size,
-                                OicSecDoxm_t **secDoxm)
-{
-    return CBORPayloadToDoxmBin(cborPayload, size, secDoxm, NULL, DOS_RESET);
-}
-
+/**
+ * Internal method converts CBOR into DOXM data, and determines if a read-only
+ *  Property was parsed in the CBOR payload.
+ *
+ * @param[in] cborPayload The doxm data in cbor format.
+ * @param[in] size Size of the cborPayload. In case 0 is provided it assigns CBOR_SIZE (255) value.
+ * @param[out] doxm Pointer to @ref OicSecDoxm_t.
+ * @param[out] roParsed Ptr to bool marked "true" iff a read-only Property is parsed
+ * @param[in] stateForReadOnlyCheck The state to use when determining if a Property is
+ *                              read-only.
+ *
+ * @return ::OC_STACK_OK for Success, otherwise some error value.
+*/
 static OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t size,
                                 OicSecDoxm_t **secDoxm, bool *roParsed,
                                 OicSecDeviceOnboardingState_t stateForReadOnlyCheck)
 {
-    if (NULL == cborPayload || NULL == secDoxm || NULL != *secDoxm || 0 == size)
+    if (NULL == cborPayload)
     {
+	OIC_LOG_V(ERROR, TAG, "%s: cborPayload is NULL", __func__);
+        return OC_STACK_INVALID_PARAM;
+    }
+    if (NULL == secDoxm) {
+	OIC_LOG_V(ERROR, TAG, "%s: secDoxm is NULL", __func__);
+        return OC_STACK_INVALID_PARAM;
+    }
+    if (NULL != *secDoxm) {
+	OIC_LOG_V(ERROR, TAG, "%s: *secDoxm != NULL", __func__);
+        return OC_STACK_INVALID_PARAM;
+    }
+    if (0 == size) {
+	OIC_LOG_V(ERROR, TAG, "%s: size == 0", __func__);
         return OC_STACK_INVALID_PARAM;
     }
 
@@ -853,6 +856,13 @@ exit:
         ret = OC_STACK_ERROR;
     }
     return ret;
+}
+
+OCStackResult CBORPayloadToDoxm(const uint8_t *cborPayload, size_t size,
+                                OicSecDoxm_t **secDoxm)
+EXPORT
+{
+    return CBORPayloadToDoxmBin(cborPayload, size, secDoxm, NULL, DOS_RESET);
 }
 
 /**
