@@ -1,30 +1,32 @@
+= ocf Xinspector
 
-Initial screen:
-
-
+[source,sh]
+----
 Discover View Ownership Provisioning                         Help           Exit
+
 ├─────────┐
 │Platforms│
 │Devices  │
 │Resources│
 └─────────┘
+----
 
 
 Select Resources and hit enter:
 
+[source,sh]
+----
 
-┌───────────────────────────────────────────────────────┐                     ┌───────────────────────────────────────────────────────┐
-│              Outbound Request Messages                │                     │              Inbound Response Messages                │
-│GET <multicast>    <== selected by default             │                     │fe80::acae:3ea4:1b96:fc9d%wlan0:38873/oic/res          │
-│                                                       │                     │                                                       │
-│                                                       │                     │                                                       │
-...
-│                                                       │                     │                                                       │
-│                                                       │                     │                                                       │
-└───────────────────────────────────────────────────────┘                     └───────────────────────────────────────────────────────┘
+┌───────────────────────────────────┐ ┌───────────────────────────────┐
+│     Outbound Request Messages     │ │  Inbound Response Messages    │
+│GET <multicast>    <== selected by default             │ │fe80::acae:3ea4:1b96:fc9d%wlan0:38873/oic/res          │
+│                                                       │ │                                                       │
+└───────────────────────────────────────────────────────┘ └───────────────────────────────────────────────────────┘
                               ┌────────────────────────────────────────────────────────────────────────────────┐
                               │GET <multicast>                                                                 │
                               └────────────────────────────────────────────────────────────────────────────────┘
+----
+
 
 Tab to the inbound response messages, select a message, hit enter:
 
@@ -50,7 +52,9 @@ Tab to the inbound response messages, select a message, hit enter:
 
 Select Browse Payload, hit enter, and you get a view of the log file in which the payload has been dumped:
 
-┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+[source,]
+----
+┌────────────────────────────────────────────────────────────────────────────────────┐
 │1/246  0%                                       Filename:logs/client/msg_0x7f9f340008c0.txt                                                │
 │{
 │        "href": "oic/res",                                                                                                                 │
@@ -91,8 +95,9 @@ Select Browse Payload, hit enter, and you get a view of the log file in which th
 │                        "href": "/oic/sec/pstat",                                                                                          │
 ... (scoll) ...
 ├───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│                                          <OK>                                          <Cancel>                                           │
-└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+│                                          <OK>                                          <Cancel>                                           │└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+----
 
 Cancel/ESC back out to the menu and view the discovered resources:
 
