@@ -5,3 +5,19 @@
 https://www.npmjs.com/package/edn-to-json[edn-to-json]
 
 https://stedolan.github.io/jq/[jq]  a lightweight and flexible command-line JSON processor.
+
+Example:
+
+[source,sh]
+----
+~/openocf $ edn-to-json tools/browser/server/server.edn > tools/browser/server/server.json
+----
+
+== cbor
+
+[source,sh]
+----
+~/openocf $ bazel build tools/cbor:json2cbor
+~/openocf $ cp bazel-bin/tools/cbor/json2cbor $HOME/bin
+~/openocf $ json2cbor tools/browser/server/server.json tools/browser/server/server.cbor
+----
