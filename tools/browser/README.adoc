@@ -136,6 +136,9 @@ You'll see the list of links:
 
 Select a resource link and hit enter:
 
+[source,sh]
+----
+
 ┌───────────────────────────────────────────────────────────────────┐
 │                     Coresource Link Inspector                     │
 │ anchor: ocf://b813de3f-f954-305d-13d5-d13c64c3fe3f                │
@@ -156,6 +159,7 @@ Select a resource link and hit enter:
 ├───────────────────────────────────────────────────────────────────┤
 │                Retrieve Update Delete Dismiss Help                │
 └───────────────────────────────────────────────────────────────────┘
+----
 
 Select Retrieve, hit enter:
 
