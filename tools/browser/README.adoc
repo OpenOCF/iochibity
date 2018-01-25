@@ -1,4 +1,5 @@
-= ocf Xinspector
+= ocf inspector
+
 
 [source,sh]
 ----
