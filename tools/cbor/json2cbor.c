@@ -140,12 +140,13 @@ exit:
 static OCStackResult WriteBufferToFile(const char *fileName, uint8_t *buffer, size_t size)
 {
     OCStackResult ret = OC_STACK_ERROR;
-    if ((fileName == NULL) || (buffer == NULL) || (size == 0))
+    if (/* (fileName == NULL) ||  */(buffer == NULL) || (size == 0))
     {
         OIC_LOG(ERROR, TAG, "Invalid Parameters to WriteBufferToFile");
         return OC_STACK_ERROR;
     }
-    FILE *fp = fopen(fileName, "wb");
+    /* FILE *fp = fopen(fileName, "wb"); */
+    FILE *fp = fdopen(dup(fileno(stdout)), "wb");
     if (fp)
     {
         size_t bytesWritten = fwrite(buffer, 1, size, fp);
@@ -167,6 +168,7 @@ static OCStackResult WriteBufferToFile(const char *fileName, uint8_t *buffer, si
     }
     else
     {
+	printf("ERROR opening stdout");
         OIC_LOG_V(ERROR, TAG, "Error opening file [%s] for Write", fileName);
     }
     return ret;
@@ -327,7 +329,7 @@ static OCStackResult ConvertOCJSONStringToCBORFile(const char *jsonStr, const ch
     jsonRoot = cJSON_Parse(jsonStr);
     cJSON *value = cJSON_GetObjectItem(jsonRoot, OIC_JSON_ACL_NAME);
     char *text = cJSON_PrintUnformatted(value);
-    printf("/acl json : \n%s\n", text);
+    /* printf("/acl json : \n%s\n", text); */
     OICFree(text);
     size_t aclCborSize = 0;
     if (value)
@@ -342,17 +344,17 @@ static OCStackResult ConvertOCJSONStringToCBORFile(const char *jsonStr, const ch
             DeleteACLList(acl);
             goto exit;
         }
-        printf("ACL Cbor Size: %" PRIuPTR "\n", aclCborSize);
+        /* printf("ACL Cbor Size: %" PRIuPTR "\n", aclCborSize); */
         DeleteACLList(acl);
     }
     else
     {
-        printf("JSON contains no /acl\n");
+        /* printf("JSON contains no /acl\n"); */
     }
 
     value = cJSON_GetObjectItem(jsonRoot, OIC_JSON_PSTAT_NAME);
     text = cJSON_PrintUnformatted(value);
-    printf("/pstat json : \n%s\n", text);
+    /* printf("/pstat json : \n%s\n", text); */
     OICFree(text);
     size_t pstatCborSize = 0;
     if (NULL != value)
@@ -366,17 +368,17 @@ static OCStackResult ConvertOCJSONStringToCBORFile(const char *jsonStr, const ch
             DeletePstatBinData(pstat);
             goto exit;
         }
-        printf("PSTAT Cbor Size: %" PRIuPTR "\n", pstatCborSize);
+        /* printf("PSTAT Cbor Size: %" PRIuPTR "\n", pstatCborSize); */
         DeletePstatBinData(pstat);
     }
     else
     {
-        printf("JSON contains no /pstat\n");
+        /* printf("JSON contains no /pstat\n"); */
     }
 
     value = cJSON_GetObjectItem(jsonRoot, OIC_JSON_DOXM_NAME);
     text = cJSON_PrintUnformatted(value);
-    printf("/doxm json : \n%s\n", text);
+    /* printf("/doxm json : \n%s\n", text); */
     OICFree(text);
     size_t doxmCborSize = 0;
     if (NULL != value)
@@ -390,16 +392,16 @@ static OCStackResult ConvertOCJSONStringToCBORFile(const char *jsonStr, const ch
             DeleteDoxmBinData(doxm);
             goto exit;
         }
-        printf("DOXM Cbor Size: %" PRIuPTR "\n", doxmCborSize);
+        /* printf("DOXM Cbor Size: %" PRIuPTR "\n", doxmCborSize); */
         DeleteDoxmBinData(doxm);
     }
     else
     {
-        printf("JSON contains no /doxm\n");
+        /* printf("JSON contains no /doxm\n"); */
     }
 
     value = cJSON_GetObjectItem(jsonRoot, OIC_JSON_AMACL_NAME);
-    printf("/amacl json : \n%s\n", cJSON_PrintUnformatted(value));
+    /* printf("/amacl json : \n%s\n", cJSON_PrintUnformatted(value)); */
     size_t amaclCborSize = 0;
     if (NULL != value)
     {
@@ -412,16 +414,16 @@ static OCStackResult ConvertOCJSONStringToCBORFile(const char *jsonStr, const ch
             DeleteAmaclList(amacl);
             goto exit;
         }
-        printf("AMACL Cbor Size: %" PRIuPTR "\n", amaclCborSize);
+        /* printf("AMACL Cbor Size: %" PRIuPTR "\n", amaclCborSize); */
         DeleteAmaclList(amacl);
     }
     else
     {
-        printf("JSON contains no /amacl\n");
+        /* printf("JSON contains no /amacl\n"); */
     }
 
     value = cJSON_GetObjectItem(jsonRoot, OIC_JSON_CRED_NAME);
-    printf("/cred json : \n%s\n", cJSON_PrintUnformatted(value));
+    /* printf("/cred json : \n%s\n", cJSON_PrintUnformatted(value)); */
     size_t credCborSize = 0;
     int secureFlag = 0;
     if (NULL != value)
@@ -442,12 +444,12 @@ static OCStackResult ConvertOCJSONStringToCBORFile(const char *jsonStr, const ch
             DeleteCredList(cred);
             goto exit;
         }
-        printf("CRED Cbor Size: %" PRIuPTR "\n", credCborSize);
+        /* printf("CRED Cbor Size: %" PRIuPTR "\n", credCborSize); */
         DeleteCredList(cred);
     }
     else
     {
-        printf("JSON contains no /cred\n");
+        /* printf("JSON contains no /cred\n"); */
     }
 
     value = cJSON_GetObjectItem(jsonRoot, OC_JSON_DEVICE_PROPS_NAME);
@@ -462,18 +464,18 @@ static OCStackResult ConvertOCJSONStringToCBORFile(const char *jsonStr, const ch
             OIC_LOG(ERROR, TAG, "Failed converting OCDeviceProperties to Cbor Payload");
             goto exit;
         }
-        printf("Device Properties Cbor Size: %" PRIuPTR "\n", dpCborSize);
+        /* printf("Device Properties Cbor Size: %" PRIuPTR "\n", dpCborSize); */
     }
     else
     {
-        printf("JSON contains no deviceProps\n");
+        /* printf("JSON contains no deviceProps\n"); */
     }
 
     CborEncoder encoder;
     size_t cborSize = aclCborSize + pstatCborSize + doxmCborSize + credCborSize + amaclCborSize +
                       dpCborSize;
 
-    printf("Total Cbor Size : %" PRIuPTR "\n", cborSize);
+    /* printf("Total Cbor Size : %" PRIuPTR "\n", cborSize); */
     cborSize += 255; // buffer margin for adding map and byte string
     outPayload = (uint8_t *)OICCalloc(1, cborSize);
     VERIFY_NOT_NULL(TAG, outPayload, ERROR);
@@ -574,14 +576,14 @@ LOCAL OicSecAcl_t *JSONToAclBin(OicSecAclVersion_t *aclVersion, const char *json
     jsonAclObj = cJSON_GetObjectItem(jsonAclMap, OIC_JSON_ACLIST_NAME);
     if (jsonAclObj)
     {
-        printf("Found 'aclist' tag... resource is oic.r.acl type.\n");
+        /* printf("Found 'aclist' tag... resource is oic.r.acl type.\n"); */
         *aclVersion = OIC_SEC_ACL_V1;
     }
     else
     {
         jsonAclObj = cJSON_GetObjectItem(jsonAclMap, OIC_JSON_ACLIST2_NAME);
         VERIFY_NOT_NULL(TAG, jsonAclObj, ERROR);
-        printf("Found 'aclist2' tag... resource is oic.r.acl2 type.\n");
+        /* printf("Found 'aclist2' tag... resource is oic.r.acl2 type.\n"); */
         *aclVersion = OIC_SEC_ACL_V2;
     }
     VERIFY_NOT_NULL(TAG, jsonAclObj, ERROR);
@@ -907,13 +909,13 @@ exit:
         DeleteACLList(headAcl);
         headAcl = NULL;
     }
-    printf("OUT %s: %s\n", __func__, (headAcl != NULL) ? "success" : "failure");
+    /* printf("OUT %s: %s\n", __func__, (headAcl != NULL) ? "success" : "failure"); */
     return headAcl;
 }
 
 LOCAL OicSecDoxm_t *JSONToDoxmBin(const char *jsonStr)
 {
-    printf("IN JSONToDoxmBin\n");
+    /* printf("IN JSONToDoxmBin\n"); */
     if (NULL == jsonStr)
     {
         return NULL;
@@ -1052,7 +1054,7 @@ exit:
         DeleteDoxmBinData(doxm);
         doxm = NULL;
     }
-    printf("OUT %s: %s\n", __func__, (doxm != NULL) ? "success" : "failure");
+    /* printf("OUT %s: %s\n", __func__, (doxm != NULL) ? "success" : "failure"); */
     return doxm;
 }
 
@@ -1146,7 +1148,7 @@ exit:
         DeletePstatBinData(pstat);
         pstat = NULL;
     }
-    printf("OUT %s: %s\n", __func__, (pstat != NULL) ? "success" : "failure");
+    /* printf("OUT %s: %s\n", __func__, (pstat != NULL) ? "success" : "failure"); */
     return pstat;
 }
 
@@ -1553,16 +1555,16 @@ int main(int argc, char *argv[])
     }
 
     OCStackResult status = OC_STACK_ERROR;
-    if (argc == 3)
+    if (argc == 2)
     {
-        printf("JSON File Name: %s\n CBOR File Name: %s \n", argv[1], argv[2]);
+        /* printf("JSON File Name: %s\n CBOR File Name: %s \n", argv[1], argv[2]); */
         status = ConvertJSONFileToCBORFile(argv[1], argv[2]);
     }
     else
     {
-        printf("This program requires two inputs:\n");
+        printf("This program requires one input:\n");
         printf("1. First input is a json file that will be converted to cbor. \n");
-        printf("2. Second input is a resulting cbor file that will store converted cbor. \n");
+        printf("Output will be written to stdout\n");
         printf("Usage: json2cbor <json_file_name> <cbor_file_name>\n");
     }
     fclose(logfd);
