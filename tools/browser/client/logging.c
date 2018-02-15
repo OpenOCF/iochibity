@@ -4,7 +4,6 @@
 #include "cJSON.h"
 #include "coap/pdu.h"
 
-
 static void log_msg(const char *format, ...)
 {
     va_list args;
@@ -139,8 +138,8 @@ int decode_resource(int index, char *ptrs[], char *buffer, int *count)
 
 	OCEndpointPayload *endpoint = resource->eps;
 	while(endpoint) {
-	    OIC_LOG_V(DEBUG, TAG, "ENDPOINT RAW ADDR: %s", endpoint->addr);
-	    /* OIC_LOG_V(DEBUG, TAG, "ENDPOINT FAMILY: 0x%X", endpoint->family); */
+	    OIC_LOG_V(DEBUG, TAG, "ENDPOINT RAW ADDR: %s:%d", endpoint->addr, endpoint->port);
+	    OIC_LOG_V(DEBUG, TAG, "ENDPOINT FAMILY: 0x%X", endpoint->family);
 	    int eplen = strlen(endpoint->tps)
 		+ 3		/* :// */
 		+ strlen(endpoint->addr)
@@ -148,10 +147,11 @@ int decode_resource(int index, char *ptrs[], char *buffer, int *count)
 		+ 10				/* "pri: %d" */
 		+ 1; 		/* : */
 	    char *epstring = malloc(eplen + 6); /* largest val for port is 5 chars (uint16) */
-	    if (endpoint->family == OC_IP_USE_V6) { /* (1 << 5) */
+	    if (endpoint->family & OC_IP_USE_V6) { /* (1 << 5) */
 		snprintf(buffer, eplen + 6, "\t%s://[%s]:%d pri: %d",
 			 endpoint->tps, endpoint->addr, endpoint->port, endpoint->pri);
-	    } else {
+	    } else if (endpoint->family & OC_IP_USE_V4) { /* (1 << 5) */
+
 		snprintf(buffer, eplen + 6, "\t%s://%s:%d pri: %d",
 			 endpoint->tps, endpoint->addr, endpoint->port, endpoint->pri);
 	    }
@@ -294,6 +294,57 @@ static cJSON* discovery_to_json(OCClientResponse *msg)
     cJSON_AddItemToObject(root, "links", links);
 
     return root;
+}
+
+static cJSON* representation_to_json(OCClientResponse *msg)
+{
+    OCRepPayload *payload = (OCRepPayload*)msg->payload;
+    cJSON *root;
+    root = cJSON_CreateObject();
+    if (payload->uri) {
+	cJSON_AddItemToObject(root, "href", cJSON_CreateString(payload->uri));
+    }
+    const char *ts[10];
+    int i = 0;
+    OCStringLL *types = payload->types;
+    while (types) {
+	/* OIC_LOG_V(INFO, TAG, "rtype: %s", types->value); */
+	ts[i] = types->value;
+	//ts++;
+	i++;
+	types = types->next;
+    }
+    cJSON_AddItemToObject(root, "rt", cJSON_CreateStringArray(ts, i));
+
+    const char *ifaces[10];
+    OCStringLL *ifs = payload->interfaces;
+    i = 0;
+    while (ifs) {
+	/* OIC_LOG_V(INFO, TAG, "iface: %s", ifs->value); */
+	ifaces[i] = ifs->value;
+	//ts++;
+	i++;
+	ifs = ifs->next;
+    }
+    cJSON_AddItemToObject(root, "if", cJSON_CreateStringArray(ifaces, i));
+    return root;
+}
+
+void log_representation_msg(OCClientResponse *clientResponse)
+{
+    cJSON *representation_json = representation_to_json(clientResponse);
+    char* rendered = cJSON_Print(representation_json);
+
+    char fname[256];
+    sprintf(fname, "./logs/client/rep_%p.txt", clientResponse);
+    OIC_LOG_V(INFO, TAG, "representation json filename: %s", fname);
+    FILE *fd = fopen(fname, "w");
+    if (fd == NULL) {
+        OIC_LOG_V(INFO, TAG, "fopen %s err: %s", fname, strerror(errno));
+	exit(EXIT_FAILURE);
+    }
+    fprintf(fd, "%s", rendered);
+    fclose(fd);
 }
 
 static void log_header_options (OCClientResponse *clientResponse)
@@ -664,13 +715,13 @@ static void log_discovery_message(OCClientResponse *clientResponse)
     free(rendered);
 }
 
-void log_discovery_msg(OCClientResponse *clientResponse)
+void log_discovery_payload(OCClientResponse *clientResponse)
 {
     cJSON *discovery_json = discovery_to_json(clientResponse);
     char* rendered = cJSON_Print(discovery_json);
 
     char fname[256];
-    sprintf(fname, "./logs/client/msg_%p.txt", clientResponse);
+    sprintf(fname, "./logs/client/disc_%p.txt", clientResponse);
     OIC_LOG_V(INFO, TAG, "json filename: %s", fname);
     FILE *fd = fopen(fname, "w");
     if (fd == NULL) {

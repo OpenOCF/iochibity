@@ -29,8 +29,9 @@
 
 // This is a function called back when resources are discovered
 static OCStackApplicationResult resource_discovery_cb(void* ctx,
-						  OCDoHandle handle,
-						  OCClientResponse * clientResponse) {
+						      OCDoHandle handle,
+						      OCClientResponse * clientResponse)
+{
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self());
 
     int rc;
@@ -43,7 +44,7 @@ static OCStackApplicationResult resource_discovery_cb(void* ctx,
     unsigned long val;
     OCClientResponse *msg;
 
-    log_discovery_msg(clientResponse);
+    log_discovery_payload(clientResponse);
 
     /* notify display mgr */
     rc = sem_wait(inbound_msg_log_ready_semaphore);

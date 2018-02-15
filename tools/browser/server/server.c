@@ -61,14 +61,33 @@ void handleSigInt(int signum) {
 
 FILE *logfd;
 
+static char SVR_CONFIG_FILE[] = "tmp/server_config.cbor";
+
+/* local fopen for svr database overrides default filename */
+FILE* server_fopen(const char *path, const char *mode)
+{
+    if (0 == strcmp(path, SVR_DB_DAT_FILE_NAME)) /* "oic_svr_db.dat" */
+    {
+        return fopen(SVR_CONFIG_FILE, mode);
+    }
+    else
+    {
+        return fopen(path, mode);
+    }
+}
+
 int main() {
     /* logfd = fopen("./logs/server.log", "w"); */
     /* if (logfd) */
-    	OCLogInit(NULL);
+    	OCLogInit(NULL);	/* log to stdout */
     /* else { */
     /* 	printf("fopen failed on ./logs/server.log\n"); */
     /* 	exit(EXIT_FAILURE); */
     /* } */
+
+    // Step one: initialize Persistent Storage for SVR database
+    OCPersistentStorage ps = { server_fopen, fread, fwrite, fclose, unlink };
+    OCRegisterPersistentStorageHandler(&ps);
 
     OIC_LOG_V(INFO, TAG, "Starting ocserver");
     if (OCInit(NULL, 0, OC_SERVER) != OC_STACK_OK) {
@@ -112,10 +131,12 @@ OCStackResult createLightResource() {
     OCStackResult res = OCCreateResource(&Light.handle,
 					 "core.light",
 					 "core.rw",
-					 "/a/light",
+					 "/a/led",
 					 0,
 					 NULL,
-					 OC_SECURE | OC_NONSECURE | /* Transport-level security */
-					 OC_DISCOVERABLE|OC_OBSERVABLE);
+					 OC_SECURE | /* Transport-level security */
+					 OC_NONSECURE |
+					 OC_DISCOVERABLE |
+					 OC_OBSERVABLE);
     return res;
 }

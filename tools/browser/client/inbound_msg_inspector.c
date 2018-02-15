@@ -13,98 +13,134 @@ static int msg_count;
 static char temp[100];
 static int selection;
 
+/* TODO: abstract; same code appears in svrs_codec.c */
+char *get_payload_label(OCClientResponse *msg, char *label)
+{
+    switch(msg->payload->type) {
+    case PAYLOAD_TYPE_DISCOVERY:
+	sprintf(label, "%s", "disc");
+	break;
+    case PAYLOAD_TYPE_REPRESENTATION:
+	sprintf(label, "%s", "rep");
+	break;
+    case PAYLOAD_TYPE_SECURITY:
+        if (starts_with("/oic/sec/doxm", msg->resourceUri)) {
+	    sprintf(label, "%s", "doxm");
+	} else if (starts_with("/oic/sec/cred", msg->resourceUri)) {
+	    sprintf(label, "%s", "cred");
+	} else if (starts_with("/oic/sec/pstat", msg->resourceUri)) {
+	    sprintf(label, "%s", "pstat");
+	} else if (starts_with("/oic/sec/acl2", msg->resourceUri)) {
+	    sprintf(label, "%s", "acl2");
+	} else if (starts_with("/oic/sec/crl", msg->resourceUri)) {
+	    sprintf(label, "%s", "crl");
+	} else if (starts_with("/oic/sec/csr", msg->resourceUri)) {
+	    sprintf(label, "%s", "csr");
+	} else if (starts_with("/oic/sec/roles", msg->resourceUri)) {
+	    sprintf(label, "%s", "roles");
+	} else {
+	    /* unknown svr */
+	    sprintf(label, "%s", "unknown");
+	}
+	break;
+    }
+}
+
 void browse_payload_json(OCClientResponse *msg)
 {
-   CDKVIEWER *json_viewer   = 0;
-   const char *button[5];
+    CDKVIEWER *json_viewer   = 0;
+    const char *button[5];
 
-   int selected, lines;
-   char **info          = 0;
-   char vTitle[256];
-   int interp_it;		/* interpret embedded markup */
-   int link_it;			/* load file via embedded link */
+    int selected, lines;
+    char **info          = 0;
+    char vTitle[256];
+    int interp_it;		/* interpret embedded markup */
+    int link_it;			/* load file via embedded link */
+
+    char *payload_type[12];
+    get_payload_label(msg, payload_type);
 
     char filename[256];
-    sprintf(filename, "logs/client/msg_%p.txt", msg);
+    sprintf(filename, "logs/client/%s_%p.txt", payload_type, msg);
     OIC_LOG_V(INFO, TAG, "BROWSING %s", filename);
 
-   /* Create the viewer buttons. */
-   button[0] = "</5><OK><!5>";
-   button[1] = "</5><Cancel><!5>";
+    /* Create the viewer buttons. */
+    button[0] = "</5><OK><!5>";
+    button[1] = "</5><Cancel><!5>";
 
-   /* Create the file viewer to view the file selected. */
-   json_viewer = newCDKViewer (cdkscreen,
-			   CENTER,
-			   CENTER,
-			   00,
-			   -2,
-			   (CDK_CSTRING2)button, 2, A_REVERSE,
-			   TRUE,
-			   FALSE);
+    /* Create the file viewer to view the file selected. */
+    json_viewer = newCDKViewer (cdkscreen,
+				CENTER,
+				CENTER,
+				00,
+				-2,
+				(CDK_CSTRING2)button, 2, A_REVERSE,
+				TRUE,
+				FALSE);
 
-   /* Could we create the viewer widget? */
-   if (json_viewer == 0)
-   {
-      /* Exit CDK. */
-      /* destroyCDKFselect (fSelect);
-       * destroyCDKScreen (cdkscreen); */
-      /* endCDK (); */
+    /* Could we create the viewer widget? */
+    if (json_viewer == 0)
+	{
+	    /* Exit CDK. */
+	    /* destroyCDKFselect (fSelect);
+	     * destroyCDKScreen (cdkscreen); */
+	    /* endCDK (); */
 
-       OIC_LOG_V(FATAL, TAG, "Cannot create viewer. Is the window too small?\n");
-      ExitProgram (EXIT_FAILURE);
-   }
+	    OIC_LOG_V(FATAL, TAG, "Cannot create viewer. Is the window too small?\n");
+	    ExitProgram (EXIT_FAILURE);
+	}
 
-   /* if (link_it)
-    * {
-    *    info = (char **)calloc (2, sizeof (char *));
-    *    info[0] = (char *)malloc (5 + strlen (filename));
-    *    sprintf (info[0], "<F=%s>", filename);
-    *    lines = -1;
-    *    interp_it = TRUE;
-    * }
-    * else
-    * { */
-      setCDKViewer (json_viewer, "reading...", 0, 0, A_REVERSE, TRUE, TRUE, TRUE);
-      /* Open the file and read the contents. */
-      lines = CDKreadFile (filename, &info);
-      if (lines == -1)
-      {
-	 endCDK ();
-	 printf ("Could not open \"%s\"\n", filename);
-	 ExitProgram (EXIT_FAILURE);
-      }
-   /* } */
+    /* if (link_it)
+     * {
+     *    info = (char **)calloc (2, sizeof (char *));
+     *    info[0] = (char *)malloc (5 + strlen (filename));
+     *    sprintf (info[0], "<F=%s>", filename);
+     *    lines = -1;
+     *    interp_it = TRUE;
+     * }
+     * else
+     * { */
+    setCDKViewer (json_viewer, "reading...", 0, 0, A_REVERSE, TRUE, TRUE, TRUE);
+    /* Open the file and read the contents. */
+    lines = CDKreadFile (filename, &info);
+    if (lines == -1)
+	{
+	    endCDK ();
+	    printf ("Could not open \"%s\"\n", filename);
+	    ExitProgram (EXIT_FAILURE);
+	}
+    /* } */
 
-   /* Set up the viewer title, and the contents to the widget. */
-   sprintf (vTitle, "<C></B/21>Filename:<!21></22>%20s<!22!B>", filename);
-   setCDKViewer (json_viewer, vTitle,
-		 (CDK_CSTRING2)info, lines,
-		 A_REVERSE, interp_it, TRUE, TRUE);
+    /* Set up the viewer title, and the contents to the widget. */
+    sprintf (vTitle, "<C></B/21>Filename:<!21></22>%20s<!22!B>", filename);
+    setCDKViewer (json_viewer, vTitle,
+		  (CDK_CSTRING2)info, lines,
+		  A_REVERSE, interp_it, TRUE, TRUE);
 
-   CDKfreeStrings (info);
+    CDKfreeStrings (info);
 
-   /* Activate the viewer widget. */
-   selected = activateCDKViewer (json_viewer, 0);
+    /* Activate the viewer widget. */
+    selected = activateCDKViewer (json_viewer, 0);
 
-   /* /\* Check how the person exited from the widget. *\/
-    * if (json_viewer->exitType == vESCAPE_HIT)
-    * {
-    *    mesg[0] = "<C>Escape hit. No Button selected.";
-    *    mesg[1] = "";
-    *    mesg[2] = "<C>Press any key to continue.";
-    *    popupLabel (cdkscreen, (CDK_CSTRING2)mesg, 3);
-    * }
-    * else if (json_viewer->exitType == vNORMAL)
-    * {
-    *    sprintf (temp, "<C>You selected button %d", selected);
-    *    mesg[0] = temp;
-    *    mesg[1] = "";
-    *    mesg[2] = "<C>Press any key to continue.";
-    *    popupLabel (cdkscreen, (CDK_CSTRING2)mesg, 3);
-    * } */
+    /* /\* Check how the person exited from the widget. *\/
+     * if (json_viewer->exitType == vESCAPE_HIT)
+     * {
+     *    mesg[0] = "<C>Escape hit. No Button selected.";
+     *    mesg[1] = "";
+     *    mesg[2] = "<C>Press any key to continue.";
+     *    popupLabel (cdkscreen, (CDK_CSTRING2)mesg, 3);
+     * }
+     * else if (json_viewer->exitType == vNORMAL)
+     * {
+     *    sprintf (temp, "<C>You selected button %d", selected);
+     *    mesg[0] = temp;
+     *    mesg[1] = "";
+     *    mesg[2] = "<C>Press any key to continue.";
+     *    popupLabel (cdkscreen, (CDK_CSTRING2)mesg, 3);
+     * } */
 
-   /* Clean up. */
-   destroyCDKViewer (json_viewer);
+    /* Clean up. */
+    destroyCDKViewer (json_viewer);
 }
 
 static construct_msg(OCClientResponse *msg)
@@ -140,8 +176,8 @@ static construct_msg(OCClientResponse *msg)
 	sprintf(msg_str[i++], "IPv6 Scopes:    %s",
 		(OC_SCOPE_LINK & msg->devAddr.flags) ? /* 0x2 */
 		"Link-Local" : "FIXME"); /* FIXME */
-    /* if (OC_SCOPE_INTERFACE & clientResponse->devAddr.flags) /\* 0x1 *\/
-     * 	OIC_LOG_V(INFO, TAG, "\tInterface-Local"); */
+	/* if (OC_SCOPE_INTERFACE & clientResponse->devAddr.flags) /\* 0x1 *\/
+	 * 	OIC_LOG_V(INFO, TAG, "\tInterface-Local"); */
     }
 
     sprintf(msg_str[i++], "OC Security:    %d", (msg->devAddr.flags & OC_FLAG_SECURE));
@@ -201,17 +237,17 @@ static construct_msg(OCClientResponse *msg)
 		(msg->rcvdVendorSpecificHeaderOptions[j].optionData[0] * 0x0100
 		 + msg->rcvdVendorSpecificHeaderOptions[j].optionData[1]);
 	    sprintf(msg_str[i++], "    Content-Format (%d) = %s (%d)",
-	    /* OIC_LOG_V(INFO, TAG, "    Content-Format (%d) = %s (%d)", */
-		      option_id,
-		      /* option_len, */
-		      (COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR
-		      == content_format)? "application/vnd.ocf+cbor"
-		      : (COAP_MEDIATYPE_APPLICATION_CBOR
-			 == content_format_version)? "application/cbor"
-		      : (COAP_MEDIATYPE_APPLICATION_JSON
-			 == content_format_version)? "application/json"
-		      : "(UNKNOWN)",
-		       content_format);
+		    /* OIC_LOG_V(INFO, TAG, "    Content-Format (%d) = %s (%d)", */
+		    option_id,
+		    /* option_len, */
+		    (COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR
+		     == content_format)? "application/vnd.ocf+cbor"
+		    : (COAP_MEDIATYPE_APPLICATION_CBOR
+		       == content_format_version)? "application/cbor"
+		    : (COAP_MEDIATYPE_APPLICATION_JSON
+		       == content_format_version)? "application/json"
+		    : "(UNKNOWN)",
+		    content_format);
 	    break;
 	    /* duplicate of COAP_OPTION_CONTENT_FORMAT: COAP_OPTION_CONTENT_TYPE */
 
@@ -221,13 +257,13 @@ static construct_msg(OCClientResponse *msg)
 		(msg->rcvdVendorSpecificHeaderOptions[j].optionData[0] * 0x0100
 		 + msg->rcvdVendorSpecificHeaderOptions[j].optionData[1]);
 	    sprintf(msg_str[i++], "    OCF-Content_Version-Format (%d) = %s (%d)",
-	    /* OIC_LOG_V(INFO, TAG, "\t\t OCF-Content-Version-Format (%d) = %s (%d)", */
-	    	      option_id,
-	    	      /* option_len, */
-	    	      (OCF_VERSION_1_0_0 == content_format_version)? "OCF 1.0.0"
-	    	      : (OCF_VERSION_1_1_0 == content_format_version)? "OCF 1.1.0"
-	    	      : "(UNKNOWN)",
-	    	       content_format_version);
+		    /* OIC_LOG_V(INFO, TAG, "\t\t OCF-Content-Version-Format (%d) = %s (%d)", */
+		    option_id,
+		    /* option_len, */
+		    (OCF_VERSION_1_0_0 == content_format_version)? "OCF 1.0.0"
+		    : (OCF_VERSION_1_1_0 == content_format_version)? "OCF 1.1.0"
+		    : "(UNKNOWN)",
+		    content_format_version);
 	    break;
 	case  COAP_OPTION_IF_MATCH:
 	    /* opaque */
@@ -322,7 +358,7 @@ static construct_msg(OCClientResponse *msg)
 	    /* OIC_LOG_V(INFO, TAG, "\t\t Max-Opt (code %d)",
 	     * 	      option_id); */
 	    break;
-	/* default: */
+	    /* default: */
 	    /* OIC_LOG_V(INFO, TAG, "\t\t UNKOWN (code %d)",
 	     * 	      option_id); */
 	}
@@ -357,14 +393,14 @@ static void initialize()
     };
 
     inbound_msg_inspector = newCDKDialog (cdkscreen,
-			     CENTER,
-			     CENTER,
-			     (CDK_CSTRING2) msg_ptr, msg_count,
-			     (CDK_CSTRING2) buttons, 3,
-			     COLOR_PAIR (2) | A_REVERSE,
-			     TRUE,
-			     TRUE,
-			     FALSE);
+					  CENTER,
+					  CENTER,
+					  (CDK_CSTRING2) msg_ptr, msg_count,
+					  (CDK_CSTRING2) buttons, 3,
+					  COLOR_PAIR (2) | A_REVERSE,
+					  TRUE,
+					  TRUE,
+					  FALSE);
 
     /* Check if we got a null value back. */
     if (inbound_msg_inspector == 0)
@@ -419,9 +455,9 @@ int run_inbound_msg_inspector(CDKSCREEN *cdkscreen, int index)
 		sprintf (temp, "<C>You selected Browse");
 		browse_payload_json(msg);
 		break;
-	    /* case 1:
-	     * 	sprintf (temp, "<C>You selected Cancel");
-	     * 	break; */
+		/* case 1:
+		 * 	sprintf (temp, "<C>You selected Cancel");
+		 * 	break; */
 	    case 2:
 		sprintf (temp, "<C>You selected Help");
 		break;

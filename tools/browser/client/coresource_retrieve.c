@@ -220,6 +220,8 @@ int get_eps()
     if ( ocf_version == OCF_VERSION_1_0_0 || ocf_version == OCF_VERSION_1_1_0) {
     	OCEndpointPayload *endpoint = resource->eps;
     	while(endpoint) {
+	    OIC_LOG_V(DEBUG, TAG, "EP RAW ADDR: %s", endpoint->addr);
+	    OIC_LOG_V(DEBUG, TAG, "EP FAMILY: 0x%X", endpoint->family);
 	    eps[i] = endpoint;
     	    int eplen = strlen(endpoint->tps)
     		+ 3		/* :// */
@@ -306,7 +308,8 @@ static const char *oc_result_to_str(OCStackResult result)
     }
 }
 
-OCStackApplicationResult get_cb(void* ctx, OCDoHandle handle,
+OCStackApplicationResult get_cb(void* ctx,
+				OCDoHandle handle,
 				OCClientResponse * clientResponse)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -327,7 +330,6 @@ OCStackApplicationResult get_cb(void* ctx, OCDoHandle handle,
     }
 
     OIC_LOG_V(INFO, TAG, "SEQUENCE NUMBER: %d", clientResponse->sequenceNumber);
-    OIC_LOG_PAYLOAD(INFO, clientResponse->payload);
 
     if (clientResponse->numRcvdVendorSpecificHeaderOptions > 0)
     {
@@ -361,16 +363,35 @@ OCStackApplicationResult get_cb(void* ctx, OCDoHandle handle,
         }
     }
 
-    /* switch (TestCase) */
-    /* { */
-    /* case TEST_INTROSPECTION: */
-    /*     InitIntrospectionPayload(clientResponse); */
-    /*     break; */
-    /* default: */
-    /*     break; */
-    /* } */
+    OIC_LOG_PAYLOAD(INFO, clientResponse->payload);
+
+    switch (clientResponse->payload->type) {
+    case PAYLOAD_TYPE_REPRESENTATION:
+	log_representation_msg(clientResponse);
+	break;
+    case PAYLOAD_TYPE_SECURITY:
+	log_security_msg(clientResponse);
+	break;
+    default:
+	OIC_LOG_V(INFO, TAG, "UNEXPECTED PAYLOAD TYPE: %d", clientResponse->payload->type);
+    }
+
+    cosp_mgr_register_coresource(clientResponse);
+    inbound_msg_scroller_dirty = true;
+    coresource_scroller_dirty = true;
+    /* pthread_mutex_unlock(&dirty_mutex); */
+
+    errno = 0;
+    int rc = sem_post(inbound_msg_semaphore);
+    if (rc < 0) {
+	OIC_LOG_V(DEBUG, TAG, "sem_post(inbound_msg_semaphore) rc: %s", strerror(errno));
+    /* } else {
+     * 	OIC_LOG_V(DEBUG, TAG, "PRODUCER sem_post(inbound_msg_semaphore)"); */
+    }
+
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-    return OC_STACK_DELETE_TRANSACTION;
+    return OC_STACK_KEEP_TRANSACTION | OC_STACK_KEEP_RESPONSE;
+    /* return OC_STACK_DELETE_TRANSACTION; */
 }
 
 void send_get_msg ()
