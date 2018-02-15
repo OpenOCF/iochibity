@@ -35,12 +35,14 @@ cc_binary(
     # name = "libopenocf.dylib",
     name = "libopenocf.so",
     copts = ["-Ithird_party/coap",
-             "-Ithird_party/coap/include"
+             "-Iexternal/openocf/third_party/coap",
+             "-Ithird_party/coap/include",
+             "-Iexternal/openocf/third_party/coap/include"
     ] + select({":windows": [],
                     ":msvc": [],
                     ":msys": [],
                     ":darwin":["-std=c11", "-U DEBUG"],
-                    "//conditions:default": []}),
+                    "//conditions:default": ["-x c", "-std=c11"]}),
     deps = ["//src:config",
             # "//src/ocf:interface",
             # "//src/ocf:hdrs",
@@ -59,9 +61,11 @@ cc_binary(
 )
 
 cc_library(
-    name = "openocf",
+    name = "Xopenocf",
     copts = ["-Ithird_party/coap",
-             "-Ithird_party/coap/include"
+             "-Iexternal/openocf/third_party/coap",
+             "-Ithird_party/coap/include",
+             "-Iexternal/openocf/third_party/coap/include"
     ] + select({":windows": [],
                 ":msvc": [],
                 ":msys": [],
@@ -84,7 +88,7 @@ cc_library(
 
 cc_library(
     name = "ocf",
-    # alwayslink = True,
+    alwayslink = True,
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
              "-Isrc/portability",
@@ -110,28 +114,30 @@ cc_library(
              "-Isrc/util",
              "-Iexternal/openocf/src/util",
              "-Ithird_party/coap",
+             "-Iexternal/openocf/third_party/coap",
              "-Ithird_party/coap/include",
-             # "-Iexternal/openocf/third_party/coap/include",
+             "-Iexternal/openocf/third_party/coap/include",
              "-Ithird_party/tinycbor/src",
              "-Iexternal/openocf/third_party/tinycbor/src",
-             "-Ithird_party/utlist"
+             "-Ithird_party/utlist",
+             "-Iexternal/openocf/third_party/utlist"
     ] + select({":windows": [],
                 ":msvc": [],
                 ":msys": [],
                 "linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
                 ":darwin": ["-std=c11", "-U DEBUG"],
-                "//conditions:default": []}),
+                "//conditions:default": ["-x c", "-std=c11"]}),
     deps = ["//src:config",
+            "//src/comm",       # connectivity
             "//src/logger",
             "//src/portability",
+            "//src/provisioning",
+            "//src/routing",
             "//src/sec",
             "//src/util",       # c_common
             "//third_party/coap",
             "//third_party/tinycbor",
             "//third_party/cjson",
-            "//src/routing",
-            "//src/comm",       # connectivity
-            "//src/provisioning",
 	    "//third_party/utlist"]
     + select({":client_role": ["//src/ocf/ocf_services_client"],
               "//conditions:default": []}),

@@ -19,11 +19,13 @@ cc_library(
              "-Ithird_party/tinycbor/src",
              "-Iexternal/openocf/third_party/tinycbor/src",
              "-Ithird_party/coap",
-             "-Ithird_party/coap/include",
              "-Iexternal/openocf/third_party/coap",
+             "-Ithird_party/coap/include",
              "-Iexternal/openocf/third_party/coap/include",
              "-Ithird_party/utlist",
-             "-Ithird_party/sqlite3"
+             "-Iexternal/openocf/third_party/utlist",
+             "-Ithird_party/sqlite3",
+             "-Iexternal/openocf/third_party/sqlite3"
     ] + select({":windows": [],
               ":msvc": [],
               ":msys": [],

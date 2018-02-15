@@ -1,3 +1,20 @@
+bind(name = "android/crosstool", actual = "@android_ndk//:toolchain-libcpp")
+
+android_sdk_repository(
+    name="androidsdk",
+    path="/Users/gar/android/sdk",
+    api_level=26,	   # Oreo, 8.0.0, required for java.nio.file.*
+    # default uses latest build tools installed
+    # build_tools_version="27.0.3"
+)
+
+android_ndk_repository(
+    name="androidndk",
+    path="/Users/gar/android/android-ndk-r14b",
+    #path="/Users/gar/android/sdk/ndk-bundle/",
+    api_level=26,
+)
+
 ## toolchain repos
 new_local_repository(
   name = "toolchain_mingw64",
@@ -7,7 +24,7 @@ new_local_repository(
 
 new_local_repository(
   name = "toolchain_ndk",
-  path = "/Users/gar/android/android-ndk-r14b",
+  path="/Users/gar/android/sdk/ndk-bundle/",
   build_file = 'platforms/ndk/toolchain.BUILD',
 )
 
@@ -74,6 +91,6 @@ android_sdk_repository(
 
 android_ndk_repository(
     name="androidndk",
-    path="/Users/gar/android/android-ndk-r14b",
+    path="/Users/gar/android/sdk/ndk-bundle/",
     api_level=23,
 )

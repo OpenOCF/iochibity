@@ -36,6 +36,13 @@ load("//tools/makeheaders:makeheaders.bzl", "prep_headers", "make_headers")
 #   srcs = glob(["src/**/*.c"]),
 # )
 
+# genrule(
+#     name = "headers",
+#     srcs = ["mkhdrs.dat"],
+#     outs = ["foo.h"],
+#     cmd = "makeheaders -f mkhdrs.dat",
+# )
+
 prep_headers(
     name = "mkhdrs",
     # out = "foo.dat",
@@ -44,10 +51,10 @@ prep_headers(
             # "//tools/makeheaders"]
 )
 
-make_headers(
-    name = "headers",
-    deps = [":mkhdrs"]
-)
+# make_headers(
+#     name = "headers",
+#     deps = [":mkhdrs"]
+# )
 
 cc_binary(
     name = "libopenocf.so",

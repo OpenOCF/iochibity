@@ -32,6 +32,21 @@ config_setting(
      "crosstool_top": "//platforms/rpi3b:toolchain" }
 )
 
+genrule(
+    name = "json",
+    srcs = ["client_owner_config.edn"],
+    outs = ["client_config.json"],
+    cmd = "edn-to-json $(location client_owner_config.edn)  > \"$@\"",
+)
+
+genrule(
+    name = "config",
+    srcs = [":json"],
+    outs = ["client_config.cbor"],
+    cmd = "json2cbor $(location :json) > \"$@\"",
+    # tools = ["edn-to-json"],
+)
+
 cc_binary(
     name = "client",
     copts = ["-Isrc",
@@ -66,6 +81,7 @@ cc_binary(
                                        "-Iexternal/usr_local/include/cdk",
                                        "-std=c11",
                                        "-U DEBUG"]}), # OS X
+    data = [":config"],
     deps = ["//src:config",
             "//include",
             "//src/ocf",
@@ -109,6 +125,10 @@ cc_binary(
             "msg_scrollers.h",
             "outbound_msg_db_mgr.c",
             "outbound_msg_db_mgr.h",
+            "svrs_codec.c",
+            "svrs_codec.h",
+            "utils.c",
+            "utils.h"
             # "subwindow.c",
             # "subwindow.h"
     ]

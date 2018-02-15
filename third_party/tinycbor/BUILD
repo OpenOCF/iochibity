@@ -1,7 +1,22 @@
 package(default_visibility = ["//visibility:public"])
 
+load("//tools/config:variables.bzl", "COPTS_ANDROID")
+
 licenses(["notice"])
 
+config_setting(
+    name = "android",
+    values = {# "define": "target=android",
+        # "crosstool_top": "@android_ndk//:toolchain-libcpp",
+        "cpu": "armeabi-v7a",
+              # "android_cpu": "x86",
+              # "android_crosstool_top": "//platforms/ndk:toolchain"
+    }
+)
+config_setting(
+    name = "darwin",
+    values = { "cpu": "darwin" }
+)
 config_setting(
     name = "windows",
     values = { "cpu": "x64_windows" }
@@ -20,7 +35,10 @@ cc_library(
     copts = select({"windows": [],
                     "msvc": [],
                     "msys": [],
-                    "//conditions:default": ["-std=c11"]}),
+                    "darwin": ["-std=c11", "-x c"],
+                    # "android": COPTS_ANDROID,
+                    "//conditions:default": ["-std=c11", "-x c"]}),
+    # deps = ["//third_party/ndk"],
     hdrs = ["src/cbor.h"],
     srcs = [
         "src/cbor.h",

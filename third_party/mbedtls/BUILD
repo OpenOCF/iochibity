@@ -14,6 +14,11 @@ cc_library(
              "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include",
              "-Ithird_party/mbedtls/include/mbedtls",
+             # android hack - which??
+             "-isysroot=external/androidndk/ndk/sysroot",
+             "-isystem", "external/androidndk/ndk/sysroot/usr/include",
+             "-Iexternal/androidndk/ndk/sysroot/usr/include",
+             "-D__ANDROID_API__=24",
 	     # expose getaddrinfo etc. on linux (ubuntu)
 	     "-DWITH_POSIX",
 	     "-D_GNU_SOURCE"],
@@ -58,7 +63,13 @@ cc_library(
              "-Iexternal/openocf/src",
              "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include",
-             "-Ithird_party/mbedtls/include/mbedtls"],
+             "-Ithird_party/mbedtls/include/mbedtls",
+             # android hack - which??
+             # "-isysroot=external/androidndk/ndk/sysroot",
+             "-isystem", "external/androidndk/ndk/sysroot/usr/include",
+             #"-Iexternal/androidndk/ndk/sysroot/usr/include",
+             "-D__ANDROID_API__=24",
+    ],
     deps = ["//src:config",
             ":mbedtls_hdrs"],
     strip_include_prefix = "include",

@@ -1,4 +1,14 @@
 config_setting(
+    name = "android",
+    values = {# "define": "target=android",
+        # "crosstool_top": "@android_ndk//:toolchain-libcpp",
+        "cpu": "armeabi-v7a",
+              # "android_cpu": "x86",
+              # "android_crosstool_top": "//platforms/ndk:toolchain"
+    }
+)
+
+config_setting(
     name = "ndk",
     values = { "crosstool_top": "//platforms/ndk:toolchain" }
 )
@@ -38,18 +48,20 @@ cc_library(
                                        "-U DEBUG"]}), # OS X
     # deps = ["//src:config"],
     hdrs = ["logger.h"],
-    linkopts = select({":ndk": ["-llog"],
-                       # FIXME: select android_cc
-              "//conditions:default": []}),
+    linkopts = select({"android": ["-llog"],
+                       "//conditions:default": []}),
     # alwayslink = True,
     linkstatic = 1,
-    srcs = glob(["*.c"], exclude=["logger_*.c"])
-    + glob(["*.h"], exclude=["logger_*.h"])
+    srcs = ["logger.c",
+            "logger.h",
+            "trace.c",
+            "trace.h"]
     + select({":windows":  glob(["logger_windows.*"]),
               ":msvc":   glob(["logger_windows.*"]),
               ":msys":   glob(["logger_windows.*"]),
-              ":darwin": ["logger_posix.c", "logger_posix.h"],
-              ":linux": ["logger_posix.c", "logger_posix.h"],
-              "//conditions:default": glob(["logger_posix.*"])}),
+              ":android": ["logger_android.c", "logger_android.h"],
+              # ":darwin": ["logger_posix.c", "logger_posix.h"],
+              # ":linux": ["logger_posix.c", "logger_posix.h"],
+              "//conditions:default": ["logger_posix.c", "logger_posix.h"]}),
     visibility = ["//src:__subpackages__"]
 )

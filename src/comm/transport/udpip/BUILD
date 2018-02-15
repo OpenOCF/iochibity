@@ -34,18 +34,28 @@ config_setting(
 )
 
 cc_library(
+    name = "jnihdrs",
+    copts = ["-std=c11"],
+    hdrs = ["@local_jdk//:jni_header",
+            "@local_jdk//:jni_md_header-darwin"],
+)
+
+cc_library(
     name = "udpip",
     copts = ["-Isrc",
              "-Isrc/util",
-             "-Ithird_party/coap/include",
              "-Ithird_party/utlist",
+             "-Iexternal/openocf/third_party/utlist",
+             "-Ithird_party/coap/include",
              "-Iexternal/openocf/third_party/coap/include",
+             "-Iexternal/local_jdk/include",
+             "-Iexternal/local_jdk/include/darwin",
              "-Wall"
     ] + select({":windows": [],
               ":msvc": [],
               ":msys": [],
-              ":darwin": ["-UDEBUG"],
-              ":darwin64": ["-UDEBUG"],
+              ":darwin": ["-std=c11", "-UDEBUG"],
+              ":darwin64": ["-std=c11", "-UDEBUG"],
               "//conditions:default": ["-std=c11", "-Wextra"]}),
     linkstatic = 1,
     deps = ["//src:config",
@@ -56,6 +66,7 @@ cc_library(
     	    "//src/comm/transport/util",
             "//src/comm/transport/ip",
             "//src/portability",
+            ":jnihdrs",
 	    "//third_party/coap",
 	    "//third_party/utlist"],
     # ] + select({":windows": ["//src/portability/windows"],
@@ -83,6 +94,12 @@ cc_library(
 	      	      + glob(["*_linux.c"]) + glob(["*_linux.h"]),
                 # ":ndk": ["//src/comm/transport/udpip/android"],
                 # ":android": ["//src/comm/transport/udpip/android"],
-        "//conditions:default": []}),
+                ":android": glob(["*_android.c"]) + glob(["*_android.h"])
+              + ["caipserver_posix.c", "caipserver_posix.h",
+                 "org_iotivity_ca_CaIpInterface.h"],
+              # + glob(["*_posix.c"]) + glob(["*_posix.h"])
+              "//conditions:default": []}),
+# glob(["*_posix.c"]) + glob(["*_posix.h"])
+# 	      	      + glob(["*_linux.c"]) + glob(["*_linux.h"])}),
     visibility = ["//src/comm:__subpackages__"]
 )

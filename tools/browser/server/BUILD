@@ -46,6 +46,7 @@ cc_binary(
                                        "-Iexternal/usr_local/in[<clude/cdk",
                                        "-std=c11",
                                        "-U DEBUG"]}), # OS X
+    data = [":config"],
     deps = ["//src/ocf",
             ## FIXME: remove all deps except //src/ocf
             "//src:config",
@@ -57,4 +58,19 @@ cc_binary(
     #           "//conditions:default": ["@usr_local//:cdk"]}),
     # linkopts = ["-Wl,-dead_strip"],
     srcs = ["server.c"]
+)
+
+genrule(
+    name = "json",
+    srcs = ["server_config.edn"],
+    outs = ["server_config.json"],
+    cmd = "edn-to-json $(location server_config.edn)  > \"$@\"",
+)
+
+genrule(
+    name = "config",
+    srcs = [":json"],
+    outs = ["server_config.cbor"],
+    cmd = "json2cbor $(location :json) > \"$@\"",
+    # tools = ["edn-to-json"],
 )

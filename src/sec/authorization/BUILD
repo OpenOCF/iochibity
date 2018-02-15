@@ -22,8 +22,11 @@ cc_library(
              "-Ithird_party/utlist",
              "-Iexternal/openocf/third_party/utlist",
              "-Ithird_party/coap",
+             "-Iexternal/openocf/third_party/coap",
              "-Ithird_party/coap/include",
-             "-Ithird_party/tinycbor/src"
+             "-Iexternal/openocf/third_party/coap/include",
+             "-Ithird_party/tinycbor/src",
+             "-Iexternal/openocf/third_party/tinycbor/src"
     ] + select({"windows": [],
                 "darwin": ["-std=c11", "-UDEBUG"],
                 "darwin64": ["-std=c11", "UDEBUG"],

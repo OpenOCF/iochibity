@@ -42,7 +42,7 @@ cc_library(
               ":msys": [],
               ":darwin": ["-std=c11", "-U DEBUG"],
               ":linux": ["-std=c11"],
-              "//conditions:default": []}),
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             # "//src/comm/api",
             # "//src/ocf:hdrs",

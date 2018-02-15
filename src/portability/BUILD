@@ -101,6 +101,7 @@ cc_library(
                             "//src/portability/darwin"],
                 ":darwin64": ["//src/portability/posix",
                               "//src/portability/darwin"],
+                ":android": ["//src/portability/android"],
               "//conditions:default": ["//src/portability/posix"]}),
     # hdrs = glob(["*.h"]),
     linkopts = select({":msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 bcrypt.lib"],
@@ -108,7 +109,9 @@ cc_library(
                        ":windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 bcrypt.lib"],
                        "//conditions:default": []}),
     srcs = glob(["*.c"]) + glob(["*.h"]),
-    visibility = ["//src:__subpackages__",
-                  "//third_party:__subpackages__",
-                  "//tools/cbor:__subpackages__"]
+    visibility = ["//visibility:public"]
+    # visibility = ["//src:__subpackages__",
+    #               "//third_party:__subpackages__",
+    #               "//tools/cbor:__subpackages__",
+    # ]
  )

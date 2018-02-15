@@ -53,7 +53,19 @@
 # depends on a libcoap header, it too would have to define
 # HAVE_WS2TCPIP_H. So need to add it instead to coap_config.h
 
+load("//tools/config:variables.bzl", "COPTS_ANDROID")
+
 licenses(["notice", "reciprocal"])
+
+config_setting(
+    name = "android",
+    values = {"cpu": "armeabi-v7a",
+              # "define": "target=android",
+              # "crosstool_top": "@android_ndk//:toolchain-libcpp",
+              # "android_cpu": "x86",
+              # "android_crosstool_top": "//platforms/ndk:toolchain"
+    }
+)
 
 config_setting(
     name = "windows",
@@ -76,14 +88,17 @@ cc_library(
     name = "coap",
     # alwayslink = True,
     copts = ["-Ithird_party/coap",
+             "-Iexternal/openocf/third_party/coap",
              "-Ithird_party/coap/include/coap",
+             "-Iexternal/openocf/third_party/coap/include/coap",
              "-Isrc",
     ] + select({"msys": [],
                 "msvc": [],
                 "windows": [],
                 "linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
+                "android": COPTS_ANDROID,
               "//conditions:default": ["-std=c11"]}),
-    deps = ["//src:config"],
+    # deps = ["//src:config", "//third_party/ndk"],
     hdrs = ["coap_config.h"] + glob(["include/**/*.h"],
                                     exclude = ["include/coap/lwippools.h"]),
     # windows: ntohs etc. are in ws2_32.lib

@@ -1,4 +1,10 @@
 config_setting(
+    name = "android",
+    # values = { "crosstool_top": "//external:android/crosstool."} # "@android_ndk//:toolchain-libcpp"
+    values = {"cpu": "armeabi-v7a"}
+)
+
+config_setting(
     name = "windows",
     values = { "cpu": "x64_windows" }
 )
@@ -17,8 +23,11 @@ cc_library(
     copts = ["-D_GNU_SOURCE",
      "-DWITH_POSIX"
     ] + select({":windows": [],
-              ":msvc": [],
-              ":msys": [],
+                ":msvc": [],
+                ":msys": [],
+                ":android": ["-std=c11",
+                             "-Iexternal/local_jdk/include",
+                             "-Iexternal/local_jdk/include/darwin"],
               "//conditions:default": ["-std=c11",
                                        "-U DEBUG"]}), # OS X
     deps  = ["//src:config",
@@ -29,14 +38,23 @@ cc_library(
              "//third_party/coap",
              "//third_party/mbedtls",
              "//third_party/mbedtls:mbedtls-crypto",
-             "//third_party/mbedtls:mbedtls-x509"],
+             "//third_party/mbedtls:mbedtls-x509"]
+    + select({":android": [":jnihdrs"],
+              "//conditions:default": []}),
     hdrs = ["caadapterutils.h",
             #"ca_adapter_net_ssl.h"
     ],
-    srcs  = [#"ca_adapter_net_ssl.c",
-             "caadapterutils.c",
-    ],
+    srcs  = ["caadapterutils.c"]
+    + select({":android": glob(["*_android.c"]) + glob(["*_android.h"]),
+              "//conditions:default": []}),
     visibility = ["//visibility:public"]
 # "//src/comm:__subpackages__",
 #                   "//src/sec/svrs:__pkg__"]
+)
+
+cc_library(
+    name = "jnihdrs",
+    copts = ["-std=c11"],
+    hdrs = ["@local_jdk//:jni_header",
+            "@local_jdk//:jni_md_header-darwin"],
 )
