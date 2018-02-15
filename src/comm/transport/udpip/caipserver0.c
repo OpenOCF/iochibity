@@ -227,7 +227,7 @@ static void CAReceiveHandler(void *data)
     }
 #endif
 
-void CADeInitializeIPGlobals()
+LOCAL void CADeInitializeIPGlobals()
 {
     CLOSE_SOCKET(u6);
     CLOSE_SOCKET(u6s);

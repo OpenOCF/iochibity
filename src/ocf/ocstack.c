@@ -36,6 +36,19 @@
 #endif
 
 #include "ocstack.h"
+#include <assert.h>
+#ifndef __cplusplus
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#if defined(static_assert)
+#pragma message "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+#endif
+#endif /* __STDC_VERSION__ */
+#endif /* !__cplusplus */
+#pragma message(VAR_NAME_VALUE(__STDC__))
+#pragma message(VAR_NAME_VALUE(__STDC_VERSION__))
+#pragma message(VAR_NAME_VALUE(__cplusplus))
+#pragma message(VAR_NAME_VALUE(static_assert))
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -1704,7 +1717,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
 	    } else {
 		OIC_LOG(INFO, TAG, "removing OCClientResponse");
 		OCPayloadDestroy(response->payload);
-		OICFree(response->resourceUri);
+		OICFree((void*)response->resourceUri);
 		OICFree(response);
 	    }
         }
@@ -2399,8 +2412,9 @@ OCStackResult OC_CALL OCInit(const char *ipAddr, uint16_t port, OCMode mode) EXP
 }
 
 OCStackResult OC_CALL OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTransportFlags clientFlags)
+EXPORT
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, mode: %d", __func__, mode);
     OCStackResult r = OCInit2(mode, serverFlags, clientFlags, OC_DEFAULT_ADAPTER);
     OIC_LOG_V(DEBUG, TAG, "%s EXIT, rc: %d", __func__, r);
     return r;
@@ -3595,8 +3609,9 @@ OCStackResult OC_CALL OCCancel(OCDoHandle handle, OCQualityOfService qos, OCHead
  *     OC_STACK_INVALID_PARAM - Invalid parameter
  */
 OCStackResult OC_CALL OCRegisterPersistentStorageHandler(OCPersistentStorage* persistentStorageHandler)
+EXPORT
 {
-    OIC_LOG(INFO, TAG, "RegisterPersistentStorageHandler !!");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if(persistentStorageHandler)
     {
         if( !persistentStorageHandler->open ||
@@ -3608,8 +3623,12 @@ OCStackResult OC_CALL OCRegisterPersistentStorageHandler(OCPersistentStorage* pe
             OIC_LOG(ERROR, TAG, "The persistent storage handler is invalid");
             return OC_STACK_INVALID_PARAM;
         }
+    } else {
+	OIC_LOG(ERROR, TAG, "NULL persistent storage handler passed");
+	return OC_STACK_INVALID_PARAM;
     }
     g_PersistentStorageHandler = persistentStorageHandler;
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return OC_STACK_OK;
 }
 

@@ -164,6 +164,7 @@ const char* GetOxmString(OicSecOxm_t oxmType)
 }
 
 OCStackResult ConvertUuidToStr(const OicUuid_t* uuid, char** strUuid)
+EXPORT
 {
     if(NULL == uuid || NULL == strUuid || NULL != *strUuid)
     {
@@ -187,6 +188,7 @@ exit:
 }
 
 OCStackResult OC_CALL ConvertStrToUuid(const char* strUuid, OicUuid_t* uuid)
+EXPORT
 {
     bool result = true;
     size_t strUuidLen = strlen(strUuid);

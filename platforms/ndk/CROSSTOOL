@@ -43,9 +43,13 @@ toolchain {
   # default_grte_top: "//platforms/ndk"
   # default_grte_top: "@toolchain_ndk//:everything"
 
+# https://developer.android.com/ndk/guides/standalone_toolchain.html:
+# Libraries for native APIs for the respective Android API levels
+# reside under $NDK/platforms/; each API-level directory, in turn,
+# contains subdirectories for the various CPUs and architectures. The
+# headers reside in $NDK/sysroot.
+
   # this is for --sysroot, both headers and libs, plus runtimes (crtbegin_so.o, etc.)
-  # android: "The compile time sysroot is now $NDK/sysroot. Previously this was
-  # $NDK/platforms/android-$API/arch-$ARCH."
   # alas this won't work; $NDK/sysroot is headers only
   builtin_sysroot: "/Users/gar/android/android-ndk-r14b/platforms/android-23/arch-arm"
 

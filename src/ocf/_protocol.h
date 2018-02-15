@@ -101,7 +101,7 @@ typedef enum
     /** secure the transport path*/
     OC_FLAG_SECURE     = (1 << 4),
     // Insecure transport is the default (subject to change)
-    /* CA_SECURE          = (1 << 4),   // secure the transport path */
+    /* CA_SECURE          = (1 << 4),   // 0x10 secure the transport path */
 
     /** IPv4 & IPv6 auto-selection is the default.*/
     /** IP & TCP adapter only.*/

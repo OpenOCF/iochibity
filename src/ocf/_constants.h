@@ -32,8 +32,6 @@
 
 // The Accept Version and Content-Format Version for OCF 1.0.0 (0b0000 1000 0000 0000).
 #define DEFAULT_VERSION_VALUE            OCF_VERSION_1_0_0
-#endif
-
 
 /** Version of IoTivity. */
 #define IOTIVITY_VERSION                      "1.3.1"
@@ -77,9 +75,7 @@
 #define OC_DEFAULT_PRESENCE_TTL_SECONDS       (60)
 
 /** For multicast Discovery mechanism.*/
-#if EXPORT_INTERFACE
 #define OC_MULTICAST_DISCOVERY_URI            "/oic/res"
-#endif
 
 /** Separator for multiple query string.*/
 #define OC_QUERY_SEPARATOR                    "&;"
@@ -325,10 +321,8 @@
 /** Device model number */
 #define OC_RSRVD_DEVICE_MODEL_NUM        "dmno"
 
-#if EXPORT_INTERFACE
 /** Protocol-Independent ID.*/
 #define OC_RSRVD_PROTOCOL_INDEPENDENT_ID "piid"
-#endif
 
 /** Device specification version.*/
 #define OC_SPEC_VERSION                  "ocf.1.1.0"
@@ -703,6 +697,8 @@
  * operation. Setting this to as small a value as reasonable will reclaim memory faster.
  */
 #define MAX_CB_TIMEOUT_SECONDS   (2 * 60 * 60)  // 2 hours = 7200 seconds.
+
+#endif	/* EXPORT_INTERFACE */
 
 /* debug stuff */
 #include <assert.h>

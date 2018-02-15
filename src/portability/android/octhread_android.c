@@ -1,3 +1,4 @@
+/* GAR FIXME: derived from octhread.h TODO: remove ANDROID conditionals */
 //******************************************************************
 //
 // Copyright 2015 Intel Mobile Communications GmbH All Rights Reserved.
@@ -390,11 +391,15 @@ oc_cond oc_cond_new(void)
             return retVal;
         }
 
-#if defined(__ANDROID__) || _POSIX_TIMERS > 0
-#ifdef __ANDROID__
+/* #if defined(__ANDROID__) || (_POSIX_TIMERS > 0) */
+/* #ifdef __ANDROID__ */
         if (camutex_condattr_setclock)
         {
             ret = camutex_condattr_setclock(&(eventInfo->condattr), CLOCK_MONOTONIC);
+/* #else */
+/*         { */
+/*             ret = pthread_condattr_setclock(&(eventInfo->condattr), CLOCK_MONOTONIC); */
+/* #endif	/\* __ANDROID__ *\/ */
             if(0 != ret)
             {
                 OIC_LOG_V(ERROR, TAG, "%s: Failed to set condition variable clock %d!",
@@ -404,7 +409,7 @@ oc_cond oc_cond_new(void)
                 return retVal;
             }
         }
-#endif /* defined(__ANDROID__) || _POSIX_TIMERS > 0 */
+/* #endif /\* defined(__ANDROID__) || _POSIX_TIMERS > 0 *\/ */
         ret = pthread_cond_init(&(eventInfo->cond), &(eventInfo->condattr));
         if (0 == ret)
         {
@@ -423,7 +428,7 @@ oc_cond oc_cond_new(void)
     }
 
     return retVal;
-}
+    }
 
 void oc_cond_free(oc_cond cond)
 {

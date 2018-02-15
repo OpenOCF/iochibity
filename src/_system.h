@@ -17,7 +17,7 @@
 #undef HAVE_UNISTD_H
 #endif
 
-/* #pragma message(VAR_NAME_VALUE(HAVE_SYS_TIME_H)) */
+/* #pragma message(VAR_NAME_VALUE(__cplusplus)) */
 
 /* from resource/c_common/platform_features.h */
 #if defined(__STDC__)
@@ -26,7 +26,8 @@
 /* #else */
 #if (__STDC_VERSION__ >= 201112L) /* C11 */
 #   include <assert.h>
-#   define OC_STATIC_ASSERT(condition, msg) static_assert(condition, msg)
+#   define OC_STATIC_ASSERT(condition, msg)
+//GARFIXME: on android this gets unknown symbol:  static_assert(condition, msg)
 #else  /* non-C11, non-MS c compiler  */
 #  error "OpenOCF requires C11; you are using a compiler with __STDC_VERSION_ =" __STDC_VERSION__
 #endif

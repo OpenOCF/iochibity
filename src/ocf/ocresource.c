@@ -2687,6 +2687,7 @@ ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerReque
 }
 
 OCStackResult OC_CALL OCSetPlatformInfo(OCPlatformInfo info)
+EXPORT
 {
     OCResource *resource = NULL;
     if (!info.platformID || !info.manufacturerName)
@@ -2750,6 +2751,7 @@ exit:
 }
 
 OCStackResult OC_CALL OCSetDeviceInfo(OCDeviceInfo info)
+EXPORT
 {
     OCResource *resource = FindResourceByUri(OC_RSRVD_DEVICE_URI);
     if (!resource)

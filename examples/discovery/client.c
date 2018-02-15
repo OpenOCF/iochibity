@@ -586,6 +586,7 @@ OCStackApplicationResult resource_discovery_cb(void* ctx,
 
 void discover_resources ()
 {
+    OCDoHandle handle;
     /* Start a discovery query*/
     OCCallbackData cbData;
     cbData.cb = resource_discovery_cb;
@@ -593,14 +594,22 @@ void discover_resources ()
     cbData.cd = NULL;
     char szQueryUri[MAX_QUERY_LENGTH] = { 0 };
     strcpy(szQueryUri, OC_MULTICAST_DISCOVERY_URI);
-    OIC_LOG_V(INFO, TAG, "Starting Discovery >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-    if (OCDoResource(NULL,
-		     OC_REST_DISCOVER,
-		     szQueryUri,
-		     NULL, NULL,
-		     CT_DEFAULT,
-		     OC_LOW_QOS,
-		     &cbData, NULL, 0) != OC_STACK_OK) {
+
+    /* FIXME: coap header options */
+
+    OIC_LOG_V(INFO, TAG, "Starting Resource Discovery >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    /* OCDoResource is deprecated, use OCDoRequest */
+    if (OCDoRequest(&handle,	      /* OCDoHandle */
+		    OC_REST_DISCOVER, /* method */
+		    szQueryUri,       /* request uri */
+		    NULL,	      /* destination */
+		    NULL,	      /* payload - caller must free */
+		    CT_DEFAULT,	      /* connectivity type */
+		    OC_LOW_QOS,	      /* qos */
+		    &cbData,	      /* callback */
+		    NULL,	      /* header options */
+		    0		      /* nbr hdr options */
+		    ) != OC_STACK_OK) {
         OIC_LOG(ERROR, TAG, "OCStack resource error");
     }
 }

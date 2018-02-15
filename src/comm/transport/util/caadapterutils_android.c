@@ -18,19 +18,18 @@
  *
  ******************************************************************/
 
-#include "iotivity_config.h"
-#include "caadapterutils.h"
+#include "caadapterutils_android.h"
 
 #include <string.h>
 #include <ctype.h>
-#include "oic_string.h"
-#include "oic_malloc.h"
+/* #include "oic_string.h" */
+/* #include "oic_malloc.h" */
 #include <errno.h>
 #include <inttypes.h>
 
-#ifdef HAVE_WS2TCPIP_H
-#include <ws2tcpip.h>
-#endif
+/* #ifdef HAVE_WS2TCPIP_H */
+/* #include <ws2tcpip.h> */
+/* #endif */
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
@@ -51,8 +50,10 @@
 #include <in6addr.h>
 #endif
 
-#ifdef __JAVA__
+/* #ifdef __JAVA__ */
+#if EXPORT_INTERFACE
 #include <jni.h>
+#endif
 
 /**
  * @var g_jvm
@@ -60,19 +61,19 @@
  */
 static JavaVM *g_jvm = NULL;
 
-#ifdef __ANDROID__
+/* #ifdef __ANDROID__ */
 /**
  * @var gContext
  * @brief pointer to store context for android callback interface
  */
 static jobject g_Context = NULL;
 static jobject g_Activity = NULL;
-#endif
-#endif
+/* #endif */
+/* #endif */
 
 #define CA_ADAPTER_UTILS_TAG "OIC_CA_ADAP_UTILS"
 
-#ifdef __JAVA__			/* GAR: this is only used for Android? */
+/* #ifdef __JAVA__			/\* GAR: this is only used for Android? *\/ */
 void CANativeJNISetJavaVM(JavaVM *jvm)
 {
     OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "CANativeJNISetJavaVM");
@@ -87,7 +88,7 @@ JavaVM *CANativeJNIGetJavaVM()
 void CADeleteGlobalReferences(JNIEnv *env)
 {
     OC_UNUSED(env);
-#ifdef __ANDROID__
+/* #ifdef __ANDROID__ */
     if (g_Context)
     {
         (*env)->DeleteGlobalRef(env, g_Context);
@@ -99,7 +100,7 @@ void CADeleteGlobalReferences(JNIEnv *env)
         (*env)->DeleteGlobalRef(env, g_Activity);
         g_Activity = NULL;
     }
-#endif //__ANDROID__
+/* #endif //__ANDROID__ */
 }
 
 jmethodID CAGetJNIMethodID(JNIEnv *env, const char* className,
@@ -143,7 +144,7 @@ bool CACheckJNIException(JNIEnv *env)
     return false;
 }
 
-#ifdef __ANDROID__
+/* #ifdef __ANDROID__ */
 void CANativeJNISetContext(JNIEnv *env, jobject context)
 {
     OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "CANativeJNISetContext");
@@ -193,116 +194,5 @@ jobject *CANativeGetActivity()
 {
     return g_Activity;
 }
-#endif //__ANDROID__
-#endif //JAVA__
-
-void CALogAdapterStateInfo(CATransportAdapter_t adapter, CANetworkStatus_t state)
-{
-    OIC_LOG(DEBUG, CA_ADAPTER_UTILS_TAG, "CALogAdapterStateInfo");
-    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
-    CALogAdapterTypeInfo(adapter);
-    if (CA_INTERFACE_UP == state)
-    {
-        OIC_LOG(DEBUG, ANALYZER_TAG, "adapter status is changed to CA_INTERFACE_UP");
-    }
-    else
-    {
-        OIC_LOG(DEBUG, ANALYZER_TAG, "adapter status is changed to CA_INTERFACE_DOWN");
-    }
-    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
-}
-
-void CALogSendStateInfo(CATransportAdapter_t adapter,
-                        const char *addr, uint16_t port, ssize_t sentLen,
-                        bool isSuccess, const char* message)
-{
-#ifndef TB_LOG
-    OC_UNUSED(addr);
-    OC_UNUSED(port);
-    OC_UNUSED(sentLen);
-    OC_UNUSED(message);
-#endif
-
-    OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "%s ENTRY", __func__);
-    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
-
-    if (true == isSuccess)
-    {
-        OIC_LOG_V(DEBUG, ANALYZER_TAG, "Send Success, sent length = [%" PRIdPTR "]", sentLen);
-    }
-    else
-    {
-        OIC_LOG_V(DEBUG, ANALYZER_TAG, "Send Failure, error message  = [%s]",
-                  message != NULL ? message : "no message");
-    }
-
-    CALogAdapterTypeInfo(adapter);
-    OIC_LOG_V(DEBUG, ANALYZER_TAG, "Address = [%s]:[%d]", addr, port);
-    OIC_LOG(DEBUG, ANALYZER_TAG, "=================================================");
-}
-
-void CALogAdapterTypeInfo(CATransportAdapter_t adapter)
-{
-    switch(adapter)
-    {
-        case CA_ADAPTER_IP:
-            OIC_LOG(DEBUG, ANALYZER_TAG, "Transport Type = [OC_ADAPTER_IP]");
-            break;
-        case CA_ADAPTER_TCP:
-            OIC_LOG(DEBUG, ANALYZER_TAG, "Transport Type = [OC_ADAPTER_TCP]");
-            break;
-        case CA_ADAPTER_GATT_BTLE:
-            OIC_LOG(DEBUG, ANALYZER_TAG, "Transport Type = [OC_ADAPTER_GATT_BTLE]");
-            break;
-        case CA_ADAPTER_RFCOMM_BTEDR:
-            OIC_LOG(DEBUG, ANALYZER_TAG, "Transport Type = [OC_ADAPTER_RFCOMM_BTEDR]");
-            break;
-        default:
-            OIC_LOG_V(DEBUG, ANALYZER_TAG, "Transport Type = [%d]", adapter);
-            break;
-    }
-}
-
-CAResult_t CAGetIpv6AddrScopeInternal(const char *addr, CATransportFlags_t *scopeLevel)
-{
-    if (!addr || !scopeLevel)
-    {
-        return CA_STATUS_INVALID_PARAM;
-    }
-    // check addr is ipv6
-    struct in6_addr inAddr6;
-    if (1 == inet_pton(AF_INET6, addr, &inAddr6))
-    {
-        // check addr is multicast
-        if (IN6_IS_ADDR_MULTICAST(&inAddr6))
-        {
-            *scopeLevel = (CATransportFlags_t)(inAddr6.s6_addr[1] & 0xf);
-            return CA_STATUS_OK;
-        }
-        else
-        {
-            // check addr is linklocal or loopback
-            if (IN6_IS_ADDR_LINKLOCAL(&inAddr6) || IN6_IS_ADDR_LOOPBACK(&inAddr6))
-            {
-                *scopeLevel = CA_SCOPE_LINK;
-                return CA_STATUS_OK;
-            }
-            // check addr is sitelocal
-            else if (IN6_IS_ADDR_SITELOCAL(&inAddr6))
-            {
-                *scopeLevel = CA_SCOPE_SITE;
-                return CA_STATUS_OK;
-            }
-            else
-            {
-                *scopeLevel = CA_SCOPE_GLOBAL;
-                return CA_STATUS_OK;
-            }
-        }
-    }
-    else
-    {
-        OIC_LOG(ERROR, CA_ADAPTER_UTILS_TAG, "Failed at parse ipv6 address using inet_pton");
-        return CA_STATUS_FAILED;
-    }
-}
+/* #endif //__ANDROID__ */
+/* #endif //JAVA__ */

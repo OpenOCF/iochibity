@@ -66,15 +66,15 @@
 typedef enum OicSecOxm_t
 {
     OIC_JUST_WORKS                          = 0x0, /* oic.sec.doxm.jw */
-    OIC_RANDOM_DEVICE_PIN                   = 0x1,
-    OIC_MANUFACTURER_CERTIFICATE            = 0x2,
-    OIC_DECENTRALIZED_PUBLIC_KEY            = 0x3,
-    OIC_OXM_COUNT,
+    OIC_RANDOM_DEVICE_PIN                   = 0x1, /* oic.sec.doxm.rdp */
+    OIC_MANUFACTURER_CERTIFICATE            = 0x2, /* oic.sec.doxm.mfgcert */
+    OIC_DECENTRALIZED_PUBLIC_KEY            = 0x3, /* ? */
+    OIC_OXM_COUNT,				   /* oic.sec.doxm.self? */
 #ifdef MULTIPLE_OWNER
-    OIC_PRECONFIG_PIN                       = 0xFF00,
+    OIC_PRECONFIG_PIN                       = 0xFF00, /* ? */
 #endif //MULTIPLE_OWNER
-    OIC_MV_JUST_WORKS                       = 0xFF01,
-    OIC_CON_MFG_CERT                        = 0xFF02,
+    OIC_MV_JUST_WORKS                       = 0xFF01, /* ? */
+    OIC_CON_MFG_CERT                        = 0xFF02, /* oic.sec.doxm.jw */
 } OicSecOxm_t;
 
 /* typedef unsigned int OicSecOxm_t; */
@@ -555,6 +555,7 @@ static OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t siz
         cborFindResult = cbor_value_get_array_length(&doxmMap, &doxm->oxmLen);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding oxms array Length.");
         VERIFY_SUCCESS(TAG, doxm->oxmLen != 0, ERROR);
+        OIC_LOG_V(DEBUG, TAG, "doxm.oxm length: %d", doxm->oxmLen);
 
         doxm->oxm = (OicSecOxm_t *)OICCalloc(doxm->oxmLen, sizeof(*doxm->oxm));
         VERIFY_NOT_NULL(TAG, doxm->oxm, ERROR);

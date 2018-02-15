@@ -81,6 +81,11 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+/* #if defined(_MSC_VER) */
+/* #define LINE_BUFFER_SIZE (16 * 2) + 16 + 1  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination */
+/* #endif //defined(_MSC_VER) */
+
+
 #if defined(__MINGW64__) || defined(__MINGW32__)
 const char * LEVEL[] __attribute__ ((unused)) = {"\e[0;32mDEBUG\033[0m", "\e[0;33mINFO\033[0m", "\e[0;35mWARNING\033[0m", "\e[0;31mERROR\033[0m", "\e[0;31mFATAL\033[0m"};
 #elif defined(_MSC_VER)

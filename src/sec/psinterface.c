@@ -141,6 +141,7 @@ static OCStackResult WritePayloadToPS(const char *databaseName, uint8_t *payload
  */
 static size_t GetDatabaseSize(const OCPersistentStorage *ps, const char *databaseName)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, db: %s", __func__, databaseName);
     if (!ps)
     {
         return 0;
@@ -158,7 +159,10 @@ static size_t GetDatabaseSize(const OCPersistentStorage *ps, const char *databas
             size += bytesRead;
         } while (bytesRead);
         ps->close(fp);
+    } else {
+	OIC_LOG_V(ERROR, TAG, "%s ps->open %s failure", __func__, databaseName);
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return size;
 }
 
@@ -179,7 +183,7 @@ static size_t GetDatabaseSize(const OCPersistentStorage *ps, const char *databas
 OCStackResult ReadDatabaseFromPS(const char *databaseName, const char *resourceName, uint8_t **data, size_t *size)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
-    OIC_LOG_V(DEBUG, TAG, "Reading database: %s for entry %s", databaseName, resourceName);
+    OIC_LOG_V(DEBUG, TAG, "Reading resource %s from db %s", resourceName, databaseName);
 
     if (!databaseName || !data || *data || !size)
     {

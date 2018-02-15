@@ -3,6 +3,7 @@
  * included in a platform discovery request.
  * @deprecated: Use OCSetPropertyValue  to set platform value.
  */
+#if EXPORT_INTERFACE
 typedef struct
 {
     /** Platform ID.*/
@@ -39,3 +40,4 @@ typedef struct
     char *systemTime;
 
 } OCPlatformInfo;
+#endif

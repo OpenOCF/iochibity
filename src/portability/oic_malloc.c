@@ -65,6 +65,7 @@ static uint32_t count;
 #endif
 
 void *OICMalloc(size_t size)
+EXPORT
 {
     if (0 == size)
     {
@@ -85,6 +86,7 @@ void *OICMalloc(size_t size)
 }
 
 void *OICCalloc(size_t num, size_t size)
+EXPORT
 {
     if (0 == size || 0 == num)
     {
@@ -105,6 +107,7 @@ void *OICCalloc(size_t num, size_t size)
 }
 
 void *OICRealloc(void* ptr, size_t size)
+EXPORT
 {
     // Override realloc() behavior for NULL pointer which normally would
     // work as per malloc(), however we suppress the behavior of possibly
@@ -137,6 +140,7 @@ void OICFreeAndSetToNull(void **ptr)
 }
 
 void OICFree(void *ptr)
+EXPORT
 {
 #ifdef ENABLE_MALLOC_DEBUG
     // Since OICMalloc() did not increment count if it returned NULL,

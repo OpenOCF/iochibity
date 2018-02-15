@@ -89,8 +89,6 @@ typedef enum
 // Example:  OIC_LOG(INFO, TAG, PCF("Entering function"));
 #define PCF(str) str
 
-#define LINE_BUFFER_SIZE (16 * 2) + 16 + 1  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination
-
 typedef enum
 {
     OC_LOG_MIN_VAL__   = -1,
@@ -176,6 +174,11 @@ void oocf_log_hook_stdout(FILE *fd);
 #define OC_MINIMUM_LOG_LEVEL    (OC_LOG_LEVEL)
 #endif
 
+
+/* Show 16 bytes, 2 chars/byte, spaces between bytes, null termination */
+/* (16 * 2) + 16 + 1 = 49 */
+#define LINE_BUFFER_SIZE 49
+
 #endif	/* EXPORT_INTERFACE */
 
 
@@ -247,16 +250,11 @@ static bool g_hidePrivateLogEntries = true;
 
 oc_log_ctx_t *logCtx = 0;
 
-/* #if defined(_MSC_VER) */
-/* #define LINE_BUFFER_SIZE (16 * 2) + 16 + 1  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination */
-/* #else */
-/* static const uint16_t LINE_BUFFER_SIZE = (16 * 2) + 16 + 1;  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination */
-/* #endif //defined(_MSC_VER) */
 
 /* #ifdef __ANDROID__ */
-/* #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32) */
-oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO,
-                                      OC_LOG_WARNING, OC_LOG_ERROR, OC_LOG_FATAL};
+/* #elif defined(__linux__) || defined(__APPLE__) || defined(_WIN32) */
+/* oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO, */
+/*                                       OC_LOG_WARNING, OC_LOG_ERROR, OC_LOG_FATAL}; */
 /* #endif */
 
 /* // Convert LogLevel to platform-specific severity level.  Store in PROGMEM on Arduino */
@@ -399,8 +397,8 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
     oc_mutex_unlock(log_mutex);
 }
 
-/* EXPORT void OCSetLogLevel(LogLevel level, bool hidePrivateLogEntries); */
 void OCSetLogLevel(LogLevel level, bool hidePrivateLogEntries)
+EXPORT
 {
     g_level = level;
     g_hidePrivateLogEntries = hidePrivateLogEntries;

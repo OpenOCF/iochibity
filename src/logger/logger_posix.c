@@ -1,3 +1,4 @@
+
 //******************************************************************
 //
 // Copyright 2014 Intel Mobile Communications GmbH All Rights Reserved.
@@ -59,11 +60,10 @@
 #include <string.h>
 /* #include "logger_types.h" */
 
-#ifdef __ANDROID__
-#include <android/log.h>
-#elif defined(__TIZEN__)
-#include <dlog.h>
-#endif
+static const uint16_t LINE_BUFFER_SIZE = (16 * 2) + 16 + 1;  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination
+
+oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO,
+                                      OC_LOG_WARNING, OC_LOG_ERROR, OC_LOG_FATAL};
 
 #include <stdio.h>
 #include <stdarg.h>

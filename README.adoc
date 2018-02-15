@@ -110,6 +110,14 @@ makeheaders; this list varies by platform, so we use a Bazel target:
 $ bazel build :mkhdrs
 ----
 
+NOTE: for cross-compiling (e.g. targeting android) you must supply the appropriate --cpu value, e.g.:
+
+[source,sh]
+----
+$ bazel build :mkhdrs --cpu armeabi-v7a
+----
+
+
 This creates `./bazel-bin/mkhdrs.dat`. We process this to create our
 headers. First build the makeheaders program:
 
@@ -130,8 +138,8 @@ API exposed to application developers:
 
 [source,sh]
 ----
-$ ./bazel-bin/tools/makeheaders -f bazel-bin/mkhdrs.dat
-$ ./bazel-bin/tools/makeheaders -f bazel-bin/mkhdrs.dat -H > include/openocf_h.h
+$ makeheaders -f bazel-bin/mkhdrs.dat
+$ makeheaders -f bazel-bin/mkhdrs.dat -H > include/openocf_h.h
 ----
 
 
