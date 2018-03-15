@@ -25,9 +25,10 @@ cc_library(
     ] + select({":windows": [],
                 ":msvc": [],
                 ":msys": [],
+		# FIXME: don't we want jni.h, jni_md.h from the target instead of the build host???
                 ":android": ["-std=c11",
                              "-Iexternal/local_jdk/include",
-                             "-Iexternal/local_jdk/include/darwin"],
+                             "-Iexternal/local_jdk/include/linux"],
               "//conditions:default": ["-std=c11",
                                        "-U DEBUG"]}), # OS X
     deps  = ["//src:config",
@@ -56,5 +57,5 @@ cc_library(
     name = "jnihdrs",
     copts = ["-std=c11"],
     hdrs = ["@local_jdk//:jni_header",
-            "@local_jdk//:jni_md_header-darwin"],
+            "@local_jdk//:jni_md_header-linux"],
 )

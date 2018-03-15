@@ -6,6 +6,8 @@ config_setting(
     name = "android",
     values = {# "define": "target=android",
         # "crosstool_top": "@android_ndk//:toolchain-libcpp",
+	#"target_system_name": "arm-linux-androideabi",
+	# "crosstool_top": "@androidndk//:toolchain-libcpp",
         "cpu": "armeabi-v7a",
               # "android_cpu": "x86",
               # "android_crosstool_top": "//platforms/ndk:toolchain"
@@ -41,7 +43,7 @@ cc_library(
     + select({"windows": [],
               "msvc": [],
               "msys": [],
-              # "android": COPTS_ANDROID,
+              "android": COPTS_ANDROID,
               "//conditions:default": ["-std=c11",
                                        "-UDEBUG"]}),
     deps = ["//src/logger",

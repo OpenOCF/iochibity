@@ -96,7 +96,7 @@ cc_library(
                 "msvc": [],
                 "windows": [],
                 "linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
-                "android": COPTS_ANDROID,
+                "android": COPTS_ANDROID + ["-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
               "//conditions:default": ["-std=c11"]}),
     # deps = ["//src:config", "//third_party/ndk"],
     hdrs = ["coap_config.h"] + glob(["include/**/*.h"],

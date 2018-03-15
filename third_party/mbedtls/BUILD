@@ -1,5 +1,22 @@
 licenses(["notice"])
 
+load("//tools/config:variables.bzl", "COPTS_ANDROID")
+
+config_setting(
+    name = "android",
+    values = {"cpu": "armeabi-v7a",
+              # "define": "target=android",
+              # "crosstool_top": "@android_ndk//:toolchain-libcpp",
+              # "android_cpu": "x86",
+              # "android_crosstool_top": "//platforms/ndk:toolchain"
+    }
+)
+
+config_setting(
+    name = "linux",
+    values = { "cpu": "k8" }
+)
+
 cc_library(
     name = "mbedtls_hdrs",
     hdrs = glob(["include/mbedtls/*.h"]),
@@ -14,14 +31,9 @@ cc_library(
              "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include",
              "-Ithird_party/mbedtls/include/mbedtls",
-             # android hack - which??
-             "-isysroot=external/androidndk/ndk/sysroot",
-             "-isystem", "external/androidndk/ndk/sysroot/usr/include",
-             "-Iexternal/androidndk/ndk/sysroot/usr/include",
-             "-D__ANDROID_API__=24",
-	     # expose getaddrinfo etc. on linux (ubuntu)
-	     "-DWITH_POSIX",
-	     "-D_GNU_SOURCE"],
+    ] + select({"linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
+                "android": COPTS_ANDROID,
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "mbedtls-crypto",
             "mbedtls-x509"],
@@ -64,12 +76,9 @@ cc_library(
              "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include",
              "-Ithird_party/mbedtls/include/mbedtls",
-             # android hack - which??
-             # "-isysroot=external/androidndk/ndk/sysroot",
-             "-isystem", "external/androidndk/ndk/sysroot/usr/include",
-             #"-Iexternal/androidndk/ndk/sysroot/usr/include",
-             "-D__ANDROID_API__=24",
-    ],
+    ] + select({"linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
+                "android": COPTS_ANDROID,
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             ":mbedtls_hdrs"],
     strip_include_prefix = "include",

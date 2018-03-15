@@ -1,4 +1,8 @@
 config_setting(
+    name = "android",
+    values = { "cpu": "armeabi-v7a" }
+)
+config_setting(
     name = "linux",
     values = { "cpu": "k8" }
 )
@@ -124,6 +128,7 @@ cc_library(
     ] + select({":windows": [],
                 ":msvc": [],
                 ":msys": [],
+                "android": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
                 "linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
                 ":darwin": ["-std=c11", "-U DEBUG"],
                 "//conditions:default": ["-x c", "-std=c11"]}),

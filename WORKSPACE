@@ -1,8 +1,13 @@
 bind(name = "android/crosstool", actual = "@android_ndk//:toolchain-libcpp")
 
+local_repository(
+	name = "openocf",
+	path = "/home/gar/openocf",
+)
+
 android_sdk_repository(
     name="androidsdk",
-    path="/Users/gar/android/sdk",
+    path="/home/gar/android/sdk",
     api_level=26,	   # Oreo, 8.0.0, required for java.nio.file.*
     # default uses latest build tools installed
     # build_tools_version="27.0.3"
@@ -10,8 +15,8 @@ android_sdk_repository(
 
 android_ndk_repository(
     name="androidndk",
-    path="/Users/gar/android/android-ndk-r14b",
-    #path="/Users/gar/android/sdk/ndk-bundle/",
+    path="/home/gar/android/android-ndk-r14b",
+    #path="/home/gar/android/sdk/ndk-bundle/",
     api_level=26,
 )
 
@@ -24,7 +29,7 @@ new_local_repository(
 
 new_local_repository(
   name = "toolchain_ndk",
-  path="/Users/gar/android/sdk/ndk-bundle/",
+  path="/home/gar/android/sdk/ndk-bundle/",
   build_file = 'platforms/ndk/toolchain.BUILD',
 )
 
@@ -46,19 +51,19 @@ new_local_repository(
 new_local_repository(
   name = "cosysroot_rpi3b",
   path = "/home/gar/cosysroots/rpi3b",
-  # path = "/Users/gar/cosysroots/rpi3b",
+  # path = "/home/gar/cosysroots/rpi3b",
   build_file = "platforms/rpi3b/cosysroot.BUILD"
 )
 
 new_local_repository(
   name = "cosysroot_wrlinux",
-  path = "/Users/gar/cosysroots/wrlinux",
+  path = "/home/gar/cosysroots/wrlinux",
   build_file = "platforms/wrlinux/cosysroot.BUILD"
 )
 
 new_local_repository(
   name = "cosysroot_ndk",
-  path = "/Users/gar/cosysroots/ndk",
+  path = "/home/gar/cosysroots/ndk",
   build_file = "platforms/ndk/cosysroot.BUILD"
 )
 
@@ -84,13 +89,13 @@ new_local_repository(
 
 android_sdk_repository(
     name="androidsdk",
-    path="/Users/gar/android/sdk",
+    path="/home/gar/android/sdk",
     api_level=22,
     # build_tools_version="27.0.0"
 )
 
 android_ndk_repository(
     name="androidndk",
-    path="/Users/gar/android/sdk/ndk-bundle/",
+    path="/home/gar/android/sdk/ndk-bundle/",
     api_level=23,
 )
