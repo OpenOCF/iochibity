@@ -1,5 +1,7 @@
 /* coresource.c */
 
+/* OBSOLETE? */
+
 #include "coresource_mgr.h"
 
 /* A coresource is a co-service-provider.
@@ -56,4 +58,3 @@ struct CoServiceProvider {
     OCResourcePayload* co_service_provider;
 };
 #endif	/* INTERFACE */
-
