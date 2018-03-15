@@ -52,8 +52,9 @@
 /**
  * Client applications implement this callback to consume responses received from Servers.
  */
-typedef OCStackApplicationResult (* OCClientResponseHandler)(void *context, OCDoHandle handle,
-    OCClientResponse * clientResponse);
+typedef OCStackApplicationResult (* OCClientResponseHandler)(void *context,
+							     OCDoHandle handle, /* GAR: misnamed, s/b txn_id */
+							     OCClientResponse * clientResponse);
 
 /**
  * Client applications using a context pointer implement this callback to delete the
