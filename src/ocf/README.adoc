@@ -24,6 +24,13 @@ etc. conditional compilation
 
 == TODO
 
+* rename: what matters is res/cores, not client/server.  clients may
+  use res_dbm for local resources.
+
+    ocf_services_client -> ocf_co_res_dbm
+    ocf_services_server -> ocf_res_dbm
+    ocf_services_common - delete?
+
 * rename payload_logging  ->  ocpayload_logging. move to src/logging?
 
 * extract introspection routines from ocresource.c to introspection.c
@@ -53,5 +60,3 @@ This particular case could be extracted.  others,
 maybe not. e.g. OCDoRequest switches on OC_REST_PRESENCE
 
 But OC_REST_PRESENCE is treated as GET; we can eliminate it?
-
-
