@@ -1,0 +1,37 @@
+= c coding conventions
+
+== names
+
+Constants defined with #define:  UP_CASE
+
+structs:
+
+vars:  snake_case
+
+fns:   snake_case
+
+
+== scope
+
+Globals: (external linkage): prefix g_
+
+Local fns: always use static and unique names (this is not C++).  For example, Iotivity has (in three different files) the following:
+
+static bool UpdatePersistentStorage(const OicSecCred_t *cred)
+static bool UpdatePersistentStorage(OicSecPstat_t *pstat)
+static bool UpdatePersistentStorage(OicSecDoxm_t * doxm)
+
+We do not want this.  It is a bad idea.  OO languages support
+overloading because they have class scope, which can be written
+explicitly.  C has static (local) scope, but it cannot be expressed
+explicitly in code.  I.e. if foo.c contains static bar (), you cannot
+write something like foo.bar().  In contrast to OO languages where you
+explicitly scope methods to objects and thus to classes.  So we want
+to ensure that all our names are explicitly unique and can be
+expressed as such.  (The payoff comes when doing code analysis where duplicate static names can be a headache.)
+
+Rewrite to sth like:
+
+static bool save_cred_to_ps(const OicSecCred_t *cred)
+static bool save_pstat_to_ps(OicSecPstat_t *pstat)
+static bool save_doxm_to_ps(OicSecDoxm_t * doxm)

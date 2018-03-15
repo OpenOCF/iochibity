@@ -1,0 +1,119 @@
+= security
+
+== overview
+
+Two aspects:
+
+* data integrity. In-flight: transport-level encryption. At rest:
+  responsibility of the implementation. OCF provides recommendations
+  only.
+
+* access control: authentication and authorization
+
+
+== device properties
+
+device_properties.dat: e.g.
+
+{
+    "DeviceProperties": {
+        "piid": "a127ec9c-b1af-430e-ad6f-8e069a7cae3b"
+    }
+}
+
+where piid = platform-independent device id
+
+what is the relationship between di, piid, and subject ids in the acls?
+
+device_properties is only read if stack mode is not OC_CLIENT:
+
+ocstack.c::OCInitializeInternal:
+
+    if(myStackMode != OC_CLIENT)
+    {
+        result = initResources();
+    }
+
+
+== cipher suites
+
+Transport-level security (DTLS, TLS) is set by the OC_SECURE flag at
+resource creation. The a cipher suite etc. must be defined for each
+such "secure" resource, using the credtype property of a "cred" stanza
+in an ACL. Without this any attempt to read a secure resource will
+fail with a "TLS handshake failed" due to "No ciphersuites
+configured".
+
+typedef struct SslContext
+{
+    u_arraylist_t *peerList;         /**< peer list which holds the mapping between
+                                              peer id, it's n/w address and mbedTLS context. */
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context rnd;
+    mbedtls_x509_crt ca;
+    mbedtls_x509_crt crt;
+    mbedtls_pk_context pkey;
+
+    mbedtls_ssl_config clientTlsConf;
+    mbedtls_ssl_config serverTlsConf;
+    mbedtls_ssl_config clientDtlsConf;
+    mbedtls_ssl_config serverDtlsConf;
+
+    SslCipher_t cipher;
+    SslCallbacks_t adapterCallbacks[MAX_SUPPORTED_ADAPTERS];
+    mbedtls_x509_crl crl;
+    bool cipherFlag[2];
+    int selectedCipher;
+
+#ifdef __WITH_DTLS__
+    mbedtls_ssl_cookie_ctx cookieCtx;
+    int timerId;
+#endif
+
+} SslContext_t;
+
+
+ca_adapter_net_ssl.c::g_caSslContext
+set by ca_adapter_net_ssl.c::CAinitSslAdapter()
+which calls into mbedtls to initialize g_caSslContext
+CAinitSslAdapter called by caipadapter0.c::CAInitializeIP, called by cainterfacecontroller.c::CAInitializeAdapters
+called by camessagehandler.c::CAInitializeMessageHandler(CATransportAdapter_t transportType)
+called by caconnectivitymanager.c::CAInitialize
+called by ocstack.c:: OCInitializeInternal
+
+
+ca_adapter_net_ssl.c::g_getCredentialsCallback
+
+sec/crypto/dtls.c::
+typedef void (*CAgetCredentialTypesHandler)(bool * list,
+	 const char* deviceId);
+
+caconnectivitymanager.c::
+extern void CAsetCredentialTypesCallback(CAgetCredentialTypesHandler credCallback);
+
+
+ca_adapter_net_ssl.c::g_getCredentialTypesCallback - set by
+ca_adapter_net_ssl.c::CAsetCredentialTypesCallback(CAgetCredentialTypesHandler credTypesCallback)
+called by caconnectivitymanager.c::CAResult_t CAregisterGetCredentialTypesHandler(CAgetCredentialTypesHandler getCredTypesHandler)
+called by:
+    provisioning/owenershiptransfermanager.c
+    provisioning/oxmmanufacturercert.c
+    sec/svrs/doxmresource.c (in HandleDoxmPostRequest, HandleDoxmPostRequestMfg)
+    sec/svrs/secureresourcemanager.c::SRMInitSecureResources()
+called by ocstack.c::initResources IF stack mode != OC_CLIENT
+called by ocstack.c::OCInitializeInternal
+
+
+
+ca_adapter_net_ssl.c::SetupCipher(mbedtls_ssl_config * config,
+			CATransportAdapter_t adapter,
+                        const char* deviceId)
+called by
+ca_adapter_net_ssl.c:: SslEndPoint_t * InitiateTlsHandshake(const CAEndpoint_t *endpoint)
+   called by ca_adapter_net_ssl.c::CAencryptSsl(const CAEndpoint_t *endpoint,
+                        const void *data, size_t dataLen)
+{
+
+
+and
+ca_adapter_net_ssl.c::CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dataLen)
