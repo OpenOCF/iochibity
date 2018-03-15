@@ -44,7 +44,7 @@
 /* #include "experimental/logger.h" */
 /* #include "oic_malloc.h" */
 /* #include "oic_string.h" */
-#include "org_iotivity_ca_CaIpInterface.h"
+/* #include "org_iotivity_ca_CaIpInterface.h" */
 /* #include "caifaddrs.h" */
 
 #define TAG "OIC_CA_IP_MONITOR"
