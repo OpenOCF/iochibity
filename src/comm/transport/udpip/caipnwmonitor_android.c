@@ -557,7 +557,7 @@ Java_org_iotivity_ca_CaIpInterface_caIpStateDisabled(JNIEnv *env, jclass class)
 /* } */
 
 /* GAR FIXME: not needed in android? */
-void CAIPDestroyNetworkMonitorList() 
+void CAIPDestroyNetworkMonitorList()
 {
     if (g_netInterfaceList)
     {

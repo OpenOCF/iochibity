@@ -286,7 +286,7 @@ typedef struct OCResource {
     OCResourceInterface *rsrcInterface;
 
     /** Resource attributes; linked list.*/
-    OCAttribute *rsrcAttributes;
+    OCAttribute *rsrcAttributes; /* GAR:misnamed, should be Properties */
 
     /** Array of pointers to resources; can be used to represent a container of resources.
      * (i.e. hierarchies of resources) or for reference resources (i.e. for a resource collection).*/
@@ -304,7 +304,7 @@ typedef struct OCResource {
     /** Properties on the resource – defines meta information on the resource.
      * (ACTIVE, DISCOVERABLE etc ). */
 
-    OCResourceProperty resourceProperties ;
+    OCResourceProperty resourceProperties ; /* GAR: misnamed; should be policies, not properties */
 
     /* @note: Methods supported by this resource should be based on the interface targeted
      * i.e. look into the interface structure based on the query request Can be removed here;
@@ -312,7 +312,7 @@ typedef struct OCResource {
     /* method_t methods; */
 
     /** Observer(s); linked list.*/
-    ResourceObserver *observersHead;
+    ResourceObserver *observersHead; /* GAR: misnamed, should be ResourceWatcher watchersHead; */
 
     /** Sequence number for observable resources. Per the CoAP standard it is a 24 bit value.*/
     uint32_t sequenceNum;
@@ -321,6 +321,7 @@ typedef struct OCResource {
     OCActionSet *actionsetHead;
 
     /** The instance identifier for this web link in an array of web links - used in links. */
+    /* GAR: uniqueStr, OCIdentity, uniqueUUID not referenced in source code!? */
     union
     {
         /** An ordinal number that is not repeated - must be unique in the collection context. */
@@ -368,7 +369,7 @@ typedef enum
     OC_NONSECURE     = (1 << 6),
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-    /** When this bit is set, the resource is a secure resource.*/
+    /** When this bit is set, the resource is a secure resource.*/ /* GAR: ie. supports access via secure endpoint */
     OC_SECURE        = (1 << 4),
 #else
     OC_SECURE        = (0),
@@ -392,7 +393,7 @@ typedef enum
     // Since this property is not defined on OCF Spec. it should be set 0 until define it
     ,OC_MQ_BROKER        = (0)
 #endif
-} OCResourceProperty;
+} OCResourceProperty; /* GAR: misnamed, should be OCResourcePolicy */
 
 #endif	/* EXPORT_INTERFACE */
 
@@ -3136,5 +3137,3 @@ void GiveStackFeedBackObserverNotInterested(const OCDevAddr *devAddr)
         }
     }
 }
-
-

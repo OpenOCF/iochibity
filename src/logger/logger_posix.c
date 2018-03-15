@@ -169,13 +169,13 @@ void OCLog(int level, const char * tag, const char * logStr)
  *     if (((int)OC_MINIMUM_LOG_LEVEL) <= ((int)(level & (~OC_LOG_PRIVATE_DATA)))) \
  *             OCLogBuffer((level), __FILE__, __LINE__, (buffer), (bufferSize)); \
  *     } while(0)
- * 
+ *
  * #define OIC_LOG_CA_BUFFER(level, tag, buffer, bufferSize, isHeader) \
  *     do { \
  *     if (((int)OC_MINIMUM_LOG_LEVEL) <= ((int)(level & (~OC_LOG_PRIVATE_DATA)))) \
  *             OCPrintCALogBuffer((level), __FILE__, __LINE__, (buffer), (bufferSize), (isHeader)); \
  *     } while(0)
- * 
+ *
  * #define OIC_LOG_CONFIG(ctx)    OCLogConfig((ctx))
  * #define OIC_LOG_SHUTDOWN()     OCLogShutdown()
  * #define OIC_LOG(level, tag, logStr) \
@@ -183,7 +183,7 @@ void OCLog(int level, const char * tag, const char * logStr)
  *     if (((int)OC_MINIMUM_LOG_LEVEL) <= ((int)(level & (~OC_LOG_PRIVATE_DATA)))) \
  * 	    OCLog((level), (__FILE__ ":" TOSTRING(__LINE__)), (logStr));	\
  *     } while(0)
- * 
+ *
  * // Define variable argument log function for Linux, Android, and Win32
  * #define OIC_LOG_V(level, tag, ...) \
  *     do { \

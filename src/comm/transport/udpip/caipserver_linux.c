@@ -36,6 +36,7 @@
 #endif
 #include <fcntl.h>
 #ifdef HAVE_SYS_SELECT_H
+/* POSIX.1-2001, POSIX.1-2008 */
 #include <sys/select.h>
 #endif
 #ifdef HAVE_ARPA_INET_H
@@ -62,6 +63,8 @@
  */
 #define TAG "OIC_LINUX_CA_IP_SERVER"
 
+/* This routine is misnamed. It monitors network FDs and processes
+   (reads and dispatches) when ready */
 void CAFindReadyMessage()
 {
     fd_set readFds;
@@ -113,9 +116,10 @@ void CAFindReadyMessage()
     }
 }
 
+/* process FDs that are ready for reading */
 LOCAL void CASelectReturned(fd_set *readFds, int ret)
 {
-    (void)ret;
+    (void)ret;			/* ret = fd count */
     CASocketFd_t fd = OC_INVALID_SOCKET;
     CATransportFlags_t flags = CA_DEFAULT_FLAGS;
 
@@ -132,7 +136,7 @@ LOCAL void CASelectReturned(fd_set *readFds, int ret)
         else if ((caglobals.ip.netlinkFd != OC_INVALID_SOCKET) && FD_ISSET(caglobals.ip.netlinkFd, readFds))
         {
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-            OIC_LOG_V(DEBUG, TAG, "Netlink event detacted");
+            OIC_LOG_V(DEBUG, TAG, "Rtnetlink event detected");
 #endif
             u_arraylist_t *iflist = CAFindInterfaceChange();
             if (iflist)
@@ -164,6 +168,7 @@ LOCAL void CASelectReturned(fd_set *readFds, int ret)
         {
             break;
         }
+	/* at this point, any fd ready for reading, and flags, have been set by the ISSET macros above */
         (void)CAReceiveMessage(fd, flags);
         FD_CLR(fd, readFds);
     }
@@ -190,7 +195,10 @@ void CARegisterForAddressChanges()
     caglobals.ip.netlinkFd = OC_INVALID_SOCKET;
     // create NETLINK fd for interface change notifications
     struct sockaddr_nl sa = { AF_NETLINK, 0, 0,
-                              RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR };
+                              RTMGRP_LINK /* nw interface create/delete/up/down events */
+			      | RTMGRP_IPV4_IFADDR /* ipv4 address add/delete */
+			      | RTMGRP_IPV6_IFADDR /* ipv6 address add/delete */
+    };
 
     caglobals.ip.netlinkFd = socket(AF_NETLINK, SOCK_RAW|SOCK_CLOEXEC, NETLINK_ROUTE);
     if (caglobals.ip.netlinkFd == OC_INVALID_SOCKET)

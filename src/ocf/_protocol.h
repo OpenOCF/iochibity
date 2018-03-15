@@ -91,6 +91,7 @@ typedef enum
 /**
  *  Enum layout assumes some targets have 16-bit integer (e.g., Arduino).
  */
+/* GAR: corresponding constants, e.g. CT_FLAG_SECURE, in OCConnectivityType*/
 typedef enum
 {
     /** default flag is 0*/
@@ -185,6 +186,7 @@ typedef enum
 
 /**
  * End point identity.
+ * FIXME GAR: what is end point "identity"? a UUID?
  */
 typedef struct
 {
@@ -193,7 +195,7 @@ typedef struct
 
     /** Array of end point identity.*/
     unsigned char id[MAX_IDENTITY_SIZE];
-} OCIdentity;
+} OCIdentity;			/* GAR misnamed? should be oc_uuid? */
 
 /**
  * Universally unique identifier.
@@ -208,6 +210,7 @@ typedef struct
  * Data structure to encapsulate IPv4/IPv6/Contiki/lwIP device addresses.
  * OCDevAddr must be the same as CAEndpoint (in CACommon.h).
  */
+/* FIXME GAR: i.e. this is an abstraction for IP addresses? then why not put it in comm/ip/foo? */
 #include <stdint.h>
 typedef struct
 {
@@ -221,6 +224,8 @@ typedef struct
     uint16_t                port;
 
     /** address for all adapters.*/
+    /* GAR FIXME: meaning depends on adapter (=nw) type? */
+    /* e.g. BLE address is 48 bits (6 bytes) http://microchipdeveloper.com/wireless:ble-link-layer-address */
     char                    addr[MAX_ADDR_STR_SIZE];
 
     /** usually zero for default interface.*/

@@ -82,7 +82,7 @@ typedef enum OicSecOxm_t
 #if EXPORT_INTERFACE
 // NOTE that this enum must match the gDoxmPropertyAccessModes
 // table in doxmresource.c
-typedef enum DoxmProperty_t{
+typedef enum DoxmProperty_t {
     DOXM_OXMS = 1,
     DOXM_OXMSEL,
     DOXM_SCT,
@@ -107,7 +107,7 @@ typedef enum DoxmProperty_t{
 struct OicSecDoxm
 {
     // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
-    OicSecOxm_t         *oxm;           // 1:R:M:N:UINT16
+    OicSecOxm_t         *oxm;          // 1:R:M:N:UINT16 /* FIXME: s/.b oxms (plural) */
     size_t              oxmLen;         // the number of elts in Oxm
     OicSecOxm_t         oxmSel;         // 2:R/W:S:Y:UINT16
     OicSecCredType_t    sct;            // 3:R:S:Y:oic.sec.credtype
@@ -1281,6 +1281,7 @@ static void RegisterOTMSslHandshakeCallback(CAHandshakeErrorCallback callback)
 }
 
 #ifdef MULTIPLE_OWNER
+/* GAR FIXME: should this be ...Mot instead of ...Mom? */
 void HandleDoxmPostRequestMom(OicSecDoxm_t *newDoxm, OCEntityHandlerRequest *ehRequest)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
@@ -1649,7 +1650,6 @@ OCEntityHandlerResult HandleDoxmPostRequestSrv(OicSecDoxm_t *newDoxm,
     return ehRet;
 }
 
-
 static OCEntityHandlerResult HandleDoxmPostRequest(OCEntityHandlerRequest *ehRequest)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
@@ -1839,7 +1839,6 @@ exit:
     return ehRet;
 }
 
-
 OCEntityHandlerResult DoxmEntityHandler(OCEntityHandlerFlag flag,
                                         OCEntityHandlerRequest * ehRequest,
                                         void* callbackParam)
@@ -2000,6 +1999,7 @@ static OCStackResult CheckDeviceID()
  *
  * @return the default value of doxm, @ref OicSecDoxm_t.
  */
+/* GAR FIXME: this does nothing useful and is internal; delete it */
 static OicSecDoxm_t* GetDoxmDefault()
 {
     OIC_LOG(DEBUG, TAG, "%s: returning gDefaultDoxm");

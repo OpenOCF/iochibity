@@ -11,12 +11,13 @@ typedef struct
     OCDevAddr *addr;
 
     /** backward compatibility.*/
-    OCConnectivityType connType;
+    OCConnectivityType connType; /* corresponds to OCTransportAdapter, OCTransportFlags: adapter type, sec flag, IP ver., IPv6 scope */
 
     /** the security identity of the remote server.*/
     OCIdentity identity;	/* GAR: not used for discovery responses? */
 
     /** the is the result of our stack, OCStackResult should contain coap/other error codes.*/
+    /* GAR: result of server-side processing? */
     OCStackResult result;
 
     /** If associated with observe, this will represent the sequence of notifications from server.*/
@@ -33,5 +34,5 @@ typedef struct
 
     /** An array of the received vendor specific header options.*/
     OCHeaderOption rcvdVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
-} OCClientResponse;
+} OCClientResponse;		/* GAR: misnamed; should be InboundResponse or similar */
 #endif	/* INTERFACE */

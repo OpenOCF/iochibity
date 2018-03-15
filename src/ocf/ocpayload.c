@@ -148,7 +148,7 @@ typedef struct OCRepPayload
     struct OCRepPayload* next;
 } OCRepPayload;
 
-// used inside a resource payload
+// used inside an OCResourcePayload inside an OCDiscoveryPayload
 typedef struct OCEndpointPayload
 {
     char* tps;
@@ -159,7 +159,7 @@ typedef struct OCEndpointPayload
     struct OCEndpointPayload* next;
 } OCEndpointPayload;
 
-// used inside a discovery payload
+// used inside an OCDiscoveryPayload
 /* GAR: a Link? OCF 1.3.0 section 7.8.2. Compare OCResource in ocresource.h */
 typedef struct OCResourcePayload
 {

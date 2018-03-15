@@ -80,6 +80,7 @@ static void CARemoveNetworkMonitorList(int ifiindex)
 }
 /* CANetworkStatus_t fixme_nws;	/\* help makeheaders *\/ */
 
+/* get newaddr/deladdr */
 u_arraylist_t *CAFindInterfaceChange()
 {
     u_arraylist_t *iflist = NULL;
