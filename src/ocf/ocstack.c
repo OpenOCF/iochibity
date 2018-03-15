@@ -69,6 +69,12 @@
 #include <sys/time.h>
 #endif
 #include "coap_config.h"
+/* FIXME PORTABILITY: one of these is required for coap_time.h */
+#ifdef _MSC_VER
+#define HAVE_WS2TCPIP_H
+#else
+#define WITH_POSIX
+#endif
 #include "coap/coap_time.h"
 #include "coap/pdu.h"
 
