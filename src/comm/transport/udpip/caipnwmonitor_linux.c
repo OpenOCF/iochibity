@@ -96,9 +96,25 @@ u_arraylist_t *CAFindInterfaceChange()
                           .msg_iovlen = 1 };
 
     ssize_t len = recvmsg(caglobals.ip.netlinkFd, &msg, 0);
+    /* OIC_LOG_V(DEBUG, TAG, "Rtnetlink recvmsg len: %d", len); */
 
     for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len))
     {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	if (nh != NULL) {
+	    if (nh->nlmsg_type == RTM_DELADDR) {
+		OIC_LOG_V(DEBUG, TAG, "Rtnetlink event type RTM_DELADDR");
+	    } else if (nh->nlmsg_type == RTM_NEWADDR) {
+		OIC_LOG_V(DEBUG, TAG, "Rtnetlink event type RTM_NEWADDR");
+	    } else if (nh->nlmsg_type == RTM_NEWLINK) {
+		OIC_LOG_V(DEBUG, TAG, "Rtnetlink event type RTM_NEWLINK");
+	    } else {
+		OIC_LOG_V(DEBUG, TAG, "Rtnetlink event type %d", nh->nlmsg_type);
+	    }
+	} else {
+	    OIC_LOG_V(DEBUG, TAG, "Rtnetlink recvmsg fail?");
+	}
+#endif
         if (nh != NULL && (nh->nlmsg_type != RTM_DELADDR && nh->nlmsg_type != RTM_NEWADDR))
         {
 	    /* GAR: what about RTM_NEWLINK, RTM_DELLINK? */
