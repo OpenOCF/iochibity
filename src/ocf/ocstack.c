@@ -37,13 +37,13 @@
 
 #include "ocstack.h"
 #include <assert.h>
-#ifndef __cplusplus
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-#if defined(static_assert)
-#pragma message "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-#endif
-#endif /* __STDC_VERSION__ */
-#endif /* !__cplusplus */
+/* #ifndef __cplusplus */
+/* #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L */
+/* #if defined(static_assert) */
+/* #pragma message "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" */
+/* #endif */
+/* #endif /\* __STDC_VERSION__ *\/ */
+/* #endif /\* !__cplusplus *\/ */
 #pragma message(VAR_NAME_VALUE(__STDC__))
 #pragma message(VAR_NAME_VALUE(__STDC_VERSION__))
 #pragma message(VAR_NAME_VALUE(__cplusplus))
