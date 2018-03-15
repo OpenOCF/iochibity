@@ -141,6 +141,7 @@ static cJSON *pstat_to_json(OCSecurityPayload *payload)
     return root;
 }
 
+/* FIXME: this should be in the engine, accessible via OCFClientSP */
 /* caller responsible for freeing result */
 static cJSON* security_to_json(OCClientResponse *msg)
 {
@@ -198,4 +199,3 @@ void log_security_msg(OCClientResponse *clientResponse)
     fclose(fd);
     cJSON_Delete(security_json);
 }
-
