@@ -1,0 +1,6 @@
+TODO:
+
+rename dir: ocf_services_client -> ocf_client_sp?  ocf_client_services_provider?  (match the Java API)
+or leave at ocf_services etc. so client and server sort together?
+
+rename: coresource_dbm.c
