@@ -26,6 +26,13 @@
 
 #include "coap_config.h"
 #include "coap/pdu.h"
+/* FIXME PORTABILITY: one of these is required for coap_time.h */
+/* use --per_file_copt cmd line option? */
+#ifdef _MSC_VER
+#define HAVE_WS2TCPIP_H
+#else
+#define WITH_POSIX
+#endif
 #include "coap/coap_time.h"
 
 // Module Name
@@ -293,7 +300,7 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
  *         else
  *         {
  *             OCEntityHandlerResponse ehResponse = {0};
- * 
+ *
  *             //This is effectively the implementation for the presence entity handler.
  *             OIC_LOG(DEBUG, TAG, "This notification is for Presence");
  *             result = AddServerRequest(&request, 0, 0, 1, OC_REST_GET,
@@ -302,18 +309,18 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
  *                     resourceObserver->token, resourceObserver->tokenLength,
  *                     resourceObserver->resUri, 0, resourceObserver->acceptFormat,
  *                     resourceObserver->acceptVersion, &resourceObserver->devAddr);
- * 
+ *
  *             if (result == OC_STACK_OK)
  *             {
  *                 OCPresencePayload* presenceResBuf = OCPresencePayloadCreate(
  *                         resPtr->sequenceNum, maxAge, trigger,
  *                         resourceType ? resourceType->resourcetypename : NULL);
- * 
+ *
  *                 if (!presenceResBuf)
  *                 {
  *                     return OC_STACK_NO_MEMORY;
  *                 }
- * 
+ *
  *                 if (result == OC_STACK_OK)
  *                 {
  *                     ehResponse.ehResult = OC_EH_OK;
@@ -324,7 +331,7 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
  *                             resourceObserver->resUri);
  *                     result = OCDoResponse(&ehResponse);
  *                 }
- * 
+ *
  *                 OCPresencePayloadDestroy(presenceResBuf);
  *             }
  *         }
