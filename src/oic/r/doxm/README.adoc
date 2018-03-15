@@ -1,0 +1,223 @@
+= doxm resource
+
+/oic/sec/doxm
+
+type:  oic.r.doxm
+
+Properties: see the spec.
+
+API:  from doxmresource.c:
+
+typedef enum OicSecOxm_t { } OicSecOxm_t;
+
+typedef enum DoxmProperty_t { } DoxmProperty_t;
+
+struct OicSecDoxm { }; typedef struct OicSecDoxm OicSecDoxm_t;
+
+CONSTANTS ================:
+#define CHAR_ZERO ('0')
+static const uint16_t CBOR_SIZE = 512;
+
+/** Max cbor size payload. */
+static const uint16_t CBOR_MAX_SIZE = 4400;
+#define MAX_UUID_SEED_SIZE (64)
+#define MIN_UUID_SEED_SIZE (8)
+
+GLOBALS ================:
+static uint8_t gUuidSeed[MAX_UUID_SEED_SIZE];
+static size_t gUuidSeedSize = 0;
+static OicSecDoxm_t        *gDoxm = NULL;
+static OCResourceHandle    gDoxmHandle = NULL;
+static OicSecOxm_t gDoxmDefaultOxm = OIC_RANDOM_DEVICE_PIN;
+static OicSecDoxm_t gDefaultDoxm = { ... };
+
+#define R PERMISSION_READ
+#define W PERMISSION_WRITE
+#define RW PERMISSION_READ | PERMISSION_WRITE
+
+static const uint8_t gDoxmPropertyAccessModes[DOXM_PROPERTY_COUNT][DOS_STATE_COUNT] =
+{ // RESET RFOTM  RFPRO   RFNOP   SRESET
+    { R,    R,      R,      R,      R   }, // .oxmtype
+    ...etc...
+};
+#undef R
+#undef W
+#undef RW
+
+API ================:
+
+
+==== Sub API: CBOR coded ====
+
+// NB: DoxmBin means OicSecDoxm_t*
+
+// does a lookup in gDoxmPropertyAccessModes; used only in  CBORPayloadToDoxmBin
+static bool IsPropertyReadOnly(DoxmProperty_t p,
+                               OicSecDeviceOnboardingState_t s)
+
+// free a OicSecDoxm_t structure
+void DeleteDoxmBinData(OicSecDoxm_t* doxm)
+
+OCStackResult
+DoxmToCBORPayloadPartial(const OicSecDoxm_t *doxm,
+			       uint8_t **payload,
+			       size_t *size,
+			       const bool *propertiesToInclude)
+
+OCStackResult DoxmToCBORPayload(const OicSecDoxm_t *doxm,
+                                 uint8_t **payload, size_t *size)
+
+static OCStackResult
+CBORPayloadToDoxmBin(const uint8_t *cborPayload,
+			   size_t size,
+			   OicSecDoxm_t **secDoxm,
+			   bool *roParsed,
+			   OicSecDeviceOnboardingState_t stateForReadOnlyCheck)
+
+OCStackResult
+CBORPayloadToDoxm(const uint8_t *cborPayload,
+			size_t size,
+			OicSecDoxm_t **secDoxm)
+
+////////////////////////////////////////////////////////////////
+
+// NB: same fn name in doxm, pstat, and credresource packages
+// meaning: save_doxm_to_ps
+static bool UpdatePersistentStorage(OicSecDoxm_t * doxm)
+
+// called by HandleDoxmGetRequest
+static bool ValidateQuery(const char * query)
+
+
+////////////////////////////////////////////////////////////////
+OCStackResult
+DoxmUpdateWriteableProperty(const OicSecDoxm_t* src,
+				  OicSecDoxm_t* dst)
+
+#ifdef MULTIPLE_OWNER
+CAResult_t
+MultipleOwnerDTLSHandshakeCB(const CAEndpoint_t *object,
+			const CAErrorInfo_t *errorInfo)
+#endif //MULTIPLE_OWNER
+
+// called by  HandleDoxmPostRequest
+static bool
+ValidateOxmsel(const OicSecOxm_t *supportedMethods,
+		     size_t numberOfMethods,
+		     OicSecOxm_t *selectedMethod)
+
+static CAResult_t
+DoxmDTLSHandshakeCB(const CAEndpoint_t *endpoint,
+		    const CAErrorInfo_t *info)
+
+static void
+RegisterOTMSslHandshakeCallback(CAHandshakeErrorCallback callback)
+
+#ifdef MULTIPLE_OWNER
+void HandleDoxmPostRequestMom(OicSecDoxm_t *newDoxm,
+     			      OCEntityHandlerRequest *ehRequest)
+#endif //MULTIPLE_OWNER
+
+int HandleDoxmPostRequestSVR()
+
+OCEntityHandlerResult
+HandleDoxmPostRequestUpdatePS(bool fACE)
+
+OCEntityHandlerResult
+HandleDoxmPostRequestJustWork(OicSecDoxm_t *newDoxm,
+			      OCEntityHandlerRequest *ehRequest,
+			      bool isDuplicatedMsg)
+
+OCEntityHandlerResult
+HandleDoxmPostRequestRandomPin(OicSecDoxm_t *newDoxm,
+				OCEntityHandlerRequest *ehRequest,
+				bool isDuplicatedMsg)
+
+OCEntityHandlerResult
+HandleDoxmPostRequestMfg(OicSecDoxm_t *newDoxm,
+			OCEntityHandlerRequest *ehRequest,
+			bool isDuplicatedMsg)
+
+//Change the SVR's resource owner as owner device.
+OCEntityHandlerResult
+HandleDoxmPostRequestSrv(OicSecDoxm_t *newDoxm,
+			OCEntityHandlerRequest *ehRequest,
+			bool isDuplicatedMsg)
+
+// called by DoxmEntityHandler
+static OCEntityHandlerResult
+HandleDoxmPostRequest(OCEntityHandlerRequest *ehRequest)
+
+// called by DoxmEntityHandler
+static OCEntityHandlerResult
+HandleDoxmGetRequest (const OCEntityHandlerRequest * ehRequest)
+
+OCEntityHandlerResult
+DoxmEntityHandler(OCEntityHandlerFlag flag,
+		OCEntityHandlerRequest * ehRequest,
+		void* callbackParam)
+
+////////////////////////////////////////////////////////////////
+// lifecycle
+
+OCStackResult CreateDoxmResource()
+
+/*Checks if DeviceID is generated during provisioning for the new
+device.  If DeviceID is NULL then generates the new DeviceID.  Once
+DeviceID is assigned to the device it does not change for the
+lifetime of the device.*/
+// GAR: called by InitDoxmResource
+static OCStackResult CheckDeviceID() // HELPER fn
+
+// HELPER fn, used only in InitDoxmResource; does nothing useful
+static OicSecDoxm_t* GetDoxmDefault()
+
+const OicSecDoxm_t* GetDoxmResourceData() { return gDoxm; }
+
+/*Internal API to prepare MOT */
+static void PrepareMOT(const OicSecDoxm_t* doxm)
+
+OCStackResult InitDoxmResource()
+
+OCStackResult DeInitDoxmResource()
+
+OCStackResult
+SetDoxmDeviceIDSeed(const uint8_t* seed,
+			  size_t seedSize)
+
+OCStackResult GetDoxmDeviceID(OicUuid_t *deviceuuid)
+
+OCStackResult SetDoxmDeviceID(const OicUuid_t *deviceuuid)
+
+OCStackResult GetDoxmDevOwnerId(OicUuid_t *devowneruuid)
+
+OCStackResult SetDoxmDevOwnerId(const OicUuid_t *devowneruuid)
+
+OCStackResult GetDoxmIsOwned(bool *isowned)
+
+OCStackResult SetDoxmIsOwned(const bool isowned)
+
+OCStackResult GetDoxmRownerId(OicUuid_t *rowneruuid)
+
+OCStackResult SetDoxmRownerId(const OicUuid_t *rowneruuid)
+
+#ifdef MULTIPLE_OWNER
+bool IsSubOwner(const OicUuid_t* uuid)
+OCStackResult SetMOTStatus(bool enable)
+#endif //MULTIPLE_OWNER
+
+void RestoreDoxmToInitState()
+
+OCStackResult SetDoxmSelfOwnership(const OicUuid_t* newROwner)
+
+#ifdef MULTIPLE_OWNER
+static bool
+AreDoxmBinMOTPropertyValuesEqual(OicSecDoxm_t* doxm1,
+				OicSecDoxm_t* doxm2)
+#endif //#ifdef MULTIPLE_OWNER
+
+bool AreDoxmBinPropertyValuesEqual(OicSecDoxm_t* doxm1,
+     				 OicSecDoxm_t* doxm2)
+
+OCStackResult
+EnableAnonCipherSuiteIfUnOwnedAndJustWorksSelected(bool *enabled)
