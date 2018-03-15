@@ -185,7 +185,8 @@
 #define OC_RSRVD_LINKS                  "links"
 
 /** To represent default interface.*/
-#define OC_RSRVD_INTERFACE_DEFAULT      "oic.if.baseline"
+#define OC_RSRVD_INTERFACE_BASELINE     "oic.if.baseline"
+#define OC_RSRVD_INTERFACE_DEFAULT      OC_RSRVD_INTERFACE_BASELINE
 
 /** To represent read-only interface.*/
 #define OC_RSRVD_INTERFACE_READ         "oic.if.r"
