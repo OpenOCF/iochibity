@@ -25,6 +25,8 @@
 
 /* #if LOCAL_INTERFACE */
 #include "coap_config.h"
+/* FIXME: put this in build logic? */
+#define WITH_POSIX
 #include "coap/coap_time.h"
 /* #endif */
 
