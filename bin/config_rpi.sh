@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# example; customize to fit your toolchain
+
 set -x
 
 export PATH="${PATH}:/Volumes/CrossToolNG/armv8-rpi3-linux-gnueabihf/bin"
