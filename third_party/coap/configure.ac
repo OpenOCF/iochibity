@@ -381,6 +381,7 @@ CFLAGS="$CFLAGS $ADDITIONAL_CFLAGS"
 #     Cflags: -I${includedir}/coap-@LIBCOAP_API_VERSION@
 #
 AC_CONFIG_FILES([
+BUILD
 Makefile
 doc/Makefile
 examples/Makefile

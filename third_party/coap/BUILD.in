@@ -1,0 +1,77 @@
+# Template file for use with autoconf
+load("//tools/config:variables.bzl", "COPTS_ANDROID")
+
+licenses(["notice", "reciprocal"])
+
+# Vars exported by ./configure:
+WARNING_CFLAGS="@WARNING_CFLAGS@"
+
+# LD version script stuff:
+# libcoap_SYMBOLS="@libcoap_SYMBOLS@"
+
+# _GNU_SOURCE WITH_POSIX
+# PREDEFINED_CFLAGS="@PREDEFINED_CFLAGS@"
+
+# CFLAGS includes predefined flags -D_GNU_SOURCE -DWITH_POSIX
+CFLAGS="@CFLAGS@"
+
+config_setting(
+    name = "android",
+    values = {"cpu": "armeabi-v7a",
+              # "define": "target=android",
+              # "crosstool_top": "@android_ndk//:toolchain-libcpp",
+              # "android_cpu": "x86",
+              # "android_crosstool_top": "//platforms/ndk:toolchain"
+    }
+)
+
+config_setting(
+    name = "windows",
+    values = { "cpu": "x64_windows" }
+)
+config_setting(
+    name = "msvc",
+    values = { "cpu": "x64_windows_msvc" }
+)
+config_setting(
+    name = "msys",
+    values = { "cpu": "x64_windows_msys" }
+)
+config_setting(
+    name = "linux",
+    values = { "cpu": "k8" }
+)
+
+config_setting(
+    name = "rpi",
+    values = { "cpu": "armv8" }
+)
+
+cc_library(
+    name = "coap",
+    # alwayslink = True,
+    copts = ["-Ithird_party/coap",
+             "-Iexternal/openocf/third_party/coap",
+             "-Ithird_party/coap/include/coap",
+             "-Iexternal/openocf/third_party/coap/include/coap",
+             "-Isrc"]
+    + WARNING_CFLAGS.split(" ")
+    + CFLAGS.split(" ")
+    # + libcoap_SYMBOLS.split(" ")
+    + select({"msys": [],
+              "msvc": [],
+              "windows": [],
+              # "linux": ["-std=c11", "-DHAVE_CONFIG_H"],
+              "rpi": ["-std=c11"],
+              # "android": COPTS_ANDROID + ["-DHAVE_CONFIG_H"],
+              "//conditions:default": ["-std=c11"]}),
+    # deps = ["//src:config", "//third_party/ndk"],
+    hdrs = ["coap_config.h"] + glob(["include/**/*.h"],
+                                    exclude = ["include/coap/lwippools.h"]),
+    # windows: ntohs etc. are in ws2_32.lib
+    linkopts = select({":msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 ws2_32.lib"],
+                       ":msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lws2_32"],
+                       "//conditions:default": []}),
+    srcs = glob(["src/*.c"], exclude = ["src/coap_io_lwip.c"]),
+    visibility = ["//visibility:public"]
+)
