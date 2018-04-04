@@ -97,9 +97,13 @@ toolchain {
   ## cxx std libs:
   ## unfiltered_cxx_flag: "-isystem???"
 
- # Make C++ compilation deterministic. Use linkstamping instead of these
-  # compiler symbols.
+  # silence gcc warnings where builtin macros such as __TIME__ are
+    undefined or redefined, either on the command line or by
+    directives:
   unfiltered_cxx_flag: "-Wno-builtin-macro-redefined"
+
+  # Make C++ compilation deterministic. Use linkstamping instead of these
+  # compiler symbols.
   unfiltered_cxx_flag: "-D__DATE__=\"redacted\""
   unfiltered_cxx_flag: "-D__TIMESTAMP__=\"redacted\""
   unfiltered_cxx_flag: "-D__TIME__=\"redacted\""
