@@ -54,18 +54,18 @@ cc_library(
              "-Iexternal/openocf/third_party/coap",
              "-Ithird_party/coap/include/coap",
              "-Iexternal/openocf/third_party/coap/include/coap",
-             "-Isrc"]
+             "-Isrc",
+             "-DHAVE_CONFIG_H"]
     + WARNING_CFLAGS.split(" ")
     + CFLAGS.split(" ")
     # + libcoap_SYMBOLS.split(" ")
     + select({"msys": [],
               "msvc": [],
               "windows": [],
-              # "linux": ["-std=c11", "-DHAVE_CONFIG_H"],
+              "linux": ["-std=c11"],
               "rpi": ["-std=c11"],
-              # "android": COPTS_ANDROID + ["-DHAVE_CONFIG_H"],
+              "android": COPTS_ANDROID,
               "//conditions:default": ["-std=c11"]}),
-    # deps = ["//src:config", "//third_party/ndk"],
     hdrs = ["coap_config.h"] + glob(["include/**/*.h"],
                                     exclude = ["include/coap/lwippools.h"]),
     # windows: ntohs etc. are in ws2_32.lib
