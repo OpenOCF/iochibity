@@ -31,7 +31,10 @@ cc_library(
              "-Ithird_party/mbedtls",
              "-Ithird_party/mbedtls/include",
              "-Ithird_party/mbedtls/include/mbedtls",
-    ] + select({"linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
+             # error: dereferencing pointer to incomplete type
+             # ‘struct addrinfo’:
+             "-D_GNU_SOURCE"
+    ] + select({"linux": ["-std=c11", "-DHAVE_CONFIG_H", "-DWITH_POSIX"],
                 "android": COPTS_ANDROID,
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
