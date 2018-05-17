@@ -375,17 +375,17 @@ CAResult_t CAInitializeIP(CARegisterConnectivityCallback registerCallback,
 
     static const CAConnectivityHandler_t ipHandler =
         {
-            .startAdapter = CAStartIP,
-            .stopAdapter = CAStopIP,
-            .startListenServer = CAStartIPListeningServer,
-            .stopListenServer = CAStopIPListeningServer,
-            .startDiscoveryServer = CAStartIPDiscoveryServer,
-            .sendData = CASendIPUnicastData,
-            .sendDataToAll = CASendIPMulticastData,
-            .GetnetInfo = CAGetIPInterfaceInformation,
-            .readData = CAReadIPData,
-            .terminate = CATerminateIP,
-            .cType = CA_ADAPTER_IP
+            .startAdapter         = &CAStartIP,
+            .stopAdapter          = &CAStopIP,
+            .startListenServer    = &CAStartIPListeningServer,
+            .stopListenServer     = &CAStopIPListeningServer,
+            .startDiscoveryServer = &CAStartIPDiscoveryServer,
+            .sendData             = &CASendIPUnicastData,
+            .sendDataToAll        = &CASendIPMulticastData,
+            .GetnetInfo           = &CAGetIPInterfaceInformation,
+            .readData             = &CAReadIPData,
+            .terminate            = &CATerminateIP,
+            .cType                = CA_ADAPTER_IP
         };
     registerCallback(ipHandler);
 

@@ -44,7 +44,7 @@ typedef enum
  * @return ::CA_STATUS_OK or ::CA_STATUS_FAILED
  *  ERROR CODES (::CAResult_t error codes in cacommon.h).
  */
-typedef CAResult_t (*CAAdapterStart)();
+typedef CAResult_t CAAdapterStart();
 
 /**
  * Starting listening server for receiving multicast search requests
@@ -56,7 +56,7 @@ typedef CAResult_t (*CAAdapterStart)();
  * @return ::CA_STATUS_OK or ::CA_STATUS_FAILED
  * ERROR CODES (::CAResult_t error codes in cacommon.h).
  */
-typedef CAResult_t (*CAAdapterStartListeningServer)();
+typedef CAResult_t CAAdapterStartListeningServer();
 
 /**
  * Stopping listening server to not receive multicast search requests
@@ -67,7 +67,7 @@ typedef CAResult_t (*CAAdapterStartListeningServer)();
  * @return ::CA_STATUS_OK or ::CA_STATUS_FAILED
  * ERROR CODES (::CAResult_t error codes in cacommon.h).
  */
-typedef CAResult_t (*CAAdapterStopListeningServer)();
+typedef CAResult_t CAAdapterStopListeningServer();
 
 /**
  * for starting discovery servers for receiving multicast advertisements
@@ -79,7 +79,7 @@ typedef CAResult_t (*CAAdapterStopListeningServer)();
  * @return ::CA_STATUS_OK or ::CA_STATUS_FAILED
  * ERROR CODES (::CAResult_t error codes in cacommon.h).
  */
-typedef CAResult_t (*CAAdapterStartDiscoveryServer)();
+typedef CAResult_t CAAdapterStartDiscoveryServer();
 
 /**
  * Sends data to the endpoint using the adapter connectivity.
@@ -91,9 +91,9 @@ typedef CAResult_t (*CAAdapterStartDiscoveryServer)();
  * @param[in]   dataType        Data type which is REQUEST or RESPONSE.
  * @return The number of bytes sent on the network. Return value equal to -1 indicates error.
  */
-typedef int32_t (*CAAdapterSendUnicastData)(const CAEndpoint_t *endpoint,
-                                            const void *data, uint32_t dataLen,
-                                            CADataType_t dataType);
+typedef int32_t CAAdapterSendUnicastData(const CAEndpoint_t *endpoint,
+					 const void *data, uint32_t dataLen,
+					 CADataType_t dataType);
 
 /**
  * Sends Multicast data to the endpoint using the adapter connectivity.
@@ -104,9 +104,9 @@ typedef int32_t (*CAAdapterSendUnicastData)(const CAEndpoint_t *endpoint,
  * @param[in]   dataType        Data type which is REQUEST or RESPONSE.
  * @return The number of bytes sent on the network. Return value equal to -1 indicates error.
  */
-typedef int32_t (*CAAdapterSendMulticastData)(const CAEndpoint_t *endpoint,
-                                              const void *data, uint32_t dataLen,
-                                              CADataType_t dataType);
+typedef int32_t CAAdapterSendMulticastData(const CAEndpoint_t *endpoint,
+					   const void *data, uint32_t dataLen,
+					   CADataType_t dataType);
 
 /**
  * Get Network Information.
@@ -114,13 +114,13 @@ typedef int32_t (*CAAdapterSendMulticastData)(const CAEndpoint_t *endpoint,
  * @param[out]   size           Number of local connectivity structures.
  * @return ::CA_STATUS_OK or ERROR CODES (::CAResult_t error codes in cacommon.h)
  */
-typedef CAResult_t (*CAAdapterGetNetworkInfo)(CAEndpoint_t **info, size_t *size);
+typedef CAResult_t CAAdapterGetNetworkInfo(CAEndpoint_t **info, size_t *size);
 
 /**
  * Read Synchronous API callback.
  * @return ::CA_STATUS_OK or ERROR CODES (::CAResult_t error codes in cacommon.h)
  */
-typedef CAResult_t (*CAAdapterReadData)();
+typedef CAResult_t CAAdapterReadData();
 
 /**
  * Stopping the adapters and close socket connections.
@@ -130,13 +130,13 @@ typedef CAResult_t (*CAAdapterReadData)();
  * LE Stops all GATT servers and close sockets.
  * @return CA_STATUS_OK or ERROR CODES ( CAResult_t error codes in cacommon.h)
  */
-typedef CAResult_t (*CAAdapterStop)();
+typedef CAResult_t CAAdapterStop();
 
 /**
  * Terminate the connectivity adapter.Configuration information will be deleted from
  * further use. Freeing Memory of threadpool and mutexs and cleanup will be done.
  */
-typedef void (*CAAdapterTerminate)();
+typedef void CAAdapterTerminate();
 
 /**
  * Connectivity handler information for adapter.
@@ -144,34 +144,34 @@ typedef void (*CAAdapterTerminate)();
 typedef struct
 {
     /** Start Transport specific functions. */
-    CAAdapterStart startAdapter;
+    CAAdapterStart *startAdapter;
 
     /** Listening Server function address. */
-    CAAdapterStartListeningServer startListenServer;
+    CAAdapterStartListeningServer *startListenServer;
 
     /** Stops receiving the multicast traffic. */
-    CAAdapterStopListeningServer stopListenServer;
+    CAAdapterStopListeningServer *stopListenServer;
 
     /** Discovery Server function address. **/
-    CAAdapterStartDiscoveryServer startDiscoveryServer;
+    CAAdapterStartDiscoveryServer *startDiscoveryServer;
 
     /** Unicast data function address. **/
-    CAAdapterSendUnicastData sendData;
+    CAAdapterSendUnicastData *sendData;
 
     /** Multicast data function address. **/
-    CAAdapterSendMulticastData sendDataToAll;
+    CAAdapterSendMulticastData *sendDataToAll;
 
     /** Get Networking information. **/
-    CAAdapterGetNetworkInfo GetnetInfo;
+    CAAdapterGetNetworkInfo *GetnetInfo;
 
     /** Read Data function address. **/
-    CAAdapterReadData readData;
+    CAAdapterReadData *readData;
 
     /** Stop Transport specific functions. */
-    CAAdapterStop stopAdapter;
+    CAAdapterStop *stopAdapter;
 
     /** Terminate function address stored in this pointer. **/
-    CAAdapterTerminate terminate;
+    CAAdapterTerminate *terminate;
 
     /** Type of transport adapter. **/
     CATransportAdapter_t cType;
