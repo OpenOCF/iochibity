@@ -294,18 +294,40 @@ static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedK
     CFIndex nameCount = CFArrayGetCount( changedKeys );
     const char *strName;
     const char *strVal;
-    for( int i = 0; i < nameCount ; ++i  )
-	{
-	    CFStringRef key = (CFStringRef)CFArrayGetValueAtIndex( changedKeys, i );
-	    strName = CFStringGetCStringPtr( key , kCFStringEncodingMacRoman );
-	    OIC_LOG_V(DEBUG, TAG, "Change key: %s", strName);
-	    CFPropertyListRef prop;
-	    prop = SCDynamicStoreCopyValue(store, key);
-	    CFStringRef val = CFCopyDescription(prop);
-	    strVal = CFStringGetCStringPtr( val , kCFStringEncodingMacRoman );
-	    OIC_LOG_V(DEBUG, TAG, "Change val: %s", strVal);
-	    CFShow(prop);
-	}
+    for( int i = 0; i < nameCount ; ++i  ) {
+	CFStringRef key = (CFStringRef)CFArrayGetValueAtIndex( changedKeys, i );
+	strName = CFStringGetCStringPtr( key , kCFStringEncodingMacRoman );
+	OIC_LOG_V(DEBUG, TAG, "Change key: %s", strName);
+	CFPropertyListRef prop;
+	prop = SCDynamicStoreCopyValue(store, key);
+	CFStringRef val = CFCopyDescription(prop);
+	strVal = CFStringGetCStringPtr( val , kCFStringEncodingMacRoman );
+	OIC_LOG_V(DEBUG, TAG, "Change val: %s", strVal);
+	CFShow(prop);
+    }
+    // For now, process all IFs
+    // u_arraylist_t *iflist = CAFindInterfaceChange();
+
+    // NB: CAFindInterfaceChange calls
+    // CAIPPassNetworkChangesToTransports for deletions,
+    // CAIPGetInterfaceInformation(ifiIndex) for additions
+
+    u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
+    if (iflist) {
+	size_t listLength = u_arraylist_length(iflist);
+	for (size_t i = 0; i < listLength; i++)
+	    {
+		CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
+		if (ifitem)
+                    {
+                        udp_add_if_to_multicast_groups(ifitem); // @was CAProcessNewInterface
+                    }
+	    }
+	u_arraylist_destroy(iflist);
+    } else {
+	OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
+    }
+
     CAIPPassNetworkChangesToTransports(CA_INTERFACE_UP);
     // CFRelease(store);
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);

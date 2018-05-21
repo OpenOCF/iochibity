@@ -115,14 +115,17 @@ oc_mutex g_networkMonitorContextMutex = NULL;
  * Used to storing network interface.
  * list of CAInterface_t* (i.e., IF address structs)
  */
-// @rewrite g_nw_addresses @was g_netInterfaceList
-u_arraylist_t *g_nw_addresses = NULL;
+// g_network_interfaces is a list of nw INTERFACES! one entry per interface,
+// regardless of address and address family. CACmpNetworkList compares only the IF index.
+// @rewrite g_network_interfaces @was g_netInterfaceList
+u_arraylist_t *g_network_interfaces = NULL;
 
 /**
  * Used to storing adapter changes callback interface.
  */
 struct CAIPCBData_t *g_adapterCallbackList = NULL;
 
+// FIXME: InterfaceList, not AddressList
 // @rewrite CAIPCreateNetworkAddressList @was CAIPInitializeNetworkMonitorList
 CAResult_t CAIPCreateNetworkAddressList()
 {
@@ -136,10 +139,10 @@ CAResult_t CAIPCreateNetworkAddressList()
         }
     }
 
-    if (!g_nw_addresses)
+    if (!g_network_interfaces)
     {
-        g_nw_addresses = u_arraylist_create();
-        if (!g_nw_addresses)
+        g_network_interfaces = u_arraylist_create();
+        if (!g_network_interfaces)
         {
             OIC_LOG(ERROR, TAG, "u_arraylist_create has failed");
             CAIPDestroyNetworkAddressList();

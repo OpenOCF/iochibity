@@ -77,7 +77,7 @@ typedef enum
     CA_DEFAULT_ADAPTER = 0,
 
     // value zero indicates discovery
-    CA_ADAPTER_IP            = (1 << 0),   // IPv4 and IPv6, including 6LoWPAN
+    CA_ADAPTER_IP            = (1 << 0),   // UDP IPv4 and IPv6, including 6LoWPAN
     CA_ADAPTER_GATT_BTLE     = (1 << 1),   // GATT over Bluetooth LE
     CA_ADAPTER_RFCOMM_BTEDR  = (1 << 2),   // RFCOMM over Bluetooth EDR
 

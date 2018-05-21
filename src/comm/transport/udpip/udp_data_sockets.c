@@ -158,6 +158,7 @@ CASocketFd_t udp_create_socket(int family, uint16_t *port, bool isMulticast)
 #define NEWSOCKET(FAMILY, NAME, ROUTING) \
 do \
 { \
+    NAME.fd = OC_INVALID_SOCKET; \
     NAME.fd = udp_create_socket(FAMILY, &NAME.port, ROUTING); \
     if (NAME.fd == OC_INVALID_SOCKET)	   \
     {   \
@@ -329,6 +330,9 @@ LOCAL void udp_close_data_sockets()
 
 void applyMulticastToInterface4(uint32_t ifindex)
 {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+    OIC_LOG_V(DEBUG, TAG, "Adding IF %d to IPv4 multicast group", ifindex);
+#endif
     if (!udp_ipv4enabled)
     {
         return;
@@ -381,6 +385,9 @@ void applyMulticast6(CASocketFd_t fd, struct in6_addr *addr, uint32_t ifindex)
 
 void applyMulticastToInterface6(uint32_t ifindex)
 {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+    OIC_LOG_V(DEBUG, TAG, "Adding IF %d to IPv6 multicast group", ifindex);
+#endif
     if (!udp_ipv6enabled)
     {
         return;
@@ -408,11 +415,11 @@ CAResult_t udp_add_ifs_to_multicast_groups()
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (udp_started)
     {
-        OIC_LOG(DEBUG, TAG, "Adapter is started already");
+        OIC_LOG(DEBUG, TAG, "Adapter is started already, exiting");
         return CA_STATUS_OK;
     }
 
-    // GAR: get all if/addresses; list is on heap, it is NOT g_nw_addresses
+    // GAR: get all if/addresses; list is on heap, it is NOT g_network_interfaces
     u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
     if (!iflist)
     {
@@ -437,18 +444,10 @@ CAResult_t udp_add_ifs_to_multicast_groups()
         }
         if (ifitem->family == AF_INET)
         {
-#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-            OIC_LOG_V(DEBUG, TAG, "Adding IPv4 interface[%i] (%s %s) to multicast group",
-		      ifitem->index, ifitem->name, ifitem->addr);
-#endif
             applyMulticastToInterface4(ifitem->index);
         }
         if (ifitem->family == AF_INET6)
         {
-#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-            OIC_LOG_V(DEBUG, TAG, "Adding IPv6 interface[%i] (%s %s) to multicast group",
-		      ifitem->index, ifitem->name, ifitem->addr);
-#endif
             applyMulticastToInterface6(ifitem->index);
         }
     }
@@ -457,6 +456,24 @@ CAResult_t udp_add_ifs_to_multicast_groups()
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
+}
+
+void udp_add_if_to_multicast_groups(CAInterface_t *ifitem) // @was CAProcessNewInterface
+{
+    if (!ifitem)
+    {
+        OIC_LOG(DEBUG, TAG, "ifitem is null");
+        return;
+    }
+
+    if (ifitem->family == AF_INET6)
+    {
+        applyMulticastToInterface6(ifitem->index);
+    }
+    if (ifitem->family == AF_INET)
+    {
+        applyMulticastToInterface4(ifitem->index);
+    }
 }
 
 // @rewrite @was CAIPStopListenServer

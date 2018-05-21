@@ -94,10 +94,10 @@
 // @rewrite CAIPDestroyNetworkAddressList @was CAIPDestroyNetworkMonitorList
 void CAIPDestroyNetworkAddressList()
 {
-    if (g_nw_addresses)
+    if (g_network_interfaces)
     {
-        u_arraylist_destroy(g_nw_addresses);
-        g_nw_addresses = NULL;
+        u_arraylist_destroy(g_network_interfaces);
+        g_network_interfaces = NULL;
     }
 
     if (g_networkMonitorContextMutex)
@@ -107,15 +107,17 @@ void CAIPDestroyNetworkAddressList()
     }
 }
 
+// g_network_interfaces is a list of nw INTERFACES! one entry per interface,
+// regardless of address and address family
 // @rewrite: CAAddToAddressList @was CAAddNetworkAddressList
 static CAResult_t CAAddToNetworkAddressList(CAInterface_t *ifitem)
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
-    VERIFY_NON_NULL_MSG(g_nw_addresses, TAG, "g_nw_addresses is NULL");
+    VERIFY_NON_NULL_MSG(g_network_interfaces, TAG, "g_network_interfaces is NULL");
     VERIFY_NON_NULL_MSG(ifitem, TAG, "ifitem is NULL");
 
     oc_mutex_lock(g_networkMonitorContextMutex);
-    bool result = u_arraylist_add(g_nw_addresses, (void *) ifitem);
+    bool result = u_arraylist_add(g_network_interfaces, (void *) ifitem);
     if (!result)
     {
         OIC_LOG(ERROR, TAG, "u_arraylist_add failed.");
@@ -170,9 +172,11 @@ CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family,
                                          const char *addr, int flags)
 {
-    OIC_LOG_V(DEBUG, TAG, "IN %s:"
-              "index = %d, name = \"%s\", family = %d, addr = \"%s\", flags = %d",
-              __func__, index, name, family, addr, flags);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
+    OIC_LOG_V(DEBUG, TAG, "\tindex = %d, name = \"%s\", family = %d, addr = \"%s\", flags = %d",
+	      index, name, family, addr, flags);
+
     CAInterface_t *ifitem = (CAInterface_t *)OICCalloc(1, sizeof (CAInterface_t));
     if (!ifitem)
     {
@@ -195,23 +199,29 @@ static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family
 bool CACmpNetworkList(uint32_t ifiindex)
 {
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-    OIC_LOG_V(DEBUG, TAG, "IN %s: ifiindex = %ul", __func__, ifiindex);
+    OIC_LOG_V(DEBUG, TAG, "IN %s: IF index: %d", __func__, ifiindex);
 #endif
-    if (!g_nw_addresses)
+    if (!g_network_interfaces)
     {
-        OIC_LOG(ERROR, TAG, "g_nw_addresses is NULL");
+        OIC_LOG(ERROR, TAG, "g_network_interfaces is NULL");
         return false;
     }
 
     oc_mutex_lock(g_networkMonitorContextMutex);
 
-    size_t list_length = u_arraylist_length(g_nw_addresses);
+    size_t list_length = u_arraylist_length(g_network_interfaces);
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+    OIC_LOG_V(DEBUG, TAG, "g_network_interfaces list length: %d", list_length);
+#endif
     for (size_t list_index = 0; list_index < list_length; list_index++)
     {
-        CAInterface_t *currItem = (CAInterface_t *) u_arraylist_get(g_nw_addresses,
+        CAInterface_t *currItem = (CAInterface_t *) u_arraylist_get(g_network_interfaces,
                                                                     list_index);
         if (currItem->index == ifiindex)
         {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "Found IF index %d in g_network_interfaces", ifiindex);
+#endif
             oc_mutex_unlock(g_networkMonitorContextMutex);
             return true;
         }
@@ -224,7 +234,8 @@ bool CACmpNetworkList(uint32_t ifiindex)
 /* GAR FIXME: CAIPGetAllInterfaceInformation(), not CAIPGetInterfaceInformation(0) */
 // GAR: called on RTM_NEWADDR
 // @rewrite: this has side effects, so refactor it
-// @rewrite: it adds addresses to g_nw_addresses and calls status chg handlers
+// @rewrite: it adds addresses to g_network_interfaces and calls status chg handlers
+// @rewrite: call it udp_get_ifaddrs?
 u_arraylist_t			/**< @result list of CAInterface_t */
 *CAIPGetInterfaceInformation(int desiredIndex /**< index of new if addr */)
 {
@@ -237,6 +248,7 @@ u_arraylist_t			/**< @result list of CAInterface_t */
         return NULL;
     }
 
+    // Caller must free
     u_arraylist_t *iflist = u_arraylist_create();
     if (!iflist)
     {
@@ -246,9 +258,10 @@ u_arraylist_t			/**< @result list of CAInterface_t */
 
     struct ifaddrs *ifp = NULL;
     errno = 0;
-     int r = 0;
+    int r = 0;
+
     r = getifaddrs(&ifp);
-     if (-1 == r)
+    if (-1 == r)
     {
         OIC_LOG_V(ERROR, TAG, "Failed to get ifaddrs: %s", strerror(errno));
         u_arraylist_destroy(iflist);
@@ -259,59 +272,118 @@ u_arraylist_t			/**< @result list of CAInterface_t */
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
     OIC_LOG(DEBUG, TAG, "Iterating over interface addresses.");
 #endif
-    // debug
-    char addr_str[256];
+    int i = 1;  // debugging
+    char addr_str[256]; // debugging
+    int ifindex = 0;
     for (ifa = ifp; ifa; ifa = ifa->ifa_next)
     {
-	inet_ntop(ifa->ifa_addr->sa_family,
-		  &(((struct sockaddr_in*)ifa->ifa_addr)->sin_addr),
-		  addr_str, sizeof(addr_str));
+	if (ifa->ifa_next == NULL) break;
 
-	OIC_LOG_V(DEBUG, TAG, "ifa index: %d", if_nametoindex(ifa->ifa_name));
-	OIC_LOG_V(DEBUG, TAG, "ifa->ifa_name: %s", ifa->ifa_name);
-	OIC_LOG_V(DEBUG, TAG, "ifa->ifa_addr: %s", addr_str);
+	/* OIC_LOG_V(DEBUG, TAG, "item %d", i); */
+	ifindex = 0;
+
+	if (ifa->ifa_name)
+	    ifindex = if_nametoindex(ifa->ifa_name);
+
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	if (ifa->ifa_addr) {
+	    inet_ntop(ifa->ifa_addr->sa_family,
+		      &(((struct sockaddr_in*)ifa->ifa_addr)->sin_addr),
+		      addr_str, sizeof(addr_str));
+	    OIC_LOG_V(DEBUG, TAG, "item %d: %s (%d): %s", i++,
+		      ifa->ifa_name, ifindex, addr_str);
+	} else {
+	    OIC_LOG_V(DEBUG, TAG, "item %d: %s (%d)", i++,
+		      ifa->ifa_name, ifindex);
+	}
+#endif
 
         if (!ifa->ifa_addr)
         {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping IF %d - no address", ifindex);
+#endif
             continue;
         }
         int family = ifa->ifa_addr->sa_family;
-        if ((ifa->ifa_flags & IFF_LOOPBACK) || (AF_INET != family && AF_INET6 != family))
-        {
-            continue;
-        }
+        if (ifa->ifa_flags & IFF_LOOPBACK) {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping loopback IF %d, family %d", ifindex, family);
+#endif
+	    continue;
+	}
+#ifdef __APPLE__
+	if (AF_LINK == family) {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping AF_LINK IF %d", ifindex);
+#endif
+	    continue;
+	}
+#else
+	if (AF_NETLINK == family) { /* linux */
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping AF_NETLINK IF %d", ifindex);
+#endif
+	    continue;
+	}
+#endif
+	if (AF_INET != family && AF_INET6 != family) {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping non-IPv4/6 IF %d, family %d", ifindex, family);
+#endif
+	    continue;
+	}
 
 	/* GAR: hidden semantics: if desiredIndex == 0, then every if will be added to list */
-        int ifindex = if_nametoindex(ifa->ifa_name);
-        if (desiredIndex && (ifindex != desiredIndex))
+        if ( (desiredIndex > 0) && (ifindex != desiredIndex))
         {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "Skipping IF %d (searching for %d)", ifindex, desiredIndex);
+#endif
             continue;
         }
 
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	OIC_LOG_V(DEBUG, TAG, "Found good IF/family: %d/%d (%s)", ifindex, family,
+		  (family == AF_INET? "AF_INET" : family == AF_INET6? "AF_INET6" : "OTHER"));
+#endif
+
+	// we only need one item per (IF, family), in cases where
+	// there may be multiple addresses per IF.
         size_t length = u_arraylist_length(iflist);
         int already = false;
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-        OIC_LOG_V(DEBUG, TAG, "Iterating over %d interfaces.", length); /*  " PRIuPTR " */
+        OIC_LOG_V(DEBUG, TAG, "Iterating over %d interface items seen so far.", length);
 #endif
         for (size_t i = 0; i < length; i++)
         {
-#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-            OIC_LOG_V(DEBUG, TAG, "Checking interface %d.", i); /* " PRIuPTR " */
-#endif
             CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
-
             if (ifitem
                 && (int)ifitem->index == ifindex
                 && ifitem->family == (uint16_t)family)
             {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tifitem %d: %d/%d: match", i, (int)ifitem->index, ifitem->family);
+#endif
                 already = true;
                 break;
             }
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tifitem %d: %d/%d: no match", i, (int)ifitem->index, ifitem->family);
+#endif
         }
-        if (already)
-        {
-            continue;
-        }
+
+        if (already) {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "We've already seen IF/family %d/%d; skipping", ifindex, family);
+#endif
+	    continue;
+	}
+
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	OIC_LOG_V(DEBUG, TAG, "Processing new item.");
+#endif
+
 	/* FIXME: CAInterface_t => CAIfAddress_t */
         CAInterface_t *ifitem = (CAInterface_t *)OICCalloc(1, sizeof(CAInterface_t));
         if (!ifitem)
@@ -347,9 +419,10 @@ u_arraylist_t			/**< @result list of CAInterface_t */
         }
 
         bool isFound = CACmpNetworkList(ifitem->index);
+
         if (!isFound)
         {
-	    // GAR: why bother adding to g_nw_addresses? that list is never used for anything!
+	    // GAR: why bother adding to g_network_interfaces? that list is never used for anything!
 	    /* GAR: use DupIfItem(ifitem) instead of NewIfItem, to clarify sense */
             CAInterface_t *newifitem = CANewInterfaceItem(ifitem->index, ifitem->name, ifitem->family,
                                                           ifitem->addr, ifitem->flags);
@@ -362,7 +435,9 @@ u_arraylist_t			/**< @result list of CAInterface_t */
             }
             /* CAIPPassNetworkChangesToAdapter(CA_INTERFACE_UP); */
 	    CAIPPassNetworkChangesToTransports(CA_INTERFACE_UP);
-            OIC_LOG_V(DEBUG, TAG, "Processed interface: %s (%d)", ifitem->name, ifitem->family);
+            OIC_LOG_V(DEBUG, TAG, "Processed IF/family %s/%d (%s)",
+		      ifitem->name, ifitem->family,
+		      (family == AF_INET? "AF_INET" : family == AF_INET6? "AF_INET6" : "OTHER"));
         }
     }
     freeifaddrs(ifp);

@@ -38,7 +38,7 @@ void CAIPPassNetworkChangesToTransports(CANetworkStatus_t status)
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 
-// GAR this is passed to CAIPStartNetworkMonitor, in CAStartUDP
+// GAR this is passed to CAIPStartNetworkMonitor, in CAStartUDP (CAStartIP)
 // signature: CAIPAdapterStateChangeCallback
 // @rewrite: udp_status_change_handler @was CAIPAdapterHandler
 // @rewrite: will be called directly instead of passed to setup
@@ -59,8 +59,9 @@ void udp_status_change_handler(CATransportAdapter_t adapter, CANetworkStatus_t s
     /*     OIC_LOG(ERROR, TAG, "g_networkChangeCallback is NULL"); */
     /* } */
     // GAR: propagate change to generic layer (e.g. connectivitymanager)
+    // CAAdapterChangedCallback passes args to g_networkChangeCallbackThread CBs,
+    // which means OCDefaultAdapterStateChangedHandler (ocstack.c) - sends presence notification
     CAAdapterChangedCallback(adapter, status);
-
 
     if (CA_INTERFACE_DOWN == status)
     {

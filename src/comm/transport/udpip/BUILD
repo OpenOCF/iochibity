@@ -91,7 +91,13 @@ cc_library(
                        "//config:android_arm64": ["-llog"],
                        "//config:android_x86": ["-llog"],
                        "//conditions:default": []}),
-    srcs = glob(["*0.c"]) + glob(["*0.h"]) + glob(["udp_*.c"]) + glob(["udp_*.h"])
+    srcs = glob(["*0.c"]) + glob(["*0.h"])
+    + ["udp_controller.c", "udp_controller.h",
+       "udp_data_receiver.c", "udp_data_receiver.h",
+       "udp_data_sender.c", "udp_data_sender.h",
+       "udp_data_sockets.c", "udp_data_sockets.h",
+       "udp_status_monitor.c", "udp_status_monitor.h",
+       "udp_thread_manager.c", "udp_thread_manager.h"]
     + select({":msvc": glob(["*_windows.c"]) + glob(["*_windows.h"]),
               ":msys": glob(["*_windows.c"]) + glob(["*_windows.h"]),
               ":windows": glob(["*_windows.c"]) + glob(["*_windows.h"]),
@@ -111,10 +117,13 @@ cc_library(
   	                            + ["caipnwmonitor_linux.c", "caipnwmonitor_linux.h"]
   	                            + ["caipserver_posix.c", "caipserver_posix.h"]
   	                            + ["caipserver_linux.c", "caipserver_linux.h"],
-              "//config:android_arm64": ["caipnwmonitor_posix.c", "caipnwmonitor_posix.h"]
-  	                            + ["caipnwmonitor_linux.c", "caipnwmonitor_linux.h"]
+              "//config:android_arm64": ["udp_status_manager_linux.c",
+                                         "udp_status_manager_linux.h"]
+                                    + ["caipnwmonitor_posix.c", "caipnwmonitor_posix.h"]
+  	                            # + ["caipnwmonitor_linux.c", "caipnwmonitor_linux.h"]
   	                            + ["caipserver_posix.c", "caipserver_posix.h"]
-  	                            + ["caipserver_linux.c", "caipserver_linux.h"],
+  	                            #+ ["caipserver_linux.c", "caipserver_linux.h"]
+              ,
   	      # + ["BORKEN"],
               "//config:android_x86": glob(["*_android.c"]) + glob(["*_android.h"])
   	                            + ["caipserver_posix.c", "caipserver_posix.h"],

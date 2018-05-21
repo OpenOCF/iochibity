@@ -599,7 +599,7 @@ CAResult_t CAIPStartServer(const ca_thread_pool_t threadPool)
 /*         return CA_STATUS_OK; */
 /*     } */
 
-/*     // GAR: get all if/addresses; list is on heap, it is NOT g_nw_addresses */
+/*     // GAR: get all if/addresses; list is on heap, it is NOT g_network_interfaces */
 /*     u_arraylist_t *iflist = CAIPGetInterfaceInformation(0); */
 /*     if (!iflist) */
 /*     { */
@@ -687,26 +687,6 @@ CAResult_t CAIPStartServer(const ca_thread_pool_t threadPool)
 /*     u_arraylist_destroy(iflist); */
 /*     return CA_STATUS_OK; */
 /* } */
-
-void CAProcessNewInterface(CAInterface_t *ifitem)
-{
-    if (!ifitem)
-    {
-        OIC_LOG(DEBUG, TAG, "ifitem is null");
-        return;
-    }
-
-    if (ifitem->family == AF_INET6)
-    {
-        OIC_LOG_V(DEBUG, TAG, "Adding a new IPv6 interface(%i) to multicast group", ifitem->index);
-        applyMulticastToInterface6(ifitem->index);
-    }
-    if (ifitem->family == AF_INET)
-    {
-        OIC_LOG_V(DEBUG, TAG, "Adding a new IPv4 interface(%i) to multicast group", ifitem->index);
-        applyMulticastToInterface4(ifitem->index);
-    }
-}
 
 /* void CAIPSetPacketReceiveCallback(CAIPPacketReceivedCallback callback) */
 /* { */
@@ -914,8 +894,7 @@ CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, size_t *size)
 
     // GAR: get live list of CAInterface_t for all IFs (via getifaddrs)
     u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
-    if (!iflist)
-    {
+    if (!iflist) {
         OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
         return CA_STATUS_FAILED;
     }
@@ -926,6 +905,7 @@ CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, size_t *size)
     const size_t endpointsPerInterface = 1;
 #endif
 
+    /* get a count of enabled IPv4/IPv6 IFs */
     size_t interfaces = u_arraylist_length(iflist);
     for (size_t i = 0; i < u_arraylist_length(iflist); i++)
     {
@@ -944,7 +924,7 @@ CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, size_t *size)
 
     if (!interfaces)
     {
-        OIC_LOG(DEBUG, TAG, "network interface size is zero");
+        OIC_LOG(DEBUG, TAG, "No enabled IPv4/IPv6 interfaces found");
         return CA_STATUS_OK;
     }
 
@@ -957,7 +937,10 @@ CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, size_t *size)
         return CA_MEMORY_ALLOC_FAILED;
     }
 
-    for (size_t i = 0, j = 0; i < u_arraylist_length(iflist); i++)
+    /* create one CAEndpoint_t per IF */
+    for (size_t i = 0,		/* index into iflist to control iteration */
+	     j = 0;		/* index into eps array */
+	 i < u_arraylist_length(iflist); i++)
     {
         CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
         if (!ifitem)
@@ -965,13 +948,14 @@ CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, size_t *size)
             continue;
         }
 
+	/* skip disabled IFs */
         if ((ifitem->family == AF_INET6 && !udp_ipv6enabled) ||
             (ifitem->family == AF_INET && !udp_ipv4enabled))
         {
             continue;
         }
 
-        eps[j].adapter = CA_ADAPTER_IP;
+        eps[j].adapter = CA_ADAPTER_IP; /* meaning CA_ADAPTER_UDP */
         eps[j].ifindex = ifitem->index;
 
         if (ifitem->family == AF_INET6)
@@ -987,6 +971,7 @@ CAResult_t CAGetIPInterfaceInformation(CAEndpoint_t **info, size_t *size)
         OICStrcpy(eps[j].addr, sizeof(eps[j].addr), ifitem->addr);
 
 #ifdef __WITH_DTLS__
+	/* add secured endpoint */
         j++;
 
         eps[j].adapter = CA_ADAPTER_IP;

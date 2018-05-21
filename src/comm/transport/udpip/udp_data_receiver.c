@@ -76,76 +76,64 @@ void udp_handle_inbound_data()
     }
     else if (0 < ret)
     {
-        udp_process_ready_sockets(&readFds, ret);
+        // udp_process_ready_sockets(&readFds, ret);
+#define UDPSET(SOCK) ( SOCK.fd != OC_INVALID_SOCKET && FD_ISSET(SOCK.fd, &readFds))
+	//while (!udp_terminate)
+	    {
+		// ISSET(udp_u6,  readFds, CA_IPV6)
+		if ( UDPSET(udp_u6) ) {
+		    (void)CAReceiveMessage(udp_u6.fd, CA_IPV6);
+		    FD_CLR(udp_u6.fd, &readFds);
+		}
+		if (udp_terminate) return;
+		// ISSET(udp_u6s, readFds, CA_IPV6 | CA_SECURE)
+		if ( UDPSET(udp_u6s) ) {
+		    (void)CAReceiveMessage(udp_u6s.fd, CA_IPV6 | CA_SECURE);
+		    FD_CLR(udp_u6s.fd, &readFds);
+		}
+		if (udp_terminate) return;
+		/* else ISSET(udp_u4,  readFds, CA_IPV4) */
+		if ( UDPSET(udp_u4) ) {
+		    (void)CAReceiveMessage(udp_u4.fd, CA_IPV4);
+		    FD_CLR(udp_u4.fd, &readFds);
+		}
+		if (udp_terminate) return;
+		/* else ISSET(udp_u4s, readFds, CA_IPV4 | CA_SECURE) */
+		if ( UDPSET(udp_u4s) ) {
+		    (void)CAReceiveMessage(udp_u4s.fd, CA_IPV4 | CA_SECURE);
+		    FD_CLR(udp_u4s.fd, &readFds);
+		}
+		if (udp_terminate) return;
+		/* else ISSET(udp_m6,  readFds, CA_MULTICAST | CA_IPV6) */
+		if ( UDPSET(udp_m6) ) {
+		    (void)CAReceiveMessage(udp_m6.fd, CA_MULTICAST | CA_IPV6);
+		    FD_CLR(udp_m6.fd, &readFds);
+		}
+		if (udp_terminate) return;
+		/* else ISSET(udp_m6s, readFds, CA_MULTICAST | CA_IPV6 | CA_SECURE) */
+		if ( UDPSET(udp_m6s) ) {
+		    (void)CAReceiveMessage(udp_m6s.fd, CA_MULTICAST | CA_IPV6 | CA_SECURE);
+		    FD_CLR(udp_m6s.fd, &readFds);
+		}
+		if (udp_terminate) return;
+		/* else ISSET(udp_m4,  readFds, CA_MULTICAST | CA_IPV4) */
+		if ( UDPSET(udp_m4) ) {
+		    (void)CAReceiveMessage(udp_m4.fd, CA_MULTICAST | CA_IPV4);
+		    FD_CLR(udp_m4.fd, &readFds);
+		}
+		if (udp_terminate) return;
+		/* else ISSET(udp_m4s, readFds, CA_MULTICAST | CA_IPV4 | CA_SECURE) */
+		if ( UDPSET(udp_m4s) ) {
+		    (void)CAReceiveMessage(udp_m4s.fd, CA_MULTICAST | CA_IPV4 | CA_SECURE);
+		    FD_CLR(udp_m4s.fd, &readFds);
+		}
+	    }
+
     }
     else // if (0 > ret)
     {
         OIC_LOG_V(FATAL, TAG, "select error %s", CAIPS_GET_ERROR);
-        return;
-    }
-}
-
-/* process FDs that are ready for reading */
-// @rewrite udp_process_ready_sockets @was CASelectReturned
-LOCAL void udp_process_ready_sockets(fd_set *readFds, int ret)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    (void)ret;			/* ret = fd count */
-    CASocketFd_t fd = OC_INVALID_SOCKET;
-    CATransportFlags_t flags = CA_DEFAULT_FLAGS;
-
-    // why are we looping until termination? because we break out of
-    // the loop as soon as no more FDs are ready
-    while (!udp_terminate)
-    {
-        ISSET(udp_u6,  readFds, CA_IPV6)
-        else ISSET(udp_u6s, readFds, CA_IPV6 | CA_SECURE)
-        else ISSET(udp_u4,  readFds, CA_IPV4)
-        else ISSET(udp_u4s, readFds, CA_IPV4 | CA_SECURE)
-        else ISSET(udp_m6,  readFds, CA_MULTICAST | CA_IPV6)
-        else ISSET(udp_m6s, readFds, CA_MULTICAST | CA_IPV6 | CA_SECURE)
-        else ISSET(udp_m4,  readFds, CA_MULTICAST | CA_IPV4)
-        else ISSET(udp_m4s, readFds, CA_MULTICAST | CA_IPV4 | CA_SECURE)
-/*         else if ((udp_netlinkFd != OC_INVALID_SOCKET) && FD_ISSET(udp_netlinkFd, readFds)) */
-/*         { */
-/* #ifdef NETWORK_INTERFACE_CHANGED_LOGGING */
-/*             OIC_LOG_V(DEBUG, TAG, "Rtnetlink event detected"); */
-/* #endif */
-/*             u_arraylist_t *iflist = CAFindInterfaceChange(); */
-/*             if (iflist) */
-/*             { */
-/*                 size_t listLength = u_arraylist_length(iflist); */
-/*                 for (size_t i = 0; i < listLength; i++) */
-/*                 { */
-/*                     CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i); */
-/*                     if (ifitem) */
-/*                     { */
-/*                         CAProcessNewInterface(ifitem); */
-/*                     } */
-/*                 } */
-/*                 u_arraylist_destroy(iflist); */
-/*             } */
-/*             break; */
-/*         } */
-/*         else if (FD_ISSET(udp_shutdownFds[0], readFds)) */
-/*         { */
-/*             char buf[10] = {0}; */
-/*             ssize_t len = read(udp_shutdownFds[0], buf, sizeof (buf)); */
-/*             if (-1 == len) */
-/*             { */
-/*                 continue; */
-/*             } */
-/*             break; */
-/*         } */
-        else
-        {
-            break;
-        }
-	/* at this point, any fd ready for reading, and flags, have been set by the ISSET macros above */
-	// @rewrite: call it udp_handle_inbound_msg or similar
-        (void)CAReceiveMessage(fd, flags); /* platform-specific */
-        FD_CLR(fd, readFds);
-    }
+     }
 }
 
 // runs on a dedicated thread, put there by CAIPStartServer
@@ -166,5 +154,3 @@ void udp_data_receiver_runloop(void *data)
     udp_cleanup();
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
-
-

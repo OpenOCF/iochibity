@@ -241,7 +241,7 @@ void CAIPStopServer()
 
     if (!udp_started)
     { // Close fd's since receive handler was not started
-        CACloseFDs();
+	udp_cleanup();  // @rewrite @was CACloseFDs();
     }
     udp_started = false;
 }

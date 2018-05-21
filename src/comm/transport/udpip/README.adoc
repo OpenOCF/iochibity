@@ -34,6 +34,47 @@ CAProcessNewInterface       -> join_multicast_group
 
 * respond dynamically to network/interface changes
 
+== endpoint list
+
+g_ownIpEndpointList is a u_arraylist_t of CAEndpoint_* in udp_controller
+
+in ocendpoint.c:
+
+typedef struct CAEndpoint_s
+{
+    CATransportAdapter_t    adapter;    // adapter type
+    CATransportFlags_t      flags;      // transport modifiers
+    uint16_t                port;       // for IP
+    char                    addr[MAX_ADDR_STR_SIZE_CA]; // address for all
+    uint32_t                ifindex;    // usually zero for default interface
+    char                    remoteId[CA_MAX_IDENTITY_SIZE]; // device ID of remote device
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+    char                    routeData[MAX_ADDR_STR_SIZE_CA]; /**< GatewayId:ClientId of
+                                                                    destination. **/
+#endif
+} CAEndpoint_t;
+
+CATransportFlags_t: enum as bitfield, e.c. CA_SECURE, CA_MULTICAST, CA_IPV4, etc.
+
+initialized by udp_controller::CAIPInitializeQueueHandles
+
+freed by udp_controller::CAIPDeinitializeQueueHandles
+
+managed by udp_controller::CAUpdateStoredIPAddressInfo, which calls
+CAGetIPInterfaceInformation, which calls caipserver0::CAIPGetInterfaceInformation(0)
+the latter returns a list of CAInterfaceItem_t*
+CAGetIPInterfaceInformation turns that list into an ep list
+
+queried by udp_controller::CAIPIsLocalEndpoint, which is called by
+
+cainterfacecontroller::CAIsLocalEndpoint, called ONLY for unicast msgs by
+
+camessagehandler::CADetachSendMessage, called by
+
+    caconnectivitymanager::CASendMessageMultiAdapter
+    caconnectivitymanager::CASendRequest
+    caconnectivitymanager::CASendResponse
+
 == portability
 
 SIOCGIFCONF won't return IPv6 addrs. Netlink is Linux only.
@@ -148,7 +189,8 @@ OCInitializeInternal(mode, TransportFlags, OCTransportFlags, OCTransportAdapter/
 => not client: initResources
 ----
 
-=== network monitor
+=== network monitoring
+
 
 [source,]
 ----
@@ -158,21 +200,30 @@ OCInitializeInternal passes default handlers:
 ===> AddNetworkStateChangedCallback (cainterfacecontroller.c)
 
 handlers:
-OCDefaultAdapterStateChangedHandler (ocstack.c)
+OCDefaultAdapterStateChangedHandler (ocstack.c) - sends presence notification
 OCDefaultConnectionStateChangedHandler (ocstack.c)
 ----
 
+AddNetworkStateChangedCallback adds the CB to global handlers list:
+g_networkChangeCallbackList (cainterfacecontroller.c)
+
+g_networkChangeCallbackList items are used in
+CAAdapterChangedCallback, which is called from
+udp_status_change_handler (was CAIPAdapterHandler)
+which is called from CAIPPassNetworkChangesToTransports
+
+(What counts as "adapter" state change? Adapter means transport)
+
 CAInitializeAdapters (cainterfacecontroller.c), passing CBs to:
-=> CAInitializeIP (caipadapter0.c) 
+=> CAInitializeIP (caipadapter0.c)
         CARegisterCallback (cainterfacecontroller.c)
 	    (will be passed ipHandler struct of CBs, uses it to initialize g_adapterHandler)
 	CAReceivedPacketCallback (cainterfacecontroller.c)
 	CAAdapterChangedCallback (cainterfacecontroller.c)
 	CAAdapterErrorHandleCallback (cainterfacecontroller.c)
 
-global handlers list: g_networkChangeCallbackList (cainterfacecontroller.c)
-
-
+obsolete:
+CAStartIP passes CAIPAdapterHandler to
 CAIPStartNetworkMonitor (caipnwmonitor_<platform>.c)
 => CAIPInitializeNetworkMonitorList (caipnwmonitor0.c)
 => CAIPSetNetworkMonitorCallback (caipnwmonitor0.c) arg: CAIPAdapterStateChangeCallback
@@ -288,6 +339,33 @@ addresses. Name/index pairs are unique - one per interface. The
 relation between IP interface (name/index) and ifaddrs is one to many.
 
 CAInterface_t is an IP level abstraction. It does not know about transport (UDP/TCP).
+
+CAGetIPInterfaceInformation calls CAIPGetInterfaceInformation(0) to
+get a list of CAInterface_t items, then creates Endpoint list.  The
+iflist is destroyed.
+
+CAIPGetInterfaceInformation(ifindex), where 0 means all: calls
+getifaddrs, then iterates over the ifaddrs till it finds the desired
+index.
+
+
+CASelectReturn calls CAFindInterfaceChange, then for each IF calls
+CAProcessNewInterface which adds IFs to multicast groups
+
+CAFindInterfaceChange: for deletions, calls CARemoveFromAddressList(ifiIndex) and CAIPPassNetworkChangesToTransports(CA_INTERFACE_DOWN)
+
+for additions: iflist = CAIPGetInterfaceInformation(ifiIndex) which calls getifaddrs etc and ends up calling CANewInterfaceItem, CAAddToNetworkAddressList, and CAIPPassNetworkChangesToTransports. the latter calls udp_status_change_handler(CA_ADAPTER_IP, status), then CALogAdapterStateInfo(CA_ADAPTER_IP, status);
+
+udp_status_change_handler calls CAUpdateStoredIPAddressInfo then CAAdapterChangedCallback
+
+CAUpdateStoredIPAddressInfo calls CAGetIPInterfaceInformation if IF_UP, maintains g_ownIpEndpointList
+
+CAGetIPInterfaceInformation calls CAIPGetInterfaceInformation(0), then creates eps
+
+so an addition ends up causing a reload of everything (CAIPGetInterfaceInformation(0))
+
+CAAdapterChangedCallback calls CADefault...
+
 
 Related data structs:
 

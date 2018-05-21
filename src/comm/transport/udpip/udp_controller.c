@@ -71,7 +71,7 @@ static CAQueueingThread_t *g_sendQueueHandle = NULL;
 #endif
 
 /**
- * List of the endpoint that has a stack-owned IP address.
+ * List of the CAEndpoint_t* that has a stack-owned IP address.
  */
 static u_arraylist_t *g_ownIpEndpointList = NULL;
 
