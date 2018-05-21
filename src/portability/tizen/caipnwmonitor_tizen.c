@@ -192,7 +192,9 @@ u_arraylist_t *CAFindInterfaceChange()
     return iflist;
 }
 
-CAResult_t CAIPStartNetworkMonitor(CAIPAdapterStateChangeCallback callback,
+CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter,
+						    CANetworkStatus_t status),
+				   // CAIPAdapterStateChangeCallback callback,
                                    CATransportAdapter_t adapter)
 {
     if (!g_adapterCallbackList)
