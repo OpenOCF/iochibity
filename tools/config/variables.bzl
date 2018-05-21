@@ -1,6 +1,5 @@
 COPTS_ANDROID = ["-std=c11",
                  "-x c",
-                 "-D__ANDROID_API__=24",
                  # "-Indk",
                  # "-Ithird_party/ndk",
                  # "-Ithird_party/ndk/sysroot",
