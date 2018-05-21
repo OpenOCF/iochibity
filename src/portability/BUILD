@@ -3,19 +3,7 @@ config_setting(
     name = "linux",
     values = { "cpu": "k8" }
 )
-config_setting(
-    name = "darwin",
-    values = { "cpu": "darwin" }
-)
-config_setting(
-    name = "darwin64",
-    values = { "cpu": "darwin_x86_64" }
-)
-config_setting(
-    name = "android",
-    # values = { "crosstool_top": "//external:android/crosstool."} # "@android_ndk//:toolchain-libcpp"
-    values = {"cpu": "armeabi-v7a"}
-)
+
 config_setting(
     name = "rpi3b",
      values = { "cpu": "k8",
@@ -83,8 +71,8 @@ cc_library(
                 ":msvc": [],
                 ":msys": [],
 		"linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
-                ":darwin": ["-std=c11", "-UDEBUG"],
-                ":darwin64": ["-std=c11", "-UDEBUG"],
+                "//config:darwin": ["-std=c11", "-UDEBUG"],
+                "//config:darwin64": ["-std=c11", "-UDEBUG"],
                 "//conditions:default": ["-std=c11"]}),
     deps = ["//src/logger",
             "//third_party/mbedtls",
@@ -97,12 +85,13 @@ cc_library(
                 ":windows": ["//src/portability/windows:win"],
                 ":msvc": ["//src/portability/windows:win"],
                 ":msys": ["//src/portability/posix"],
-                ":darwin": ["//src/portability/posix",
+                "//config:darwin": ["//src/portability/posix",
                             "//src/portability/darwin"],
-                ":darwin64": ["//src/portability/posix",
+                "//config:darwin64": ["//src/portability/posix",
                               "//src/portability/darwin"],
-                ":android": ["//src/portability/android"],
-              "//conditions:default": ["//src/portability/posix"]}),
+                "//config:android_arm64": ["//src/portability/android"],
+                "//config:android": ["//src/portability/android"],
+              "//conditions:default": ["BROKEN"]}),
     # hdrs = glob(["*.h"]),
     linkopts = select({":msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 bcrypt.lib"],
                        ":msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lbcrypt"],
