@@ -37,7 +37,8 @@ config_setting(
 
 cc_binary(
     # name = "libopenocf.dylib",
-    name = "libopenocf.so",
+    name = "libopenocfa.so",
+    linkshared = 1,
     copts = ["-Ithird_party/coap",
              "-Iexternal/openocf/third_party/coap",
              "-Ithird_party/coap/include",
@@ -60,39 +61,13 @@ cc_binary(
             "//third_party/coap"
     ] + select({":client_role": ["//src/ocf/ocf_services_client"],
               "//conditions:default": []}),
-    linkshared = 1,
-    visibility = ["//visibility:public"]
-)
-
-cc_library(
-    name = "Xopenocf",
-    copts = ["-Ithird_party/coap",
-             "-Iexternal/openocf/third_party/coap",
-             "-Ithird_party/coap/include",
-             "-Iexternal/openocf/third_party/coap/include"
-    ] + select({":windows": [],
-                ":msvc": [],
-                ":msys": [],
-                ":darwin": ["-std=c11", "-U DEBUG"],
-                "//conditions:default": []}),
-    linkstatic = 1,
-    # alwayslink = True,
-    deps = ["//src:config",
-            "//src/ocf",
-            "//src/logger",
-            "//src/comm",
-            "//src/portability",
-            "//src/provisioning",
-            "//src/sec",
-            "//third_party/coap"]
-    + select({":client_role": ["//src/ocf/ocf_services_client"],
-              "//conditions:default": []}),
     visibility = ["//visibility:public"]
 )
 
 cc_library(
     name = "ocf",
     alwayslink = True,
+    linkstatic=True,
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
              "-Isrc/portability",

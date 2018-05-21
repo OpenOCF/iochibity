@@ -27,20 +27,27 @@
 #include <stdint.h>
 #endif
 
+#include <errno.h>
+
 #include <stdio.h>
 
 #if EXPORT_INTERFACE
 
 #ifdef __ANDROID__
-#define OIC_TRACE_BEGIN(MSG, ...) \
-        oic_trace_begin("OIC:"#MSG, ##__VA_ARGS__)
-#define OIC_TRACE_END() \
-        oic_trace_end()
-#define OIC_TRACE_MARK(MSG, ...) \
-        oic_trace_begin("OIC:"#MSG, ##__VA_ARGS__), \
-        oic_trace_end()
-#define OIC_TRACE_BUFFER(MSG, BUF, SIZ) \
-        oic_trace_buffer(MSG, BUF, SIZ)
+#define OIC_TRACE_BEGIN(MSG, ...)
+#define OIC_TRACE_END()
+#define OIC_TRACE_MARK(MSG, ...)
+#define OIC_TRACE_BUFFER(MSG, BUF, SIZ)
+// FIXME:
+/* #define OIC_TRACE_BEGIN(MSG, ...) \ */
+/*         oic_trace_begin("OIC:"#MSG, ##__VA_ARGS__) */
+/* #define OIC_TRACE_END() \ */
+/*         oic_trace_end() */
+/* #define OIC_TRACE_MARK(MSG, ...) \ */
+/*         oic_trace_begin("OIC:"#MSG, ##__VA_ARGS__), \ */
+/*         oic_trace_end() */
+/* #define OIC_TRACE_BUFFER(MSG, BUF, SIZ) \ */
+/*         oic_trace_buffer(MSG, BUF, SIZ) */
 #elif defined(__TIZEN__)
 /* trace macro for Tizen. this will call ttrace api internally*/
 #ifdef OIC_SUPPORT_TIZEN_TRACE

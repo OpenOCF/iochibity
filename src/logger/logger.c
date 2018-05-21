@@ -78,6 +78,20 @@
 
 oc_mutex log_mutex = NULL;
 
+#define TAG  "OCF LOGGER"
+
+#if EXPORT_INTERFACE
+#ifdef TB_LOG
+#define CA_TRANSPORT_ADAPTER_STRING(TRANSPORT) ( \
+    (TRANSPORT == CA_DEFAULT_ADAPTER) ? "CA_DEFAULT_ADAPTER" : \
+    (TRANSPORT == CA_ADAPTER_IP) ? "CA_ADAPTER_IP" : \
+    (TRANSPORT == CA_ADAPTER_GATT_BTLE) ? "CA_ADAPTER_GATT_BTLE" : \
+    (TRANSPORT == CA_ADAPTER_RFCOMM_BTEDR) ? "CA_ADAPTER_RFCOMM_BTEDR" : \
+    (TRANSPORT == CA_ADAPTER_TCP) ? "CA_ADAPTER_TCP" : \
+    (TRANSPORT == CA_ALL_ADAPTERS) ? "CA_ALL_ADAPTERS" : "UNKNOWN")
+#endif
+#endif
+
 #if EXPORT_INTERFACE
 typedef enum
 {
@@ -418,6 +432,8 @@ EXPORT
 	logfd = stdout;
     if (NULL == log_mutex)
     {
+	/* FIXME: oc_mutex_new uses oicmalloc, which uses OIC_LOG_V,
+	   which uses log_mutex, which crashes if ENABLE_MALLOC_DEBUG */
         log_mutex = oc_mutex_new();
     }
 }
@@ -490,6 +506,7 @@ void OCLogStr(int level, const char * tag, int line_nbr, const char * header, co
 
     static char tagbuffer[MAX_LOG_V_BUFFER_SIZE] = {0};
     sprintf(tagbuffer, "%s:%d", tag, line_nbr);
+
 
     OCLog(level, tagbuffer, header);
 

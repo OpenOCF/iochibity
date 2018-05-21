@@ -121,7 +121,8 @@ void OCLog(int level, const char * tag, const char * logStr)
    #ifdef ADB_SHELL
        printf("%s: %s: %s\n", LEVEL[level], tag, logStr);
    #else
-       __android_log_write(LEVEL[level], tag, logStr);
+       /* __android_log_write(LEVEL[level], "OCF", logStr); */
+       __android_log_print(LEVEL[level], "OCF", "%s %s", tag, logStr);
    #endif
 }
 
