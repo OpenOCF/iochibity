@@ -136,7 +136,7 @@ bool HashStrToUuid(const char* str, size_t len, uint8_t platformUuid[OIC_UUID_LE
 // This functions returns UUID generated from host name.
 bool OICGetPlatformUuid(uint8_t platformUuid[OIC_UUID_LENGTH])
 {
-#if defined(__unix__) || defined(_WIN32)
+#if defined(__unix__) || defined(_WIN32) || defined(__APPLE__)
     // Get host name.
     char hostname[MAX_COMPUTER_NAME_LENGTH] = { 0 };
     if (gethostname(hostname, MAX_COMPUTER_NAME_LENGTH) != 0)
