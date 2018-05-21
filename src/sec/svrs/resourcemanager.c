@@ -168,6 +168,7 @@ OCStackResult ResetSecureResources()
         // OTMs default in /doxm resource.  IoTivity for example disables
         // JustWorks OTM in hard-coded defaults, which may not be suitable
         // to some devices.
+	/* GAR: gDefaultDoxm OXM defaults to Random PIN */
     }
 
     return ret;
