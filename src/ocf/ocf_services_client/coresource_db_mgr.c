@@ -58,6 +58,9 @@ EXPORT
     OIC_LOG_V(INFO, TAG, "%s ENTRY %p", __func__, data);
     oc_mutex_lock(g_responses_mutex);
 
+    OIC_LOG_V(INFO, TAG, "payload: %p", data->payload);
+    OIC_LOG_V(INFO, TAG, "payload type: %d", data->payload->type);
+
     /* LIFO */
     u_linklist_add_head(g_responses, (void*) data);
 
@@ -289,6 +292,10 @@ EXPORT
     while (NULL != iter) {
 	msg = (OCClientResponse*)u_linklist_get_data(iter);
 	payload_type = msg->payload->type;
+	OIC_LOG_V(INFO, TAG, "Msg: %p", msg);
+	OIC_LOG_V(INFO, TAG, "Msg payload: %p", msg->payload);
+	OIC_LOG_V(INFO, TAG, "Msg type: %d", payload_type);
+
 	if (msg != NULL) {
 	    sprintf(labelp, "%s %s:%d%s",
 		    (payload_type == PAYLOAD_TYPE_DISCOVERY)? "DISC"
