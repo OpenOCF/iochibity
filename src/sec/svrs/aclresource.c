@@ -201,6 +201,9 @@ static const uint8_t ACE_CONN_MAP_SIZE = 1;
 // CborSize is the default cbor payload size being used.
 static const uint16_t CBOR_SIZE = 2048*8;
 
+/* GAR_EXPERIMENTAL */
+/* OicSecAcl_t *get_vendor_acl(); */
+
 static OicSecAcl_t *gAcl = NULL;
 static OCResourceHandle gAclHandle = NULL;
 static OCResourceHandle gAcl2Handle = NULL;
@@ -3536,6 +3539,8 @@ OCStackResult GetDefaultACL(OicSecAcl_t** defaultAcl)
     readOnlyAceAnon->subjectType = OicSecAceConntypeSubject;
     readOnlyAceAnon->subjectConn = ANON_CLEAR;
 
+    /* GAR: why use OICStrdup for const strings? */
+
     // Resources are /res, /d and /p
     // /oic/res
     resRsrc = (OicSecRsrc_t*)OICCalloc(1, sizeof(OicSecRsrc_t));
@@ -3679,6 +3684,8 @@ OCStackResult InitACLResource()
 
     uint8_t *data = NULL;
     size_t size = 0;
+
+    /* GAR_EXPERIMENTAL */
     ret = GetSecureVirtualDatabaseFromPS(OIC_JSON_ACL_NAME, &data, &size);
     // If database read failed
     if (OC_STACK_OK != ret)
@@ -3705,7 +3712,11 @@ OCStackResult InitACLResource()
         }
         // TODO Needs to update persistent storage
     }
-    VERIFY_NOT_NULL(TAG, gAcl, FATAL);
+    /* VERIFY_NOT_NULL(TAG, gAcl, FATAL); */
+
+    /* GAR implemented by client */
+    /* gAcl = get_vendor_acl(); */
+    /* GAR: end */
 
     // Instantiate 'oic.sec.acl'
     ret = CreateACLResource();
