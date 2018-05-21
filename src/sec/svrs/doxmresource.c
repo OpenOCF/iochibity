@@ -107,18 +107,24 @@ typedef enum DoxmProperty_t {
 struct OicSecDoxm
 {
     // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
-    OicSecOxm_t         *oxm;          // 1:R:M:N:UINT16 /* FIXME: s/.b oxms (plural) */
+    OicSecOxm_t         *oxm;          // 1:R:M:N:enum[] /* FIXME: s/.b oxms (plural) */
     size_t              oxmLen;         // the number of elts in Oxm
     OicSecOxm_t         oxmSel;         // 2:R/W:S:Y:UINT16
     OicSecCredType_t    sct;            // 3:R:S:Y:oic.sec.credtype
     bool                owned;          // 4:R:S:Y:Boolean
+    /* deviceuuid */
     OicUuid_t           deviceID;       // 6:R:S:Y:oic.uuid
+    /* dpc = direct pairing capability;  */
+    /* https://jira.iotivity.org/browse/IOT-1097 */
+    /* DEPRECATED https://jira.iotivity.org/browse/IOT-2475?page=com.atlassian.jira.plugin.system.issuetabpanels%3Achangehistory-tabpanel */
     bool                dpc;            // 7:R:S:Y:Boolean
+    /* devowneruuid */
     OicUuid_t           owner;          // 8:R:S:Y:oic.uuid
 #ifdef MULTIPLE_OWNER
     OicSecSubOwner_t* subOwners;        //9:R/W:M:N:oic.uuid
     OicSecMom_t *mom;                   //10:R/W:S:N:oic.sec.mom
 #endif //MULTIPLE_OWNER
+    /* rowneruuid */
     OicUuid_t           rownerID;       // 11:R:S:Y:oic.uuid
 };
 typedef struct OicSecDoxm OicSecDoxm_t;
@@ -144,6 +150,9 @@ static uint8_t gUuidSeed[MAX_UUID_SEED_SIZE];
 static size_t gUuidSeedSize = 0;
 #endif
 
+/* GAR_EXPERIMENTAL application code must implment get_vendor_doxm */
+/* extern OicSecDoxm_t* get_vendor_doxm(); */
+
 static OicSecDoxm_t        *gDoxm = NULL;
 static OCResourceHandle    gDoxmHandle = NULL;
 
@@ -156,6 +165,7 @@ static OicSecDoxm_t gDefaultDoxm =
     SYMMETRIC_PAIR_WISE_KEY | SIGNED_ASYMMETRIC_KEY, /* OicSecCredType_t sct */
     false,                  /* bool owned */
     {.id = {0}},            /* OicUuid_t deviceID */
+    /* DEPRECATED dpc (direct pairing capability) */
     false,                  /* bool dpc */
     {.id = {0}},            /* OicUuid_t owner */
 #ifdef MULTIPLE_OWNER
@@ -2068,6 +2078,8 @@ OCStackResult InitDoxmResource()
     //Read DOXM resource from PS
     uint8_t *data = NULL;
     size_t size = 0;
+
+    /* GAR: testing */
     ret = GetSecureVirtualDatabaseFromPS(OIC_JSON_DOXM_NAME, &data, &size);
     // If database read failed
     if (OC_STACK_OK != ret)
@@ -2076,6 +2088,7 @@ OCStackResult InitDoxmResource()
     }
     if (data)
     {
+    	/* GAR: replace this with precompiled doxm struct */
        // Read DOXM resource from PS
        ret = CBORPayloadToDoxm(data, size, &gDoxm);
     }
@@ -2084,10 +2097,17 @@ OCStackResult InitDoxmResource()
      * is not available for some reason, a default doxm is created
      * which allows user to initiate doxm provisioning again.
      */
+    /* GAR: we do not need this if we compile the SVRs */
      if ((OC_STACK_OK != ret) || !data || !gDoxm)
     {
         gDoxm = GetDoxmDefault();
     }
+
+     /* GAR_EXPERIMENTAL */
+    /* gDoxm = get_vendor_doxm(); */
+    /* FIXME: test errno */
+
+    /* GAR end testing */
 
     //In case of the server is shut down unintentionally, we should initialize the owner
     if(gDoxm && (false == gDoxm->owned))
@@ -2590,12 +2610,13 @@ bool AreDoxmBinPropertyValuesEqual(OicSecDoxm_t* doxm1, OicSecDoxm_t* doxm2)
         return false;
     }
 
-    if (doxm1->dpc != doxm2->dpc)
-    {
-        OIC_LOG_V(ERROR, TAG, "%s: dpc mismatch: (%u, %u)",
-            __func__, (uint32_t)doxm1->dpc, (uint32_t)doxm2->dpc);
-        return false;
-    }
+    /* DEPRECATED dpc=direct pairing capability */
+    /* if (doxm1->dpc != doxm2->dpc) */
+    /* { */
+    /*     OIC_LOG_V(ERROR, TAG, "%s: dpc mismatch: (%u, %u)", */
+    /*         __func__, (uint32_t)doxm1->dpc, (uint32_t)doxm2->dpc); */
+    /*     return false; */
+    /* } */
 
     if (0 != memcmp(&doxm1->owner, &doxm2->owner, sizeof(doxm1->owner)))
     {
