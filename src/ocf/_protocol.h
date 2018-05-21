@@ -22,7 +22,10 @@ typedef char *CAURI_t;
 /**
 * Max token length.
 */
+// exported for jni
+#if EXPORT_INTERFACE
 #define CA_MAX_TOKEN_LEN (8)
+#endif
 
 /**
  * Max URI length.
@@ -234,7 +237,7 @@ typedef struct
     /** destination GatewayID:ClientId.*/
     char                    routeData[MAX_ADDR_STR_SIZE];
 
-    /** device ID of remote.*/
+    /** device UUID of remote. */
     char                    remoteId[MAX_IDENTITY_SIZE];
 
 } OCDevAddr;
