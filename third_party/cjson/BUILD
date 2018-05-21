@@ -15,16 +15,6 @@ config_setting(
     values = { "cpu": "x64_windows_msys" }
 )
 
-config_setting(
-    name = "android",
-    values = {# "define": "target=android",
-        # "crosstool_top": "@android_ndk//:toolchain-libcpp",
-        "cpu": "armeabi-v7a",
-              # "android_cpu": "x86",
-              # "android_crosstool_top": "//platforms/ndk:toolchain"
-    }
-)
-
 cc_library(
     name = "cjson",
     copts = ["-Isrc",
@@ -36,14 +26,16 @@ cc_library(
     + select({"windows": ["-DCJSON_HIDE_SYMBOLS"],
               "msvc": [],
               "msys": [],
-              "android": COPTS_ANDROID,
+              "//config:android": COPTS_ANDROID,
+              "//config:android_x86": COPTS_ANDROID,
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/portability"],
     hdrs = ["cJSON.h"],
     # -lm needed for android; linux? darwin? but not msvc
-    linkopts = select({"android": ["-lm"],
-              "//conditions:default": []}),
+    linkopts = select({"//config:android": ["-lm"],
+                       "//config:android_x86": ["-lm"],
+                       "//conditions:default": []}),
     srcs = ["cJSON.c"],
     visibility = ["//visibility:public"]
 )
