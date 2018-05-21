@@ -981,7 +981,7 @@ OCStackResult CBORPayloadToDeviceProperties(const uint8_t *payload, size_t size,
 
     cbor_parser_init(payload, size, 0, &parser, &dpCbor);
 
-    // Protocol Independent ID - Mandatory
+    // piid: Protocol Independent ID - Mandatory
     cborResult = cbor_value_map_find_value(&dpCbor, OC_RSRVD_PROTOCOL_INDEPENDENT_ID, &dpMap);
     if ((CborNoError == cborResult) && cbor_value_is_text_string(&dpMap))
     {
@@ -1149,6 +1149,8 @@ static OCStackResult ReadDevicePropertiesFromDatabase(OCDeviceProperties **devic
     uint8_t *data = NULL;
     size_t size = 0;
 
+    /* read device_properties.dat unless overridden by user */
+    /* key:  DeviceProperties */
     OCStackResult result = ReadDatabaseFromPS(OC_DEVICE_PROPS_FILE_NAME, OC_JSON_DEVICE_PROPS_NAME, &data, &size);
     if (OC_STACK_OK == result)
     {
@@ -2396,7 +2398,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     if (OC_GATEWAY_URI != virtualUriInRequest)
 #endif
     {
-        OIC_LOG_PAYLOAD(DEBUG, payload);
+	//GAR        OIC_LOG_PAYLOAD(DEBUG, payload);
         if(discoveryResult == OC_STACK_OK)
         {
             SendNonPersistantDiscoveryResponse(request, payload, OC_EH_OK);
