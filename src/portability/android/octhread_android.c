@@ -22,6 +22,8 @@
 //
 //*********************************************************************
 
+#include <android/log.h>
+
 /**
  * @file
  * This file provides APIs related to mutex and semaphores.
@@ -116,6 +118,7 @@ static pthread_t oc_get_current_thread_id()
 
 OCThreadResult_t oc_thread_new(oc_thread *t, void *(*start_routine)(void *), void *arg)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCThreadResult_t res = OC_THREAD_SUCCESS;
     oc_thread_internal *threadInfo = (oc_thread_internal*)OICMalloc(sizeof(oc_thread_internal));
     if (NULL != threadInfo)
@@ -131,6 +134,7 @@ OCThreadResult_t oc_thread_new(oc_thread *t, void *(*start_routine)(void *), voi
         else
         {
             *t = (oc_thread)threadInfo;
+            OIC_LOG_V(ERROR, TAG, "%s: pthread_create OK", __func__);
         }
     }
     else
@@ -190,15 +194,16 @@ oc_mutex oc_mutex_new(void)
         }
         else
         {
-            OIC_LOG_V(ERROR, TAG, "%s Failed to initialize mutex !", __func__);
+	    __android_log_print(ANDROID_LOG_INFO, TAG, "%s Failed to initialize mutex !", __func__);
+            /* OIC_LOG_V(ERROR, TAG, "%s Failed to initialize mutex !", __func__); */
             OICFree(mutexInfo);
         }
     }
     else
     {
-        OIC_LOG_V(ERROR, TAG, "%s Failed to allocate mutex!", __func__);
+	__android_log_print(ANDROID_LOG_INFO, TAG, "%s Failed to allocate mutex !", __func__);
+        /* OIC_LOG_V(ERROR, TAG, "%s Failed to allocate mutex!", __func__); */
     }
-
     return retVal;
 }
 
