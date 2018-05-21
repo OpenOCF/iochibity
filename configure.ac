@@ -75,14 +75,15 @@ AC_CHECK_TYPES([ptrdiff_t])
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_FORK
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
-AC_FUNC_MALLOC
 AC_FUNC_MKTIME
-AC_FUNC_REALLOC
+# see https://lists.gnu.org/archive/html/automake/2003-05/msg00018.html
+# buggy, use AC_CHECK_FUNCS instead: AC_FUNC_MALLOC
+# buggy, use AC_CHECK_FUNCS instead: AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_FUNC_STRNLEN
 AC_FUNC_STRTOD
 
-AC_CHECK_FUNCS([bzero clock_gettime fdatasync floor flockfile getcwd getpagesize gettimeofday localtime_r memmove memset pow select socket strcasecmp strchr strerror strncasecmp strnlen _strnicmp strndup strptime strrchr strstr strtok_r strtok_s strtol strtoul time tzset utime QueryPerformanceCounter QueryPerformanceFrequency])
+AC_CHECK_FUNCS([bzero clock_gettime fdatasync floor flockfile getcwd getpagesize gettimeofday localtime_r malloc memmove memset pow realloc select socket strcasecmp strchr strerror strncasecmp strnlen _strnicmp strndup strptime strrchr strstr strtok_r strtok_s strtol strtoul time tzset utime QueryPerformanceCounter QueryPerformanceFrequency])
 
 dnl /**
 dnl  * \def MBEDTLS_HAVE_TIME
@@ -136,13 +137,32 @@ dnl                  src/comm/bld/android/Makefile
 dnl                  src/comm/bld/arduino/Makefile
 dnl                  src/comm/bld/tizen/Makefile
 dnl                  tools/json2cbor/Makefile])
-dnl AC_CONFIG_SUBDIRS([extlibs/tinydtls
+
+AC_CONFIG_SUBDIRS([third_party/coap])
+
+                   dnl third_party/tinydtls])
+dnl extlibs/tinydtls
 dnl                    resource/csdk/connectivity/lib/libcoap-4.1.1
-dnl                    third_party/coap
-dnl                    third_party/tinydtls])
 
 
 dnl TODO: for consistency with autotools, change __WITH_DTLS__ to ENABLE_DTLS, etc.
+
+dnl IPv4 enabled by default
+AC_ARG_ENABLE([ipv4],
+    AS_HELP_STRING([--disable-ipv4], [Disable IPv4 support (enabled by default)]))
+
+AS_IF([test "x$enable_ipv4" != "xno"], [
+  AC_DEFINE([ENABLE_IPV4], [], [Enable IPv4])
+])
+
+dnl IPv6 enabled by default
+AC_ARG_ENABLE([ipv6],
+    AS_HELP_STRING([--disable-ipv6], [Disable IPv6 support (enabled by default)]))
+
+AS_IF([test "x$enable_ipv6" != "xno"], [
+  AC_DEFINE([ENABLE_IPV6], [], [Enable IPv6])
+])
+
 dnl DTLS is on by default
 AC_ARG_ENABLE([dtls],
     AS_HELP_STRING([--disable-dtls], [Disable DTLS (enabled by default)]))
@@ -182,6 +202,22 @@ AC_ARG_ENABLE([debugging],
 AS_IF([test "x$enable_debugging" = "xyes"], [
   dnl AC_DEFINE([DEBUG], [], [Debugging])
   AC_DEFINE([OC_DEBUG], [], [OC Debugging])
+])
+
+dnl thread debugging is OFF by default
+AC_ARG_ENABLE([thread-debugging],
+    AS_HELP_STRING([--enable-thread-debugging], [Enable thread debugging]))
+
+AS_IF([test "x$enable_thread_debugging" = "xyes"], [
+  AC_DEFINE([DEBUG_THREADING], [], [Thread Debugging])
+])
+
+dnl mbedtls debugging is OFF by default
+AC_ARG_ENABLE([malloc-debug],
+    AS_HELP_STRING([--enable-malloc-debug], [Enable malloc debug]))
+
+AS_IF([test "x$enable_malloc_debug" = "xyes"], [
+  AC_DEFINE([ENABLE_MALLOC_DEBUG], [], [Malloc Debug])
 ])
 
 dnl mbedtls debugging is OFF by default
