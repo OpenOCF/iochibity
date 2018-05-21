@@ -51,6 +51,7 @@ src/comm/transport/tcpip/catcpadapter.c
 src/comm/transport/tcpip/catcpserver.c
 src/comm/transport/udpip/caipadapter0.c
 src/comm/transport/udpip/caipnwmonitor0.c
+src/comm/transport/udpip/caipnwmonitor_android.c
 src/comm/transport/udpip/caipnwmonitor_darwin.c
 src/comm/transport/udpip/caipnwmonitor_linux.c
 src/comm/transport/udpip/caipnwmonitor_posix.c
@@ -60,6 +61,12 @@ src/comm/transport/udpip/caipserver_darwin.c
 src/comm/transport/udpip/caipserver_linux.c
 src/comm/transport/udpip/caipserver_posix.c
 src/comm/transport/udpip/caipserver_windows.c
+src/comm/transport/udpip/udp_controller.c
+src/comm/transport/udpip/udp_data_receiver.c
+src/comm/transport/udpip/udp_data_sender.c
+src/comm/transport/udpip/udp_data_sockets.c
+src/comm/transport/udpip/udp_status_monitor.c
+src/comm/transport/udpip/udp_thread_manager.c
 src/comm/transport/util/android/caadapterutils_android.c
 src/comm/transport/util/caadapterutils.c
 src/comm/transport/util/java/caadapterutils_java.c
@@ -102,6 +109,7 @@ src/ocf/presence.c
 src/ocf/windows/ocsqlite3helper.c
 src/portability/android/ca_jni.c
 src/portability/android/caifaddrs.c
+/src/comm/transport/udpip/caifaddrs_android.c
 src/portability/android/caipnwmonitor_android.c
 src/portability/android/octhread_android.c
 src/portability/darwin/ocatomic_darwin.c
