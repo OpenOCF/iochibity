@@ -4,11 +4,18 @@
 
 set -x
 
+./bin/mkhdrs.sh
+
 export PATH="${PATH}:/Volumes/CrossToolNG/armv8-rpi3-linux-gnueabihf/bin"
 
 export COSYSROOT=$HOME/cosysroots/rpi3b
 
 echo COSYSROOT: $COSYSROOT
+
+# bug in autoconf?
+# https://changetheworldwithyourpassion.blogspot.com/2009/09/fix-undefined-rplmalloc-on-autoconf.html
+# export ac_cv_func_malloc_0_nonnull=yes
+# export ac_cv_func_realloc_0_nonnull=yes
 
 ./configure --build=x86_64-apple-darwin \
             --host=armv8-rpi3-linux-gnueabihf \
@@ -18,6 +25,7 @@ echo COSYSROOT: $COSYSROOT
 	    --without-manpages \
 	    --with-shared \
 	    --libdir="/usr/lib/arm-linux-gnueabihf" \
+	    --enable-logging \
 	    --disable-examples \
             CPPFLAGS="-P"
 

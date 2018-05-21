@@ -1,3 +1,7 @@
+#!/bin/sh
+
+# local build
+
 set -x
 bazel build :mkhdrs
 makeheaders -f bazel-bin/mkhdrs.dat
