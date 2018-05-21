@@ -21,7 +21,7 @@ device_properties.dat: e.g.
     }
 }
 
-where piid = platform-independent device id
+where piid = protocol-independent device id
 
 what is the relationship between di, piid, and subject ids in the acls?
 
