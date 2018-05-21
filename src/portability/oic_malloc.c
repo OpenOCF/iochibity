@@ -1,3 +1,6 @@
+/* FIXME: malloc is used by logger initialization, but it uses logger
+   - fix the circular dependency */
+
 //******************************************************************
 //
 // Copyright 2014 Intel Mobile Communications GmbH All Rights Reserved.
@@ -31,11 +34,10 @@
 #include <windows.h>
 #endif
 
-// Enable extra debug logging for malloc.  Comment out to disable
-#ifdef ENABLE_MALLOC_DEBUG
-#include "experimental/logger.h"
-#define TAG "OIC_MALLOC"
-#endif
+/* #ifdef ENABLE_MALLOC_DEBUG */
+/* #include "experimental/logger.h" */
+/* #define TAG "OIC_MALLOC" */
+/* #endif */
 
 //-----------------------------------------------------------------------------
 // Typedefs
