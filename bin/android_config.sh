@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# FIXME: parameterize by arch
+# $1 = target arch:  v7a | v8a | x86
 
 set -x
 
@@ -14,4 +14,4 @@ set -x
 
 #	    --enable-malloc-debug \
 
-./bin/android_mkhdrs_v8a.sh
+./bin/android_mkhdrs_$1.sh
