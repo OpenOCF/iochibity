@@ -138,6 +138,9 @@ static OicSecPstat_t gDefaultPstat =
     {.id = {0}},                              // OicUuid_t rowneruuid
 };
 
+/* GAR_EXPERIMENTAL */
+/* OicSecPstat_t *get_vendor_pstat(); */
+
 static OicSecPstat_t    *gPstat = NULL;
 
 static OCResourceHandle gPstatHandle = NULL;
@@ -1058,6 +1061,23 @@ static OCEntityHandlerResult HandlePstatPostRequest(OCEntityHandlerRequest *ehRe
     return ret;
 }
 
+void log_pstat()
+{
+    OIC_LOG_V(DEBUG, TAG, "pstat.dos.s: %d", gPstat->dos.state);
+    OIC_LOG_V(DEBUG, TAG, "pstat.dos.p: %s", gPstat->dos.pending?"T":"F");
+    OIC_LOG_V(DEBUG, TAG, "pstat.isOp: %s", gPstat->isOp?"T":"F");
+    OIC_LOG_V(DEBUG, TAG, "pstat.cm: %d", gPstat->cm);
+    OIC_LOG_V(DEBUG, TAG, "pstat.tm: %d", gPstat->tm);
+    OIC_LOG_V(DEBUG, TAG, "pstat.om: %d", gPstat->om);
+    OIC_LOG_V(DEBUG, TAG, "pstat.smLen: %d", gPstat->smLen);
+    OIC_LOG_V(DEBUG, TAG, "pstat.sm: %d", gPstat->sm);
+    OIC_LOG_V(DEBUG, TAG, "pstat.rownerid:");
+    for (int i=0;i < 16 ;i++) {
+	printf("%X",gPstat->rownerID.id[i]);
+    }
+    printf("\n");
+}
+
 OCStackResult InitPstatResource()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
@@ -1066,6 +1086,7 @@ OCStackResult InitPstatResource()
     // Read Pstat resource from PS
     uint8_t *data = NULL;
     size_t size = 0;
+    /* GAR_EXPERIMENTAL begin */
     ret = GetSecureVirtualDatabaseFromPS(OIC_JSON_PSTAT_NAME, &data, &size);
     // If database read failed
     if (OC_STACK_OK != ret)
@@ -1087,6 +1108,12 @@ OCStackResult InitPstatResource()
     {
         gPstat = GetPstatDefault();
     }
+
+    /* GAR_EXPERIMENTAL */
+    /* gPstat = get_vendor_pstat(); */
+    /* log_pstat(); */
+    /* GAR end */
+
     VERIFY_NOT_NULL(TAG, gPstat, FATAL);
 
     // TODO [IOT-2023]: after all SVRs are initialized, need to call SetDosState()
