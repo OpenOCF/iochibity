@@ -199,14 +199,15 @@ OCStackResult ReadDatabaseFromPS(const char *databaseName, const char *resourceN
     OCPersistentStorage *ps = OCGetPersistentStorageHandler();
     VERIFY_NOT_NULL(TAG, ps, ERROR);
 
-    fileSize = GetDatabaseSize(ps, databaseName);
+    /* GAR: ps->open is user-defined, may override database name */
+    fileSize = GetDatabaseSize(ps, databaseName); /* calls ps->open, then close! */
     OIC_LOG_V(DEBUG, TAG, "File Read Size: %" PRIuPTR, fileSize);
     if (fileSize)
     {
         fsData = (uint8_t *) OICCalloc(1, fileSize);
         VERIFY_NOT_NULL(TAG, fsData, ERROR);
 
-        fp = ps->open(databaseName, "rb");
+        fp = ps->open(databaseName, "rb"); /* again! */
         VERIFY_NOT_NULL(TAG, fp, ERROR);
         if (ps->read(fsData, 1, fileSize, fp) == fileSize)
         {
