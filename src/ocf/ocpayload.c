@@ -1034,7 +1034,7 @@ bool OC_CALL OCRepPayloadSetPropPubDataType(OCRepPayload *payload, const char *n
 
 static OicEncodingType_t getEncodingTypeFromString(char *encoding)
 {
-    OicEncodingType_t type = OIC_ENCODING_UNKNOW;
+    OicEncodingType_t type = OIC_ENCODING_UNKNOWN;
 
     char *str = strrchr(encoding, '.');
     if (NULL == str)
