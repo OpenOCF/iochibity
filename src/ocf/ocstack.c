@@ -44,11 +44,10 @@
 /* #endif */
 /* #endif /\* __STDC_VERSION__ *\/ */
 /* #endif /\* !__cplusplus *\/ */
-#pragma message(VAR_NAME_VALUE(__STDC__))
-#pragma message(VAR_NAME_VALUE(__STDC_VERSION__))
-#pragma message(VAR_NAME_VALUE(__cplusplus))
-#pragma message(VAR_NAME_VALUE(static_assert))
-
+/* #pragma message(VAR_NAME_VALUE(__STDC__)) */
+/* #pragma message(VAR_NAME_VALUE(__STDC_VERSION__)) */
+/* #pragma message(VAR_NAME_VALUE(__cplusplus)) */
+/* #pragma message(VAR_NAME_VALUE(static_assert)) */
 
 #include <stdlib.h>
 #include <string.h>
@@ -73,7 +72,7 @@
 #ifdef _MSC_VER
 #define HAVE_WS2TCPIP_H
 #else
-#define WITH_POSIX
+#define WITH_POSIX 1
 #endif
 #include "coap/coap_time.h"
 #include "coap/pdu.h"
@@ -691,6 +690,7 @@ OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *request
     CAResult_t result = CASendRequest(object, requestInfo);
     if (CA_STATUS_OK != result)
     {
+	/* 13 = uninitialized */
         OIC_LOG_V(ERROR, TAG, "CASendRequest failed with CA error %u", result);
         OIC_TRACE_END();
         return CAResultToOCResult(result);
@@ -1714,7 +1714,6 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                         CA_MSG_ACKNOWLEDGE, 0, NULL, NULL, 0, NULL, CA_RESPONSE_FOR_RES);
             }
 
-	    /* FIXME: always free the msg; if not KEEP_PAYLOAD, then also remove it from the co_sp_mgr */
 	    if (appFeedback & OC_STACK_KEEP_RESPONSE) { /* GAR */
 		OIC_LOG(INFO, TAG, "retaining OCClientResponse");
 		/* Client app is responsible for retaining
@@ -2421,6 +2420,7 @@ OCStackResult OC_CALL OCInit1(OCMode mode, OCTransportFlags serverFlags, OCTrans
 EXPORT
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, mode: %d", __func__, mode);
+    // GAR: OC_DEFAULT_ADAPTER means all available adapters?
     OCStackResult r = OCInit2(mode, serverFlags, clientFlags, OC_DEFAULT_ADAPTER);
     OIC_LOG_V(DEBUG, TAG, "%s EXIT, rc: %d", __func__, r);
     return r;
@@ -2507,25 +2507,28 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     }
     myStackMode = mode;
 
+    /* set caglobals common to all transports */
     if (mode == OC_CLIENT || mode == OC_CLIENT_SERVER || mode == OC_GATEWAY)
     {
-        caglobals.client = true;
+        ocf_client = true;
     }
     if (mode == OC_SERVER || mode == OC_CLIENT_SERVER || mode == OC_GATEWAY)
     {
-        caglobals.server = true;
+        ocf_server = true;  // @rewrite caglobals.server = true;
     }
 
-    caglobals.serverFlags = (CATransportFlags_t)serverFlags;
-    if (!(caglobals.serverFlags & CA_IPFAMILY_MASK))
-    {
-        caglobals.serverFlags = (CATransportFlags_t)(caglobals.serverFlags|CA_IPV4|CA_IPV6);
-    }
-    caglobals.clientFlags = (CATransportFlags_t)clientFlags;
-    if (!(caglobals.clientFlags & CA_IPFAMILY_MASK))
-    {
-        caglobals.clientFlags = (CATransportFlags_t)(caglobals.clientFlags|CA_IPV4|CA_IPV6);
-    }
+    //  evidently both IPv4 and IPv6 are required, so just hardcode them in caconnectivitymanager.c
+    ocf_serverFlags |= (CATransportFlags_t)serverFlags;
+    /* if (!(caglobals.serverFlags & CA_IPFAMILY_MASK)) */
+    /* { */
+    /*     caglobals.serverFlags = (CATransportFlags_t)(caglobals.serverFlags|CA_IPV4|CA_IPV6o); */
+    /* } */
+
+    ocf_clientFlags |= (CATransportFlags_t)clientFlags;
+    /* if (!(caglobals.clientFlags & CA_IPFAMILY_MASK)) */
+    /* { */
+    /*     caglobals.clientFlags = (CATransportFlags_t)(caglobals.clientFlags|CA_IPV4|CA_IPV6); */
+    /* } */
 
     defaultDeviceHandler = NULL;
     defaultDeviceHandlerCallbackParameter = NULL;
@@ -2552,20 +2555,22 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     {
         case OC_CLIENT:
             CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
-            result = CAResultToOCResult(CAStartDiscoveryServer());
             OIC_LOG(INFO, TAG, "Client mode: CAStartDiscoveryServer");
+            result = CAResultToOCResult(CAStartDiscoveryServer());
             break;
         case OC_SERVER:
             SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
-            result = CAResultToOCResult(CAStartListeningServer());
             OIC_LOG(INFO, TAG, "Server mode: CAStartListeningServer");
+            result = CAResultToOCResult(CAStartListeningServer());
             break;
         case OC_CLIENT_SERVER:
         case OC_GATEWAY:
             SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+	    OIC_LOG(INFO, TAG, "ClientServer mode: CAStartListeningServer");
             result = CAResultToOCResult(CAStartListeningServer());
             if(result == OC_STACK_OK)
             {
+		OIC_LOG(INFO, TAG, "ClientServer mode: CAStartDiscoveryServer");
                 result = CAResultToOCResult(CAStartDiscoveryServer());
             }
             break;
@@ -3001,7 +3006,7 @@ OCStackResult OC_CALL OCDoResource(OCDoHandle *handle,
                                    OCCallbackData *cbData,
                                    OCHeaderOption *options,
                                    uint8_t numOptions)
-EXPORT
+/* EXPORT (deprecated, do not expose) */
 {
     OIC_TRACE_BEGIN(%s:OCDoRequest, TAG);
     OCStackResult ret = OCDoRequest(handle, method, requestUri,destination, payload,
@@ -3043,6 +3048,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
                                   OCCallbackData *cbData,
                                   OCHeaderOption *options,
                                   uint8_t numOptions)
+EXPORT
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
@@ -3136,6 +3142,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
         requestInfo.method = CA_GET;
         break;
     default:
+	OIC_LOG_V(ERROR, TAG, "%s: INVALID METHOD: %d", __func__, method);
         result = OC_STACK_INVALID_METHOD;
         goto exit;
     }
@@ -3153,6 +3160,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
         devAddr = (OCDevAddr *)OICMalloc(sizeof (OCDevAddr));
         if (!devAddr)
         {
+	    OIC_LOG_V(ERROR, TAG, "%s: OICMalloc error", __func__);
             result = OC_STACK_NO_MEMORY;
             goto exit;
         }
@@ -3176,6 +3184,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
     resHandle = GenerateInvocationHandle();
     if (!resHandle)
     {
+	OIC_LOG_V(ERROR, TAG, "%s: GenerateInvocationHandle error: %d", __func__, resHandle);
         result = OC_STACK_NO_MEMORY;
         goto exit;
     }
@@ -3199,6 +3208,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
                                     options, numOptions, OC_OBSERVE_REGISTER);
         if (result != OC_STACK_OK)
         {
+	    OIC_LOG_V(ERROR, TAG, "%s: CreateObserveHeaderOption error: %d", __func__, result);
             goto exit;
         }
         requestInfo.info.numOptions = numOptions + 1;
@@ -3342,6 +3352,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
                 != OC_STACK_OK)
         {
             OIC_LOG(ERROR, TAG, "Failed to create CBOR Payload");
+	    OIC_LOG_V(ERROR, TAG, "%s: OCConvertPayload error: %d", __func__, result);
             goto exit;
         }
     }
@@ -3361,6 +3372,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
                                    requestInfo.isMulticast);
         if (OC_STACK_OK != result)
         {
+	    OIC_LOG_V(ERROR, TAG, "%s: OCSendRequest error: %d", __func__, result);
             goto exit;
         }
 
@@ -3387,6 +3399,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
 
     if (OC_STACK_OK != result)
     {
+	OIC_LOG_V(ERROR, TAG, "%s: OCSendRequest error: %d", __func__, result);
         goto exit;
     }
 
@@ -3471,7 +3484,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
     if (OC_STACK_OK != result)
     {
 	OIC_LOG_V(ERROR, TAG, "%s: OCSendRequest error: %d", __func__, result);
-       goto exit;
+	goto exit;
     }
 
     if (handle)
@@ -4684,6 +4697,8 @@ LOCAL OCDoHandle GenerateInvocationHandle()
             OICFree(handle);
             return NULL;
         }
+    } else {
+	OIC_LOG_V(ERROR, TAG, "%s: OICMalloc error", __func__);
     }
 
     return handle;
@@ -4730,10 +4745,11 @@ LOCAL OCStackResult initResources()
 	goto exit;
     }
 
+    /* now create "core" resources: /oic/res, /oic/d, /oic/p */
     result = OCCreateResource(&wellKnownResource,
 			      OC_RSRVD_RESOURCE_TYPE_RES,
 			      OC_RSRVD_INTERFACE_LL,
-			      OC_RSRVD_WELL_KNOWN_URI,
+			      OC_RSRVD_WELL_KNOWN_URI, /* /oic/res */
 			      NULL,
 			      NULL,
 			      0);
@@ -4754,7 +4770,7 @@ LOCAL OCStackResult initResources()
     result = OCCreateResource(&deviceResource,
 			      OC_RSRVD_RESOURCE_TYPE_DEVICE,
 			      OC_RSRVD_INTERFACE_DEFAULT,
-			      OC_RSRVD_DEVICE_URI,
+			      OC_RSRVD_DEVICE_URI, /* /oic/d */
 			      NULL,
 			      NULL,
 			      OC_DISCOVERABLE);
@@ -4773,7 +4789,7 @@ LOCAL OCStackResult initResources()
     result = OCCreateResource(&platformResource,
 			      OC_RSRVD_RESOURCE_TYPE_PLATFORM,
 			      OC_RSRVD_INTERFACE_DEFAULT,
-			      OC_RSRVD_PLATFORM_URI,
+			      OC_RSRVD_PLATFORM_URI, /* /oic/p */
 			      NULL,
 			      NULL,
 			      OC_DISCOVERABLE);
@@ -4791,7 +4807,7 @@ LOCAL OCStackResult initResources()
     result = OCCreateResource(&introspectionResource,
 			      OC_RSRVD_RESOURCE_TYPE_INTROSPECTION,
 			      OC_RSRVD_INTERFACE_DEFAULT,
-			      OC_RSRVD_INTROSPECTION_URI_PATH,
+			      OC_RSRVD_INTROSPECTION_URI_PATH, /* introspection */
 			      NULL,
 			      NULL,
 			      OC_DISCOVERABLE | OC_SECURE);
@@ -4810,7 +4826,7 @@ LOCAL OCStackResult initResources()
     result = OCCreateResource(&introspectionPayloadResource,
 			      OC_RSRVD_RESOURCE_TYPE_INTROSPECTION_PAYLOAD,
 			      OC_RSRVD_INTERFACE_DEFAULT,
-			      OC_RSRVD_INTROSPECTION_PAYLOAD_URI_PATH,
+			      OC_RSRVD_INTROSPECTION_PAYLOAD_URI_PATH, /* /introspection/payload;; */
 			      NULL,
 			      NULL,
 			      0);
@@ -5924,7 +5940,7 @@ EXPORT
  */
 LOCAL void OCDefaultAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled)
 {
-    OIC_LOG(DEBUG, TAG, "OCDefaultAdapterStateChangedHandler");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     OC_UNUSED(adapter);
     OC_UNUSED(enabled);
