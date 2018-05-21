@@ -317,7 +317,7 @@
 #define STRERROR_R_CHAR_P 1
 
 /* Logging */
-#define TB_LOG /**/
+//#define TB_LOG /**/
 
 /* Enable TCP/IP transport */
 /* #undef TCP_ADAPTER */
