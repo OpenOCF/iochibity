@@ -27,9 +27,17 @@ config_setting(
     values = { "crosstool_top": "//platforms/wrlinux:toolchain" }
 )
 config_setting(
-    name = "rpi3b",
-     values = { "cpu": "k8",
-     "crosstool_top": "//platforms/rpi3b:toolchain" }
+    name = "osx_rpi3b",
+    values = { "crosstool_top": "//platforms/rpi3b:toolchain",
+               # "host_cpu": "darwin"
+               # "cpu": "armv8"
+    }
+)
+
+config_setting(
+    name = "linux_rpi3b",
+    values = { "crosstool_top": "//platforms/rpi3b:toolchain",
+               "cpu": "k8"}
 )
 
 genrule(
@@ -61,9 +69,9 @@ cc_binary(
              "-Ithird_party/coap/include",
              "-Ithird_party/tinycbor/src",
     ]
-    + select({":rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/include",
-                         "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
-                         "-std=c11"],
+    + select({":osx_rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/includeZ",
+                             "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
+                             "-std=c11"],
               ":android": ["-Iexternal/cosysroot_ndk/usr/include",
                          "-Iexternal/cosysroot_ndk/usr/include/cdk",
                          "-std=c11"],
@@ -72,15 +80,16 @@ cc_binary(
                          "-Iexternal/cosysroot_wrlinux/usr/include",
                          "-std=c11"],
               ":macos": ["-Iexternal/usr_local_macos/include",
-                         "-Iexternal/usr_local_macos/include/cdk"],
+                         "-Iexternal/usr_local_macos/include/cdk",
+                         "-U DEBUG"],
               ":macos64": ["-Iexternal/usr_local_macos/include",
-                           "-Iexternal/usr_local_macos/include/cdk"],
+                           "-Iexternal/usr_local_macos/include/cdk",
+                           "-U DEBUG"],
               ":linux": ["-Iexternal/usr_local_linux/include",
                          "-Iexternal/usr_local_linux/include/cdk"],
-              "//conditions:default": ["-Iexternal/usr_local/include",
+              "//conditions:default": ["-Iexternal/usr_local/includeX",
                                        "-Iexternal/usr_local/include/cdk",
-                                       "-std=c11",
-                                       "-U DEBUG"]}), # OS X
+                                       "-std=c11"]}), # OS X
     data = [":config"],
     deps = ["//src:config",
             "//include",
@@ -89,7 +98,7 @@ cc_binary(
             "//third_party/tinycbor",
             "//third_party/cjson",
             "//third_party/coap"
-    ] + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
+    ] + select({":osx_rpi3b": ["@cosysroot_rpi3b//:cdk"],
               ":macos": ["@usr_local_macos//:cdk"],
               ":macos64": ["@usr_local_macos//:cdk"],
               ":linux": ["@usr_local_linux//:cdk"],
@@ -128,8 +137,12 @@ cc_binary(
             "svrs_codec.c",
             "svrs_codec.h",
             "utils.c",
-            "utils.h"
+            "utils.h",
             # "subwindow.c",
             # "subwindow.h"
+            "config/acl.c",
+            "config/svr_config.c"
+            # "config/doxm.c",
+            # "config/cred.c"
     ]
 )

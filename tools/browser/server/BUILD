@@ -20,7 +20,7 @@ config_setting(
 )
 config_setting(
     name = "rpi3b",
-     values = { "crosstool_top": "//platforms/rpi3b:toolchain" }
+    values = { "crosstool_top": "//platforms/rpi3b:toolchain" }
 )
 
 cc_binary(
@@ -56,8 +56,22 @@ cc_binary(
     #           ":android": ["@cosysroot_ndk//:cdk"],
     #           ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
     #           "//conditions:default": ["@usr_local//:cdk"]}),
-    # linkopts = ["-Wl,-dead_strip"],
-    srcs = ["server.c"]
+    linkopts = select({"windows": [],
+                       # "msvc": [],
+                       # "msys": ["-lpthread"],
+                       "linux": ["-lpthread"],
+                       "rpi3b": ["-lpthread"],
+                       "wrlinux": ["-lpthread"],
+                       # "android": [],
+                       # "androidx86": [],
+                       #"ndk": [],
+                       "//conditions:default": []}),
+    srcs = ["server.c",
+            "config/svr_config.c"]
+            # "config/acl.c",
+            # "config/pstat.c",
+            # "config/doxm.c",
+            # "config/cred.c"]
 )
 
 genrule(

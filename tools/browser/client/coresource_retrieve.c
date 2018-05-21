@@ -323,6 +323,8 @@ OCStackApplicationResult get_cb(void* ctx,
 	OIC_LOG_V(ERROR, TAG, "StackResult: %s",  oc_result_to_str(clientResponse->result));
         return OC_STACK_DELETE_TRANSACTION;
     }
+    OIC_LOG_V(DEBUG, TAG, "payload type: %x",
+    	      clientResponse->payload->type);
 
     if (ctx == (void*)DEFAULT_CONTEXT_VALUE)
     {
@@ -364,6 +366,7 @@ OCStackApplicationResult get_cb(void* ctx,
     }
 
     OIC_LOG_PAYLOAD(INFO, clientResponse->payload);
+    OIC_LOG_V(DEBUG, TAG, "1 payload type: %x", clientResponse->payload->type);
 
     switch (clientResponse->payload->type) {
     case PAYLOAD_TYPE_REPRESENTATION:
@@ -375,6 +378,9 @@ OCStackApplicationResult get_cb(void* ctx,
     default:
 	OIC_LOG_V(INFO, TAG, "UNEXPECTED PAYLOAD TYPE: %d", clientResponse->payload->type);
     }
+
+    OIC_LOG_V(DEBUG, TAG, "payload: %p", clientResponse->payload);
+    OIC_LOG_V(DEBUG, TAG, "2 payload type: %x", clientResponse->payload->type);
 
     cosp_mgr_register_coresource(clientResponse);
     inbound_msg_scroller_dirty = true;

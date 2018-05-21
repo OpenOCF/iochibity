@@ -146,6 +146,7 @@ void browse_payload_json(OCClientResponse *msg)
 static construct_msg(OCClientResponse *msg)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY; msg: %p", __func__, msg);
+    OIC_LOG_V(DEBUG, TAG, "payload type: %X", msg->payload->type);
 
     static int i = 0;
     for (i=0; i<MSG_MAX; i++) {
@@ -367,7 +368,8 @@ static construct_msg(OCClientResponse *msg)
 	 * 	      msg->rcvdVendorSpecificHeaderOptions[j].optionData[k]); */
     }
 
-    sprintf(msg_str[i++], "Payload type: %s",
+    sprintf(msg_str[i++], "Payload type: 0x%X %s",
+	    msg->payload->type,
 	    (msg->payload->type ==  PAYLOAD_TYPE_DISCOVERY) ? "DISCOVERY"
 	    : (msg->payload->type == PAYLOAD_TYPE_DEVICE) ? "DEVICE"
 	    : (msg->payload->type == PAYLOAD_TYPE_PLATFORM) ? "PLATFORM"

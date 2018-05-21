@@ -11,37 +11,62 @@ char *g_msg_type[12];
 
 static cJSON *cred_to_json(OCSecurityPayload *payload)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "3 payload type: %x", payload->base.type);
+
     OicSecCred_t *cred_payload = NULL;
-    OCStackResult r = CBORPayloadToCred(payload->securityData, payload->payloadSize, &cred_payload);
+    OicUuid_t     *rownerId = NULL;
+
+    OCStackResult r = CBORPayloadToCred(payload->securityData,
+					payload->payloadSize,
+					&cred_payload,
+					&rownerId);
     if ( r != OC_STACK_OK) {
 	OIC_LOG_V(ERROR, TAG, "CBORPayloadToCred failure: %d", r);
     }
+    OIC_LOG_V(DEBUG, TAG, "4 payload type: %x", payload->base.type);
+
+    /* FIXME: iterate over OicSecCred_t linked list */
 
     cJSON *root;
     root = cJSON_CreateObject();
 
 /*     uint16_t            credId;         // 0:R:S:Y:UINT16 */
+    cJSON_AddNumberToObject(root, "credid", cred_payload->credId);
 /*     OicUuid_t           subject;        // 1:R:S:Y:oic.uuid */
+    char *subject_uuid = NULL;
+    ConvertUuidToStr(&cred_payload->subject, &subject_uuid);
+    OIC_LOG_V(INFO, TAG, "subject uuid: %s", subject_uuid);
+    cJSON_AddItemToObject(root,
+			  "subjectuuid",
+			  cJSON_CreateString(subject_uuid));
+
 /*     // If roleId.id is all zeroes, this property is not set. */
 /*     OicSecRole_t        roleId;         // 2:R:M:N:oic.sec.roletype */
 /*     OicSecCredType_t    credType;       // 3:R:S:Y:oic.sec.credtype */
+    cJSON_AddNumberToObject(root, "credtype", cred_payload->credType);
 /* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
 /*     OicSecKey_t         publicData;     // own cerificate chain */
 /*     char            *credUsage;            // 4:R:S:N:String */
 /*     OicSecOpt_t        optionalData;   // CA's cerificate chain */
 /* #endif /\* __WITH_DTLS__  or __WITH_TLS__*\/ */
 /*     OicSecKey_t         privateData;    // 6:R:S:N:oic.sec.key */
+    OIC_LOG_V(INFO, TAG,
+	      "privatedata.encoding: %d",
+	      cred_payload->privateData.encoding);
+    cJSON_AddNumberToObject(root,
+			    "privatedata.encoding",
+			    cred_payload->privateData.encoding);
 /*     char                *period;        // 7:R:S:N:String */
 /*     OicUuid_t            rownerID;      // 8:R:S:Y:oic.uuid */
     char *rowner = NULL;
     ConvertUuidToStr(&cred_payload->rownerID, &rowner);
-    OIC_LOG_V(INFO, TAG, "cred rowner: %s", rowner);
+    OIC_LOG_V(INFO, TAG, "rowneruuid: %s", rowner);
     cJSON_AddItemToObject(root, "rowneruuid", cJSON_CreateString(rowner));
 /* #ifdef MULTIPLE_OWNER */
 /*     OicUuid_t            *eownerID;     //9:R:S:N:oic.uuid */
 /* #endif //MULTIPLE_OWNER */
 /*     OicSecCred_t        *next; */
-
     return root;
 }
 
@@ -155,8 +180,9 @@ static cJSON* security_to_json(OCClientResponse *msg)
 	sprintf(g_msg_type, "%s", "doxm");
 	root = doxm_to_json( (OCSecurityPayload*) payload);
     } else if (starts_with("/oic/sec/cred", msg->resourceUri)) {
-	sprintf(g_msg_type, "%s", "cred");
 	OIC_LOG_V(INFO, TAG, "decoding credentials svr");
+	sprintf(g_msg_type, "%s", "cred");
+	root = cred_to_json( (OCSecurityPayload*) payload);
     } else if (starts_with("/oic/sec/pstat", msg->resourceUri)) {
 	OIC_LOG_V(INFO, TAG, "decoding provisioning status svr");
 	sprintf(g_msg_type, "%s", "pstat");
