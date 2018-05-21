@@ -71,7 +71,7 @@
 /* FIXME: put this in secresource.c, it's shared across r types */
 typedef enum OicEncodingType_t
 {
-    OIC_ENCODING_UNKNOW = 0,
+    OIC_ENCODING_UNKNOWN = 0,
     OIC_ENCODING_RAW = 1,
     OIC_ENCODING_BASE64 = 2,
     OIC_ENCODING_PEM = 3,
@@ -147,6 +147,9 @@ static const uint8_t CRED_ROOT_MAP_SIZE = 4;
 static const uint8_t CRED_MAP_SIZE = 3;
 static const uint8_t ROLEID_MAP_SIZE = 1;
 
+/* GAR_EXPERIMENTAL */
+/* application code must implment get_vendor_cred */
+/* extern OicSecCred_t* get_vendor_cred(); */
 
 OicSecCred_t        *gCred = NULL;
 static OCResourceHandle    gCredHandle = NULL;
@@ -255,7 +258,7 @@ static bool IsValidCredential(const OicSecCred_t* cred)
             VERIFY_NOT_NULL(TAG, cred->publicData.data, ERROR);
             VERIFY_SUCCESS(TAG, 0 != cred->publicData.len, ERROR);
             VERIFY_SUCCESS(TAG, \
-                           (OIC_ENCODING_UNKNOW < cred->publicData.encoding && \
+                           (OIC_ENCODING_UNKNOWN < cred->publicData.encoding && \
                             OIC_ENCODING_DER >= cred->publicData.encoding),
                            ERROR);
             break;
@@ -268,7 +271,7 @@ static bool IsValidCredential(const OicSecCred_t* cred)
             if(NULL != cred->optionalData.data)
             {
                 VERIFY_SUCCESS(TAG, \
-                               (OIC_ENCODING_UNKNOW < cred->optionalData.encoding && \
+                               (OIC_ENCODING_UNKNOWN < cred->optionalData.encoding && \
                                 OIC_ENCODING_DER >= cred->optionalData.encoding),
                                ERROR);
             }
@@ -279,7 +282,7 @@ static bool IsValidCredential(const OicSecCred_t* cred)
             VERIFY_NOT_NULL(TAG, cred->privateData.data, ERROR);
             VERIFY_SUCCESS(TAG, 0 != cred->privateData.len, ERROR);
             VERIFY_SUCCESS(TAG, \
-                           (OIC_ENCODING_UNKNOW < cred->privateData.encoding && \
+                           (OIC_ENCODING_UNKNOWN < cred->privateData.encoding && \
                             OIC_ENCODING_DER >= cred->privateData.encoding),
                            ERROR);
             break;
@@ -667,6 +670,7 @@ static void logCredMetadata()
     OicSecCred_t * temp = NULL;
     size_t count = 0;
     char uuidString[UUID_STRING_SIZE];
+    char rownerUuidString[UUID_STRING_SIZE];
     OicUuid_t ownUuid;
 
     OIC_LOG_V(DEBUG, TAG, "IN %s:", __func__);
@@ -685,6 +689,10 @@ static void logCredMetadata()
         {
             OIC_LOG_V(DEBUG, TAG, "Subject UUID: %s", uuidString);
         }
+        if (OCConvertUuidToString(temp->rownerID.id, rownerUuidString))
+        {
+            OIC_LOG_V(DEBUG, TAG, "Rowner UUID: %s", rownerUuidString);
+        }
         if (IsNonEmptyRole(&temp->roleId))
         {
             OIC_LOG_V(DEBUG, TAG, "Role ID: %s", temp->roleId.id);
@@ -700,7 +708,7 @@ static void logCredMetadata()
             OIC_LOG_V(DEBUG, TAG, "credUsage: %s", temp->credUsage);
         }
 
-        OIC_LOG_V(DEBUG, TAG, "optionalData length: %" PRIuPTR", encoding: %d" PRIuPTR, temp->optionalData.len, temp->optionalData.encoding);
+        OIC_LOG_V(DEBUG, TAG, "optionalData length: %" PRIuPTR", encoding: %d", temp->optionalData.len, temp->optionalData.encoding);
 #endif
 
     }
@@ -2731,6 +2739,9 @@ OCStackResult InitCredResource()
     {
         gCred = GetCredDefault();
     }
+
+/* GAR_EXPERIMENTAL */
+    /* gCred = get_vendor_cred(); */
 
     if (gCred)
     {
