@@ -105,17 +105,17 @@ OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
 
     for (;;)
     {
-	OIC_LOG_V(INFO, TAG, "%s LOOP", __func__);
+	/* OIC_LOG_V(INFO, TAG, "%s LOOP", __func__); */
         out = (uint8_t *)OICCalloc(1, curSize);
         VERIFY_PARAM_NON_NULL(TAG, out, "Failed to allocate payload");
         err = OCConvertPayloadHelper(payload, format, out, &curSize);
 
-        if (CborErrorOutOfMemory != err)
+        if ((CborErrorOutOfMemory & err) == 0)
         {
             break;
         }
 	else {
-	    OIC_LOG_V(ERROR, TAG, "OCConvertPayloadHelper error: %s", cbor_error_string(err));
+	    /* OIC_LOG_V(ERROR, TAG, "OCConvertPayloadHelper error: %s", cbor_error_string(err)); */
 	    /* break; */
 	}
 
@@ -498,7 +498,7 @@ exit:
 static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
                                                    uint8_t *outPayload, size_t *size)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     CborEncoder encoder;
     int64_t err = CborNoError;
 
@@ -697,14 +697,14 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
     }
 
 exit:
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
     return checkError(err, &encoder, outPayload, size);
 }
 
 static int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadFormat format,
                                          uint8_t *outPayload, size_t *size)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     if (OC_FORMAT_VND_OCF_CBOR == format)
     {
         return OCConvertDiscoveryPayloadVndOcfCbor(payload, outPayload, size);
@@ -713,7 +713,7 @@ static int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadF
     {
         return OCConvertDiscoveryPayloadCbor(payload, outPayload, size);
     }
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
 }
 
 static int64_t OCConvertArrayItem(CborEncoder *array, const OCRepPayloadValueArray *valArray,
