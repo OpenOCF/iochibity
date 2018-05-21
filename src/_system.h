@@ -26,7 +26,7 @@
 /* #else */
 #if (__STDC_VERSION__ >= 201112L) /* C11 */
 #   include <assert.h>
-#   define OC_STATIC_ASSERT(condition, msg)
+#   define OC_STATIC_ASSERT(condition, msg) static_assert(condition, msg)
 //GARFIXME: on android this gets unknown symbol:  static_assert(condition, msg)
 #else  /* non-C11, non-MS c compiler  */
 #  error "OpenOCF requires C11; you are using a compiler with __STDC_VERSION_ =" __STDC_VERSION__
