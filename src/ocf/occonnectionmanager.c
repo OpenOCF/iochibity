@@ -102,7 +102,7 @@ static OCStackApplicationResult OCCMFoundResource(void *ctx,
 
 OCStackResult OCCMInitialize()
 {
-    OIC_LOG_V(INFO, TAG, "%s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     //Initialize the Connection Manager
     CAResult_t ret = CAUtilCMInitailize();
@@ -121,6 +121,7 @@ OCStackResult OCCMInitialize()
         return CAResultToOCResult(ret);
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CAResultToOCResult(ret);
 }
 
@@ -224,6 +225,8 @@ OCStackResult OCCMDiscoveryResource(OCClientResponse *clientResponse)
 
 static void OCAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
     OC_UNUSED(adapter);
     // check user configuration
     CAConnectUserPref_t connPrefer = CA_USER_PREF_CLOUD;
@@ -245,11 +248,12 @@ static void OCAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enab
             OIC_LOG(DEBUG, TAG, "CM ConnectionStatusChangedHandler DISABLED");
         }
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 static void OCConnectionStateChangedHandler(const CAEndpoint_t *info, bool isConnected)
 {
-    OIC_LOG(DEBUG, TAG, "OCConnectionStateChangedHandler");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OC_UNUSED(info);
 
     CAConnectUserPref_t connPrefer = CA_USER_PREF_CLOUD;
@@ -278,6 +282,7 @@ static void OCConnectionStateChangedHandler(const CAEndpoint_t *info, bool isCon
             }
         }
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 static OCStackResult OCCMFindResource()
