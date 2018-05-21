@@ -3536,7 +3536,7 @@ static void registerResultForGetCSRResourceCB(GetCsrData_t *getCsrData,
             currentEntry->res = res;
             currentEntry->csr = NULL;
             currentEntry->csrLen = 0;
-            currentEntry->encoding = OIC_ENCODING_UNKNOW;
+            currentEntry->encoding = OIC_ENCODING_UNKNOWN;
         }
     }
 
