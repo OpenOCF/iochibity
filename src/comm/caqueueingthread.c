@@ -69,6 +69,9 @@ typedef struct
     bool isStop;
     /** Que on which the thread is operating. **/
     u_queue_t *dataQueue;
+#ifdef DEBUG_THREADING
+    char *name;
+#endif
 } CAQueueingThread_t;
 #endif
 
@@ -140,8 +143,16 @@ static void CAQueueingThreadBaseRoutine(void *threadValue)
     OIC_LOG(DEBUG, TAG, "message handler main thread end..");
 }
 
-CAResult_t CAQueueingThreadInitialize(CAQueueingThread_t *thread, ca_thread_pool_t handle,
+#ifdef DEBUG_THREADING
+CAResult_t CAQueueingThreadInitialize(CAQueueingThread_t *thread,
+				      char *name,
+				      ca_thread_pool_t handle,
                                       CAThreadTask task, CADataDestroyFunction destroy)
+#else
+CAResult_t CAQueueingThreadInitialize(CAQueueingThread_t *thread,
+				      ca_thread_pool_t handle,
+                                      CAThreadTask task, CADataDestroyFunction destroy)
+#endif
 {
     if (NULL == thread)
     {
@@ -158,6 +169,9 @@ CAResult_t CAQueueingThreadInitialize(CAQueueingThread_t *thread, ca_thread_pool
     OIC_LOG(DEBUG, TAG, "thread initialize..");
 
     // set send thread data
+#ifdef DEBUG_THREADING
+    thread->name = name;
+#endif
     thread->threadPool = handle;
     thread->dataQueue = u_queue_create();
     thread->threadMutex = oc_mutex_new();
@@ -193,6 +207,7 @@ ERROR_MEM_FAILURE:
 
 CAResult_t CAQueueingThreadStart(CAQueueingThread_t *thread)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (NULL == thread)
     {
         OIC_LOG(ERROR, TAG, "thread instance is empty..");
@@ -211,10 +226,8 @@ CAResult_t CAQueueingThreadStart(CAQueueingThread_t *thread)
         return CA_STATUS_OK;
     }
 
-    // mutex lock
     oc_mutex_lock(thread->threadMutex);
     thread->isStop = false;
-    // mutex unlock
     oc_mutex_unlock(thread->threadMutex);
 
     CAResult_t res = ca_thread_pool_add_task(thread->threadPool, CAQueueingThreadBaseRoutine,
@@ -229,6 +242,7 @@ CAResult_t CAQueueingThreadStart(CAQueueingThread_t *thread)
         OIC_LOG(ERROR, TAG, "thread pool add task error(send thread).");
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return res;
 }
 
@@ -323,13 +337,16 @@ CAResult_t CAQueueingThreadDestroy(CAQueueingThread_t *thread)
 
 CAResult_t CAQueueingThreadStop(CAQueueingThread_t *thread)
 {
+#ifdef DEBUG_THREADING
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY: %s", __func__, thread->name);
+#else
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+#endif
     if (NULL == thread)
     {
         OIC_LOG(ERROR, TAG, "thread instance is empty..");
         return CA_STATUS_INVALID_PARAM;
     }
-
-    OIC_LOG(DEBUG, TAG, "thread stop request!!");
 
     if (!thread->isStop)
     {

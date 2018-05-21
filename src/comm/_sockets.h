@@ -1,6 +1,17 @@
 /*
  * Socket types and error definitions.
  */
+/* #if EXPORT_INTERFACE */
+#ifdef HAVE_WINSOCK2_H
+#  define OPTVAL_T(t)    (const char*)(t)
+#  define OC_CLOSE_SOCKET(s) closesocket(s)
+#else
+#  define OPTVAL_T(t)    (t)
+#include <unistd.h>
+#  define OC_CLOSE_SOCKET(s) close(s)
+#endif
+/* #endif */
+
 #ifdef HAVE_WINSOCK2_H
 #include <Winsock2.h>
 #include <windows.h>
@@ -23,6 +34,7 @@
 /**
  * Hold global variables for CA layer. (also used by RI layer)
  */
+#include <inttypes.h>
 typedef struct
 {
     CASocketFd_t fd;    /**< socket fd */

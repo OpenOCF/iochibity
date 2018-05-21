@@ -1,5 +1,91 @@
 = transport layer
 
+== monitoring
+
+Parallel structure: cainteracecontroller and cautilinterface setup
+callbacks etc. So does the transport-specific code. E.g. in
+cainterfacecontroller we have g_networkChangeCallbackList, and in
+caipnwmonitor0 we have g_adapterCallbackList.
+
+So the question is: who needs to be notified about network status
+changes, and why.
+
+For specific transport, implementation is split across a generic component (caipnwmonitor0)
+and a platform-specific component (e.g. caipnwmonitor_posix)
+
+"Network" level logic (in cautilinterface, cainterfacecontroller): 
+
+For setup, OCCMInitialize (occonnectionmanager) calls
+CARegisterNetworkMonitorHandler calls CASetNetworkMonitorCallbacks
+calls AddNetworkStateChangedCallback.  The callback passed from the
+top is static OCAdapterStateChangedHandler. Which doesn't seem to do
+much.
+
+Status change event handling logic:
+
+Using select on a netlink socket, the network listening looper detects
+a netlink event like RTM_NEWADDR is ready to be read. It calls
+CAFindInterfaceChange, which gets the msg (recvmsg on netlink
+socket). It then calls CAIPPassNetworkChangesToAdapter, passing either
+CA_INTERFACE_UP or DOWN. That routine calls the
+<transport>_status_change_handler, which in turn calls:
+a) CAUpdateStoredIPAddressInfo
+b) CAAdapterChangedCallback - this propagates the change to cainterfacecontroller
+c) CAcloseSslConnectionAll if status is DOWN.
+
+CAUpdateStoredIPAddressInfo converts the Iface info to Endpoint
+structs, which it adds to the global list of local (own) EPs
+(g_ownIpEndpointList)
+
+CAAdapterChangedCallback is in cainterfacecontroller: iterates over
+g_networkChangeCallbackList. creates a threadinfo struct, adds it to
+CAQueueingThreadAddData, then calls callbacks
+
+NOTE:  we also have monitoring in cainterfacecontroller.c:
+
+* CAAdapterChangedCallback (called by status chg handler)
+* CAConnectionChangedCallback
+
+data types:
+
+struct: CAInterface_t (which is actually an IF address struct)
+API:
+* CANewInterfaceItem
+* CAIPGetInterfaceInformation
+
+struct CAIPCBData_t - linked list of (ip_status_change_event_handler, transport_type)
+
+Status change event handler signature:
+    void (*)(CATransportAdapter_t transport_type, CANetworkStatus_t status);
+
+
+Globals:
+
+* g_networkChangeCallbackList (cainterfacecontroller)
+
+* g_nw_addresses  (@was g_netInterfaceList). API:
+** CAIPInitializeNetworkAddressList @was CAIPInitializeNetworkMonitorList (delegated to platform-specific impl)
+** CAAddToNetworkoAddressList @was CAAddNetworkMonitorList
+** CAIPDestroyNetworkAddressList @was CAIPDestroyNetworkMonitorList
+** CACmpNetworkList @was CACmpNetworkList
+
+Note that NetworkMonitorList really means list of interface structs
+
+* g_adapterCallbackList
+
+CAIPSetNetworkMonitorCallback
+CAIPUnSetNetworkMonitorCallback
+CAIPStartNetworkMonitor
+CAIPStopNetworkMonitor
+
+CAIPStartNetworkMonitor
+CAIPStopNetworkMonitor
+
+CAIPPassNetworkChangesToAdapter
+CAGetPollingInterval
+
+CAIPPassNetworkChangesToAdapter
+
 
 == udpip
 

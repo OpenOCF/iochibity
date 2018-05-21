@@ -37,7 +37,7 @@
 #include <netdb.h>
 #include <errno.h>
 
-#define TAG "IPNWMX"
+#define TAG "IPNWMON_DARWIN"
 
 u_arraylist_t *CAFindInterfaceChange()
 {
@@ -45,3 +45,5 @@ u_arraylist_t *CAFindInterfaceChange()
     OIC_LOG_V(ERROR, TAG, "%s NOT YET IMPLEMENTED ON DARWIN", __func__);
     return iflist;
 }
+
+

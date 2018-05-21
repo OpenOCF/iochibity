@@ -76,10 +76,6 @@
  * @param[in]  status       Connection status either ::CA_INTERFACE_UP or ::CA_INTERFACE_DOWN.
  * @see CAIPSetConnectionStateChangeCallback() for registration.
  */
-#if EXPORT_INTERFACE
-typedef void (*CAIPAdapterStateChangeCallback)(CATransportAdapter_t adapter,
-                                               CANetworkStatus_t status);
-#endif
 
 /*
  * Structure for IP address information, to be used to construct a CAEndpoint_t.  The
@@ -94,15 +90,17 @@ typedef struct
     uint32_t flags;
     uint16_t family;
     char addr[MAX_ADDR_STR_SIZE_CA];
-} CAInterface_t;		/* GAR: CAIfAddress_t */
+} CAInterface_t;		// @rewrite to CAIfAddress_t */
 #endif
 
 #if EXPORT_INTERFACE
 typedef struct CAIPCBData_t
 {
     struct CAIPCBData_t *next;
-    CATransportAdapter_t adapter;
-    CAIPAdapterStateChangeCallback callback;
+    CATransportAdapter_t adapter; /* will always be either CA_ADAPTER_IP (UDP) or CA_ADAPTER_TCP */
+    void (*ip_status_change_event_handler)(CATransportAdapter_t transport_type,
+					   CANetworkStatus_t status);
+    // @rewrite CAIPAdapterStateChangeCallback callback;
 } CAIPCBData_t;
 #endif
 
@@ -115,15 +113,18 @@ oc_mutex g_networkMonitorContextMutex = NULL;
 
 /**
  * Used to storing network interface.
+ * list of CAInterface_t* (i.e., IF address structs)
  */
-u_arraylist_t *g_netInterfaceList = NULL;
+// @rewrite g_nw_addresses @was g_netInterfaceList
+u_arraylist_t *g_nw_addresses = NULL;
 
 /**
  * Used to storing adapter changes callback interface.
  */
 struct CAIPCBData_t *g_adapterCallbackList = NULL;
 
-CAResult_t CAIPInitializeNetworkMonitorList()
+// @rewrite CAIPCreateNetworkAddressList @was CAIPInitializeNetworkMonitorList
+CAResult_t CAIPCreateNetworkAddressList()
 {
     if (!g_networkMonitorContextMutex)
     {
@@ -135,20 +136,20 @@ CAResult_t CAIPInitializeNetworkMonitorList()
         }
     }
 
-    if (!g_netInterfaceList)
+    if (!g_nw_addresses)
     {
-        g_netInterfaceList = u_arraylist_create();
-        if (!g_netInterfaceList)
+        g_nw_addresses = u_arraylist_create();
+        if (!g_nw_addresses)
         {
             OIC_LOG(ERROR, TAG, "u_arraylist_create has failed");
-            CAIPDestroyNetworkMonitorList();
+            CAIPDestroyNetworkAddressList();
             return CA_STATUS_FAILED;
         }
     }
     return CA_STATUS_OK;
 }
 
-/* DELEGATE: static void CAIPDestroyNetworkMonitorList() */
+/* DELEGATE: static void CAIPDestroyNetworkAddressList() */
 
 /* DELEGATE: CAResult_t CAIPStartNetworkMonitor(CAIPAdapterStateChangeCallback callback,
  * 					     CATransportAdapter_t adapter) */
@@ -166,23 +167,40 @@ int CAGetPollingInterval(int interval)
     return interval;
 }
 
-/**
- * Pass the changed network status through the stored callback.
+/* /\** */
+/*  * Pass the changed network status through the stored callback. */
+/*  *\/ */
+/* // GAR: since IF changes are low in the stack they are passed up to both transports */
+/* // NOTE: this is called recursively, from CAIPGetInterfaceInformation */
+/* // @rewrite: CAIPPassNetworkChangesToTransports @was CAIPPassNetworkChangesToAdapter */
+/* void CAIPPassNetworkChangesToTransports(CANetworkStatus_t status) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "IN %s: status = %d", __func__, status); */
+
+/*     // @rewrite: we only ever have two handlers at most, one for udp and one for tcp. */
+/*     // what if we have multiple physical interfaces per transport? */
+/* #ifdef ENABLE_IP */
+/*     udp_status_change_handler(CA_ADAPTER_IP, status); */
+/*     // log state of TRANSPORT adapter, not nw interface */
+/*     CALogAdapterStateInfo(CA_ADAPTER_IP, status); */
+/* #endif */
+/* #ifdef ENABLE_TCP */
+/*     tcp_status_change_handler(CA_ADAPTER_TCP, status); */
+/*     CALogAdapterStateInfo(CA_ADAPTER_TCP, status); */
+/* #endif */
+
+/*     /\* CAIPCBData_t *cbitem = NULL; *\/ */
+/*     /\* LL_FOREACH(g_adapterCallbackList, cbitem) *\/ */
+/*     /\* { *\/ */
+/*     /\*     if (cbitem && cbitem->adapter) *\/ */
+/*     /\*     { *\/ */
+/*     /\*         cbitem->ip_status_change_event_handler(cbitem->adapter, status); *\/ */
+/*     /\*         CALogAdapterStateInfo(cbitem->adapter, status); *\/ */
+/*     /\*     } *\/ */
+/*     /\* } *\/ */
+/*     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__); */
+/* }
  */
-void CAIPPassNetworkChangesToAdapter(CANetworkStatus_t status)
-{
-    OIC_LOG_V(DEBUG, TAG, "IN %s: status = %d", __func__, status);
-    CAIPCBData_t *cbitem = NULL;
-    LL_FOREACH(g_adapterCallbackList, cbitem)
-    {
-        if (cbitem && cbitem->adapter)
-        {
-            cbitem->callback(cbitem->adapter, status);
-            CALogAdapterStateInfo(cbitem->adapter, status);
-        }
-    }
-    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
-}
 
 /**
  * Set callback for receiving local IP/TCP adapter connection status.
@@ -191,21 +209,30 @@ void CAIPPassNetworkChangesToAdapter(CANetworkStatus_t status)
  * @param[in]  adapter      Transport adapter.
  * @return ::CA_STATUS_OK or an appropriate error code.
  */
-CAResult_t CAIPSetNetworkMonitorCallback(CAIPAdapterStateChangeCallback callback,
+// GAR: called by both CAStartUDP and CAStartTCP via CAIPStartNetworkMonitor, to install their
+// status change event handlers
+// @rewrite we can eliminate this by just calling the handlers
+// @rewrite directly in CAIPPassNetworkChangesToAdapter
+CAResult_t REMOVED_CAIPSetNetworkMonitorCallback(void
+					 (*ip_status_change_handler)(CATransportAdapter_t adapter,
+									    CANetworkStatus_t status),
+					 // CAIPAdapterStateChangeCallback callback,
                                          CATransportAdapter_t adapter)
 {
-    if (!callback)
+    if (!ip_status_change_handler)
     {
-        OIC_LOG(ERROR, TAG, "callback is null");
+        OIC_LOG(ERROR, TAG, "ip_status_change_handler is null");
         return CA_STATUS_INVALID_PARAM;
     }
 
     CAIPCBData_t *cbitem = NULL;
     LL_FOREACH(g_adapterCallbackList, cbitem)
     {
-        if (cbitem && adapter == cbitem->adapter && callback == cbitem->callback)
+        if (cbitem
+	    && (cbitem->adapter == adapter)
+	    && (cbitem->ip_status_change_event_handler == ip_status_change_handler))
         {
-            OIC_LOG(DEBUG, TAG, "this callback is already added");
+            OIC_LOG(DEBUG, TAG, "this ip_status_change_handler is already added");
             return CA_STATUS_OK;
         }
     }
@@ -218,7 +245,7 @@ CAResult_t CAIPSetNetworkMonitorCallback(CAIPAdapterStateChangeCallback callback
     }
 
     cbitem->adapter = adapter;
-    cbitem->callback = callback;
+    cbitem->ip_status_change_event_handler = ip_status_change_handler;
     LL_APPEND(g_adapterCallbackList, cbitem);
 
     return CA_STATUS_OK;
@@ -230,6 +257,7 @@ CAResult_t CAIPSetNetworkMonitorCallback(CAIPAdapterStateChangeCallback callback
  * @param[in]  adapter      Transport adapter.
  * @return CA_STATUS_OK.
  */
+// @rewrite CAIPUnSetNetworkMonitorCallback is defunct
 CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)
 {
     CAIPCBData_t *cbitem = NULL;
@@ -238,7 +266,7 @@ CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)
     {
         if (cbitem && adapter == cbitem->adapter)
         {
-            OIC_LOG(DEBUG, TAG, "remove specific callback");
+            OIC_LOG(DEBUG, TAG, "remove specific ip_status_change_event_handler");
             LL_DELETE(g_adapterCallbackList, cbitem);
             OICFree(cbitem);
             return CA_STATUS_OK;

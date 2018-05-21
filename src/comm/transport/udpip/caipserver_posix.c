@@ -42,9 +42,13 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
+
+#if INTERFACE
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#endif
+
 #ifdef HAVE_NETINET_IP_H
 #include <netinet/ip.h>
 #endif
@@ -66,22 +70,22 @@
 
 #define SELECT_TIMEOUT 1     // select() seconds (and termination latency)
 
-#if INTERFACE
-#define IFF_UP_RUNNING_FLAGS  (IFF_UP|IFF_RUNNING)
+/* #if INTERFACE */
+/* #define IFF_UP_RUNNING_FLAGS  (IFF_UP|IFF_RUNNING) */
 
-#define SET(TYPE, FDS) \
-    if (caglobals.ip.TYPE.fd != OC_INVALID_SOCKET) \
-    { \
-        FD_SET(caglobals.ip.TYPE.fd, FDS); \
-    }
+/* #define SET(TYPE, FDS) \ */
+/*     if (TYPE.fd != OC_INVALID_SOCKET) \ */
+/*     { \ */
+/*         FD_SET(TYPE.fd, FDS); \ */
+/*     } */
 
-#define ISSET(TYPE, FDS, FLAGS) \
-    if (caglobals.ip.TYPE.fd != OC_INVALID_SOCKET && FD_ISSET(caglobals.ip.TYPE.fd, FDS)) \
-    { \
-        fd = caglobals.ip.TYPE.fd; \
-        flags = FLAGS; \
-    }
-#endif	/* INTERFACE */
+/* #define ISSET(TYPE, FDS, FLAGS) \ */
+/*     if (TYPE.fd != OC_INVALID_SOCKET && FD_ISSET(TYPE.fd, FDS)) \ */
+/*     { \ */
+/*         fd = TYPE.fd; \ */
+/*         flags = FLAGS; \ */
+/*     } */
+/* #endif	/\* INTERFACE *\/ */
 
 /* DELEGATE: void CAFindReadyMessage(); */
 
@@ -195,10 +199,11 @@ CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
     }
     else
     {
-        if (g_packetReceivedCallback)
-        {
-            g_packetReceivedCallback(&sep, recvBuffer, recvLen);
-        }
+        /* if (g_udpPacketRecdCB) */
+        /* { */
+        /*     g_udpPacketRecdCB(&sep, recvBuffer, recvLen); */
+        /* } */
+	mh_CAReceivedPacketCallback(&sep, recvBuffer, recvLen);
     }
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
@@ -206,12 +211,13 @@ CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
 }
 
 #if EXPORT_INTERFACE
+// @rewrite:: use <transport>_* instead of caglobals
 #define CHECKFD(FD) \
 do \
 { \
-    if (FD > caglobals.ip.maxfd) \
+    if (FD > udp_maxfd) \
     { \
-        caglobals.ip.maxfd = FD; \
+        udp_maxfd = FD; \
     } \
 } while (0)
 #endif
@@ -220,12 +226,12 @@ do \
 
 void CAIPStopServer()
 {
-    caglobals.ip.terminate = true;
+    udp_terminate = true;
 
-    if (caglobals.ip.shutdownFds[1] != -1)
+    if (udp_shutdownFds[1] != -1)
     {
-        close(caglobals.ip.shutdownFds[1]);
-        caglobals.ip.shutdownFds[1] = -1;
+        close(udp_shutdownFds[1]);
+        udp_shutdownFds[1] = -1;
         // receive thread will stop immediately
     }
     else
@@ -233,21 +239,21 @@ void CAIPStopServer()
         // receive thread will stop in SELECT_TIMEOUT seconds.
     }
 
-    if (!caglobals.ip.started)
+    if (!udp_started)
     { // Close fd's since receive handler was not started
         CACloseFDs();
     }
-    caglobals.ip.started = false;
+    udp_started = false;
 }
 
 void CAWakeUpForChange()
 {
-    if (caglobals.ip.shutdownFds[1] != -1)
+    if (udp_shutdownFds[1] != -1)
     {
         ssize_t len = 0;
         do
         {
-            len = write(caglobals.ip.shutdownFds[1], "w", 1);
+            len = write(udp_shutdownFds[1], "w", 1);
         } while ((len == -1) && (errno == EINTR));
         if ((len == -1) && (errno != EINTR) && (errno != EPIPE))
         {
@@ -256,25 +262,24 @@ void CAWakeUpForChange()
     }
 }
 
-bool PORTABLE_check_setsockopt_err()
-EXPORT
+bool PORTABLE_check_setsockopt_err() EXPORT
 {
     return EADDRINUSE != errno;
 }
 
-bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn *mreq, int ret)
+bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn *mreq, int ret) EXPORT
 {
     /* args not used in posix, used in windows */
-    (void)mreq;		      
+    (void)mreq;
     (void)ret;
     return EADDRINUSE != errno;
 }
 
-bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq,  int ret)
+bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq,  int ret) EXPORT
 {
     /* args not used in posix, used in windows */
     (void)fd;
-    (void)mreq;		      
+    (void)mreq;
     (void)ret;
     return EADDRINUSE != errno;
 }
@@ -297,11 +302,14 @@ EXPORT
     ssize_t len = sendto(fd, data, dlen, 0, (struct sockaddr *)sockaddrptr, socklen);
     if (OC_SOCKET_ERROR == len)
     {
-         // If logging is not defined/enabled.
-        if (g_ipErrorHandler)
-        {
-            g_ipErrorHandler(endpoint, data, dlen, CA_SEND_FAILED);
-        }
+	// @rewrite: g_ipErrorHandler removed, call CAIPErrorHandler directly
+        /* if (g_ipErrorHandler) */
+        /* { */
+        /*     g_ipErrorHandler(endpoint, data, dlen, CA_SEND_FAILED); */
+        /* } */
+	CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
+
+
         OIC_LOG_V(ERROR, TAG, "%s%s %s sendTo failed: %s", secure, cast, fam, strerror(errno));
         CALogSendStateInfo(endpoint->adapter, endpoint->addr, endpoint->port,
                            len, false, strerror(errno));

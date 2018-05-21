@@ -33,8 +33,18 @@
 /* #include "catcpadapter.h" */
 /* #endif */
 
-CAGlobals_t caglobals = { .clientFlags = 0,
-                          .serverFlags = 0, };
+/* IPv4 and IPv6 both require, so we initialize statically */
+// @rewrite: get rid of caglobals
+CAGlobals_t caglobals = { .clientFlags = CA_IPV4|CA_IPV6,
+                          .serverFlags = CA_IPV4|CA_IPV6 };
+
+CATransportFlags_t ocf_clientFlags = CA_IPV4|CA_IPV6; /**< flag for client */
+CATransportFlags_t ocf_serverFlags = CA_IPV4|CA_IPV6; /**< flag for server */
+
+/* set by ocstack::OCInitializeInternal */
+bool ocf_client; /**< client mode */
+bool ocf_server; /**< server mode */
+
 
 #define TAG "OIC_CA_CONN_MGR"
 
@@ -72,7 +82,8 @@ extern void CAsetCredentialTypesCallback(CAgetCredentialTypesHandler credCallbac
 
 CAResult_t CAInitialize(CATransportAdapter_t transportType)
 {
-    OIC_LOG_V(DEBUG, TAG, "CAInitialize type : %d", transportType);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, transport type: %s (%d)", __func__,
+	      CA_TRANSPORT_ADAPTER_STRING(transportType), transportType);
 
     if (!g_isInitialized)
     {
@@ -114,9 +125,10 @@ CAResult_t CAStartListeningServer()
     return CAStartListeningServerAdapters();
 }
 
+/* NOTE: this is not called from anywhere in the stack. Only for testing? */
 CAResult_t CAStopListeningServer()
 {
-    OIC_LOG(DEBUG, TAG, "CAStopListeningServer");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     if (!g_isInitialized)
     {
@@ -128,7 +140,7 @@ CAResult_t CAStopListeningServer()
 
 CAResult_t CAStartDiscoveryServer()
 {
-    OIC_LOG(DEBUG, TAG, "CAStartDiscoveryServer");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     if (!g_isInitialized)
     {
@@ -411,6 +423,12 @@ CAResult_t CASelectNetwork(CATransportAdapter_t interestedNetwork)
 
     CAResult_t res = CA_STATUS_OK;
 
+    // @rewrite: init always uses OC_DEFAULT_FLAGS, so we already know
+    // this stuff at build time otoh, init2 is parameterized by
+    // transport type. seems a bad idea, this should be a build-time
+    // config option, not a runtime choice.  iow all this can be done
+    // via #ifdef <TRANSPORT>_ADAPTER - which is what
+    // e.g. cainterfacecontroller does.
     if (interestedNetwork & CA_ADAPTER_IP)
     {
         res = CAAddNetworkType(CA_ADAPTER_IP);

@@ -103,7 +103,7 @@ static CANewAddress_t *g_CAIPNetworkMonitorNewAddressQueue = NULL;
 static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t family,
                                           const char *addr, int flags);
 
-/* static CAResult_t CAIPInitializeNetworkMonitorList()
+/* static CAResult_t CAIPInitializeNetworkAddressList()
  * {
  *     assert(!g_CAIPNetworkMonitorMutex);
  *     assert(!g_CAIPNetworkMonitorAddressList);
@@ -119,7 +119,7 @@ static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t 
  *     if (!g_CAIPNetworkMonitorAddressList)
  *     {
  *         OIC_LOG(ERROR, TAG, "u_arraylist_create has failed");
- *         CAIPDestroyNetworkMonitorList();
+ *         CAIPDestroyNetworkAddressList();
  *         return CA_STATUS_FAILED;
  *     }
  * 
@@ -129,7 +129,7 @@ static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t 
 /**
  * Destroy the network monitoring list.
  */
-void CAIPDestroyNetworkMonitorList()
+void CAIPDestroyNetworkAddressList()
 {
     // Free any new addresses waiting to be indicated up.
     while (g_CAIPNetworkMonitorNewAddressQueue)
@@ -443,7 +443,9 @@ BOOL RegisterForIpAddressChange()
  * @param[in]  adapter      Transport adapter.
  * @return ::CA_STATUS_OK or an appropriate error code.
  */
-CAResult_t CAIPStartNetworkMonitor(CAIPAdapterStateChangeCallback callback,
+CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter,
+						    CANetworkStatus_t status),
+				   // CAIPAdapterStateChangeCallback callback,
                                    CATransportAdapter_t adapter)
 {
     if (g_CAIPNetworkMonitorNotificationHandle != NULL)
@@ -453,7 +455,7 @@ CAResult_t CAIPStartNetworkMonitor(CAIPAdapterStateChangeCallback callback,
         return CA_STATUS_OK;
     }
 
-    CAResult_t res = CAIPInitializeNetworkMonitorList();
+    CAResult_t res = CAIPInitializeNetworkAddressList();
     if (res != CA_STATUS_OK)
     {
         return res;
@@ -462,14 +464,14 @@ CAResult_t CAIPStartNetworkMonitor(CAIPAdapterStateChangeCallback callback,
     res = CAIPSetNetworkMonitorCallback(callback, adapter);
     if (res != CA_STATUS_OK)
     {
-        CAIPDestroyNetworkMonitorList();
+        CAIPDestroyNetworkAddressList();
         return res;
     }
 
 #ifdef USE_SOCKET_ADDRESS_CHANGE_EVENT
     if (!RegisterForIpAddressChange())
     {
-        CAIPDestroyNetworkMonitorList();
+        CAIPDestroyNetworkAddressList();
         CAIPUnSetNetworkMonitorCallback(adapter);
         return CA_STATUS_FAILED;
     }
@@ -479,7 +481,7 @@ CAResult_t CAIPStartNetworkMonitor(CAIPAdapterStateChangeCallback callback,
                                            &g_CAIPNetworkMonitorNotificationHandle);
     if (err != NO_ERROR)
     {
-        CAIPDestroyNetworkMonitorList();
+        CAIPDestroyNetworkAddressList();
         CAIPUnSetNetworkMonitorCallback(adapter);
         return CA_STATUS_FAILED;
     }
@@ -506,7 +508,7 @@ CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 #endif
     }
 
-    CAIPDestroyNetworkMonitorList();
+    CAIPDestroyNetworkAddressList();
     return CAIPUnSetNetworkMonitorCallback(adapter);
 }
 
@@ -663,13 +665,13 @@ u_arraylist_t  *CAFindInterfaceChange()
 
     if (someAddressWentAway)
     {
-        CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
-        /* CAIPPassNetworkChangesToTransportAdapter(CA_INTERFACE_DOWN); */
+        CAIPPassNetworkChangesToTransports(CA_INTERFACE_DOWN);
+        /* CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN); */
     }
     if (newAddress)
     {
-        CAIPPassNetworkChangesToAdapter(CA_INTERFACE_UP);
-        /* CAIPPassNetworkChangesToTransportAdapter(CA_INTERFACE_UP); */
+        CAIPPassNetworkChangesToTransports(CA_INTERFACE_UP);
+	/* CAIPPassNetworkChangesToAdapter(CA_INTERFACE_UP); */
     }
 
     return iflist;

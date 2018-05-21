@@ -45,7 +45,7 @@
 /**
  * CA partial define for the structure ifaddrs.
  */
-/* #if EXPORT_INTERFACE */
+#if EXPORT_INTERFACE
 /* struct ifaddrs */
 /* { */
 /*     struct ifaddrs     *ifa_next; */
@@ -53,7 +53,7 @@
 /*     unsigned int       ifa_flags; */
 /*     struct sockaddr    *ifa_addr; */
 /* }; */
-/* #endif */
+#endif
 
 typedef struct {
     struct nlmsghdr     msgInfo;

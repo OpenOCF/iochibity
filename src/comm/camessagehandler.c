@@ -940,7 +940,7 @@ exit:
 static CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
                             const CAEndpoint_t *endpoint, coap_list_t **options)
 {
-    OIC_LOG(DEBUG, TAG, "IN-AddBlockOption");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
     VERIFY_NON_NULL_MSG((*pdu), TAG, "(*pdu)");
     VERIFY_NON_NULL_MSG((*pdu)->transport_hdr, TAG, "(*pdu)->transport_hdr");
@@ -979,7 +979,7 @@ static CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
     }
 
     uint16_t blockType = CAGetBlockOptionType(blockDataID);
-    if (COAP_OPTION_BLOCK2 == blockType)
+    if (COAP_OPTION_BLOCK2 == blockType) /* response payload */
     {
         res = CAAddBlockOption2(pdu, info, dataLength, blockDataID, options);
         if (CA_STATUS_OK != res)
@@ -988,7 +988,7 @@ static CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
             goto exit;
         }
     }
-    else if (COAP_OPTION_BLOCK1 == blockType)
+    else if (COAP_OPTION_BLOCK1 == blockType) /* request payload */
     {
         res = CAAddBlockOption1(pdu, info, dataLength, blockDataID, options);
         if (CA_STATUS_OK != res)
@@ -1367,13 +1367,15 @@ static bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *ep, ui
     return ret;
 }
 
-static void CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
-                                     const void *data, size_t dataLen)
+// static
+void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
+				 const void *data,
+				 size_t dataLen) EXPORT
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     VERIFY_NON_NULL_VOID(sep, TAG, "remoteEndpoint");
     VERIFY_NON_NULL_VOID(data, TAG, "data");
-    OIC_TRACE_BEGIN(%s:CAReceivedPacketCallback, TAG);
+    OIC_TRACE_BEGIN(%s:mh_CAReceivedPacketCallback, TAG);
 
     if (0 == dataLen)
     {
@@ -1399,7 +1401,7 @@ static void CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
         cadata = CAGenerateHandlerData(&(sep->endpoint), &(sep->identity), pdu, CA_REQUEST_DATA);
         if (!cadata)
         {
-            OIC_LOG(ERROR, TAG, "CAReceivedPacketCallback, CAGenerateHandlerData failed!");
+            OIC_LOG(ERROR, TAG, "mh_CAReceivedPacketCallback, CAGenerateHandlerData failed!");
             coap_delete_pdu(pdu);
             goto exit;
         }
@@ -1460,7 +1462,10 @@ static void CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
         CAResult_t res = CAReceiveBlockWiseData(pdu, &(sep->endpoint), cadata, dataLen);
         if (CA_NOT_SUPPORTED == res || CA_REQUEST_TIMEOUT == res)
         {
-            OIC_LOG(DEBUG, TAG, "this message does not have block option");
+	    if (CA_NOT_SUPPORTED == res)
+		OIC_LOG(DEBUG, TAG, "this message does not have block option");
+	    else
+		OIC_LOG(DEBUG, TAG, "BlockWise receive TIMEOUT");
             CAQueueingThreadAddData(&g_receiveThread, cadata, sizeof(CAData_t));
         }
         else
@@ -1698,7 +1703,9 @@ void CASetNetworkMonitorCallback(CANetworkMonitorCallback nwMonitorHandler)
 
 CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
 {
-    CASetPacketReceivedCallback(CAReceivedPacketCallback);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
+    //@rewrite remove CASetPacketReceivedCallback(mh_CAReceivedPacketCallback);
     CASetErrorHandleCallback(CAErrorHandler);
 
 #ifndef SINGLE_THREAD
@@ -1711,7 +1718,11 @@ CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
     }
 
     // send thread initialize
-    res = CAQueueingThreadInitialize(&g_sendThread, g_threadPoolHandle,
+    res = CAQueueingThreadInitialize(&g_sendThread,
+#ifdef DEBUG_THREADING
+				     "g_sendThread",
+#endif
+				     g_threadPoolHandle,
                                      CASendThreadProcess, CADestroyData);
     if (CA_STATUS_OK != res)
     {
@@ -1728,7 +1739,11 @@ CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
     }
 
     // receive thread initialize
-    res = CAQueueingThreadInitialize(&g_receiveThread, g_threadPoolHandle,
+    res = CAQueueingThreadInitialize(&g_receiveThread,
+#ifdef DEBUG_THREADING
+				     "g_receiveThread",
+#endif
+				     g_threadPoolHandle,
                                      CAReceiveThreadProcess, CADestroyData);
     if (CA_STATUS_OK != res)
     {
@@ -1793,11 +1808,14 @@ CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
     CAInitializeAdapters();
 #endif // SINGLE_THREAD
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 
 void CATerminateMessageHandler()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
 #ifndef SINGLE_THREAD
     // stop adapters
     CAStopAdapters();

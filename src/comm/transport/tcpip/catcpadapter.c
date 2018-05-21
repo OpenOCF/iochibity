@@ -197,7 +197,8 @@ void CATCPConnectionStateCB(const char *ipAddress, CANetworkStatus_t status)
     (void)status;
 }
 
-void CATCPPacketReceivedCB(const CASecureEndpoint_t *sep, const void *data,
+void CATCPPacketReceivedCB(const CASecureEndpoint_t *sep,
+			   const void *data,
                            size_t dataLength)
 {
     VERIFY_NON_NULL_VOID(sep, TAG, "sep is NULL");
@@ -306,7 +307,11 @@ void CATCPSetKeepAliveCallbacks(CAKeepAliveConnectionCallback ConnHandler)
 }
 #endif
 
-void CATCPAdapterHandler(CATransportAdapter_t adapter, CANetworkStatus_t status)
+// GAR this is passed to CAIPStartNetworkMonitor, in CAStartTCP
+// signature: CAIPAdapterStateChangeCallback
+// see also CAIPAdapterHandler (= udp_status_change_handler)
+// @rewrite: tcp_status_change_handler @was CATCPAdapterHandler
+void tcp_status_change_handler(CATransportAdapter_t adapter, CANetworkStatus_t status)
 {
     if (g_networkChangeCallback)
     {
@@ -423,7 +428,7 @@ CAResult_t CAInitializeTCP(CARegisterConnectivityCallback registerCallback,
         .stopListenServer = CAStopTCPListeningServer,
         .startDiscoveryServer = CAStartTCPDiscoveryServer,
         .sendData = CASendTCPUnicastData,
-        .sendDataToAll = CASendTCPMulticastData,
+        .multicast = CASendTCPMulticastData,
         .GetnetInfo = CAGetTCPInterfaceInformation,
         .readData = CAReadTCPData,
         .stopAdapter = CAStopTCP,
@@ -441,7 +446,8 @@ CAResult_t CAStartTCP()
     OIC_LOG(DEBUG, TAG, "IN");
 
     // Start network monitoring to receive adapter status changes.
-    CAIPStartNetworkMonitor(CATCPAdapterHandler, CA_ADAPTER_TCP);
+    // @rewrite CAIPStartNetworkMonitor(CATCPAdapterHandler, CA_ADAPTER_TCP);
+    CAIPStartNetworkMonitor();
 
 #ifndef SINGLE_THREAD
     if (CA_STATUS_OK != CATCPInitializeQueueHandles())
@@ -472,9 +478,9 @@ CAResult_t CAStartTCP()
 CAResult_t CAStartTCPListeningServer()
 {
 #ifndef SINGLE_THREAD
-    if (!caglobals.server)
+    if (!ocf_server)
     {
-        caglobals.server = true;    // only needed to run CA tests
+        ocf_server = true;    // only needed to run CA tests
     }
 
     CAResult_t ret = CATCPStartServer((const ca_thread_pool_t)caglobals.tcp.threadpool);

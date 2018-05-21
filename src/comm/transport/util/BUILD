@@ -39,15 +39,15 @@ cc_library(
              "//third_party/coap",
              "//third_party/mbedtls",
              "//third_party/mbedtls:mbedtls-crypto",
-             "//third_party/mbedtls:mbedtls-x509"]
-    + select({":android": [":jnihdrs"],
-              "//conditions:default": []}),
+             "//third_party/mbedtls:mbedtls-x509"],
+    # + select({":android": [":jnihdrs"],
+    #           "//conditions:default": []}),
     hdrs = ["caadapterutils.h",
             #"ca_adapter_net_ssl.h"
     ],
-    srcs  = ["caadapterutils.c"]
-    + select({":android": glob(["*_android.c"]) + glob(["*_android.h"]),
-              "//conditions:default": []}),
+    srcs  = ["caadapterutils.c"],
+    # + select({":android": glob(["*_android.c"]) + glob(["*_android.h"]),
+    #           "//conditions:default": []}),
     visibility = ["//visibility:public"]
 # "//src/comm:__subpackages__",
 #                   "//src/sec/svrs:__pkg__"]
@@ -57,5 +57,6 @@ cc_library(
     name = "jnihdrs",
     copts = ["-std=c11"],
     hdrs = ["@local_jdk//:jni_header",
-            "@local_jdk//:jni_md_header-linux"],
+            # "@local_jdk//:jni_md_header-linux"
+    ],
 )

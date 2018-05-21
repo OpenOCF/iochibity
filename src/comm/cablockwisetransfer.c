@@ -520,7 +520,7 @@ CAResult_t CAReceiveBlockWiseData(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
     // check if block option is set and get block data
     coap_block_t block = { 0, 0, 0 };
 
-    // get block1 option
+    // get block1 option (request payload)
     int isBlock1 = coap_get_block(pdu, COAP_OPTION_BLOCK1, &block);
     if (isBlock1)
     {
@@ -532,7 +532,7 @@ CAResult_t CAReceiveBlockWiseData(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
         }
     }
 
-    // get block2 option
+    // get block2 option (response payload)
     int isBlock2 = coap_get_block(pdu, COAP_OPTION_BLOCK2, &block);
     if (isBlock2)
     {
@@ -707,6 +707,7 @@ CAResult_t CAProcessNextStep(const coap_pdu_t *pdu, const CAData_t *receivedData
 
         case CA_BLOCK_INCOMPLETE:
             // add data to send thread
+	    OIC_LOG(INFO, TAG, "SENDING ERR MSG REQUEST_ENTITY_INCOMPLETE");
             res = CASendErrorMessage(pdu, blockWiseStatus, CA_REQUEST_ENTITY_INCOMPLETE, blockID);
             if (CA_STATUS_OK != res)
             {

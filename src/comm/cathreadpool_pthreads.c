@@ -234,6 +234,9 @@ void ca_thread_pool_free(ca_thread_pool_t thread_pool)
 
     for (size_t i = 0; i < u_arraylist_length(thread_pool->details->threads_list); ++i)
     {
+#ifdef DEBUG_THREADING
+	OIC_LOG_V(DEBUG, TAG, "Freeing thread %d", __func__, i);
+#endif
         ca_thread_pool_thread_info_t *threadInfo = (ca_thread_pool_thread_info_t *)
                 u_arraylist_get(thread_pool->details->threads_list, i);
         if (threadInfo)

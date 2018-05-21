@@ -1,9 +1,153 @@
 = iotivity networking
 
-Some of the names used in the Iotivity stack are very misleading.
-This is an attempt to straighten things out.
+== threading
 
-CT_ADAPTER_foo, OC_ADAPTER_foo: really means TRANSPORT_PROTOCOL, not ADAPTER
+camessagehandler:
+static CAQueueingThread_t g_sendThread  (routine is CASendThreadProcess)
+   calls camessagehandler::CAProcessSendData
+   eventually ends up in caipserver::CAIPSendData
+
+static CAQueueingThread_t g_receiveThread - this is not currently used (see SINGLE_HANDLE???)
+
+caipadapter0:
+static CAQueueingThread_t *g_sendQueueHandle (routine is CAIPSendDataThread)
+
+cainterfacecontroller:
+static CAQueueingThread_t g_networkChangeCallbackThread;
+
+
+== "global" data
+
+These are named with g_ prefix but they are just static (file-scoped) vars.
+
+cainterfacecontroller:
+* static CAConnectivityHandler_t *g_adapterHandler = NULL; // array of control structs
+* static size_t g_numberOfAdapters = 0;
+* static CANetworkPacketReceivedCallback g_networkPacketReceivedCallback = NULL;
+* static CAErrorHandleCallback g_errorHandleCallback = NULL;
+* static struct CANetworkCallback_t *g_networkChangeCallbackList = NULL;
+* static CAQueueingThread_t g_networkChangeCallbackThread; (if not single thread)
+
+caipadapter0:
+
+* static CAQueueingThread_t *g_sendQueueHandle = NULL;
+* static u_arraylist_t *g_ownIpEndpointList = NULL;
+* static CANetworkPacketReceivedCallback g_networkPacketCallback = NULL;
+* static CAAdapterChangeCallback g_networkChangeCallback = NULL;
+* static CAErrorHandleCallback g_udpErrorCB = NULL;
+
+caipserver0:
+
+* CAIPErrorHandleCallback g_ipErrorHandler = NULL;
+* CAIPPacketReceivedCallback g_packetReceivedCallback
+
+caipnwmonitor0:
+
+* oc_mutex g_networkMonitorContextMutex = NULL;
+*  g_netInterfaceList  (g_nw_addresses)
+* struct CAIPCBData_t *g_adapterCallbackList = NULL;
+
+
+== thread queues
+
+cainterfacecontroller::CAInitializeAdapters calls caqueueingthread::CAQueueingThreadInitialize
+
+this initializes static cainterfacecontroller::g_networkChangeCallbackThread
+
+the task it passes is cainterfacecontroller::CANetworkChangeCallbackThreadProcesso
+
+static cainterfacecontroller::CAAdapterChangedCallback:
+
+* for each cb in static cainterfacecontroller::g_networkChangeCallbackList:
+** create a CANetworkCallbackThreadInfo_t containing chg callback
+** call CAQueueingThreadAddData
+
+CAQueueingThreadAddData:
+* create a message
+* add it to queue (under mutex)
+* cond_signal, which will wake up CANetworkCallbackThreadInfo
+
+CANetworkCallbackThreadInfo is called with threadData, it applies the contained CB to the transport adapter and status
+
+== event handling
+We have two static CAReceivedPacketCallback implementations, one in
+cainterfacecontroller and one in camessagehandler.  We rename to
+disambiguate.
+
+static cainterfacecontroller::ifc_CAReceivedPacketCallback is stored in
+       static caipadapter0::g_networkPacketCallback
+       by CAInitializeUDP (was CAInitializeIP)
+
+caipadapter0::g_networkPacketCallback is called by
+    static caipadapter0::CAIPPacketReceivedCB ONLY
+
+IOW  CAIPPacketReceivedCB calls cainterfacecontroller::ifc_CAReceivedPacketCallback
+
+caipserver0::CAIPSetPacketReceiveCallback stores CAIPPacketReceivedCB
+in caipserver0::g_udpPacketRecdCB, which is called by caipserver_posix::CAReceiveMessage
+
+static cainterfacecontroller::ifc_CAReceivedPacketCallback
+	calls local static g_networkPacketReceivedCallback
+	which holds camessagehandler::mh__CAReceivedPacketCallback
+	nothing else calls g_networkPacketReceivedCallback
+
+static camessagehandler::mh_CAReceivedPacketCallback is stored in
+       cainterfacecontroller::g_networkPacketReceivedCallback
+       by camessagehandler::CAInitializeMessageHandler
+
+
+Summary:
+
+server_<transport>::CASelectReturned
+=>server_<transport>::CAReceiveMessage
+==> g_packetReceivedCallback(caipserver0) (caipadapter0:CA<transport>PacketReceivedCB) (no effect for UDP)
+===> g_networkPacketCallback(caipadapter0) (ifc_CAReceivedPacketCallback) (no effect)
+====> g_networkPacketReceivedCallback(cainterfacecontroller) (mh_CAReceivedPacketCallback)
+
+So ultimately the transport server's recv msg method calls the message handler's handler
+
+The ultimate handling (mh_CAReceivedPacketCallback) is same for both transports
+
+CAUDPPacketReceivedCB, CATCPPacketReceivedCB are different
+
+UDP coould call mh_CAReceivedPacketCallback directly from CASelectReturned
+
+
+couldn't we make this more complex?
+
+
+
+is passed to
+       cainterfacecontroller:::CASetPacketReceivedCallback
+        by camessagehandler::CAInitializeMessageHandler
+
+caconnectivitymanager::CAInitialize
+=>camesssagehandler::CAInitializeMessageHandler
+==>cainterfacecontroller::CASetPacketReceivedCallback(camesssagehandler::_CAReceivedPacketCallback)
+            which sets cainterfacecontroller::g_networkPacketReceivedCallback
+
+g_networkPacketReceivedCallback is called by cainterfacecontroller::CAReceivedPacketCallback ONLY
+
+== structure
+
+The structure is vaguely object-oriented: "adapter" is a kind of
+abstract class whose methods must be implemented by subclasses, of
+which there is one per transport (udp, tcp, bt classic, ble, etc.).
+
+The adapter methods are declared in caadapterinterface.c.
+
+But "interface" is a somewhat infelicitous term insofar as it suggests
+the notion of "network interface", which is a completely different
+thing.  "Adapter" is also problematic, for the same reason: it
+suggests "network adapter", i.e. NIC.
+
+What caadapterinterface actually specifics is a network services
+protocol.  Implementations are transport-specific, so instead of
+calling them adapters we call them handlers. (?)
+
+TODO: in transports we have e.g. CAInitialize<Transport>, but
+also CA<Transport>SetPacketReceivedCallback. Unify these.
+
 
 * CT_ADAPTER_x : what this really means is CT_TRANSPORT_x.
 ** CT_ADAPTER_IP : means UDP transport

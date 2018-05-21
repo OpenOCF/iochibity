@@ -422,9 +422,9 @@ LOCAL CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
     }
     else
     {
-        if (g_packetReceivedCallback)
+        if (g_udpPacketRecdCB)
         {
-            g_packetReceivedCallback(&sep, recvBuffer, recvLen);
+            g_udpPacketRecdCB(&sep, recvBuffer, recvLen);
         }
     }
 

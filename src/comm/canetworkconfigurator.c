@@ -29,8 +29,28 @@
 
 #define TAG "OIC_CA_NW_CONFIG"
 
+// @rewrite: make this a static array?
 static u_arraylist_t *g_selectedNetworkList = NULL;
+// e.g.
+static CATransportAdapter_t nw_supported_transports[] = {
+#ifdef IP_ADAPTER
+CA_ADAPTER_IP
+#endif
+#ifdef TCP_ADAPTER
+,CA_ADAPTER_TCP
+#endif
+};
+/* enum as bitfield, 1 means supported */
 static CATransportAdapter_t CASelectedNetwork = CA_DEFAULT_ADAPTER;
+// @rewrite:
+static CATransportAdapter_t nw_supported_transports_bitfield = 0
+#ifdef IP_ADAPTER
+ | CA_ADAPTER_IP
+#endif
+#ifdef TCP_ADAPTER
+ | CA_ADAPTER_TCP
+#endif
+    ;
 
 #ifdef EDR_ADAPTER
 static uint32_t NETWORK_RFCOMM = CA_ADAPTER_RFCOMM_BTEDR;
@@ -274,6 +294,7 @@ CAResult_t CARemoveNetworkType(CATransportAdapter_t transportType)
     return CA_STATUS_FAILED;
 }
 
+// WARNING: here "network" means "transport", e.g. UDP, TCP, etc.
 u_arraylist_t *CAGetSelectedNetworkList()
 {
     return g_selectedNetworkList;

@@ -1254,7 +1254,7 @@ CAResult_t CAGenerateTokenInternal(CAToken_t *token, uint8_t tokenLength)
     char *temp = (char *) OICCalloc(tokenLength + 1, sizeof(char));
     if (NULL == temp)
     {
-        OIC_LOG(ERROR, TAG, "Out of memory");
+        OIC_LOG(ERROR, TAG, "OICCalloc error Out of memory");
         return CA_MEMORY_ALLOC_FAILED;
     }
 

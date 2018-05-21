@@ -155,7 +155,7 @@ static mbedtls_ecp_group_id curve[ADAPTER_CURVE_MAX][2] =
  * @brief Identity max length
  */
 #if EXPORT_INTERFACE
-#define UUID_LENGTH (128/8)
+#define UUID_LENGTH 16 /* (128/8) */
 #endif	/* INTERFACE */
 /**
  * @def MASTER_SECRET_LEN
@@ -2376,14 +2376,14 @@ CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dat
     return CA_STATUS_OK;
 }
 
-void CAsetSslAdapterCallbacks(CAPacketReceivedCallback recvCallback,
+void CAsetSslAdapterCallbacks(// CAPacketReceivedCallback recvCallback,
                               CAPacketSendCallback sendCallback,
                               CAErrorHandleCallback errorCallback,
                               CATransportAdapter_t type)
 {
     OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
     VERIFY_NON_NULL_VOID(sendCallback, NET_SSL_TAG, "sendCallback is NULL");
-    VERIFY_NON_NULL_VOID(recvCallback, NET_SSL_TAG, "recvCallback is NULL");
+    /* VERIFY_NON_NULL_VOID(recvCallback, NET_SSL_TAG, "recvCallback is NULL"); */
     VERIFY_NON_NULL_VOID(errorCallback, NET_SSL_TAG, "errorCallback is NULL");
 
     oc_mutex_lock(g_sslContextMutex);
@@ -2397,7 +2397,9 @@ void CAsetSslAdapterCallbacks(CAPacketReceivedCallback recvCallback,
     int index = GetAdapterIndex(type);
     if (index >= 0)
     {
-        g_caSslContext->adapterCallbacks[index].recvCallback  = recvCallback;
+        // @rewrite g_caSslContext->adapterCallbacks[index].recvCallback  = recvCallback;
+	// CAUDPPacketReceivedCB > ifc_CAReceivedPacketCallbackg > mh_CAReceivedPacketCallback
+	g_caSslContext->adapterCallbacks[index].recvCallback  = mh_CAReceivedPacketCallback;
         g_caSslContext->adapterCallbacks[index].sendCallback  = sendCallback;
         g_caSslContext->adapterCallbacks[index].errorCallback = errorCallback;
     }

@@ -35,9 +35,12 @@
 #include <unistd.h>
 #endif
 #include <fcntl.h>
-#ifdef HAVE_SYS_SELECT_H
+
+#if EXPORT_INTERFACE
 /* POSIX.1-2001, POSIX.1-2008 */
+#ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
+#endif
 #endif
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
@@ -67,35 +70,36 @@
    (reads and dispatches) when ready */
 void CAFindReadyMessage()
 {
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     fd_set readFds;
     struct timeval timeout;
 
-    timeout.tv_sec = caglobals.ip.selectTimeout;
+    timeout.tv_sec = udp_selectTimeout;
     timeout.tv_usec = 0;
-    struct timeval *tv = caglobals.ip.selectTimeout == -1 ? NULL : &timeout;
+    struct timeval *tv = udp_selectTimeout == -1 ? NULL : &timeout;
 
     FD_ZERO(&readFds);
-    SET(u6,  &readFds)
-    SET(u6s, &readFds)
-    SET(u4,  &readFds)
-    SET(u4s, &readFds)
-    SET(m6,  &readFds)
-    SET(m6s, &readFds)
-    SET(m4,  &readFds)
-    SET(m4s, &readFds)
+    SET(udp_u6,  &readFds)
+    SET(udp_u6s, &readFds)
+    SET(udp_u4,  &readFds)
+    SET(udp_u4s, &readFds)
+    SET(udp_m6,  &readFds)
+    SET(udp_m6s, &readFds)
+    SET(udp_m4,  &readFds)
+    SET(udp_m4s, &readFds)
 
-    if (caglobals.ip.shutdownFds[0] != -1)
+    if (udp_shutdownFds[0] != -1)
     {
-        FD_SET(caglobals.ip.shutdownFds[0], &readFds);
+        FD_SET(udp_shutdownFds[0], &readFds);
     }
-    if (caglobals.ip.netlinkFd != OC_INVALID_SOCKET)
+    if (udp_netlinkFd != OC_INVALID_SOCKET)
     {
-        FD_SET(caglobals.ip.netlinkFd, &readFds);
+        FD_SET(udp_netlinkFd, &readFds);
     }
 
-    int ret = select(caglobals.ip.maxfd + 1, &readFds, NULL, NULL, tv);
+    int ret = select(udp_maxfd + 1, &readFds, NULL, NULL, tv);
 
-    if (caglobals.ip.terminate)
+    if (udp_terminate)
     {
         OIC_LOG_V(DEBUG, TAG, "Packet receiver Stop request received.");
         return;
@@ -119,21 +123,22 @@ void CAFindReadyMessage()
 /* process FDs that are ready for reading */
 LOCAL void CASelectReturned(fd_set *readFds, int ret)
 {
+    /* OIC_LOG_V(DEBUG, TAG, "CASelectReturned"); */
     (void)ret;			/* ret = fd count */
     CASocketFd_t fd = OC_INVALID_SOCKET;
     CATransportFlags_t flags = CA_DEFAULT_FLAGS;
 
-    while (!caglobals.ip.terminate)
+    while (!udp_terminate)
     {
-        ISSET(u6,  readFds, CA_IPV6)
-        else ISSET(u6s, readFds, CA_IPV6 | CA_SECURE)
-        else ISSET(u4,  readFds, CA_IPV4)
-        else ISSET(u4s, readFds, CA_IPV4 | CA_SECURE)
-        else ISSET(m6,  readFds, CA_MULTICAST | CA_IPV6)
-        else ISSET(m6s, readFds, CA_MULTICAST | CA_IPV6 | CA_SECURE)
-        else ISSET(m4,  readFds, CA_MULTICAST | CA_IPV4)
-        else ISSET(m4s, readFds, CA_MULTICAST | CA_IPV4 | CA_SECURE)
-        else if ((caglobals.ip.netlinkFd != OC_INVALID_SOCKET) && FD_ISSET(caglobals.ip.netlinkFd, readFds))
+        ISSET(udp_u6,  readFds, CA_IPV6)
+        else ISSET(udp_u6s, readFds, CA_IPV6 | CA_SECURE)
+        else ISSET(udp_u4,  readFds, CA_IPV4)
+        else ISSET(udp_u4s, readFds, CA_IPV4 | CA_SECURE)
+        else ISSET(udp_m6,  readFds, CA_MULTICAST | CA_IPV6)
+        else ISSET(udp_m6s, readFds, CA_MULTICAST | CA_IPV6 | CA_SECURE)
+        else ISSET(udp_m4,  readFds, CA_MULTICAST | CA_IPV4)
+        else ISSET(udp_m4s, readFds, CA_MULTICAST | CA_IPV4 | CA_SECURE)
+        else if ((udp_netlinkFd != OC_INVALID_SOCKET) && FD_ISSET(udp_netlinkFd, readFds))
         {
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
             OIC_LOG_V(DEBUG, TAG, "Rtnetlink event detected");
@@ -154,10 +159,10 @@ LOCAL void CASelectReturned(fd_set *readFds, int ret)
             }
             break;
         }
-        else if (FD_ISSET(caglobals.ip.shutdownFds[0], readFds))
+        else if (FD_ISSET(udp_shutdownFds[0], readFds))
         {
             char buf[10] = {0};
-            ssize_t len = read(caglobals.ip.shutdownFds[0], buf, sizeof (buf));
+            ssize_t len = read(udp_shutdownFds[0], buf, sizeof (buf));
             if (-1 == len)
             {
                 continue;
@@ -176,23 +181,24 @@ LOCAL void CASelectReturned(fd_set *readFds, int ret)
 
 void CADeInitializeMonitorGlobals()
 {
-    if (caglobals.ip.netlinkFd != OC_INVALID_SOCKET)
+    if (udp_netlinkFd != OC_INVALID_SOCKET)
     {
-        close(caglobals.ip.netlinkFd);
-        caglobals.ip.netlinkFd = OC_INVALID_SOCKET;
+        close(udp_netlinkFd);
+        udp_netlinkFd = OC_INVALID_SOCKET;
     }
 
-    if (caglobals.ip.shutdownFds[0] != -1)
+    if (udp_shutdownFds[0] != -1)
     {
-        close(caglobals.ip.shutdownFds[0]);
-        caglobals.ip.shutdownFds[0] = -1;
+        close(udp_shutdownFds[0]);
+        udp_shutdownFds[0] = -1;
     }
 }
 
+// GAR: rename: CARegisterForIfaceChanges
 void CARegisterForAddressChanges()
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
-    caglobals.ip.netlinkFd = OC_INVALID_SOCKET;
+    udp_netlinkFd = OC_INVALID_SOCKET;
     // create NETLINK fd for interface change notifications
     struct sockaddr_nl sa = { AF_NETLINK, 0, 0,
                               RTMGRP_LINK /* nw interface create/delete/up/down events */
@@ -200,23 +206,23 @@ void CARegisterForAddressChanges()
 			      | RTMGRP_IPV6_IFADDR /* ipv6 address add/delete */
     };
 
-    caglobals.ip.netlinkFd = socket(AF_NETLINK, SOCK_RAW|SOCK_CLOEXEC, NETLINK_ROUTE);
-    if (caglobals.ip.netlinkFd == OC_INVALID_SOCKET)
+    udp_netlinkFd = socket(AF_NETLINK, SOCK_RAW|SOCK_CLOEXEC, NETLINK_ROUTE);
+    if (udp_netlinkFd == OC_INVALID_SOCKET)
     {
         OIC_LOG_V(ERROR, TAG, "netlink socket failed: %s", strerror(errno));
     }
     else
     {
-        int r = bind(caglobals.ip.netlinkFd, (struct sockaddr *)&sa, sizeof (sa));
+        int r = bind(udp_netlinkFd, (struct sockaddr *)&sa, sizeof (sa));
         if (r)
         {
             OIC_LOG_V(ERROR, TAG, "netlink bind failed: %s", strerror(errno));
-            close(caglobals.ip.netlinkFd);
-            caglobals.ip.netlinkFd = OC_INVALID_SOCKET;
+            close(udp_netlinkFd);
+            udp_netlinkFd = OC_INVALID_SOCKET;
         }
         else
         {
-            CHECKFD(caglobals.ip.netlinkFd);
+            CHECKFD(udp_netlinkFd);
         }
     }
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
@@ -225,15 +231,15 @@ void CARegisterForAddressChanges()
 void CAInitializeFastShutdownMechanism()
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
-    caglobals.ip.selectTimeout = -1; // don't poll for shutdown
+    udp_selectTimeout = -1; // don't poll for shutdown
     int ret = -1;
-    ret = pipe2(caglobals.ip.shutdownFds, O_CLOEXEC);
-    CHECKFD(caglobals.ip.shutdownFds[0]);
-    CHECKFD(caglobals.ip.shutdownFds[1]);
+    ret = pipe2(udp_shutdownFds, O_CLOEXEC);
+    CHECKFD(udp_shutdownFds[0]);
+    CHECKFD(udp_shutdownFds[1]);
     if (-1 == ret)
     {
         OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR);
-        caglobals.ip.selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
+        udp_selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
     }
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }

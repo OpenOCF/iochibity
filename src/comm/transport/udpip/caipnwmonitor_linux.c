@@ -53,20 +53,21 @@
 #endif
 
 /* GAR: called by CASelectReturned */
-static void CARemoveNetworkMonitorList(int ifiindex)
+// @rewrite  CARemoveFromAddressList @was  CARemoveNetworkMonitorList
+static void CARemoveFromAddressList(int ifiindex)
 {
-    VERIFY_NON_NULL_VOID(g_netInterfaceList, TAG, "g_netInterfaceList is NULL");
+    VERIFY_NON_NULL_VOID(g_nw_addresses, TAG, "g_nw_addresses is NULL");
 
     oc_mutex_lock(g_networkMonitorContextMutex);
 
-    size_t list_length = u_arraylist_length(g_netInterfaceList);
+    size_t list_length = u_arraylist_length(g_nw_addresses);
     for (size_t list_index = 0; list_index < list_length; list_index++)
     {
         CAInterface_t *removedifitem = (CAInterface_t *) u_arraylist_get(
-                g_netInterfaceList, list_index);
+                g_nw_addresses, list_index);
         if (removedifitem && ((int)removedifitem->index) == ifiindex)
         {
-            if (u_arraylist_remove(g_netInterfaceList, list_index))
+            if (u_arraylist_remove(g_nw_addresses, list_index))
             {
                 OICFree(removedifitem);
                 oc_mutex_unlock(g_networkMonitorContextMutex);
@@ -130,8 +131,9 @@ u_arraylist_t *CAFindInterfaceChange()
                 bool isFound = CACmpNetworkList(ifiIndex);
                 if (isFound)
                 {
-                    CARemoveNetworkMonitorList(ifiIndex);
-                    CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
+                    CARemoveFromAddressList(ifiIndex);
+                    CAIPPassNetworkChangesToTransports(CA_INTERFACE_DOWN);
+		    // @was CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
                 }
             }
             continue;
@@ -143,6 +145,7 @@ u_arraylist_t *CAFindInterfaceChange()
         {
             int ifiIndex = ifa->ifa_index;
 	    /* FIXME: BUG. what if > 1 new addrs? only last will be in iflist */
+	    // GAR: CAIPGetInterfaceInformation will call CAIPPassNetworkChangesToAdapter
             iflist = CAIPGetInterfaceInformation(ifiIndex);
             if (!iflist)
             {

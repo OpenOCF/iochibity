@@ -57,7 +57,7 @@ static CAResult_t CASetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB
 CAResult_t CARegisterNetworkMonitorHandler(CAAdapterStateChangedCB adapterStateCB,
                                            CAConnectionStateChangedCB connStateCB)
 {
-    OIC_LOG(DEBUG, TAG, "CARegisterNetworkMonitorHandler");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     return CASetNetworkMonitorCallbacks(adapterStateCB, connStateCB);
 }

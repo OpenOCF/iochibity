@@ -1,12 +1,3 @@
-/* #if EXPORT_INTERFACE */
-#ifdef HAVE_WINSOCK2_H
-#  define OPTVAL_T(t)    (const char*)(t)
-#  define OC_CLOSE_SOCKET(s) closesocket(s)
-#else
-#  define OPTVAL_T(t)    (t)
-#  define OC_CLOSE_SOCKET(s) close(s)
-#endif
-/* #endif */
 
 /* FIXME: split up this global monstrosity: ip-stuff, udp-stuff, tcp-stuff, and other stuff */
 

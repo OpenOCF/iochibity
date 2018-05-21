@@ -137,12 +137,13 @@ static CAResult_t CATCPCreateSocket(int family, CATCPSessionInfo_t *svritem);
 #if defined(WSA_WAIT_EVENT_0)
 #define CHECKFD(FD)
 #else
+// @rewrite: use <transport>_* instead of caglobals
 #define CHECKFD(FD) \
 do \
 { \
-    if (FD > caglobals.tcp.maxfd) \
+ if (FD > tcp_maxfd) \
     { \
-        caglobals.tcp.maxfd = FD; \
+        tcpmaxfd = FD; \
     } \
 } while (0)
 #endif
@@ -228,6 +229,7 @@ static void CAReceiveHandler(void *data)
 
 static void CAFindReadyMessage()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     fd_set readFds;
     struct timeval timeout = { .tv_sec = caglobals.tcp.selectTimeout };
 
