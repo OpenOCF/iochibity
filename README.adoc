@@ -214,7 +214,8 @@ to `src/_openocf_config.h` instead of running `./configure`.
 
 === cross-compiling
 
-See
+You will have to run ./configure to get the appropriate #define
+macros. that's a little tricky; see
 https://github.com/mobileink/bazel-crosscompile[bazel-crosscompile]
 for detailed examples of crosscompiling with Bazel. The relevant files
 here are in link:platforms[platforms/] and link:WORKSPACE[WORKSPACE].
@@ -226,12 +227,20 @@ Summary:
 2. Configure the toolchain for Bazel (CROSSTOOL, etc.).
 
 3. Build the third-party libs needed by your app.
+** run ./configure with appropriate parameters
+** run bazel build
 
 4. Configure the third-party libraries for Bazel (WORKSPACE and BUILD files).
 
+** this may include running ./configure or similar, to get the #define
+   macros needed for the target host. note you must run autoconf with
+   the target toolchain. see the example doc for details
+
 5. Configure your application (BUILD files).
 
-6. Build using the toolchaing
+**  may include running ./configure, as above
+
+6. Build using the toolchain
 
 Current support for cross-compiling is based on toolchains built by
 https://crosstool-ng.github.io/[crosstool-NG].
