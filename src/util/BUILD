@@ -67,11 +67,11 @@ cc_library(
             "ulinklist.c",
             "ulinklist.h",
             "uqueue.c",
-            "uqueue.h"]
+            "uqueue.h"],
     # FIXME: move to portability:
-    + select({":android": ["ifaddrs_android.c",
-                           "ifaddrs_android.h"],
-              "//conditions:default": []}),
+    # + select({":android": ["ifaddrs_android.c",
+    #                        "ifaddrs_android.h"],
+    #           "//conditions:default": []}),
     visibility = ["//src:__subpackages__",
                   "//tools/makeheaders:__pkg__",
                   "//tools/cbor:__subpackages__"]
