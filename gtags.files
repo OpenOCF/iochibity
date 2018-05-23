@@ -65,7 +65,8 @@ src/comm/transport/udpip/udp_controller.c
 src/comm/transport/udpip/udp_data_receiver.c
 src/comm/transport/udpip/udp_data_sender.c
 src/comm/transport/udpip/udp_data_sockets.c
-src/comm/transport/udpip/udp_status_monitor.c
+src/comm/transport/udpip/udp_status_manager.c
+src/comm/transport/udpip/udp_status_manager_linux.c
 src/comm/transport/udpip/udp_thread_manager.c
 src/comm/transport/util/android/caadapterutils_android.c
 src/comm/transport/util/caadapterutils.c
