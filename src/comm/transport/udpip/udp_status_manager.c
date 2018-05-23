@@ -98,30 +98,13 @@ CAResult_t CAIPCreateNetworkAddressList()
 // @rewrite: CAIPPassNetworkChangesToTransports @was CAIPPassNetworkChangesToAdapter
 void CAIPPassNetworkChangesToTransports(CANetworkStatus_t status)
 {
-    OIC_LOG_V(DEBUG, TAG, "IN %s: status = %d", __func__, status);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, status: %d", __func__, status);
 
-    // @rewrite: we only ever have two handlers at most, one for udp and one for tcp.
-    // what if we have multiple physical interfaces per transport?
-#ifdef ENABLE_UDP
     udp_status_change_handler(CA_ADAPTER_IP, status);
-    // log state of TRANSPORT adapter, not nw interface
+    // log state of UDP services, not nw interface
     CALogAdapterStateInfo(CA_ADAPTER_IP, status);
-#endif
-#ifdef ENABLE_TCP
-    tcp_status_change_handler(CA_ADAPTER_TCP, status);
-    CALogAdapterStateInfo(CA_ADAPTER_TCP, status);
-#endif
 
-    /* CAIPCBData_t *cbitem = NULL; */
-    /* LL_FOREACH(g_adapterCallbackList, cbitem) */
-    /* { */
-    /*     if (cbitem && cbitem->adapter) */
-    /*     { */
-    /*         cbitem->ip_status_change_event_handler(cbitem->adapter, status); */
-    /*         CALogAdapterStateInfo(cbitem->adapter, status); */
-    /*     } */
-    /* } */
-    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 // GAR this is passed to CAIPStartNetworkMonitor, in CAStartUDP (CAStartIP)
