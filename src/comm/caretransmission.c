@@ -128,6 +128,7 @@ CAResult_t CARetransmissionStart(CARetransmission_t *context)
     }
 
     CAResult_t res = ca_thread_pool_add_task(context->threadPool, CARetransmissionBaseRoutine,
+					     "CARetransmissionBaseRoutine",
                                              context);
 
     if (CA_STATUS_OK != res)

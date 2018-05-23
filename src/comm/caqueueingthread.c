@@ -231,6 +231,7 @@ CAResult_t CAQueueingThreadStart(CAQueueingThread_t *thread)
     oc_mutex_unlock(thread->threadMutex);
 
     CAResult_t res = ca_thread_pool_add_task(thread->threadPool, CAQueueingThreadBaseRoutine,
+					     "CAQueueingThreadBaseRoutine",
                                              thread);
     if (res != CA_STATUS_OK)
     {
