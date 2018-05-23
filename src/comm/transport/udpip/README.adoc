@@ -34,9 +34,17 @@ CAProcessNewInterface       -> join_multicast_group
 
 * respond dynamically to network/interface changes
 
-== endpoint list
+== interface/endpoint lists
 
-g_ownIpEndpointList is a u_arraylist_t of CAEndpoint_* in udp_controller
+CAInterface_t v. CAEndpoint_t
+
+g_local_endpoints is a u_arraylist_t of CAEndpoint_* in udp_controller
+
+g_caSslContext->peerList is in ca_adapter_net_ssl, contains SslEndPoint_t
+
+The list created by CAIPGetInterfaceInformation is never cached in a
+g_* var.  Note that the ONLY place CAIPGetInterfaceInformation is
+called with a non-zero arg is in CAFindInterfaceChange
 
 in ocendpoint.c:
 
@@ -56,14 +64,20 @@ typedef struct CAEndpoint_s
 
 CATransportFlags_t: enum as bitfield, e.c. CA_SECURE, CA_MULTICAST, CA_IPV4, etc.
 
-initialized by udp_controller::CAIPInitializeQueueHandles
+g_local_endpoints initialized by udp_controller::CAIPInitializeQueueHandles
 
 freed by udp_controller::CAIPDeinitializeQueueHandles
 
+udp_controller::udp_get_local_endpoints @was caipserver0::CAGetIPInterfaceInformation
+
 managed by udp_controller::CAUpdateStoredIPAddressInfo, which calls
-CAGetIPInterfaceInformation, which calls caipserver0::CAIPGetInterfaceInformation(0)
+udp_controller::udp_get_local_endpoints, which calls caipnewmonitor_posix::CAIPGetInterfaceInformation(0)
 the latter returns a list of CAInterfaceItem_t*
-CAGetIPInterfaceInformation turns that list into an ep list
+udp_get_local_endpoints turns that list into an ep list
+
+CAUpdateStoredIPAddressInfo is ONLY called by
+udp_status_change_handler, called only from
+CAIPPassNetworkChangesToTransports
 
 queried by udp_controller::CAIPIsLocalEndpoint, which is called by
 
@@ -74,6 +88,24 @@ camessagehandler::CADetachSendMessage, called by
     caconnectivitymanager::CASendMessageMultiAdapter
     caconnectivitymanager::CASendRequest
     caconnectivitymanager::CASendResponse
+
+So one reason g_local_endpoints exists is so CADetachSendMessage
+can detect loopback messages.  It is consulted every time a unicast
+message is sent.  Basically a cache, to save us the expense of
+calling getsockname every time?
+
+But g_local_endpoints is not always used.  udp_get_local_endpoints is
+also called via the .GetNetInfo field of the udpController registered
+in g_adapterHandler. In which case CAIPGetInterfaceInformation(0) is
+called, resulting in a call to getifaddrs and update of "networklist"
+and call to CAIPPassNetworkChangesToTransports
+
+(occollection::BuildCollectionLinksPayloadArray | ocresource::BuildIntrospectionResponseRepresentation
+ | ocresource:HandleVirtualResource | ocresourcedirectory::HandleVirtualResource)
+=> caconnectivitymanager::CAGetNetworkInformation
+==> canetworkconfigurator.c::CAGetNetworkInformationInternal
+===> cainterfacecontroller::CAGetNetworkInfo
+====> g_adapterHandler[index].GetNetInfo = udp_get_local_endpoints
 
 == portability
 
@@ -265,7 +297,7 @@ Services are organized in a struct which is initialized in `caipadapter0.c::CAIn
             .startDiscoveryServer = CAStartIPDiscoveryServer,
             .sendData = CASendIPUnicastData,
             .sendDataToAll = CASendIPMulticastData,
-            .GetnetInfo = CAGetIPInterfaceInformation,
+            .GetnetInfo = udp_get_local_endpoints,
             .readData = CAReadIPData,
             .terminate = CATerminateIP,
             .cType = CA_ADAPTER_IP
@@ -340,7 +372,24 @@ relation between IP interface (name/index) and ifaddrs is one to many.
 
 CAInterface_t is an IP level abstraction. It does not know about transport (UDP/TCP).
 
-CAGetIPInterfaceInformation calls CAIPGetInterfaceInformation(0) to
+ocendpoint.c:
+typedef struct CAEndpoint_s
+{
+    CATransportAdapter_t    adapter;    // adapter type
+    CATransportFlags_t      flags;      // transport modifiers
+    uint16_t                port;       // for IP
+    char                    addr[MAX_ADDR_STR_SIZE_CA]; // address for all
+    uint32_t                ifindex;    // usually zero for default interface
+    char                    remoteId[CA_MAX_IDENTITY_SIZE]; // device ID of remote device
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+    char                    routeData[MAX_ADDR_STR_SIZE_CA]; /**< GatewayId:ClientId of
+                                                                    destination. **/
+#endif
+} CAEndpoint_t
+
+Also CASecureEndpoint_t
+
+udp_get_local_endpoints calls CAIPGetInterfaceInformation(0) to
 get a list of CAInterface_t items, then creates Endpoint list.  The
 iflist is destroyed.
 
@@ -358,9 +407,9 @@ for additions: iflist = CAIPGetInterfaceInformation(ifiIndex) which calls getifa
 
 udp_status_change_handler calls CAUpdateStoredIPAddressInfo then CAAdapterChangedCallback
 
-CAUpdateStoredIPAddressInfo calls CAGetIPInterfaceInformation if IF_UP, maintains g_ownIpEndpointList
+CAUpdateStoredIPAddressInfo calls udp_get_local_endpoints if IF_UP, maintains g_local_endpoints
 
-CAGetIPInterfaceInformation calls CAIPGetInterfaceInformation(0), then creates eps
+udp_get_local_endpoints calls CAIPGetInterfaceInformation(0), then creates eps
 
 so an addition ends up causing a reload of everything (CAIPGetInterfaceInformation(0))
 
@@ -412,7 +461,7 @@ CAIPGetInterfaceInformation(0) (i.e. get all ifs) is called by:
 <== caipadapter.c/CAStartIPListeningServer (called by caipadapter.c/CAStartIPDiscoveryServer, from ipHandler.startDiscoveryServer set in CAInitializeIP, .startDiscoveryServer called by cainterfacecontroller.c/CAStartDiscoveryServerAdapters, by caconnectivitymanager.c/CAStartDiscoveryServer, by ocstack.c/OCInitializeInternal)
 <== caipserver.c/CAIPStartServer (called by caipadapter.c/CAStartIP(), which is also ipHandler.startAdapter from CAInitializeIP, which is called by cainterfacecontroller.c/CAStartAdapter, called by canetworkconfigurator.c/CAAddNetworkType, called by connectivitymanager.c/CASelectNetwork,called by ocstack.c/OCSelectNetwork, called by ocstack.c/OCInitializeInternal, by OCInit2, by OCInit1, by OCInit, by application)
 * caipserver.c/CAIPSendData (for multicast msgs)
-* caipserver.c/CAGetIPInterfaceInformation(/CAEndpoint_t **info, size_t *size)
+* caipserver.c/udp_get_local_endpoints(/CAEndpoint_t **info, size_t *size)
 <== called by caipadapter.c/CAUpdateStoredIPAddressInfo(CANetworkStatus_t status)
 <==== called by CAIPAdapterHandler(CATransportAdapter_t adapter, CANetworkStatus_t status)
 <====== called by CAStartIP()

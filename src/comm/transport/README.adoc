@@ -35,7 +35,7 @@ c) CAcloseSslConnectionAll if status is DOWN.
 
 CAUpdateStoredIPAddressInfo converts the Iface info to Endpoint
 structs, which it adds to the global list of local (own) EPs
-(g_ownIpEndpointList)
+(g_local_endpoints)
 
 CAAdapterChangedCallback is in cainterfacecontroller: iterates over
 g_networkChangeCallbackList. creates a threadinfo struct, adds it to
@@ -63,7 +63,7 @@ Globals:
 
 * g_networkChangeCallbackList (cainterfacecontroller)
 
-* g_nw_addresses  (@was g_netInterfaceList). API:
+* g_network_interfaces  (@was g_netInterfaceList). API:
 ** CAIPInitializeNetworkAddressList @was CAIPInitializeNetworkMonitorList (delegated to platform-specific impl)
 ** CAAddToNetworkoAddressList @was CAAddNetworkMonitorList
 ** CAIPDestroyNetworkAddressList @was CAIPDestroyNetworkMonitorList

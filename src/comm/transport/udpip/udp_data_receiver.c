@@ -31,10 +31,11 @@
         flags = FLAGS; \
     }
 
+// FIXME: if there is no inbound data, this will cause hang upon termination?
 // @rewrite udp_handle_inboud_data  @was CAFindReadyMessage()
 void udp_handle_inbound_data()
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     fd_set readFds;
     struct timeval timeout;
 
@@ -53,14 +54,14 @@ void udp_handle_inbound_data()
 	SET(udp_m4s, &readFds)
 
 	// FIXME: don't do shutdown and status sockets here!
-    /* if (udp_shutdownFds[0] != -1) */
-    /* { */
-    /*     FD_SET(udp_shutdownFds[0], &readFds); */
-    /* } */
-    /* if (udp_netlinkFd != OC_INVALID_SOCKET) */
-    /* { */
-    /*     FD_SET(udp_netlinkFd, &readFds); */
-    /* } */
+    if (udp_shutdownFds[0] != -1)
+    {
+        FD_SET(udp_shutdownFds[0], &readFds);
+    }
+    if (udp_netlinkFd != OC_INVALID_SOCKET)
+    {
+        FD_SET(udp_netlinkFd, &readFds);
+    }
 
     int ret = select(udp_maxfd + 1, &readFds, NULL, NULL, tv);
 
@@ -127,8 +128,16 @@ void udp_handle_inbound_data()
 		    (void)CAReceiveMessage(udp_m4s.fd, CA_MULTICAST | CA_IPV4 | CA_SECURE);
 		    FD_CLR(udp_m4s.fd, &readFds);
 		}
-	    }
 
+		// FIXME: we don't even need to read the socket, it's enough for select to wake up
+		if (FD_ISSET(caglobals.ip.shutdownFds[0], &readFds)) {
+		    char buf[10] = {0};
+		    ssize_t len = read(udp_shutdownFds[0], buf, sizeof (buf));
+		    if (len >= 0) 
+			return;
+		    }
+		}
+	    }
     }
     else // if (0 > ret)
     {
@@ -152,5 +161,9 @@ void udp_data_receiver_runloop(void *data)
     }
     // @rewrite udp_shutdown() @was CACloseFDs();
     udp_cleanup();
+    //oc_mutex_lock(udp_data_receiver_runloop_mutex);
+    oc_cond_signal(udp_data_receiver_runloop_cond);
+    //oc_mutex_unlock(udp_data_receiver_runloop_mutex);
+
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }

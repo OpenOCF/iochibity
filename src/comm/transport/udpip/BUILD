@@ -96,7 +96,7 @@ cc_library(
        "udp_data_receiver.c", "udp_data_receiver.h",
        "udp_data_sender.c", "udp_data_sender.h",
        "udp_data_sockets.c", "udp_data_sockets.h",
-       "udp_status_monitor.c", "udp_status_monitor.h",
+       "udp_status_manager.c", "udp_status_manager.h",
        "udp_thread_manager.c", "udp_thread_manager.h"]
     + select({":msvc": glob(["*_windows.c"]) + glob(["*_windows.h"]),
               ":msys": glob(["*_windows.c"]) + glob(["*_windows.h"]),

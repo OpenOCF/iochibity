@@ -30,6 +30,8 @@
 
 #include <coap/pdu.h>
 
+#include <errno.h>
+
 /* #include "caipnwmonitor.h" */
 /* #include "caipserver.h" */
 /* #include "caqueueingthread.h" */
@@ -45,10 +47,62 @@
 /* #include "oic_string.h" */
 /* #include "iotivity_debug.h" */
 
+#define USE_IP_MREQN
+#if defined(_WIN32)
+#undef USE_IP_MREQN
+#endif
+
 /**
  * Logging tag for module name.
  */
-#define TAG "OIC_CA_IP_ADAP"
+#define TAG "UDPCTRL"
+
+/**
+ * Enum for defining different server types.
+ */
+typedef enum
+{
+    CA_UNICAST_SERVER = 0,      /**< Unicast Server */
+    CA_MULTICAST_SERVER,        /**< Multicast Server */
+    CA_SECURED_UNICAST_SERVER,  /**< Secured Unicast Server */
+    CA_NFC_SERVER               /**< Listening Server */
+} CAAdapterServerType_t;
+
+#if EXPORT_INTERFACE
+/**
+ * Callback to be notified on reception of any data from remote OIC devices.
+ *
+ * @param[in]  sep         network endpoint description.
+ * @param[in]  data          Data received from remote OIC device.
+ * @param[in]  dataLength    Length of data in bytes.
+ * @pre  Callback must be registered using CAIPSetPacketReceiveCallback().
+ */
+typedef void (*CAIPPacketReceivedCallback)(const CASecureEndpoint_t *sep,
+                                           const void *data,
+                                           size_t dataLength);
+
+/**
+  * Callback to notify error in the IP adapter.
+  *
+  * @param[in]  endpoint       network endpoint description.
+  * @param[in]  data          Data sent/received.
+  * @param[in]  dataLength    Length of data in bytes.
+  * @param[in]  result        result of request from R.I.
+  * @pre  Callback must be registered using CAIPSetPacketReceiveCallback().
+ */
+typedef void (*CAIPErrorHandleCallback)(const CAEndpoint_t *endpoint, const void *data,
+                                        size_t dataLength, CAResult_t result);
+#endif
+
+#if EXPORT_INTERFACE
+#define SELECT_TIMEOUT 1     // select() seconds (and termination latency)
+#define RECV_MSG_BUF_LEN 16384
+#include <string.h>
+#define CAIPS_GET_ERROR strerror(errno)
+#endif
+
+#endif
+
 
 #ifndef SINGLE_THREAD
 #if EXPORT_INTERFACE
@@ -64,16 +118,15 @@ typedef struct
 } CAIPData_t;
 #endif	/* EXPORT_INTERFACE */
 
-/**
- * Queue handle for Send Data.
- */
-static CAQueueingThread_t *g_sendQueueHandle = NULL;
 #endif
+
+// to signal shutdown
+oc_cond udp_data_receiver_runloop_cond;
 
 /**
  * List of the CAEndpoint_t* that has a stack-owned IP address.
  */
-static u_arraylist_t *g_ownIpEndpointList = NULL;
+u_arraylist_t *g_local_endpoint_cache = NULL;
 
 /**
  * Network Packet Received Callback to CA.
@@ -98,12 +151,17 @@ static CAErrorHandleCallback g_udpErrorCB = NULL;
 
 /* static void CAIPPacketReceivedCB(const CASecureEndpoint_t *endpoint, */
 /*                                  const void *data, size_t dataLength); */
+
+void CAIPPullData()
+{
+    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
+}
+
 #ifdef __WITH_DTLS__
 static ssize_t CAIPPacketSendCB(CAEndpoint_t *endpoint,
                                 const void *data, size_t dataLength);
 #endif
-
-/* static void CAUpdateStoredIPAddressInfo(CANetworkStatus_t status); */
 
 #ifndef SINGLE_THREAD
 
@@ -121,105 +179,50 @@ static ssize_t CAIPPacketSendCB(CAEndpoint_t *endpoint,
 
 /* static void CADataDestroyer(void *data, uint32_t size); */
 
-void CAUpdateStoredIPAddressInfo(CANetworkStatus_t status)
+// FIXMME: move this to udp_status_manager?
+// @rewrite udp_update_local_endpoint_cache @was CAUpdateStoredIPAddressInfo
+void udp_update_local_endpoint_cache(CANetworkStatus_t status) // @was CAUpdateStoredIPAddressInfo
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (CA_INTERFACE_UP == status)
     {
-        OIC_LOG(DEBUG, TAG, "UDP adapter status is on. Store the own IP address info");
+        OIC_LOG(DEBUG, TAG, "UDP status is UP. Caching local endpoints");
 
         CAEndpoint_t *eps = NULL;
         size_t numOfEps = 0;
 
-        CAResult_t res = CAGetIPInterfaceInformation(&eps, &numOfEps);
+        CAResult_t res = udp_get_local_endpoints(&eps, &numOfEps); /* @was CAGetIPInterfaceInformation */
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "CAGetIPInterfaceInformation failed");
             return;
         }
+	OIC_LOG_V(DEBUG, TAG, "Found %d local endpoints", numOfEps);
 
         for (size_t i = 0; i < numOfEps; i++)
         {
-            u_arraylist_add(g_ownIpEndpointList, (void *)&eps[i]);
+	    OIC_LOG_V(DEBUG, TAG, "Caching %d: %s [%d]", i, eps[i].addr, eps[i].ifindex);
+            u_arraylist_add(g_local_endpoint_cache, (void *)&eps[i]);
         }
     }
     else // CA_INTERFACE_DOWN
     {
-        OIC_LOG(DEBUG, TAG, "IP adapter status is off. Remove the own IP address info");
+        OIC_LOG(DEBUG, TAG, "UDP status is off. Clearing the local endpoint cache");
 
-        CAEndpoint_t *headEp = u_arraylist_get(g_ownIpEndpointList, 0);
+        CAEndpoint_t *headEp = u_arraylist_get(g_local_endpoint_cache, 0);
         OICFree(headEp);
         headEp = NULL;
 
-        size_t len = u_arraylist_length(g_ownIpEndpointList);
+        size_t len = u_arraylist_length(g_local_endpoint_cache);
         for (size_t i = len; i > 0; i--)
         {
-            u_arraylist_remove(g_ownIpEndpointList, i - 1);
+            u_arraylist_remove(g_local_endpoint_cache, i - 1);
         }
     }
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
-static CAResult_t CAIPInitializeQueueHandles()
-{
-    // Check if the message queue is already initialized
-    if (g_sendQueueHandle)
-    {
-        OIC_LOG(DEBUG, TAG, "send queue handle is already initialized!");
-        return CA_STATUS_OK;
-    }
-
-    g_ownIpEndpointList = u_arraylist_create();
-    if (!g_ownIpEndpointList)
-    {
-        OIC_LOG(ERROR, TAG, "Memory allocation failed! (g_ownIpEndpointList)");
-        return CA_MEMORY_ALLOC_FAILED;
-    }
-
-    // Create send message queue
-    g_sendQueueHandle = OICMalloc(sizeof(CAQueueingThread_t));
-    if (!g_sendQueueHandle)
-    {
-        OIC_LOG(ERROR, TAG, "Memory allocation failed! (g_sendQueueHandle)");
-        u_arraylist_free(&g_ownIpEndpointList);
-        g_ownIpEndpointList = NULL;
-        return CA_MEMORY_ALLOC_FAILED;
-    }
-
-    if (CA_STATUS_OK != CAQueueingThreadInitialize(g_sendQueueHandle,
-#ifdef DEBUG_THREADING
-						   "g_sendQueueHandle",
-#endif
-			   // (const ca_thread_pool_t)caglobals.ip.threadpool,
-                                (const ca_thread_pool_t)udp_threadpool,
-                                CAIPSendDataThread, CADataDestroyer))
-    {
-        OIC_LOG(ERROR, TAG, "Failed to Initialize send queue thread");
-        OICFree(g_sendQueueHandle);
-        g_sendQueueHandle = NULL;
-        u_arraylist_free(&g_ownIpEndpointList);
-        g_ownIpEndpointList = NULL;
-        return CA_STATUS_FAILED;
-    }
-
-    return CA_STATUS_OK;
-}
-
-static void CAIPDeinitializeQueueHandles()
-{
-    CAQueueingThreadDestroy(g_sendQueueHandle);
-    OICFree(g_sendQueueHandle);
-    g_sendQueueHandle = NULL;
-
-    // Since the items in g_ownIpEndpointList are allocated once in a big chunk, we only need to
-    // free the first item. Another location this is done is in the CA_INTERFACE_DOWN handler
-    // in CAUpdateStoredIPAddressInfo().
-    OICFree(u_arraylist_get(g_ownIpEndpointList, 0));
-    u_arraylist_free(&g_ownIpEndpointList);
-    g_ownIpEndpointList = NULL;
-}
-
-#endif // SINGLE_THREAD
+#endif // not SINGLE_THREAD
 
 #ifdef __WITH_DTLS__
 static ssize_t CAIPPacketSendCB(CAEndpoint_t *endpoint, const void *data, size_t dataLength)
@@ -266,10 +269,10 @@ bool CAIPIsLocalEndpoint(const CAEndpoint_t *ep)
         strtok(addr, "%");
     }
 
-    size_t len = u_arraylist_length(g_ownIpEndpointList);
+    size_t len = u_arraylist_length(g_local_endpoint_cache);
     for (size_t i = 0; i < len; i++)
     {
-        CAEndpoint_t *ownIpEp = u_arraylist_get(g_ownIpEndpointList, i);
+        CAEndpoint_t *ownIpEp = u_arraylist_get(g_local_endpoint_cache, i);
         if (!strcmp(addr, ownIpEp->addr) && ep->port == ownIpEp->port
                                          && ep->ifindex == ownIpEp->ifindex)
         {
@@ -395,7 +398,7 @@ CAResult_t CAInitializeUDP(// CARegisterConnectivityCallback registerCallback,
 	    // why no stopDiscoveryServer?
             .unicast              = &CASendIPUnicastData,
             .multicast            = &CASendIPMulticastData,
-            .GetNetInfo           = &CAGetIPInterfaceInformation,
+            .GetNetInfo           = &udp_get_local_endpoints, // @was CAGetIPInterfaceInformation
             .readData             = &CAReadIPData,
             .terminate            = &CATerminateIP,
             .cType                = CA_ADAPTER_IP
@@ -404,6 +407,45 @@ CAResult_t CAInitializeUDP(// CARegisterConnectivityCallback registerCallback,
     CARegisterCallback(udpController);
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return CA_STATUS_OK;
+}
+
+/* called by CAStartUDP after udp_config_data_sockets has been called */
+CAResult_t udp_start_services(const ca_thread_pool_t threadPool) // @was CAIPStartServer
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    CAResult_t res = CA_STATUS_OK;
+
+    if (udp_started) return res;
+
+    CAInitializeFastShutdownMechanism();
+
+    CARegisterForAddressChanges();
+
+    udp_selectTimeout = CAGetPollingInterval(udp_selectTimeout);
+
+    res = udp_add_ifs_to_multicast_groups();  /* @was CAIPStartListenServer */
+    if (CA_STATUS_OK != res)
+    {
+        OIC_LOG_V(ERROR, TAG, "udp_add_ifs_to_multicast_groups failed with rc [%d]", res);
+        return res;
+    }
+
+    udp_terminate = false;
+    // @rewrite udp_data_receiver_runloop @was CAReceiveHandler
+    udp_data_receiver_runloop_cond = oc_cond_new();
+    res = ca_thread_pool_add_task(threadPool,
+				  udp_data_receiver_runloop,
+				  "udp_data_receiver_runloop",
+				  NULL);
+    if (CA_STATUS_OK != res)
+    {
+        OIC_LOG(ERROR, TAG, "thread_pool_add_task failed for udp_data_receiver_runloop");
+        return res;
+    }
+    OIC_LOG(DEBUG, TAG, "udp_data_receiver_runloop thread started successfully.");
+
+    udp_started = true;
     return CA_STATUS_OK;
 }
 
@@ -424,7 +466,7 @@ CAResult_t CAStartUDP()
     // @rewrite CAIPStartNetworkMonitor(CAIPAdapterHandler, CA_ADAPTER_IP);
     /* addresses will be added by CAIPGetInterfaceInformation, from CAFindInterfaceChange etc. */
     // @rewrite: the created list is never used, so why bother?
-    CAIPCreateNetworkAddressList();
+    CAIPCreateNetworkAddressList(); // @was CAIPStartNetworkMonitor
 
 #ifdef SINGLE_THREAD
     uint16_t unicastPort = 55555;
@@ -432,24 +474,17 @@ CAResult_t CAStartUDP()
 
     // udp_config_data_sockets();
 
-    CAResult_t ret = CAIPStartServer();
+    CAResult_t ret = udp_start_services();  // @was CAIPStartServer();
     if (CA_STATUS_OK != ret)
     {
-        OIC_LOG_V(DEBUG, TAG, "CAIPStartServer failed[%d]", ret);
+        OIC_LOG_V(DEBUG, TAG, "udp_start_services failed[%d]", ret);
         return ret;
     }
 #else
-    if (CA_STATUS_OK != CAIPInitializeQueueHandles())
+    if (CA_STATUS_OK != udp_start_send_msg_queue())
     {
-        OIC_LOG(ERROR, TAG, "Failed to Initialize Queue Handle");
+        OIC_LOG(ERROR, TAG, "Failed udp_start_send_msg_queue");
         CATerminateIP();
-        return CA_STATUS_FAILED;
-    }
-
-    // Start send queue thread
-    if (CA_STATUS_OK != CAQueueingThreadStart(g_sendQueueHandle))
-    {
-        OIC_LOG(ERROR, TAG, "Failed to Start Send Data Thread");
         return CA_STATUS_FAILED;
     }
 
@@ -460,34 +495,17 @@ CAResult_t CAStartUDP()
         return ret;
     }
 
-    // CAResult_t ret = CAIPStartServer((const ca_thread_pool_t)caglobals.ip.threadpool);
-    // CAIPStartServer creates the ports etc.
-    ret = CAIPStartServer((const ca_thread_pool_t)udp_threadpool);
+    ret = udp_start_services((const ca_thread_pool_t)udp_threadpool); // @was CAIPStartServer
     if (CA_STATUS_OK != ret)
     {
         OIC_LOG_V(ERROR, TAG, "Failed to start server![%d]", ret);
         return ret;
     }
-
 #endif
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
-
-// @rewrite: this is unnecessary, just call CAIPStartListenServer directly
-/* CAResult_t CAStartIPListeningServer() */
-/* { */
-/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
-/*     CAResult_t ret = CAIPStartListenServer(); */
-/*     if (CA_STATUS_OK != ret) */
-/*     { */
-/*         OIC_LOG_V(ERROR, TAG, "Failed to start listening server![%d]", ret); */
-/*         return ret; */
-/*     } */
-
-/*     return CA_STATUS_OK; */
-/* } */
 
 CAResult_t CAStopIPListeningServer()
 {
@@ -566,6 +584,8 @@ CAResult_t CAReadIPData()
 
 CAResult_t CAStopIP()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
 #ifdef __WITH_DTLS__
     CAdeinitSslAdapter();
 #endif
@@ -580,6 +600,8 @@ CAResult_t CAStopIP()
     CAIPStopNetworkMonitor(CA_ADAPTER_IP);
     CAIPStopServer();
 
+    // CATerminateIP();	 why isn't this called on shutdown?
+
     return CA_STATUS_OK;
 }
 
@@ -593,7 +615,7 @@ void CATerminateIP()
     // @rewrite remove CAIPSetPacketReceiveCallback(NULL);
 
 #ifndef SINGLE_THREAD
-    CAIPDeinitializeQueueHandles();
+    udp_stop_send_msg_queue(); // @was CAIPDeinitializeQueueHandles
 #endif
 
 #ifdef WSA_WAIT_EVENT_0
@@ -700,3 +722,164 @@ void CADataDestroyer(void *data, uint32_t size)
 }
 
 #endif // SINGLE_THREAD
+
+// CAVEAT: only lists unicast sockets
+// @rewrite: udp_get_local_endpoints @was caipserver0:CAGetIPInterfaceInformation
+CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size)
+{
+    VERIFY_NON_NULL_MSG(info, TAG, "info is NULL");
+    VERIFY_NON_NULL_MSG(size, TAG, "size is NULL");
+
+    // GAR: get live list of CAInterface_t for all IFs (via getifaddrs)
+    u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
+    if (!iflist) {
+        OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
+        return CA_STATUS_FAILED;
+    }
+
+#ifdef __WITH_DTLS__
+    const size_t endpointsPerInterface = 2;
+#else
+    const size_t endpointsPerInterface = 1;
+#endif
+
+    /* get a count of enabled IPv4/IPv6 IFs */
+    size_t interfaces = u_arraylist_length(iflist);
+    for (size_t i = 0; i < u_arraylist_length(iflist); i++)
+    {
+        CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
+        if (!ifitem)
+        {
+            continue;
+        }
+
+        if ((ifitem->family == AF_INET6 && !udp_ipv6enabled) ||
+            (ifitem->family == AF_INET && !udp_ipv4enabled))
+        {
+            interfaces--;
+        }
+    }
+
+    if (!interfaces)
+    {
+        OIC_LOG(DEBUG, TAG, "No enabled IPv4/IPv6 interfaces found");
+        return CA_STATUS_OK;
+    }
+
+    size_t totalEndpoints = interfaces * endpointsPerInterface;
+    CAEndpoint_t *eps = (CAEndpoint_t *)OICCalloc(totalEndpoints, sizeof (CAEndpoint_t));
+    if (!eps)
+    {
+        OIC_LOG(ERROR, TAG, "Malloc Failed");
+        u_arraylist_destroy(iflist);
+        return CA_MEMORY_ALLOC_FAILED;
+    }
+
+    /* create one CAEndpoint_t per IF */
+    for (size_t i = 0,		/* index into iflist to control iteration */
+	     j = 0;		/* index into eps array */
+	 i < u_arraylist_length(iflist); i++)
+    {
+        CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
+        if (!ifitem)
+        {
+            continue;
+        }
+
+	/* skip disabled IFs */
+        if ((ifitem->family == AF_INET6 && !udp_ipv6enabled) ||
+            (ifitem->family == AF_INET && !udp_ipv4enabled))
+        {
+            continue;
+        }
+
+        eps[j].adapter = CA_ADAPTER_IP; /* meaning CA_ADAPTER_UDP */
+        eps[j].ifindex = ifitem->index;
+
+        if (ifitem->family == AF_INET6)
+        {
+            eps[j].flags = CA_IPV6;
+            eps[j].port = udp_u6.port;
+        }
+        else
+        {
+            eps[j].flags = CA_IPV4;
+            eps[j].port = udp_u4.port;
+        }
+        OICStrcpy(eps[j].addr, sizeof(eps[j].addr), ifitem->addr);
+
+#ifdef __WITH_DTLS__
+	/* add secured endpoint */
+        j++;
+
+        eps[j].adapter = CA_ADAPTER_IP;
+        eps[j].ifindex = ifitem->index;
+
+        if (ifitem->family == AF_INET6)
+        {
+            eps[j].flags = CA_IPV6 | CA_SECURE;
+            eps[j].port = udp_u6s.port;
+        }
+        else
+        {
+            eps[j].flags = CA_IPV4 | CA_SECURE;
+            eps[j].port = udp_u4s.port;
+        }
+        OICStrcpy(eps[j].addr, sizeof(eps[j].addr), ifitem->addr);
+#endif
+        j++;
+    }
+
+    *info = eps;
+    *size = totalEndpoints;
+
+    u_arraylist_destroy(iflist);
+
+    return CA_STATUS_OK;
+}
+
+u_arraylist_t *local_endpoints = NULL;
+
+u_arraylist_t *oocp_get_local_endpoints() EXPORT
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
+    /* size_t len = u_arraylist_length(g_local_endpoint_cache); */
+    /* for (size_t i = 0; i < len; i++) */
+    /* { */
+    /*     CAEndpoint_t *ownIpEp = u_arraylist_get(g_local_endpoint_cache, i); */
+    /* 	OIC_LOG_V(DEBUG, TAG, "local ptr: %p", ownIpEp); */
+    /* } */
+
+    local_endpoints = u_arraylist_create();
+
+    if (!local_endpoints)
+    {
+        OIC_LOG(ERROR, TAG, "Memory allocation failed! (local_endpoints)");
+        return NULL;
+    }
+
+        CAEndpoint_t *eps = NULL;
+        size_t numOfEps = 0;
+
+        CAResult_t res = udp_get_local_endpoints(&eps, &numOfEps); /* @was CAGetIPInterfaceInformation */
+        if (CA_STATUS_OK != res)
+        {
+            OIC_LOG(ERROR, TAG, "CAGetIPInterfaceInformation failed");
+            return NULL;
+        }
+	OIC_LOG_V(DEBUG, TAG, "Found %d local endpoints", numOfEps);
+
+        for (size_t i = 0; i < numOfEps; i++)
+        {
+	    OIC_LOG_V(DEBUG, TAG, "Caching %d: %s [%d]", i, eps[i].addr, eps[i].ifindex);
+            u_arraylist_add(local_endpoints, (void *)&eps[i]);
+        }
+	return local_endpoints;
+	//return g_local_endpoint_cache;
+}
+
+CAResult_t CAGetLinkLocalZoneId(uint32_t ifindex, char **zoneId)
+{
+    return CAGetLinkLocalZoneIdInternal(ifindex, zoneId);
+}

@@ -226,6 +226,8 @@ do \
 
 void CAIPStopServer()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
     udp_terminate = true;
 
     if (udp_shutdownFds[1] != -1)
