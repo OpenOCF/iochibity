@@ -49,16 +49,10 @@ src/comm/transport/nfc/android/canfcserver.c
 src/comm/transport/nfc/canfcadapter.c
 src/comm/transport/tcpip/catcpadapter.c
 src/comm/transport/tcpip/catcpserver.c
-src/comm/transport/udpip/caipadapter0.c
-src/comm/transport/udpip/caipnwmonitor0.c
-src/comm/transport/udpip/caipnwmonitor_android.c
 src/comm/transport/udpip/caipnwmonitor_darwin.c
-src/comm/transport/udpip/caipnwmonitor_linux.c
 src/comm/transport/udpip/caipnwmonitor_posix.c
 src/comm/transport/udpip/caipnwmonitor_windows.c
-src/comm/transport/udpip/caipserver0.c
 src/comm/transport/udpip/caipserver_darwin.c
-src/comm/transport/udpip/caipserver_linux.c
 src/comm/transport/udpip/caipserver_posix.c
 src/comm/transport/udpip/caipserver_windows.c
 src/comm/transport/udpip/udp_controller.c
@@ -68,7 +62,7 @@ src/comm/transport/udpip/udp_data_sockets.c
 src/comm/transport/udpip/udp_status_manager.c
 src/comm/transport/udpip/udp_status_manager_linux.c
 src/comm/transport/udpip/udp_thread_manager.c
-src/comm/transport/util/android/caadapterutils_android.c
+src/comm/transport/util/caadapterutils_android.c
 src/comm/transport/util/caadapterutils.c
 src/comm/transport/util/java/caadapterutils_java.c
 src/comm/transport/xmpp/caraadapter.c
@@ -108,10 +102,6 @@ src/ocf/oicresourcedirectory.c
 src/ocf/payload_logging.c
 src/ocf/presence.c
 src/ocf/windows/ocsqlite3helper.c
-src/portability/android/ca_jni.c
-src/portability/android/caifaddrs.c
-/src/comm/transport/udpip/caifaddrs_android.c
-src/portability/android/caipnwmonitor_android.c
 src/portability/android/octhread_android.c
 src/portability/darwin/ocatomic_darwin.c
 src/portability/darwin/ocevent_darwin.c
@@ -178,7 +168,7 @@ src/sec/svrs/secureresourcemanager.c
 src/sec/util/srmutility.c
 src/util/base64.c
 src/util/configuration.c
-src/util/ifaddrs.c
+src/util/ifaddrs_android.c
 src/util/uarraylist.c
 src/util/ulinklist.c
 src/util/uqueue.c
@@ -194,10 +184,9 @@ src/comm/_network.h
 src/comm/_processing.h
 src/comm/_request.h
 src/comm/_response.h
-src/comm/_sockets.h
 src/comm/transport/_bt.h
+src/comm/transport/_sockets.h
 src/comm/transport/ble/_cagattservice.h
-src/comm/transport/ip/_ipif.h
 src/ocf/_constants.h
 src/ocf/_device.h
 src/ocf/_platform.h
@@ -225,5 +214,4 @@ tools/browser/client/logging.c
 tools/browser/client/menu.c
 tools/browser/client/msg_scrollers.c
 tools/browser/client/outbound_msg_db_mgr.c
-tools/browser/client/subwindow.c
 tools/browser/server/server.c
