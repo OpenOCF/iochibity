@@ -258,6 +258,7 @@ AC_ARG_ENABLE([udpip],
 
 AS_IF([test "x$enable_udpip" != "xno"], [
   AC_DEFINE([IP_ADAPTER], [], [Enable IP_ADAPTER])
+  AC_DEFINE([ENABLE_UDP], [], [Enable UDP])
 ])
 
 AC_ARG_ENABLE([ble],
