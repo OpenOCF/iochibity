@@ -7,3 +7,8 @@ const char * configuration() EXPORT
 {
     return version;
 }
+
+const char * oocf_get_version() EXPORT
+{
+    return version;
+}
