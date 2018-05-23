@@ -130,13 +130,12 @@ void udp_handle_inbound_data()
 		}
 
 		// FIXME: we don't even need to read the socket, it's enough for select to wake up
-		if (FD_ISSET(caglobals.ip.shutdownFds[0], &readFds)) {
-		    char buf[10] = {0};
-		    ssize_t len = read(udp_shutdownFds[0], buf, sizeof (buf));
-		    if (len >= 0) 
-			return;
-		    }
-		}
+		/* if (FD_ISSET(caglobals.ip.shutdownFds[0], &readFds)) { */
+		/*     char buf[10] = {0}; */
+		/*     ssize_t len = read(udp_shutdownFds[0], buf, sizeof (buf)); */
+		/*     if (len >= 0) */
+		/* 	return; */
+		/* } */
 	    }
     }
     else // if (0 > ret)
