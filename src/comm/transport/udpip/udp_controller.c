@@ -101,9 +101,6 @@ typedef void (*CAIPErrorHandleCallback)(const CAEndpoint_t *endpoint, const void
 #define CAIPS_GET_ERROR strerror(errno)
 #endif
 
-#endif
-
-
 #ifndef SINGLE_THREAD
 #if EXPORT_INTERFACE
 /**
