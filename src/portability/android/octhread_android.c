@@ -116,7 +116,9 @@ static pthread_t oc_get_current_thread_id()
 }
 #endif
 
-OCThreadResult_t oc_thread_new(oc_thread *t, void *(*start_routine)(void *), void *arg)
+OCThreadResult_t oc_thread_new(oc_thread *t, void *(*start_routine)(void *), void *arg,
+			       char *taskname // debugging
+			       )
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCThreadResult_t res = OC_THREAD_SUCCESS;
@@ -134,7 +136,8 @@ OCThreadResult_t oc_thread_new(oc_thread *t, void *(*start_routine)(void *), voi
         else
         {
             *t = (oc_thread)threadInfo;
-            OIC_LOG_V(ERROR, TAG, "%s: pthread_create OK", __func__);
+            OIC_LOG_V(ERROR, TAG, "%s: pthread_create OK: %d %s", __func__,
+		      threadInfo->thread, taskname);
         }
     }
     else
@@ -164,6 +167,8 @@ OCThreadResult_t oc_thread_free(oc_thread t)
 
 OCThreadResult_t oc_thread_wait(oc_thread t)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, thread %d", __func__, ((oc_thread_internal*)t)->thread);
+
     OCThreadResult_t res = OC_THREAD_SUCCESS;
     oc_thread_internal *threadInfo = (oc_thread_internal*) t;
     int joinres = pthread_join(threadInfo->thread, NULL);
