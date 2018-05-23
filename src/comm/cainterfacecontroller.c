@@ -643,7 +643,7 @@ void CAStopAdapters()
 
     CAQueueingThreadStop(&g_networkChangeCallbackThread);
 }
-#endif //SINGLE_THREAD
+#endif // not SINGLE_THREAD
 
 CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
 {
