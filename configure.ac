@@ -257,7 +257,7 @@ AC_ARG_ENABLE([udpip],
     AS_HELP_STRING([--disable-udpip], [Disable UDP/IP adapter (default: enabled)]))
 
 AS_IF([test "x$enable_udpip" != "xno"], [
-  AC_DEFINE([IP_ADAPTER], [], [Enable IP_ADAPTER])
+  AC_DEFINE([IP_ADAPTER], [], [Enable IP_ADAPTER]),
   AC_DEFINE([ENABLE_UDP], [], [Enable UDP])
 ])
 
