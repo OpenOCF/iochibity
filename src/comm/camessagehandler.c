@@ -1720,9 +1720,9 @@ CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
 
     // send thread initialize
     res = CAQueueingThreadInitialize(&g_sendThread,
-#ifdef DEBUG_THREADING
-				     "g_sendThread",
-#endif
+				     //#ifdef DEBUG_THREADING
+				     THREAD_DBUG("g_sendThread")
+				     //#endif
 				     g_threadPoolHandle,
                                      CASendThreadProcess, CADestroyData);
     if (CA_STATUS_OK != res)
@@ -1741,9 +1741,9 @@ CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
 
     // receive thread initialize
     res = CAQueueingThreadInitialize(&g_receiveThread,
-#ifdef DEBUG_THREADING
-				     "g_receiveThread",
-#endif
+				     //#ifdef DEBUG_THREADING
+				     THREAD_DBUG("g_receiveThread")
+				     //#endif
 				     g_threadPoolHandle,
                                      CAReceiveThreadProcess, CADestroyData);
     if (CA_STATUS_OK != res)

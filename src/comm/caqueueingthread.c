@@ -143,15 +143,18 @@ static void CAQueueingThreadBaseRoutine(void *threadValue)
     OIC_LOG(DEBUG, TAG, "message handler main thread end..");
 }
 
+
 #ifdef DEBUG_THREADING
 CAResult_t CAQueueingThreadInitialize(CAQueueingThread_t *thread,
 				      char *name,
 				      ca_thread_pool_t handle,
-                                      CAThreadTask task, CADataDestroyFunction destroy)
+                                      CAThreadTask task,
+				      CADataDestroyFunction destroy)
 #else
 CAResult_t CAQueueingThreadInitialize(CAQueueingThread_t *thread,
 				      ca_thread_pool_t handle,
-                                      CAThreadTask task, CADataDestroyFunction destroy)
+                                      CAThreadTask task,
+				      CADataDestroyFunction destroy)
 #endif
 {
     if (NULL == thread)

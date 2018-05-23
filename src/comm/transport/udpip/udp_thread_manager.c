@@ -6,6 +6,14 @@
 
 #include "udp_thread_manager.h"
 
+#if INTERFACE
+#ifdef DEBUG_THREADING
+#define THREAD_DBUG(...) __VA_ARGS__ ,
+#else
+#define THREAD_DBUG(...)
+#endif
+#endif
+
 #ifndef SINGLE_THREAD
 
 /**
@@ -42,9 +50,7 @@ LOCAL CAResult_t udp_initialize_send_msg_queue() // @was CAIPInitializeQueueHand
     }
 
     if (CA_STATUS_OK != CAQueueingThreadInitialize(g_sendQueueHandle,
-#ifdef DEBUG_THREADING
-						   "g_sendQueueHandle",
-#endif
+						   THREAD_DBUG("g_sendQueueHandle")
 			   // (const ca_thread_pool_t)caglobals.ip.threadpool,
                                 (const ca_thread_pool_t)udp_threadpool,
                                 CAIPSendDataThread, CADataDestroyer))
