@@ -127,7 +127,7 @@ void u_arraylist_shrink_to_fit(u_arraylist_t *list)
     }
 }
 
-void *u_arraylist_get(const u_arraylist_t *list, size_t index)
+void *u_arraylist_get(const u_arraylist_t *list, size_t index) EXPORT
 {
     if (!list )
     {
