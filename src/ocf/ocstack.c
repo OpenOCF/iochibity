@@ -4124,8 +4124,8 @@ static bool ValidateResourceTypeInterface(const char *resourceItemName)
  * @param resourceTypeName Name of resource type.
  * @return ::OC_STACK_OK on success, some other value upon failure.
  */
-LOCAL OCStackResult BindResourceTypeToResource(OCResource *resource,
-						const char *resourceTypeName)
+OCStackResult BindResourceTypeToResource(OCResource *resource,
+					 const char *resourceTypeName) EXPORT
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCResourceType *pointer = NULL;
