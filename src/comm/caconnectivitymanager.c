@@ -33,7 +33,7 @@
 /* #include "catcpadapter.h" */
 /* #endif */
 
-/* IPv4 and IPv6 both require, so we initialize statically */
+/* IPv4 and IPv6 both forced on in OCInitializeInternal, so we initialize statically instead */
 // @rewrite: get rid of caglobals
 CAGlobals_t caglobals = { .clientFlags = CA_IPV4|CA_IPV6,
                           .serverFlags = CA_IPV4|CA_IPV6 };
