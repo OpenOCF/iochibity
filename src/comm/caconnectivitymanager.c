@@ -651,9 +651,3 @@ CAResult_t CAcloseSslSession(const CAEndpoint_t *endpoint)
     return res;
 }
 
-#ifdef TCP_ADAPTER
-void CARegisterKeepAliveHandler(CAKeepAliveConnectionCallback ConnHandler)
-{
-    CATCPSetKeepAliveCallbacks(ConnHandler);
-}
-#endif
