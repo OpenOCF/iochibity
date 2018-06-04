@@ -1,58 +1,53 @@
 # Bazel option defaults
 
-## Copy what you need to <root>/.bazelrc in order to customize.
-## build options specified here are cumulative.
-
-# startup --batch --host_jvm_args=-XX:-UseParallelGC
-# import /home/bobs_project/bazelrc
-
-################################################################
-# dev/debug options
-# build -s --verbose_failures --sandbox_debug
-# build --show_timestamps --keep_going --jobs 600
-# build --color=yes
-# query --keep_going
-
 ################################################################
 # OpenOCF build options
 # sorry, this is temporarily necessary.
 build --define=role=client
 
 ################################################################
-# target: mingw64
-#build --crosstool_top=//platforms/windows:toolchains
-#build --action_env=TMP=/tmp
-#build --cpu=x64_windows_msys
-#build --compiler=mingw64-gcc
+# target: Android
 
-################################################################
-# target: Raspberry Pi 3B
-#build --crosstool_top=//platforms/rpi3b:toolchain
-#build --cpu=armv8 --host_cpu=k8
+#build:android-arm8 --fat_apk_cpu=arm64-v8a
+#build:android-arm8 --android_cpu=arm64-v8a
+build:android-arm8 --cpu=arm64-v8a
+build:android-arm8 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+build:android-arm8 --crosstool_top=@androidndk//:default_crosstool
 
-################################################################
-# target: Intel IoT Gateway running WindRiver Linux
-#build --crosstool_top=//platforms/wrlinux:toolchain
-#build  --cpu=x86_64
+build:android-arm7 --fat_apk_cpu=armeabi-v7a
+build:android-arm7 --android_cpu=armeabi-v7a
 
-################################################################
-# target: android, without using Bazel's android_* rules
-## control android build:
-#build --define=target=android
+build:android-x86 --fat_apk_cpu=x86
+build:android-x86 --android_cpu=x86_64
 
-## Bazel's default toolchain for android is broken (it pulls in the
-## wrong headers from the NDK). Use this one instead:
-#build --crosstool_top=//platforms/ndk:toolchain
-#build --android_crosstool_top=//platforms/ndk:toolchain
-
-## android target architectures:
-#build --fat_apk_cpu=x86
-#build --fat_apk_cpu=arm64-v8a
+# for cc_library targets:
+build:android-arm8 --crosstool_top=@androidndk//:toolchain-libcpp
 
 ## compilers
 #build --android_compiler=clang3.8
 #build --android_compiler=gcc
 
 ################################################################
+####  Raspberry Pi 3B
+
+build:rpi-arm8 --crosstool_top=//tools/ctng:toolchain
+build:rpi-arm8 --define arm=true
+build:rpi-arm8 --cpu=arm64-v8a
+
+################################################################
+####  Generic Linux
+
+build:linux-x86_64 --crosstool_top=//tools/ctng:toolchain
+build:linux-x86_64 --cpu=x86_64
+
+################################################################
+# MinGW64
+
+#build --crosstool_top=//platforms/windows:toolchains
+#build --action_env=TMP=/tmp
+#build --cpu=x64_windows_msys
+#build --compiler=mingw64-gcc
+
+################################################################
 # misc
-# build:memcheck --strip=never --test_timeout=3600
+build:memcheck --strip=never --test_timeout=3600
