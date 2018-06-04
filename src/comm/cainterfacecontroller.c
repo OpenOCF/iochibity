@@ -561,6 +561,7 @@ void CASetErrorHandleCallback(CAErrorHandleCallback errorCallback)
     g_errorHandleCallback = errorCallback;
 }
 
+// called by CAAddNetworkType(CATransportAdapter_t transportType)
 CAResult_t CAStartAdapter(CATransportAdapter_t transportType)
 {
     /* size_t index = 0; */
@@ -1169,43 +1170,3 @@ void CATerminateAdapters()
     RemoveAllNetworkStateChangedCallback();
 }
 
-#ifdef SINGLE_THREAD
-CAResult_t CAReadData()
-{
-    size_t index = 0;
-    CAResult_t res = CA_STATUS_FAILED;
-    u_arraylist_t *list = CAGetSelectedNetworkList();
-
-    if (!list)
-    {
-        return CA_STATUS_FAILED;
-    }
-
-    size_t i = 0;
-    for (i = 0; i < u_arraylist_length(list); i++)
-    {
-        void *ptrType = u_arraylist_get(list, i);
-        if (NULL == ptrType)
-        {
-            OIC_LOG(ERROR, TAG, "get list fail");
-            return CA_STATUS_FAILED;
-        }
-
-        CATransportAdapter_t connType = *(CATransportAdapter_t *) ptrType;
-
-        res = CAGetAdapterIndex(connType, &index);
-        if (CA_STATUS_OK != res)
-        {
-            OIC_LOG(DEBUG, TAG, "unknown connectivity type!");
-            continue;
-        }
-
-        if (g_adapterHandler[index].readData != NULL)
-        {
-            g_adapterHandler[index].readData();
-        }
-    }
-
-    return CA_STATUS_OK;
-}
-#endif

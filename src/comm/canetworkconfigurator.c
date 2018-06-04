@@ -76,6 +76,7 @@ static uint32_t NETWORK_RA = CA_ADAPTER_REMOTE_ACCESS;
 static uint32_t NETWORK_TCP = CA_ADAPTER_TCP;
 #endif
 
+// called by caconnectivitymanager/CASelectNetwork
 CAResult_t CAAddNetworkType(CATransportAdapter_t transportType)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);

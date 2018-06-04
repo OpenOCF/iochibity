@@ -55,6 +55,17 @@ static int32_t CAQueueIPData(bool isMulticast, const CAEndpoint_t *endpoint,
     return dataLength;
 }
 
+#ifdef __WITH_DTLS__
+ssize_t CAIPPacketSendCB(CAEndpoint_t *endpoint, const void *data, size_t dataLength)
+{
+    VERIFY_NON_NULL_RET(endpoint, TAG, "endpoint is NULL", -1);
+    VERIFY_NON_NULL_RET(data, TAG, "data is NULL", -1);
+
+    CAIPSendData(endpoint, data, dataLength, false);
+    return dataLength;
+}
+#endif
+
 int32_t CASendIPUnicastData(const CAEndpoint_t *endpoint,
                             const void *data, uint32_t dataLength,
                             CADataType_t dataType)
@@ -345,3 +356,57 @@ void CAIPSendDataThread(void *threadData)
 }
 
 #endif
+
+#ifndef SINGLE_THREAD
+// create IP packet for sending
+CAIPData_t *CACreateIPData(const CAEndpoint_t *remoteEndpoint, const void *data,
+                           uint32_t dataLength, bool isMulticast)
+{
+    VERIFY_NON_NULL_RET(remoteEndpoint, TAG, "remoteEndpoint is NULL", NULL);
+    VERIFY_NON_NULL_RET(data, TAG, "IPData is NULL", NULL);
+
+    CAIPData_t *ipData = (CAIPData_t *) OICMalloc(sizeof(*ipData));
+    if (!ipData)
+    {
+        OIC_LOG(ERROR, TAG, "Memory allocation failed!");
+        return NULL;
+    }
+
+    ipData->remoteEndpoint = CACloneEndpoint(remoteEndpoint);
+    ipData->data = (void *) OICMalloc(dataLength);
+    if (!ipData->data)
+    {
+        OIC_LOG(ERROR, TAG, "Memory allocation failed!");
+        CAFreeIPData(ipData);
+        return NULL;
+    }
+
+    memcpy(ipData->data, data, dataLength);
+    ipData->dataLen = dataLength;
+
+    ipData->isMulticast = isMulticast;
+
+    return ipData;
+}
+
+void CAFreeIPData(CAIPData_t *ipData)
+{
+    VERIFY_NON_NULL_VOID(ipData, TAG, "ipData is NULL");
+
+    CAFreeEndpoint(ipData->remoteEndpoint);
+    OICFree(ipData->data);
+    OICFree(ipData);
+}
+
+void CADataDestroyer(void *data, uint32_t size)
+{
+    if (size < sizeof(CAIPData_t))
+    {
+        OIC_LOG_V(ERROR, TAG, "Destroy data too small %p %d", data, size);
+    }
+    CAIPData_t *etdata = (CAIPData_t *) data;
+
+    CAFreeIPData(etdata);
+}
+
+#endif // SINGLE_THREAD

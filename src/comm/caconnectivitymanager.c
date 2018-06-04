@@ -393,6 +393,7 @@ CAResult_t CASendResponse(const CAEndpoint_t *object, const CAResponseInfo_t *re
     }
 }
 
+// called by ocstack/OCSelectNetwork
 CAResult_t CASelectNetwork(CATransportAdapter_t transport) // @was transport <- interestedNetwork)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);

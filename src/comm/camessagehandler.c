@@ -1810,7 +1810,7 @@ CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
         OIC_LOG(ERROR, TAG, "Failed to Initialize Adapters.");
         return res;
     }
-#else
+#else // SINGLE_THREAD
     // retransmission initialize
     CAResult_t res = CARetransmissionInitialize(&g_retransmissionContext, NULL, CASendUnicastData,
                                                 CATimeoutCallback, NULL);

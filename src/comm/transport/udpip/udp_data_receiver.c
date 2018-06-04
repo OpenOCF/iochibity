@@ -164,3 +164,27 @@ void udp_data_receiver_runloop(void *data) // @was CAReceiveHandler
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
+
+/* static void CAUDPPacketReceivedCB(const CASecureEndpoint_t *sep, */
+/* 				  const void *data, */
+/* 				  size_t dataLength) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
+/*     VERIFY_NON_NULL_VOID(sep, TAG, "sep is NULL"); */
+/*     VERIFY_NON_NULL_VOID(data, TAG, "data is NULL"); */
+
+/*     OIC_LOG_V(DEBUG, TAG, "Address: %s, port:%d", sep->endpoint.addr, sep->endpoint.port); */
+
+/*     // @rewrite udp_networkPacketCallback holds cainterfacecontroller::CAReceivedPacketCallback */
+/*     // we can just call that directly */
+
+/*     if (udp_networkPacketCallback) */
+/*     { */
+/* 	OIC_LOG_V(DEBUG, TAG, "CALLING udp_networkPacketCallback!!!"); */
+/*         udp_networkPacketCallback(sep, data, dataLength); */
+/*     } else { */
+/* 	OIC_LOG_V(DEBUG, TAG, "NO udp_networkPacketCallback!!!"); */
+/*     } */
+
+/* } */
+

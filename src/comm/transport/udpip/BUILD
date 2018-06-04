@@ -16,25 +16,11 @@ cc_library(
              "-Ithird_party/utlist",
              "-Iexternal/openocf/third_party/utlist",
              "-Iexternal/libcoap/include",
-
-	     # FIXME: for jni.h - but this should come from NDK, not local_jdk
-	     # and toolchain should have it on --sysroot so we do not need it here
-             #"-Iexternal/local_jdk/include",
-             #"-Iexternal/local_jdk/include/linux",
-             #"-Iexternal/local_jdk/include/darwin",
              "-Wall",
-    # ] + select({"@openocf//config:darwin_with_jni": ["-Iexternal/local_jdk/include/darwin"],
-    #             "@openocf//config:linuxwith_jni": ["-Iexternal/local_jdk/include/linux"],
-    #             "//conditions:default": ["BROKEN"]}),
 
     ] + select({"//config:windows": [],
                 "//config:msvc": [],
                 "//config:msys": [],
-	        # find jni_md.h for exec host
-	        # FIXME: select on android_linux, android_darwin, android_win
-                # ":android": ["-std=c11", "-Iexternal/local_jdk/include/linux"],
-                #"//config:darwin_with_jni": COPTS_ANDROID + ["-Iexternal/local_jdk/include/darwinX"],
-                # FIXME: select on java_linux, java_darwin
                 "//config:linux": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
                 "//config:linux-x86_64": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
