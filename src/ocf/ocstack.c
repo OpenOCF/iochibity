@@ -5496,47 +5496,97 @@ const char* OC_CALL OCGetServerInstanceIDString(void)
  * @param transportType  OCTransportAdapter value to select.
  * @return ::CA_STATUS_OK on success, some other value upon failure.
  */
+// @rewrite: networks support is configured at build time, not runtime
+/* LOCAL CAResult_t OCSelectNetwork(OCTransportAdapter transportType) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "OCSelectNetwork [%d]", transportType); */
+/*     CAResult_t retResult = CA_STATUS_FAILED; */
+/*     CAResult_t caResult = CA_STATUS_OK; */
+
+/*     CATransportAdapter_t connTypes[] = { */
+/*             CA_ADAPTER_IP, */
+/*             CA_ADAPTER_RFCOMM_BTEDR, */
+/*             CA_ADAPTER_GATT_BTLE, */
+/*             CA_ADAPTER_NFC */
+/* #ifdef RA_ADAPTER */
+/*             ,CA_ADAPTER_REMOTE_ACCESS */
+/* #endif */
+
+/* #ifdef TCP_ADAPTER */
+/*             ,CA_ADAPTER_TCP */
+/* #endif */
+/*         }; */
+/*     int numConnTypes = sizeof(connTypes)/sizeof(connTypes[0]); */
+
+/*     for(int i = 0; i < numConnTypes; i++) */
+/*     { */
+/*         // If CA status is not initialized, CASelectNetwork() will not be called. */
+/*         if (caResult != CA_STATUS_NOT_INITIALIZED) */
+/*         { */
+/*             if ((connTypes[i] & transportType) || (OC_DEFAULT_ADAPTER == transportType)) */
+/*             { */
+/*                 OIC_LOG_V(DEBUG, TAG, "call CASelectNetwork [%d]", connTypes[i]); */
+/*                 caResult = CASelectNetwork(connTypes[i]); */
+/*                 if (caResult == CA_STATUS_OK) */
+/*                 { */
+/*                     retResult = CA_STATUS_OK; */
+/*                 } */
+/*             } */
+/*             else */
+/*             { */
+/*                 OIC_LOG_V(DEBUG, TAG, "there is no transport type [%d]", connTypes[i]); */
+/*             } */
+/*         } */
+/*     } */
+
+/*     if (retResult != CA_STATUS_OK) */
+/*     { */
+/*         return caResult; // Returns error of appropriate transport that failed fatally. */
+/*     } */
+
+/*     return retResult; */
+/* } */
+
 LOCAL CAResult_t OCSelectNetwork(OCTransportAdapter transportType)
 {
     OIC_LOG_V(DEBUG, TAG, "OCSelectNetwork [%d]", transportType);
     CAResult_t retResult = CA_STATUS_FAILED;
     CAResult_t caResult = CA_STATUS_OK;
 
-    CATransportAdapter_t connTypes[] = {
-            CA_ADAPTER_IP,
-            CA_ADAPTER_RFCOMM_BTEDR,
-            CA_ADAPTER_GATT_BTLE,
-            CA_ADAPTER_NFC
-#ifdef RA_ADAPTER
-            ,CA_ADAPTER_REMOTE_ACCESS
-#endif
+/*     CATransportAdapter_t connTypes[] = { */
+/*             CA_ADAPTER_IP, */
+/*             CA_ADAPTER_RFCOMM_BTEDR, */
+/*             CA_ADAPTER_GATT_BTLE, */
+/*             CA_ADAPTER_NFC */
+/* #ifdef RA_ADAPTER */
+/*             ,CA_ADAPTER_REMOTE_ACCESS */
+/* #endif */
 
-#ifdef TCP_ADAPTER
-            ,CA_ADAPTER_TCP
-#endif
-        };
-    int numConnTypes = sizeof(connTypes)/sizeof(connTypes[0]);
+/* #ifdef TCP_ADAPTER */
+/*             ,CA_ADAPTER_TCP */
+/* #endif */
+/*         }; */
+/*     int numConnTypes = sizeof(connTypes)/sizeof(connTypes[0]); */
 
-    for(int i = 0; i < numConnTypes; i++)
-    {
-        // If CA status is not initialized, CASelectNetwork() will not be called.
-        if (caResult != CA_STATUS_NOT_INITIALIZED)
-        {
-            if ((connTypes[i] & transportType) || (OC_DEFAULT_ADAPTER == transportType))
-            {
-                OIC_LOG_V(DEBUG, TAG, "call CASelectNetwork [%d]", connTypes[i]);
-                caResult = CASelectNetwork(connTypes[i]);
-                if (caResult == CA_STATUS_OK)
-                {
-                    retResult = CA_STATUS_OK;
-                }
-            }
-            else
-            {
-                OIC_LOG_V(DEBUG, TAG, "there is no transport type [%d]", connTypes[i]);
-            }
-        }
+#ifdef ENABLE_UDP
+    OIC_LOG(DEBUG, TAG, "calling CASelectNetwork for CA_ADAPTER_IP");
+    caResult = CASelectNetwork(CA_ADAPTER_IP);
+    if (caResult != CA_STATUS_OK) {
+	OIC_LOG(ERROR, TAG, "Unable to support UDP");
+	// Throw an exception? If the build is configured for an adapter, it should initialize
     }
+#endif
+
+#ifdef ENABLE_TCP
+    OIC_LOG(DEBUG, TAG, "calling CASelectNetwork for CA_ADAPTER_TCP");
+    caResult = CASelectNetwork(CA_ADAPTER_TCP);
+    if (caResult != CA_STATUS_OK) {
+	OIC_LOG_V(ERROR, TAG, "Unable to support TCP, code %d", caResult);
+	// Throw an exception? If the build is configured for an adapter, it should initialize
+    }
+#endif
+
+    //etc.
 
     if (retResult != CA_STATUS_OK)
     {
