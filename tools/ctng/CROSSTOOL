@@ -7,7 +7,7 @@ default_target_cpu: "arm64-v8a"
 
 default_toolchain {
   cpu: "arm64-v8a"
-  toolchain_identifier: "armv8-rpi3-macos-gnueabihf"
+  toolchain_identifier: "armv8-rpi3-linux-gnueabihf"
 }
 
 default_toolchain {
@@ -15,7 +15,7 @@ default_toolchain {
   toolchain_identifier: "x86_64-unknown-linux-gnu"
 }
 
-;# without this, we get "No toolchain found for cpu 'darwin'", even when --cpu=androideabi-4.9
+# without this, we get "No toolchain found for cpu 'darwin'", even when --cpu=androideabi-4.9
 default_toolchain {
   cpu: "darwin"
   toolchain_identifier: "x86_64-unknown-linux-gnu"
@@ -23,7 +23,7 @@ default_toolchain {
 
 # crosstool-NG, Raspberry Pi 3b, arm64-v8a
 toolchain {
-  toolchain_identifier: "armv8-rpi3-macos-gnueabihf"
+  toolchain_identifier: "armv8-rpi3-linux-gnueabihf"
 
   # abi - is this for the target?  other examples use "local"
   abi_version: "armv7l"  # use armv8 for 64 bits
@@ -117,6 +117,8 @@ toolchain {
   unfiltered_cxx_flag: "-D__TIMESTAMP__=\"redacted\""
   unfiltered_cxx_flag: "-D__TIME__=\"redacted\""
 
+#  unfiltered_cxx_flag: "-D__USE_POSIX"
+
   ## without this, we get "this rule is missing dependency declarations"
   ## for the headers in the platform sysroot
   ## evidently --sysroot is just for binaries, -isysroot for headers?
@@ -127,8 +129,8 @@ toolchain {
   # Conservative choice; -D_FORTIFY_SOURCE=2 may be unsafe in some cases.
   # We need to undef it before redefining it as some distributions now have
   # it enabled by default.
-  compiler_flag: "-U_FORTIFY_SOURCE"
-  compiler_flag: "-std=c11"
+  #compiler_flag: "-U_FORTIFY_SOURCE"
+
   # All warnings are enabled. Maybe enable -Werror as well?
   compiler_flag: "-Wall"
   # Enable a few more warnings that aren't part of -Wall.
@@ -168,8 +170,8 @@ toolchain {
   compiler_flag: "-fdiagnostics-color=always"
 
     compiler_flag: "-fstack-protector"
-    compiler_flag: "-fPIE"
-    linker_flag: "-pie"
+    #compiler_flag: "-fPIE"
+    #linker_flag: "-pie"
     #linker_flag: "-Wl,-z,relro,-z,now"
     # Stamp the binary with a unique identifier.
     linker_flag: "-Wl,--build-id=md5"
