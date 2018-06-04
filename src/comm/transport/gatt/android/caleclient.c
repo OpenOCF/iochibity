@@ -25,21 +25,6 @@
 #include <jni.h>
 #include <unistd.h>
 
-/* #include "calestate.h"
- * #include "caleclient.h"
- * #include "caleserver.h"
- * #include "caleutils.h"
- * #include "caleinterface.h"
- * #include "caadapterutils.h"
- * 
- * #include "logger.h"
- * #include "oic_malloc.h"
- * #include "oic_string.h"
- * #include "cathreadpool.h" /\* for thread pool *\/
- * #include "octhread.h"
- * #include "uarraylist.h"
- * #include "org_iotivity_ca_CaLeClientInterface.h" */
-
 #define TAG PCF("OIC_CA_LE_CLIENT")
 
 /**

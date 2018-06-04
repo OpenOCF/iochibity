@@ -8,6 +8,8 @@ BlueZ 5.31, the LE advertisement APIs are still considered
 experimental, meaning specific steps must be taken to enable them for
 that version of BlueZ, as described below.
 
+[NOTE: 5.31 was released 15th June 2015; we're now on 5.49]
+
 LE advertisement support requires Linux kernel 4.1 better.  If a LE
 peripheral won't be started, Linux kernel 3.19 is sufficient for LE
 central-only use cases.
