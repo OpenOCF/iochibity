@@ -565,4 +565,13 @@ void OCLogStr(int level, const char * tag, int line_nbr, const char * header, co
 #define OIC_LOG_CA_BUFFER(level, tag, buffer, bufferSize, isHeader)
 #define OIC_LOG_INIT()
 #endif // TB_LOG
+
+#ifdef DEBUG_THREADS
+#define OIC_LOG_THREADS OIC_LOG
+#define OIC_LOG_THREADS_V OIC_LOG_V
+#else
+#define OIC_LOG_THREADS
+#define OIC_LOG_THREADS_V
+#endif
+
 #endif	/* EXPORT_INTERFACE */
