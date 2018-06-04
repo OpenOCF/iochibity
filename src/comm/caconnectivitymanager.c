@@ -414,8 +414,10 @@ CAResult_t CASendResponse(const CAEndpoint_t *object, const CAResponseInfo_t *re
     }
 }
 
-CAResult_t CASelectNetwork(CATransportAdapter_t interestedNetwork)
+CAResult_t CASelectNetwork(CATransportAdapter_t transport) // @was transport <- interestedNetwork)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
     if (!g_isInitialized)
     {
         return CA_STATUS_NOT_INITIALIZED;
@@ -423,54 +425,58 @@ CAResult_t CASelectNetwork(CATransportAdapter_t interestedNetwork)
 
     CAResult_t res = CA_STATUS_OK;
 
+    res = CAAddNetworkType(transport);
+
     // @rewrite: init always uses OC_DEFAULT_FLAGS, so we already know
     // this stuff at build time otoh, init2 is parameterized by
     // transport type. seems a bad idea, this should be a build-time
     // config option, not a runtime choice.  iow all this can be done
     // via #ifdef <TRANSPORT>_ADAPTER - which is what
     // e.g. cainterfacecontroller does.
-    if (interestedNetwork & CA_ADAPTER_IP)
-    {
-        res = CAAddNetworkType(CA_ADAPTER_IP);
-        OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_IP_ADAPTER) function returns result: %d", res);
-    }
-    else if (interestedNetwork & CA_ADAPTER_RFCOMM_BTEDR)
-    {
-        res = CAAddNetworkType(CA_ADAPTER_RFCOMM_BTEDR);
-        OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_RFCOMM_ADAPTER) function returns result : %d", res);
-    }
-    else if (interestedNetwork & CA_ADAPTER_GATT_BTLE)
-    {
-        res = CAAddNetworkType(CA_ADAPTER_GATT_BTLE);
-        OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_GATT_ADAPTER) function returns result : %d", res);
-    }
+/*     if (interestedNetwork & CA_ADAPTER_IP) */
+/*     { */
+/*         res = CAAddNetworkType(CA_ADAPTER_IP); */
+/*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_IP_ADAPTER) function returns result: %d", res); */
+/*     } */
+/*     else if (interestedNetwork & CA_ADAPTER_RFCOMM_BTEDR) */
+/*     { */
+/*         res = CAAddNetworkType(CA_ADAPTER_RFCOMM_BTEDR); */
+/*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_RFCOMM_ADAPTER) function returns result : %d", res); */
+/*     } */
+/*     else if (interestedNetwork & CA_ADAPTER_GATT_BTLE) */
+/*     { */
+/*         res = CAAddNetworkType(CA_ADAPTER_GATT_BTLE); */
+/*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_GATT_ADAPTER) function returns result : %d", res); */
+/*     } */
 
-#ifdef RA_ADAPTER
-    else if (interestedNetwork & CA_ADAPTER_REMOTE_ACCESS)
-    {
-        res = CAAddNetworkType(CA_ADAPTER_REMOTE_ACCESS);
-        OIC_LOG_V(DEBUG, TAG,
-                  "CAAddNetworkType(CA_ADAPTER_REMOTE_ACCESS) function returns result : %d", res);
-    }
-#endif
+/* #ifdef RA_ADAPTER */
+/*     else if (interestedNetwork & CA_ADAPTER_REMOTE_ACCESS) */
+/*     { */
+/*         res = CAAddNetworkType(CA_ADAPTER_REMOTE_ACCESS); */
+/*         OIC_LOG_V(DEBUG, TAG, */
+/*                   "CAAddNetworkType(CA_ADAPTER_REMOTE_ACCESS) function returns result : %d", res); */
+/*     } */
+/* #endif */
 
-#ifdef TCP_ADAPTER
-    else if (interestedNetwork & CA_ADAPTER_TCP)
-    {
-        res = CAAddNetworkType(CA_ADAPTER_TCP);
-        OIC_LOG_V(DEBUG, TAG,
-                  "CAAddNetworkType(CA_ADAPTER_TCP) function returns result : %d", res);
-    }
-#endif
-    else if (interestedNetwork & CA_ADAPTER_NFC)
-    {
-        res = CAAddNetworkType(CA_ADAPTER_NFC);
-        OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_ADAPTER_NFC) function returns result : %d", res);
-    }
-    else
-    {
-        res = CA_NOT_SUPPORTED;
-    }
+/* #ifdef TCP_ADAPTER */
+/*     else if (interestedNetwork & CA_ADAPTER_TCP) */
+/*     { */
+/*         res = CAAddNetworkType(CA_ADAPTER_TCP); */
+/*         OIC_LOG_V(DEBUG, TAG, */
+/*                   "CAAddNetworkType(CA_ADAPTER_TCP) function returns result : %d", res); */
+/*     } */
+/* #endif */
+/*     else if (interestedNetwork & CA_ADAPTER_NFC) */
+/*     { */
+/*         res = CAAddNetworkType(CA_ADAPTER_NFC); */
+/*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_ADAPTER_NFC) function returns result : %d", res); */
+/*     } */
+/*     else */
+/*     { */
+/*         res = CA_NOT_SUPPORTED; */
+/*     } */
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+
     return res;
 }
 
