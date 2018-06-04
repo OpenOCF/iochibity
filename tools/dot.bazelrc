@@ -1,0 +1,12 @@
+## Copy what you need to <root>/.bazelrc in order to customize.
+## build options specified here are cumulative.
+
+# startup --batch --host_jvm_args=-XX:-UseParallelGC
+# import /home/bobs_project/bazelrc
+
+################################################################
+# dev/debug options
+# build -s --verbose_failures --sandbox_debug
+# build --show_timestamps --keep_going --jobs 600
+# build --color=yes
+# query --keep_going
