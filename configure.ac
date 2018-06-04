@@ -163,21 +163,22 @@ AS_IF([test "x$enable_ipv6" != "xno"], [
   AC_DEFINE([ENABLE_IPV6], [], [Enable IPv6])
 ])
 
-dnl DTLS is on by default
-AC_ARG_ENABLE([dtls],
-    AS_HELP_STRING([--disable-dtls], [Disable DTLS (enabled by default)]))
+dnl DTSL and TLS are build configurations, set by bazel options and defined on cmd line
+dnl dnl DTLS is on by default
+dnl AC_ARG_ENABLE([dtls],
+dnl     AS_HELP_STRING([--disable-dtls], [Disable DTLS (enabled by default)]))
 
-AS_IF([test "x$enable_dtls" != "xno"], [
-  AC_DEFINE([__WITH_DTLS__], [], [Enable DTLS])
-])
+dnl AS_IF([test "x$enable_dtls" != "xno"], [
+dnl   AC_DEFINE([__WITH_DTLS__], [], [Enable DTLS])
+dnl ])
 
-dnl TLS is OFF by default
-AC_ARG_ENABLE([tls],
-    AS_HELP_STRING([--enable-tls], [Enable TLS]))
+dnl dnl TLS is OFF by default
+dnl AC_ARG_ENABLE([tls],
+dnl     AS_HELP_STRING([--enable-tls], [Enable TLS]))
 
-AS_IF([test "x$enable_tls" = "xyes"], [
-  AC_DEFINE([__WITH_TLS__], [], [Enable TLS])
-])
+dnl AS_IF([test "x$enable_tls" = "xyes"], [
+dnl   AC_DEFINE([__WITH_TLS__], [], [Enable TLS])
+dnl ])
 
 dnl BlockWise Transfer is on by default
 AC_ARG_ENABLE([bwt],
