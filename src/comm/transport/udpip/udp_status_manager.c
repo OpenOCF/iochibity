@@ -47,10 +47,10 @@ oc_mutex g_networkMonitorContextMutex = NULL;
  * Used to storing network interface.
  * list of CAInterface_t* (i.e., IF address structs)
  */
-// g_network_interfaces is a list of nw INTERFACES! one entry per interface,
-// regardless of address and address family. CACmpNetworkList compares only the IF index.
-// @rewrite g_network_interfaces @was g_netInterfaceList
-u_arraylist_t *g_network_interfaces = NULL;
+// g_netInterfaceList is a list of nw INTERFACES! one entry per interface,
+// regardless of address and address family. InterfaceListContains compares only the IF index.
+// @rewrite g_netInterfaceList @was g_netInterfaceList
+u_arraylist_t *g_netInterfaceList = NULL;
 
 struct CAIPCBData_t *g_adapterCallbackList = NULL;
 
@@ -65,7 +65,7 @@ int CAGetPollingInterval(int interval)
     return interval;
 }
 
-CAResult_t CAIPCreateNetworkAddressList()
+CAResult_t CAIPCreateNetworkInterfaceList() // @was CAIPInitializeNetworkMonitorList
 {
     if (!g_networkMonitorContextMutex)
     {
@@ -77,13 +77,13 @@ CAResult_t CAIPCreateNetworkAddressList()
         }
     }
 
-    if (!g_network_interfaces)
+    if (!g_netInterfaceList)
     {
-        g_network_interfaces = u_arraylist_create();
-        if (!g_network_interfaces)
+        g_netInterfaceList = u_arraylist_create();
+        if (!g_netInterfaceList)
         {
             OIC_LOG(ERROR, TAG, "u_arraylist_create has failed");
-            CAIPDestroyNetworkAddressList();
+            CAIPDestroyNetworkInterfaceList();
             return CA_STATUS_FAILED;
         }
     }
@@ -94,30 +94,80 @@ CAResult_t CAIPCreateNetworkAddressList()
  * Pass the changed network status through the stored callback.
  */
 // GAR: since IF changes are low in the stack they are passed up to both transports
-// NOTE: this is called recursively, from CAIPGetInterfaceInformation
-// @rewrite: CAIPPassNetworkChangesToTransports @was CAIPPassNetworkChangesToAdapter
-void CAIPPassNetworkChangesToTransports(CANetworkStatus_t status)
+// NOTE: this is called recursively, from udp_get_ifs_for_rtm_newaddr
+// callers:
+// udp_status_manager_posix::udp_get_ifs_for_rtm_newaddr
+// udp_status_manager_linux::CAFindInterfaceChange, called by CASelectReturned when netlinkFd ready
+//    RTM_DELADDR => CAIPPassNetworkChangesToTransports
+//    RTM_NEWADDR => posix:udp_get_ifs_for_rtm_newaddr => getifaddrs then CAIPPassNetworkChangesToTransports
+// udp_status_manager_darwin::CAFindInterfaceChange, called on nw interface change
+// caipnwmonitor_windows::CAFindInterfaceChange
+void udp_if_change_handler(CANetworkStatus_t status)  // @was CAIPPassNetworkChangesToAdapter
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, status: %d", __func__, status);
 
-    udp_status_change_handler(CA_ADAPTER_IP, status);
+#ifdef IP_ADAPTER
+    udp_status_change_handler(CA_ADAPTER_IP, status); // @was CAIPAdapterHandler
+#endif
+#ifdef TCP_ADAPTER
+    tcp_status_change_handler(CA_ADAPTER_IP, status); // @was CATCPAdapterHandler
+#endif
+
+    // etc. for other transports
+
+    /* CAIPCBData_t *cbitem = NULL; */
+    /* LL_FOREACH(g_adapterCallbackList, cbitem) */
+    /* { */
+    /*     if (cbitem && cbitem->adapter) */
+    /*     { */
+    /*         cbitem->callback(cbitem->adapter, status); */
+    /*         CALogAdapterStateInfo(cbitem->adapter, status); */
+    /*     } */
+    /* } */
+
     // log state of UDP services, not nw interface
-    CALogAdapterStateInfo(CA_ADAPTER_IP, status);
+    /* CALogAdapterStateInfo(CA_ADAPTER_IP, status); */
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
-// GAR this is passed to CAIPStartNetworkMonitor, in CAStartUDP (CAStartIP)
-// signature: CAIPAdapterStateChangeCallback
 // @rewrite: udp_status_change_handler @was CAIPAdapterHandler
-// @rewrite: will be called directly instead of passed to setup
-void udp_status_change_handler(CATransportAdapter_t adapter, CANetworkStatus_t status)
+void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapterHandler
+			       CANetworkStatus_t status)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     udp_update_local_endpoint_cache(status); // @was CAUpdateStoredIPAddressInfo (g_ownIpEndpointList)
 
-    CAAdapterChangedCallback(adapter, status);
+    // we do not need to go through tcp_networkChangeCallbackList, we can just call directly
+    // CAAdapterChangedCallback(CA_ADAPTER_IP, status);
+    // the handler is OCDefaultAdapterStateChangedHandler(CA_ADAPTER_IP, status);
+#ifndef SINGLE_THREAD
+    CANetworkCallbackThreadInfo_t *info
+	= (CANetworkCallbackThreadInfo_t *) OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
+    if (!info)
+	{
+	    OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
+	    return;
+	}
+
+    // the CB is OCDefaultAdapterStateChangedHandler
+    info->adapterCB = OCDefaultAdapterStateChangedHandler; // @was callback->adapter;
+    info->adapter = CA_ADAPTER_IP;  // @was adapter;
+    info->isInterfaceUp = (CA_INTERFACE_UP == status);
+
+    CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
+			    sizeof(CANetworkCallbackThreadInfo_t));
+#else
+    if (CA_INTERFACE_UP == status)
+	{
+	    OCDefaultAdapterStateChangedHandler(adapter, true); // @was callback->adapter
+	}
+    else if (CA_INTERFACE_DOWN == status)
+	{
+	    OCDefaultAdapterStateChangedHandler(adapter, false); // @was callback->adapter
+	}
+#endif //SINGLE_THREAD
 
     if (CA_INTERFACE_DOWN == status)
     {
@@ -127,6 +177,8 @@ void udp_status_change_handler(CATransportAdapter_t adapter, CANetworkStatus_t s
         CAcloseSslConnectionAll(CA_ADAPTER_IP);
 #endif
     }
+    CALogAdapterStateInfo(CA_ADAPTER_IP, status);
+
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 

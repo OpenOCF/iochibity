@@ -18,68 +18,98 @@
 
 #include <errno.h>
 
-// @rewrite
-void CAIPSendData(CAEndpoint_t *endpoint, const void *data, size_t datalen,
-                  bool isMulticast)
+#define TAG "UDPSEND"
+
+static int32_t CAQueueIPData(bool isMulticast, const CAEndpoint_t *endpoint,
+                             const void *data, uint32_t dataLength)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    VERIFY_NON_NULL_VOID(endpoint, TAG, "endpoint is NULL");
-    VERIFY_NON_NULL_VOID(data, TAG, "data is NULL");
+    VERIFY_NON_NULL_RET(endpoint, TAG, "remoteEndpoint", -1);
+    VERIFY_NON_NULL_RET(data, TAG, "data", -1);
 
-    bool isSecure = (endpoint->flags & CA_SECURE) != 0;
-
-    if (isMulticast)
+    if (0 == dataLength)
     {
-        endpoint->port = isSecure ? CA_SECURE_COAP : CA_COAP;
+        OIC_LOG(ERROR, TAG, "Invalid Data Length");
+        return -1;
+    }
 
-        u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
-        if (!iflist)
-        {
-            OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
-            return;
-        }
+#ifdef SINGLE_THREAD
 
-        if ((endpoint->flags & CA_IPV6) && udp_ipv6enabled)
-        {
-            sendMulticastData6(iflist, endpoint, data, datalen);
-        }
-        if ((endpoint->flags & CA_IPV4) && udp_ipv4enabled)
-        {
-            sendMulticastData4(iflist, endpoint, data, datalen);
-        }
+    CAIPSendData(endpoint, data, dataLength, isMulticast);
+    return dataLength;
 
-        u_arraylist_destroy(iflist);
+#else
+
+    // VERIFY_NON_NULL_RET(udp_sendQueueHandle, TAG, "sendQueueHandle", -1);
+    // Create IPData to add to queue
+    CAIPData_t *ipData = CACreateIPData(endpoint, data, dataLength, isMulticast);
+    if (!ipData)
+    {
+        OIC_LOG(ERROR, TAG, "Failed to create ipData!");
+        return -1;
+    }
+    // Add message to send queue
+    CAQueueingThreadAddData(&udp_sendQueueHandle, ipData, sizeof(CAIPData_t));
+
+#endif // SINGLE_THREAD
+
+    return dataLength;
+}
+
+int32_t CASendIPUnicastData(const CAEndpoint_t *endpoint,
+                            const void *data, uint32_t dataLength,
+                            CADataType_t dataType)
+{
+    (void)dataType;
+    return CAQueueIPData(false, endpoint, data, dataLength);
+}
+
+int32_t CASendIPMulticastData(const CAEndpoint_t *endpoint, const void *data, uint32_t dataLength,
+                              CADataType_t dataType)
+{
+    (void)dataType;
+    return CAQueueIPData(true, endpoint, data, dataLength);
+}
+
+void PORTABLE_sendto(CASocketFd_t fd,
+                     const void *data,
+		     size_t dlen,
+		     int flags,
+		     struct sockaddr_storage * sockaddrptr,
+		     socklen_t socklen,
+		     const CAEndpoint_t *endpoint,
+		     const char *cast, const char *fam)
+EXPORT
+{
+    (void)flags;
+    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
+#ifdef TB_LOG
+    const char *secure = (endpoint->flags & CA_SECURE) ? "secure " : "insecure ";
+#endif
+    ssize_t len = sendto(fd, data, dlen, 0, (struct sockaddr *)sockaddrptr, socklen);
+    if (OC_SOCKET_ERROR == len)
+    {
+	// @rewrite: g_ipErrorHandler removed, call CAIPErrorHandler directly
+        /* if (g_ipErrorHandler) */
+        /* { */
+        /*     g_ipErrorHandler(endpoint, data, dlen, CA_SEND_FAILED); */
+        /* } */
+	CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
+
+
+        OIC_LOG_V(ERROR, TAG, "%s%s %s sendTo failed: %s", secure, cast, fam, strerror(errno));
+        CALogSendStateInfo(endpoint->adapter, endpoint->addr, endpoint->port,
+                           len, false, strerror(errno));
     }
     else
     {
-        if (!endpoint->port)    // unicast discovery
-        {
-            endpoint->port = isSecure ? CA_SECURE_COAP : CA_COAP;
-        }
-
-        CASocketFd_t fd;
-        if (udp_ipv6enabled && (endpoint->flags & CA_IPV6))
-        {
-            fd = isSecure ? udp_u6s.fd : udp_u6.fd;
-#ifndef __WITH_DTLS__
-            fd = udp_u6.fd;
-#endif
-            sendData(fd, endpoint, data, datalen, "unicast", "ipv6");
-        }
-        if (udp_ipv4enabled && (endpoint->flags & CA_IPV4))
-        {
-            fd = isSecure ? udp_u4s.fd : udp_u4.fd;
-#ifndef __WITH_DTLS__
-            fd = udp_u4.fd;
-#endif
-            sendData(fd, endpoint, data, datalen, "unicast", "ipv4");
-        }
+        OIC_LOG_V(INFO, TAG, "%s%s %s sendTo is successful: %zd bytes", secure, cast, fam, len);
+        CALogSendStateInfo(endpoint->adapter, endpoint->addr, endpoint->port,
+                           len, true, NULL);
     }
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
-// @rewrite udp_send_data @was sendData
-void sendData(CASocketFd_t fd, const CAEndpoint_t *endpoint,
+LOCAL void udp_send_data(CASocketFd_t fd, /*  @was sendData */
+			 const CAEndpoint_t *endpoint,
 	      const void *data, size_t dlen,
 	      const char *cast, const char *fam)
 {
@@ -113,6 +143,65 @@ void sendData(CASocketFd_t fd, const CAEndpoint_t *endpoint,
         socklen = sizeof(struct sockaddr_in);
     }
     PORTABLE_sendto(fd, data, dlen, 0, &sock, socklen, endpoint, cast, fam);
+}
+
+void CAIPSendData(CAEndpoint_t *endpoint, const void *data, size_t datalen,
+                  bool isMulticast)
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    VERIFY_NON_NULL_VOID(endpoint, TAG, "endpoint is NULL");
+    VERIFY_NON_NULL_VOID(data, TAG, "data is NULL");
+
+    bool isSecure = (endpoint->flags & CA_SECURE) != 0;
+
+    if (isMulticast)
+    {
+        endpoint->port = isSecure ? CA_SECURE_COAP : CA_COAP;
+
+        u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0);
+        if (!iflist)
+        {
+            OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
+            return;
+        }
+
+        if ((endpoint->flags & CA_IPV6) && udp_ipv6_is_enabled)
+        {
+            sendMulticastData6(iflist, endpoint, data, datalen);
+        }
+        if ((endpoint->flags & CA_IPV4) && udp_ipv4_is_enabled)
+        {
+            sendMulticastData4(iflist, endpoint, data, datalen);
+        }
+
+        u_arraylist_destroy(iflist);
+    }
+    else
+    {
+        if (!endpoint->port)    // unicast discovery
+        {
+            endpoint->port = isSecure ? CA_SECURE_COAP : CA_COAP;
+        }
+
+        CASocketFd_t fd;
+        if (udp_ipv6_is_enabled && (endpoint->flags & CA_IPV6))
+        {
+            fd = isSecure ? udp_u6s.fd : udp_u6.fd;
+#ifndef __WITH_DTLS__
+            fd = udp_u6.fd;
+#endif
+            udp_send_data(fd, endpoint, data, datalen, "unicast", "ipv6");
+        }
+        if (udp_ipv4_is_enabled && (endpoint->flags & CA_IPV4))
+        {
+            fd = isSecure ? udp_u4s.fd : udp_u4.fd;
+#ifndef __WITH_DTLS__
+            fd = udp_u4.fd;
+#endif
+            udp_send_data(fd, endpoint, data, datalen, "unicast", "ipv4");
+        }
+    }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 void sendMulticastData6(const u_arraylist_t *iflist,
@@ -159,7 +248,7 @@ void sendMulticastData6(const u_arraylist_t *iflist,
 		    OIC_LOG_V(ERROR, TAG, "setsockopt6 failed: %s", CAIPS_GET_ERROR);
 		    return;
 		}
-	    sendData(fd, endpoint, data, datalen, "multicast", "ipv6");
+	    udp_send_data(fd, endpoint, data, datalen, "multicast", "ipv6");
 	}
 }
 
@@ -208,6 +297,51 @@ void sendMulticastData4(const u_arraylist_t *iflist,
             OIC_LOG_V(ERROR, TAG, "send IP_MULTICAST_IF failed: %s (using defualt)",
                     CAIPS_GET_ERROR);
         }
-        sendData(fd, endpoint, data, datalen, "multicast", "ipv4");
+        udp_send_data(fd, endpoint, data, datalen, "multicast", "ipv4");
     }
 }
+
+#ifndef SINGLE_THREAD
+
+void CAIPSendDataThread(void *threadData)
+{
+    CAIPData_t *ipData = (CAIPData_t *) threadData;
+    if (!ipData)
+    {
+        OIC_LOG(DEBUG, TAG, "Invalid ip data!");
+        return;
+    }
+
+    if (ipData->isMulticast)
+    {
+        //Processing for sending multicast
+        OIC_LOG(DEBUG, TAG, "Sending Multicast");
+        CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, true);
+    }
+    else
+    {
+        //Processing for sending unicast
+        OIC_LOG(DEBUG, TAG, "Sending Unicast");
+#ifdef __WITH_DTLS__
+        if (ipData->remoteEndpoint && ipData->remoteEndpoint->flags & CA_SECURE)
+        {
+            OIC_LOG(DEBUG, TAG, "Sending encrypted");
+            CAResult_t result = CAencryptSsl(ipData->remoteEndpoint, ipData->data, ipData->dataLen);
+            if (CA_STATUS_OK != result)
+            {
+                OIC_LOG_V(ERROR, TAG, "CAencryptSsl failed: %d", result);
+            }
+            OIC_LOG_V(DEBUG, TAG, "CAencryptSsl returned with result[%d]", result);
+        }
+        else
+        {
+            OIC_LOG(DEBUG, TAG, "Sending unencrypted");
+            CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, false);
+        }
+#else
+        CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, false);
+#endif
+    }
+}
+
+#endif

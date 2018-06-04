@@ -19,10 +19,9 @@
 #include <net/if.h>
 #endif
 
+#if INTERFACE
 #include <sys/socket.h>
 #include <netinet/in.h>
-
-#if INTERFACE
 #include <inttypes.h>
 #endif
 
@@ -32,32 +31,74 @@
 
 /* udp globals */
 // from CAGlobals_t in _globals.h
+#ifndef PORT_U6
+#define PORT_U6 0
+#endif
+CASocket_t udp_u6  = { .fd = OC_INVALID_SOCKET, .port = PORT_U6 };   /**< unicast   IPv6 */
 
-CASocket_t udp_u6  = { .fd = OC_INVALID_SOCKET, .port = 0 };              /**< unicast   IPv6 */
-CASocket_t udp_u6s = { .fd = OC_INVALID_SOCKET, .port = 0 };              /**< unicast   IPv6 secure */
-CASocket_t udp_u4  = { .fd = OC_INVALID_SOCKET, .port = 0 };              /**< unicast   IPv4 */
-CASocket_t udp_u4s = { .fd = OC_INVALID_SOCKET, .port = 0 };              /**< unicast   IPv4 secure */
+#ifndef PORT_U6S
+#define PORT_U6S 0
+#endif
+CASocket_t udp_u6s = { .fd = OC_INVALID_SOCKET, .port = PORT_U6S }; /**< unicast   IPv6 secure */
+
+#ifndef PORT_U4
+#define PORT_U4 0
+#endif
+CASocket_t udp_u4  = { .fd = OC_INVALID_SOCKET, .port = PORT_U4 };   /**< unicast   IPv4 */
+
+#ifndef PORT_U4S
+#define PORT_U4S 0
+#endif
+CASocket_t udp_u4s = { .fd = OC_INVALID_SOCKET, .port = PORT_U4S };  /**< unicast   IPv4 secure */
+
 CASocket_t udp_m6  = { .fd = OC_INVALID_SOCKET, .port = CA_COAP };        /**< multicast IPv6 */
 CASocket_t udp_m6s = { .fd = OC_INVALID_SOCKET, .port = CA_SECURE_COAP }; /**< multicast IPv6 secure */
 CASocket_t udp_m4  = { .fd = OC_INVALID_SOCKET, .port = CA_COAP };        /**< multicast IPv4 */
 CASocket_t udp_m4s = { .fd = OC_INVALID_SOCKET, .port = CA_SECURE_COAP }; /**< multicast IPv4 secure */
 
 //FIXME: status and shutdown monitoring are platform-specific
+
+#ifndef __APPLE__
 int udp_netlinkFd;              /**< netlink */
-int udp_shutdownFds[2];         /**< pipe used to signal threads to stop */
+#endif
+
+int udp_shutdownFds[2] = { -1, -1 }; /**< pipe used to signal threads to stop */
 
 CASocketFd_t udp_maxfd;         /**< highest fd (for select) */
 
 
 void *udp_threadpool;           /**< threadpool between Initialize and Start */
 int   udp_selectTimeout;          /**< in seconds */
-bool  udp_started;               /**< the IP adapter has started */
-bool  udp_terminate;             /**< the IP adapter needs to stop */
-bool  udp_ipv6enabled = true;    /**< IPv6 enabled by OCInit flags */
-bool  udp_ipv4enabled = true;    /**< IPv4 enabled by OCInit flags */
-bool  udp_dualstack   = true;    /**< IPv6 and IPv4 enabled */
 
-/* DELEGATED: #define CHECKFD(FD) */
+bool  udp_is_started;               /**< the IP adapter has started */
+bool  udp_is_terminating;             /**< the IP adapter needs to stop */
+bool  udp_ipv6_is_enabled = true;    /**< IPv6 enabled by OCInit flags */
+bool  udp_ipv4_is_enabled = true;    /**< IPv4 enabled by OCInit flags */
+bool  udp_is_dualstack   = true;    /**< IPv6 and IPv4 enabled */
+
+/* DELEGATED: #define UDP_CHECKFD(FD) */
+
+bool PORTABLE_check_setsockopt_err() EXPORT
+{
+    return EADDRINUSE != errno;
+}
+
+bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn *mreq, int ret) EXPORT
+{
+    /* args not used in posix, used in windows */
+    (void)mreq;
+    (void)ret;
+    return EADDRINUSE != errno;
+}
+
+bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq,  int ret) EXPORT
+{
+    /* args not used in posix, used in windows */
+    (void)fd;
+    (void)mreq;
+    (void)ret;
+    return EADDRINUSE != errno;
+}
 
 CASocketFd_t udp_create_socket(int family, uint16_t *port, bool isMulticast)
 {
@@ -154,6 +195,24 @@ CASocketFd_t udp_create_socket(int family, uint16_t *port, bool isMulticast)
     return fd;
 }
 
+// @rewrite: use <transport>_* instead of caglobals
+#if INTERFACE
+#define TCP_CHECKFD(FD) \
+do \
+{ \
+ if (FD > tcp_maxfd) \
+    { \
+        tcp_maxfd = FD; \
+    } \
+} while (0)
+#endif
+
+/* #define CA_FD_SET(TYPE, FDS) \ */
+/*     if (caglobals.tcp.TYPE.fd != OC_INVALID_SOCKET) \ */
+/*     { \ */
+/*         FD_SET(caglobals.tcp.TYPE.fd, FDS); \ */
+/*     } */
+
 /* FIXME: eliminate this heinous macro! */
 #define NEWSOCKET(FAMILY, NAME, ROUTING) \
 do \
@@ -165,10 +224,13 @@ do \
         NAME.port = 0; \
         NAME.fd = udp_create_socket(FAMILY, &NAME.port, ROUTING);	\
     }   \
-    CHECKFD(NAME.fd); \
+    UDP_CHECKFD(NAME.fd); \
  } while(0);
 
 #if INTERFACE
+/* LINUX: */
+#include <sys/ioctl.h>
+#include <net/if.h>
 #define IFF_UP_RUNNING_FLAGS  (IFF_UP|IFF_RUNNING)
 
 #endif	/* INTERFACE */
@@ -231,7 +293,7 @@ CAResult_t udp_config_data_sockets()
         (void)inet_pton(AF_INET6, IPv6_MULTICAST_GLB, &IPv6MulticastAddressGlb);
     }
 
-    //    if (udp_ipv6enabled) {
+    //    if (udp_ipv6_is_enabled) {
 #ifdef ENABLE_IPV6
     OIC_LOG_V(DEBUG, TAG, "Enabling IPv6 UDP data sockets");
     NEWSOCKET(AF_INET6, udp_u6, false);
@@ -244,10 +306,10 @@ CAResult_t udp_config_data_sockets()
 #endif
 	//    }
 
-	//    if (udp_ipv4enabled) {
+	//    if (udp_ipv4_is_enabled) {
 #ifdef ENABLE_IPV4
     OIC_LOG_V(DEBUG, TAG, "Enabling IPv4 UDP data sockets");
-    udp_ipv4enabled = true;  // only needed to run CA tests
+    udp_ipv4_is_enabled = true;  // only needed to run CA tests
     NEWSOCKET(AF_INET, udp_u4, false);
     NEWSOCKET(AF_INET, udp_u4s, false);
     NEWSOCKET(AF_INET, udp_m4, true);
@@ -304,7 +366,7 @@ void udp_cleanup()
     CADeInitializeMonitorGlobals();
 }
 
-#if EXPORT_INTERFACE
+#if INTERFACE
 #define CLOSE_SOCKET(TYPE) \
     if (TYPE.fd != OC_INVALID_SOCKET) \
     { \
@@ -327,13 +389,12 @@ LOCAL void udp_close_data_sockets()
     /* CAUnregisterForAddressChanges(); */
 }
 
-
 void applyMulticastToInterface4(uint32_t ifindex)
 {
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
     OIC_LOG_V(DEBUG, TAG, "Adding IF %d to IPv4 multicast group", ifindex);
 #endif
-    if (!udp_ipv4enabled)
+    if (!udp_ipv4_is_enabled)
     {
         return;
     }
@@ -366,7 +427,7 @@ void applyMulticastToInterface4(uint32_t ifindex)
     }
 }
 
-void applyMulticast6(CASocketFd_t fd, struct in6_addr *addr, uint32_t ifindex)
+LOCAL void applyMulticast6(CASocketFd_t fd, struct in6_addr *addr, uint32_t ifindex)
 {
     struct ipv6_mreq mreq = { .ipv6mr_interface = ifindex };
 
@@ -388,7 +449,7 @@ void applyMulticastToInterface6(uint32_t ifindex)
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
     OIC_LOG_V(DEBUG, TAG, "Adding IF %d to IPv6 multicast group", ifindex);
 #endif
-    if (!udp_ipv6enabled)
+    if (!udp_ipv6_is_enabled)
     {
         return;
     }
@@ -413,17 +474,18 @@ void applyMulticastToInterface6(uint32_t ifindex)
 CAResult_t udp_add_ifs_to_multicast_groups()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    if (udp_started)
+    if (udp_is_started)
     {
         OIC_LOG(DEBUG, TAG, "Adapter is started already, exiting");
         return CA_STATUS_OK;
     }
 
     // GAR: get all if/addresses; list is on heap, it is NOT g_network_interfaces
-    u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
+    errno = 0;
+    u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0);
     if (!iflist)
     {
-        OIC_LOG_V(ERROR, TAG, "CAIPGetInterfaceInformation() failed: %s", strerror(errno));
+        OIC_LOG_V(ERROR, TAG, "udp_get_ifs_for_rtm_newaddr() failed: %s", strerror(errno));
         return CA_STATUS_FAILED;
     }
 
@@ -481,7 +543,7 @@ CAResult_t udp_close_sockets()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
-    u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
+    u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0);
     if (!iflist)
     {
         OIC_LOG_V(ERROR, TAG, "Get interface info failed: %s", strerror(errno));

@@ -1,5 +1,7 @@
 = udpip
 
+The udpip package provides UDP services to the upper layers of the stack.
+
 WARNING: doc is Work In Progress
 
 Tasks:
@@ -8,17 +10,6 @@ Tasks:
 * exhibit (send) messages
 * monitor interface/addr status messages - netlink socket (CARegisterForAddressChanges) select/recvmsg
 
-
-Observation/monitoring flow (caipserver.c):
-
-CAIpStartServer CAReceiveHandler to threadpool
-CAReceiveHandler loop => CAFindReadyMessage => CASelectReturned
-for data messages, CASelectReturned calls CAReceiveMessage
-for if change messages, CASelectReturned calls CAFindInterfaceChange, CAProcessNewInterface
-for shutdown messages, CASelectReturned quits
-
-CAFindInterfaceChange -> CAIPGetInterfaceInformation
-CAIPGetInterfaceInformation => getifaddrs, converts result to list of CAInterface_t
 
 Naming fixes:
 CARegisterForAddressChanges -> initialize_interface_monitor (i.e. create the netlink socket)
@@ -33,6 +24,17 @@ CAProcessNewInterface       -> join_multicast_group
 * list local interfaces
 
 * respond dynamically to network/interface changes
+
+=== callback hell
+
+* CAReceiveMessage calls g_packetReceivedCallback
+* g_packetReceivedCallback was set to CAIPPacketReceivedCB (caipadapter.c)
+* CAIPPacketReceivedCB calls g_networkPacketCallback (and does nothing else)
+* g_networkPacketCallback was set to ifc_CAReceivedPacketCallback
+* ifc_CAReceivedPacketCallback calls g_networkPacketReceivedCallback (and does nothing else)
+* g_networkPacketReceivedCallback was set to mh_CAReceivedPacketCallback
+
+We short-circuit this and have CAReceiveMessage call mh_CAReceivedPacketCallback directly.
 
 == interface/endpoint lists
 
@@ -223,6 +225,28 @@ OCInitializeInternal(mode, TransportFlags, OCTransportFlags, OCTransportAdapter/
 
 === network monitoring
 
+The monitoring logic is impossibly obscure. Let's sum it up: what is
+supposed to happen, in the end, when a network interface comes up or
+goes down?
+
+    1  local endpoint list is updated
+    2  sockets on the interface (by index) are added to the multicast group
+    3  call OCDefaultAdapterStateChangedHandler (a NOP)
+                 OCDefaultConnectionStateChangedHandler
+		 ==> CopyEndpointToDevAddr
+		 ==> GiveStackFeedBackObserverNotInterested
+
+Observation/monitoring flow (caipserver.c):
+
+CAIpStartServer CAReceiveHandler to threadpool
+CAReceiveHandler loop => CAFindReadyMessage => CASelectReturned
+for data messages, CASelectReturned calls CAReceiveMessage
+for if change messages, CASelectReturned calls CAFindInterfaceChange, CAProcessNewInterface
+for shutdown messages, CASelectReturned quits
+
+CAFindInterfaceChange -> CAIPGetInterfaceInformation
+CAIPGetInterfaceInformation => getifaddrs, converts result to list of CAInterface_t
+
 
 [source,]
 ----
@@ -230,11 +254,19 @@ OCInitializeInternal passes default handlers:
 => CARegisterNetworkMonitorHandler (comm/util/cautilinterface.c) # 1-line wrapper
 ==> CASetNetworkMonitorCallbacks (comm/util/cautilinterface.c) # 1-line wrapper
 ===> AddNetworkStateChangedCallback (cainterfacecontroller.c)
-
-handlers:
-OCDefaultAdapterStateChangedHandler (ocstack.c) - sends presence notification
-OCDefaultConnectionStateChangedHandler (ocstack.c)
+             which appends the handlers/callbacks to g_networkChangeCallbackList
 ----
+
+handlers passed by ocstack/OCInitializeInternal/CARegisterNetworkMonitorHandler:
+OCDefaultAdapterStateChangedHandler (ocstack.c) - sends presence notification
+OCDefaultConnectionStateChangedHandler (ocstack.c) - connection-oriented transports only?
+
+NOTE: CARegisterNetworkMonitorHandler only called once, so the default
+handlers are used by all transports
+
+In the end, these default handlers are called by cainterfacecontroller::CAAdapterChangedCallback, which is called directly by udp_status_manager::udp_if_change_handler
+
+
 
 AddNetworkStateChangedCallback adds the CB to global handlers list:
 g_networkChangeCallbackList (cainterfacecontroller.c)
@@ -277,7 +309,110 @@ CAIpStartServer (caipserver.c/) # adds CAReceiveHandler to threadpool
 
 how is this related to the network monitor callbacks? CAAdapterChangedCallback, etc.
 
+CASelectReturned: if caglobals.ip.netlinkFd is set then:
+==> get list of IFs (CAInterfact_t) underlying all RTM_NEWADDRs (CAFindInterfaceChange)
+==> CAProcessNewInterface for each
 
+CAFindInterfaceChange (platform-dependent) called by CASelectReturned on caglobals.ip.netlinkFd
+rename: udp_if_change_handler_<platform>
+linux: returns iflist, u_arraylist_t of CAInterface_t (name, index, flags, family, addr)
+=> recvmsg(caglobals.ip.netlinkFd...)
+case RTM_DELADDR: if in CACmpNetworkList, then
+==> CARemoveNetworkMonitorList(ifiIndex);
+==> CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
+        rename: udp_if_change_handler
+case RTM_NEWADDR:
+==> CAIPGetInterfaceInformation(ifaddrmsg->ifa_index)
+==> 
+default: continue
+
+return: iflist containing only RTM_NEWADDR records
+
+CAIPGetInterfaceInformation called by CAFindInterfaceChange for
+RTM_NEWADDR items arg is index of interface. 0 means all interfaces.
+rename: udp_get_ifs_for_rtm_newaddr
+
+this is a complex routine, with
+side-effects. Result is iflist of CAInterface_t items, one per added
+interface. Method is to iterate over all addresses (getifaddrs) to
+extract list of unique interfaces.
+
+    0  create iflist for CAInterface_t items CAInterface_t (name, index, flags, family, addr)
+    1  get all addresses (getifaddrs)
+    2  iterate over addrs:
+        ignore loopback, anything not IPv4 or IPv6
+	convert ifname to index of interface (if_nametoindex), e.g. en1 to 4
+	search iflist for CAInterface_t item with matching index
+	   if found, continue (this interface has already been encountered
+	   	   otherwise:
+		       create the CAInterface_t item for the interface of the address (convert addr to string)
+		       add the CAInterface_t item to iflist
+		       check to see if item's index matches any entry in g_netInterfaceList
+		            => CACmpNetworkList(ifitem->index);
+			    if not found, then add item to g_netInterfaceList
+
+			        created a new CAInterface_t (CANewInterfaceItem)
+				CAAddNetworkMonitorList
+				CAIPPassNetworkChangesToAdapter  (rename: udp_if_change_handler)
+
+    3 finally, return iflist (list of CAInterface_t items, one per new interface)
+
+CAProcessNewInterface called by CASelectReturned once per RTM_NEWADDR interface
+rename to udp_add_if_to_multicast_groups
+==> applyMulticastToInterface6 or applyMulticastToInterface4
+
+CAIPPassNetworkChangesToAdapter(s)  (rename: udp_if_change_handler)
+it iterates over g_adapterCallbackList, invoking item->callback on each
+i.e. this calls the nw change handler for each transport
+For UPD, the g_adapterCallbackList item is CAIPAdapterHandler, set by CAStartIP calling CAIPStartNetworkMonitor, calling CAIPSetNetworkMonitorCallback, which adds it to g_adapterCallbackList
+this will eventually call OCDefaultAdapterStateChangedHandler with the transport and status?
+
+CAIPAdapterHandler:
+rename: udp_status_change_handler, integrate into udp_if_change_handler (was CAIPPassNetworkChangesToAdapter)
+==> CAUpdateStoredIPAddressInfo (g_ownIpEndpointList)
+            rename: udp_update_local_endpoint_cache(status)
+==> g_networkChangeCallback(adapter, status) => CAAdapterChangedCallback
+==> if status down and WITH_DTLS: CAcloseSslConnectionAll(CA_ADAPTER_IP);
+
+In OpenOCF we collapse CAIPPassNetworkChangesToAdapter and CAIPAdapterHandler into udp_if_change_handler
+
+g_networkChangeCallback: only one, set by CAInitializeIP, which passes CAAdapterChangedCallback
+
+CAAdapterChangedCallback: adds g_networkChangeCallbackList items to g_networkChangeCallbackThread
+==> create CANetworkCallbackThreadInfo_t item holding:
+            OCDefaultAdapterStateChangedHandler, CA_ADAPTER_IP, UP status
+==> add CANetworkCallbackThreadInfo_t item to g_networkChangeCallbackThread (CAQueueingThreadAddData)
+
+CAUpdateStoredIPAddressInfo called by CAIPAdapterHandler
+rename: udp_update_local_ep_cache
+case status UP:
+==> CAGetIPInterfaceInformation, which gets endpoint list from iflist (list of changed interfaces)
+==> adds eps to g_ownIpEndpointList
+case status DOWN: clear g_ownIpEndpointList
+
+udp_update_local_endpoint_cache: @was CAUpdateStoredIPAddressInfo
+==> udp_get_local_endpoints @was CAGetIPInterfaceInformation
+====> CAIPGetInterfaceInformation(0) - returns live list of ALL unique CAInterface_t or IFs, not addresses
+
+ocstack:
+OCInitializeInternal
+==> CARegisterNetworkMonitorHandler
+====> CASetNetworkMonitorCallbacks(CAAdapterStateChangedCB, CAConnectionStateChangedCB)
+======> AddNetworkStateChangedCallback - adds to g_networkChangeCallbackList
+
+g_networkChangeCallbackList items are put on
+g_networkChangeCallbackThread by CAAdapterChangedCallback,
+CAConnectionChangedCallback
+
+OCDefaultAdapterStateChangedHandler (ocstack)
+    previously:if WITH_PRESENSE, then SendPresenceNotification
+    currently: NOP
+
+This is crazy.  g_adapterCallbackList, g_networkChangeCallback, g_networkChangeCallbackList
+
+We have g_networkChangeCallback, set by CAInitializeIP to CAAdapterChangedCallback
+which iterates over g_networkChangeCallbackList, set by InitializeInternal (etc) to
+         OCDefaultAdapterStateChangedHandler, OCDefaultConnectionStateChangedHandler
 
 
 === servers

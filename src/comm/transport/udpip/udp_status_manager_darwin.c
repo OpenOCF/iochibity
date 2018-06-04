@@ -1,3 +1,7 @@
+/** @file udp_status_manager_darwin.c
+ *
+ * @was: caipserver_darwin.c
+ */
 /* ****************************************************************
  *
  * Copyright 2014 Samsung Electronics All Rights Reserved.
@@ -24,7 +28,7 @@
 #define _GNU_SOURCE // for in6_pktinfo
 #endif
 
-#include "caipserver_darwin.h"
+#include "udp_status_manager_darwin.h"
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_SOCKET_H
@@ -54,7 +58,9 @@
 
 #include <inttypes.h>
 
+#if INTERFACE
 #include <SystemConfiguration/SystemConfiguration.h>
+#endif
 
 #define USE_IP_MREQN
 
@@ -63,102 +69,6 @@
  */
 #define TAG "OIC_DARWIN_CA_IP_SERVER"
 
-/* FIXME: this works for data messages but not for network status
- change messages (netlinkFd).  use mac stuff for that instead of
- netlink. */
-/* void CAFindReadyMessage() */
-/* { */
-/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
-/*     fd_set readFds; */
-/*     struct timeval timeout; */
-
-/*     timeout.tv_sec = udp_selectTimeout; */
-/*     timeout.tv_usec = 0; */
-/*     struct timeval *tv = udp_selectTimeout == -1 ? NULL : &timeout; */
-
-/*     FD_ZERO(&readFds); */
-/*     SET(udp_u6,  &readFds) */
-/*     SET(udp_u6s, &readFds) */
-/*     SET(udp_u4,  &readFds) */
-/*     SET(udp_u4s, &readFds) */
-/*     SET(udp_m6,  &readFds) */
-/*     SET(udp_m6s, &readFds) */
-/*     SET(udp_m4,  &readFds) */
-/*     SET(udp_m4s, &readFds) */
-
-/*     if (caglobals.ip.shutdownFds[0] != -1) */
-/*     { */
-/*         FD_SET(caglobals.ip.shutdownFds[0], &readFds); */
-/*     } */
-/*     if (caglobals.ip.netlinkFd != OC_INVALID_SOCKET) */
-/*     { */
-/*         FD_SET(caglobals.ip.netlinkFd, &readFds); */
-/*     } */
-
-/*     int ret = select(udp_maxfd + 1, &readFds, NULL, NULL, tv); */
-
-/*     if (udp_terminate) */
-/*     { */
-/*         OIC_LOG_V(DEBUG, TAG, "Packet receiver Stop request received."); */
-/*         return; */
-/*     } */
-
-/*     if (0 == ret) */
-/*     { */
-/* 	OIC_LOG_V(DEBUG, TAG, "%s select expired", __func__); */
-/*         return; */
-/*     } */
-/*     else if (0 < ret) */
-/*     { */
-/*         CASelectReturned(&readFds, ret); */
-/*     } */
-/*     else // if (0 > ret) */
-/*     { */
-/*         OIC_LOG_V(FATAL, TAG, "select error %s", CAIPS_GET_ERROR); */
-/*         return; */
-/*     } */
-/* } */
-
-/* FIXME: make it work for macOS - netlinkFd doesn't break but it doesn't work on os x */
-/* void CASelectReturned(fd_set *readFds, int ret) */
-/* { */
-/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
-/*     (void)ret; */
-/*     CASocketFd_t fd = OC_INVALID_SOCKET; */
-/*     CATransportFlags_t flags = CA_DEFAULT_FLAGS; */
-
-/*     while (!udp_terminate) */
-/*     { */
-/*         ISSET(udp_u6,  readFds, CA_IPV6) */
-/*         else ISSET(udp_u6s, readFds, CA_IPV6 | CA_SECURE) */
-/*         else ISSET(udp_u4,  readFds, CA_IPV4) */
-/*         else ISSET(udp_u4s, readFds, CA_IPV4 | CA_SECURE) */
-/*         else ISSET(udp_m6,  readFds, CA_MULTICAST | CA_IPV6) */
-/*         else ISSET(udp_m6s, readFds, CA_MULTICAST | CA_IPV6 | CA_SECURE) */
-/*         else ISSET(udp_m4,  readFds, CA_MULTICAST | CA_IPV4) */
-/*         else ISSET(udp_m4s, readFds, CA_MULTICAST | CA_IPV4 | CA_SECURE) */
-/* 	/\* not implemented - netlinkFd is always INVALID SOCKET on OS X *\/ */
-/*         /\* else if ((caglobals.ip.netlinkFd != OC_INVALID_SOCKET) && FD_ISSET(caglobals.ip.netlinkFd, readFds)) *\/ */
-/*         else if (FD_ISSET(caglobals.ip.shutdownFds[0], readFds)) */
-/*         { */
-/*             char buf[10] = {0}; */
-/*             ssize_t len = read(caglobals.ip.shutdownFds[0], buf, sizeof (buf)); */
-/*             if (-1 == len) */
-/*             { */
-/*                 continue; */
-/*             } */
-/*             break; */
-/*         } */
-/*         else */
-/*         { */
-/*             break; */
-/*         } */
-/*         (void)CAReceiveMessage(fd, flags); */
-/*         FD_CLR(fd, readFds); */
-/*     } */
-/* } */
-
-// GAR why isn't this  in nwmonitor?
 void CADeInitializeMonitorGlobals()
 {
     /* Currently, same as for posix. that will change */
@@ -175,6 +85,7 @@ void CADeInitializeMonitorGlobals()
     }
 }
 
+/* OSX-specific */
 static OSStatus CreateIPAddressListChangeCallbackSCF(
 					      /* SCDynamicStoreCallBack callback, */
 					      void *contextPtr,
@@ -187,8 +98,7 @@ void *ip_watcher(void *data)
     CFRunLoopSourceRef sourceRef = NULL;
     OSStatus result;
 
-    result = CreateIPAddressListChangeCallbackSCF(// IPConfigChangedCallback,
-						  NULL, /* void* contextPtr */
+    result = CreateIPAddressListChangeCallbackSCF(NULL, /* void* contextPtr */
 						  &storeRef,
 						  &sourceRef);
     if (result != noErr) {
@@ -272,8 +182,8 @@ void CAInitializeFastShutdownMechanism()
             caglobals.ip.shutdownFds[1] = -1;
         }
     }
-    CHECKFD(caglobals.ip.shutdownFds[0]);
-    CHECKFD(caglobals.ip.shutdownFds[1]);
+    UDP_CHECKFD(caglobals.ip.shutdownFds[0]);
+    UDP_CHECKFD(caglobals.ip.shutdownFds[1]);
 /* #endif */
     if (-1 == ret)
     {
@@ -288,7 +198,8 @@ void CAInitializeFastShutdownMechanism()
 /* https://developer.apple.com/library/content/technotes/tn1145/_index.html#//apple_ref/doc/uid/DTS10002984-CH1-SECGETTINGIPLIST */
 
 
-static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedKeys, void *info)
+// @rewrite udp_if_change_handler_darwin @was CAFindInterfaceChange
+void udp_if_change_handler_darwin(SCDynamicStoreRef store, CFArrayRef changedKeys, void *info)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     CFIndex nameCount = CFArrayGetCount( changedKeys );
@@ -310,9 +221,9 @@ static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedK
 
     // NB: CAFindInterfaceChange calls
     // CAIPPassNetworkChangesToTransports for deletions,
-    // CAIPGetInterfaceInformation(ifiIndex) for additions
+    // udp_get_ifs_for_rtm_newaddr(ifiIndex) for additions
 
-    u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
+    u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0);
     if (iflist) {
 	size_t listLength = u_arraylist_length(iflist);
 	for (size_t i = 0; i < listLength; i++)
@@ -328,7 +239,14 @@ static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedK
 	OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
     }
 
-    CAIPPassNetworkChangesToTransports(CA_INTERFACE_UP);
+    // udp_if_change_handler(CA_INTERFACE_UP); // @was CAIPPassNetworkChangesToTransports
+#ifdef IP_ADAPTER
+    udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler
+#endif
+#ifdef TCP_ADAPTER
+    tcp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CATCPAdapterHandler
+#endif
+
     // CFRelease(store);
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
@@ -440,7 +358,7 @@ static OSStatus CreateIPAddressListChangeCallbackSCF(
     context.info = contextPtr;
     ref = SCDynamicStoreCreate( NULL,
                                 CFSTR("AddIPAddressListChangeCallbackSCF"),
-                                IPConfigChangedCallback,
+                                udp_if_change_handler_darwin,
                                 &context);
     err = MoreSCError(ref);
 

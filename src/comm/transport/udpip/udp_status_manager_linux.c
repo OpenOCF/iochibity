@@ -103,7 +103,7 @@
 
 /*     int ret = select(udp_maxfd + 1, &readFds, NULL, NULL, tv); */
 
-/*     if (udp_terminate) */
+/*     if (udp_is_terminating) */
 /*     { */
 /*         OIC_LOG_V(DEBUG, TAG, "Packet receiver Stop request received."); */
 /*         return; */
@@ -132,7 +132,7 @@
 /*     CASocketFd_t fd = OC_INVALID_SOCKET; */
 /*     CATransportFlags_t flags = CA_DEFAULT_FLAGS; */
 
-/*     while (!udp_terminate) */
+/*     while (!udp_is_terminating) */
 /*     { */
 /*         ISSET(udp_u6,  readFds, CA_IPV6) */
 /*         else ISSET(udp_u6s, readFds, CA_IPV6 | CA_SECURE) */
@@ -226,7 +226,7 @@ void CARegisterForAddressChanges()
         }
         else
         {
-            CHECKFD(udp_netlinkFd);
+            UDP_CHECKFD(udp_netlinkFd);
         }
     }
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
@@ -238,8 +238,8 @@ void CARegisterForAddressChanges()
 /*     udp_selectTimeout = -1; // don't poll for shutdown */
 /*     int ret = -1; */
 /*     ret = pipe2(udp_shutdownFds, O_CLOEXEC); */
-/*     CHECKFD(udp_shutdownFds[0]); */
-/*     CHECKFD(udp_shutdownFds[1]); */
+/*     UDP_CHECKFD(udp_shutdownFds[0]); */
+/*     UDP_CHECKFD(udp_shutdownFds[1]); */
 /*     if (-1 == ret) */
 /*     { */
 /*         OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR); */
@@ -251,69 +251,68 @@ void CARegisterForAddressChanges()
 void CAInitializeFastShutdownMechanism(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    caglobals.ip.selectTimeout = -1; // don't poll for shutdown
+    udp_selectTimeout = -1; // don't poll for shutdown
     int ret = -1;
 #if defined(WSA_WAIT_EVENT_0)
-    caglobals.ip.shutdownEvent = WSACreateEvent();
-    if (WSA_INVALID_EVENT != caglobals.ip.shutdownEvent)
+    udp_shutdownEvent = WSACreateEvent();
+    if (WSA_INVALID_EVENT != udp_shutdownEvent)
     {
         ret = 0;
     }
 #elif defined(HAVE_PIPE2)
-    ret = pipe2(caglobals.ip.shutdownFds, O_CLOEXEC);
-    CHECKFD(caglobals.ip.shutdownFds[0]);
-    CHECKFD(caglobals.ip.shutdownFds[1]);
+    ret = pipe2(udp_shutdownFds, O_CLOEXEC);
+    UDP_CHECKFD(udp_shutdownFds[0]);
+    UDP_CHECKFD(udp_shutdownFds[1]);
 #else
-    ret = pipe(caglobals.ip.shutdownFds);
+    ret = pipe(udp_shutdownFds);
     if (-1 != ret)
     {
-        ret = fcntl(caglobals.ip.shutdownFds[0], F_GETFD);
+        ret = fcntl(udp_shutdownFds[0], F_GETFD);
         if (-1 != ret)
         {
-            ret = fcntl(caglobals.ip.shutdownFds[0], F_SETFD, ret|FD_CLOEXEC);
+            ret = fcntl(udp_shutdownFds[0], F_SETFD, ret|FD_CLOEXEC);
         }
         if (-1 != ret)
         {
-            ret = fcntl(caglobals.ip.shutdownFds[1], F_GETFD);
+            ret = fcntl(udp_shutdownFds[1], F_GETFD);
         }
         if (-1 != ret)
         {
-            ret = fcntl(caglobals.ip.shutdownFds[1], F_SETFD, ret|FD_CLOEXEC);
+            ret = fcntl(udp_shutdownFds[1], F_SETFD, ret|FD_CLOEXEC);
         }
         if (-1 == ret)
         {
-            close(caglobals.ip.shutdownFds[1]);
-            close(caglobals.ip.shutdownFds[0]);
-            caglobals.ip.shutdownFds[0] = -1;
-            caglobals.ip.shutdownFds[1] = -1;
+            close(udp_shutdownFds[1]);
+            close(udp_shutdownFds[0]);
+            udp_shutdownFds[0] = -1;
+            udp_shutdownFds[1] = -1;
         }
     }
-    CHECKFD(caglobals.ip.shutdownFds[0]);
-    CHECKFD(caglobals.ip.shutdownFds[1]);
+    UDP_CHECKFD(udp_shutdownFds[0]);
+    UDP_CHECKFD(udp_shutdownFds[1]);
 #endif
     if (-1 == ret)
     {
         OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR);
-        caglobals.ip.selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
+        udp_selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
     }
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 
-// @rewrite  CARemoveFromAddressList @was  CARemoveNetworkMonitorList
-static void CARemoveFromAddressList(int ifiindex)
+static void CARemoveFromInterfaceList(int ifiindex) // @was  CARemoveNetworkMonitorList
 {
-    VERIFY_NON_NULL_VOID(g_network_interfaces, TAG, "g_network_interfaces is NULL");
+    VERIFY_NON_NULL_VOID(g_netInterfaceList, TAG, "g_netInterfaceList is NULL");
 
     oc_mutex_lock(g_networkMonitorContextMutex);
 
-    size_t list_length = u_arraylist_length(g_network_interfaces);
+    size_t list_length = u_arraylist_length(g_netInterfaceList);
     for (size_t list_index = 0; list_index < list_length; list_index++)
     {
         CAInterface_t *removedifitem = (CAInterface_t *) u_arraylist_get(
-                g_network_interfaces, list_index);
+                g_netInterfaceList, list_index);
         if (removedifitem && ((int)removedifitem->index) == ifiindex)
         {
-            if (u_arraylist_remove(g_network_interfaces, list_index))
+            if (u_arraylist_remove(g_netInterfaceList, list_index))
             {
                 OICFree(removedifitem);
                 oc_mutex_unlock(g_networkMonitorContextMutex);
@@ -326,7 +325,10 @@ static void CARemoveFromAddressList(int ifiindex)
     return;
 }
 
-u_arraylist_t *CAFindInterfaceChange()
+// FIXME: not called currently in udp_*
+// @was: called by caipserver_linux::CASelectReturned when netlinkFd ready
+// TODO: implement status monitoring for Linux
+u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
 {
     u_arraylist_t *iflist = NULL;
 #if defined(__linux__) || defined (__ANDROID__) /* GAR:  Darwin support */
@@ -340,7 +342,7 @@ u_arraylist_t *CAFindInterfaceChange()
                           .msg_iov = &iov,
                           .msg_iovlen = 1 };
 
-    ssize_t len = recvmsg(caglobals.ip.netlinkFd, &msg, 0);
+    ssize_t len = recvmsg(udp_netlinkFd, &msg, 0);
     /* OIC_LOG_V(DEBUG, TAG, "Rtnetlink recvmsg len: %d", len); */
 
     for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len))
@@ -353,6 +355,8 @@ u_arraylist_t *CAFindInterfaceChange()
 		OIC_LOG_V(DEBUG, TAG, "Rtnetlink event type RTM_NEWADDR");
 	    } else if (nh->nlmsg_type == RTM_NEWLINK) {
 		OIC_LOG_V(DEBUG, TAG, "Rtnetlink event type RTM_NEWLINK");
+	    } else if (nh->nlmsg_type == RTM_DELLINK) {
+		OIC_LOG_V(DEBUG, TAG, "Rtnetlink event type RTM_DELLINK");
 	    } else {
 		OIC_LOG_V(DEBUG, TAG, "Rtnetlink event type %d", nh->nlmsg_type);
 	    }
@@ -372,11 +376,16 @@ u_arraylist_t *CAFindInterfaceChange()
             if (ifa)
             {
                 int ifiIndex = ifa->ifa_index;
-                bool isFound = CACmpNetworkList(ifiIndex);
-                if (isFound)
-                {
-                    CARemoveFromAddressList(ifiIndex);
-                    CAIPPassNetworkChangesToTransports(CA_INTERFACE_DOWN);
+                bool isFound = InterfaceListContains(ifiIndex);
+                if (isFound) {
+		    CARemoveFromInterfaceList(ifiIndex);
+                    //udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports
+#ifdef IP_ADAPTER
+		    udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
+#endif
+#ifdef TCP_ADAPTER
+		    tcp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); //@was CATCPAdapterHandler
+#endif
 		    // @was CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
                 }
             }
@@ -389,8 +398,8 @@ u_arraylist_t *CAFindInterfaceChange()
         {
             int ifiIndex = ifa->ifa_index;
 	    /* FIXME: BUG. what if > 1 new addrs? only last will be in iflist */
-	    // GAR: CAIPGetInterfaceInformation will call CAIPPassNetworkChangesToAdapter
-            iflist = CAIPGetInterfaceInformation(ifiIndex);
+	    // GAR: udp_get_ifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter
+            iflist = udp_get_ifs_for_rtm_newaddr(ifiIndex);
             if (!iflist)
             {
                 OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));

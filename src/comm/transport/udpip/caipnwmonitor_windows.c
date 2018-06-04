@@ -129,7 +129,7 @@ static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t 
 /**
  * Destroy the network monitoring list.
  */
-void CAIPDestroyNetworkAddressList()
+void CAIPDestroyNetworkInterfaceList()
 {
     // Free any new addresses waiting to be indicated up.
     while (g_CAIPNetworkMonitorNewAddressQueue)
@@ -167,7 +167,8 @@ void CAIPDestroyNetworkAddressList()
  * @param[in] addr     Address to look for.
  * @return true if already in the list, false if not.
  */
-static bool CACmpNetworkList(uint32_t ifIndex, int family, const char *addr, u_arraylist_t *iflist)
+static bool InterfaceListContains(uint32_t ifIndex, // @was InterfaceListContains
+			     int family, const char *addr, u_arraylist_t *iflist)
 {
     size_t list_length = u_arraylist_length(iflist);
     for (size_t list_index = 0; list_index < list_length; list_index++)
@@ -215,7 +216,7 @@ static void CALLBACK IpAddressChangeCallback(void *context,
         for (size_t i = 0; i < oldLen; i++)
         {
             CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(oldList, i);
-            if (!CACmpNetworkList(ifitem->index, ifitem->family, ifitem->addr, newList))
+            if (!InterfaceListContains(ifitem->index, ifitem->family, ifitem->addr, newList))
             {
                 g_CAIPNetworkMonitorSomeAddressWentAway = true;
                 break;
@@ -226,7 +227,7 @@ static void CALLBACK IpAddressChangeCallback(void *context,
         for (size_t i = 0; i < newLen; i++)
         {
             CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(newList, i);
-            if (!CACmpNetworkList(ifitem->index, ifitem->family, ifitem->addr, oldList))
+            if (!InterfaceListContains(ifitem->index, ifitem->family, ifitem->addr, oldList))
             {
                 // Create a new CAInterface_t to add to the queue to indicate to the higher
                 // layer.  We cannot simply invoke the callback here currently, since the
@@ -516,7 +517,7 @@ CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
  * Pass the changed network status through the stored callback.
  * Note that the current API doesn't allow us to specify which address changed,
  * the caller has to look at the return from CAFindInterfaceChange() to learn about
- * each new address, and look through CAIPGetInterfaceInformation() to see what's
+ * each new address, and look through udp_get_ifs_for_rtm_newaddr() to see what's
  * missing to detect any removed addresses.
  *
  * @param[in] status Network status to pass to the callback.
@@ -906,7 +907,7 @@ LOCAL u_arraylist_t *GetInterfaceInformation(int desiredIndex)
     return iflist;
 }
 
-u_arraylist_t *CAIPGetInterfaceInformation(int desiredIndex)
+u_arraylist_t *udp_get_ifs_for_rtm_newaddr(int desiredIndex)
 {
     OC_UNUSED(desiredIndex);
 

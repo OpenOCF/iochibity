@@ -432,7 +432,7 @@ LOCAL CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
 }
 
 #if EXPORT_INTERFACE
-#define CHECKFD(FD)
+#define UDP_CHECKFD(FD)
 #endif
 
 void CARegisterForAddressChanges()
