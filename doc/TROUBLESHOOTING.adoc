@@ -1,0 +1,15 @@
+= troubleshooting
+
+
+== build problems
+
+If you get "error: use of undeclared identifier" it's probably a makeheaders problem.
+
+1. Run ./bin/mkhdrs.sh again, with the correct --config parameter.
+2. Check your C files and make sure they start with the correct
+#include. If you create a new C file by copying an existing C file,
+don't forget to edit the #include!
+3. For #defines, structs, etc. you may need to add #if INTERFACE etc.
+4. Remove "static" from functions access across compilation units
+
+See https://www.hwaci.com/sw/mkhdr/makeheaders.html[The Makeheaders Program].

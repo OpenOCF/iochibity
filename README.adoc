@@ -212,122 +212,74 @@ These must be #undefined if compiling with the MSVC toolchain. As a
 convenience we provide `src/_openocf_config_win.h` which you can copy
 to `src/_openocf_config.h` instead of running `./configure`.
 
-=== cross-compiling
+== cross-compiling
 
-You will have to run ./configure to get the appropriate #define
-macros. that's a little tricky; see
-https://github.com/mobileink/bazel-crosscompile[bazel-crosscompile]
-for detailed examples of crosscompiling with Bazel. The relevant files
-here are in link:platforms[platforms/] and link:WORKSPACE[WORKSPACE].
+Cross-platform builds require source-code configuration and a
+toolchain for cross-compiling.  See
+link:doc/CROSSCOMPILE.adoc[CROSSCOMPILE] for details.
 
-Summary:
+=== android
 
-1. Build/install the toolchain.
+Support for Android builds is provided natively by Bazel; see the
+https://docs.bazel.build/versions/master/tutorial/android-app.html[Tutorial].
+By default, Bazel will target the armeabi-v7a architectures; to target
+one of the other architectures supported by Android you must pass the
+appropriate `--fat_apk_cpu` and `--android_cpu` options; these options
+are used in the BUILD files to configure the build. As a convenience,
+several Android configurations are defined in `tools/bazel.rc`.
 
-2. Configure the toolchain for Bazel (CROSSTOOL, etc.).
+WARNING:  Bazel will only use the Android NDK toolchain for android_binary targets.
 
-3. Build the third-party libs needed by your app.
-** run ./configure with appropriate parameters
-** run bazel build
-
-4. Configure the third-party libraries for Bazel (WORKSPACE and BUILD files).
-
-** this may include running ./configure or similar, to get the #define
-   macros needed for the target host. note you must run autoconf with
-   the target toolchain. see the example doc for details
-
-5. Configure your application (BUILD files).
-
-**  may include running ./configure, as above
-
-6. Build using the toolchain
-
-Current support for cross-compiling is based on toolchains built by
-https://crosstool-ng.github.io/[crosstool-NG].
-
-NOTE: Building crosstool-NG toolchains requires a case-sensitive file
-system. On OS X, you will have to create a disk image (dmg file) with
-a case-sensitive filesystem. It's a bit of a pain but it works. See
-https://www.jaredwolff.com/blog/cross-compiling-on-mac-osx-for-raspberry-pi/[Cross
-Compiling on Mac OSX for Raspberry Pi], or search "crosstool-ng os x".
-
-Once your toolchain is set up building is easy. For example, to target
-the Raspberry Pi 3b:
+Assuming myapp is an android_binary target, you would build it for
+arm64-v8a as follows:
 
 [source,sh]
 ----
-$ bazel build examples/simple:server --crosstool_top=//platforms/rpi3b:toolchain
+$ ./bin/android_config.sh v8a
+$ bazel build myapp --config=android-arm8
 ----
 
-See link:tools/bazel.rc[tools/bazel.rc]. Copy that file to `<root>/.bazelrc` to customize.
+This configuration is defined in `tools/bazel.rc`.  The config shell
+script will run `./configure` and build the `:mkhdrs` target with
+appropriate parameters to configure the source code.
 
+Cross-platform builds using
+https://crosstool-ng.github.io/[crosstool-NG] toolchains to target the
+Raspberry Pi 3B and generic Linux are also supported.
 
-== Java/Android
+NOTE: crosstool-NG on MacOS requires special treatment; see
+link:doc/CROSSCOMPILE.adoc[CROSSCOMPILE] for details.
 
-See https://github.com/OpenOCF/iochibity-java[iochibity-java]
+=== raspberry pi 3b
 
+crosstool-NG toolchain: `armv8-rpi3-linux-gnueabihf`
 
-== using party libs
+Configure the source:
 
-Building third-party libs:
+[source,sh]
+----
+$ ./bin/rpi3b_config.sh
+----
 
-$ export PATH="${PATH}:/path/to/toolchain/bin"
+This will run `./configure` with appropriate parameters, and then run
+`bazel build :mkhdrs` to generate the headers.
 
-e.g. /Volumes/CrossToolNG/armv8-rpi3-linux-gnueabihf/bin"
+To build:
 
-$ export COSYSROOT=$HOME/cosysroots/rpi3b
+[source,sh]
+----
+$ bazel build tools/browser/server --config=rpi3b-arm8
+----
 
-Adjusted to match rpi3b builtin ncurses settings:
+Configurations are defined in `tools/bazel.rc`; they drive the
+config_settings used to configure the build.  The config_settings are
+defined in `config/BUILD`. The `--config` option is documented at
+https://docs.bazel.build/versions/master/user-manual.html[A User's
+Guide to Bazel].
 
-ncurses:
+=== generic linux
 
--P Inhibit generation of linemarkers in the output from the preprocessor
-
---build triple: run $ bash --version
-x86_64-pc-linux-gnu
-              # --host=armv8-rpi3-linux-gnueabihf \ apple crosstools-ng
-$ ./configure --build=x86_64-apple-darwin \
-	      --host=arm-rpi-4.9.3-linux-gnueabihf \
-              --enable-kernel=4.9.35 \
-              --prefix=/usr \
-	      --with-terminfo-dirs="/etc/terminfo:/lib/terminfo:/usr/share/terminfo" \
-	      --with-default-terminfo-dir="/etc/terminfo" \
-	      --mandir="/usr/share/man" \
-	      --without-manpages \
-	      --with-shared \
-	      --libdir="/usr/lib/arm-linux-gnueabihf" \
-              CPPFLAGS="-P"
-
-              // CPPFLAGS="-P -I$COSYSROOT/usr/include" \
-              // LDFLAGS="-L$COSYSROOT/lib \
-	      // -L$COSYSROOT/usr/lib"
-
-$ make
-$ make DESTDIR=$COSYSROOT install
-
-
-cdk: we installed ncurses in cosysroots/rpi3b, so we need to fix CPPFLAGS and LDFLAGS:
-
-$ ./configure --build=x86_64-apple-darwin \
-              --host=armv8-rpi3-linux-gnueabihf \
-              --enable-kernel=4.9.35 \
-              --prefix=/usr \
-	      --with-terminfo-dirs="/etc/terminfo:/lib/terminfo:/usr/share/terminfo" \
-	      --with-default-terminfo-dir="/etc/terminfo" \
-	      --mandir="/usr/share/man" \
-	      --without-manpages \
-	      --libdir="/usr/lib/arm-linux-gnueabihf" \
-              CPPFLAGS="-P -I$COSYSROOT/usr/include" \
-	      LDFLAGS="-L$COSYSROOT/usr/lib/arm-linux-gnueabihf"
-
-
-              // LDFLAGS="-L$COSYSROOT/lib \
-	      // -L$COSYSROOT/usr/lib"
-
-	      // --with-shared \
-$ make
-$ make DESTDIR=$COSYSROOT install
-
+crosstool-NG toolchain: x86_64-unknown-linux-gnu
 
 === notes
 

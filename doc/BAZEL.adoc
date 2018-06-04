@@ -1,3 +1,11 @@
+Debugging:
+
+Too see the dynamically generated BUILD files Bazel uses, use a bad toolchain and Bazel will tell you whare the BUILD file is.  E.g.
+
+$ bazel build foo --crosstool_top=@androidndk//:xyz
+
+Note that that BUILD.bazel file contains the CROSSTOOL stuff (toolchain definitions)
+
 Toolchains:
 
 cpu = x64_windows, compiler = cl.exe (msvc) - default windows tc

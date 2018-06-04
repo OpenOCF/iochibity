@@ -1,0 +1,4 @@
+
+epoll, kqueue, gcd? is it worth the trouble?
+
+split data and status monitoring
