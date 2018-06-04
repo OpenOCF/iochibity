@@ -55,6 +55,7 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
+#include <stdarg.h>
 #include <stdio.h>
 #include <errno.h>
 #include <assert.h>
@@ -116,11 +117,10 @@ static pthread_t oc_get_current_thread_id()
 }
 #endif
 
-OCThreadResult_t oc_thread_new(oc_thread *t, void *(*start_routine)(void *), void *arg,
-			       char *taskname // debugging
-			       )
+OCThreadResult_t oc_thread_new(oc_thread *t, void *(*start_routine)(void *), void *arg)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
     OCThreadResult_t res = OC_THREAD_SUCCESS;
     oc_thread_internal *threadInfo = (oc_thread_internal*)OICMalloc(sizeof(oc_thread_internal));
     if (NULL != threadInfo)
@@ -136,8 +136,8 @@ OCThreadResult_t oc_thread_new(oc_thread *t, void *(*start_routine)(void *), voi
         else
         {
             *t = (oc_thread)threadInfo;
-            OIC_LOG_V(ERROR, TAG, "%s: pthread_create OK: %d %s", __func__,
-		      threadInfo->thread, taskname);
+            OIC_LOG_V(ERROR, TAG, "%s: pthread_create OK: %d", __func__,
+		      threadInfo->thread);
         }
     }
     else
