@@ -44,10 +44,12 @@ typedef enum
  * e.g. "CATransportController"
  */
 // @rewrite: not needed. these can all be defined directly in transport-specific files.
+// @rewrite: original code hid the fact that these are fn ptrs; rewritten to make it clear
 typedef struct
 {
     /** Start Transport specific functions. */
     CAResult_t (*startAdapter)();
+    /* CAAdapterStart startAdapter; */
 
     /** start multicast listener */
     CAResult_t (*startListenServer)();
