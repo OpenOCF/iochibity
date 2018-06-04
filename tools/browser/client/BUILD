@@ -28,7 +28,8 @@ config_setting(
 )
 config_setting(
     name = "osx_rpi3b",
-    values = { "crosstool_top": "//platforms/rpi3b:toolchain",
+    # FIXME: add --define arm=true?
+    values = { "crosstool_top": "//tools/ctng:toolchain",
                # "host_cpu": "darwin"
                # "cpu": "armv8"
     }
@@ -36,7 +37,7 @@ config_setting(
 
 config_setting(
     name = "linux_rpi3b",
-    values = { "crosstool_top": "//platforms/rpi3b:toolchain",
+    values = { "crosstool_top": "//tools/ctng:toolchain",
                "cpu": "k8"}
 )
 
@@ -64,13 +65,15 @@ cc_binary(
              "-Isrc/ocf",
              "-Isrc/ocf/client",
              "-Isrc/portability",
-             "-Ithird_party/cjson",
-             "-Ithird_party/coap",
-             "-Ithird_party/coap/include",
-             "-Ithird_party/tinycbor/src",
+             "-Iexternal/cjson",
+             "-Iconfig/darwin",
+             "-Iconfig/darwin/coap",
+             "-Iexternal/libcoap/include",
+             "-Iexternal/libcoap/include/coap",
+             "-Iexternal/tinycbor/src",
     ]
-    + select({":osx_rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/includeZ",
-                             "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
+    + select({":osx_rpi3b": ["-Iexternal/cosysroot_osx_rpi3b/usr/include",
+                             "-Iexternal/cosysroot_osx_rpi3b/usr/include/cdk",
                              "-std=c11"],
               ":android": ["-Iexternal/cosysroot_ndk/usr/include",
                          "-Iexternal/cosysroot_ndk/usr/include/cdk",
@@ -87,27 +90,25 @@ cc_binary(
                            "-U DEBUG"],
               ":linux": ["-Iexternal/usr_local_linux/include",
                          "-Iexternal/usr_local_linux/include/cdk"],
-              "//conditions:default": ["-Iexternal/usr_local/includeX",
-                                       "-Iexternal/usr_local/include/cdk",
-                                       "-std=c11"]}), # OS X
+              "//conditions:default": ["BROKEN"]}), # OS X
     data = [":config"],
     deps = ["//src:config",
             "//include",
             "//src/ocf",
             # "//src/ocf:client",
-            "//third_party/tinycbor",
-            "//third_party/cjson",
-            "//third_party/coap"
-    ] + select({":osx_rpi3b": ["@cosysroot_rpi3b//:cdk"],
-              ":macos": ["@usr_local_macos//:cdk"],
-              ":macos64": ["@usr_local_macos//:cdk"],
-              ":linux": ["@usr_local_linux//:cdk"],
-                         # "@usr_local_linux//:ncurses"],
-              ":android": ["@cosysroot_ndk//:cdk"],
-              ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
-              "//conditions:default": ["@usr_local//:cdk"]}),
+            "@tinycbor//:tinycbor",
+            "@cjson//:cjson",
+            "@libcoap//:libcoap"
+    ] + select({":osx_rpi3b": ["@cosysroot_osx_rpi3b//:cdk"],
+                ":macos": ["@usr_local_macos//:cdk"],
+                ":macos64": ["@usr_local_macos//:cdk"],
+                ":linux": ["@usr_local_linux//:cdk"],
+                # "@usr_local_linux//:ncurses"],
+                ":android": ["@cosysroot_ndk//:cdk"],
+                ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
+                "//conditions:default": ["BORKED"]}),
     # linkstatic = 1,
-    # linkopts = ["-lcdk"],
+    # linkopts = ["-Lexternal/cosysroot_osx_rpi3b/usr/local/lib/arm-linux-gnueabihf", "-Wl,-lcdk"],
     srcs = ["action_dialog.c",
             "action_dialog.h",
             "client_main.c",

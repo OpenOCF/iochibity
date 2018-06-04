@@ -1,3 +1,5 @@
+load("//config:variables.bzl", "DEFINES")
+
 config_setting(
     name = "darwin",
     values = { "cpu": "darwin" })
@@ -20,26 +22,28 @@ cc_library(
              "-Isrc/portability",
              "-Isrc/sec",
              "-Isrc/util",
-             "-Ithird_party/coap",
-             "-Iexternal/openocf/third_party/coap",
-             "-Ithird_party/coap/include",
-             "-Iexternal/openocf/third_party/coap/include",
-             "-Ithird_party/tinycbor/src",
-             "-Iexternal/openocf/third_party/tinycbor/src",
+             "-Iconfig/darwin",
+             "-Iconfig/darwin/coap",
+             "-Iexternal/libcoap/include",
+             "-Iexternal/libcoap/include/coap",
+             "-Iexternal/tinycbor/src",
              "-Ithird_party/utlist",
              "-Iexternal/openocf/third_party/utlist"
     ] + select({"windows": [],
                 "darwin": ["-std=c11", "-UDEBUG"],
                 "darwin64": ["-std=c11", "UDEBUG"],
                 "//conditions:default": ["-std=c11"]}),
+
+    defines = DEFINES,
+
     deps = ["//src:config",
             "//src/logger",
             "//src/portability",
             "//src/sec/calendar",
             "//src/util",
-            "//third_party/coap",
             "//third_party/utlist",
-            "//third_party/tinycbor"],
+            "@libcoap//:libcoap",
+            "@tinycbor//:tinycbor"],
     srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//visibility:public"],
 )

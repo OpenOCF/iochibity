@@ -1,27 +1,5 @@
-config_setting(
-    name = "android",
-    values = { "cpu": "armeabi-v7a" }
-)
-config_setting(
-    name = "linux",
-    values = { "cpu": "k8" }
-)
-config_setting(
-    name = "darwin",
-    values = { "cpu": "darwin" }
-)
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" }
-)
-config_setting(
-    name = "msvc",
-    values = { "cpu": "x64_windows_msvc" }
-)
-config_setting(
-    name = "msys",
-    values = { "cpu": "x64_windows_msys" }
-)
+load("//config:variables.bzl", "CSTD")
+
 config_setting(
     name = "client_role",
     values = { "define": "role=client" }
@@ -39,15 +17,17 @@ cc_binary(
     # name = "libopenocf.dylib",
     name = "libopenocfa.so",
     linkshared = 1,
-    copts = ["-Ithird_party/coap",
-             "-Iexternal/openocf/third_party/coap",
-             "-Ithird_party/coap/include",
-             "-Iexternal/openocf/third_party/coap/include"
-    ] + select({":windows": [],
-                    ":msvc": [],
-                    ":msys": [],
-                    ":darwin":["-std=c11", "-U DEBUG"],
-                    "//conditions:default": ["-x c", "-std=c11"]}),
+    copts = ["-Iconfig/darwin",
+             "-Iconfig/darwin/coap",
+             "-Iexternal/libcoap",
+             "-Iexternal/libcoap/include",
+             "-Iexternal/libcoap/include/coap",
+    ] + select({"//config:windows": [],
+                "//config:msvc": [],
+                "//config:msys": [],
+                "//config:darwin":["-std=c11", "-U DEBUG"],
+                "//conditions:default": ["-x c", "-std=c11"]})
+    + CSTD,
     deps = ["//src:config",
             # "//src/ocf:interface",
             # "//src/ocf:hdrs",
@@ -58,7 +38,7 @@ cc_binary(
             "//src/portability",
             "//src/provisioning",
             "//src/sec",
-            "//third_party/coap"
+            "@libcoap//:libcoap"
     ] + select({":client_role": ["//src/ocf/ocf_services_client"],
               "//conditions:default": []}),
     visibility = ["//visibility:public"]
@@ -92,20 +72,19 @@ cc_library(
              "-Iexternal/openocf/src/sec/aclroles",
              "-Isrc/util",
              "-Iexternal/openocf/src/util",
-             "-Ithird_party/coap",
-             "-Iexternal/openocf/third_party/coap",
-             "-Ithird_party/coap/include",
-             "-Iexternal/openocf/third_party/coap/include",
-             "-Ithird_party/tinycbor/src",
-             "-Iexternal/openocf/third_party/tinycbor/src",
+             "-Iconfig/darwin",
+             "-Iconfig/darwin/coap",
+             "-Iexternal/libcoap/include",
+             "-Iexternal/libcoap/include/coap",
+             "-Iexternal/tinycbor/src",
              "-Ithird_party/utlist",
              "-Iexternal/openocf/third_party/utlist"
-    ] + select({":windows": [],
-                ":msvc": [],
-                ":msys": [],
-                "android": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
-                "linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
-                ":darwin": ["-std=c11", "-U DEBUG"],
+    ] + select({"//config:windows": [],
+                "//config:msvc": [],
+                "//config:msys": [],
+                "//config:android": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
+                "//config:linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
+                "//config:darwin": ["-std=c11", "-U DEBUG"],
                 "//conditions:default": ["-x c", "-std=c11"]}),
     deps = ["//src:config",
             "//src/comm",       # connectivity
@@ -115,9 +94,10 @@ cc_library(
             "//src/routing",
             "//src/sec",
             "//src/util",       # c_common
-            "//third_party/coap",
-            "//third_party/tinycbor",
-            "//third_party/cjson",
+            "@libcoap//:libcoap",
+            "@tinycbor//:tinycbor",
+            #"@cjson//:cjson",
+            #"//third_party/cjson",
 	    "//third_party/utlist"]
     + select({":client_role": ["//src/ocf/ocf_services_client"],
               "//conditions:default": []}),

@@ -1,16 +1,3 @@
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" }
-)
-config_setting(
-    name = "msvc",
-    values = { "cpu": "x64_windows_msvc" }
-)
-config_setting(
-    name = "msys",
-    values = { "cpu": "x64_windows_msys" }
-)
-
 cc_library(
     name = "android",
     copts = ["-Isrc",
@@ -37,13 +24,15 @@ cc_library(
              "-Iexternal/openocf/src/logger",
 	     "-Isrc/portability",
              "-Iexternal/openocf/src/portability",
-	     "-Ithird_party/coap/include",
-	     "-Iexternal/openocf/third_party/coap/include",
+             "-Iconfig/darwin",
+             "-Iconfig/darwin/coap",
+             "-Iexternal/libcoap/include",
+             "-Iexternal/libcoap/include/coap",
              "-Iexternal/local_jdk/include",
              "-Iexternal/local_jdk/include/darwin"]
-    + select({":windows": [],
-              ":msvc": [],
-              ":msys": [],
+    + select({"//config:windows": [],
+              "//config:msvc": [],
+              "//config:msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/logger",
@@ -55,7 +44,7 @@ cc_library(
     	    # "//src/comm/transport/udpip:hdrs",
             # "//src/comm/security",
             # "//src/portability",
-	    "//third_party/coap"],
+	    "@libcoap//:libcoap"],
     # hdrs = ["caifaddrs.h"],
             # "org_iotivity_ca_CaIpInterface.h"],
     srcs = ["octhread_android.c",

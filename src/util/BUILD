@@ -1,6 +1,6 @@
 # FIXME: ifaddrs to portability, do not process with makeheaders if platform has getifaddrs
 
-load("//tools/config:variables.bzl", "COPTS_ANDROID")
+load("//config:variables.bzl", "COPTS_ANDROID")
 
 config_setting(
     name = "android",
@@ -38,8 +38,8 @@ cc_library(
         "-Isrc/logger",
         "-Iexternal/openocf/src/logger",
         "-Isrc/portability",
-        "-Ithird_party/tinycbor/src",
-        "-Iexternal/openocf/third_party/tinycbor/src"]
+        "-Iexternal/tinycbor/src",
+    ]
     + select({"windows": [],
               "msvc": [],
               "msys": [],
@@ -47,7 +47,7 @@ cc_library(
               "//conditions:default": ["-std=c11",
                                        "-UDEBUG"]}),
     deps = ["//src/logger",
-            "//third_party/tinycbor",
+            "@tinycbor//:tinycbor",
             # "//third_party/ndk",
             # "//src/portability"
     ],
@@ -75,4 +75,6 @@ cc_library(
     visibility = ["//src:__subpackages__",
                   "//tools/makeheaders:__pkg__",
                   "//tools/cbor:__subpackages__"]
+    # visibility = ["//visibility:public"],
 )
+
