@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 /* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
 /* #include "ca_adapter_net_ssl.h" */
@@ -523,6 +524,9 @@ CAResult_t CAHandleRequestResponse()
     return CA_STATUS_OK;
 }
 
+#if INTERFACE
+#include <inttypes.h>
+#endif
 CAResult_t CASelectCipherSuite(const uint16_t cipher, CATransportAdapter_t adapter)
 {
     (void)(adapter); // prevent unused-parameter warning when building release variant
