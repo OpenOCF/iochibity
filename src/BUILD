@@ -1,16 +1,3 @@
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" }
-)
-config_setting(
-    name = "msvc",
-    values = { "cpu": "x64_windows_msvc" }
-)
-config_setting(
-    name = "msys",
-    values = { "cpu": "x64_windows_msys" }
-)
-
 # needed by third_party libs
 cc_library(
     name = "config",
@@ -20,10 +7,6 @@ cc_library(
             "_system.h",
             # "transport_types.h"
     ],
-    # + select({":windows": ["_openocf_config_msvc.h"],
-    #           ":msvc": ["_openocf_config_msvc.h"],
-    #           ":msys": [],
-    #           "//conditions:default": []}),
     visibility = ["//visibility:public"]
 )
 

@@ -55,7 +55,7 @@ typedef struct CAEndpoint_s
     char                    routeData[MAX_ADDR_STR_SIZE_CA]; /**< GatewayId:ClientId of
                                                                     destination. **/
 #endif
-} CAEndpoint_t;
+} CAEndpoint_t; // @rewrite -> OCLocalEndpoint
 #endif	/* INTERFACE */
 
 #if EXPORT_INTERFACE

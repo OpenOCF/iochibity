@@ -137,8 +137,7 @@ typedef struct
 
 #define MAX_REP_ARRAY_DEPTH 3
 
-// used for get/set/put/observe/etc representations
-typedef struct OCRepPayload
+typedef struct OCRepPayload	// @rewrite: -> OCResourcePayload
 {
     OCPayload base;
     char* uri;
@@ -148,8 +147,9 @@ typedef struct OCRepPayload
     struct OCRepPayload* next;
 } OCRepPayload;
 
-// used inside an OCResourcePayload inside an OCDiscoveryPayload
-typedef struct OCEndpointPayload
+// used inside an OCResourceLinkPayload inside an OCDiscoveryPayload
+// compare CAEndpoint_t for local endpoints
+typedef struct OCEndpointPayload // @rewrite => OCRemoteEndpoint
 {
     char* tps;
     char* addr;
@@ -161,13 +161,14 @@ typedef struct OCEndpointPayload
 
 // used inside an OCDiscoveryPayload
 /* GAR: a Link? OCF 1.3.0 section 7.8.2. Compare OCResource in ocresource.h */
-typedef struct OCResourcePayload
+typedef struct OCResourcePayload // @rewrite: -> OCResourceLink or OCF_Link
 {
     char* uri;			/* property "href" (mandatory) */
     char* rel;
     char* anchor; /* NB: for OIC 1.1, a transfer URI; for OCF 1.0, a OCF URI */
     OCStringLL* types;		/* property "rt" (mandatory) */
     OCStringLL* interfaces;	/* property "if" (mandatory) */
+    /* in OCF: p: { bm: x, sec: y, port: z} */
     uint8_t bitmap;		/* visibility policy bitmask: discoverable, observable */
     /* OCF 1.0: "sec" and "port" ... used only in a response payload
        when the request does not include an

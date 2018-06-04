@@ -218,7 +218,7 @@ void *u_arraylist_remove(u_arraylist_t *list, size_t index)
     return removed;
 }
 
-size_t u_arraylist_length(const u_arraylist_t *list)
+size_t u_arraylist_length(const u_arraylist_t *list) EXPORT
 {
     if (!list)
     {

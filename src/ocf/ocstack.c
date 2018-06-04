@@ -72,7 +72,7 @@
 #ifdef _MSC_VER
 #define HAVE_WS2TCPIP_H
 #else
-#define WITH_POSIX 1
+#define WITH_POSIX
 #endif
 #include "coap/coap_time.h"
 #include "coap/pdu.h"
@@ -2521,7 +2521,7 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     ocf_serverFlags |= (CATransportFlags_t)serverFlags;
     /* if (!(caglobals.serverFlags & CA_IPFAMILY_MASK)) */
     /* { */
-    /*     caglobals.serverFlags = (CATransportFlags_t)(caglobals.serverFlags|CA_IPV4|CA_IPV6o); */
+    /*     caglobals.serverFlags = (CATransportFlags_t)(caglobals.serverFlags|CA_IPV4|CA_IPV6); */
     /* } */
 
     ocf_clientFlags |= (CATransportFlags_t)clientFlags;
@@ -2545,7 +2545,7 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%s failed!!", result); goto exit;}
 
     result = CAResultToOCResult(OCSelectNetwork(transportType));
-    if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%s failed!!", result); goto exit;}
+    if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "OCSelectNetwork failed, rc %d!!", result); goto exit;}
 
     result = CAResultToOCResult(CARegisterNetworkMonitorHandler(
       OCDefaultAdapterStateChangedHandler, OCDefaultConnectionStateChangedHandler));
@@ -3699,8 +3699,7 @@ OCStackResult OC_CALL OCCreateResource(OCResourceHandle *handle,
         const char *uri,
         OCEntityHandler entityHandler,
         void *callbackParam,
-        uint8_t resourceProperties)
-EXPORT
+        uint8_t resourceProperties) EXPORT
 {
     OIC_LOG_V(INFO, TAG, "%s %s ENTRY >>>>>>>>>>>>>>>>", __func__, uri);
 
@@ -4885,6 +4884,8 @@ LOCAL OCStackResult initResources()
  */
 LOCAL void insertResource(OCResource *resource)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, resource %p", __func__, resource);
+
     if (!headResource)
     {
         headResource = resource;
@@ -4907,10 +4908,14 @@ LOCAL void insertResource(OCResource *resource)
  */
 OCResource *findResource(OCResource *resource)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, searching for %p", __func__, resource);
+
     OCResource *pointer = headResource;
 
     while (pointer)
     {
+	OIC_LOG_V(DEBUG, TAG, "resource ptr: %p", pointer);
+
         if (pointer == resource)
         {
             return resource;
@@ -5152,6 +5157,7 @@ void OCDeleteResourceAttributes(OCAttribute *rsrcAttributes)
 LOCAL void insertResourceType(OCResource *resource,
         OCResourceType *resourceType)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCResourceType *pointer = NULL;
     OCResourceType *previous = NULL;
     if (!resource || !resourceType)
@@ -5159,7 +5165,7 @@ LOCAL void insertResourceType(OCResource *resource,
         return;
     }
     // resource type list is empty.
-    else if (!resource->rsrcType)
+   else if (!resource->rsrcType)
     {
         resource->rsrcType = resourceType;
     }
@@ -5988,21 +5994,22 @@ EXPORT
  * @param adapter   CA network adapter type.
  * @param enabled   current adapter state.
  */
-LOCAL void OCDefaultAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled)
+void OCDefaultAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     OC_UNUSED(adapter);
     OC_UNUSED(enabled);
 
-#ifdef WITH_PRESENCE
-    if (presenceResource.handle)
-    {
-        OCResource *resourceHandle = (OCResource *)presenceResource.handle;
-        resourceHandle->sequenceNum = OCGetRandom();
-        SendPresenceNotification(resourceHandle->rsrcType, OC_PRESENCE_TRIGGER_CHANGE);
-    }
-#endif
+    /* 1.4: */
+/* #ifdef WITH_PRESENCE */
+/*     if (presenceResource.handle) */
+/*     { */
+/*         OCResource *resourceHandle = (OCResource *)presenceResource.handle; */
+/*         resourceHandle->sequenceNum = OCGetRandom(); */
+/*         SendPresenceNotification(resourceHandle->rsrcType, OC_PRESENCE_TRIGGER_CHANGE); */
+/*     } */
+/* #endif */
 }
 
 /**
@@ -6011,7 +6018,7 @@ LOCAL void OCDefaultAdapterStateChangedHandler(CATransportAdapter_t adapter, boo
  * @param info          CAEndpoint which has address, port and etc.
  * @param isConnected   current connection state.
  */
-LOCAL void OCDefaultConnectionStateChangedHandler(const CAEndpoint_t *info, bool isConnected)
+void OCDefaultConnectionStateChangedHandler(const CAEndpoint_t *info, bool isConnected)
 {
     OIC_LOG(DEBUG, TAG, "OCDefaultConnectionStateChangedHandler");
 

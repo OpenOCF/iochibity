@@ -44,28 +44,34 @@ typedef enum
     /** IPv4 and IPv6, including 6LoWPAN.*/
     OC_ADAPTER_IP           = (1 << 0),
     /* CA_ADAPTER_IP            = (1 << 0),   // IPv4 and IPv6, including 6LoWPAN */
+    /* CT_ADAPTER_IP           = (1 << 16), */
 
     /** GATT over Bluetooth LE.*/
     OC_ADAPTER_GATT_BTLE    = (1 << 1),
     /* CA_ADAPTER_GATT_BTLE     = (1 << 1),   // GATT over Bluetooth LE */
+    /* CT_ADAPTER_GATT_BTLE    = (1 << 17), */
 
     /** RFCOMM over Bluetooth EDR.*/
     OC_ADAPTER_RFCOMM_BTEDR = (1 << 2),
     /* CA_ADAPTER_RFCOMM_BTEDR  = (1 << 2),   // RFCOMM over Bluetooth EDR */
+    /* CT_ADAPTER_RFCOMM_BTEDR = (1 << 18), */
 
 #ifdef RA_ADAPTER
     /**Remote Access over XMPP.*/
     OC_ADAPTER_REMOTE_ACCESS = (1 << 3),
     /* CA_ADAPTER_REMOTE_ACCESS = (1 << 3),   // Remote Access over XMPP. */
+    /* CT_ADAPTER_REMOTE_ACCESS = (1 << 19), */
 #endif
 
     /** CoAP over TCP.*/
     OC_ADAPTER_TCP           = (1 << 4),
     /* CA_ADAPTER_TCP           = (1 << 4),   // CoAP over TCP */
+    /* CT_ADAPTER_TCP     = (1 << 20), */
 
     /** NFC Transport for Messaging.*/
     OC_ADAPTER_NFC           = (1 << 5),
     /* CA_ADAPTER_NFC           = (1 << 5),   // NFC Adapter */
+    /* CT_ADAPTER_NFC     = (1 << 21), */
 
     OC_ALL_ADAPTERS          = 0xffffffff
     /* CA_ALL_ADAPTERS          = 0xffffffff */
@@ -154,10 +160,10 @@ typedef enum
 
 } OCTransportFlags;
 /* } CATransportFlags_t; */
-
+#if INTERFACE
 typedef enum
 {
-    CA_DEFAULT_FLAGS = 0,
+    CA_DEFAULT_FLAGS = 0,	/* FIXME: meaning what? */
 
     // Insecure transport is the default (subject to change)
     CA_SECURE          = (1 << 4),   // secure the transport path
@@ -176,6 +182,7 @@ typedef enum
     CA_SCOPE_ORG       = 0x8, // IPv6 Organization-Local scope
     CA_SCOPE_GLOBAL    = 0xE, // IPv6 Global scope
 } CATransportFlags_t;
+#endif
 
 #define CA_IPFAMILY_MASK (CA_IPV6|CA_IPV4)
 #define CA_SCOPE_MASK 0xf     // mask scope bits above

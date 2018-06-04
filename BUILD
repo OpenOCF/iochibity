@@ -45,10 +45,7 @@ load("//tools/makeheaders:makeheaders.bzl", "prep_headers", "make_headers")
 
 prep_headers(
     name = "mkhdrs",
-    # out = "foo.dat",
-    # srcs = [":mh_srcs"],
     hdr_deps = ["//src/ocf"],
-            # "//tools/makeheaders"]
 )
 
 # make_headers(

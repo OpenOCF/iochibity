@@ -62,9 +62,6 @@
 #endif
 #include <fcntl.h>
 
-#include "certhelpers.h"
-#include "occertutility.h"
-
 #define TAG "OIC_OCCERTUTILITY"
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)

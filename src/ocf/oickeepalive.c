@@ -252,7 +252,7 @@ LOCAL OCStackResult DeleteKeepAliveResource()
     return result;
 }
 
-LOCAL OCStackResult HandleKeepAliveRequest(OCServerRequest *request,
+OCStackResult HandleKeepAliveRequest(OCServerRequest *request,
 					   const OCResource *resource)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);

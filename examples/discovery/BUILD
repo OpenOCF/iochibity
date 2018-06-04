@@ -18,10 +18,6 @@ config_setting(
     name = "wrlinux",
     values = { "crosstool_top": "//platforms/wrlinux:toolchain" }
 )
-config_setting(
-    name = "rpi3b",
-     values = { "crosstool_top": "//platforms/rpi3b:toolchain" }
-)
 
 cc_binary(
     name = "client",
