@@ -1,0 +1,138 @@
+= tcpip services
+
+"global" vars
+
+catcpserveer:
+static oc_mutex tcp_mutexObjectList = NULL;
+static oc_cond tcp_condObjectList = NULL;
+static CATCPPacketReceivedCallback tcp_packetReceivedCallback = NULL;
+static CATCPErrorHandleCallback tcp_tcpErrorHandler = NULL;
+static CATCPConnectionHandleCallback tcp_connectionCallback = NULL;
+static CATCPSessionInfo_t *tcp_sessionList = NULL;
+
+
+
+= initialization
+
+OCInitializeInternal (ocstack.c)
+=>CAInitialize (caconnectivitymanager.c)
+==>CAInitializeMessageHandler (camessagehandler.c)
+===> CAInitializeAdapters (cainterfacecontroller.c)
+====> CAInitializeTCP (catcpadapter.c)
+
+CAInitializeAdapters passes callbacks to CAInitializeTCP:
+
+    CARegisterCallback
+    ifc_CAReceivedPacketCallback
+    CAAdapterChangedCallback
+    CAConnectionChangedCallback
+    CAAdapterErrorHandleCallback
+    thread_pool
+
+NB: the same callbacks are passed to every CAInitialize<transport> routine
+
+
+=====> CAInitializeTCPGlobals (catcpadapter.c)
+
+== callback hell
+
+=== data reception
+
+g_networkPacketReceivedCallback
+g_networkPacketCallback
+g_packetReceivedCallback
+
+CAInitializeTCP calls CATCPSetPacketReceiveCallback(CATCPPacketReceivedCB);
+
+CATCPSetPacketReceiveCallback sets g_packetReceivedCallback, which will be called by CAReceiveMessage
+
+CATCPPacketReceivedCB calls g_networkPacketCallback, which is also set in CAInitializeTCP
+
+g_networkPacketCallback is set to 2nd param in CAInitializeTCP, which is ifc_CAReceivedPacketCallback (ifc = interface controller, v. mh_CAReceivedPacketCallback)
+
+ifc_CAReceivedPacketCallback calls g_networkPacketReceivedCallback (and nothing else).
+
+g_networkPacketReceivedCallback is set by CASetPacketReceivedCallback, which is called from camessagehandler, which passes mh_CAReceivedPacketCallback as callback param; so effectivly ifc_CAReceivedPacketCallback calls mh_CAReceivedPacketCallback
+
+g_packetReceivedCallback is called by CAReceiveMessage, which is called by CASelectReturned, from CAFindReadyMessage
+
+So:
+* CAReceiveMessage calls g_packetReceivedCallback
+* g_packetReceivedCallback was set to CATCPPacketReceivedCB
+* CATCPPacketReceivedCB calls g_networkPacketCallback (after constructing some data)
+* g_networkPacketCallback was set to ifc_CAReceivedPacketCallback
+* ifc_CAReceivedPacketCallback calls g_networkPacketReceivedCallback (and does nothing else)
+* g_networkPacketReceivedCallback was set to mh_CAReceivedPacketCallback
+
+We can short-circuit this and just have CAReceiveMessage prepare the
+msg (the work of CATCPPacketReceivedCB) and call
+mh_CAReceiveMessage.
+
+Is this all thread-safe? What if mh_CAReceiveMessage is called by UDP
+and TCP at the same time?
+
+=== network status changes
+
+g_selectedNetworkList (canetworkconfigurator.c)
+g_adapterHandler
+g_selectedNetworkList (canetworkconfigurator.c)
+
+g_networkMonitorContextMutex
+
+
+Initialization:
+
+OCInitializeInternal calls, in order:
+
+=> CAInitialize (caconnectivitymanager.c)
+==> CAInitializeMessageHandler (camessagehandler.c)
+===> CAInitializeMessageHandler (camessagehandler.c)
+====> CAInitializeAdapters (cainterfacecontroller.c)
+=====> CAInitializeTCP stores CAStartTCP in .startAdapter field of g_adapterHandler
+
+=> OCSelectNetwork (ocstack.c)
+==> CASelectNetwork (caconnectivitymanager.c) (by default, once per transport)
+===> CAAddNetworkType  (canetworkconfigurator.c)
+====> creates g_selectedNetworkList if needed
+====> adds transport to g_selectedNetworkList if supported (#ifndef IP_ADAPTER return NOT_SUPPORTED)
+====> CAStartAdapter (cainterfacecontroller.c) ONLY calls:
+=====> g_adapterHandler[index].startAdapter() (cainterfacecontroller.c)
+
+IOW, select network means start transport adapter by running CAStartTCP.
+
+CAStartTCP (catcpadapter.c)
+=> CAIPStartNetworkMonitor(caipnwmonitor.c) (NOTE: IP, not TCP)
+=> CATCPInitializeQueueHandles
+=> CAQueueingThreadStart(g_sendQueueHandle)
+
+CAIPStartNetworkMonitor (caipnwmonitor.c)
+=> CAIPInitializeNetworkMonitorList()
+==> creates g_networkMonitorContextMutex (caipnwmonitor.c)
+==> creates g_netInterfaceList (caipnwmonitor.c)
+=> CAIPSetNetworkMonitorCallback (caipnwmonitor.c)
+==> adds callback to g_adapterCallbackList (caipnwmonitor.c)
+
+
+
+g_selectedNetworkList is only accessed via CAGetSelectedNetworkList (canetworkconfigurator.c),
+which is called by CAStopAdapters, CASendMulticastData, CAStartListeningServerAdapters, CAStopListeningServerAdapters, CAStartDiscoveryServerAdapters, CAIsSelectedNetworkAvailable
+
+Almost all of this stuff can be replaced by static initialization and
+direct invocation of routines. Instead of runtime lookups to find
+which networks (transports) are supported, we can just call the
+appropriate routines directly.
+
+For example: CASendUnicastData. All the logic in that routine is
+devoted to table lookups:
+
+    a. fetch the selected network list
+    b. iterate over it:
+        - search g_adapterHandler to find the index of the transport in the endpoint arg
+	- finally invoke the fn: g_adapterHandler[index].sendData
+
+But for each adapter we already know where to find sendData (e.g. for
+TCP it's CASendTCPUnicastData), so we can replace all of that
+processing with a simple:
+
+    if (endpoint->adapter == CA_ADAPTER_TCP)
+        CASendTCPUnicastData(endpoint, data, length, dataType);
