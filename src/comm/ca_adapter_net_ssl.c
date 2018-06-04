@@ -1739,7 +1739,7 @@ CAResult_t CAinitSslAdapter()
         OIC_LOG(INFO, NET_SSL_TAG, "Done already!");
         return CA_STATUS_OK;
     }
-
+    assert(NULL != g_sslContextMutex);
     // Lock tlsContext mutex and create tlsContext
     oc_mutex_lock(g_sslContextMutex);
     g_caSslContext = (SslContext_t *)OICCalloc(1, sizeof(SslContext_t));

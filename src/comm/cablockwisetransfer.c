@@ -2328,7 +2328,7 @@ CABlockData_t *CACreateNewBlockData(const CAData_t *sendData)
     data->sentData = CACloneCAData(sendData);
     if (!data->sentData)
     {
-        OIC_LOG(ERROR, TAG, PCF("memory alloc has failed")); /* FIXME: insane msg */
+        OIC_LOG(ERROR, TAG, "memory alloc has failed"); /* FIXME: insane msg */
         OICFree(data);
         return NULL;
     }

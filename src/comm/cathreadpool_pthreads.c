@@ -83,7 +83,7 @@ typedef struct ca_thread_pool_thread_info_t
 } ca_thread_pool_thread_info_t;
 
 // passthrough function to convert the pthreads call to a u_thread_func call
-void* ca_thread_pool_pthreads_delegate(void* data)
+LOCAL void* ca_thread_pool_pthreads_delegate(void* data)
 {
     ca_thread_pool_callback_info_t* info = (ca_thread_pool_callback_info_t*)data;
     info->func(info->data);
@@ -159,11 +159,11 @@ exit:
     return CA_STATUS_FAILED;
 }
 
-CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool, ca_thread_func method,
-				   char *taskname, // debugging
+CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool,
+				   ca_thread_func method,
                                    void *data)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, %s", __func__, taskname);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, %s", __func__);
 
     if(NULL == thread_pool || NULL == method)
     {
@@ -201,7 +201,7 @@ CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool, ca_thread_func 
         return CA_STATUS_FAILED;
     }
 
-    int thrRet = oc_thread_new(&threadInfo->thread, ca_thread_pool_pthreads_delegate, info, taskname);
+    int thrRet = oc_thread_new(&threadInfo->thread, ca_thread_pool_pthreads_delegate, info);
     if (thrRet != 0)
     {
         size_t index = 0;
@@ -230,9 +230,7 @@ void ca_thread_pool_free(ca_thread_pool_t thread_pool)
         return;
     }
 
-    OIC_LOG_V(DEBUG, TAG, "AAAAAAAAAAAAAAAA");
     oc_mutex_lock(thread_pool->details->list_lock);
-    OIC_LOG_V(DEBUG, TAG, "BBBBBBBBBBBBBBBB");
 
     for (size_t i = 0; i < u_arraylist_length(thread_pool->details->threads_list); ++i)
     {
@@ -245,7 +243,6 @@ void ca_thread_pool_free(ca_thread_pool_t thread_pool)
         {
             if (threadInfo->thread)
             {
-		OIC_LOG_V(DEBUG, TAG, "CCCCCCCCCCCCCCCC");
                 oc_thread_wait(threadInfo->thread);
                 oc_thread_free(threadInfo->thread);
             }

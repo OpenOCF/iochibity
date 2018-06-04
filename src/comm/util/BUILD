@@ -27,7 +27,7 @@ cc_library(
              "-Iexternal/openocf/src/portability",
 	     "-Isrc/util",
              "-Iexternal/openocf/src/util",
-             "-Ithird_party/coap/include",
+             "-Iexternal/libcoap/include",
              "-Iexternal/openocf/third_party/coap/include"]
     + select({":windows": [],
               ":msvc": [],
@@ -39,7 +39,7 @@ cc_library(
             "//src/logger",
     	    "//src/portability",
             "//src/util",
-            "//third_party/coap"],
+            "@libcoap//:libcoap"],
     srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//src/comm:__subpackages__"]
 )

@@ -127,9 +127,8 @@ CAResult_t CARetransmissionStart(CARetransmission_t *context)
         return CA_STATUS_INVALID_PARAM;
     }
 
-    CAResult_t res = ca_thread_pool_add_task(context->threadPool, CARetransmissionBaseRoutine,
-					     "CARetransmissionBaseRoutine",
-                                             context);
+    OIC_LOG_THREADS_V(DEBUG, TAG, "Adding CARetransmissionBaseRoutine to thread pool");
+    CAResult_t res = ca_thread_pool_add_task(context->threadPool, CARetransmissionBaseRoutine, context);
 
     if (CA_STATUS_OK != res)
     {
@@ -329,6 +328,7 @@ CAResult_t CARetransmissionInitialize(CARetransmission_t *context,
                                       CATimeoutCallback_t timeoutCallback,
                                       CARetransmissionConfig_t* config)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (NULL == context)
     {
         OIC_LOG(ERROR, TAG, "thread instance is empty");
@@ -341,7 +341,7 @@ CAResult_t CARetransmissionInitialize(CARetransmission_t *context,
         return CA_STATUS_INVALID_PARAM;
     }
 #endif
-    OIC_LOG(DEBUG, TAG, "thread initialize");
+    /* OIC_LOG(DEBUG, TAG, "thread initialize"); */
 
     memset(context, 0, sizeof(CARetransmission_t));
 

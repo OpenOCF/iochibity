@@ -1493,6 +1493,8 @@ exit:
 
 void CAHandleRequestResponseCallbacks()
 {
+    /* OIC_LOG_V(DEBUG, TAG, "%s >>>>>>>>>>>>>>>> ENTRY >>>>>>>>>>>>>>>>", __func__); */
+
 #ifdef SINGLE_THREAD
     CAReadData();
     CARetransmissionBaseRoutine((void *)&g_retransmissionContext);
@@ -1513,19 +1515,29 @@ void CAHandleRequestResponseCallbacks()
         return;
     }
 
-    OIC_LOG_V(DEBUG, TAG, "%s >>>>>>>>>>>>>>>> ENTRY >>>>>>>>>>>>>>>>", __func__);
     // get endpoint
     CAData_t *td = (CAData_t *) item->msg;
-    OIC_LOG_V(DEBUG, TAG, "Message type: %d", td->dataType);
+    OIC_LOG_V(DEBUG, TAG, "Message type: %d: %s", td->dataType,
+	      (CA_REQUEST_DATA == td->dataType)? "REQUEST"
+	      :(CA_RESPONSE_DATA == td->dataType)? "RESPONSE"
+	      :(CA_ERROR_DATA == td->dataType)? "ERROR"
+	      :(CA_RESPONSE_FOR_RES == td->dataType)? "RESPONSE_FOR_RES"
+	      : "UNKNOWN");
+
+    OIC_LOG_V(DEBUG, TAG, "Msg EP: [%s]:%d ", td->remoteEndpoint->addr, td->remoteEndpoint->port);
 
     if (td->requestInfo && g_requestHandler)
     {
         OIC_LOG_V(DEBUG, TAG, "REQUEST callback option count: %d", td->requestInfo->info.numOptions);
+	OIC_LOG_V(DEBUG, TAG, "REQUEST method: %d", td->requestInfo->method); // get=1,post,put,delete
+	OIC_LOG_V(DEBUG, TAG, "REQUEST isMcast? %d", td->requestInfo->isMulticast);
         g_requestHandler(td->remoteEndpoint, td->requestInfo);
     }
     else if (td->responseInfo && g_responseHandler)
     {
         OIC_LOG_V(DEBUG, TAG, "RESPONSE callback option count: %d", td->responseInfo->info.numOptions);
+	OIC_LOG_V(DEBUG, TAG, "RESPONSE result: %d", td->responseInfo->result);
+	OIC_LOG_V(DEBUG, TAG, "RESPONSE isMcast? %d", td->responseInfo->isMulticast);
         g_responseHandler(td->remoteEndpoint, td->responseInfo);
     }
     else if (td->errorInfo && g_errorHandler)
@@ -1719,12 +1731,13 @@ CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
     }
 
     // send thread initialize
+#ifdef DEBUG_THREADS
+    g_sendThread.name = "g_sendThread";
+#endif
     res = CAQueueingThreadInitialize(&g_sendThread,
-				     //#ifdef DEBUG_THREADING
-				     THREAD_DBUG("g_sendThread")
-				     //#endif
 				     g_threadPoolHandle,
-                                     CASendThreadProcess, CADestroyData);
+                                     CASendThreadProcess,
+				     CADestroyData);
     if (CA_STATUS_OK != res)
     {
         OIC_LOG(ERROR, TAG, "Failed to Initialize send queue thread");
@@ -1740,12 +1753,13 @@ CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
     }
 
     // receive thread initialize
+#ifdef DEBUG_THREADS
+    g_receiveThread.name = "g_receiveThread";
+#endif
     res = CAQueueingThreadInitialize(&g_receiveThread,
-				     //#ifdef DEBUG_THREADING
-				     THREAD_DBUG("g_receiveThread")
-				     //#endif
 				     g_threadPoolHandle,
-                                     CAReceiveThreadProcess, CADestroyData);
+                                     CAReceiveThreadProcess,
+				     CADestroyData);
     if (CA_STATUS_OK != res)
     {
         OIC_LOG(ERROR, TAG, "Failed to Initialize receive queue thread");

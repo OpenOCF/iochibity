@@ -118,8 +118,9 @@ typedef uint32_t code_t;
 
 #define HAVE_TIME_H 1
 
-/* unused: */
-/* static const uint8_t PAYLOAD_MARKER = 1; */
+#ifdef WITH_TCP
+static const uint8_t PAYLOAD_MARKER = 1;
+#endif
 
 #define CA_PDU_MIN_SIZE (4)
 #define CA_ENCODE_BUFFER_SIZE (4)

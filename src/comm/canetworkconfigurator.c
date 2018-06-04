@@ -78,6 +78,8 @@ static uint32_t NETWORK_TCP = CA_ADAPTER_TCP;
 
 CAResult_t CAAddNetworkType(CATransportAdapter_t transportType)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
     if (NULL == g_selectedNetworkList)
     {
         OIC_LOG(DEBUG, TAG, "Create network list");
@@ -188,6 +190,8 @@ CAResult_t CAAddNetworkType(CATransportAdapter_t transportType)
     }
     // start selected interface adapter
     CAResult_t result = CAStartAdapter(transportType);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+
     return result;
 
 exit:
