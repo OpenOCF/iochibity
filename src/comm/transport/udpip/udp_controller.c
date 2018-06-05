@@ -233,7 +233,7 @@ CAResult_t CAInitializeUDP(// CARegisterConnectivityCallback registerCallback,
     else
     {
 	CAsetSslAdapterCallbacks(// CAUDPPacketReceivedCB,
-				 CAIPPacketSendCB, CAIPErrorHandler, CA_ADAPTER_IP);
+				 CAIPPacketSendCB, CAIPrrorHandler, CA_ADAPTER_IP);
     }
 #endif
 

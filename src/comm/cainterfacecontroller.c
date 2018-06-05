@@ -677,6 +677,7 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
     VERIFY_NON_NULL_MSG(info, TAG, "info is null");
     VERIFY_NON_NULL_MSG(size, TAG, "size is null");
 
+
     CAEndpoint_t **tempInfo = (CAEndpoint_t **) OICCalloc(g_numberOfAdapters, sizeof(*tempInfo));
     if (!tempInfo)
     {
@@ -1169,4 +1170,3 @@ void CATerminateAdapters()
 
     RemoveAllNetworkStateChangedCallback();
 }
-
