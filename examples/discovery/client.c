@@ -616,16 +616,16 @@ void discover_resources ()
 
 void list_resource_uris ()
 {
-    char **ruris = oocf_cosp_list_resource_uris();
-    if (NULL == ruris)
-	OIC_LOG(DEBUG, TAG, "oocf_cosp_list_resource_uris fail");
+    /* char **ruris = oocf_cosp_list_resource_uris(); */
+    /* if (NULL == ruris) */
+    /* 	OIC_LOG(DEBUG, TAG, "oocf_cosp_list_resource_uris fail"); */
 
-    /* OIC_LOG_V(DEBUG, TAG, "ruris: %p", ruris); */
+    /* /\* OIC_LOG_V(DEBUG, TAG, "ruris: %p", ruris); *\/ */
 
-    while (*ruris) {
-    	OIC_LOG_V(DEBUG, TAG, "Resource URI %s", *ruris);
-    	ruris++;
-    }
+    /* while (*ruris) { */
+    /* 	OIC_LOG_V(DEBUG, TAG, "Resource URI %s", *ruris); */
+    /* 	ruris++; */
+    /* } */
 }
 
 void* ocf_routine(void *arg) {
@@ -656,7 +656,7 @@ void* ocf_routine(void *arg) {
 
 int main ()
 {
-    OCLogInit();
+    OCLogInit(NULL);
     /* logfd = fopen("./logs/client.log", "w"); */
     /* OCLogHookFd(logfd); */
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self());
