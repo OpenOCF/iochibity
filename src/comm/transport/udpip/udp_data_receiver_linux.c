@@ -104,6 +104,7 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
 	}
 	if (ready_count < 1) return;
 	if (udp_is_terminating) return;
+
 	// ISSET(udp_u6s, readFds, CA_IPV6 | CA_SECURE)
 	if ( UDPSET(udp_u6s) ) {
 	    OIC_LOG(DEBUG, TAG, "udp_u6s socket ready");

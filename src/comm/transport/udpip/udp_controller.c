@@ -405,6 +405,7 @@ void CATerminateIP()
  */
 CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CAGetIPInterfaceInformation
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(info, TAG, "info is NULL");
     VERIFY_NON_NULL_MSG(size, TAG, "size is NULL");
 
@@ -463,6 +464,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
         {
             continue;
         }
+	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d, index %d", __func__, i, ifitem->index);
 
 	/* skip disabled IFs */
         if ((ifitem->family == AF_INET6 && !udp_ipv6_is_enabled) ||
@@ -489,6 +491,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
 #ifdef __WITH_DTLS__
 	/* add secured endpoint */
         j++;
+	OIC_LOG_V(DEBUG, TAG, "%s creating secure ep %d, index %d", __func__, j, ifitem->index);
 
         eps[j].adapter = CA_ADAPTER_IP;
         eps[j].ifindex = ifitem->index;
@@ -513,6 +516,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
 
     u_arraylist_destroy(iflist);
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 

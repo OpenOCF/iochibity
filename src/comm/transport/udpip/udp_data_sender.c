@@ -92,7 +92,7 @@ void PORTABLE_sendto(CASocketFd_t fd,
 EXPORT
 {
     (void)flags;
-    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 #ifdef TB_LOG
     const char *secure = (endpoint->flags & CA_SECURE) ? "secure " : "insecure ";
 #endif
@@ -167,6 +167,8 @@ void CAIPSendData(CAEndpoint_t *endpoint, const void *data, size_t datalen,
 
     if (isMulticast)
     {
+	OIC_LOG_V(DEBUG, TAG, "%s multicasting", __func__);
+
         endpoint->port = isSecure ? CA_SECURE_COAP : CA_COAP;
 
         u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0);
@@ -305,17 +307,16 @@ void sendMulticastData4(const u_arraylist_t *iflist,
 #endif
         if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, OPTVAL_T(&mreq), sizeof (mreq)))
         {
-            OIC_LOG_V(ERROR, TAG, "send IP_MULTICAST_IF failed: %s (using defualt)",
-                    CAIPS_GET_ERROR);
+            OIC_LOG_V(ERROR, TAG, "send IP_MULTICAST_IF failed: %s (using default)",
+		      CAIPS_GET_ERROR);
         }
         udp_send_data(fd, endpoint, data, datalen, "multicast", "ipv4");
     }
 }
 
-#ifndef SINGLE_THREAD
-
 void CAIPSendDataThread(void *threadData)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY (udp_sendQueueHandle)", __func__);
     CAIPData_t *ipData = (CAIPData_t *) threadData;
     if (!ipData)
     {
@@ -355,9 +356,6 @@ void CAIPSendDataThread(void *threadData)
     }
 }
 
-#endif
-
-#ifndef SINGLE_THREAD
 // create IP packet for sending
 CAIPData_t *CACreateIPData(const CAEndpoint_t *remoteEndpoint, const void *data,
                            uint32_t dataLength, bool isMulticast)
@@ -408,5 +406,3 @@ void CADataDestroyer(void *data, uint32_t size)
 
     CAFreeIPData(etdata);
 }
-
-#endif // SINGLE_THREAD

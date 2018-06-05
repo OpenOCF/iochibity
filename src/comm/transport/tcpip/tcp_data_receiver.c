@@ -142,7 +142,7 @@ void CATCPPacketReceivedCB(const CASecureEndpoint_t *sep,
 void tcp_data_receiver_runloop(void *data) // @was CAReceiveHandler
 {
     (void)data;
-    OIC_LOG(DEBUG, TAG, "IN - CAReceiveHandler");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     //while (!caglobals.tcp.terminate)
     while (!tcp_is_terminating)
@@ -154,7 +154,7 @@ void tcp_data_receiver_runloop(void *data) // @was CAReceiveHandler
     oc_cond_signal(tcp_condObjectList);
     oc_mutex_unlock(tcp_mutexObjectList);
 
-    OIC_LOG(DEBUG, TAG, "OUT - CAReceiveHandler");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 LOCAL CAResult_t CAReceiveMessage(CATCPSessionInfo_t *svritem)

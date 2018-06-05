@@ -69,7 +69,7 @@ typedef void (*CAAdapterStateChangedCB)(CATransportAdapter_t adapter, bool enabl
 // GAR: array of controller structs containing method pointers
 static CAConnectivityHandler_t *g_adapterHandler = NULL;
 
-static size_t g_numberOfAdapters = 0;
+static size_t g_numberOfAdapters = 1;
 
 // @rewrite g_networkPacketReceivedCallback removed
 /* static CANetworkPacketReceivedCallback g_networkPacketReceivedCallback = NULL; */
@@ -129,6 +129,7 @@ typedef struct CANetworkCallbackThreadInfo_t
 
 static void CANetworkChangeCallbackThreadProcess(void *threadData)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY (g_networkChangeCallbackThread)", __func__);
     assert(threadData);
 
     CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *) threadData;
@@ -674,8 +675,11 @@ void CAStopAdapters()
 
 CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(info, TAG, "info is null");
     VERIFY_NON_NULL_MSG(size, TAG, "size is null");
+
+    OIC_LOG_V(DEBUG, TAG, "%s number of adapters: %d", __func__, g_numberOfAdapters);
 
     CAEndpoint_t **tempInfo = (CAEndpoint_t **) OICCalloc(g_numberOfAdapters, sizeof(*tempInfo));
     if (!tempInfo)
@@ -691,30 +695,41 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
         return CA_MEMORY_ALLOC_FAILED;
     }
 
-    CAResult_t res = CA_STATUS_FAILED;
+    CAResult_t udp_res = CA_STATUS_FAILED;
     size_t resSize = 0;
-    for (size_t index = 0; index < g_numberOfAdapters; index++)
-    {
-        if (g_adapterHandler[index].GetNetInfo != NULL)
-        {
-            // #1. get information for each adapter
-            res = g_adapterHandler[index].GetNetInfo(&tempInfo[index],
-                    &tempSize[index]);
+    /* for (size_t index = 0; index < g_numberOfAdapters; index++) */
+    /* { */
+    /*     if (g_adapterHandler[index].GetNetInfo != NULL) */
+    /*     { */
+    /*         // #1. get information for each adapter */
+    /*         res = g_adapterHandler[index].GetNetInfo(&tempInfo[index], */
+    /*                 &tempSize[index]); */
 
-            // #2. total size
-            if (res == CA_STATUS_OK)
-            {
-                resSize += tempSize[index];
-            }
+    /*         // #2. total size */
+    /*         if (res == CA_STATUS_OK) */
+    /*         { */
+    /*             resSize += tempSize[index]; */
+    /*         } */
 
-            OIC_LOG_V(DEBUG,
-                      TAG,
-                      "%" PRIuPTR " adapter network info size is %" PRIuPTR " res:%u",
-                      index,
-                      tempSize[index],
-                      res);
-        }
+    /*         OIC_LOG_V(DEBUG, */
+    /*                   TAG, */
+    /*                   "%" PRIuPTR " adapter network info size is %" PRIuPTR " res:%u", */
+    /*                   index, */
+    /*                   tempSize[index], */
+    /*                   res); */
+    /*     } */
+    /* } */
+#ifdef IP_ADAPTER
+    size_t sz;
+    udp_res = udp_get_local_endpoints(&tempInfo[0], &sz);
+#endif
+    if (udp_res == CA_STATUS_OK) {
+	resSize += sz;
     }
+
+    /* OIC_LOG_V(DEBUG, TAG, */
+    /* 	      "%" PRIuPTR " adapter network info size is %" PRIuPTR " res:%u", */
+    /* 	      0, sz, udp_res); */
 
     OIC_LOG_V(DEBUG, TAG, "network info total size is %" PRIuPTR "!", resSize);
 
@@ -722,7 +737,7 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
     {
         OICFree(tempInfo);
         OICFree(tempSize);
-        return res;
+        return udp_res;
     }
 
     // #3. add data into result
@@ -734,28 +749,38 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
     *info = resInfo;
     *size = resSize;
 
-    for (size_t index = 0; index < g_numberOfAdapters; index++)
-    {
-        // check information
-        if (tempSize[index] == 0)
-        {
-            continue;
-        }
+    /* for (size_t index = 0; index < g_numberOfAdapters; index++) */
+    /* { */
+    /*     // check information */
+    /*     if (tempSize[index] == 0) */
+    /*     { */
+    /*         continue; */
+    /*     } */
 
+    /*     memcpy(resInfo, */
+    /*            tempInfo[index], */
+    /*            sizeof(*resInfo) * tempSize[index]); */
+
+    /*     resInfo += tempSize[index]; */
+
+    /*     // free adapter data */
+    /*     OICFree(tempInfo[index]); */
+    /*     tempInfo[index] = NULL; */
+    /* } */
         memcpy(resInfo,
-               tempInfo[index],
-               sizeof(*resInfo) * tempSize[index]);
+               tempInfo[0],
+               sizeof(*resInfo) * sz); // tempSize[index]);
 
-        resInfo += tempSize[index];
+        resInfo += sz; //tempSize[index];
 
         // free adapter data
-        OICFree(tempInfo[index]);
-        tempInfo[index] = NULL;
-    }
+        OICFree(tempInfo[0]);
+        tempInfo[0] = NULL;
+
     OICFree(tempInfo);
     OICFree(tempSize);
 
-    OIC_LOG(DEBUG, TAG, "each network info save success!");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 
     // memory error label.
@@ -1149,6 +1174,8 @@ bool CAIsLocalEndpoint(const CAEndpoint_t *ep)
     return false;
 }
 
+// FIXME: drop g_adapterHandler, use #ifdef to call directly
+// e.g. for udp: CATerminateIP
 void CATerminateAdapters()
 {
     for (size_t index = 0; index < g_numberOfAdapters; index++)

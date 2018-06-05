@@ -62,7 +62,7 @@ CASocket_t udp_m4s = { .fd = OC_INVALID_SOCKET, .port = CA_SECURE_COAP }; /**< m
 int udp_netlinkFd;              /**< netlink */
 #endif
 
-int udp_shutdownFds[2] = { -1, -1 }; /**< pipe used to signal threads to stop */
+int udp_shutdownFds[2]; // = { 80, 81 }; /**< pipe used to signal threads to stop */
 
 CASocketFd_t udp_maxfd;         /**< highest fd (for select) */
 

@@ -8,14 +8,6 @@
 
 #define TAG "UDPTHREADMGR"
 
-#if INTERFACE
-#ifdef DEBUG_THREADING
-#define THREAD_DBUG(...) __VA_ARGS__ ,
-#else
-#define THREAD_DBUG(...)
-#endif
-#endif
-
 #ifndef SINGLE_THREAD
 
 /**

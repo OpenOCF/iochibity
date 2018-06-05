@@ -113,6 +113,7 @@ void CAIPStopServer()
 
     if (udp_shutdownFds[1] != -1)
     {
+	OIC_LOG_V(DEBUG, TAG, "%s closing shutdown fd", __func__);
         close(udp_shutdownFds[1]);
         udp_shutdownFds[1] = -1;
         // receive thread will stop immediately
@@ -120,6 +121,7 @@ void CAIPStopServer()
     else
     {
         // receive thread will stop in SELECT_TIMEOUT seconds.
+	OIC_LOG_V(DEBUG, TAG, "%s shutdownFds[1]", __func__);
     }
 
     if (!udp_is_started)
