@@ -17,21 +17,25 @@ cc_library(
              "-Iexternal/openocf/third_party/utlist",
              "-Iexternal/libcoap/include",
              "-Wall",
-
     ] + select({"//config:windows": [],
                 "//config:msvc": [],
                 "//config:msys": [],
-                "//config:linux": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
-                "//config:linux-x86_64": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
+                "//config:linux": ["-D_DEFAULT_SOURCE","-std=c11"],
+                "//config:linux-x86_64": ["-D_DEFAULT_SOURCE", "-std=c11"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
+              "//conditions:default": []})
+    + select({"//config:disable_ipv6": [],
+              "//conditions:default": ["-DENABLE_IPV6"]})
+    + select({"//config:enable_ipv4": ["-DENABLE_IPV4"],
               "//conditions:default": []}),
 
     # + select({#"//config::rpi": [],
     #          "//conditions:default": ["-DPORT_U6=$(FOO)", "-DPORT_U6S=0", "-DPORT_U4=0", "-DPORT_U4S=0"]}),
 
-    defines = select({"//config:rpi": ["_DEFAULT_SOURCE"], # enables IFF_UP etc. defines in net/if.h
+    defines = select({"//config:linux": ["_DEFAULT_SOURCE"], # enables IFF_UP etc. defines in net/if.h
                       "//config:linux-x86_64": ["_DEFAULT_SOURCE"],
+                      "//config:rpi": ["_DEFAULT_SOURCE"], # enables IFF_UP etc. defines in net/if.
                       "//conditions:default": []})
     + DEFINES,
 
