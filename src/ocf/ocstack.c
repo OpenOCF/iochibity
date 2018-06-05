@@ -2541,9 +2541,12 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     result = InitializeScheduleResourceList();
     if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%s failed!!", result); goto exit;}
 
+    // initialize camessagehandler:
     result = CAResultToOCResult(CAInitialize((CATransportAdapter_t)transportType));
     if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%s failed!!", result); goto exit;}
 
+    // start transports:
+    //FIXME: OCSelectNetwork involves lots of indirection. just call directly, e.g. CAStartUDP, etc.
     result = CAResultToOCResult(OCSelectNetwork(transportType));
     if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "OCSelectNetwork failed, rc %d!!", result); goto exit;}
 
@@ -4873,6 +4876,7 @@ LOCAL OCStackResult initResources()
         }
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
  exit:
     return result;
 }
@@ -5516,6 +5520,8 @@ LOCAL CAResult_t OCSelectNetwork(OCTransportAdapter transportType)
 	OIC_LOG(ERROR, TAG, "Unable to support UDP");
 	// Throw an exception? If the build is configured for an adapter, it should initialize
     }
+    // NB: static init: CASelectNetwork can be replaced by calling directly:
+    // CAStartUDP();
 #endif
 
 #ifdef ENABLE_TCP

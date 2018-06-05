@@ -447,6 +447,7 @@ exit:
 OCRepPayload** BuildCollectionLinksPayloadArray(const char* resourceUri,
     bool isOCFContentFormat, OCDevAddr* devAddr, size_t* createdArraySize)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     bool result = false;
     OCRepPayload** arrayPayload = NULL;
     size_t childCount = 0;

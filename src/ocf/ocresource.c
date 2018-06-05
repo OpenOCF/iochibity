@@ -1502,6 +1502,8 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
         ret = OC_STACK_ERROR;
         goto exit;
     }
+    OIC_LOG_V(DEBUG, TAG, "Network Information size = %d", (int) nCaEps);
+
 
     // Add a urlInfo object for each endpoint supported
     urlInfoPayload = (OCRepPayload **)OICCalloc(nCaEps, sizeof(OCRepPayload*));
@@ -1601,6 +1603,7 @@ static OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
                                            CAEndpoint_t *networkInfo,
                                            size_t infoSize)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (!resourcePtr || !payload)
     {
         return OC_STACK_INVALID_PARAM;
@@ -2253,6 +2256,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
             OIC_LOG(ERROR, TAG, "CAGetNetworkInformation has error on parsing network infomation");
             return OC_STACK_ERROR;
         }
+	OIC_LOG_V(DEBUG, TAG, "Network Information size = %d", (int) infoSize);
 
         discoveryResult = getQueryParamsForFiltering (virtualUriInRequest, request->query,
                 &interfaceQuery, &resourceTypeQuery);
