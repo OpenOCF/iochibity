@@ -1,5 +1,9 @@
 ## load("//config:variables.bzl", "DEFINES", "OS_COPTS")
 
+CROSSTOOL_NG_HOME="/Volumes/CrossToolNG"
+
+ANDROID_SDK_ROOT="/Users/gar/sdk/android"
+
 CSTD = select({"//config:cstd_c11" : ["-std=c11", "-x c"],
                "//config:cstd_iso9899_2011" : ["-std=iso9899:2011", "-x c"], # = c11
                "//config:cstd_c99" : ["-std=c99", "-x c"],
