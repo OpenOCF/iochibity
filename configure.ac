@@ -83,7 +83,7 @@ AC_FUNC_STRERROR_R
 AC_FUNC_STRNLEN
 AC_FUNC_STRTOD
 
-AC_CHECK_FUNCS([bzero clock_gettime fdatasync floor flockfile getcwd getpagesize gettimeofday localtime_r malloc memmove memset pow realloc select socket strcasecmp strchr strerror strncasecmp strnlen _strnicmp strndup strptime strrchr strstr strtok_r strtok_s strtol strtoul time tzset utime QueryPerformanceCounter QueryPerformanceFrequency])
+AC_CHECK_FUNCS([bzero clock_gettime fdatasync floor flockfile getcwd getpagesize gettimeofday localtime_r malloc memmove memset pipe2 pow realloc select socket strcasecmp strchr strerror strncasecmp strnlen _strnicmp strndup strptime strrchr strstr strtok_r strtok_s strtol strtoul time tzset utime QueryPerformanceCounter QueryPerformanceFrequency])
 
 dnl /**
 dnl  * \def MBEDTLS_HAVE_TIME
@@ -138,7 +138,7 @@ dnl                  src/comm/bld/arduino/Makefile
 dnl                  src/comm/bld/tizen/Makefile
 dnl                  tools/json2cbor/Makefile])
 
-AC_CONFIG_SUBDIRS([third_party/coap])
+dnl AC_CONFIG_SUBDIRS([third_party/coap])
 
                    dnl third_party/tinydtls])
 dnl extlibs/tinydtls
