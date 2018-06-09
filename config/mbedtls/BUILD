@@ -112,7 +112,7 @@ cc_library(
              "-Iexternal/config",
              "-Iexternal/config/mbedtls",
              ],
-    defines = select({"@//config:rpi": ["_POSIX_C_SOURCE=200809L"],
+    defines = select({"@//config:rpi_arm8": ["_POSIX_C_SOURCE=200809L"],
                       "//conditions:default": []}),
     data = [":patch"],
     srcs = [":patch", ":config"],

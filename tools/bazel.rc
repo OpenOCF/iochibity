@@ -13,15 +13,27 @@ build --define=role=client
 build:android-arm8 --cpu=arm64-v8a
 build:android-arm8 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 build:android-arm8 --crosstool_top=@androidndk//:default_crosstool
+build:android-arm8 --define android=true
+build:android-arm8 --define android_arm64=true
 
-build:android-arm7 --fat_apk_cpu=armeabi-v7a
-build:android-arm7 --android_cpu=armeabi-v7a
+# build:android-arm7 --fat_apk_cpu=armeabi-v7a
+# build:android-arm7 --android_cpu=armeabi-v7a
+build:android-arm7 --cpu=armeabi-v7a
+build:android-arm7 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+build:android-arm7 --crosstool_top=@androidndk//:default_crosstool
+build:android-arm7 --define android=true
+build:android-arm7 --define android_arm7=true
 
-build:android-x86 --fat_apk_cpu=x86
-build:android-x86 --android_cpu=x86_64
+# build:android-x86 --fat_apk_cpu=x86
+# build:android-x86 --android_cpu=x86_64
+build:android-x86_64 --cpu=x86_64
+build:android-x86_64 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+build:android-x86_64 --crosstool_top=@androidndk//:default_crosstool
+build:android-x86_64 --define android=true
+build:android-x86_64 --define android_x86_64=true
 
 # for cc_library targets:
-build:android-arm8 --crosstool_top=@androidndk//:toolchain-libcpp
+# ?? build:android-arm8 --crosstool_top=@androidndk//:toolchain-libcpp
 
 ## compilers
 #build --android_compiler=clang3.8

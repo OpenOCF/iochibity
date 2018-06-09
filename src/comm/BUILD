@@ -38,7 +38,7 @@ cc_library(
             "@mbedtls//:mbedtls",
             "@libcoap//:libcoap"]
     + select({"//config:disable_dtls": [],
-                "//conditions:default": ["//src/comm/transport/udpip"]})
+              "//conditions:default": ["//src/comm/transport/udpip"]})
     + select({"//config:enable_tcp": ["//src/comm/transport/tcpip"],
               "//conditions:default": []}),
 

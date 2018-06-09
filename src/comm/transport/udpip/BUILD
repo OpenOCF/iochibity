@@ -30,7 +30,7 @@ cc_library(
     # + select({#"//config::rpi": [],
     #          "//conditions:default": ["-DPORT_U6=$(FOO)", "-DPORT_U6S=0", "-DPORT_U4=0", "-DPORT_U4S=0"]}),
 
-    defines = select({"//config:rpi": ["_DEFAULT_SOURCE"], # enables IFF_UP etc. defines in net/if.h
+    defines = select({"//config:rpi_arm8": ["_DEFAULT_SOURCE"], # enables IFF_UP etc. defines in net/if.h
                       "//config:linux-x86_64": ["_DEFAULT_SOURCE"],
                       "//conditions:default": []})
     + DEFINES,
@@ -61,8 +61,6 @@ cc_library(
                        "//config:windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
                        "//config:darwin": ["-framework SystemConfiguration"], # for network monitory
                        "//config:android": ["-llog"],
-                       "//config:android_arm64": ["-llog"],
-                       "//config:android_x86": ["-llog"],
                        "//conditions:default": []}),
     srcs = ["udp_controller.c", "udp_controller.h",
             "udp_data_receiver.c", "udp_data_receiver.h",
@@ -83,7 +81,7 @@ cc_library(
 	                      + glob(["*_linux.c"]) + glob(["*_linux.h"]),
               "//config:linux-x86_64": glob(["*_posix.c"]) + glob(["*_posix.h"])
 	                             + glob(["*_linux.c"]) + glob(["*_linux.h"]),
-              "//config:rpi": ["udp_status_manager_posix.c",
+              "//config:rpi_arm8": ["udp_status_manager_posix.c",
                                "udp_status_manager_posix.h",
                                "udp_status_manager_linux.c",
                                "udp_status_manager_linux.h",
@@ -92,8 +90,6 @@ cc_library(
                                "udp_data_receiver_linux.c",
                                "udp_data_receiver_linux.h"],
               "//config:android": ANDROID_SRCS,
-              "//config:android_arm64": ANDROID_SRCS,
-              "//config:android_x86": ANDROID_SRCS,
               "//conditions:default": ["BROKEN2"]}),
 
     visibility = ["//src/comm:__subpackages__"]
