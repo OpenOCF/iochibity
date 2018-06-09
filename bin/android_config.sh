@@ -31,7 +31,7 @@ export PATH=${ANDROID_SDK_ROOT}/ndk-bundle/toolchains/aarch64-linux-android-4.9/
 export CC=clang
 #export AR=llvm-ar
 
-export CPPFLAGS="-P -isystem${HOME}/sdk/android/ndk-bundle/sysroot/usr/include/aarch64-linux-android"
+export CPPFLAGS="-P -isystem${ANDROID_SDK_ROOT}/ndk-bundle/sysroot/usr/include/aarch64-linux-android"
 
 
 #--with-sysroot=${ANDROID_NDK_HOME}/sysroot \
