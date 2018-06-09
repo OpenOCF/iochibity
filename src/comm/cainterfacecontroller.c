@@ -107,7 +107,6 @@ typedef struct CANetworkCallback_t
 
 } CANetworkCallback_t;
 
-#ifndef SINGLE_THREAD
 /**
  * struct to wrap the network change callback info.
  */
@@ -520,7 +519,6 @@ CAResult_t CAInitializeAdapters(ca_thread_pool_t thread_pool, CATransportAdapter
     }
 #endif /* NFC_ADAPTER */
 
-#ifndef SINGLE_THREAD
     CAResult_t res = CA_STATUS_OK;
 
     // Initialize & Start network-change-callback-thread.
@@ -543,7 +541,6 @@ CAResult_t CAInitializeAdapters(ca_thread_pool_t thread_pool, CATransportAdapter
         OIC_LOG(ERROR, TAG, "thread start error(callback thread).");
         return res;
     }
-#endif //SINGLE_THREAD
 
     return CA_STATUS_OK;
 }
