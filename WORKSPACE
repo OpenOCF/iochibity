@@ -115,10 +115,13 @@ boost_deps()
 # libcoap
 new_http_archive(
     name = "libcoap",
+    # urls = ["https://github.com/obgm/libcoap/archive/v4.1.2.zip"],
+    # sha256 = "4caf73446a4994a0571afaf5e60a62a749bda92a29e9407174614733e984c238",
+    # strip_prefix = "libcoap-4.1.2",
+    build_file = "config/libcoap.BUILD",
     urls = ["https://github.com/dthaler/libcoap/archive/IoTivity-1.2.1d.zip"],
     sha256 = "aac5b9101fad4cf722f0166f2739ebcefe55ad0ca7aa475550b11c8eb4740511",
     strip_prefix = "libcoap-IoTivity-1.2.1d",
-    build_file = "config/libcoap.BUILD",
 )
 
 # new_local_repository(
