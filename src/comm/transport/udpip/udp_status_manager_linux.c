@@ -248,57 +248,6 @@ void CARegisterForAddressChanges()
 /*     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__); */
 /* } */
 
-void CAInitializeFastShutdownMechanism(void)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    udp_selectTimeout = -1; // don't poll for shutdown
-    int ret = -1;
-#if defined(WSA_WAIT_EVENT_0)
-    udp_shutdownEvent = WSACreateEvent();
-    if (WSA_INVALID_EVENT != udp_shutdownEvent)
-    {
-        ret = 0;
-    }
-#elif defined(HAVE_PIPE2)
-    ret = pipe2(udp_shutdownFds, O_CLOEXEC);
-    UDP_CHECKFD(udp_shutdownFds[0]);
-    UDP_CHECKFD(udp_shutdownFds[1]);
-#else
-    ret = pipe(udp_shutdownFds);
-    if (-1 != ret)
-    {
-        ret = fcntl(udp_shutdownFds[0], F_GETFD);
-        if (-1 != ret)
-        {
-            ret = fcntl(udp_shutdownFds[0], F_SETFD, ret|FD_CLOEXEC);
-        }
-        if (-1 != ret)
-        {
-            ret = fcntl(udp_shutdownFds[1], F_GETFD);
-        }
-        if (-1 != ret)
-        {
-            ret = fcntl(udp_shutdownFds[1], F_SETFD, ret|FD_CLOEXEC);
-        }
-        if (-1 == ret)
-        {
-            close(udp_shutdownFds[1]);
-            close(udp_shutdownFds[0]);
-            udp_shutdownFds[0] = -1;
-            udp_shutdownFds[1] = -1;
-        }
-    }
-    UDP_CHECKFD(udp_shutdownFds[0]);
-    UDP_CHECKFD(udp_shutdownFds[1]);
-#endif
-    if (-1 == ret)
-    {
-        OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR);
-        udp_selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
-    }
-    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
-}
-
 static void CARemoveFromInterfaceList(int ifiindex) // @was  CARemoveNetworkMonitorList
 {
     VERIFY_NON_NULL_VOID(g_netInterfaceList, TAG, "g_netInterfaceList is NULL");

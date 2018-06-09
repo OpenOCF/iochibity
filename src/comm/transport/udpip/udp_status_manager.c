@@ -254,3 +254,96 @@ CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)
     }
     return CA_STATUS_OK;
 }
+
+void CAInitializeFastShutdownMechanism(void)
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    udp_selectTimeout = -1; // don't poll for shutdown
+    int ret = -1;
+#if defined(WSA_WAIT_EVENT_0)
+    udp_shutdownEvent = WSACreateEvent();
+    if (WSA_INVALID_EVENT != udp_shutdownEvent)
+    {
+        ret = 0;
+    }
+#elif defined(HAVE_PIPE2)
+    ret = pipe2(udp_shutdownFds, O_CLOEXEC);
+    UDP_CHECKFD(udp_shutdownFds[0]);
+    UDP_CHECKFD(udp_shutdownFds[1]);
+#else
+    // ret = pipe(udp_shutdownFds);
+    if (pipe(udp_shutdownFds) == -1) {
+	OIC_LOG_V(ERROR, TAG, "pipe(udp_shutdownFds) fail: %s", CAIPS_GET_ERROR);
+	goto errexit2;
+    }
+
+    OIC_LOG_V(DEBUG, TAG, "%s udp_shutdownFds[0] fd = %d", __func__, udp_shutdownFds[0]);
+    OIC_LOG_V(DEBUG, TAG, "%s udp_shutdownFds[1] fd = %d", __func__, udp_shutdownFds[1]);
+
+    int flags;
+
+    flags = fcntl(udp_shutdownFds[0], F_GETFL);
+    if (flags == -1) {
+        OIC_LOG_V(ERROR, TAG, "udp_shutdownFds[0] F_GETFL: %s", CAIPS_GET_ERROR);
+	goto errexit;
+    }
+    flags |= O_NONBLOCK;                /* Make read end nonblocking */
+    if (fcntl(udp_shutdownFds[0], F_SETFL, flags) == -1) {
+        OIC_LOG_V(ERROR, TAG, "udp_shutdownFds[0] F_SETFL: %s", CAIPS_GET_ERROR);
+	goto errexit;
+    }
+
+    flags = fcntl(udp_shutdownFds[1], F_GETFL);
+    if (flags == -1) {
+        OIC_LOG_V(ERROR, TAG, "udp_shutdownFds[1] F_GETFL: %s", CAIPS_GET_ERROR);
+	goto errexit;
+    }
+     flags |= O_NONBLOCK;                /* Make read end nonblocking */
+     if (fcntl(udp_shutdownFds[1], F_SETFL, flags) == -1) {
+        OIC_LOG_V(ERROR, TAG, "udp_shutdownFds[1] F_SETFL: %s", CAIPS_GET_ERROR);
+	goto errexit;
+     }
+
+    /* if (-1 != ret) */
+    /* { */
+    /*     ret = fcntl(udp_shutdownFds[0], F_GETFD); */
+    /*     if (-1 != ret) */
+    /*     { */
+    /*         ret = fcntl(udp_shutdownFds[0], F_SETFD, ret|FD_CLOEXEC); */
+    /*     } */
+    /*     if (-1 != ret) */
+    /*     { */
+    /*         ret = fcntl(udp_shutdownFds[1], F_GETFD); */
+    /*     } */
+    /*     if (-1 != ret) */
+    /*     { */
+    /*         ret = fcntl(udp_shutdownFds[1], F_SETFD, ret|FD_CLOEXEC); */
+    /*     } */
+    /*     if (-1 == ret) */
+    /*     { */
+    /*         close(udp_shutdownFds[1]); */
+    /*         close(udp_shutdownFds[0]); */
+    /*         udp_shutdownFds[0] = -1; */
+    /*         udp_shutdownFds[1] = -1; */
+    /*     } */
+    /* } */
+
+    UDP_CHECKFD(udp_shutdownFds[0]);
+    UDP_CHECKFD(udp_shutdownFds[1]);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return;
+#endif
+
+ errexit:
+    close(udp_shutdownFds[1]);
+    close(udp_shutdownFds[0]);
+ errexit2:
+    udp_shutdownFds[0] = -1;
+    udp_shutdownFds[1] = -1;
+    /* if (-1 == ret) */
+    /* { */
+        /* OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR); */
+    udp_selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
+    /* } */
+    OIC_LOG_V(DEBUG, TAG, "%s ERROR EXIT", __func__);
+}
