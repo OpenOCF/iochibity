@@ -290,7 +290,7 @@ struct OCRepPayloadValue
 
 static void OCFreeRepPayloadValueContents(OCRepPayloadValue* val);
 
-void OC_CALL OCPayloadDestroy(OCPayload* payload)
+void OC_CALL OCPayloadDestroy(OCPayload* payload) EXPORT
 {
     OIC_LOG_V(INFO, __FILE__, "%s: ENTRY", __func__);
     if (!payload)
@@ -328,8 +328,10 @@ void OC_CALL OCPayloadDestroy(OCPayload* payload)
     OIC_LOG_V(INFO, __FILE__, "%s: EXIT", __func__);
 }
 
-OCRepPayload* OC_CALL OCRepPayloadCreate()
+OCRepPayload* OC_CALL OCRepPayloadCreate() EXPORT
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
+
     OCRepPayload* payload = (OCRepPayload*)OICCalloc(1, sizeof(OCRepPayload));
 
     if (!payload)
@@ -344,6 +346,7 @@ OCRepPayload* OC_CALL OCRepPayloadCreate()
 
 void OC_CALL OCRepPayloadAppend(OCRepPayload* parent, OCRepPayload* child)
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     if (!parent)
     {
         return;
@@ -736,8 +739,9 @@ bool OC_CALL OCRepPayloadAddInterfaceAsOwner(OCRepPayload* payload, char* iface)
     }
 }
 
-bool OC_CALL OCRepPayloadSetUri(OCRepPayload* payload, const char*  uri)
+bool OC_CALL OCRepPayloadSetUri(OCRepPayload* payload, const char*  uri) EXPORT
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     if (!payload)
     {
         return false;
@@ -938,8 +942,9 @@ bool OC_CALL OCRepPayloadGetPropByteString(const OCRepPayload* payload, const ch
 }
 
 bool OC_CALL OCRepPayloadSetPropBool(OCRepPayload* payload,
-                             const char* name, bool value)
+                             const char* name, bool value) EXPORT
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     return OCRepPayloadSetProp(payload, name, &value, OCREP_PROP_BOOL);
 }
 
