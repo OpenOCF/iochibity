@@ -434,6 +434,7 @@ OCEntityHandlerResult defaultResourceEHandler(OCEntityHandlerFlag flag,
 /* This method will retrieve the port at which the secure resource is hosted */
 static OCStackResult GetSecurePortInfo(OCDevAddr *endpoint, uint16_t *port)
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     uint16_t p = 0;
 
     if (endpoint->adapter == OC_ADAPTER_IP)
@@ -781,7 +782,7 @@ static OCStackResult BuildDevicePlatformPayload(const OCResource *resourcePtr, O
 }
 
 OCStackResult BuildResponseRepresentation(const OCResource *resourcePtr,
-                    OCRepPayload** payload, OCDevAddr *devAddr)
+                    OCRepPayload** payload, OCDevAddr *devAddr) EXPORT
 {
     OCRepPayload *tempPayload = OCRepPayloadCreate();
 
@@ -836,6 +837,7 @@ OCStackResult BuildResponseRepresentation(const OCResource *resourcePtr,
         }
     }
 
+    OIC_LOG_V (INFO, TAG, "%s get attributes", __func__);
     for (OCAttribute *resAttrib = resourcePtr->rsrcAttributes; resAttrib; resAttrib = resAttrib->next)
     {
         if (resAttrib->attrName && resAttrib->attrValue)
@@ -863,6 +865,7 @@ OCStackResult BuildResponseRepresentation(const OCResource *resourcePtr,
         OCRepPayloadSetPropInt(policy, OC_RSRVD_HOSTING_PORT, securePort);
     }
     OCRepPayloadSetPropObjectAsOwner(tempPayload, OC_RSRVD_POLICY, policy);
+    OIC_LOG_V (INFO, TAG, "%s done with properties", __func__);
 
     if (!*payload)
     {
@@ -2661,7 +2664,7 @@ ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerReque
         }
         case OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER:
         {
-            OIC_LOG(INFO, TAG, "OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER");
+            OIC_LOG(ERROR, TAG, "OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER");
             return OC_STACK_ERROR;
         }
         case OC_RESOURCE_NOT_COLLECTION_WITH_ENTITYHANDLER:
@@ -2904,6 +2907,7 @@ LOCAL OCStackResult SetAttributeInternal(OCResource *resource,
                                           const void *value,
                                           bool updateDatabase)
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     OCAttribute *resAttrib = NULL;
 
     // Read-only attributes - these values are set via other APIs
@@ -2984,6 +2988,7 @@ LOCAL OCStackResult SetAttributeInternal(OCResource *resource,
         }
     }
 
+    OIC_LOG_V (INFO, TAG, "%s EXIT", __func__);
     return OC_STACK_OK;
 
 exit:
@@ -3037,6 +3042,7 @@ static OCStackResult IsDatabaseUpdateNeeded(const char *attribute, const void *v
 
 OCStackResult OC_CALL OCSetAttribute(OCResource *resource, const char *attribute, const void *value)
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     bool updateDatabase = false;
 
     // Check to see if we also need to update the database for this attribute. If the current
