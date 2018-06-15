@@ -159,36 +159,31 @@ static construct_msg(OCClientResponse *msg)
     sprintf(msg_str[i++], "Sequence nbr:     %d", msg->sequenceNumber);
     sprintf(msg_str[i++], "Remote device ID: %s", msg->devAddr.remoteId);
     sprintf(msg_str[i++], "Identity:         %s", msg->identity.id);
-    sprintf(msg_str[i++], "Address:        %s:%d", msg->devAddr.addr, msg->devAddr.port);
-    sprintf(msg_str[i++], "Resource URI:   %s", msg->resourceUri);
-    sprintf(msg_str[i++], "Transport:      %s",
+    sprintf(msg_str[i++], "Address:          %s:%d", msg->devAddr.addr, msg->devAddr.port);
+    sprintf(msg_str[i++], "Resource URI:     %s", msg->resourceUri);
+    sprintf(msg_str[i++], "Transport:        %s",
 	    msg->devAddr.adapter == OC_ADAPTER_IP ? "UDP/IP"
 	    : msg->devAddr.adapter == OC_ADAPTER_GATT_BTLE ? "GATT"
 	    : msg->devAddr.adapter == OC_ADAPTER_RFCOMM_BTEDR ? "BREDR"
 	    : msg->devAddr.adapter == OC_ADAPTER_TCP ? "TCP"
 	    : msg->devAddr.adapter == OC_ADAPTER_NFC ? "NFC"
 	    : "UNKNOWN");
-    sprintf(msg_str[i++], "Network:        %s",
-	    ( (OC_IP_USE_V4 & msg->devAddr.flags) > 0)  ? "IPv4"  /* (1 << 6) */
-	    : ( (OC_IP_USE_V6 & msg->devAddr.flags) > 0)? "IPv6" /* (1 << 5) */
-	    : "");
+    sprintf(msg_str[i++], "IPv6?             %s", (OC_IP_USE_V6 & msg->devAddr.flags)?"true":"false");
+    sprintf(msg_str[i++], "IPv4?             %s", (OC_IP_USE_V4 & msg->devAddr.flags)?"true":"false");
 
-    if ((OC_IP_USE_V6 & msg->devAddr.flags) > 0) {
-	sprintf(msg_str[i++], "IPv6 Scopes:    %s",
+    if (OC_IP_USE_V6 & msg->devAddr.flags) {
+	sprintf(msg_str[i++], "IPv6 Scopes:      %s",
 		(OC_SCOPE_LINK & msg->devAddr.flags) ? /* 0x2 */
 		"Link-Local" : "FIXME"); /* FIXME */
 	/* if (OC_SCOPE_INTERFACE & clientResponse->devAddr.flags) /\* 0x1 *\/
 	 * 	OIC_LOG_V(INFO, TAG, "\tInterface-Local"); */
     }
 
-    sprintf(msg_str[i++], "OC Security:    %d", (msg->devAddr.flags & OC_FLAG_SECURE));
-    sprintf(msg_str[i++], "CT Security:    %d", (msg->connType & CT_FLAG_SECURE));
+    sprintf(msg_str[i++], "OC Security:      %s", (OC_FLAG_SECURE & msg->devAddr.flags)?"true":"false");
+    sprintf(msg_str[i++], "CT Security:      %s", (CT_FLAG_SECURE & msg->connType)?"true":"false");
+    sprintf(msg_str[i++], "Multicast?:       %s", (OC_MULTICAST   & msg->devAddr.flags)?"true":"false");
 
-    sprintf(msg_str[i++], "Multicast?:     %s",
-	    (OC_MULTICAST & msg->devAddr.flags)? /* (1 << 7) */
-	    "TRUE" : "FALSE");
-
-    sprintf(msg_str[i++], "Header Options: %d", msg->numRcvdVendorSpecificHeaderOptions);
+    sprintf(msg_str[i++], "Header Options:   %d", msg->numRcvdVendorSpecificHeaderOptions);
 
     uint16_t content_format = 0;
     uint16_t content_format_version = 0;
@@ -368,7 +363,7 @@ static construct_msg(OCClientResponse *msg)
 	 * 	      msg->rcvdVendorSpecificHeaderOptions[j].optionData[k]); */
     }
 
-    sprintf(msg_str[i++], "Payload type: 0x%X %s",
+    sprintf(msg_str[i++], "Payload type:   0x%X %s",
 	    msg->payload->type,
 	    (msg->payload->type ==  PAYLOAD_TYPE_DISCOVERY) ? "DISCOVERY"
 	    : (msg->payload->type == PAYLOAD_TYPE_DEVICE) ? "DEVICE"

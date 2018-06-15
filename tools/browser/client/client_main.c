@@ -219,27 +219,26 @@ static void* response_msg_dispatcher(void *arg) {
 /*     return 0; */
 /* } */
 
-static char SVR_CONFIG_FILE[] = "./tmp/client_owner_config.cbor";
-/* static char SVR_CONFIG_FILE[] = "client_nonowner_config.cbor"; */
+static char SVR_CONFIG_FILE[] = "tools/browser/client/client_config.cbor";
 
 /* local fopen for svr database overrides default filename */
 FILE* server_fopen(const char *path, const char *mode)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, path %s", __func__, path);
-    /* FILE *f = fopen(SVR_CONFIG_FILE, mode); */
-    /* if (f == NULL) { */
-    /* 	OIC_LOG_V(ERROR, TAG, "PS file open failed %d %s", errno, strerror(errno)); */
-    /* 	exit(EXIT_FAILURE); */
-    /* } */
-    /* return f; */
+    OIC_LOG_V(INFO, TAG, "%s path %s", __func__, path);
 
-    if (0 == strcmp(path, SVR_DB_DAT_FILE_NAME)) /* "oic_svr_db.dat" */
-    {
-        return fopen(SVR_CONFIG_FILE, mode);
+    if (0 == strcmp(path, SVR_DB_DAT_FILE_NAME)) { /* "oic_svr_db.dat" */
+	OIC_LOG_V(INFO, TAG, "%s opening %s", __func__, SVR_CONFIG_FILE);
+	FILE *f = fopen(SVR_CONFIG_FILE, mode);
+	if (f == NULL) {
+	    OIC_LOG_V(ERROR, TAG, "PS file open failed %d %s", errno, strerror(errno));
+	    printf("PS file open \"%s\" failed errno %d %s\n", SVR_CONFIG_FILE, errno, strerror(errno));
+	    exit(EXIT_FAILURE);
+	}
+	return f;
     }
     else
     {
-        return fopen(path, mode);
+	return fopen(path, mode);
     }
 }
 
@@ -248,7 +247,7 @@ int main ()
     int err;
 
     /* OCLogInit(NULL); */
-    logfd = fopen("./logs/client.log", "w");
+    logfd = fopen("logs/client.log", "w");
     if (logfd)
     	OCLogInit(logfd);
     else {

@@ -296,43 +296,94 @@ static cJSON* discovery_to_json(OCClientResponse *msg)
     return root;
 }
 
-static cJSON* representation_to_json(OCClientResponse *msg)
+static cJSON* representation_to_json(OCRepPayload *payload)
 {
-    OCRepPayload *payload = (OCRepPayload*)msg->payload;
     cJSON *root;
     root = cJSON_CreateObject();
     if (payload->uri) {
 	cJSON_AddItemToObject(root, "href", cJSON_CreateString(payload->uri));
     }
-    const char *ts[10];
-    int i = 0;
-    OCStringLL *types = payload->types;
-    while (types) {
-	/* OIC_LOG_V(INFO, TAG, "rtype: %s", types->value); */
-	ts[i] = types->value;
-	//ts++;
-	i++;
-	types = types->next;
-    }
-    cJSON_AddItemToObject(root, "rt", cJSON_CreateStringArray(ts, i));
 
-    const char *ifaces[10];
-    OCStringLL *ifs = payload->interfaces;
-    i = 0;
-    while (ifs) {
-	/* OIC_LOG_V(INFO, TAG, "iface: %s", ifs->value); */
-	ifaces[i] = ifs->value;
-	//ts++;
-	i++;
-	ifs = ifs->next;
+    int i;
+
+    if (payload->types) {
+	const char *ts[10];
+	i = 0;
+	OCStringLL *types = payload->types;
+	while (types) {
+	    /* OIC_LOG_V(INFO, TAG, "rtype: %s", types->value); */
+	    ts[i] = types->value;
+	    //ts++;
+	    i++;
+	    types = types->next;
+	}
+	cJSON_AddItemToObject(root, "rt", cJSON_CreateStringArray(ts, i));
     }
-    cJSON_AddItemToObject(root, "if", cJSON_CreateStringArray(ifaces, i));
+
+    if (payload->interfaces) {
+	const char *ifaces[10];
+	OCStringLL *ifs = payload->interfaces;
+	i = 0;
+	while (ifs) {
+	    /* OIC_LOG_V(INFO, TAG, "iface: %s", ifs->value); */
+	    ifaces[i] = ifs->value;
+	    //ts++;
+	    i++;
+	    ifs = ifs->next;
+	}
+	cJSON_AddItemToObject(root, "if", cJSON_CreateStringArray(ifaces, i));
+    }
+
+    if (payload->values) {
+	const char *props[10];
+	OCRepPayloadValue *val = payload->values;
+	i = 0;
+	while (val) {
+	    if (strncmp(val->name, "bm", 2) == 0) {
+		OIC_LOG_V(INFO, TAG, "bm type: %d", val->type);
+		char *bm[2];
+		bm[0] = (val->i & OC_DISCOVERABLE)? "discoverable" : "non-discoverable";
+		bm[1] = (val->i & OC_OBSERVABLE)? "observable" : "non-observable";
+		cJSON_AddItemToObject(root, val->name, cJSON_CreateStringArray(bm, 2));
+	    } else {
+		switch(val->type) {
+		case OCREP_PROP_NULL:
+		    cJSON_AddItemToObject(root, val->name, cJSON_CreateString(""));
+		    break;
+		case OCREP_PROP_INT:
+		    cJSON_AddNumberToObject(root, val->name, val->i);
+		    break;
+		case OCREP_PROP_DOUBLE:
+		    cJSON_AddNumberToObject(root, val->name, val->d);
+		    break;
+		case OCREP_PROP_BOOL:
+		    cJSON_AddItemToObject(root, val->name, cJSON_CreateBool(val->b));
+		    break;
+		case OCREP_PROP_STRING:
+		    cJSON_AddStringToObject(root, val->name, val->str);
+		    break;
+		case OCREP_PROP_BYTE_STRING:
+		    cJSON_AddItemToObject(root, val->name, cJSON_CreateString("bytestring"));
+		    break;
+		case OCREP_PROP_OBJECT:
+		    cJSON_AddItemToObject(root, val->name, representation_to_json(val->obj));
+		    break;
+		case OCREP_PROP_ARRAY:
+		    cJSON_AddItemToObject(root, val->name, cJSON_CreateString("array"));
+		    break;
+		}
+	    }
+	    i++;
+	    val = val->next;
+	}
+    }
+
     return root;
 }
 
 void log_representation_msg(OCClientResponse *clientResponse)
 {
-    cJSON *representation_json = representation_to_json(clientResponse);
+    cJSON *representation_json = representation_to_json((OCRepPayload*)clientResponse->payload);
     char* rendered = cJSON_Print(representation_json);
 
     char fname[256];

@@ -310,35 +310,37 @@ static const char *oc_result_to_str(OCStackResult result)
 
 OCStackApplicationResult get_cb(void* ctx,
 				OCDoHandle handle,
-				OCClientResponse * clientResponse)
+				OCClientResponse * inbound_response)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    if (clientResponse == NULL)
+    if (inbound_response == NULL)
     {
-        OIC_LOG(INFO, TAG, "getReqCB received NULL clientResponse");
+        OIC_LOG(INFO, TAG, "getReqCB received NULL inbound_response");
         return OC_STACK_DELETE_TRANSACTION;
     }
 
-    if (clientResponse->result != OC_STACK_OK) {
-	OIC_LOG_V(ERROR, TAG, "StackResult: %s",  oc_result_to_str(clientResponse->result));
+    if (inbound_response->result != OC_STACK_OK) {
+	OIC_LOG_V(ERROR, TAG, "StackResult: %s",  oc_result_to_str(inbound_response->result));
         return OC_STACK_DELETE_TRANSACTION;
     }
-    OIC_LOG_V(DEBUG, TAG, "payload type: %x",
-    	      clientResponse->payload->type);
+    if (inbound_response->payload)
+	OIC_LOG_V(DEBUG, TAG, "payload type: %x", inbound_response->payload->type);
+    else
+	OIC_LOG_V(DEBUG, TAG, "no payload");
 
     if (ctx == (void*)DEFAULT_CONTEXT_VALUE)
     {
         OIC_LOG(INFO, TAG, "Callback Context for GET query recvd successfully");
     }
 
-    OIC_LOG_V(INFO, TAG, "SEQUENCE NUMBER: %d", clientResponse->sequenceNumber);
+    OIC_LOG_V(INFO, TAG, "SEQUENCE NUMBER: %d", inbound_response->sequenceNumber);
 
-    if (clientResponse->numRcvdVendorSpecificHeaderOptions > 0)
+    if (inbound_response->numRcvdVendorSpecificHeaderOptions > 0)
     {
         OIC_LOG (INFO, TAG, "Received vendor specific options");
         uint8_t i = 0;
-        OCHeaderOption * rcvdOptions = clientResponse->rcvdVendorSpecificHeaderOptions;
-        for( i = 0; i < clientResponse->numRcvdVendorSpecificHeaderOptions; i++)
+        OCHeaderOption * rcvdOptions = inbound_response->rcvdVendorSpecificHeaderOptions;
+        for( i = 0; i < inbound_response->numRcvdVendorSpecificHeaderOptions; i++)
         {
             if (((OCHeaderOption)rcvdOptions[i]).protocolID == OC_COAP_ID)
             {
@@ -365,24 +367,24 @@ OCStackApplicationResult get_cb(void* ctx,
         }
     }
 
-    OIC_LOG_PAYLOAD(INFO, clientResponse->payload);
-    OIC_LOG_V(DEBUG, TAG, "1 payload type: %x", clientResponse->payload->type);
+    if (inbound_response->payload) {
+	OIC_LOG_V(DEBUG, TAG, "payload type: %x", inbound_response->payload->type);
+	switch (inbound_response->payload->type) {
+	case PAYLOAD_TYPE_REPRESENTATION:
+	    log_representation_msg(inbound_response);
+	    break;
+	case PAYLOAD_TYPE_SECURITY:
+	    log_security_msg(inbound_response);
+	    break;
+	default:
+	    OIC_LOG_V(INFO, TAG, "UNEXPECTED PAYLOAD TYPE: %d", inbound_response->payload->type);
+	}
+    } else OIC_LOG_V(DEBUG, TAG, "no payload");
 
-    switch (clientResponse->payload->type) {
-    case PAYLOAD_TYPE_REPRESENTATION:
-	log_representation_msg(clientResponse);
-	break;
-    case PAYLOAD_TYPE_SECURITY:
-	log_security_msg(clientResponse);
-	break;
-    default:
-	OIC_LOG_V(INFO, TAG, "UNEXPECTED PAYLOAD TYPE: %d", clientResponse->payload->type);
-    }
+    /* OIC_LOG_V(DEBUG, TAG, "payload: %p", inbound_response->payload); */
+    /* OIC_LOG_V(DEBUG, TAG, "2 payload type: %x", inbound_response->payload->type); */
 
-    OIC_LOG_V(DEBUG, TAG, "payload: %p", clientResponse->payload);
-    OIC_LOG_V(DEBUG, TAG, "2 payload type: %x", clientResponse->payload->type);
-
-    cosp_mgr_register_coresource(clientResponse);
+    cosp_mgr_register_coresource(inbound_response);
     inbound_msg_scroller_dirty = true;
     coresource_scroller_dirty = true;
     /* pthread_mutex_unlock(&dirty_mutex); */
