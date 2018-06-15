@@ -1,5 +1,18 @@
 # Bazel option defaults
 
+################ sanitizers
+
+# Address Sanitizer https://github.com/google/sanitizers/wiki/AddressSanitizer
+# see also https://developer.apple.com/documentation/code_diagnostics/address_sanitizer
+# build --copt="-fsanitize=address"
+# build --copt="-g"
+# build --linkopt="-fsanitize=address"
+
+# Memory Sanitizer (linux only?) https://github.com/google/sanitizers/wiki/MemorySanitizer
+# build --copts="-fsanitize=memory"
+# build --copts="-fPIE"
+# build --copts="-pie"
+
 ################################################################
 # OpenOCF build options
 # sorry, this is temporarily necessary.

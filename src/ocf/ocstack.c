@@ -2456,6 +2456,23 @@ OCStackResult OC_CALL OCInit2(OCMode mode, OCTransportFlags serverFlags, OCTrans
     return result;
 }
 
+/* #if defined(__clang__) || defined(__GNUC__) */
+/** test clang address sanitizer: stack-use-after-return */
+/* int *xtest_asan_ptr; */
+/* volatile int *xtest_asan_ptr2 = 0; */
+/* __attribute__((noinline)) */
+/* void xtest_asan_stack_use_after_return() { */
+/*   int local[100]; */
+/*   xtest_asan_ptr = &local[0]; */
+/* } */
+/* int *xtest_asan_heap_use_after_free() */
+/* { */
+/*     int *array = malloc(100); */
+/*     free(array); */
+/*     return array[1]; */
+/* } */
+/* #endif */
+
 /**
  * Initialize the stack.
  * Caller of this function must serialize calls to this function and the stop counterpart.
@@ -2476,6 +2493,41 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
                 OCStop() between them are ignored.");
         return OC_STACK_OK;
     }
+
+/* #if defined(__clang__) || defined(__GNUC__) */
+    /* clang address sanitizer tests */
+    /* heap-use-after-free */
+    /* int *x_asan_i = xtest_asan_heap_use_after_free(); */
+
+    /* heap-buffer-overflow */
+    /* int *array = calloc(100, sizeof(int)); */
+    /* int res = array[101];  // BOOM */
+    /* free(array); */
+
+    /* stack-buffer-overflow */
+    /* int stack_array[100]; */
+    /* stack_array[1] = 0; */
+    /* int i = stack_array[101]; */
+
+    /* global-buffer-overflow */
+    /* char c = COAP_TCP_SCHEME[10]; /\* COAP_TCP_SCHEME[] = "coap+tcp:" *\/ */
+
+    /* stack-use-after-return - run with ASAN_OPTIONS=detect_stack_use_after_return=1 */
+    /* xtest_asan_stack_use_after_return(); */
+    /* int xtest_asan_i = xtest_asan_ptr[1]; */
+
+    /* stack-use-after-scope */
+    /* { int x = 0; xtest_asan_ptr2 = &x; } */
+    /* *xtest_asan_ptr2 = 5; */
+
+    /* attempting free on address which was not malloc()-ed */
+    /* int xtest_asan_value = 42; */
+    /* free(&xtest_asan_value); */
+
+    /* attempting double-free */
+    /* int *xtest_asan_ptr = malloc(sizeof(int)); */
+    /* free(xtest_asan_ptr); free(xtest_asan_ptr); */
+/* #endif */
 
     oocf_cosp_mgr_init();		/* GAR: initialize co-serviceprovider mgr */
 
