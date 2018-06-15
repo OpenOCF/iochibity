@@ -279,10 +279,9 @@ u_arraylist_t			/**< @result list of CAInterface_t */
     int i = 1;  // debugging
     char addr_str[256]; // debugging
     int ifindex = 0;
+
     for (ifa = ifp; ifa; ifa = ifa->ifa_next)
     {
-	if (ifa->ifa_next == NULL) break;
-
 	/* OIC_LOG_V(DEBUG, TAG, "item %d", i); */
 	ifindex = 0;
 
