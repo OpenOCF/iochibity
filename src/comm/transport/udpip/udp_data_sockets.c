@@ -64,7 +64,7 @@ int udp_netlinkFd;              /**< netlink */
 
 int udp_shutdownFds[2]; // = { 80, 81 }; /**< pipe used to signal threads to stop */
 
-CASocketFd_t udp_maxfd;         /**< highest fd (for select) */
+CASocketFd_t udp_maxfd = 0;         /**< highest fd (for select) */
 
 
 void *udp_threadpool;           /**< threadpool between Initialize and Start */
