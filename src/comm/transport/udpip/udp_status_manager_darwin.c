@@ -38,7 +38,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <fcntl.h>
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
@@ -71,26 +70,20 @@
 
 void CADeInitializeMonitorGlobals()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     /* Currently, same as for posix. that will change */
-    if (caglobals.ip.shutdownFds[0] != -1)
+    if (udp_shutdownFds[0] != -1)
     {
-        close(caglobals.ip.shutdownFds[0]);
-        caglobals.ip.shutdownFds[0] = -1;
+        close(udp_shutdownFds[0]);
+        udp_shutdownFds[0] = -1;
     }
-    /* FIXME: this is dummy code that does not work on os x (netlink) */
-    if (caglobals.ip.netlinkFd != OC_INVALID_SOCKET)
-    {
-        close(caglobals.ip.netlinkFd);
-        caglobals.ip.netlinkFd = OC_INVALID_SOCKET;
-    }
+    // no netlink on darwin
+    /* if (udp_netlinkFd != OC_INVALID_SOCKET) */
+    /* { */
+    /*     close(udp_netlinkFd); */
+    /*     udp_netlinkFd = OC_INVALID_SOCKET; */
+    /* } */
 }
-
-/* OSX-specific */
-static OSStatus CreateIPAddressListChangeCallbackSCF(
-					      /* SCDynamicStoreCallBack callback, */
-					      void *contextPtr,
-					      SCDynamicStoreRef *storeRef,
-					      CFRunLoopSourceRef *sourceRef);
 
 void *ip_watcher(void *data)
 {
@@ -146,52 +139,49 @@ void launch_ip_watcher()
 void CARegisterForAddressChanges()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    /* OIC_LOG_V(DEBUG, TAG, "%s NOT YET SUPPORTED ON OS X", __func__); */
-    caglobals.ip.netlinkFd = OC_INVALID_SOCKET;
-
     launch_ip_watcher();
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
-void CAInitializeFastShutdownMechanism()
-{
-    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
-    udp_selectTimeout = -1; // don't poll for shutdown
-    int ret = -1;
-    ret = pipe(caglobals.ip.shutdownFds);
-    if (-1 != ret)
-    {
-        ret = fcntl(caglobals.ip.shutdownFds[0], F_GETFD);
-        if (-1 != ret)
-        {
-            ret = fcntl(caglobals.ip.shutdownFds[0], F_SETFD, ret|FD_CLOEXEC);
-        }
-        if (-1 != ret)
-        {
-            ret = fcntl(caglobals.ip.shutdownFds[1], F_GETFD);
-        }
-        if (-1 != ret)
-        {
-            ret = fcntl(caglobals.ip.shutdownFds[1], F_SETFD, ret|FD_CLOEXEC);
-        }
-        if (-1 == ret)
-        {
-            close(caglobals.ip.shutdownFds[1]);
-            close(caglobals.ip.shutdownFds[0]);
-            caglobals.ip.shutdownFds[0] = -1;
-            caglobals.ip.shutdownFds[1] = -1;
-        }
-    }
-    UDP_CHECKFD(caglobals.ip.shutdownFds[0]);
-    UDP_CHECKFD(caglobals.ip.shutdownFds[1]);
-/* #endif */
-    if (-1 == ret)
-    {
-        OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR);
-        udp_selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
-    }
-    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
-}
+/* void CAInitializeFastShutdownMechanism() */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__); */
+/*     udp_selectTimeout = -1; // don't poll for shutdown */
+/*     int ret = -1; */
+/*     ret = pipe(udp_shutdownFds); */
+/*     if (-1 != ret) */
+/*     { */
+/*         ret = fcntl(udp_shutdownFds[0], F_GETFD); */
+/*         if (-1 != ret) */
+/*         { */
+/*             ret = fcntl(udp_shutdownFds[0], F_SETFD, ret|FD_CLOEXEC); */
+/*         } */
+/*         if (-1 != ret) */
+/*         { */
+/*             ret = fcntl(udp_shutdownFds[1], F_GETFD); */
+/*         } */
+/*         if (-1 != ret) */
+/*         { */
+/*             ret = fcntl(udp_shutdownFds[1], F_SETFD, ret|FD_CLOEXEC); */
+/*         } */
+/*         if (-1 == ret) */
+/*         { */
+/*             close(udp_shutdownFds[1]); */
+/*             close(udp_shutdownFds[0]); */
+/*             udp_shutdownFds[0] = -1; */
+/*             udp_shutdownFds[1] = -1; */
+/*         } */
+/*     } */
+/*     UDP_CHECKFD(udp_shutdownFds[0]); */
+/*     UDP_CHECKFD(udp_shutdownFds[1]); */
+/* /\* #endif *\/ */
+/*     if (-1 == ret) */
+/*     { */
+/*         OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR); */
+/*         udp_selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown */
+/*     } */
+/*     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__); */
+/* } */
 
 /* https://stackoverflow.com/questions/3613521/udp-socket-network-disconnect-behavior-on-windows-linux-macq */
 
