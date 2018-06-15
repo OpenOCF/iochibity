@@ -32,13 +32,6 @@ static int32_t CAQueueIPData(bool isMulticast, const CAEndpoint_t *endpoint,
         return -1;
     }
 
-#ifdef SINGLE_THREAD
-
-    CAIPSendData(endpoint, data, dataLength, isMulticast);
-    return dataLength;
-
-#else
-
     // VERIFY_NON_NULL_RET(udp_sendQueueHandle, TAG, "sendQueueHandle", -1);
     // Create IPData to add to queue
     CAIPData_t *ipData = CACreateIPData(endpoint, data, dataLength, isMulticast);
@@ -49,8 +42,6 @@ static int32_t CAQueueIPData(bool isMulticast, const CAEndpoint_t *endpoint,
     }
     // Add message to send queue
     CAQueueingThreadAddData(&udp_sendQueueHandle, ipData, sizeof(CAIPData_t));
-
-#endif // SINGLE_THREAD
 
     return dataLength;
 }

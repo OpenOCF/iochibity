@@ -293,19 +293,19 @@ CAResult_t CAStartUDP()		// @rewrite @was CAStartIP (?)
     // @rewrite: the created list is never used, so why bother?
     CAIPCreateNetworkInterfaceList(); // @was CAIPStartNetworkMonitor
 
-#ifdef SINGLE_THREAD
-    uint16_t unicastPort = 55555;
-    // Address is hardcoded as we are using Single Interface
+/* #ifdef SINGLE_THREAD */
+/*     uint16_t unicastPort = 55555; */
+/*     // Address is hardcoded as we are using Single Interface */
 
-    // udp_config_data_sockets();
+/*     // udp_config_data_sockets(); */
 
-    CAResult_t ret = udp_start_services();  // @was CAIPStartServer();
-    if (CA_STATUS_OK != ret)
-    {
-        OIC_LOG_V(DEBUG, TAG, "udp_start_services failed[%d]", ret);
-        return ret;
-    }
-#else
+/*     CAResult_t ret = udp_start_services();  // @was CAIPStartServer(); */
+/*     if (CA_STATUS_OK != ret) */
+/*     { */
+/*         OIC_LOG_V(DEBUG, TAG, "udp_start_services failed[%d]", ret); */
+/*         return ret; */
+/*     } */
+/* #else */
     if (CA_STATUS_OK != udp_start_send_msg_queue())
     {
         OIC_LOG(ERROR, TAG, "Failed udp_start_send_msg_queue");
@@ -326,7 +326,7 @@ CAResult_t CAStartUDP()		// @rewrite @was CAStartIP (?)
         OIC_LOG_V(ERROR, TAG, "Failed to start server![%d]", ret);
         return ret;
     }
-#endif
+/* #endif */
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
