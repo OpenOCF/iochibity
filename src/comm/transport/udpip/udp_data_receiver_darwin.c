@@ -67,7 +67,16 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
         FD_SET(udp_shutdownFds[0], &readFds);
     }
 
-    int ready_count = select(udp_maxfd + 1, &readFds, NULL, NULL, tv);
+    OIC_LOG_V(DEBUG, TAG, "SELECTing");
+    //int ready_count = select(udp_maxfd + 1, &readFds, NULL, NULL, tv);
+    int ready_count = 0;
+    while ((ready_count = select(udp_maxfd + 1, &readFds, NULL, NULL, tv)) == -1
+	   && errno == EINTR)	/* a signal interrupt */
+         continue;                       /* Restart if interrupted by signal */
+    if (ready_count == -1) {                   /* Unexpected error */
+        OIC_LOG_V(FATAL, TAG, "select error %s", CAIPS_GET_ERROR);
+    }
+
     OIC_LOG_V(DEBUG, TAG, "SELECT ready_count: %d", ready_count);
 
     if (udp_is_terminating)
@@ -174,8 +183,4 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
 		return;
 	}
     }
-    else // if (0 > ready_count)
-    {
-        OIC_LOG_V(FATAL, TAG, "select error %s", CAIPS_GET_ERROR);
-     }
 }
