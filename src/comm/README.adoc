@@ -1,6 +1,185 @@
 = iotivity networking
 
+== initialization
+
+ocstack/InitializeInternal - by default, transportType is OC_DEFAULT_ADAPTER (=all)
+=> CAInitialize(CATransportAdapter_t transportType) (caconnectivitymanager) calls only:
+==> CAInitializeMessageHandler (camessagehandler)
+==> sets g_isInitialized to true
+
+CAInitializeMessageHandler(CATransportAdapter_t transportType)
+=> CASetErrorHandleCallback
+=> ca_thread_pool_init (g_threadPoolHandle)
+=> CAQueueingThreadInitialize (g_sendThread, CASendThreadProcess)
+=> CAQueueingThreadStart(&g_sendThread);
+=> CAQueueingThreadInitialize (g_receiveThread, CAReceiveThreadProcess
+=> does NOT call CAQueueingThreadStart(&g_receiveThread)
+=> CARetransmissionInitialize (g_retransmissionContext, CASendUnicastData
+=> CAInitializeBlockWiseTransfer (if WITH_BWT)
+=> CARetransmissionStart(&g_retransmissionContext)
+=> CAInitializeAdapters (g_threadPoolHandle, transportType)
+
+CAInitializeAdapters(thread_pool, transportType) (cainterfacecontroller)
+for each "adapter" (transport):
+=> CAInitialize<transport>, e.g. CAInitializeUDP
+then:
+=> CAQueueingThreadInitialize (g_networkChangeCallbackThread, CANetworkChangeCallbackThreadProcess)
+=> CAQueueingThreadStart (g_networkChangeCallbackThread);
+
+CAInitializeUDP(ca_thread_pool_t handle) (udp_controller)
+initialize vars:
+=> udp_errorCB = CAAdapterErrorHandleCallback - short-circuit, initialize in CASetSslAdapterCallbacks
+=> udp_threadpool = handle
+init ssl (if WITH_DTLS)
+=> CAinitSslAdapter()
+=> CAsetSslAdapterCallbacks(CAIPPacketSendCB, CAIPErrorHandler, CA_ADAPTER_IP);
+set callbacks
+=> initialize udpController (a CAConnectivityHandler_t struct (callbacks))
+=> CARegisterCallback(udpController)
+
+
+== request handling
+
+gRequestHandler (secureresourcemanager)
+
+gRequestHandler set to HandleCARequests
+
+called only by SRMGenerateResponse(SRMRequestContext_t *context)
+
+g_requestHandler (camessagehandler)
+
+if DTLS/TLS then
+g_requestHandler set to SRMRequestHandler, which does more than HandleCARequests (contrast response handling)
+else
+g_requestHandler set to HandleCARequests
+
+g_requestHandler called only by CAHandleRequestResponseCallbacks
+
+runtime:
+
+CAHandleRequestResponseCallbacks
+=> g_requestHandler == SRMRequestHandler
+
+== response handling
+
+gResponseHandler (secureresourcemanager
+
+initialization:
+
+CASRMRegisterHandler
+=> set gResponseHandler to handler arg (HandleCAResponses)
+=> CARegisterHandler
+==> sets g_responseHandler (camessagehandler) to SRMResponseHandler
+SRMResponseHandler calls ONLY gResponseHandler
+
+runtime:
+
+CAHandleRequestResponse
+=> CAHandleRequestResponseCallbacks
+==> g_responseHandler == SRMResponseHandler=> gResponseHandler == HandleCAResponses
+
+gResponseHandler called ONLY by SRMResponseHandler
+g_responseHandler called ONLY by CAHandleRequestResponseCallbacks
+
+We can eliminate gResponseHandler, SRMResponseHandler, and g_responseHandler. and CARegisterHandler
+
+
+== error handling
+
+g_errorHandler: inbound (camessagehanler.c:  static CAErrorCallback g_errorHandler = NULL;)
+g_errorHandleCallback: outbound (cainterfacecontroller.c:  static CAErrorHandleCallback g_errorHandleCallback = NULL;)
+gErrorHandler: secureresourcemanager, set to HandleCAErrorResponse
+
+(but caleadapter has it's own g_errorHandler of type CAErrorHandleCallback, rather than CAErrorCallback)
+
+We eliminate all of these.
+
+===== g_errorHandler - handles inbound data processing errors
+
+g_errorHandler initialization:
+
+ocstack:InitializeInternal
+=> CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse) (OC_CLIENT)
+==> CARegisterHandler (caconnectivitymanager) calls ONLY (if g_isInitialized, set by CAInitialize)
+===> CASetInterfaceCallbacks (camessagehandler)
+====> sets g_requestHandler, g_responseHandler, g_errorHandler
+=> SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse) (OC_SERVER, OC_CLIENT_SERVER)
+==> sets g_requestHandler, g_responseHandler, g_errorHandler to passed handler args
+        NB: this is unnecessary, since CARegisterHandler does the same
+==> CARegisterHandler(SRMRequestHandler, SRMResponseHandler, SRMErrorHandler) (WITH_DTSL/TLS)
+else
+==> CARegisterHandler(reqHandler, respHandler, errHandler);
+
+IOW, SRMResponseHandler overrides the handler args if WITH_DTLS/TLS
+
+So we have six error handlers, 3 secure, 3 unsecure:
+    SRMRequestHandler, SRMResponseHandler, SRMErrorHandler
+    HandleCARequests, HandleCAResponses, HandleCAErrorResponse
+
+But there is really no difference, the SRM versions call the others
+
+These are installed in g_requestHandler, g_responseHandler, g_errorHandler
+
+runtime:
+
+g_errorHandler is called only from CAHandleRequestResponseCallbacks (camessagehandler)
+
+OCProcess (ocstack)
+=> CAHandleRequestResponse
+==> CAHandleRequestResponseCallbacks
+===> g_errorHandler == HandleCAErrorResponse or SRMErrorHandler
+
+
+===== g_errorHandleCallback - handles data send errors
+
+g_errorHandleCallback initialization:
+
+CAInitialize(CATransportAdapter_t transportType) (caconnectivitymanager)
+=> CAInitializeMessageHandler(CATransportAdapter_t transportType) (camessagehandler)
+==> CASetErrorHandleCallback(CAErrorHandler); (cainterfacecontroller.c)
+===> sets g_errorHandleCallback
+
+g_errorHandleCallback is called ONLY by CAAdapterErrorHandleCallback (cainterfacecontroller.c)
+
+But CAAdapterErrorHandleCallback is installed in udp_errorCB and g_caSslContext->adapterCallbacks[index].errorCallback
+
+g_errorHandleCallback runtime:
+
+CASendIPUnicastData=>CAQueueIPData=>CACreateIPData
+CASendIPMulticastData=>CAQueueIPData
+
+CAIPPacketSendCB (DTLS) or CAIPSendDataThread
+=>CAIPSendData or sendMulticastData6 or sendMulticastData4
+==> udp_send_data
+if !endpoint
+===> CAIPErrorHandler
+====> udp_errorCallback == CAAdapterErrorHandleCallback=>g_errorHandleCallback == CAErrorHandler
+else
+===>PORTABLE_sendto (udp_data_sender)
+====> CAIPErrorHandler
+====> udp_errorCallback == CAAdapterErrorHandleCallback=>g_errorHandleCallback == CAErrorHandler
+
+===== gErrorHandler (secureresourcemanager)
+
+initialization:
+
+InitializeInternal
+=> SRMRegisterHandler
+==> sets gRequestHandler, gResponseHandler, gErrorHandler
+
+runtime: called only by SRMErrorHandler, which is installed by SRMRegisterHandler
+
+IOW SRMRegisterHandler does nothing useful, the same error callbacks
+are used for both secure and insecure
+
+
+=== tcp
+
+
+
+
 == threading
+
 
 camessagehandler:
 static CAQueueingThread_t g_sendThread  (routine is CASendThreadProcess)

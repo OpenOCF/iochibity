@@ -4,6 +4,21 @@ The udpip package provides UDP services to the upper layers of the stack.
 
 WARNING: doc is Work In Progress
 
+== rewrite
+
+=== inbound data handling
+
+udp_data_receiver_runloop runs on a dedicated thread, put there by CAIPStartServer
+=> udp_handle_inbound_data - platform-specific, on linux: select on sockets, when data arrive, call
+==> udp_recvmsg_on_socket
+====> if secure: CAdecryptSsl
+====> else mh_CAReceivedPacketCallback
+
+CAdecryptSsl decrypts data and invokes a callback == mh_CAReceivedPacketCallback, for UDP, CATCPPacketReceivedCB for TCP
+
+mh_CAReceivedPacketCallback massages data and places it on g_receiveThread for later processing
+
+
 Tasks:
 
 * observe (recv) incoming data messages - select/recvmsg on all data sockets
