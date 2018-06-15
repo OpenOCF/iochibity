@@ -63,9 +63,9 @@ cc_binary(
              "-Isrc/comm",
              "-Isrc/logger",
              "-Isrc/ocf",
-             "-Ithird_party/coap",
-             "-Ithird_party/coap/include",
-             "-Ithird_party/tinycbor/src"
+             # "-Ithird_party/coap",
+             # "-Ithird_party/coap/include",
+             # "-Ithird_party/tinycbor/src"
     ],
     # + select({":rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/include",
     #                      "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
@@ -82,8 +82,8 @@ cc_binary(
     deps = ["//src/ocf",
             ## FIXME: remove all deps except //src/ocf
             "//src:config",
-            "//third_party/coap",
-            "//third_party/tinycbor"],
+            "@libcoap//:libcoap",
+            "@tinycbor//:tinycbor"],
     # + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
     #           ":android": ["@cosysroot_ndk//:cdk"],
     #           ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
