@@ -129,7 +129,7 @@ u_arraylist_t *g_local_endpoint_cache = NULL;
 /**
  * error Callback to CA adapter.
  */
-static CAErrorHandleCallback udp_errorCB = NULL;
+static CAErrorHandleCallback udp_errorCB = CAAdapterErrorHandleCallback;
 
 /* static void CAIPPacketReceivedCB(const CASecureEndpoint_t *endpoint, */
 /*                                  const void *data, size_t dataLength); */
