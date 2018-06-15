@@ -114,8 +114,8 @@ EXPORT
 
 LOCAL void udp_send_data(CASocketFd_t fd, /*  @was sendData */
 			 const CAEndpoint_t *endpoint,
-	      const void *data, size_t dlen,
-	      const char *cast, const char *fam)
+			 const void *data, size_t dlen,
+			 const char *cast, const char *fam)
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
 
