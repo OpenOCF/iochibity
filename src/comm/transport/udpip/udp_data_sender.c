@@ -84,6 +84,7 @@ EXPORT
 {
     (void)flags;
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s dest socket: %d", __func__, fd);
 #ifdef TB_LOG
     const char *secure = (endpoint->flags & CA_SECURE) ? "secure " : "insecure ";
 #endif
