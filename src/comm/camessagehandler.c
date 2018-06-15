@@ -1300,8 +1300,8 @@ LOCAL bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *ep, uin
     return ret;
 }
 
-// static
-void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
+/* called by both UDP and TCP */
+void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep, // @was CAReceivedPacketCallback
 				 const void *data,
 				 size_t dataLen) EXPORT
 {
