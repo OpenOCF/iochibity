@@ -128,7 +128,7 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
         CAdecryptSsl(&sep, (uint8_t *)recvBuffer, recvLen);
         OIC_LOG_V(DEBUG, TAG, "CAdecryptSsl returns [%d]", decryptResult);
 #else
-        OIC_LOG(ERROR, TAG, "Encrypted message but no DTLS");
+        OIC_LOG(ERROR, TAG, "Encrypted message but DTLS disabled");
 #endif // __WITH_DTLS__
     }
     else
