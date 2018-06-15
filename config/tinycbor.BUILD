@@ -13,3 +13,20 @@ cc_library(
     hdrs = glob(["src/*.h"]),
     visibility = ["//visibility:public"]
 )
+
+cc_binary(
+    name = "cbordump",
+    copts = ["-Iexternal/tinycbor/src",
+    ],
+    srcs = ["tools/cbordump/cbordump.c",
+            "src/cborparser.c",
+            "src/cborerrorstrings.c",
+            "src/cborparser_dup_string.c",
+            "src/cborpretty.c",
+            "src/cbortojson.c",
+            "src/open_memstream.c",
+    ] + glob(["src/*.h"]),
+    visibility = ["//visibility:public"]
+)
+
+# cbordump: cbordump.o cborparser.o cborerrorstrings.o cborpretty.o cbortojson.o open_memstream.o
