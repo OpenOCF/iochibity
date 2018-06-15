@@ -183,10 +183,8 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
                 }
                 u_arraylist_destroy(iflist);
             }
-	    return;
         }
 
-	// FIXME: we don't even need to read the shutdown socket, it's enough for select to wake up?
 	if (FD_ISSET(udp_shutdownFds[0], &readFds)) {
 	    OIC_LOG(DEBUG, TAG, "udp_shutdownFds[0] socket ready");
 	    char buf[10] = {0};
