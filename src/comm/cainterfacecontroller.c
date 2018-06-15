@@ -160,20 +160,20 @@ static void CADestroyNetworkChangeCallbackData(void *data, uint32_t size)
     OICFree(info);
     info = NULL;
 }
-#endif // SINGLE_THREAD
 
-static CAResult_t CAGetAdapterIndex(CATransportAdapter_t cType, size_t *adapterIndex)
-{
-    for (size_t index = 0 ; index < g_numberOfAdapters ; index++)
-    {
-        if (cType == g_adapterHandler[index].cType )
-        {
-            *adapterIndex = index;
-            return CA_STATUS_OK;
-        }
-    }
-    return CA_STATUS_FAILED;
-}
+/* static CAResult_t CAGetAdapterIndex(CATransportAdapter_t cType, size_t *adapterIndex) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
+/*     for (size_t index = 0 ; index < g_numberOfAdapters ; index++) */
+/*     { */
+/*         if (cType == g_adapterHandler[index].cType ) */
+/*         { */
+/*             *adapterIndex = index; */
+/*             return CA_STATUS_OK; */
+/*         } */
+/*     } */
+/*     return CA_STATUS_FAILED; */
+/* } */
 
 // @rewrite: eliminate CARegisterCallback
 //static
@@ -182,20 +182,20 @@ void CARegisterCallback(CAConnectivityHandler_t handler)
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, transport adapter %s (%d)", __func__,
 	      CA_TRANSPORT_ADAPTER_STRING(handler.cType), handler.cType);
 
-    if (handler.startAdapter == NULL ||
-        handler.startListenServer == NULL ||
-        handler.stopListenServer == NULL ||
-        handler.startDiscoveryServer == NULL ||
-        handler.unicast == NULL ||
-        handler.multicast == NULL ||
-        handler.GetNetInfo == NULL ||
-        handler.readData == NULL ||
-        handler.stopAdapter == NULL ||
-        handler.terminate == NULL)
-    {
-        OIC_LOG(ERROR, TAG, "connectivity handler is not enough to be used!");
-        return;
-    }
+    /* if (handler.startAdapter == NULL || */
+    /*     handler.startListenServer == NULL || */
+    /*     handler.stopListenServer == NULL || */
+    /*     handler.startDiscoveryServer == NULL || */
+    /*     handler.unicast == NULL || */
+    /*     handler.multicast == NULL || */
+    /*     handler.GetNetInfo == NULL || */
+    /*     handler.readData == NULL || */
+    /*     handler.stopAdapter == NULL || */
+    /*     handler.terminate == NULL) */
+    /* { */
+    /*     OIC_LOG(ERROR, TAG, "connectivity handler is not enough to be used!"); */
+    /*     return; */
+    /* } */
     size_t numberofAdapters = g_numberOfAdapters + 1;
     CAConnectivityHandler_t *adapterHandler = OICRealloc(g_adapterHandler,
             (numberofAdapters) * sizeof(*adapterHandler));
@@ -309,8 +309,7 @@ CAResult_t RemoveNetworkStateChangedCallback(void(*adapterCB)(CATransportAdapter
  */
 static void RemoveAllNetworkStateChangedCallback()
 {
-    OIC_LOG(DEBUG, TAG, "Remove All NetworkStateChanged Callback");
-
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     CANetworkCallback_t *callback = NULL;
     CANetworkCallback_t *tmp = NULL;
     LL_FOREACH_SAFE(g_networkChangeCallbackList, callback, tmp)
@@ -439,6 +438,7 @@ void CAConnectionChangedCallback(const CAEndpoint_t *endpoint, bool isConnected)
 #endif //STATEFUL_PROTOCOL_SUPPORTED
 
 // static
+// FIXME: this is only for outbound processing errors, rename it e.g. sender_error_handler
 void CAAdapterErrorHandleCallback(const CAEndpoint_t *endpoint,
         const void *data, size_t dataLen,
         CAResult_t result)
@@ -1175,22 +1175,24 @@ bool CAIsLocalEndpoint(const CAEndpoint_t *ep)
 // e.g. for udp: CATerminateIP
 void CATerminateAdapters()
 {
-    for (size_t index = 0; index < g_numberOfAdapters; index++)
-    {
-        if (g_adapterHandler[index].terminate != NULL)
-        {
-            g_adapterHandler[index].terminate();
-        }
-    }
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* for (size_t index = 0; index < g_numberOfAdapters; index++) */
+    /* { */
+    /*     if (g_adapterHandler[index].terminate != NULL) */
+    /*     { */
+    /*         g_adapterhandler[index].terminate(); */
+    /*     } */
+    /* } */
+#ifdef IP_ADAPTER
+    CATerminateIP();
+#endif
 
     OICFree(g_adapterHandler);
     g_adapterHandler = NULL;
     g_numberOfAdapters = 0;
 
-#ifndef SINGLE_THREAD
     CAQueueingThreadDestroy(&g_networkChangeCallbackThread);
-#endif //SINGLE_THREAD
-
     RemoveAllNetworkStateChangedCallback();
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 

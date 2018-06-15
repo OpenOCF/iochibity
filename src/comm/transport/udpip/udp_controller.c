@@ -185,20 +185,19 @@ CAResult_t udp_start_services(const ca_thread_pool_t threadPool) // @was CAIPSta
     return CA_STATUS_OK;
 }
 
-CAResult_t CAInitializeUDP(// CARegisterConnectivityCallback registerCallback,
+// previous args:
+// CARegisterConnectivityCallback registerCallback,
 			  // void (*registerCallback)(CAConnectivityHandler_t handler),
                           // CANetworkPacketReceivedCallback networkPacketCallback,
                           // CAAdapterChangeCallback netCallback,
                           /* CAErrorHandleCallback errorCallback, */
-			  ca_thread_pool_t handle)
+CAResult_t CAInitializeUDP(ca_thread_pool_t handle)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     //    VERIFY_NON_NULL_MSG(registerCallback, TAG, "registerCallback");
     // VERIFY_NON_NULL_MSG(networkPacketCallback, TAG, "networkPacketCallback");
     // VERIFY_NON_NULL_MSG(netCallback, TAG, "netCallback");
-#ifndef SINGLE_THREAD
     VERIFY_NON_NULL_MSG(handle, TAG, "thread pool handle");
-#endif
 
 #ifdef WSA_WAIT_EVENT_0
     // Windows-specific initialization.
@@ -216,7 +215,7 @@ CAResult_t CAInitializeUDP(// CARegisterConnectivityCallback registerCallback,
     // @rewrite: we do not need these "globals", we can just call the fns directly
     // udp_networkChangeCallback = CAAdapterChangedCallback;  // netCallback;
     // udp_networkPacketCallback = ifc_CAReceivedPacketCallback;  // networkPacketCallback;
-    udp_errorCB            = CAAdapterErrorHandleCallback;  //errorCallback;
+    // initialized statically: udp_errorCB = CAAdapterErrorHandleCallback;  //errorCallback;
 
     // @rewrite: initialize statically: CAInitializeUDPGlobals();
     // @rewrite: statically initialize caglobals.ip.threadpool = handle;
@@ -232,8 +231,11 @@ CAResult_t CAInitializeUDP(// CARegisterConnectivityCallback registerCallback,
     }
     else
     {
-	CAsetSslAdapterCallbacks(// CAUDPPacketReceivedCB,
-				 CAIPPacketSendCB, CAIPErrorHandler, CA_ADAPTER_IP);
+	// obsolete arg: // CAUDPPacketReceivedCB,
+	CAsetSslAdapterCallbacks(// @was CAUDPPacketReceivedCB,
+				 CAIPPacketSendCB,
+				 // @was CAIPErrorHandler
+				 CA_ADAPTER_IP);
     }
 #endif
 
@@ -241,20 +243,20 @@ CAResult_t CAInitializeUDP(// CARegisterConnectivityCallback registerCallback,
     // e.g. from CAStartListeningServerAdapters
     static const CAConnectivityHandler_t udpController =
         {
-            .startAdapter         = &CAStartUDP, /* called directly in CAStartAdapter */
-            .stopAdapter          = &CAStopIP,	 /* called directly in CAStopAdapter */
+            // .startAdapter         = &CAStartUDP, /* called directly in CAStartAdapter */
+            // .stopAdapter          = &CAStopIP,	 /* called directly in CAStopAdapter */
             /* .startListenServer    = &CAStartIPListeningServer, */
-            .startListenServer    = &udp_add_ifs_to_multicast_groups, // @was CAIPStartListenServer,
-            .stopListenServer     = &udp_close_sockets, // @was CAStopIPListeningServer -> CAIPStopListenServer,
+            // .startListenServer    = &udp_add_ifs_to_multicast_groups, // @was CAIPStartListenServer,
+            // .stopListenServer     = &udp_close_sockets, // @was CAStopIPListeningServer -> CAIPStopListenServer,
             .startDiscoveryServer = &CAStartIPDiscoveryServer, /* CAStartDiscoveryServerAdapters */
 	    // why no stopDiscoveryServer?
             .unicast              = &CASendIPUnicastData,
             .multicast            = &CASendIPMulticastData,
             .GetNetInfo           = &udp_get_local_endpoints, // @was CAGetIPInterfaceInformation
 #ifdef SINGLE_THREAD
-            .readData             = &CAReadIPData,	      /* only used ifdef SINGLE_THREAD? */
+            // .readData             = &CAReadIPData,	      /* only used ifdef SINGLE_THREAD? */
 #endif
-            .terminate            = &CATerminateIP,
+            //.terminate            = &CATerminateIP,
             .cType                = CA_ADAPTER_IP
         };
     //registerCallback(udpController);
@@ -383,21 +385,23 @@ CAResult_t CAStopIP()
 
 void CATerminateIP()
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 #ifdef __WITH_DTLS__
-    CAsetSslAdapterCallbacks(//NULL,
-			     NULL, NULL, CA_ADAPTER_IP);
+    CAsetSslAdapterCallbacks(//NULL,  // CAPacketReceivedCallback recvCallback,
+			     NULL,    // CAPacketSendCallback sendCallback
+			     //NULL,  //CAErrorHandleCallback errorCallback,
+			     CA_ADAPTER_IP); // CATransportAdapter_t type
 #endif
 
     // @rewrite remove CAIPSetPacketReceiveCallback(NULL);
 
-#ifndef SINGLE_THREAD
     udp_stop_send_msg_queue(); // @was CAIPDeinitializeQueueHandles
-#endif
 
 #ifdef WSA_WAIT_EVENT_0
     // Windows-specific clean-up.
     OC_VERIFY(0 == WSACleanup());
 #endif
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 /*

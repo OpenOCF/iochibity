@@ -104,8 +104,9 @@ EXPORT
         /* { */
         /*     g_ipErrorHandler(endpoint, data, dlen, CA_SEND_FAILED); */
         /* } */
-	CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
-
+	// FIXME: short-circuit to CAAdapterErrorHandleCallback
+	//CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
+	CAErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
 
         OIC_LOG_V(ERROR, TAG, "%s%s %s sendTo failed: %s", secure, cast, fam, strerror(errno));
         CALogSendStateInfo(endpoint->adapter, endpoint->addr, endpoint->port,
@@ -134,7 +135,8 @@ LOCAL void udp_send_data(CASocketFd_t fd, /*  @was sendData */
         /* { */
         /*     g_ipErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM); */
         /* } */
-	CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
+	CAErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
+	//CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
         return;
     }
 

@@ -247,6 +247,7 @@ LOCAL CAResult_t CAReceiveMessage(CATCPSessionInfo_t *svritem)
             /* { */
             /*     tcp_packetReceivedCallback(&svritem->sep, svritem->tlsdata, len); */
             /* } */
+	    /* tcp_packetReceivedCallback always initialized to CATCPPacketReceivedCB */
 	    CATCPPacketReceivedCB(&svritem->sep, svritem->tlsdata, len);
         }
     }

@@ -2365,7 +2365,24 @@ CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dat
             }
             else if (0 < ret)
             {
-                g_caSslContext->adapterCallbacks[adapterIndex].recvCallback(&peer->sep, decryptBuffer, ret);
+                //g_caSslContext->adapterCallbacks[adapterIndex].recvCallback(&peer->sep, decryptBuffer, ret);
+		/* this is the ONLY place
+		   adapterCallbacks[x].recvCallback is invoked. we can
+		   eliminate the method lookup */
+		switch (peer->sep.endpoint.adapter) {
+#ifdef ENABLE_UDP
+		case CA_ADAPTER_IP:
+		    mh_CAReceivedPacketCallback(&peer->sep, decryptBuffer, /* dataLen */ ret);
+		    break;
+#endif
+#ifdef ENABLE_TCP
+		case CA_ADAPTER_TCP:
+		    CATCPPacketReceivedCB(&peer->sep, decryptBuffer, /* dataLen */ ret);
+		    break;
+#endif
+		default:
+		    break;
+		}
             }
         }
         else
@@ -2384,13 +2401,13 @@ CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dat
 
 void CAsetSslAdapterCallbacks(// CAPacketReceivedCallback recvCallback,
                               CAPacketSendCallback sendCallback,
-                              CAErrorHandleCallback errorCallback,
+                              //CAErrorHandleCallback errorCallback,
                               CATransportAdapter_t type)
 {
     OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
     VERIFY_NON_NULL_VOID(sendCallback, NET_SSL_TAG, "sendCallback is NULL");
     /* VERIFY_NON_NULL_VOID(recvCallback, NET_SSL_TAG, "recvCallback is NULL"); */
-    VERIFY_NON_NULL_VOID(errorCallback, NET_SSL_TAG, "errorCallback is NULL");
+    /* VERIFY_NON_NULL_VOID(errorCallback, NET_SSL_TAG, "errorCallback is NULL"); */
 
     oc_mutex_lock(g_sslContextMutex);
     if (NULL == g_caSslContext)
@@ -2405,9 +2422,13 @@ void CAsetSslAdapterCallbacks(// CAPacketReceivedCallback recvCallback,
     {
         // @rewrite g_caSslContext->adapterCallbacks[index].recvCallback  = recvCallback;
 	// CAUDPPacketReceivedCB > ifc_CAReceivedPacketCallbackg > mh_CAReceivedPacketCallback
+	// UDP: mh_CAReceivedPacketCallback;
+	// TCP: CATCPPacketReceivedCB
 	g_caSslContext->adapterCallbacks[index].recvCallback  = mh_CAReceivedPacketCallback;
         g_caSslContext->adapterCallbacks[index].sendCallback  = sendCallback;
-        g_caSslContext->adapterCallbacks[index].errorCallback = errorCallback;
+
+        /* g_caSslContext->adapterCallbacks[index].errorCallback = errorCallback; */
+	g_caSslContext->adapterCallbacks[index].errorCallback = CAAdapterErrorHandleCallback;
     }
 
     oc_mutex_unlock(g_sslContextMutex);

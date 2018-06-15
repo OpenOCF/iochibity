@@ -205,9 +205,9 @@ static CAQueueingThread_t g_receiveThread;
 static CARetransmission_t g_retransmissionContext;
 
 // handler field
-static CARequestCallback g_requestHandler = NULL;
-static CAResponseCallback g_responseHandler = NULL;
-static CAErrorCallback g_errorHandler = NULL;
+//static CARequestCallback g_requestHandler = NULL;
+//static CAResponseCallback g_responseHandler = NULL;
+//static CAErrorCallback g_errorHandler = NULL;
 static CANetworkMonitorCallback g_nwMonitorHandler = NULL;
 
 /* static void CAErrorHandler(const CAEndpoint_t *endpoint, */
@@ -1447,33 +1447,46 @@ void CAHandleRequestResponseCallbacks()
 	      :(CA_RESPONSE_FOR_RES == td->dataType)? "RESPONSE_FOR_RES"
 	      : "UNKNOWN");
 
-    OIC_LOG_V(DEBUG, TAG, "Msg EP: [%s]:%d ", td->remoteEndpoint->addr, td->remoteEndpoint->port);
+    OIC_LOG_V(DEBUG, TAG, "Msg remote EP: [%s]:%d ", td->remoteEndpoint->addr, td->remoteEndpoint->port);
 
-    if (td->requestInfo && g_requestHandler)
+    if (td->requestInfo) // && g_requestHandler)
     {
         OIC_LOG_V(DEBUG, TAG, "REQUEST callback option count: %d", td->requestInfo->info.numOptions);
 	OIC_LOG_V(DEBUG, TAG, "REQUEST method: %d", td->requestInfo->method); // get=1,post,put,delete
 	OIC_LOG_V(DEBUG, TAG, "REQUEST isMcast? %d", td->requestInfo->isMulticast);
-        g_requestHandler(td->remoteEndpoint, td->requestInfo);
+#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+        /* g_requestHandler(td->remoteEndpoint, td->requestInfo); */
+	SRMRequestHandler(td->remoteEndpoint, td->requestInfo);
+#else
+#endif
     }
-    else if (td->responseInfo && g_responseHandler)
+    else if (td->responseInfo) // && g_responseHandler)
     {
         OIC_LOG_V(DEBUG, TAG, "RESPONSE callback option count: %d", td->responseInfo->info.numOptions);
 	OIC_LOG_V(DEBUG, TAG, "RESPONSE result: %d", td->responseInfo->result);
 	OIC_LOG_V(DEBUG, TAG, "RESPONSE isMcast? %d", td->responseInfo->isMulticast);
-        g_responseHandler(td->remoteEndpoint, td->responseInfo);
+        //g_responseHandler(td->remoteEndpoint, td->responseInfo);
+        HandleCAResponses(td->remoteEndpoint, td->responseInfo);
     }
-    else if (td->errorInfo && g_errorHandler)
+    else if (td->errorInfo) // && g_errorHandler)
     {
         OIC_LOG_V(DEBUG, TAG, "ERROR callback error: %d", td->errorInfo->result);
-        g_errorHandler(td->remoteEndpoint, td->errorInfo);
+        /* g_errorHandler(td->remoteEndpoint, td->errorInfo); */
+	// FIXME: rename to e.g. receiver_error_handler
+#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+	// FIXME: SRMErrorHandler=>gErrorHandler == HandleCAErrorResponse
+	// SRMErrorHandler(td->remoteEndpoint, td->errorInfo);
+	HandleCAErrorResponse(td->remoteEndpoint, td->errorInfo);
+#else
+	HandleCAErrorResponse(td->remoteEndpoint, td->errorInfo);
+#endif
     }
 
     CADestroyData(item->msg, sizeof(CAData_t));
     OICFree(item);
 
 #endif // SINGLE_HANDLE
-    OIC_LOG_V(DEBUG, TAG, "%s <<<<<<<<<<<<<<<< EXIT <<<<<<<<<<<<<<<<", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s <<<<<<<<<<<<<<<< EXIT <<<<<<<<<<<<<<<<", __func__); */
 }
 
 static CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
@@ -1597,9 +1610,9 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *endpoint, const void *sendMsg
 void CASetInterfaceCallbacks(CARequestCallback ReqHandler, CAResponseCallback RespHandler,
                              CAErrorCallback errorHandler)
 {
-    g_requestHandler = ReqHandler;
-    g_responseHandler = RespHandler;
-    g_errorHandler = errorHandler;
+    //g_requestHandler = ReqHandler;
+    // g_responseHandler = RespHandler;
+    // g_errorHandler = errorHandler;
 }
 
 void CASetNetworkMonitorCallback(CANetworkMonitorCallback nwMonitorHandler)

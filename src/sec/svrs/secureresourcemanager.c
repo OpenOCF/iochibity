@@ -104,9 +104,9 @@ typedef struct SRMRequestContext
 //Request Callback handler
 static CARequestCallback gRequestHandler = NULL;
 //Response Callback handler
-static CAResponseCallback gResponseHandler = NULL;
+//static CAResponseCallback gResponseHandler = NULL;
 //Error Callback handler
-static CAErrorCallback gErrorHandler = NULL;
+//static CAErrorCallback gErrorHandler = NULL;
 
 /**
  * A single global Request context will suffice as long
@@ -157,19 +157,23 @@ void SRMGenerateResponse(SRMRequestContext_t *context)
     // on to resource endpoint.
     if (IsAccessGranted(context->responseVal))
     {
-        if (NULL != gRequestHandler
-            && NULL != context->endPoint
-            && NULL != context->requestInfo)
+        if (//NULL != gRequestHandler &&
+            NULL != context->endPoint &&
+	    NULL != context->requestInfo)
         {
             OIC_LOG_V(INFO, TAG, "%s : Access granted, passing req to endpoint.",
              __func__);
-            gRequestHandler(context->endPoint, context->requestInfo);
+            // gRequestHandler(context->endPoint, context->requestInfo);
+	    HandleCARequests(context->endPoint, context->requestInfo);
             context->responseSent = true; // SRM counts on the endpoint to send
                                           // a response.
         }
         else // error condition; log relevant msg then send DENIED response
         {
             OIC_LOG_V(ERROR, TAG, "%s : Null values in context.", __func__);
+            // OIC_LOG_V(ERROR, TAG, "%s : gRequestHandler %p", __func__, gRequestHandler);
+            OIC_LOG_V(ERROR, TAG, "%s : endpoint %p", __func__, context->endPoint);
+            OIC_LOG_V(ERROR, TAG, "%s : requestInfo %p", __func__, context->requestInfo);
             context->responseVal = ACCESS_DENIED_POLICY_ENGINE_ERROR;
             context->responseInfo.result = CA_INTERNAL_SERVER_ERROR;
             SRMSendResponse(context);
@@ -425,15 +429,15 @@ exit:
  * @param endPoint points to the remote endpoint.
  * @param responseInfo contains response information from the endpoint.
  */
-void SRMResponseHandler(const CAEndpoint_t *endPoint, const CAResponseInfo_t *responseInfo)
-{
-    OIC_LOG(DEBUG, TAG, "Received response from remote device");
+/* void SRMResponseHandler(const CAEndpoint_t *endPoint, const CAResponseInfo_t *responseInfo) */
+/* { */
+/*     OIC_LOG(DEBUG, TAG, "Received response from remote device"); */
 
-    if (gResponseHandler)
-    {
-        gResponseHandler(endPoint, responseInfo);
-    }
-}
+/*     if (gResponseHandler) */
+/*     { */
+/*         gResponseHandler(endPoint, responseInfo); */
+/*     } */
+/* } */
 
 /**
  * Handle the error from the SRM.
@@ -441,15 +445,16 @@ void SRMResponseHandler(const CAEndpoint_t *endPoint, const CAResponseInfo_t *re
  * @param endPoint is the remote endpoint.
  * @param errorInfo contains error information from the endpoint.
  */
-void SRMErrorHandler(const CAEndpoint_t *endPoint, const CAErrorInfo_t *errorInfo)
-{
-    OIC_LOG_V(INFO, TAG, "Received error from remote device with result, %d for request uri, %s",
-        errorInfo->result, errorInfo->info.resourceUri);
-    if (gErrorHandler)
-    {
-        gErrorHandler(endPoint, errorInfo);
-    }
-}
+/* void SRMErrorHandler(const CAEndpoint_t *endPoint, const CAErrorInfo_t *errorInfo) */
+/* { */
+/*     OIC_LOG_V(INFO, TAG, "Received error from remote device with result, %d for request uri, %s", */
+/*         errorInfo->result, errorInfo->info.resourceUri); */
+/*     if (gErrorHandler) */
+/*     { */
+/* 	// FIXME: gErrorHandler == HandleCAErrorResponse */
+/*         gErrorHandler(endPoint, errorInfo); */
+/*     } */
+/* } */
 
 OCStackResult SRMRegisterHandler(CARequestCallback reqHandler,
     CAResponseCallback respHandler, CAErrorCallback errHandler)
@@ -460,13 +465,14 @@ OCStackResult SRMRegisterHandler(CARequestCallback reqHandler,
         OIC_LOG(ERROR, TAG, "Callback handlers are invalid");
         return OC_STACK_INVALID_PARAM;
     }
-    gRequestHandler = reqHandler;
-    gResponseHandler = respHandler;
-    gErrorHandler = errHandler;
-
+    // WARNING: note gRequestHandler (secureresourcemanager) etc. != g_requestHandler (camessagehandler)
+    //gRequestHandler = reqHandler;
+    //gResponseHandler = respHandler;
+    //gErrorHandler = errHandler;
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-    CARegisterHandler(SRMRequestHandler, SRMResponseHandler, SRMErrorHandler);
+    //CARegisterHandler(SRMRequestHandler, SRMResponseHandler, SRMErrorHandler);
+    //CARegisterHandler(SRMRequestHandler, HandleCAResponses, HandleCAErrorResponse);
 #else
     CARegisterHandler(reqHandler, respHandler, errHandler);
 #endif /* __WITH_DTLS__ */
