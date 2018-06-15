@@ -1807,7 +1807,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
  * @param endPoint CA remote endpoint.
  * @param responseInfo CA response info.
  */
-static void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
+void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
 {
     VERIFY_NON_NULL_NR(endPoint, FATAL);
     VERIFY_NON_NULL_NR(responseInfo, FATAL);
@@ -2314,7 +2314,7 @@ void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
  * @param endPoint CA remote endpoint.
  * @param requestInfo CA request info.
  */
-static void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
+void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
 {
     OIC_LOG(INFO, TAG, "Enter HandleCARequests");
     OIC_TRACE_BEGIN(%s:HandleCARequests, TAG);
