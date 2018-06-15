@@ -52,17 +52,20 @@ OCStackResult oocf_cosp_mgr_terminate()
  * save response. if new response is a dup (same device ID and URI)
  * then replace (and free) the previous one.
  */
-void cosp_mgr_register_coresource(OCClientResponse *data)
+void cosp_mgr_register_coresource(OCClientResponse *inbound_response)
 EXPORT
 {
-    OIC_LOG_V(INFO, TAG, "%s ENTRY %p", __func__, data);
+    OIC_LOG_V(INFO, TAG, "%s ENTRY %p", __func__, inbound_response);
     oc_mutex_lock(g_responses_mutex);
 
-    OIC_LOG_V(INFO, TAG, "payload: %p", data->payload);
-    OIC_LOG_V(INFO, TAG, "payload type: %d", data->payload->type);
+    OIC_LOG_V(INFO, TAG, "payload: %p", inbound_response->payload);
+    if (inbound_response->payload)
+	OIC_LOG_V(INFO, TAG, "payload type: %d", inbound_response->payload->type);
+    else
+	OIC_LOG_V(DEBUG, TAG, "no payload");
 
     /* LIFO */
-    u_linklist_add_head(g_responses, (void*) data);
+    u_linklist_add_head(g_responses, (void*) inbound_response);
 
     /* FIXME: should we remove duplicates? */
  exit:
