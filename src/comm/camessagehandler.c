@@ -506,7 +506,7 @@ static void CAReceiveThreadProcess(void *threadData)
 #endif
 }
 
-static void CAErrorHandler(const CAEndpoint_t *endpoint,
+void CAErrorHandler(const CAEndpoint_t *endpoint,
                     const void *data, size_t dataLen,
                     CAResult_t result)
 {
