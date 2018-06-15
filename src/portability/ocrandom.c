@@ -148,17 +148,17 @@ bool OCGetRandomBytes(uint8_t * output, size_t len)
         return false;
     }
 
-#elif defined(ARDUINO)
-    if (!g_isSeeded)
-    {
-        OCSeedRandom();
-    }
+/* #elif defined(ARDUINO) */
+/*     if (!g_isSeeded) */
+/*     { */
+/*         OCSeedRandom(); */
+/*     } */
 
-    size_t i;
-    for (i = 0; i < len; i++)
-    {
-        output[i] = OC_arduino_random_function() & 0x00ff;
-    }
+/*     size_t i; */
+/*     for (i = 0; i < len; i++) */
+/*     { */
+/*         output[i] = OC_arduino_random_function() & 0x00ff; */
+/*     } */
 
 #else
     #error Unrecognized platform
