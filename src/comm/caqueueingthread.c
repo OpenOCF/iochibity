@@ -334,6 +334,7 @@ CAResult_t CAQueueingThreadDestroy(CAQueueingThread_t *thread)
     thread->threadMutex = NULL;
     oc_cond_free(thread->threadCond);
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 

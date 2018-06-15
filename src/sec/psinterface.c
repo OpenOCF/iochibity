@@ -223,19 +223,25 @@ OCStackResult ReadDatabaseFromPS(const char *databaseName, const char *resourceN
                     cborFindResult = cbor_value_dup_byte_string(&cborValue, data, size, NULL);
                     VERIFY_SUCCESS(TAG, CborNoError == cborFindResult, ERROR);
                     ret = OC_STACK_OK;
-                }
+                } else {
                 // in case of |else (...)|, svr_data not found
-            }
-            // return everything in case resourceName is NULL
-            else
-            {
+		    OIC_LOG_V(ERROR, TAG, "SVR data not found for resource %s", resourceName);
+		}
+            } else {
+		// return everything in case resourceName is NULL
                 *size = fileSize;
                 *data = (uint8_t *) OICCalloc(1, fileSize);
                 VERIFY_NOT_NULL(TAG, *data, ERROR);
                 memcpy(*data, fsData, fileSize);
                 ret = OC_STACK_OK;
             }
-        }
+        } else {
+	    if (ferror(fp)) {
+		OIC_LOG_V(ERROR, TAG, "File Read fail");
+	    } else {
+		OIC_LOG_V(ERROR, TAG, "File Read: huh?");
+	    }
+	}
     }
 
 exit:

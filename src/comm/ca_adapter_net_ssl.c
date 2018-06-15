@@ -1461,6 +1461,12 @@ static bool SetupCipher(mbedtls_ssl_config * config,
        g_cipherSuitesList[index] = MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256;
        OIC_LOG(DEBUG, NET_SSL_TAG, "PSK ciphersuite added");
        index++;
+    } else {
+	OIC_LOG_V(DEBUG, NET_SSL_TAG, "g_caSslContext->cipherFlag[0]: %d", g_caSslContext->cipherFlag[0]);
+	OIC_LOG_V(DEBUG, NET_SSL_TAG, "tlsCipher[g_caSslContext->cipher][0]: %d",
+		  tlsCipher[g_caSslContext->cipher][0]);
+	OIC_LOG_V(DEBUG, NET_SSL_TAG, "MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256: %d",
+		  MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256);
     }
 
     // Add all certificate ciphersuites
@@ -2086,8 +2092,8 @@ void CAsetSslHandshakeCallback(CAHandshakeErrorCallback tlsHandshakeCallback)
  */
 CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dataLen)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     int ret = 0;
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
     VERIFY_NON_NULL_RET(sep, NET_SSL_TAG, "endpoint is NULL" , CA_STATUS_INVALID_PARAM);
     VERIFY_NON_NULL_RET(data, NET_SSL_TAG, "Param data is NULL" , CA_STATUS_INVALID_PARAM);
 

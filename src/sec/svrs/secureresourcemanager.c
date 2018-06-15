@@ -335,6 +335,8 @@ bool isRequestOverSecureChannel(SRMRequestContext_t *context)
  */
 void SRMRequestHandler(const CAEndpoint_t *endPoint, const CARequestInfo_t *requestInfo)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+
     OIC_LOG(DEBUG, TAG, "Received request from remote device");
 
     SRMRequestContext_t *ctx = &g_requestContext; // Always use our single ctx for now.

@@ -997,6 +997,8 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
     VERIFY_NON_NULL_MSG(data, TAG, "data");
     VERIFY_NON_NULL_MSG(data->remoteEndpoint, TAG, "remoteEndpoint");
 
+    OIC_LOG_V(DEBUG, TAG, "%s remote ep: %s", __func__, data->remoteEndpoint->addr);
+
     coap_pdu_t *pdu = NULL;
     CAInfo_t *info = NULL;
     coap_list_t *options = NULL;
@@ -1350,7 +1352,7 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
 #ifdef WITH_TCP
         if (CAIsSupportedCoAPOverTCP(sep->endpoint.adapter))
         {
-            OIC_LOG(INFO, TAG, "retransmission is not supported");
+            OIC_LOG(INFO, TAG, "CoAP/TCP retransmission is not supported");
         }
         else
 #endif

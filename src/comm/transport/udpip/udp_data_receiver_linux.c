@@ -49,7 +49,6 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
 
     static int ready_count;
     ready_count = 0;
-    OIC_LOG_V(DEBUG, TAG, "ready count: %d", ready_count);
 
     timeout.tv_sec = udp_selectTimeout;
     timeout.tv_usec = 0;

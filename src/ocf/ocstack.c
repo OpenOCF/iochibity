@@ -2082,7 +2082,9 @@ static OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolReque
         if (result == OC_STACK_OK)
         {
             result = ProcessRequest(resHandling, resource, request);
-        }
+        } else {
+	    OIC_LOG_V(DEBUG, TAG, "DetermineResourceHandling failure: %d", result);
+	}
     }
     else
     {
@@ -2608,12 +2610,14 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
 
     switch (myStackMode)
     {
+	// FIXME: initialize client/server mode statically at build time
         case OC_CLIENT:
             CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
             OIC_LOG(INFO, TAG, "Client mode: CAStartDiscoveryServer");
             result = CAResultToOCResult(CAStartDiscoveryServer());
             break;
         case OC_SERVER:
+	    // FIXME: SRMRegisterHandler just calls CARegisterHandler with secure handles if DTLS
             SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
             OIC_LOG(INFO, TAG, "Server mode: CAStartListeningServer");
             result = CAResultToOCResult(CAStartListeningServer());
