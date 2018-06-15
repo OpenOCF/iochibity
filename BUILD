@@ -45,8 +45,17 @@ load("//tools/makeheaders:makeheaders.bzl", "prep_headers", "make_headers")
 
 prep_headers(
     name = "mkhdrs",
-    hdr_deps = ["//src/ocf"],
+    hdr_deps = [":openocf",
+                "//test/common:oic_malloc_tests",
+                "//test/common:randomtest",
+                "//test/common:oic_string_tests",
+                "//test/common:oic_time_tests"],
 )
+
+# prep_headers(
+#     name = "testhdrs",
+#     hdr_deps = ["//test/common:oic_time_tests"],
+# )
 
 # make_headers(
 #     name = "headers",
