@@ -41,7 +41,7 @@ cc_library(
                        "//config:windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
                        "//config:darwin": ["-framework SystemConfiguration"], # for network monitory
                        "//config:android": ["-llog"],
-                       "//config:android_arm64": ["-llog"],
+                       "//config:android_arm8": ["-llog"],
                        "//config:android_x86": ["-llog"],
                        "//conditions:default": []}),
 
