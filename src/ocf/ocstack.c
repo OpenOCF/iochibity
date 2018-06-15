@@ -4426,7 +4426,7 @@ OCStackResult OC_CALL OCDeleteResource(OCResourceHandle handle)
     return OC_STACK_OK;
 }
 
-const char *OC_CALL OCGetResourceUri(OCResourceHandle handle)
+const char *OC_CALL OCGetResourceUri(OCResourceHandle handle) EXPORT
 {
     OCResource *resource = NULL;
 
@@ -4438,7 +4438,7 @@ const char *OC_CALL OCGetResourceUri(OCResourceHandle handle)
     return (const char *) NULL;
 }
 
-OCResourceProperty OC_CALL OCGetResourceProperties(OCResourceHandle handle)
+OCResourceProperty OC_CALL OCGetResourceProperties(OCResourceHandle handle) EXPORT
 {
     OCResource *resource = NULL;
 
@@ -4710,7 +4710,7 @@ OC_CALL OCNotifyListOfObservers (OCResourceHandle handle,
             payload, maxAge, qos));
 }
 
-OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse)
+OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse) EXPORT
 {
     OIC_TRACE_BEGIN(%s:OCDoResponse, TAG);
     OCStackResult result = OC_STACK_ERROR;
@@ -5904,7 +5904,7 @@ LOCAL OCStackResult SetHeaderOption(CAHeaderOption_t *caHdrOpt, size_t numOption
 }
 
 OCStackResult OC_CALL OCSetHeaderOption(OCHeaderOption* ocHdrOpt, size_t* numOptions, uint16_t optionID,
-                                        void* optionData, size_t optionDataLength)
+                                        void* optionData, size_t optionDataLength) EXPORT
 {
     if (!ocHdrOpt)
     {
