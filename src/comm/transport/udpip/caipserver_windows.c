@@ -298,7 +298,7 @@ LOCAL void CAEventReturned(CASocketFd_t socket)
         {
             break;
         }
-        (void)CAReceiveMessage(socket, flags);
+        (void)udp_recvmsg_on_socket(socket, flags);
         // We will never get more than one match per socket, so always break.
         break;
     }
@@ -313,7 +313,7 @@ void CADeInitializeMonitorGlobals()
 	}
 }
 
-LOCAL CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
+LOCAL CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags)
 {
     char recvBuffer[RECV_MSG_BUF_LEN] = {0};
     int level = 0;

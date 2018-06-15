@@ -25,7 +25,7 @@
 
 #include <errno.h>
 
-CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
+CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @was CAReceiveMessage
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     char recvBuffer[RECV_MSG_BUF_LEN] = {0};
