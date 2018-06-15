@@ -325,7 +325,7 @@ static void CFQRelease(CFTypeRef cf)
 
 /* see https://github.com/erluko/netwatcher/blob/master/netwatcher.cpp */
 /* https://public.msli.com/lcs/jaf/osx_ip_change_notify.cpp */
-static OSStatus CreateIPAddressListChangeCallbackSCF(
+LOCAL OSStatus CreateIPAddressListChangeCallbackSCF(
 					      /* SCDynamicStoreCallBack callback, */
 					      void *contextPtr,
 					      SCDynamicStoreRef *storeRef,
