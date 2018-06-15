@@ -6,6 +6,9 @@
 
 #include "utlist.h"
 
+#include <fcntl.h>
+#include <errno.h>
+
 #define TAG "UDPSTATUSMGR"
 
 /*
@@ -60,10 +63,10 @@ struct CAIPCBData_t *g_adapterCallbackList = NULL;
  *
  * @return  desired polling interval
  */
-int CAGetPollingInterval(int interval)
-{
-    return interval;
-}
+/* int CAGetPollingInterval(int interval) */
+/* { */
+/*     return interval; */
+/* } */
 
 CAResult_t CAIPCreateNetworkInterfaceList() // @was CAIPInitializeNetworkMonitorList
 {

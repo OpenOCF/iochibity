@@ -134,11 +134,12 @@ void CARegisterHandler(CARequestCallback ReqHandler, CAResponseCallback RespHand
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
-    if (!g_isInitialized)
-    {
-        OIC_LOG(DEBUG, TAG, "CA is not initialized");
-        return;
-    }
+    // GAR: unnecessary
+    /* if (!g_isInitialized) */
+    /* { */
+    /*     OIC_LOG(DEBUG, TAG, "CA is not initialized"); */
+    /*     return; */
+    /* } */
 
     CASetInterfaceCallbacks(ReqHandler, RespHandler, ErrorHandler);
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);

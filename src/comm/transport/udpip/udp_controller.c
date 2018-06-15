@@ -161,7 +161,7 @@ CAResult_t udp_start_services(const ca_thread_pool_t threadPool) // @was CAIPSta
 
     CARegisterForAddressChanges();
 
-    udp_selectTimeout = CAGetPollingInterval(udp_selectTimeout);
+    //udp_selectTimeout = CAGetPollingInterval(udp_selectTimeout);
 
     res = udp_add_ifs_to_multicast_groups();  /* @was CAIPStartListenServer */
     if (CA_STATUS_OK != res)
