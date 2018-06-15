@@ -99,12 +99,22 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
 	// udp_process_ready_sockets(&readFds, ready_count);
 #define UDPSET(SOCK) ( SOCK.fd != OC_INVALID_SOCKET && FD_ISSET(SOCK.fd, &readFds))
 
-	//while (!udp_is_terminating)
+	if (udp_is_terminating) return;
+	OIC_LOG(DEBUG, TAG, "checking udp_m6...");
+	if ( UDPSET(udp_m6) ) {
+	    OIC_LOG(DEBUG, TAG, "udp_m6 socket ready");
+	    (void)udp_recvmsg_on_socket(udp_m6.fd, CA_MULTICAST | CA_IPV6);
+	    FD_CLR(udp_m6.fd, &readFds);
+	    ready_count--;
+	}
+	if (ready_count < 1) return;
+	if (udp_is_terminating) return;
 
 	// ISSET(udp_u6,  readFds, CA_IPV6)
+	OIC_LOG(DEBUG, TAG, "checking udp_u6...");
 	if ( UDPSET(udp_u6) ) {
 	    OIC_LOG(DEBUG, TAG, "udp_u6 socket ready");
-	    (void)CAReceiveMessage(udp_u6.fd, CA_IPV6);
+	    (void)udp_recvmsg_on_socket(udp_u6.fd, CA_IPV6);
 	    FD_CLR(udp_u6.fd, &readFds);
 	    ready_count--;
 	}
