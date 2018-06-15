@@ -240,7 +240,7 @@ config_setting(
 # fat_apk_cpu values: armeabi, armeabi-v7a, arm64-v8a, mips, mips64, x86, x86_64
 
 config_setting(name = "android", visibility = ["//visibility:public"],
-               define_values = {"with_android": "true" })
+               define_values = {"android": "true" })
 
 config_setting(
     name = "android_arm7",
