@@ -32,34 +32,23 @@ cc_binary(
              "-Isrc/util",
              "-Ithird_party/utlist",
              "-Ithird_party/cjson",
-             "-Ithird_party/coap",
-             "-Ithird_party/coap/include",
-             "-Ithird_party/tinycbor/src"],
-    # + select({":rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/include",
-    #                      "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
-    #                      "-std=c11"],
-    #           ":android": ["-Iexternal/cosysroot_ndk/usr/include",
-    #                      "-Iexternal/cosysroot_ndk/usr/include/cdk",
-    #                      "-std=c11"],
-    #           ":windows": ["-Iexternal/usr_local/include",
-    #                        "-Iexternal/usr_local/include/cdk"],
-    #           "//conditions:default": ["-Iexternal/usr_local/include",
-    #                                    "-Iexternal/usr_local/in[<clude/cdk",
-    #                                    "-std=c11",
-    #                                    "-U DEBUG"]}), # OS X
+             "-Iexternal/libcoap",
+             "-Iexternal/libcoap/include",
+        "-Iexternal/tinycbor/src"],
     deps = [# "//include",
-            "//src/comm",
-            "//src/ocf",
-            "//src/portability",
-            "//src/provisioning",
-            "//src/sec",
-            "//src/sec/crypto",
-            "//src/sec/svrs",
-            "//src/util",
+            "//:openocf",
+            # "//src/ocf",
+            # "//src/portability",
+            # "//src/provisioning",
+            # "//src/sec",
+            # "//src/sec/crypto",
+            # "//src/sec/svrs",
+            # "//src/util",
             "//third_party/utlist",
-            "//third_party/cjson",
-            "//third_party/coap",
-            "//third_party/tinycbor"],
+            "@cjson//:cjson",
+            "@libcoap//:libcoap",
+            "@tinycbor//:tinycbor"
+    ],
     # + select({":rpi3b": ["@cosysroot_rpi3b//:cdk"],
     #           ":android": ["@cosysroot_ndk//:cdk"],
     #           ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
@@ -68,6 +57,12 @@ cc_binary(
     srcs = ["json2cbor.c",
             "json2cbor.h"]
 )
-# json2cbor cborencoder.c cborerrorstrings.o cborencoder_close_container_checked.o cJSON.o
+
+cc_binary(
+    name = "cbordump",
+    copts = ["-Iexternal/tinycbor/src"],
+    srcs = ["cbordump.c", "cbor2json.c"],
+    deps = ["@tinycbor//:tinycbor"]
+)
 
 # cbordump: cbordump.o cborparser.o cborerrorstrings.o cborpretty.o cbortojson.o open_memstream.o

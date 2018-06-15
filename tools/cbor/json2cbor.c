@@ -312,7 +312,6 @@ exit:
     return ret;
 }
 
-
 /** @return ::OC_STACK_OK on success **/
 static OCStackResult ConvertOCJSONStringToCBORFile(const char *jsonStr, const char *cborFileName)
 {
@@ -1546,7 +1545,7 @@ FILE                   *logfd;
 int main(int argc, char *argv[])
 {
     /* OCLogInit(NULL); */
-    logfd = fopen("json2cbor.log", "w");
+    logfd = fopen("logs/json2cbor.log", "w");
     if (logfd)
     	OCLogInit(logfd);
     else {
@@ -1565,7 +1564,7 @@ int main(int argc, char *argv[])
         printf("This program requires one input:\n");
         printf("1. First input is a json file that will be converted to cbor. \n");
         printf("Output will be written to stdout\n");
-        printf("Usage: json2cbor <json_file_name> <cbor_file_name>\n");
+        printf("Usage: json2cbor <json_file_name> > <cbor_file_name>\n");
     }
     fclose(logfd);
     return (OC_STACK_OK != status);
