@@ -473,7 +473,7 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
     if (!RegisterForIpAddressChange())
     {
         CAIPDestroyNetworkAddressList();
-        CAIPUnSetNetworkMonitorCallback(adapter);
+        //CAIPUnSetNetworkMonitorCallback(adapter);
         return CA_STATUS_FAILED;
     }
 #else
@@ -483,7 +483,7 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
     if (err != NO_ERROR)
     {
         CAIPDestroyNetworkAddressList();
-        CAIPUnSetNetworkMonitorCallback(adapter);
+        //CAIPUnSetNetworkMonitorCallback(adapter);
         return CA_STATUS_FAILED;
     }
 #endif
@@ -510,7 +510,7 @@ CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
     }
 
     CAIPDestroyNetworkAddressList();
-    return CAIPUnSetNetworkMonitorCallback(adapter);
+    return CA_STATUS_OK; // CAIPUnSetNetworkMonitorCallback(adapter);
 }
 
 /**
