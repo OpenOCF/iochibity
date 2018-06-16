@@ -159,7 +159,7 @@ void tcp_status_change_handler(CATransportAdapter_t adapter, // @was CATCPAdapte
 
         CAResult_t ret = CA_STATUS_FAILED;
 
-        ret = CATCPStartServer((const ca_thread_pool_t)caglobals.tcp.threadpool);
+        ret = CATCPStartServer((const ca_thread_pool_t)tcp_threadpool);
         if (CA_STATUS_OK != ret)
         {
             OIC_LOG_V(DEBUG, TAG, "CATCPStartServer failed[%d]", ret);

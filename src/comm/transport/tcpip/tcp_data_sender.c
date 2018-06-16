@@ -141,11 +141,11 @@ ssize_t CATCPSendData(CAEndpoint_t *endpoint, const void *data, size_t datalen)
     VERIFY_NON_NULL_RET(endpoint, TAG, "endpoint is NULL", -1);
     VERIFY_NON_NULL_RET(data, TAG, "data is NULL", -1);
 
-    if (caglobals.tcp.ipv6tcpenabled && (endpoint->flags & CA_IPV6))
+    if (tcp_is_ipv6_enabled && (endpoint->flags & CA_IPV6))
     {
         return tcp_send_data(endpoint, data, datalen, "ipv6"); /* @was sendData */
     }
-    if (caglobals.tcp.ipv4tcpenabled && (endpoint->flags & CA_IPV4))
+    if (tcp_is_ipv4_enabled && (endpoint->flags & CA_IPV4))
     {
         return tcp_send_data(endpoint, data, datalen, "ipv4"); /* @was sendData */
     }
@@ -226,7 +226,7 @@ CAResult_t CATCPInitializeQueueHandles()
     tcp_sendQueueHandle->name = "tcp_sendQueueHandle";
 #endif
     if (CA_STATUS_OK != CAQueueingThreadInitialize(tcp_sendQueueHandle,
-                                (const ca_thread_pool_t)caglobals.tcp.threadpool,
+                                (const ca_thread_pool_t)tcp_threadpool,
                                 CATCPSendDataThread, CATCPDataDestroyer))
     {
         OIC_LOG(ERROR, TAG, "Failed to Initialize send queue thread");
@@ -305,7 +305,7 @@ void CATCPSendDataThread(void *threadData)
         return;
     }
 
-    if (caglobals.tcp.terminate)
+    if (tcp_is_terminating)
     {
         OIC_LOG(DEBUG, TAG, "Adapter is not enabled");
         CATCPErrorHandler(tcpData->remoteEndpoint, tcpData->data, tcpData->dataLen,

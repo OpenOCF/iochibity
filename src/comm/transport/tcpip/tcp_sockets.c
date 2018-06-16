@@ -157,12 +157,12 @@ LOCAL void CAAcceptConnection(CATransportFlags_t flag, CASocket_t *sock)
 #if !defined(WSA_WAIT_EVENT_0)
 static ssize_t CAWakeUpForReadFdsUpdate(const char *host)
 {
-    if (caglobals.tcp.connectionFds[1] != -1)
+    if (tcp_connectionFds[1] != -1)
     {
         ssize_t len = 0;
         do
         {
-            len = write(caglobals.tcp.connectionFds[1], host, strlen(host));
+            len = write(tcp_connectionFds[1], host, strlen(host));
         } while ((len == -1) && (errno == EINTR));
 
         if ((len == -1) && (errno != EINTR) && (errno != EPIPE))
@@ -289,7 +289,7 @@ static CASocketFd_t CACreateAcceptSocket(int family, CASocket_t *sock)
         goto exit;
     }
 
-    if (listen(fd, caglobals.tcp.listenBacklog) != 0)
+    if (listen(fd, tcp_listenBacklog) != 0)
     {
         OIC_LOG(ERROR, TAG, "listen() error");
         goto exit;
@@ -349,13 +349,13 @@ void CAInitializePipe(int *fds)
 }
 
 #define NEWSOCKET(FAMILY, NAME) \
-    caglobals.tcp.NAME.fd = CACreateAcceptSocket(FAMILY, &caglobals.tcp.NAME); \
-    if (caglobals.tcp.NAME.fd == OC_INVALID_SOCKET) \
+    NAME.fd = CACreateAcceptSocket(FAMILY, &NAME); \
+    if (NAME.fd == OC_INVALID_SOCKET) \
     { \
-        caglobals.tcp.NAME.port = 0; \
-        caglobals.tcp.NAME.fd = CACreateAcceptSocket(FAMILY, &caglobals.tcp.NAME); \
+        NAME.port = 0; \
+        NAME.fd = CACreateAcceptSocket(FAMILY, &NAME); \
     } \
-    TCP_CHECKFD(caglobals.tcp.NAME.fd);
+    TCP_CHECKFD(NAME.fd);
 
 
 CASocketFd_t CAGetSocketFDFromEndpoint(const CAEndpoint_t *endpoint)
@@ -389,8 +389,8 @@ void tcp_create_accept_sockets()
 {
     if (tcp_is_ipv6_enabled)
     {
-        NEWSOCKET(AF_INET6, ipv6);
-        NEWSOCKET(AF_INET6, ipv6s);
+        NEWSOCKET(AF_INET6, tcp_socket_ipv6);
+        NEWSOCKET(AF_INET6, tcp_socket_ipv6s);
         OIC_LOG_V(DEBUG, TAG, "IPv6 socket fd=%d, port=%d",
                   tcp_socket_ipv6.fd, tcp_socket_ipv6.port);
         OIC_LOG_V(DEBUG, TAG, "IPv6 secure socket fd=%d, port=%d",
@@ -399,8 +399,8 @@ void tcp_create_accept_sockets()
 
     if (tcp_is_ipv4_enabled)
     {
-        NEWSOCKET(AF_INET, ipv4);
-        NEWSOCKET(AF_INET, ipv4s);
+        NEWSOCKET(AF_INET, tcp_socket_ipv4);
+        NEWSOCKET(AF_INET, tcp_socket_ipv4s);
         OIC_LOG_V(DEBUG, TAG, "IPv4 socket fd=%d, port=%d",
                   tcp_socket_ipv4.fd, tcp_socket_ipv4.port);
         OIC_LOG_V(DEBUG, TAG, "IPv4 secure socket fd=%d, port=%d",
