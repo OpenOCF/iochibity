@@ -37,7 +37,8 @@ TESTDEPS = ["@gtest//:gtest_main",
 
 # #ifdef WITH_TCP:: comm, provisioning
 # #ifdef TCP_ADAPTER: ocf, provisioning, sec/svrs, comm, comm/util, comm/util/bt, udp, tcp
-DEFTCP  = select({"@//config:enable_tcp": ["TCP_ADAPTER", "WITH_TCP", "__WITH_TLS__"],
+# FIXME: use ENABLE_TCP
+DEFTCP  = select({"@//config:enable_tcp": ["TCP_ADAPTER", "ENABLE_TCP", "WITH_TCP", "__WITH_TLS__"],
                       "//conditions:default": []})
 
 DEFDTLS = select({"//config:disable_dtls": [],
