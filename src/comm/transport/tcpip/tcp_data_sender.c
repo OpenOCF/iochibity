@@ -65,6 +65,7 @@
 /**
  * Queue handle for Send Data.
  */
+//FIXME: in udp this is an object, not a pointer. make them match
 CAQueueingThread_t *tcp_sendQueueHandle = NULL;
 
 #ifdef __WITH_TLS__
@@ -222,7 +223,7 @@ CAResult_t CATCPInitializeQueueHandles()
     }
 
 #ifdef DEBUG_THREADS
-    tcp_sendQueueHandle.name = "tcp_sendQueueHandle";
+    tcp_sendQueueHandle->name = "tcp_sendQueueHandle";
 #endif
     if (CA_STATUS_OK != CAQueueingThreadInitialize(tcp_sendQueueHandle,
                                 (const ca_thread_pool_t)caglobals.tcp.threadpool,
