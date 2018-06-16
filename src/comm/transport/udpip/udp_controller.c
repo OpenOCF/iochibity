@@ -86,7 +86,6 @@ typedef void (*CAIPErrorHandleCallback)(const CAEndpoint_t *endpoint, const void
 #define CAIPS_GET_ERROR strerror(errno)
 #endif
 
-#ifndef SINGLE_THREAD
 #if EXPORT_INTERFACE
 /**
  * Holds inter thread ip data information.
@@ -99,8 +98,6 @@ typedef struct
     bool isMulticast;
 } CAIPData_t;
 #endif	/* EXPORT_INTERFACE */
-
-#endif
 
 // to signal shutdown
 oc_cond udp_data_receiver_runloop_cond;
@@ -134,20 +131,10 @@ static CAErrorHandleCallback udp_errorCB = CAAdapterErrorHandleCallback;
 /* static void CAIPPacketReceivedCB(const CASecureEndpoint_t *endpoint, */
 /*                                  const void *data, size_t dataLength); */
 
-#ifdef SINGLE_THREAD
-void CAIPPullData()
-{
-    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
-    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
-}
-#endif
-
 /* #ifdef __WITH_DTLS__ */
 /* ssize_t CAIPPacketSendCB(CAEndpoint_t *endpoint, */
 /* 			 const void *data, size_t dataLength); */
 /* #endif */
-
-#ifndef SINGLE_THREAD
 
 /* called by CAStartUDP after udp_config_data_sockets has been called */
 CAResult_t udp_start_services(const ca_thread_pool_t threadPool) // @was CAIPStartServer
@@ -253,9 +240,6 @@ CAResult_t CAInitializeUDP(ca_thread_pool_t handle)
             .unicast              = &CASendIPUnicastData,
             .multicast            = &CASendIPMulticastData,
             .GetNetInfo           = &udp_get_local_endpoints, // @was CAGetIPInterfaceInformation
-#ifdef SINGLE_THREAD
-            // .readData             = &CAReadIPData,	      /* only used ifdef SINGLE_THREAD? */
-#endif
             //.terminate            = &CATerminateIP,
             .cType                = CA_ADAPTER_IP
         };
@@ -293,19 +277,6 @@ CAResult_t CAStartUDP()		// @rewrite @was CAStartIP (?)
     // @rewrite: the created list is never used, so why bother?
     CAIPCreateNetworkInterfaceList(); // @was CAIPStartNetworkMonitor
 
-/* #ifdef SINGLE_THREAD */
-/*     uint16_t unicastPort = 55555; */
-/*     // Address is hardcoded as we are using Single Interface */
-
-/*     // udp_config_data_sockets(); */
-
-/*     CAResult_t ret = udp_start_services();  // @was CAIPStartServer(); */
-/*     if (CA_STATUS_OK != ret) */
-/*     { */
-/*         OIC_LOG_V(DEBUG, TAG, "udp_start_services failed[%d]", ret); */
-/*         return ret; */
-/*     } */
-/* #else */
     if (CA_STATUS_OK != udp_start_send_msg_queue())
     {
         OIC_LOG(ERROR, TAG, "Failed udp_start_send_msg_queue");
@@ -326,7 +297,6 @@ CAResult_t CAStartUDP()		// @rewrite @was CAStartIP (?)
         OIC_LOG_V(ERROR, TAG, "Failed to start server![%d]", ret);
         return ret;
     }
-/* #endif */
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
@@ -351,14 +321,6 @@ CAResult_t CAStartIPDiscoveryServer()
     return udp_add_ifs_to_multicast_groups();
 }
 
-#ifdef SINGLE_THREAD
-CAResult_t CAReadIPData()
-{
-    CAIPPullData();
-    return CA_STATUS_OK;
-}
-#endif
-
 CAResult_t CAStopIP()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -367,13 +329,11 @@ CAResult_t CAStopIP()
     CAdeinitSslAdapter();
 #endif
 
-#ifndef SINGLE_THREAD
     // if (udp_sendQueueHandle && udp_sendQueueHandle->threadMutex)
     if (NULL != udp_sendQueueHandle.threadMutex)
     {
         CAQueueingThreadStop(&udp_sendQueueHandle);
     }
-#endif
 
     CAIPStopNetworkMonitor(CA_ADAPTER_IP);
     CAIPStopServer();
@@ -615,8 +575,6 @@ void udp_update_local_endpoint_cache(CANetworkStatus_t status) // @was CAUpdateS
     }
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
-
-#endif // not SINGLE_THREAD
 
 bool CAIPIsLocalEndpoint(const CAEndpoint_t *ep)
 {
