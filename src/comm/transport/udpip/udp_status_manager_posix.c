@@ -149,7 +149,7 @@ static CAResult_t CAAddToNetworkInterfaceList(CAInterface_t *ifitem)
 CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 {
     CAIPDestroyNetworkInterfaceList();
-    return CAIPUnSetNetworkMonitorCallback(adapter);
+    return CA_STATUS_OK; // CAIPUnSetNetworkMonitorCallback(adapter);
 }
 
 /* CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)

@@ -55,7 +55,7 @@ oc_mutex g_networkMonitorContextMutex = NULL;
 // @rewrite g_netInterfaceList @was g_netInterfaceList
 u_arraylist_t *g_netInterfaceList = NULL;
 
-struct CAIPCBData_t *g_adapterCallbackList = NULL;
+// struct CAIPCBData_t *g_adapterCallbackList = NULL;
 
 /**
  * Let the network monitor update the polling interval.
@@ -68,7 +68,7 @@ struct CAIPCBData_t *g_adapterCallbackList = NULL;
 /*     return interval; */
 /* } */
 
-CAResult_t udp_create_network_interfacelist() // @was CAIPInitializeNetworkMonitorList
+CAResult_t udp_create_network_interface_list() // @was CAIPInitializeNetworkMonitorList
 {
     if (!g_networkMonitorContextMutex)
     {
@@ -196,43 +196,43 @@ void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapter
 // status change event handlers
 // @rewrite we can eliminate this by just calling the handlers
 // @rewrite directly in CAIPPassNetworkChangesToAdapter
-CAResult_t REMOVED_CAIPSetNetworkMonitorCallback(void
-					 (*ip_status_change_handler)(CATransportAdapter_t adapter,
-									    CANetworkStatus_t status),
-					 // CAIPAdapterStateChangeCallback callback,
-                                         CATransportAdapter_t adapter)
-{
-    if (!ip_status_change_handler)
-    {
-        OIC_LOG(ERROR, TAG, "ip_status_change_handler is null");
-        return CA_STATUS_INVALID_PARAM;
-    }
+/* CAResult_t REMOVED_CAIPSetNetworkMonitorCallback(void */
+/* 					 (*ip_status_change_handler)(CATransportAdapter_t adapter, */
+/* 									    CANetworkStatus_t status), */
+/* 					 // CAIPAdapterStateChangeCallback callback, */
+/*                                          CATransportAdapter_t adapter) */
+/* { */
+/*     if (!ip_status_change_handler) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "ip_status_change_handler is null"); */
+/*         return CA_STATUS_INVALID_PARAM; */
+/*     } */
 
-    CAIPCBData_t *cbitem = NULL;
-    LL_FOREACH(g_adapterCallbackList, cbitem)
-    {
-        if (cbitem
-	    && (cbitem->adapter == adapter)
-	    && (cbitem->ip_status_change_event_handler == ip_status_change_handler))
-        {
-            OIC_LOG(DEBUG, TAG, "this ip_status_change_handler is already added");
-            return CA_STATUS_OK;
-        }
-    }
+/*     CAIPCBData_t *cbitem = NULL; */
+/*     LL_FOREACH(g_adapterCallbackList, cbitem) */
+/*     { */
+/*         if (cbitem */
+/* 	    && (cbitem->adapter == adapter) */
+/* 	    && (cbitem->ip_status_change_event_handler == ip_status_change_handler)) */
+/*         { */
+/*             OIC_LOG(DEBUG, TAG, "this ip_status_change_handler is already added"); */
+/*             return CA_STATUS_OK; */
+/*         } */
+/*     } */
 
-    cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem));
-    if (!cbitem)
-    {
-        OIC_LOG(ERROR, TAG, "Malloc failed");
-        return CA_STATUS_FAILED;
-    }
+/*     cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem)); */
+/*     if (!cbitem) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "Malloc failed"); */
+/*         return CA_STATUS_FAILED; */
+/*     } */
 
-    cbitem->adapter = adapter;
-    cbitem->ip_status_change_event_handler = ip_status_change_handler;
-    LL_APPEND(g_adapterCallbackList, cbitem);
+/*     cbitem->adapter = adapter; */
+/*     cbitem->ip_status_change_event_handler = ip_status_change_handler; */
+/*     LL_APPEND(g_adapterCallbackList, cbitem); */
 
-    return CA_STATUS_OK;
-}
+/*     return CA_STATUS_OK; */
+/* } */
 
 /**
  * Unset callback for receiving local IP/TCP adapter connection status.
@@ -241,22 +241,22 @@ CAResult_t REMOVED_CAIPSetNetworkMonitorCallback(void
  * @return CA_STATUS_OK.
  */
 // @rewrite CAIPUnSetNetworkMonitorCallback is defunct
-CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)
-{
-    CAIPCBData_t *cbitem = NULL;
-    CAIPCBData_t *tmpCbitem = NULL;
-    LL_FOREACH_SAFE(g_adapterCallbackList, cbitem, tmpCbitem)
-    {
-        if (cbitem && adapter == cbitem->adapter)
-        {
-            OIC_LOG(DEBUG, TAG, "remove specific ip_status_change_event_handler");
-            LL_DELETE(g_adapterCallbackList, cbitem);
-            OICFree(cbitem);
-            return CA_STATUS_OK;
-        }
-    }
-    return CA_STATUS_OK;
-}
+/* CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter) */
+/* { */
+/*     CAIPCBData_t *cbitem = NULL; */
+/*     CAIPCBData_t *tmpCbitem = NULL; */
+/*     LL_FOREACH_SAFE(g_adapterCallbackList, cbitem, tmpCbitem) */
+/*     { */
+/*         if (cbitem && adapter == cbitem->adapter) */
+/*         { */
+/*             OIC_LOG(DEBUG, TAG, "remove specific ip_status_change_event_handler"); */
+/*             LL_DELETE(g_adapterCallbackList, cbitem); */
+/*             OICFree(cbitem); */
+/*             return CA_STATUS_OK; */
+/*         } */
+/*     } */
+/*     return CA_STATUS_OK; */
+/* } */
 
 void CAInitializeFastShutdownMechanism(void)
 {
