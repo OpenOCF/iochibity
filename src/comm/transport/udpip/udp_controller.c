@@ -228,23 +228,23 @@ CAResult_t CAInitializeUDP(ca_thread_pool_t handle)
 
     // @NOTE: these are not needed since they are now called directly,
     // e.g. from CAStartListeningServerAdapters
-    static const CAConnectivityHandler_t udpController =
-        {
+    //static const CAConnectivityHandler_t udpController =
+    //  {
             // .startAdapter         = &CAStartUDP, /* called directly in CAStartAdapter */
             // .stopAdapter          = &CAStopIP,	 /* called directly in CAStopAdapter */
             /* .startListenServer    = &CAStartIPListeningServer, */
             // .startListenServer    = &udp_add_ifs_to_multicast_groups, // @was CAIPStartListenServer,
             // .stopListenServer     = &udp_close_sockets, // @was CAStopIPListeningServer -> CAIPStopListenServer,
-            .startDiscoveryServer = &CAStartIPDiscoveryServer, /* CAStartDiscoveryServerAdapters */
+            //.startDiscoveryServer = &CAStartIPDiscoveryServer, /* CAStartDiscoveryServerAdapters */
 	    // why no stopDiscoveryServer?
-            .unicast              = &CASendIPUnicastData,
-            .multicast            = &CASendIPMulticastData,
-            .GetNetInfo           = &udp_get_local_endpoints, // @was CAGetIPInterfaceInformation
+            // .unicast              = &CASendIPUnicastData,
+            // .multicast            = &CASendIPMulticastData,
+            //.GetNetInfo           = &udp_get_local_endpoints, // @was CAGetIPInterfaceInformation
             //.terminate            = &CATerminateIP,
-            .cType                = CA_ADAPTER_IP
-        };
+            //.cType                = CA_ADAPTER_IP
+	    //   };
     //registerCallback(udpController);
-    CARegisterCallback(udpController);
+    //CARegisterCallback(udpController);
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
@@ -275,7 +275,7 @@ CAResult_t CAStartUDP()		// @rewrite @was CAStartIP (?)
 
     /* addresses will be added by udp_get_ifs_for_rtm_newaddr, from CAFindInterfaceChange etc. */
     // @rewrite: the created list is never used, so why bother?
-    udp_create_network_interface_list(); // @was CAIPStartNetworkMonitor
+    ip_create_network_interface_list(); // @was CAIPStartNetworkMonitor
 
     if (CA_STATUS_OK != udp_start_send_msg_queue())
     {
@@ -314,12 +314,12 @@ CAResult_t CAStopIPListeningServer()
     return ret;
 }
 
-// GAR: clients run this, but not ListeningServer
-CAResult_t CAStartIPDiscoveryServer()
-{
-    // @rewrite @was CAStartIPListeningServer -> CAIPStartListenServer
-    return udp_add_ifs_to_multicast_groups();
-}
+// GAR: clients run this, but not ListeningServer?
+/* CAResult_t CAStartIPDiscoveryServer() */
+/* { */
+/*     // @rewrite @was CAStartIPListeningServer -> CAIPStartListenServer */
+/*     return udp_add_ifs_to_multicast_groups(); */
+/* } */
 
 CAResult_t CAStopIP()
 {

@@ -179,8 +179,7 @@ static void CADestroyNetworkChangeCallbackData(void *data, uint32_t size)
 //static
 void CARegisterCallback(CAConnectivityHandler_t handler)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, transport adapter %s (%d)", __func__,
-	      CA_TRANSPORT_ADAPTER_STRING(handler.cType), handler.cType);
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     /* if (handler.startAdapter == NULL || */
     /*     handler.startListenServer == NULL || */
