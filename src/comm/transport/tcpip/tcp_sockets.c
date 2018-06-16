@@ -431,7 +431,7 @@ CAResult_t CAGetTCPInterfaceInformation(CAEndpoint_t **info, size_t *size)
     VERIFY_NON_NULL_MSG(info, TAG, "info is NULL");
     VERIFY_NON_NULL_MSG(size, TAG, "size is NULL");
 
-    u_arraylist_t *iflist = CAIPGetInterfaceInformation(0);
+    u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0); // @was CAIPGetInterfaceInformation(0);
     if (!iflist)
     {
         OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
