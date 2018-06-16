@@ -68,7 +68,7 @@ struct CAIPCBData_t *g_adapterCallbackList = NULL;
 /*     return interval; */
 /* } */
 
-CAResult_t CAIPCreateNetworkInterfaceList() // @was CAIPInitializeNetworkMonitorList
+CAResult_t udp_create_network_interfacelist() // @was CAIPInitializeNetworkMonitorList
 {
     if (!g_networkMonitorContextMutex)
     {
