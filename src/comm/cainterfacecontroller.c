@@ -642,29 +642,29 @@ void CAStopAdapters()
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     // @rewrite
-/* #ifdef ENABLE_UDP */
-/*     CAStopAdapter(CA_ADAPTER_IP); */
-/* #endif */
-/* #ifdef ENABLE_TCP */
-/*     CAStopAdapter(CA_ADAPTER_TCP); */
-/* #endif */
+#ifdef ENABLE_UDP
+    CAStopAdapter(CA_ADAPTER_IP);
+#endif
+#ifdef ENABLE_TCP
+    CAStopAdapter(CA_ADAPTER_TCP);
+#endif
 
-    CATransportAdapter_t connType;
-    u_arraylist_t *list = CAGetSelectedNetworkList();
-    size_t length = u_arraylist_length(list);
+    /* CATransportAdapter_t connType; */
+    /* u_arraylist_t *list = CAGetSelectedNetworkList(); */
+    /* size_t length = u_arraylist_length(list); */
 
-    for (size_t i = 0; i < length; i++)
-    {
-        void* ptrType = u_arraylist_get(list, i);
+    /* for (size_t i = 0; i < length; i++) */
+    /* { */
+    /*     void* ptrType = u_arraylist_get(list, i); */
 
-        if (NULL == ptrType)
-        {
-            continue;
-        }
+    /*     if (NULL == ptrType) */
+    /*     { */
+    /*         continue; */
+    /*     } */
 
-        connType = *(CATransportAdapter_t *)ptrType;
-        CAStopAdapter(connType);
-    }
+    /*     connType = *(CATransportAdapter_t *)ptrType; */
+    /*     CAStopAdapter(connType); */
+    /* } */
 
     CAQueueingThreadStop(&g_networkChangeCallbackThread);
 }
