@@ -52,41 +52,43 @@ void CAIPDestroyNetworkAddressList()
     }
 }
 
-CAResult_t CATCPSetNetworkMonitorCallback(void (*callback)(CATransportAdapter_t adapter,
-							   CANetworkStatus_t status),
-					  //CAIPAdapterStateChangeCallback callback,
-					  CATransportAdapter_t adapter)
-{
-    if (!callback)
-    {
-        OIC_LOG(ERROR, TAG, "callback is null");
-        return CA_STATUS_INVALID_PARAM;
-    }
+// callback = tcp_status_change_handler, called directly by udp_if_change_handler, so this routine is obsolete
+/* CAResult_t CATCPSetNetworkMonitorCallback(void (*callback)(CATransportAdapter_t adapter, */
+/* 							   CANetworkStatus_t status), */
+/* 					  //CAIPAdapterStateChangeCallback callback, */
+/* 					  CATransportAdapter_t adapter) */
+/* { */
+/*     if (!callback) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "callback is null"); */
+/*         return CA_STATUS_INVALID_PARAM; */
+/*     } */
 
-    CAIPCBData_t *cbitem = NULL;
-    LL_FOREACH(g_adapterCallbackList, cbitem)
-    {
-        if (cbitem && adapter == cbitem->adapter && callback == cbitem->ip_status_change_event_handler)
-        {
-            OIC_LOG(DEBUG, TAG, "this callback is already added");
-            return CA_STATUS_OK;
-        }
-    }
+/*     CAIPCBData_t *cbitem = NULL; */
+/*     LL_FOREACH(g_adapterCallbackList, cbitem) */
+/*     { */
+/*         if (cbitem && adapter == cbitem->adapter && callback == cbitem->ip_status_change_event_handler) */
+/*         { */
+/*             OIC_LOG(DEBUG, TAG, "this callback is already added"); */
+/*             return CA_STATUS_OK; */
+/*         } */
+/*     } */
 
-    cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem));
-    if (!cbitem)
-    {
-        OIC_LOG(ERROR, TAG, "Malloc failed");
-        return CA_STATUS_FAILED;
-    }
+/*     cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem)); */
+/*     if (!cbitem) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "Malloc failed"); */
+/*         return CA_STATUS_FAILED; */
+/*     } */
 
-    cbitem->adapter = adapter;
-    cbitem->ip_status_change_event_handler = callback;
-    LL_APPEND(g_adapterCallbackList, cbitem);
+/*     cbitem->adapter = adapter; */
+/*     cbitem->ip_status_change_event_handler = callback; */
+/*     LL_APPEND(g_adapterCallbackList, cbitem); */
 
-    return CA_STATUS_OK;
-}
+/*     return CA_STATUS_OK; */
+/* } */
 
+// called by CAStartTCP
 CAResult_t CATCPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter,
 						     CANetworkStatus_t status),
 				    CATransportAdapter_t adapter)
@@ -95,7 +97,7 @@ CAResult_t CATCPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapte
     if (CA_STATUS_OK == res)
     {
 	// insert into g_adapterCallbackList
-        return CATCPSetNetworkMonitorCallback(callback, adapter);
+        /* return CATCPSetNetworkMonitorCallback(callback, adapter); */
     }
     return res;
 }
