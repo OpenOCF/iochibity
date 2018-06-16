@@ -21,7 +21,7 @@ cc_library(
     deps = [#"//src:config",
             "//src/logger",
             # "//src/portability:hdrs",
-            "//third_party/mbedtls"],
+            "@mbedtls//:mbedtls"],
     # linkopts = ["-W,crypt32.lib"],
     srcs = glob(["*.c"], exclude=["pthread_create.c"])
     + glob(["*.h"], exclude=["pthread_create.h"])
