@@ -109,7 +109,7 @@ bool tcp_is_ipv6_enabled = true; //ipv6tcpenabled;    /**< IPv6 TCP enabled by O
 /*     caglobals.tcp.ipv6tcpenabled = flags & CA_IPV6; */
 /* } */
 
-LOCAL void CAAcceptConnection(CATransportFlags_t flag, CASocket_t *sock)
+void CAAcceptConnection(CATransportFlags_t flag, CASocket_t *sock)
 {
     VERIFY_NON_NULL_VOID(sock, TAG, "sock is NULL");
 
