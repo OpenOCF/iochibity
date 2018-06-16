@@ -389,24 +389,24 @@ CASocketFd_t CAGetSocketFDFromEndpoint(const CAEndpoint_t *endpoint)
 
 void tcp_create_accept_sockets()
 {
-    if (caglobals.tcp.ipv6tcpenabled)
+    if (tcp_is_ipv6_enabled)
     {
         NEWSOCKET(AF_INET6, ipv6);
         NEWSOCKET(AF_INET6, ipv6s);
         OIC_LOG_V(DEBUG, TAG, "IPv6 socket fd=%d, port=%d",
-                  caglobals.tcp.ipv6.fd, caglobals.tcp.ipv6.port);
+                  tcp_socket_ipv6.fd, tcp_socket_ipv6.port);
         OIC_LOG_V(DEBUG, TAG, "IPv6 secure socket fd=%d, port=%d",
-                  caglobals.tcp.ipv6s.fd, caglobals.tcp.ipv6s.port);
+                  tcp_socket_ipv6s.fd, tcp_socket_ipv6s.port);
     }
 
-    if (caglobals.tcp.ipv4tcpenabled)
+    if (tcp_is_ipv4_enabled)
     {
         NEWSOCKET(AF_INET, ipv4);
         NEWSOCKET(AF_INET, ipv4s);
         OIC_LOG_V(DEBUG, TAG, "IPv4 socket fd=%d, port=%d",
-                  caglobals.tcp.ipv4.fd, caglobals.tcp.ipv4.port);
+                  tcp_socket_ipv4.fd, tcp_socket_ipv4.port);
         OIC_LOG_V(DEBUG, TAG, "IPv4 secure socket fd=%d, port=%d",
-                  caglobals.tcp.ipv4s.fd, caglobals.tcp.ipv4s.port);
+                  tcp_socket_ipv4s.fd, tcp_socket_ipv4s.port);
     }
 
 }
@@ -453,8 +453,8 @@ CAResult_t CAGetTCPInterfaceInformation(CAEndpoint_t **info, size_t *size)
             continue;
         }
 
-        if ((ifitem->family == AF_INET6 && !udp_ipv6enabled) ||
-            (ifitem->family == AF_INET && !udp_ipv4enabled))
+        if ((ifitem->family == AF_INET6 && !tcp_is_ipv6_enabled) ||
+            (ifitem->family == AF_INET && !tcp_is_ipv4_enabled))
         {
             interfaces--;
         }
@@ -483,8 +483,8 @@ CAResult_t CAGetTCPInterfaceInformation(CAEndpoint_t **info, size_t *size)
             continue;
         }
 
-        if ((ifitem->family == AF_INET6 && !udp_ipv6enabled) ||
-            (ifitem->family == AF_INET && !udp_ipv4enabled))
+        if ((ifitem->family == AF_INET6 && !tcp_is_ipv6_enabled) ||
+            (ifitem->family == AF_INET && !tcp_is_ipv4_enabled))
         {
             continue;
         }
