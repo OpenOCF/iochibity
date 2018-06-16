@@ -147,7 +147,7 @@ void tcp_data_receiver_runloop(void *data) // @was CAReceiveHandler
     //while (!caglobals.tcp.terminate)
     while (!tcp_is_terminating)
     {
-        udp_handle_inbound_data();  // @was CAFindReadyMessage();
+        tcp_handle_inbound_data();  // @was CAFindReadyMessage();
     }
 
     oc_mutex_lock(tcp_mutexObjectList);
@@ -157,7 +157,7 @@ void tcp_data_receiver_runloop(void *data) // @was CAReceiveHandler
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
-LOCAL CAResult_t CAReceiveMessage(CATCPSessionInfo_t *svritem)
+CAResult_t CAReceiveMessage(CATCPSessionInfo_t *svritem)
 {
     VERIFY_NON_NULL_MSG(svritem, TAG, "svritem is NULL");
 

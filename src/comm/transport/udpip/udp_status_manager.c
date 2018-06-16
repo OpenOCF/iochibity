@@ -68,7 +68,9 @@ u_arraylist_t *g_netInterfaceList = NULL;
 /*     return interval; */
 /* } */
 
-CAResult_t udp_create_network_interface_list() // @was CAIPInitializeNetworkMonitorList
+// FIXME: the "network monitor list" is transport-independent - the
+// exact same code is in the TCP package. move it to pkg IP
+CAResult_t ip_create_network_interface_list() // @was CAIPInitializeNetworkMonitorList
 {
     if (!g_networkMonitorContextMutex)
     {

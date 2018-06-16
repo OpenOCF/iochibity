@@ -146,8 +146,7 @@ CAResult_t CAStartTCP()
     OIC_LOG(DEBUG, TAG, "IN");
 
     // Start network monitoring to receive adapter status changes.
-    // @rewrite CAIPStartNetworkMonitor(CATCPAdapterHandler, CA_ADAPTER_TCP);
-    CATCPStartNetworkMonitor(tcp_status_change_handler, CA_ADAPTER_TCP);
+    ip_create_network_interface_list(tcp_status_change_handler, CA_ADAPTER_TCP); // @was CAIPStartNetworkMonitor
 
 #ifndef SINGLE_THREAD
     if (CA_STATUS_OK != CATCPInitializeQueueHandles())
