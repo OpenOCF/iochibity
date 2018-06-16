@@ -64,8 +64,6 @@ int tcp_shutdownFds[2];     /**< shutdown pipe */
 int tcp_connectionFds[2];   /**< connection pipe */
 CASocketFd_t tcp_maxfd;     /**< highest fd (for select) */
 
-void *tcp_threadpool;       /**< threadpool between Initialize and Start */
-
 bool tcp_client;
 bool tcp_server;
 

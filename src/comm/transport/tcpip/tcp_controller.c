@@ -54,6 +54,8 @@ typedef struct
 } CATCPData;
 #endif
 
+void *tcp_threadpool;       /**< threadpool between Initialize and Start */
+
 /**
  * Adapter Changed Callback to CA.
  */
