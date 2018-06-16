@@ -13,6 +13,7 @@
 /**
  * Queue handle for Send Data.
  */
+//FIXME: in tcp this is a pointer; make them match
 CAQueueingThread_t udp_sendQueueHandle;
 
 /* ONLY called by udp_initialize_send_thread */
