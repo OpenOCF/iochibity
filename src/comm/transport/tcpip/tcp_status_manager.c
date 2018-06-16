@@ -152,14 +152,11 @@ void tcp_status_change_handler(CATransportAdapter_t adapter, // @was CATCPAdapte
     }
     else if (CA_INTERFACE_UP == status)
     {
-        OIC_LOG(DEBUG, TAG, "Network status is up, create new socket for listening");
+        OIC_LOG(DEBUG, TAG, "TCP Network status is up, create new socket for listening");
 
         CAResult_t ret = CA_STATUS_FAILED;
-#ifndef SINGLE_THREAD
+
         ret = CATCPStartServer((const ca_thread_pool_t)caglobals.tcp.threadpool);
-#else
-        ret = CATCPStartServer();
-#endif
         if (CA_STATUS_OK != ret)
         {
             OIC_LOG_V(DEBUG, TAG, "CATCPStartServer failed[%d]", ret);
