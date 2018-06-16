@@ -378,9 +378,10 @@ CAResult_t CATCPStartServer(const ca_thread_pool_t threadPool)
 
 void CATCPStopServer()
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (tcp_is_terminating) // caglobals.tcp.terminate
     {
-        OIC_LOG(DEBUG, TAG, "Adapter is not enabled");
+        OIC_LOG(DEBUG, TAG, "TCP is already terminating");
         return;
     }
 
@@ -435,7 +436,7 @@ void CATCPStopServer()
     CATCPDestroyMutex();
     CATCPDestroyCond();
 
-    OIC_LOG(DEBUG, TAG, "Adapter terminated successfully");
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 }
 
 void CATerminateTCP()

@@ -81,7 +81,7 @@ CAResult_t CAInitialize(CATransportAdapter_t transportType)
 
 void CATerminate()
 {
-    OIC_LOG(DEBUG, TAG, "CATerminate");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     if (g_isInitialized)
     {
@@ -90,6 +90,7 @@ void CATerminate()
 
         g_isInitialized = false;
     }
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 }
 
 CAResult_t CAStartListeningServer()

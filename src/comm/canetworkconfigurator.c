@@ -326,7 +326,7 @@ CAResult_t CAGetNetworkInformationInternal(CAEndpoint_t **info, size_t *size)
 
 CAResult_t CATerminateNetworkType()
 {
-    OIC_LOG(DEBUG, TAG, "CATerminateNetworkType()");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (NULL != g_selectedNetworkList)
     {
         u_arraylist_free(&g_selectedNetworkList);

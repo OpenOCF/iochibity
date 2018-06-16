@@ -609,6 +609,7 @@ void CAStopAdapter(CATransportAdapter_t transportType)
     if (transportType == CA_ADAPTER_IP) {
 #ifdef IP_ADAPTER
 	CAStopIP();
+	OIC_LOG_V(INFO, TAG, "%s (UDP) EXIT", __func__);
 	return;
 #endif
     }
@@ -616,6 +617,7 @@ void CAStopAdapter(CATransportAdapter_t transportType)
     if (transportType == CA_ADAPTER_TCP) {
 #ifdef TCP_ADAPTER
 	CAStopTCP();
+	OIC_LOG_V(INFO, TAG, "%s (TCP) EXIT", __func__);
 	return;
 #endif
     }

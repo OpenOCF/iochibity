@@ -11,6 +11,8 @@
 
 //static u_arraylist_t *g_netInterfaceList = NULL;
 
+// FIXME: the "network monitor list" is transport-independent - the
+// exact same code is in the UDP package. move it to pkg IP
 static CAResult_t CATCPInitializeNetworkMonitorList(void)
 {
     if (!g_networkMonitorContextMutex)
@@ -93,6 +95,7 @@ CAResult_t CATCPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapte
 						     CANetworkStatus_t status),
 				    CATransportAdapter_t adapter)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     CAResult_t res = CATCPInitializeNetworkMonitorList();
     if (CA_STATUS_OK == res)
     {

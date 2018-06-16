@@ -2693,7 +2693,7 @@ exit:
 
 OCStackResult OC_CALL OCStop() EXPORT
 {
-    OIC_LOG(INFO, TAG, "Entering OCStop");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     // Serialize calls to start and stop the stack.
     OCEnterInitializer();
@@ -2718,6 +2718,7 @@ OCStackResult OC_CALL OCStop() EXPORT
     }
 
     OCLeaveInitializer();
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return result;
 }
 
@@ -2729,6 +2730,7 @@ OCStackResult OC_CALL OCStop() EXPORT
  */
 LOCAL OCStackResult OCDeInitializeInternal()
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     assert(stackState == OC_STACK_INITIALIZED);
 
 #ifdef WITH_PRESENCE
@@ -2776,6 +2778,7 @@ LOCAL OCStackResult OCDeInitializeInternal()
   *    CAUtilSetBTConfigure(configs); */
 
     stackState = OC_STACK_UNINITIALIZED;
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return OC_STACK_OK;
 }
 

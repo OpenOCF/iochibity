@@ -148,6 +148,7 @@ static CAResult_t CAAddToNetworkInterfaceList(CAInterface_t *ifitem)
 
 CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     CAIPDestroyNetworkInterfaceList();
     return CA_STATUS_OK; // CAIPUnSetNetworkMonitorCallback(adapter);
 }

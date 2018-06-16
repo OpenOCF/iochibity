@@ -81,7 +81,7 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
 
     if (udp_is_terminating)
     {
-        OIC_LOG_V(DEBUG, TAG, "Packet receiver Stop request received.");
+        OIC_LOG_V(DEBUG, TAG, "udp_is_terminating flag is TRUE (t%u)", pthread_self());
         return;
     }
 

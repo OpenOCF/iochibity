@@ -131,6 +131,7 @@ static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t 
  */
 void CAIPDestroyNetworkInterfaceList()
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     // Free any new addresses waiting to be indicated up.
     while (g_CAIPNetworkMonitorNewAddressQueue)
     {
@@ -498,6 +499,7 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
  */
 CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (g_CAIPNetworkMonitorNotificationHandle != NULL)
     {
 #ifdef USE_SOCKET_ADDRESS_CHANGE_EVENT
