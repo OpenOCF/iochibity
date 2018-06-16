@@ -251,7 +251,7 @@ CAResult_t CAInitializeUDP(ca_thread_pool_t handle)
 }
 
 /* CAAdapterStart */
-// called by CAStartAdapter(CATransportAdapter_t transportType)
+// called by CAStartAdapter from cainterfacecontroller.c
 CAResult_t CAStartUDP()		// @rewrite @was CAStartIP (?)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
