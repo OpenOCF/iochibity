@@ -15,8 +15,11 @@ cc_library(
     + select({"//config:windows": [],
               "//config:msvc": [],
               "//config:msys": [],
-              "//conditions:default": ["-std=c11",
-                                       "-U DEBUG"]}), # OS X
+              "//config:darwin": ["-UDEBUG", "-std=c11"],
+              "//conditions:default": ["-std=c11"]})
+    + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
+              "//conditions:default": []}),
+
     # deps = ["//src:config"],
     hdrs = ["logger.h"],
     linkopts = select({"//config:android": ["-llog"],
