@@ -364,8 +364,9 @@ exit:
     return ret;
 }
 
-OCStackResult CBORPayloadToCrl(const uint8_t *cborPayload, const size_t size,
-                               OicSecCrl_t **secCrl)
+OCStackResult CBORPayloadToCrl(const uint8_t *cborPayload,
+			       const size_t size,
+                               OicSecCrl_t **secCrl) EXPORT
 {
     if (NULL == cborPayload || NULL == secCrl || NULL != *secCrl || 0 == size)
     {

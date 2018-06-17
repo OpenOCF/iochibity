@@ -243,7 +243,7 @@ exit:
     return ret;
 }
 
-OCStackResult CBORPayloadToCSR(const uint8_t *cborPayload, size_t size, uint8_t **csr, size_t *csrLen, OicEncodingType_t *encoding)
+OCStackResult CBORPayloadToCSR(const uint8_t *cborPayload, size_t size, uint8_t **csr, size_t *csrLen, OicEncodingType_t *encoding) EXPORT
 {
     if (NULL == cborPayload || 0 == size || NULL == csr || NULL == csrLen)
     {
