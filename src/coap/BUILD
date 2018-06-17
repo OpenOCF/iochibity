@@ -1,19 +1,17 @@
 load("//config:variables.bzl", "CSTD", "DEFINES", "OS_COPTS")
 
 cc_library(
-    name = "comm",
+    name = "coap",
+    visibility = ["//visibility:public"],
+
     # alwayslink = True,
     linkstatic = 1,
     copts = ["-Isrc",
              "-Iexternal/openocf/src/util",
-
-             #"-Ithird_party/coap",
-             #"-Ithird_party/coap/include",
-             "-Iconfig/darwin",
-             "-Iconfig/darwin/coap",
+             # "-Iconfig/darwin",
+             # "-Iconfig/darwin/coap",
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
-
              "-Ithird_party/utlist",
              "-Iexternal/openocf/third_party/utlist",
     ]+ CSTD + OS_COPTS
@@ -29,21 +27,16 @@ cc_library(
             "//src/logger",
     	    "//src/portability",
             "//src/comm/transport/util",
-            "//src/comm/util",
-            "//src/coap",
+            #"//src/comm/util",
             # FIXME: select for this
             "//third_party/utlist",
-            # "//third_party/mbedtls",
-            # "//third_party/mbedtls:mbedtls-crypto",
-            # "//third_party/mbedtls:mbedtls-x509",
             "@mbedtls//:mbedtls",
-            "@libcoap//:libcoap"]
-    + select({"//config:disable_dtls": [],
-              "//conditions:default": ["//src/comm/transport/udpip"]})
-    + select({"//config:enable_tcp": ["//src/comm/transport/tcpip"],
-              "//conditions:default": []}),
+            "@libcoap//:libcoap"],
+    # + select({"//config:disable_dtls": [],
+    #           "//conditions:default": ["//src/comm/transport/udpip"]})
+    # + select({"//config:enable_tcp": ["//src/comm/transport/tcpip"],
+    #           "//conditions:default": []}),
 
-    srcs = glob(["*.c"], exclude=["caadapternetdtls.c"])
-    + glob(["*.h"], exclude=["caadapternetdtls.h"]),
-    visibility = ["//visibility:public"]
+    hdrs = ["coap_codec.h"],
+    srcs = ["coap_codec.c"],
 )

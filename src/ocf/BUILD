@@ -94,6 +94,9 @@ cc_library(
             "//src/routing",
             "//src/sec",
             "//src/util",       # c_common
+
+            "//src/coap",
+
             "@libcoap//:libcoap",
             "@tinycbor//:tinycbor",
             #"@cjson//:cjson",

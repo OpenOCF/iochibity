@@ -28,7 +28,7 @@
 // Refer http://www.gnu.org/software/libc/manual/html_node/BSD-Random.html
 #define _DEFAULT_SOURCE
 
-#include "caprotocolmessage.h"
+#include "coap_codec.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1411,12 +1411,14 @@ bool CAIsSupportedBlockwiseTransfer(CATransportAdapter_t adapter)
 #ifdef WITH_TCP
 bool CAIsSupportedCoAPOverTCP(CATransportAdapter_t adapter)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (CA_ADAPTER_GATT_BTLE & adapter || CA_ADAPTER_RFCOMM_BTEDR & adapter
             || CA_ADAPTER_TCP & adapter || CA_DEFAULT_ADAPTER == adapter)
     {
+	OIC_LOG_V(INFO, TAG, "%s EXIT true", __func__);
         return true;
     }
-    OIC_LOG_V(INFO, TAG, "adapter value of CoAP/TCP is %d", adapter);
+    OIC_LOG_V(INFO, TAG, "%s EXIT false, adapter type: %d", __func__, adapter);
     return false;
 }
 #endif
