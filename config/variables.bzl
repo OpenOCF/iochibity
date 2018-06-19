@@ -10,8 +10,7 @@ CSTD = select({"//config:cstd_c11" : ["-std=c11", "-x c"],
                "//config:cstd_iso9899_1999" : ["-std=iso9899:1999", "-x c"], # = c99
                "//config:cstd_c90" : ["-std=c90", "-x c"],
                "//config:cstd_iso9899_1990" : ["-iso9899:1990", "-x c"], # = c90
-
-               "//conditions:default" : ["-std=c11"]
+               "//conditions:default" : ["-std=c11", "-x c"]
     })
 
 COPTS_ANDROID = ["-x c"]
@@ -37,8 +36,9 @@ TESTDEPS = ["@gtest//:gtest_main",
 
 # #ifdef WITH_TCP:: comm, provisioning
 # #ifdef TCP_ADAPTER: ocf, provisioning, sec/svrs, comm, comm/util, comm/util/bt, udp, tcp
-# FIXME: use ENABLE_TCP
-DEFTCP  = select({"@//config:enable_tcp": ["TCP_ADAPTER", "ENABLE_TCP", "WITH_TCP", "__WITH_TLS__"],
+# FIXME: use ENABLE_TCP, ENABLE_TLS
+DEFTCP  = select({"@//config:enable_tcp": ["TCP_ADAPTER", "ENABLE_TCP", "WITH_TCP",
+                                           "ENABLE_TLS", "__WITH_TLS__"],
                       "//conditions:default": []})
 
 DEFDTLS = select({"//config:disable_dtls": [],
