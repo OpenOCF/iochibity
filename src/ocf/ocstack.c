@@ -2649,10 +2649,11 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     stackState = OC_STACK_INITIALIZED;
 
     // Initialize resource
-    if(myStackMode != OC_CLIENT)
-    {
-        result = initResources();
-    }
+    /* if(myStackMode != OC_CLIENT) */
+    /* { */
+    /*     result = initResources(); */
+    /* } */
+    result = initResources();
 
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     RMSetStackMode(mode);
@@ -3813,11 +3814,13 @@ OCStackResult OC_CALL OCCreateResourceWithEp(OCResourceHandle *handle,
 
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY; uri: %s", __func__, uri);
 
-    if(myStackMode == OC_CLIENT)
-    {
-	OIC_LOG_V(ERROR, TAG, "%s: invalid stack mode OC_CLIENT", __func__);
-        return OC_STACK_INVALID_PARAM;
-    }
+    /* Why no resources for OC_CLIENT? */
+    /* if(myStackMode == OC_CLIENT) */
+    /* { */
+    /* 	OIC_LOG_V(ERROR, TAG, "%s: invalid stack mode OC_CLIENT", __func__); */
+    /*     return OC_STACK_INVALID_PARAM; */
+    /* } */
+
     // Validate parameters
     if(!uri || uri[0]=='\0' || strlen(uri)>=MAX_URI_LENGTH )
     {

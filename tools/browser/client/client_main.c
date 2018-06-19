@@ -351,7 +351,7 @@ int main ()
     /* Initialize OCStack. Do this here rather than in the work
        thread, to ensure initialization is complete before sending any
        request. */
-    if (OCInit(NULL, 0, OC_CLIENT_SERVER) != OC_STACK_OK) {
+    if (OCInit(NULL, 0, OC_CLIENT) != OC_STACK_OK) { /* _SERVER */
         OIC_LOG(ERROR, TAG, "OCStack init error");
 	exit(EXIT_FAILURE);
     }
