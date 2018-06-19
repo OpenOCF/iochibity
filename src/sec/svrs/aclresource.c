@@ -3749,6 +3749,7 @@ OCStackResult DeInitACLResource()
     return (OC_STACK_OK != ret) ? ret : ret2;
 }
 
+/* get ACE based on UUID subject type */
 const OicSecAce_t* GetACLResourceData(const OicUuid_t* subjectId, OicSecAce_t **savePtr)
 {
     OicSecAce_t *ace = NULL;
@@ -3759,7 +3760,7 @@ const OicSecAce_t* GetACLResourceData(const OicUuid_t* subjectId, OicSecAce_t **
         return NULL;
     }
 
-    OIC_LOG(DEBUG, TAG, "GetACLResourceData: searching for ACE matching subject:");
+    OIC_LOG_V(DEBUG, TAG, "%s: searching for ACE matching subjectId->id...", __func__);
     OIC_LOG_BUFFER(DEBUG, TAG, subjectId->id, sizeof(subjectId->id));
 
     /*
@@ -3869,10 +3870,9 @@ const OicSecAce_t* GetACLResourceDataByRoles(const OicSecRole_t *roles, size_t r
 
 const OicSecAce_t* GetACLResourceDataByConntype(const OicSecConntype_t conntype, OicSecAce_t **savePtr)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, conntype %d", __func__, conntype);
     OicSecAce_t *ace = NULL;
     OicSecAce_t *begin = NULL;
-
-    OIC_LOG_V(DEBUG, TAG, "IN: %s(%d)", __func__, conntype);
 
     if ((NULL == savePtr) || (NULL == gAcl))
     {

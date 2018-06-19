@@ -2103,9 +2103,11 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
         {
 	    OIC_LOG_V(DEBUG, TAG, "%s endpoint %d", __func__, i);
 
+	    // FIXME: use indexing?
             CAEndpoint_t *info = networkInfo + i;
-	    OIC_LOG_V(DEBUG, TAG, "%s adapter:0x%X", __func__, info->adapter);
-	    OIC_LOG_V(DEBUG, TAG, "%s index %d", __func__, info->ifindex);
+	    OIC_LOG_V(DEBUG, TAG, "%s adapter: 0x%X", __func__, info->adapter);
+	    OIC_LOG_V(DEBUG, TAG, "%s addr: %s", __func__, info->addr);
+	    OIC_LOG_V(DEBUG, TAG, "%s ifindex %d", __func__, info->ifindex);
 	    OIC_LOG_V(DEBUG, TAG, "%s dev index %d", __func__, devAddr->ifindex);
 
             if (((CA_ADAPTER_IP | CA_ADAPTER_TCP) & info->adapter &&
@@ -2376,6 +2378,7 @@ void OCDiscoveryPayloadAddResourceWithEps(OCDiscoveryPayload* payload, const OCR
                                                   uint16_t securePort, void *networkInfo, size_t infoSize,
                                                   const OCDevAddr *devAddr, uint16_t tcpPort)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OCDiscoveryPayloadAddNewResource(payload,
                                      OCCopyResource(res, securePort, (CAEndpoint_t *)networkInfo,
                                                     infoSize, devAddr, tcpPort));

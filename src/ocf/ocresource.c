@@ -457,6 +457,7 @@ static OCStackResult GetSecurePortInfo(OCDevAddr *endpoint, uint16_t *port)
 /* This method will retrieve the tcp port */
 OCStackResult GetTCPPortInfo(OCDevAddr *endpoint, uint16_t *port, bool secured)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY; adapter: %d", __func__, endpoint->adapter);
     if (NULL == endpoint)
     {
         OIC_LOG(ERROR, TAG, "GetTCPPortInfo failed!");
@@ -2188,6 +2189,7 @@ exit:
 
 static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resource)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (!request || !resource)
     {
         return OC_STACK_INVALID_PARAM;
@@ -2196,8 +2198,6 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     OCPayload* payload = NULL;
     char *interfaceQuery = NULL;
     char *resourceTypeQuery = NULL;
-
-    OIC_LOG(INFO, TAG, "Entering HandleVirtualResource");
 
     OCVirtualResources virtualUriInRequest = GetTypeOfVirtualURI (request->resourceUrl);
 
@@ -2259,7 +2259,12 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
             OIC_LOG(ERROR, TAG, "CAGetNetworkInformation has error on parsing network infomation");
             return OC_STACK_ERROR;
         }
-	OIC_LOG_V(DEBUG, TAG, "Network Information size = %d", (int) infoSize);
+	OIC_LOG_V(DEBUG, TAG, "EP count = %d", (int) infoSize);
+	/* if (infoSize > 0) { */
+	/*     OIC_LOG_V(INFO, TAG, "%s 1st addr: %s", __func__, networkInfo[0].addr); */
+	/*     OIC_LOG_V(INFO, TAG, "%s 1st port: %d", __func__, networkInfo[0].port); */
+	/*     OIC_LOG_V(INFO, TAG, "%s 1st ifindex: %d", __func__, networkInfo[0].ifindex); */
+	/* } */
 
         discoveryResult = getQueryParamsForFiltering (virtualUriInRequest, request->query,
                 &interfaceQuery, &resourceTypeQuery);

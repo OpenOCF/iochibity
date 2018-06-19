@@ -246,7 +246,7 @@ u_arraylist_t			/**< @result list of CAInterface_t */
 *udp_get_ifs_for_rtm_newaddr(int desiredIndex) // @was CAIPGetInterfaceInformation
 {
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-    OIC_LOG_V(DEBUG, TAG, "IN %s: desiredIndex = %d", __func__, desiredIndex);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY; desiredIndex = %d", __func__, desiredIndex);
 #endif
     if (desiredIndex < 0)
     {

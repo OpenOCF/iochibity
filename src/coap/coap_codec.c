@@ -149,6 +149,7 @@ CAResult_t CAGetRequestInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *en
     return ret;
 }
 
+/* inbound responses only */
 CAResult_t CAGetResponseInfoFromPDU(const coap_pdu_t *pdu, CAResponseInfo_t *outResInfo,
                                     const CAEndpoint_t *endpoint)
 {
@@ -173,6 +174,7 @@ CAResult_t CAGetErrorInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endp
     return ret;
 }
 
+/* convert OCF data to CoAP PDU (outbound msgs only) */
 coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_t *endpoint,
                           coap_list_t **optlist, coap_transport_t *transport)
 {

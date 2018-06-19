@@ -1198,6 +1198,7 @@ static OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload,
 }
 #endif
 
+/* handle inbound response */
 void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -3070,7 +3071,7 @@ OCStackResult OC_CALL OCDoResource(OCDoHandle *handle,
                                    uint8_t numOptions)
 /* EXPORT (deprecated, do not expose) */
 {
-    OIC_TRACE_BEGIN(%s:OCDoRequest, TAG);
+    OIC_TRACE_BEGIN(%s:OCDoResource, TAG);
     OCStackResult ret = OCDoRequest(handle, method, requestUri,destination, payload,
                 connectivityType, qos, cbData, options, numOptions);
     OIC_TRACE_END();
@@ -3109,10 +3110,9 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
                                   OCQualityOfService qos,
                                   OCCallbackData *cbData,
                                   OCHeaderOption *options,
-                                  uint8_t numOptions)
-EXPORT
+                                  uint8_t numOptions) EXPORT
 {
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(INFO, TAG, "%s ENTRY, request uri: %s", __func__, requestUri);
 
     // Validate input parameters
     VERIFY_NON_NULL(cbData, FATAL, OC_STACK_INVALID_CALLBACK);
@@ -3264,6 +3264,7 @@ EXPORT
     requestInfo.info.token = token;
     requestInfo.info.tokenLength = tokenLength;
 
+    /* set CoAP options */
     if ((method == OC_REST_OBSERVE) || (method == OC_REST_OBSERVE_ALL))
     {
         result = CreateObserveHeaderOption (&(requestInfo.info.options),
@@ -3434,7 +3435,7 @@ EXPORT
                                    requestInfo.isMulticast);
         if (OC_STACK_OK != result)
         {
-	    OIC_LOG_V(ERROR, TAG, "%s: OCSendRequest error: %d", __func__, result);
+	    OIC_LOG_V(ERROR, TAG, "%s: OCPreparePresence error: %d", __func__, result);
             goto exit;
         }
 
@@ -3461,7 +3462,7 @@ EXPORT
 
     if (OC_STACK_OK != result)
     {
-	OIC_LOG_V(ERROR, TAG, "%s: OCSendRequest error: %d", __func__, result);
+	OIC_LOG_V(ERROR, TAG, "%s: AddClientCB error: %d", __func__, result);
         goto exit;
     }
 

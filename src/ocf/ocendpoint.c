@@ -194,6 +194,7 @@ OCStackResult OCGetMatchedTpsFlags(const CATransportAdapter_t adapter,
                                    const CATransportFlags_t flags,
                                    OCTpsSchemeFlags* out)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     // return matched TPS Flags with given CA flags.
     if (!out)
     {

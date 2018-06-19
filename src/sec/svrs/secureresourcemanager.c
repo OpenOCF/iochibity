@@ -149,6 +149,7 @@ static void SRMSendResponse(SRMRequestContext_t *context)
 
 // Based on the context->responseVal, either call the entity handler for the
 // request (which must send the response), or send an ACCESS_DENIED response.
+/* SERVER mode: send outbound response */
 void SRMGenerateResponse(SRMRequestContext_t *context)
 {
     OIC_LOG_V(INFO, TAG, "%s : entering function.", __func__);

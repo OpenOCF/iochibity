@@ -66,7 +66,7 @@
 
 void tcp_handle_inbound_data()  // @was CAFindReadyMessage
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     fd_set readFds;
     //struct timeval timeout = { .tv_sec = caglobals.tcp.selectTimeout };
     struct timeval timeout = { .tv_sec = tcp_selectTimeout };
@@ -98,6 +98,7 @@ void tcp_handle_inbound_data()  // @was CAFindReadyMessage
     }
 
     int ret = select(tcp_maxfd + 1, &readFds, NULL, NULL, &timeout);
+    /* OIC_LOG_V(INFO, TAG, "%s select ready count: %d", __func__, ret); */
 
     if (tcp_is_terminating)
     {

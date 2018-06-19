@@ -67,7 +67,7 @@ OCStackResult SendSRMResponse(const OCEntityHandlerRequest *ehRequest,
 
 OCStackResult InitSecureResources( )
 {
-    OIC_LOG_V(DEBUG, TAG, "**************** %s ENTRY ****************", __func__);
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OCStackResult ret;
 
     /*
