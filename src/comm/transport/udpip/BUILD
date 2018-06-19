@@ -25,6 +25,8 @@ cc_library(
                 "//config:linux-x86_64": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
+              "//conditions:default": []})
+    + select({"//config:debug_tls": ["-DDEBUG_TLS"],
               "//conditions:default": []}),
 
     # + select({#"//config::rpi": [],

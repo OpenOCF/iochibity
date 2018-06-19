@@ -18,7 +18,9 @@ cc_library(
                 "//config:linux-x86_64": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
-                "//conditions:default": []}),
+                "//conditions:default": []})
+    + select({"//config:debug_tls": ["-DDEBUG_TLS"],
+              "//conditions:default": []}),
 
     # defines = select({ # _DEFAULT_SOURCE enables IFF_UP etc. defines in net/if.h
     #     "//config:rpi": ["_DEFAULT_SOURCE"],

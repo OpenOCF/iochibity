@@ -309,3 +309,15 @@ config_setting(
     define_values = { "debug_threads": "true"}
 )
 
+config_setting(
+    name = "debug_msgs",
+    visibility = ["//visibility:public"],
+    define_values = { "debug_msgs": "true"}
+)
+
+config_setting(
+    name = "debug_tls",
+    visibility = ["//visibility:public"],
+    define_values = { "debug_tls": "true"}
+)
+

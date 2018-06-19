@@ -18,7 +18,12 @@ cc_library(
              "-Iexternal/openocf/third_party/utlist",
     ]+ CSTD + OS_COPTS
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
+              "//conditions:default": []})
+    + select({"//config:debug_tls": ["-DDEBUG_TLS"],
+              "//conditions:default": []})
+    + select({"//config:debug_msgs": ["-DDEBUG_MSGS"],
               "//conditions:default": []}),
+
 
  # + select({"//config:enable_tcp": "-DSTATEFUL_PROTOCOL_SUPPORTED",
  #                                 "//conditions:default": []}),

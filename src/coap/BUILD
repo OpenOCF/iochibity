@@ -10,12 +10,17 @@ cc_library(
              "-Iexternal/openocf/src/util",
              # "-Iconfig/darwin",
              # "-Iconfig/darwin/coap",
+             "-Iexternal/libcoap",
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
              "-Ithird_party/utlist",
              "-Iexternal/openocf/third_party/utlist",
     ]+ CSTD + OS_COPTS
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
+              "//conditions:default": []})
+    + select({"//config:debug_msgs": ["-DDEBUG_MSGS"],
+              "//conditions:default": []})
+    + select({"//config:debug_tls": ["-DDEBUG_TLS"],
               "//conditions:default": []}),
 
  # + select({"//config:enable_tcp": "-DSTATEFUL_PROTOCOL_SUPPORTED",
