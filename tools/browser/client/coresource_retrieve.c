@@ -445,20 +445,20 @@ void send_get_msg ()
 
     OIC_LOG_V(INFO, TAG, "Sending get request >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     OCStackResult res;
-    /* OCDoResource is deprecated, use OCDoRequest */
-    res = OCDoRequest(&handle,	      /* OCDoHandle */
-		      OC_REST_GET,      /* method */
-		      szQueryUri,       /* request uri */
-		      &server_ep,	      /* destination */
-		      NULL,	      /* payload - caller must free */
-		      /* FIXME: select CONNTYPE from resource */
-		      CT_ADAPTER_IP,     /* connectivity type */
-		      /* CT_DEFAULT,	      /\* connectivity type *\/ */
-		      OC_LOW_QOS,	      /* qos */
-		      &cbData,	      /* callback */
-		      NULL,	      /* header options */
-		      0		      /* nbr hdr options */
-		      );
+    /* oocf_send_request == OCDoRequest */
+    res = oocf_send_request(&handle,	      /* OCDoHandle */
+			    OC_REST_GET,      /* method */
+			    szQueryUri,       /* request uri */
+			    &server_ep,	      /* destination */
+			    NULL,	      /* payload - caller must free */
+			    /* FIXME: select CONNTYPE from resource */
+			    CT_ADAPTER_IP,     /* connectivity type */
+			    /* CT_DEFAULT,	      /\* connectivity type *\/ */
+			    OC_LOW_QOS,	      /* qos */
+			    &cbData,	      /* callback */
+			    NULL,	      /* header options */
+			    0		      /* nbr hdr options */
+			    );
     if (res != OC_STACK_OK) {
 	OIC_LOG(ERROR, TAG, "OCStack resource error");
     }

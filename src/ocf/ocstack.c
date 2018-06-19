@@ -3576,6 +3576,23 @@ exit:
     return result;
 }
 
+OCStackResult OC_CALL oocf_send_request(OCDoHandle *handle,
+					OCMethod method,
+					const char *requestUri,
+					const OCDevAddr *destination,
+					OCPayload* payload,
+					OCConnectivityType connectivityType,
+					OCQualityOfService qos,
+					OCCallbackData *cbData,
+					OCHeaderOption *options,
+					uint8_t numOptions) EXPORT
+{
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    return OCDoRequest(handle, method, requestUri,destination, payload,
+		       connectivityType, qos, cbData, options, numOptions);
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
+}
+
 OCStackResult OC_CALL OCCancel(OCDoHandle handle, OCQualityOfService qos, OCHeaderOption * options,
         uint8_t numOptions)
 {
