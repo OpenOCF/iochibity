@@ -387,7 +387,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
 #endif
 
     /* get a count of enabled IPv4/IPv6 IFs */
-    size_t interfaces = u_arraylist_length(iflist);
+    size_t iface_count = u_arraylist_length(iflist);
     for (size_t i = 0; i < u_arraylist_length(iflist); i++)
     {
         CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
@@ -399,17 +399,17 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
         if ((ifitem->family == AF_INET6 && !udp_ipv6_is_enabled) ||
             (ifitem->family == AF_INET && !udp_ipv4_is_enabled))
         {
-            interfaces--;
+            iface_count--;
         }
     }
 
-    if (!interfaces)
+    if (!iface_count)
     {
         OIC_LOG(DEBUG, TAG, "No enabled IPv4/IPv6 interfaces found");
         return CA_STATUS_OK;
     }
 
-    size_t totalEndpoints = interfaces * endpointsPerInterface;
+    size_t totalEndpoints = iface_count * endpointsPerInterface;
     CAEndpoint_t *eps = (CAEndpoint_t *)OICCalloc(totalEndpoints, sizeof (CAEndpoint_t));
     if (!eps)
     {
