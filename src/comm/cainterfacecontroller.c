@@ -697,8 +697,8 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
         return CA_MEMORY_ALLOC_FAILED;
     }
 
-    CAResult_t udp_res = CA_STATUS_FAILED;
-    size_t resSize = 0;
+    CAResult_t res = CA_STATUS_FAILED;
+    size_t ep_count = 0;
     /* for (size_t index = 0; index < g_numberOfAdapters; index++) */
     /* { */
     /*     if (g_adapterHandler[index].GetNetInfo != NULL) */
