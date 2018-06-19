@@ -263,19 +263,8 @@ config_setting(
 # for android_binary:
 config_setting(
     name = "android_arm8",
-    values = {
-        # android binaries:
-        #"cpu": "arm64-v8a",
-        #"android_cpu": "arm64-v8a",
-        #"crosstool_top": "@androidndk//:default_crosstool",
-
-        # //:mkhdrs
-        #"fat_apk_cpu": "arm64-v8a",
-        #"android_cpu": "arm64-v8a",
-    },
-    define_values = {
-        "android_arm64": "true"
-    },
+    define_values = { "android": "true",
+                      "android-arm8": "true"},
     visibility = ["//visibility:public"]
 )
 
