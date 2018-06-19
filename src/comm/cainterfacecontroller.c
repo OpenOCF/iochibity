@@ -191,16 +191,16 @@ void CARegisterCallback(CAConnectivityHandler_t handler)
     /*     OIC_LOG(ERROR, TAG, "connectivity handler is not enough to be used!"); */
     /*     return; */
     /* } */
-    size_t numberofAdapters = g_numberOfAdapters + 1;
+    // statically initialized: size_t numberofAdapters = g_numberOfAdapters + 1;
     CAConnectivityHandler_t *adapterHandler = OICRealloc(g_adapterHandler,
-            (numberofAdapters) * sizeof(*adapterHandler));
+            (g_numberOfAdapters) * sizeof(*adapterHandler));
     if (NULL == adapterHandler)
     {
         OIC_LOG(ERROR, TAG, "Memory allocation failed during registration");
         return;
     }
     g_adapterHandler = adapterHandler;
-    g_numberOfAdapters = numberofAdapters;
+    //g_numberOfAdapters = numberofAdapters;
     g_adapterHandler[g_numberOfAdapters - 1] = handler;
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
