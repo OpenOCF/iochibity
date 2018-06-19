@@ -42,10 +42,12 @@
  */
 #define ANALYZER_TAG "OIC_ANALYZER"
 
+CAHistory_t requestHistory;  /**< filter IP family in requests */
+
 /**
  * Base Information received.
  *
- * This structure is used to hold request & response base information.
+ * This structure is used to hold inbound request & response base information.
  */
 #if EXPORT_INTERFACE
 typedef struct
