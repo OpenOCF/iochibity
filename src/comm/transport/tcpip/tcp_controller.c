@@ -143,12 +143,11 @@ static void CATCPDestroyCond()
 
 CAResult_t CAStartTCP()
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     // Start network monitoring to receive adapter status changes.
     ip_create_network_interface_list(tcp_status_change_handler, CA_ADAPTER_TCP); // @was CAIPStartNetworkMonitor
 
-#ifndef SINGLE_THREAD
     if (CA_STATUS_OK != CATCPInitializeQueueHandles())
     {
         OIC_LOG(ERROR, TAG, "Failed to Initialize Queue Handle");
@@ -162,14 +161,6 @@ CAResult_t CAStartTCP()
         OIC_LOG(ERROR, TAG, "Failed to Start Send Data Thread");
         return CA_STATUS_FAILED;
     }
-#else
-    CAResult_t ret = CATCPStartServer();
-    if (CA_STATUS_OK != ret)
-    {
-        OIC_LOG_V(DEBUG, TAG, "CATCPStartServer failed[%d]", ret);
-        return ret;
-    }
-#endif
 
     return CA_STATUS_OK;
 }
@@ -178,13 +169,11 @@ CAResult_t CAStopTCP()
 {
     CAIPStopNetworkMonitor(CA_ADAPTER_TCP);
 
-#ifndef SINGLE_THREAD
     if (tcp_sendQueueHandle && tcp_sendQueueHandle->threadMutex)
     {
         CAQueueingThreadStop(tcp_sendQueueHandle);
     }
     CATCPDeinitializeQueueHandles();
-#endif
 
     CATCPStopServer();
 
@@ -200,7 +189,6 @@ CAResult_t CAStopTCP()
 
 CAResult_t CAStartTCPListeningServer()
 {
-#ifndef SINGLE_THREAD
     if (!ocf_server)
     {
         ocf_server = true;    // only needed to run CA tests
@@ -212,7 +200,6 @@ CAResult_t CAStartTCPListeningServer()
         OIC_LOG_V(ERROR, TAG, "Failed to start listening server![%d]", ret);
         return ret;
     }
-#endif
 
     return CA_STATUS_OK;
 }
@@ -250,9 +237,8 @@ CAResult_t CAInitializeTCP(// CARegisterConnectivityCallback registerCallback,
     /* VERIFY_NON_NULL_MSG(registerCallback, TAG, "registerCallback"); */
     /* VERIFY_NON_NULL_MSG(networkPacketCallback, TAG, "networkPacketCallback"); */
     /* VERIFY_NON_NULL_MSG(netCallback, TAG, "netCallback"); */
-#ifndef SINGLE_THREAD
+
     VERIFY_NON_NULL_MSG(handle, TAG, "thread pool handle");
-#endif
 
     // FIXME: call windows init code
 
@@ -262,9 +248,7 @@ CAResult_t CAInitializeTCP(// CARegisterConnectivityCallback registerCallback,
     tcp_errorCallback = CAAdapterErrorHandleCallback;           // errorCallback;
 
     // initialization is now static - CAInitializeTCPGlobals();
-#ifndef SINGLE_THREAD
     tcp_threadpool = handle;
-#endif
 
     CATCPSetConnectionChangedCallback(CATCPConnectionHandler);
     CATCPSetPacketReceiveCallback(CATCPPacketReceivedCB);

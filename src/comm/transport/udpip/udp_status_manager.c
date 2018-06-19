@@ -147,7 +147,7 @@ void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapter
     // we do not need to go through tcp_networkChangeCallbackList, we can just call directly
     // CAAdapterChangedCallback(CA_ADAPTER_IP, status);
     // the handler is OCDefaultAdapterStateChangedHandler(CA_ADAPTER_IP, status);
-#ifndef SINGLE_THREAD
+
     CANetworkCallbackThreadInfo_t *info
 	= (CANetworkCallbackThreadInfo_t *) OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
     if (!info)
@@ -163,16 +163,6 @@ void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapter
 
     CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
 			    sizeof(CANetworkCallbackThreadInfo_t));
-#else
-    if (CA_INTERFACE_UP == status)
-	{
-	    OCDefaultAdapterStateChangedHandler(adapter, true); // @was callback->adapter
-	}
-    else if (CA_INTERFACE_DOWN == status)
-	{
-	    OCDefaultAdapterStateChangedHandler(adapter, false); // @was callback->adapter
-	}
-#endif //SINGLE_THREAD
 
     if (CA_INTERFACE_DOWN == status)
     {

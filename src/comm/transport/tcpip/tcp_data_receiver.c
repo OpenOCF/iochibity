@@ -83,12 +83,6 @@ void CATCPPacketReceivedCB(const CASecureEndpoint_t *sep,
 
     OIC_LOG_V(DEBUG, TAG, "Address: %s, port:%d", sep->endpoint.addr, sep->endpoint.port);
 
-#ifdef SINGLE_THREAD
-    if (tcp_networkPacketCallback)
-    {
-        tcp_networkPacketCallback(sep, data, dataLength);
-    }
-#else
     unsigned char *buffer = (unsigned char*)data;
     size_t bufferLen = dataLength;
 
@@ -135,7 +129,6 @@ void CATCPPacketReceivedCB(const CASecureEndpoint_t *sep,
                                 svritem->totalLen - svritem->len);
         }
     }
-#endif
 }
 
 // static void CAReceiveHandler(void *data)
@@ -255,63 +248,60 @@ CAResult_t CAReceiveMessage(CATCPSessionInfo_t *svritem)
     return res;
 }
 
-CAResult_t CAReadTCPData()
-{
-    OIC_LOG(DEBUG, TAG, "IN");
-#ifdef SINGLE_THREAD
-    CATCPPullData();
-#endif
-    return CA_STATUS_OK;
-}
+/* CAResult_t CAReadTCPData() */
+/* { */
+/*     OIC_LOG(DEBUG, TAG, "IN"); */
+/*     return CA_STATUS_OK; */
+/* } */
 
-#ifdef SINGLE_THREAD
-size_t CAGetTotalLengthFromPacketHeader(const unsigned char *recvBuffer, size_t size)
-{
-    OIC_LOG(DEBUG, TAG, "IN - CAGetTotalLengthFromHeader");
+/* #ifdef SINGLE_THREAD */
+/* size_t CAGetTotalLengthFromPacketHeader(const unsigned char *recvBuffer, size_t size) */
+/* { */
+/*     OIC_LOG(DEBUG, TAG, "IN - CAGetTotalLengthFromHeader"); */
 
-    if (NULL == recvBuffer || !size)
-    {
-        OIC_LOG(ERROR, TAG, "recvBuffer is NULL");
-        return 0;
-    }
+/*     if (NULL == recvBuffer || !size) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "recvBuffer is NULL"); */
+/*         return 0; */
+/*     } */
 
-    coap_transport_t transport = coap_get_tcp_header_type_from_initbyte(
-            ((unsigned char *)recvBuffer)[0] >> 4);
-    size_t optPaylaodLen = coap_get_length_from_header((unsigned char *)recvBuffer,
-                                                        transport);
-    size_t headerLen = coap_get_tcp_header_length((unsigned char *)recvBuffer);
+/*     coap_transport_t transport = coap_get_tcp_header_type_from_initbyte( */
+/*             ((unsigned char *)recvBuffer)[0] >> 4); */
+/*     size_t optPaylaodLen = coap_get_length_from_header((unsigned char *)recvBuffer, */
+/*                                                         transport); */
+/*     size_t headerLen = coap_get_tcp_header_length((unsigned char *)recvBuffer); */
 
-    OIC_LOG_V(DEBUG, TAG, "option/paylaod length [%d]", optPaylaodLen);
-    OIC_LOG_V(DEBUG, TAG, "header length [%d]", headerLen);
-    OIC_LOG_V(DEBUG, TAG, "total data length [%d]", headerLen + optPaylaodLen);
+/*     OIC_LOG_V(DEBUG, TAG, "option/paylaod length [%d]", optPaylaodLen); */
+/*     OIC_LOG_V(DEBUG, TAG, "header length [%d]", headerLen); */
+/*     OIC_LOG_V(DEBUG, TAG, "total data length [%d]", headerLen + optPaylaodLen); */
 
-    OIC_LOG(DEBUG, TAG, "OUT - CAGetTotalLengthFromHeader");
-    return headerLen + optPaylaodLen;
-}
+/*     OIC_LOG(DEBUG, TAG, "OUT - CAGetTotalLengthFromHeader"); */
+/*     return headerLen + optPaylaodLen; */
+/* } */
 
-void CAGetTCPHeaderDetails(unsigned char* recvBuffer, coap_transport_t *transport,
-                           size_t *headerlen)
-{
-    if (NULL == recvBuffer)
-    {
-        OIC_LOG(ERROR, TAG, "recvBuffer is NULL");
-        return;
-    }
+/* void CAGetTCPHeaderDetails(unsigned char* recvBuffer, coap_transport_t *transport, */
+/*                            size_t *headerlen) */
+/* { */
+/*     if (NULL == recvBuffer) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "recvBuffer is NULL"); */
+/*         return; */
+/*     } */
 
-    if (NULL == transport)
-    {
-        OIC_LOG(ERROR, TAG, "transport is NULL");
-        return;
-    }
+/*     if (NULL == transport) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "transport is NULL"); */
+/*         return; */
+/*     } */
 
-    if (NULL == headerlen)
-    {
-        OIC_LOG(ERROR, TAG, "headerlen is NULL");
-        return;
-    }
+/*     if (NULL == headerlen) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "headerlen is NULL"); */
+/*         return; */
+/*     } */
 
-    *transport = coap_get_tcp_header_type_from_initbyte(
-        ((unsigned char *)recvBuffer)[0] >> 4);
-    *headerlen = coap_get_tcp_header_length_for_transport(*transport);
-}
-#endif
+/*     *transport = coap_get_tcp_header_type_from_initbyte( */
+/*         ((unsigned char *)recvBuffer)[0] >> 4); */
+/*     *headerlen = coap_get_tcp_header_length_for_transport(*transport); */
+/* } */
+/* #endif */

@@ -27,10 +27,8 @@
 
 #include "utlist.h"
 
-#ifndef SINGLE_THREAD
 #include <assert.h>
 /* #include "caqueueingthread.h" */
-#endif
 
 #define TAG "OIC_CA_INF_CTR"
 
@@ -81,9 +79,7 @@ static CAErrorHandleCallback g_errorHandleCallback = NULL;
 
 static struct CANetworkCallback_t *g_networkChangeCallbackList = NULL;
 
-#ifndef SINGLE_THREAD
 CAQueueingThread_t g_networkChangeCallbackThread;
-#endif
 
 /**
  * network callback structure is handling
@@ -363,7 +359,7 @@ void CAAdapterChangedCallback(CATransportAdapter_t adapter, CANetworkStatus_t st
 	// @rewrite callback->adapter is a chg event handler
         if (callback && callback->adapter)
         {
-#ifndef SINGLE_THREAD
+/* #ifndef SINGLE_THREAD */
             CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
                                         OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
             if (!info)
@@ -379,16 +375,16 @@ void CAAdapterChangedCallback(CATransportAdapter_t adapter, CANetworkStatus_t st
 
             CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
                                     sizeof(CANetworkCallbackThreadInfo_t));
-#else
-            if (CA_INTERFACE_UP == status)
-            {
-                callback->adapter(adapter, true); /* call chg event handler */
-            }
-            else if (CA_INTERFACE_DOWN == status)
-            {
-                callback->adapter(adapter, false);
-            }
-#endif //SINGLE_THREAD
+/* #else */
+/*             if (CA_INTERFACE_UP == status) */
+/*             { */
+/*                 callback->adapter(adapter, true); /\* call chg event handler *\/ */
+/*             } */
+/*             else if (CA_INTERFACE_DOWN == status) */
+/*             { */
+/*                 callback->adapter(adapter, false); */
+/*             } */
+/* #endif //SINGLE_THREAD */
         }
     }
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
@@ -405,7 +401,7 @@ void CAConnectionChangedCallback(const CAEndpoint_t *endpoint, bool isConnected)
     {
         if (callback && callback->conn)
         {
-#ifndef SINGLE_THREAD
+/* #ifndef SINGLE_THREAD */
             CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
                                         OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
             if (!info)
@@ -428,9 +424,9 @@ void CAConnectionChangedCallback(const CAEndpoint_t *endpoint, bool isConnected)
 
             CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
                                     sizeof(CANetworkCallbackThreadInfo_t));
-#else
-            callback->conn(endpoint, isConnected);
-#endif //SINGLE_THREAD
+/* #else */
+/*             callback->conn(endpoint, isConnected); */
+/* #endif //SINGLE_THREAD */
         }
     }
 }
@@ -637,7 +633,7 @@ void CAStopAdapter(CATransportAdapter_t transportType)
     /* } */
 }
 
-#ifndef SINGLE_THREAD
+/* #ifndef SINGLE_THREAD */
 void CAStopAdapters()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -669,13 +665,13 @@ void CAStopAdapters()
 
     CAQueueingThreadStop(&g_networkChangeCallbackThread);
 }
-#endif // not SINGLE_THREAD
+/* #endif // not SINGLE_THREAD */
 
-CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
+CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    VERIFY_NON_NULL_MSG(info, TAG, "info is null");
-    VERIFY_NON_NULL_MSG(size, TAG, "size is null");
+    VERIFY_NON_NULL_MSG(ep_list_ptr, TAG, "ep_list_ptr is null");
+    VERIFY_NON_NULL_MSG(ep_count_ptr, TAG, "ep_count_ptr is null");
 
     OIC_LOG_V(DEBUG, TAG, "%s number of adapters: %d", __func__, g_numberOfAdapters);
 
@@ -685,6 +681,7 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
         OIC_LOG(ERROR, TAG, "Out of memory!");
         return CA_MEMORY_ALLOC_FAILED;
     }
+
     size_t *tempSize = (size_t *)OICCalloc(g_numberOfAdapters, sizeof(*tempSize));
     if (!tempSize)
     {
@@ -913,10 +910,10 @@ CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, u
 
     if (sentDataLen != length) {
 	OIC_LOG(ERROR, TAG, "multicast failed! Error will be reported from adapter");
-#ifdef SINGLE_THREAD
-	//in case of single thread, no error handler. Report error immediately
-	return CA_SEND_FAILED;
-#endif
+/* #ifdef SINGLE_THREAD */
+/* 	//in case of single thread, no error handler. Report error immediately */
+/* 	return CA_SEND_FAILED; */
+/* #endif */
     }
 
 /*     size_t index = 0; */

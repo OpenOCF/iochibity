@@ -281,11 +281,7 @@ int32_t CASendTCPUnicastData(const CAEndpoint_t *endpoint,
         return -1;
     }
 
-#ifndef SINGLE_THREAD
     return CAQueueTCPData(false, endpoint, data, dataLength, false);
-#else
-    return (int32_t)CATCPSendData(endpoint, data, dataLength);
-#endif
 }
 
 int32_t CASendTCPMulticastData(const CAEndpoint_t *endpoint,

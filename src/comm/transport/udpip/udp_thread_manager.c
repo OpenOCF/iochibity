@@ -8,8 +8,6 @@
 
 #define TAG "UDPTHREADMGR"
 
-#ifndef SINGLE_THREAD
-
 /**
  * Queue handle for Send Data.
  */
@@ -102,4 +100,3 @@ CAResult_t udp_start_send_msg_queue()
     return CA_STATUS_OK;
 }
 
-#endif
