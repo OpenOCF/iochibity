@@ -1419,9 +1419,8 @@ exit:
     OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
 }
 
-void CAHandleRequestResponseCallbacks()
+void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
 {
-    /* OIC_LOG_V(DEBUG, TAG, "%s >>>>>>>>>>>>>>>> ENTRY >>>>>>>>>>>>>>>>", __func__); */
 #ifdef SINGLE_HANDLE
     // parse the data and call the callbacks.
     // #1 parse the data

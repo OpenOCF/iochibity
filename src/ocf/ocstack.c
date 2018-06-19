@@ -3729,7 +3729,9 @@ OCStackResult OC_CALL OCProcess(void) EXPORT
 #ifdef WITH_PRESENCE
     OCProcessPresence();
 #endif
-    CAHandleRequestResponse();
+
+    if (g_isInitialized)
+	oocf_handle_inbound_messages(); // @was CAHandleRequestResponse
 
 #ifdef ROUTING_GATEWAY
     RMProcess();

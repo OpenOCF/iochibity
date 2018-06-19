@@ -49,7 +49,7 @@ bool ocf_server; /**< server mode */
 
 #define TAG "OIC_CA_CONN_MGR"
 
-static bool g_isInitialized = false;
+bool g_isInitialized = false;
 
 /* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
 // Taking callback all the way through adapters not the right approach, hence calling here.
@@ -514,18 +514,18 @@ CAResult_t CAUnSelectNetwork(CATransportAdapter_t nonInterestedNetwork)
     return res;
 }
 
-CAResult_t CAHandleRequestResponse()
-{
-    if (!g_isInitialized)
-    {
-        OIC_LOG(ERROR, TAG, "not initialized");
-        return CA_STATUS_NOT_INITIALIZED;
-    }
+/* CAResult_t CAHandleRequestResponse() */
+/* { */
+/*     if (!g_isInitialized) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "not initialized"); */
+/*         return CA_STATUS_NOT_INITIALIZED; */
+/*     } */
 
-    CAHandleRequestResponseCallbacks();
+/*     oocf_handle_inbound_messages(); // @was CAHandleRequestResponseCallbacks */
 
-    return CA_STATUS_OK;
-}
+/*     return CA_STATUS_OK; */
+/* } */
 
 #if INTERFACE
 #include <inttypes.h>
