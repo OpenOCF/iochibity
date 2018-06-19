@@ -574,4 +574,20 @@ void OCLogStr(int level, const char * tag, int line_nbr, const char * header, co
 #define OIC_LOG_THREADS_V(level, tag, ...)
 #endif
 
+#ifdef DEBUG_TLS
+#define OIC_LOG_TLS OIC_LOG
+#define OIC_LOG_TLS_V OIC_LOG_V
+#else
+#define OIC_LOG_TLS(level, tag, logStr)
+#define OIC_LOG_TLS_V(level, tag, ...)
+#endif
+
+#ifdef DEBUG_MSGS
+#define OIC_LOG_MSGS OIC_LOG
+#define OIC_LOG_MSGS_V OIC_LOG_V
+#else
+#define OIC_LOG_MSGS(level, tag, logStr)
+#define OIC_LOG_MSGS_V(level, tag, ...)
+#endif
+
 #endif	/* EXPORT_INTERFACE */
