@@ -27,7 +27,7 @@ build:android-arm8 --cpu=arm64-v8a
 build:android-arm8 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 build:android-arm8 --crosstool_top=@androidndk//:default_crosstool
 build:android-arm8 --define android=true
-build:android-arm8 --define android_arm64=true
+build:android-arm8 --define android_arm8=true
 
 # build:android-arm7 --fat_apk_cpu=armeabi-v7a
 # build:android-arm7 --android_cpu=armeabi-v7a
