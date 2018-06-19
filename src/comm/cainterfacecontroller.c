@@ -67,7 +67,14 @@ typedef void (*CAAdapterStateChangedCB)(CATransportAdapter_t adapter, bool enabl
 // GAR: array of controller structs containing method pointers
 static CAConnectivityHandler_t *g_adapterHandler = NULL;
 
-static size_t g_numberOfAdapters = 1;
+static size_t g_numberOfAdapters =
+#ifdef IP_ADAPTER
+1
+#endif
+#ifdef TCP_ADAPTER
++ 1
+#endif
+    ;
 
 // @rewrite g_networkPacketReceivedCallback removed
 /* static CANetworkPacketReceivedCallback g_networkPacketReceivedCallback = NULL; */
