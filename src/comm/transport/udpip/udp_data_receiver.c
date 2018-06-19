@@ -119,14 +119,14 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
 
     CAConvertAddrToName(&srcAddr, namelen, sep.endpoint.addr, &sep.endpoint.port);
 
-    if (flags & CA_SECURE)
-    {
+    if (flags & CA_SECURE) {
 #ifdef __WITH_DTLS__
-#ifdef TB_LOG
+#ifdef DEBUG_TLS
         int decryptResult =
 #endif
+	    /*  */
         CAdecryptSsl(&sep, (uint8_t *)recvBuffer, recvLen);
-        OIC_LOG_V(DEBUG, TAG, "CAdecryptSsl returns [%d]", decryptResult);
+        OIC_LOG_TLS_V(DEBUG, TAG, "CAdecryptSsl returns [%d]", decryptResult);
 #else
         OIC_LOG(ERROR, TAG, "Encrypted message but DTLS disabled");
 #endif // __WITH_DTLS__

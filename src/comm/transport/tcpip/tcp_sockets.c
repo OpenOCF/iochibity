@@ -473,6 +473,8 @@ CAResult_t CAGetTCPInterfaceInformation(CAEndpoint_t **info, size_t *size)
         return CA_MEMORY_ALLOC_FAILED;
     }
 
+    OIC_LOG_V(INFO, TAG, "%s constructing %d eps for %d interfaces", __func__, totalEndpoints, interfaces);
+
     for (size_t i = 0, j = 0; i < u_arraylist_length(iflist); i++)
     {
         CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
@@ -480,6 +482,7 @@ CAResult_t CAGetTCPInterfaceInformation(CAEndpoint_t **info, size_t *size)
         {
             continue;
         }
+	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d, index %d", __func__, i, ifitem->index);
 
         if ((ifitem->family == AF_INET6 && !tcp_is_ipv6_enabled) ||
             (ifitem->family == AF_INET && !tcp_is_ipv4_enabled))
@@ -508,6 +511,7 @@ CAResult_t CAGetTCPInterfaceInformation(CAEndpoint_t **info, size_t *size)
 
 #ifdef __WITH_TLS__
         j++;
+	OIC_LOG_V(DEBUG, TAG, "%s creating secure ep %d, index %d", __func__, j, ifitem->index);
 
         ep[j].adapter = CA_ADAPTER_TCP;
         ep[j].ifindex = ifitem->index;
@@ -532,5 +536,6 @@ CAResult_t CAGetTCPInterfaceInformation(CAEndpoint_t **info, size_t *size)
 
     u_arraylist_destroy(iflist);
 
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }

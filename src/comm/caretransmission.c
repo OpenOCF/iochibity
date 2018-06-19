@@ -500,7 +500,7 @@ CAResult_t CARetransmissionReceivedData(CARetransmission_t *context,
     // #0. check support transport type
     if (!(context->config.supportType & endpoint->adapter))
     {
-        OIC_LOG_V(DEBUG, TAG, "not supported transport type=%d", endpoint->adapter);
+        OIC_LOG_V(DEBUG, TAG, "Retransmission not supported for transport type=%d", endpoint->adapter);
         return CA_STATUS_OK;
     }
 

@@ -418,6 +418,8 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
         return CA_MEMORY_ALLOC_FAILED;
     }
 
+    OIC_LOG_V(INFO, TAG, "%s constructing %d eps for %d interfaces", __func__, totalEndpoints, iface_count);
+
     /* create one CAEndpoint_t per (IF, family) */
     for (size_t i = 0,		/* index into iflist to control iteration */
 	     j = 0;		/* index into eps array */
