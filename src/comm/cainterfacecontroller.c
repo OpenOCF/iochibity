@@ -611,7 +611,7 @@ void CAStopAdapter(CATransportAdapter_t transportType)
 
     if (transportType == CA_ADAPTER_TCP) {
 #ifdef TCP_ADAPTER
-	CAStopTCP();
+	CAStopTCP();		/* GAR: why not CATerminateTCP? */
 	OIC_LOG_V(INFO, TAG, "%s (TCP) EXIT", __func__);
 	return;
 #endif
