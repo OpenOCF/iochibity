@@ -61,8 +61,8 @@ typedef void (*CAAdapterStateChangedCB)(CATransportAdapter_t adapter, bool enabl
 #define STATEFUL_PROTOCOL_SUPPORTED ((TCP_ADAPTER) || (EDR_ADAPTER) || (LE_ADAPTER))
 #endif	/* INTERFACE */
 
-#define CA_MEMORY_ALLOC_CHECK(arg) {if (arg == NULL) \
-    {OIC_LOG(ERROR, TAG, "memory error");goto memory_error_exit;} }
+/* #define CA_MEMORY_ALLOC_CHECK(arg) {if (arg == NULL) \ */
+/*     {OIC_LOG(ERROR, TAG, "memory error");goto memory_error_exit;} } */
 
 // GAR: array of controller structs containing method pointers
 static CAConnectivityHandler_t *g_adapterHandler = NULL;
@@ -682,20 +682,20 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
 
     OIC_LOG_V(DEBUG, TAG, "%s number of adapters: %d", __func__, g_numberOfAdapters);
 
-    CAEndpoint_t **tempInfo = (CAEndpoint_t **) OICCalloc(g_numberOfAdapters, sizeof(*tempInfo));
-    if (!tempInfo)
-    {
-        OIC_LOG(ERROR, TAG, "Out of memory!");
-        return CA_MEMORY_ALLOC_FAILED;
-    }
+    /* CAEndpoint_t **tempInfo = (CAEndpoint_t **) OICCalloc(g_numberOfAdapters, sizeof(*tempInfo)); */
+    /* if (!tempInfo) */
+    /* { */
+    /*     OIC_LOG(ERROR, TAG, "Out of memory!"); */
+    /*     return CA_MEMORY_ALLOC_FAILED; */
+    /* } */
 
-    size_t *tempSize = (size_t *)OICCalloc(g_numberOfAdapters, sizeof(*tempSize));
-    if (!tempSize)
-    {
-        OIC_LOG(ERROR, TAG, "Out of memory!");
-        OICFree(tempInfo);
-        return CA_MEMORY_ALLOC_FAILED;
-    }
+    /* size_t *tempSize = (size_t *)OICCalloc(g_numberOfAdapters, sizeof(*tempSize)); */
+    /* if (!tempSize) */
+    /* { */
+    /*     OIC_LOG(ERROR, TAG, "Out of memory!"); */
+    /*     OICFree(tempInfo); */
+    /*     return CA_MEMORY_ALLOC_FAILED; */
+    /* } */
 
     CAResult_t res = CA_STATUS_FAILED;
     size_t ep_count = 0;
@@ -710,7 +710,7 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
     /*         // #2. total size */
     /*         if (res == CA_STATUS_OK) */
     /*         { */
-    /*             resSize += tempSize[index]; */
+    /*             ep_count += tempSize[index]; */
     /*         } */
 
     /*         OIC_LOG_V(DEBUG, */
@@ -721,35 +721,60 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
     /*                   res); */
     /*     } */
     /* } */
-#ifdef IP_ADAPTER
-    size_t sz;
-    udp_res = udp_get_local_endpoints(&tempInfo[0], &sz);
+
+    // static CAEndpoint_t null_ep;	/* static initialization */
+#ifdef ENABLE_UDP
+    size_t udp_ep_count;
+    CAEndpoint_t *udp_ep; /* array of eps */
+    //udp_ep = null_ep;		/* reinitialize */
+    //pudp_ep = NULL;
+    res = udp_get_local_endpoints(&udp_ep, &udp_ep_count);
+    if (res == CA_STATUS_OK) { ep_count += udp_ep_count; }
+    OIC_LOG_V(INFO, TAG, "%s got %d local udp eps", __func__, udp_ep_count);
 #endif
-    if (udp_res == CA_STATUS_OK) {
-	resSize += sz;
+
+#ifdef ENABLE_TCP
+    size_t tcp_ep_count;
+    CAEndpoint_t *tcp_ep; /* array */
+    res = CA_STATUS_FAILED;
+    res = tcp_get_local_endpoints(&tcp_ep, &tcp_ep_count); // @was CAGetTCPInterfaceInformation
+    if (res == CA_STATUS_OK) {
+	ep_count += tcp_ep_count;
+	OIC_LOG_V(INFO, TAG, "%s got %d local udp eps", __func__, tcp_ep_count);
+	OIC_LOG_V(INFO, TAG, "%s 1st addr: %s", __func__, tcp_ep[0].addr);
+	OIC_LOG_V(INFO, TAG, "%s 1st port: %d", __func__, tcp_ep[0].port);
+	OIC_LOG_V(INFO, TAG, "%s 1st ifindex: %d", __func__, tcp_ep[0].ifindex);
+    } else {
+	OIC_LOG_V(ERROR, TAG, "%s tcp_get_local_endpoints error %d", __func__, res);
     }
+#endif
 
     /* OIC_LOG_V(DEBUG, TAG, */
     /* 	      "%" PRIuPTR " adapter network info size is %" PRIuPTR " res:%u", */
     /* 	      0, sz, udp_res); */
 
-    OIC_LOG_V(DEBUG, TAG, "network info total size is %" PRIuPTR "!", resSize);
+    OIC_LOG_V(DEBUG, TAG, "network ip count total is %" PRIuPTR "!", ep_count);
 
-    if (resSize == 0)
-    {
-        OICFree(tempInfo);
-        OICFree(tempSize);
-        return udp_res;
-    }
+    /* if (ep_count == 0) */
+    /* { */
+    /*     OICFree(tempInfo); */
+    /*     OICFree(tempSize); */
+    /*     return res; */
+    /* } */
 
     // #3. add data into result
     // memory allocation
-    CAEndpoint_t *resInfo = (CAEndpoint_t *) OICCalloc(resSize, sizeof (*resInfo));
-    CA_MEMORY_ALLOC_CHECK(resInfo);
+    CAEndpoint_t *ep_list = (CAEndpoint_t *) OICCalloc(ep_count, sizeof (*ep_list));
+    /* CA_MEMORY_ALLOC_CHECK(ep_list); */
+    if (ep_list == NULL)
+    {
+        OIC_LOG(ERROR, TAG, "ep_list calloc failed!");
+        return CA_MEMORY_ALLOC_FAILED;
+    }
 
     // #4. save data
-    *info = resInfo;
-    *size = resSize;
+    *ep_list_ptr = ep_list;
+    *ep_count_ptr = ep_count;
 
     /* for (size_t index = 0; index < g_numberOfAdapters; index++) */
     /* { */
@@ -759,44 +784,52 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
     /*         continue; */
     /*     } */
 
-    /*     memcpy(resInfo, */
+    /*     memcpy(ep_list, */
     /*            tempInfo[index], */
-    /*            sizeof(*resInfo) * tempSize[index]); */
+    /*            sizeof(*ep_list) * tempSize[index]); */
 
-    /*     resInfo += tempSize[index]; */
+    /*     ep_list += tempSize[index]; */
 
     /*     // free adapter data */
     /*     OICFree(tempInfo[index]); */
     /*     tempInfo[index] = NULL; */
     /* } */
-        memcpy(resInfo,
-               tempInfo[0],
-               sizeof(*resInfo) * sz); // tempSize[index]);
 
-        resInfo += sz; //tempSize[index];
+    /* copy pointer array */
+#if defined(ENABLE_UDP)
+        memcpy(ep_list,
+               udp_ep,  // tempInfo[0],
+               sizeof(*ep_list) * udp_ep_count); // tempSize[index]);
+        ep_list += udp_ep_count; //tempSize[index];
+#endif
+#if defined(ENABLE_TCP)
+        memcpy(ep_list,
+               tcp_ep,  // tempInfo[0],
+               sizeof(*ep_list) * tcp_ep_count);
+        ep_list += udp_ep_count;
+#endif
+    /*     // free adapter data */
+    /*     OICFree(tempInfo[0]); */
+    /*     tempInfo[0] = NULL; */
 
-        // free adapter data
-        OICFree(tempInfo[0]);
-        tempInfo[0] = NULL;
-
-    OICFree(tempInfo);
-    OICFree(tempSize);
+    /* OICFree(tempInfo); */
+    /* OICFree(tempSize); */
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 
-    // memory error label.
-memory_error_exit:
+/*     // memory error label. */
+/* memory_error_exit: */
 
-    for (size_t index = 0; index < g_numberOfAdapters; index++)
-    {
-        OICFree(tempInfo[index]);
-        tempInfo[index] = NULL;
-    }
-    OICFree(tempInfo);
-    OICFree(tempSize);
+/*     for (size_t index = 0; index < g_numberOfAdapters; index++) */
+/*     { */
+/*         OICFree(tempInfo[index]); */
+/*         tempInfo[index] = NULL; */
+/*     } */
+/*     OICFree(tempInfo); */
+/*     OICFree(tempSize); */
 
-    return CA_MEMORY_ALLOC_FAILED;
+/*     return CA_MEMORY_ALLOC_FAILED; */
 }
 
 /* GAR
@@ -813,20 +846,24 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
     // @rewrite
     int32_t sentDataLen = 0;
 
+    CATransportAdapter_t requestedAdapter = endpoint->adapter ? endpoint->adapter : CA_ALL_ADAPTERS;
+
     OIC_LOG(DEBUG, TAG, "unicast message to adapter");
-#ifdef IP_ADAPTER
-    sentDataLen = CASendIPUnicastData(endpoint, data, length, dataType);
+#ifdef ENABLE_UDP
+    if (requestedAdapter == CA_ADAPTER_IP)
+	sentDataLen = CASendIPUnicastData(endpoint, data, length, dataType);
 #endif
-#ifdef TCP_ADAPTER
-    sentDataLen = CASendTCPUnicastData(endpoint, data, length, dataType);
+#ifdef ENABLE_TCP
+    if (requestedAdapter == CA_ADAPTER_TCP)
+	sentDataLen = CASendTCPUnicastData(endpoint, data, length, dataType);
 #endif
 
     if ((0 > sentDataLen) || ((uint32_t)sentDataLen != length)) {
 	OIC_LOG(ERROR, TAG, "Error sending data. The error will be reported in adapter.");
-#ifdef SINGLE_THREAD
-	//in case of single thread, no error handler. Report error immediately
-	return CA_SEND_FAILED;
-#endif
+/* #ifdef SINGLE_THREAD */
+/* 	//in case of single thread, no error handler. Report error immediately */
+/* 	return CA_SEND_FAILED; */
+/* #endif */
     }
 
 /*     size_t index = 0; */
