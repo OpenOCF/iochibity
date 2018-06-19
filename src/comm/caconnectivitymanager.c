@@ -51,12 +51,12 @@ bool ocf_server; /**< server mode */
 
 static bool g_isInitialized = false;
 
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
 // Taking callback all the way through adapters not the right approach, hence calling here.
-extern void CAsetPkixInfoCallback(CAgetPkixInfoHandler infCallback);
-extern void CAsetPskCredentialsCallback(CAgetPskCredentialsHandler credCallback);
-extern void CAsetCredentialTypesCallback(CAgetCredentialTypesHandler credCallback);
-#endif // __WITH_DTLS__ or __WITH_TLS__
+/* extern void CAsetPkixInfoCallback(CAgetPkixInfoHandler infCallback); */
+/* extern void CAsetPskCredentialsCallback(CAgetPskCredentialsHandler credCallback); */
+/* extern void CAsetCredentialTypesCallback(CAgetCredentialTypesHandler credCallback); */
+/* #endif // __WITH_DTLS__ or __WITH_TLS__ */
 
 
 CAResult_t CAInitialize(CATransportAdapter_t transportType)
