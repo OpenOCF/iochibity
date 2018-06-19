@@ -50,8 +50,8 @@ ANDROID_ARM8_CONFIG="".join([
     " --prefix=/usr",
     " --mandir=\"/usr/share/man\"",
     " --disable-examples;);",
-    " cp external/libcoap/coap_config.h $(@D);",
-    " cp external/libcoap/include/coap/coap.h $(@D);",])
+    " cp -v external/libcoap/coap_config.h $(@D);",
+    " cp -v external/libcoap/include/coap/coap.h $(@D);",])
 
 ANDROID_X86_64_CONFIG="".join([
     "(cd external/libcoap;",
@@ -124,31 +124,32 @@ CONFIG_SRCS = ["autogen.sh",
                "m4/ax_check_link_flag.m4",
                "libcoap-1.pc.in"]
 
-genrule(
-    name = "config",
-    srcs = CONFIG_SRCS,
-    outs = ["coap_config.h", "coap.h"],
-    cmd  = select({"@//config:android_arm7": ANDROID_ARM7_CONFIG,
-                   "@//config:android_arm8": ANDROID_ARM8_CONFIG,
-                   "@//config:android_x86_64": ANDROID_X86_64_CONFIG,
-                   "@//config:rpi_arm8"     : RPI_ARM8_CONFIG,
-                   "//conditions:default"   : LOCAL_CONFIG})
-)
+genrule(name = "config",
+        srcs = CONFIG_SRCS,
+        outs = ["coap_config.h", "coap.h"],
+        cmd  = select({"@//config:android_arm7": ANDROID_ARM7_CONFIG,
+                       "@//config:android_arm8": ANDROID_ARM8_CONFIG,
+                       "@//config:android_x86_64": ANDROID_X86_64_CONFIG,
+                       "@//config:darwin"     : LOCAL_CONFIG,
+                       "@//config:rpi_arm8"     : RPI_ARM8_CONFIG,
+                       "//conditions:default"   : "BORKED",}))
 
 cc_library(
     name = "libcoap",
     copts = ["-std=gnu99", "-fPIC",
              '-Wall', '-ffunction-sections',
              '-fdata-sections', '-fno-exceptions',
+             "-Iexternal/libcoap",
+             "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
              "-DWITH_POSIX",
              "-D_GNU_SOURCE",
              "-DWITH_UPSTREAM_LIBCOAP"]
     + select({"@//config:enable_tcp": ["-DWITH_TCP"],
               "//conditions:default": []}),
-
+    #data = [":config"],
     srcs = glob(["src/**/*.c"],
-                exclude=["src/**/coap_io_lwip.c"]),
-    hdrs = glob(["include/**/*.h"]) + [":config"],
+                exclude=["src/**/coap_io_lwip.c"])
+    + glob(["include/**/*.h"]) + [":coap_config.h", ":coap.h"],
     visibility = ["//visibility:public"]
 )
