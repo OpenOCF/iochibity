@@ -138,13 +138,6 @@ dnl                  src/comm/bld/arduino/Makefile
 dnl                  src/comm/bld/tizen/Makefile
 dnl                  tools/json2cbor/Makefile])
 
-dnl AC_CONFIG_SUBDIRS([third_party/coap])
-
-                   dnl third_party/tinydtls])
-dnl extlibs/tinydtls
-dnl                    resource/csdk/connectivity/lib/libcoap-4.1.1
-
-
 dnl TODO: for consistency with autotools, change __WITH_DTLS__ to ENABLE_DTLS, etc.
 
 dnl IPv4 enabled by default
