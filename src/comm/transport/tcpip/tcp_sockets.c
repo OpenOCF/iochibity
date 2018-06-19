@@ -424,8 +424,9 @@ void tcp_close_accept_sockets()
     CLOSE_TCP_SOCKET(ipv6s);
 }
 
-CAResult_t CAGetTCPInterfaceInformation(CAEndpoint_t **info, size_t *size)
+CAResult_t tcp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CAGetTCPInterfaceInformation
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(info, TAG, "info is NULL");
     VERIFY_NON_NULL_MSG(size, TAG, "size is NULL");
 
