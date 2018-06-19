@@ -76,6 +76,9 @@
  */
 #define TAG "OIC_CA_IP_SERVER"
 
+WSAEVENT udp_addressChangeEvent;/**< Event used to signal address changes */
+WSAEVENT udp_shutdownEvent;     /**< Event used to signal threads to stop */
+
 #define USE_IP_MREQN
 #if defined(_WIN32)
 #undef USE_IP_MREQN
@@ -177,25 +180,25 @@ void CAFindReadyMessage()
     PUSH_IP_SOCKET(m4,  eventArray, socketArray, arraySize);
     PUSH_IP_SOCKET(m4s, eventArray, socketArray, arraySize);
 
-    if (WSA_INVALID_EVENT != caglobals.ip.shutdownEvent)
+    if (WSA_INVALID_EVENT != udp_shutdownEvent)
     {
         INSERT_SOCKET(OC_INVALID_SOCKET, socketArray, arraySize);
-        PUSH_HANDLE(caglobals.ip.shutdownEvent, eventArray, arraySize);
+        PUSH_HANDLE(udp_shutdownEvent, eventArray, arraySize);
     }
 
-    if (WSA_INVALID_EVENT != caglobals.ip.addressChangeEvent)
+    if (WSA_INVALID_EVENT != udp_addressChangeEvent)
     {
         INSERT_SOCKET(OC_INVALID_SOCKET, socketArray, arraySize);
-        PUSH_HANDLE(caglobals.ip.addressChangeEvent, eventArray, arraySize);
+        PUSH_HANDLE(udp_addressChangeEvent, eventArray, arraySize);
     }
 
     // Should not have overflowed buffer
     assert(arraySize <= (_countof(socketArray)));
 
     // Timeout is unnecessary on Windows
-    assert(-1 == caglobals.ip.selectTimeout);
+    assert(-1 == udp_selectTimeout);
 
-    while (!caglobals.ip.terminate)
+    while (!udp_terminate)
     {
         DWORD ret = WSAWaitForMultipleEvents(arraySize, eventArray, FALSE, WSA_INFINITE, FALSE);
         assert(ret >= WSA_WAIT_EVENT_0);
@@ -222,8 +225,8 @@ void CAFindReadyMessage()
                     }
 
                     // Handle address changes if addressChangeEvent is triggered.
-                    if ((caglobals.ip.addressChangeEvent != WSA_INVALID_EVENT) &&
-                        (caglobals.ip.addressChangeEvent == eventArray[eventIndex]))
+                    if ((udp_addressChangeEvent != WSA_INVALID_EVENT) &&
+                        (udp_addressChangeEvent == eventArray[eventIndex]))
                     {
                         u_arraylist_t *iflist = CAFindInterfaceChange();
                         if (iflist)
@@ -243,8 +246,8 @@ void CAFindReadyMessage()
                     }
 
                     // Break out if shutdownEvent is triggered.
-                    if ((caglobals.ip.shutdownEvent != WSA_INVALID_EVENT) &&
-                        (caglobals.ip.shutdownEvent == eventArray[eventIndex]))
+                    if ((udp_shutdownEvent != WSA_INVALID_EVENT) &&
+                        (udp_shutdownEvent == eventArray[eventIndex]))
                     {
                         break;
                     }
@@ -262,7 +265,7 @@ void CAFindReadyMessage()
     for (size_t i = 0; i < arraySize; i++)
     {
         HANDLE h = eventArray[i];
-        if (h != caglobals.ip.addressChangeEvent)
+        if (h != udp_addressChangeEvent)
         {
             BOOL closed = WSACloseEvent(h);
             assert(closed);
@@ -273,9 +276,9 @@ void CAFindReadyMessage()
         }
     }
 
-    if (caglobals.ip.terminate)
+    if (udp_terminate)
     {
-        caglobals.ip.shutdownEvent = WSA_INVALID_EVENT;
+        udp_shutdownEvent = WSA_INVALID_EVENT;
     }
 }
 
@@ -284,7 +287,7 @@ LOCAL void CAEventReturned(CASocketFd_t socket)
     CASocketFd_t fd = OC_INVALID_SOCKET;
     CATransportFlags_t flags = CA_DEFAULT_FLAGS;
 
-    while (!caglobals.ip.terminate)
+    while (!udp_terminate)
     {
         IS_MATCHING_IP_SOCKET(u6,  socket, CA_IPV6)
         else IS_MATCHING_IP_SOCKET(u6s, socket, CA_IPV6 | CA_SECURE)
@@ -306,10 +309,10 @@ LOCAL void CAEventReturned(CASocketFd_t socket)
 
 void CADeInitializeMonitorGlobals()
 {
-    if (caglobals.ip.addressChangeEvent != WSA_INVALID_EVENT)
+    if (udp_addressChangeEvent != WSA_INVALID_EVENT)
 	{
-	    OC_VERIFY(WSACloseEvent(caglobals.ip.addressChangeEvent));
-	    caglobals.ip.addressChangeEvent = WSA_INVALID_EVENT;
+	    OC_VERIFY(WSACloseEvent(udp_addressChangeEvent));
+	    udp_addressChangeEvent = WSA_INVALID_EVENT;
 	}
 }
 
@@ -439,8 +442,8 @@ void CARegisterForAddressChanges()
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
 /* #ifdef _WIN32 */
-    caglobals.ip.addressChangeEvent = WSACreateEvent();
-    if (WSA_INVALID_EVENT == caglobals.ip.addressChangeEvent)
+    udp_addressChangeEvent = WSACreateEvent();
+    if (WSA_INVALID_EVENT == udp_addressChangeEvent)
     {
         OIC_LOG(ERROR, TAG, "WSACreateEvent failed");
     }
@@ -450,41 +453,41 @@ void CARegisterForAddressChanges()
 void CAInitializeFastShutdownMechanism()
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
-    caglobals.ip.selectTimeout = -1; // don't poll for shutdown
+    udp_selectTimeout = -1; // don't poll for shutdown
     int ret = -1;
-    caglobals.ip.shutdownEvent = WSACreateEvent();
-    if (WSA_INVALID_EVENT != caglobals.ip.shutdownEvent)
+    udp_shutdownEvent = WSACreateEvent();
+    if (WSA_INVALID_EVENT != udp_shutdownEvent)
     {
         ret = 0;
     }
     if (-1 == ret)
     {
         OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR);
-        caglobals.ip.selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
+        udp_selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
     }
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 
 void CAIPStopServer()
 {
-    caglobals.ip.terminate = true;
+    udp_is_terminating = true;
 
     // receive thread will stop immediately.
-    if (!WSASetEvent(caglobals.ip.shutdownEvent))
+    if (!WSASetEvent(udp_shutdownEvent))
     {
         OIC_LOG_V(DEBUG, TAG, "set shutdown event failed: %d", WSAGetLastError());
     }
 
-    if (!caglobals.ip.started)
+    if (!udp_started)
     { // Close fd's since receive handler was not started
         CACloseFDs();
     }
-    caglobals.ip.started = false;
+    udp_started = false;
 }
 
 void CAWakeUpForChange()
 {
-    if (!WSASetEvent(caglobals.ip.shutdownEvent))
+    if (!WSASetEvent(udp_shutdownEvent))
     {
         OIC_LOG_V(DEBUG, TAG, "set shutdown event failed: %d", WSAGetLastError());
     }
@@ -500,8 +503,8 @@ bool PORTABLE_check_setsockopt_m4s_err(mreq, ret)
             // If the interface has gone down and come back up, the socket might be in
             // an inconsistent state where it still thinks we're joined when the interface
             // doesn't think we're joined.  So try to leave and rejoin the group just in case.
-            setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, OPTVAL_T(&mreq), sizeof(mreq));
-            ret = setsockopt(caglobals.ip.m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof(mreq));
+            setsockopt(udp_m4s.fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, OPTVAL_T(&mreq), sizeof(mreq));
+            ret = setsockopt(udp_m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof(mreq));
         }
     return (OC_SOCKET_ERROR == ret);
 }

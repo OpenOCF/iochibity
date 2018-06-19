@@ -441,11 +441,11 @@ static OCStackResult GetSecurePortInfo(OCDevAddr *endpoint, uint16_t *port)
     {
         if (endpoint->flags & OC_IP_USE_V6)
         {
-            p = caglobals.ip.u6s.port;
+            p = udp_u6s.port;
         }
         else if (endpoint->flags & OC_IP_USE_V4)
         {
-            p = caglobals.ip.u4s.port;
+            p = udp_u4s.port;
         }
     }
 
@@ -468,11 +468,11 @@ OCStackResult GetTCPPortInfo(OCDevAddr *endpoint, uint16_t *port, bool secured)
     {
         if (endpoint->flags & OC_IP_USE_V4)
         {
-            p = secured ? caglobals.tcp.ipv4s.port : caglobals.tcp.ipv4.port;
+            p = secured ? tcp_socket_ipv4s.port : tcp_socket_ipv4.port;
         }
         else if (endpoint->flags & OC_IP_USE_V6)
         {
-            p = secured ? caglobals.tcp.ipv6s.port : caglobals.tcp.ipv6.port;
+            p = secured ? tcp_socket_ipv6s.port : tcp_socket_ipv6.port;
         }
     }
 
