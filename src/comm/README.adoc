@@ -223,6 +223,38 @@ g_responseHandler called ONLY by CAHandleRequestResponseCallbacks
 We can eliminate gResponseHandler, SRMResponseHandler, and g_responseHandler. and CARegisterHandler
 
 
+== network change handling
+
+=== initialization:
+
+OCInitializeInternal
+=> CARegisterNetworkMonitorHandler(OCDefaultAdapterStateChangedHandler,
+                                        OCDefaultConnectionStateChangedHandler)
+      does nothing but forward call to:
+==> CASetNetworkMonitorCallbacks
+        does nothing but forward call to:
+===> AddNetworkStateChangedCallback
+=====> adds cbs to g_networkChangeCallbackList
+
+AddNetworkStateChangedCallback only called once, so we do not need a list of cbs
+
+runtime:
+
+For stateful protocols (TCP):  CAConnectionChangedCallback
+
+udp_if_change_handler_linux
+=> tcp_status_change_handler
+==> CAAdapterChangedCallback (all transports?)
+===> iterates over g_networkChangeCallbackList (which contains OCDefaultConnectionStateChangedHandler, etc)
+====> creates work pkg using OCDefaultAdapterStateChangedHandler and adds to nw chg msg queue
+
+tcp_status_change_handler
+
+udp_if_change_handler_darwin - should be ip_if_change_handler (transport independent)?
+
+tcp_networkChangeCallback set to CAAdapterChangedCallback in CAInitializeTCP
+
+
 == error handling
 
 g_errorHandler: inbound (camessagehanler.c:  static CAErrorCallback g_errorHandler = NULL;)
