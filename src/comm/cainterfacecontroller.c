@@ -223,15 +223,15 @@ void CARegisterCallback(CAConnectivityHandler_t handler)
  *     CAResult_t
  */
 // only called once?
-CAResult_t AddNetworkStateChangedCallback(void (*adapterCB)(CATransportAdapter_t adapter, bool enabled),
+CAResult_t AddNetworkStateChangedCallback(void (*nwChgCB)(CATransportAdapter_t adapter, bool enabled),
 					  // CAAdapterStateChangedCB adapterCB,
 					  CAConnectionStateChangedCB connCB)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
-    if (!adapterCB)
+    if (!nwChgCB)
     {
-        OIC_LOG(ERROR, TAG, "adapterCB is null");
+        OIC_LOG(ERROR, TAG, "nwChgCB is null");
         return CA_STATUS_INVALID_PARAM;
     }
 
@@ -246,7 +246,7 @@ CAResult_t AddNetworkStateChangedCallback(void (*adapterCB)(CATransportAdapter_t
     CANetworkCallback_t *callback = NULL;
     LL_FOREACH(g_networkChangeCallbackList, callback)
     {
-        if (callback && adapterCB == callback->adapter && connCB == callback->conn)
+        if (callback && nwChgCB == callback->adapter && connCB == callback->conn)
         {
             OIC_LOG(DEBUG, TAG, "this callback is already added");
             return CA_STATUS_OK;
@@ -260,7 +260,7 @@ CAResult_t AddNetworkStateChangedCallback(void (*adapterCB)(CATransportAdapter_t
         return CA_MEMORY_ALLOC_FAILED;
     }
 
-    callback->adapter = adapterCB;
+    callback->adapter = nwChgCB;
 #ifdef STATEFUL_PROTOCOL_SUPPORTED
     // Since IP adapter(UDP) is the Connectionless Protocol, it doesn't need.
     callback->conn = connCB;
@@ -349,51 +349,57 @@ CAResult_t CASetAdapterRAInfo(const CARAInfo_t *caraInfo)
 /*     } */
 /* } */
 
-// @rewrite CAAdapterChangedCallback called only by UDP (CAIPAdapterHandler)
+// @rewrite CAAdapterChangedCallback called by each transport
 // @rewrite We don't need this routine, since we call OCDefaultAdapterStateChangedHandler
 // @rewrite  directly from udp_if_change_handler,
 // static
-void CAAdapterChangedCallback(CATransportAdapter_t adapter, CANetworkStatus_t status)
+//void CAAdapterChangedCallback(CATransportAdapter_t adapter, CANetworkStatus_t status)
+void oocf_enqueue_nw_chg_work_pkg( // @was CAAdapterChangedCallback
+				  CATransportAdapter_t adapter, CANetworkStatus_t status)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     OIC_LOG_V(DEBUG, TAG, "[%d] adapter state is changed to [%d]", adapter, status);
 
-    // Call the callback.
-    CANetworkCallback_t *callback  = NULL;
-    LL_FOREACH(g_networkChangeCallbackList, callback)
-    {
-	// @rewrite callback->adapter is a chg event handler
-        if (callback && callback->adapter)
-        {
-/* #ifndef SINGLE_THREAD */
-            CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
-                                        OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
-            if (!info)
-            {
-                OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
-                return;
-            }
-
-	    // the CB is OCDefaultAdapterStateChangedHandler
-            info->adapterCB = callback->adapter; /* change event handler */
-            info->adapter = adapter;
-            info->isInterfaceUp = (CA_INTERFACE_UP == status);
-
-            CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
-                                    sizeof(CANetworkCallbackThreadInfo_t));
-/* #else */
-/*             if (CA_INTERFACE_UP == status) */
-/*             { */
-/*                 callback->adapter(adapter, true); /\* call chg event handler *\/ */
-/*             } */
-/*             else if (CA_INTERFACE_DOWN == status) */
-/*             { */
-/*                 callback->adapter(adapter, false); */
-/*             } */
-/* #endif //SINGLE_THREAD */
-        }
+    CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
+	OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
+    if (!info) {
+	OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
+	return;
     }
+
+    info->adapterCB = OCDefaultAdapterStateChangedHandler;  // @was callback->adapter;
+    info->adapter = adapter;
+    info->isInterfaceUp = (CA_INTERFACE_UP == status);
+    CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
+			    sizeof(CANetworkCallbackThreadInfo_t));
+
+/*     // Call the callback. */
+/*     CANetworkCallback_t *callback  = NULL; */
+/*     LL_FOREACH(g_networkChangeCallbackList, callback) */
+/*     { */
+/* 	// @rewrite callback->adapter is a chg event handler */
+/*         if (callback && callback->adapter) */
+/*         { */
+/* /\* #ifndef SINGLE_THREAD *\/ */
+/*             CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *) */
+/*                                         OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t)); */
+/*             if (!info) */
+/*             { */
+/*                 OIC_LOG(ERROR, TAG, "OICCalloc to info failed!"); */
+/*                 return; */
+/*             } */
+
+/* 	    // the CB is OCDefaultAdapterStateChangedHandler */
+/*             info->adapterCB = callback->adapter; /\* change event handler *\/ */
+/*             info->adapter = adapter; */
+/*             info->isInterfaceUp = (CA_INTERFACE_UP == status); */
+
+/*             CAQueueingThreadAddData(&g_networkChangeCallbackThread, info, */
+/*                                     sizeof(CANetworkCallbackThreadInfo_t)); */
+
+/*         } */
+/*     } */
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
@@ -815,8 +821,8 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
     /* OICFree(tempInfo); */
     /* OICFree(tempSize); */
 
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-    return CA_STATUS_OK;
+	OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+	return CA_STATUS_OK;
 
 /*     // memory error label. */
 /* memory_error_exit: */

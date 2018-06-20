@@ -60,7 +60,7 @@ void *tcp_threadpool;       /**< threadpool between Initialize and Start */
  * Adapter Changed Callback to CA.
  */
 // static CAAdapterChangeCallback tcp_networkChangeCallback = NULL;
-void (*tcp_networkChangeCallback)(CATransportAdapter_t adapter, CANetworkStatus_t status) = NULL;
+/* void (*tcp_networkChangeCallback)(CATransportAdapter_t adapter, CANetworkStatus_t status) = NULL; */
 
 /**
  * Connection Changed Callback to CA.
@@ -243,7 +243,7 @@ CAResult_t CAInitializeTCP(// CARegisterConnectivityCallback registerCallback,
     // FIXME: call windows init code
 
     // tcp_networkPacketCallback = g_networkPacketReceivedCallback; //ifc_CAReceivedPacketCallback;   // networkPacketCallback;
-    tcp_networkChangeCallback = CAAdapterChangedCallback;       // netCallback;
+    //tcp_networkChangeCallback = CAAdapterChangedCallback;       // netCallback;
     tcp_connectionChangeCallback = CAConnectionChangedCallback; // connCallback;
     tcp_errorCallback = CAAdapterErrorHandleCallback;           // errorCallback;
 
@@ -271,21 +271,22 @@ CAResult_t CAInitializeTCP(// CARegisterConnectivityCallback registerCallback,
     /* These routines are called from cainterfacecontroller, where
        they are accessed via table lookup. that has been replaced by
        direct calls, so this can go away */
-    CAConnectivityHandler_t tcpHandler = {
-        .startAdapter = &CAStartTCP,
-        .stopAdapter = &CAStopTCP,
-        .startListenServer = &CAStartTCPListeningServer,
-        .stopListenServer = &CAStopTCPListeningServer,
-        .startDiscoveryServer = &CAStartTCPDiscoveryServer,
-        .unicast = &CASendTCPUnicastData,
-        .multicast = &CASendTCPMulticastData, /* not used? */
-        .GetNetInfo = &CAGetTCPInterfaceInformation,
-        .readData = &CAReadTCPData,
-        .terminate = &CATerminateTCP,
-        .cType = CA_ADAPTER_TCP};
+    //CAConnectivityHandler_t tcpHandler = {
+        // .startAdapter = &CAStartTCP,
+        // .stopAdapter = &CAStopTCP,
+        // .startListenServer = &CAStartTCPListeningServer,
+        // .stopListenServer = &CAStopTCPListeningServer,
+        // .startDiscoveryServer = &CAStartTCPDiscoveryServer,
+        // .unicast = &CASendTCPUnicastData,
+        // .multicast = &CASendTCPMulticastData,
+        // .GetNetInfo = &CAGetTCPInterfaceInformation,
+        // .readData = &CAReadTCPData,
+        // .terminate = &CATerminateTCP,
+        // .cType = CA_ADAPTER_TCP
+	//};
 
     //registerCallback(tcpHandler);
-    CARegisterCallback(tcpHandler);
+    //CARegisterCallback(tcpHandler);
 
     OIC_LOG(INFO, TAG, "OUT IntializeTCP is Success");
     return CA_STATUS_OK;

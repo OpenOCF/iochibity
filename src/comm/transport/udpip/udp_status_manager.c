@@ -107,34 +107,34 @@ CAResult_t ip_create_network_interface_list() // @was CAIPInitializeNetworkMonit
 //    RTM_NEWADDR => posix:udp_get_ifs_for_rtm_newaddr => getifaddrs then CAIPPassNetworkChangesToTransports
 // udp_status_manager_darwin::CAFindInterfaceChange, called on nw interface change
 // caipnwmonitor_windows::CAFindInterfaceChange
-void udp_if_change_handler(CANetworkStatus_t status)  // @was CAIPPassNetworkChangesToAdapter
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, status: %d", __func__, status);
+/* void udp_if_change_handler(CANetworkStatus_t status)  // @was CAIPPassNetworkChangesToAdapter */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, status: %d", __func__, status); */
 
-#ifdef IP_ADAPTER
-    udp_status_change_handler(CA_ADAPTER_IP, status); // @was CAIPAdapterHandler
-#endif
-#ifdef TCP_ADAPTER
-    tcp_status_change_handler(CA_ADAPTER_IP, status); // @was CATCPAdapterHandler
-#endif
+/* #ifdef IP_ADAPTER */
+/*     udp_status_change_handler(CA_ADAPTER_IP, status); // @was CAIPAdapterHandler */
+/* #endif */
+/* #ifdef TCP_ADAPTER */
+/*     tcp_status_change_handler(CA_ADAPTER_IP, status); // @was CATCPAdapterHandler */
+/* #endif */
 
-    // etc. for other transports
+/*     // etc. for other transports */
 
-    /* CAIPCBData_t *cbitem = NULL; */
-    /* LL_FOREACH(g_adapterCallbackList, cbitem) */
-    /* { */
-    /*     if (cbitem && cbitem->adapter) */
-    /*     { */
-    /*         cbitem->callback(cbitem->adapter, status); */
-    /*         CALogAdapterStateInfo(cbitem->adapter, status); */
-    /*     } */
-    /* } */
+/*     /\* CAIPCBData_t *cbitem = NULL; *\/ */
+/*     /\* LL_FOREACH(g_adapterCallbackList, cbitem) *\/ */
+/*     /\* { *\/ */
+/*     /\*     if (cbitem && cbitem->adapter) *\/ */
+/*     /\*     { *\/ */
+/*     /\*         cbitem->callback(cbitem->adapter, status); *\/ */
+/*     /\*         CALogAdapterStateInfo(cbitem->adapter, status); *\/ */
+/*     /\*     } *\/ */
+/*     /\* } *\/ */
 
-    // log state of UDP services, not nw interface
-    /* CALogAdapterStateInfo(CA_ADAPTER_IP, status); */
+/*     // log state of UDP services, not nw interface */
+/*     /\* CALogAdapterStateInfo(CA_ADAPTER_IP, status); *\/ */
 
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-}
+/*     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
+/* } */
 
 // @rewrite: udp_status_change_handler @was CAIPAdapterHandler
 void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapterHandler
@@ -144,25 +144,31 @@ void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapter
 
     udp_update_local_endpoint_cache(status); // @was CAUpdateStoredIPAddressInfo (g_ownIpEndpointList)
 
-    // we do not need to go through tcp_networkChangeCallbackList, we can just call directly
-    // CAAdapterChangedCallback(CA_ADAPTER_IP, status);
+    // original code called g_networkChangeCallback, which is ptr to CAAdapterChangedCallback
+    // we do not need to go through g_networkChangeCallbackList, we can just call directly
+    oocf_enqueue_nw_chg_work_pkg(CA_ADAPTER_IP, status); // @was CAAdapterChangedCallback
     // the handler is OCDefaultAdapterStateChangedHandler(CA_ADAPTER_IP, status);
 
-    CANetworkCallbackThreadInfo_t *info
-	= (CANetworkCallbackThreadInfo_t *) OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
-    if (!info)
-	{
-	    OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
-	    return;
-	}
+    // CAAdapterChangedCallback in turn iterates over
+    // g_networkChangeCallbackList, putting a task on the msg queue
+    // for each.
 
-    // the CB is OCDefaultAdapterStateChangedHandler
-    info->adapterCB = OCDefaultAdapterStateChangedHandler; // @was callback->adapter;
-    info->adapter = CA_ADAPTER_IP;  // @was adapter;
-    info->isInterfaceUp = (CA_INTERFACE_UP == status);
+    // code from CAAdapterChangedCallback:
+    /* CANetworkCallbackThreadInfo_t *info */
+    /* 	= (CANetworkCallbackThreadInfo_t *) OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t)); */
+    /* if (!info) */
+    /* 	{ */
+    /* 	    OIC_LOG(ERROR, TAG, "OICCalloc to info failed!"); */
+    /* 	    return; */
+    /* 	} */
 
-    CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
-			    sizeof(CANetworkCallbackThreadInfo_t));
+    /* // the CB is OCDefaultAdapterStateChangedHandler */
+    /* info->adapterCB = OCDefaultAdapterStateChangedHandler; // @was callback->adapter; */
+    /* info->adapter = CA_ADAPTER_IP;  // @was adapter; */
+    /* info->isInterfaceUp = (CA_INTERFACE_UP == status); */
+
+    /* CAQueueingThreadAddData(&g_networkChangeCallbackThread, info, */
+    /* 			    sizeof(CANetworkCallbackThreadInfo_t)); */
 
     if (CA_INTERFACE_DOWN == status)
     {

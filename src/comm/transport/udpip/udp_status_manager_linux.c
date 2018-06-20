@@ -274,9 +274,8 @@ static void CARemoveFromInterfaceList(int ifiindex) // @was  CARemoveNetworkMoni
     return;
 }
 
-// FIXME: not called currently in udp_*
+// FIXME: move to ip package, this is transport independent?
 // @was: called by caipserver_linux::CASelectReturned when netlinkFd ready
-// TODO: implement status monitoring for Linux
 u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
 {
     u_arraylist_t *iflist = NULL;
@@ -296,6 +295,7 @@ u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
 
     for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len))
     {
+	/* NOTE: netlink stuff is transport-independent? e.g. newaddr for either udp or tcp? */
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
 	if (nh != NULL) {
 	    if (nh->nlmsg_type == RTM_DELADDR) {

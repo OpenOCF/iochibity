@@ -126,16 +126,16 @@ void CATCPConnectionHandler(const CAEndpoint_t *endpoint, bool isConnected, bool
 // GAR: since IF changes are low in the stack they are passed up to both transports
 // NOTE: this is called recursively, from CAIPGetInterfaceInformation
 // @rewrite: tcp_if_change_handler @was CAIPPassNetworkChangesToAdapter
-void tcp_if_change_handler(CANetworkStatus_t status)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, status: %d", __func__, status);
+/* void tcp_if_change_handler(CANetworkStatus_t status) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, status: %d", __func__, status); */
 
-    tcp_status_change_handler(CA_ADAPTER_TCP, status);
-    // log state of TCP services, not nw interface
-    CALogAdapterStateInfo(CA_ADAPTER_TCP, status);
+/*     tcp_status_change_handler(CA_ADAPTER_TCP, status); */
+/*     // log state of TCP services, not nw interface */
+/*     CALogAdapterStateInfo(CA_ADAPTER_TCP, status); */
 
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-}
+/*     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
+/* } */
 
 // GAR this is passed to CAIPStartNetworkMonitor, in CAStartTCP
 // signature: CAIPAdapterStateChangeCallback
@@ -143,10 +143,11 @@ void tcp_if_change_handler(CANetworkStatus_t status)
 void tcp_status_change_handler(CATransportAdapter_t adapter, // @was CATCPAdapterHandler
 			       CANetworkStatus_t status)
 {
-    if (tcp_networkChangeCallback)
-    {
-        tcp_networkChangeCallback(adapter, status);
-    }
+    /* if (tcp_networkChangeCallback) */
+    /* { */
+    /*     tcp_networkChangeCallback(adapter, status); */
+    /* } */
+    oocf_enqueue_nw_chg_work_pkg(adapter, status); // @was CAAdapterChangedCallback
 
     if (CA_INTERFACE_DOWN == status)
     {

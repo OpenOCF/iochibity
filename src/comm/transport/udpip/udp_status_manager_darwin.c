@@ -189,6 +189,7 @@ void CARegisterForAddressChanges()
 
 
 // @rewrite udp_if_change_handler_darwin @was CAFindInterfaceChange
+// FIXME: this routine is transport independent? rename to ip_if_ch...
 void udp_if_change_handler_darwin(SCDynamicStoreRef store, CFArrayRef changedKeys, void *info)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
