@@ -27,7 +27,7 @@ TESTINCLUDES = ["-Iresource/csdk/include",
                 "-Iexternal/gtest/include",
 ]
 
-OS_COPTS = select({"//config:darwin": ["-UDEBUG"],
+OS_COPTS = select({"//config:darwin": ["-U DEBUG"],
                    "//conditions:default": []})
 
 TESTDEPS = ["@gtest//:gtest_main",
@@ -51,3 +51,14 @@ DEFOCF = select({"//config:enable_logging": ["TB_LOG"],
                  "//conditions:default": []})
 
 DEFINES = DEFDTLS + DEFTCP + DEFTLS
+
+DBG_THREADS = select({"//config:debug_threads": ["-DDEBUG_THREADS", "-DTB_LOG"],
+	              "//conditions:default": []})
+
+DBG_TLS = select({"//config:debug_tls": ["-DDEBUG_TLS", "-DTB_LOG"],
+	          "//conditions:default": []})
+
+DBG_MSGS = select({"//config:debug_msgs": ["-DDEBUG_MSGS", "-DTB_LOG"],
+	           "//conditions:default": []})
+
+DBG_COPTS = DBG_THREADS + DBG_TLS + DBG_MSGS
