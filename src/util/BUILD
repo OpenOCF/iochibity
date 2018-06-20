@@ -45,7 +45,7 @@ cc_library(
               "msys": [],
               "android": COPTS_ANDROID,
               "//conditions:default": ["-std=c11",
-                                       "-UDEBUG"]}),
+                                       "-U DEBUG"]}),
     deps = ["//src/logger",
             "@tinycbor//:tinycbor",
             # "//third_party/ndk",

@@ -1,4 +1,4 @@
-load("//config:variables.bzl", "COPTS_ANDROID", "DEFINES")
+load("//config:variables.bzl", "COPTS_ANDROID", "DEFINES", "DBG_COPTS")
 
 ANDROID_SRCS = ["udp_status_manager_posix.c",
                 "udp_status_manager_posix.h",
@@ -17,17 +17,13 @@ cc_library(
              "-Iexternal/openocf/third_party/utlist",
              "-Iexternal/libcoap/include",
              "-Wall",
-
     ] + select({"//config:windows": [],
                 "//config:msvc": [],
                 "//config:msys": [],
                 "//config:linux": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
                 "//config:linux-x86_64": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
-    + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
-              "//conditions:default": []})
-    + select({"//config:debug_tls": ["-DDEBUG_TLS"],
-              "//conditions:default": []}),
+    + DBG_COPTS,
 
     # + select({#"//config::rpi": [],
     #          "//conditions:default": ["-DPORT_U6=$(FOO)", "-DPORT_U6S=0", "-DPORT_U4=0", "-DPORT_U4S=0"]}),

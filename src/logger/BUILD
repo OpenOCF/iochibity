@@ -1,12 +1,4 @@
-# config_setting(
-#     name = "android",
-#     values = {# "define": "target=android",
-#         # "crosstool_top": "@android_ndk//:toolchain-libcpp",
-#         "cpu": "armeabi-v7a",
-#               # "android_cpu": "x86",
-#               # "android_crosstool_top": "//platforms/ndk:toolchain"
-#     }
-# )
+load("//config:variables.bzl", "CSTD", "DEFINES", "DBG_COPTS", "OS_COPTS")
 
 cc_library(
     name = "logger",
@@ -15,12 +7,14 @@ cc_library(
     + select({"//config:windows": [],
               "//config:msvc": [],
               "//config:msys": [],
-              "//config:darwin": ["-UDEBUG", "-std=c11"],
+              "//config:darwin": ["-U DEBUG", "-std=c11"],
               "//conditions:default": ["-std=c11"]})
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
-              "//conditions:default": []}),
+              "//conditions:default": []})
+    + CSTD + DBG_COPTS,
 
-    # deps = ["//src:config"],
+    defines = DEFINES,
+
     hdrs = ["logger.h"],
     linkopts = select({"//config:android": ["-llog"],
                        "//conditions:default": []}),

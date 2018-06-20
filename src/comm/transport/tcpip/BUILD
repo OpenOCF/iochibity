@@ -1,4 +1,4 @@
-load("//config:variables.bzl", "COPTS_ANDROID", "DEFINES")
+load("//config:variables.bzl", "COPTS_ANDROID", "DEFINES", "DBG_COPTS")
 
 cc_library(
     name = "tcpip",
@@ -17,10 +17,7 @@ cc_library(
                 "//config:linux": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
                 "//config:linux-x86_64": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
-    + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
-                "//conditions:default": []})
-    + select({"//config:debug_tls": ["-DDEBUG_TLS"],
-              "//conditions:default": []}),
+    + DBG_COPTS,
 
     defines = DEFINES,
 
