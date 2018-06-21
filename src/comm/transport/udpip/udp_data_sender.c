@@ -356,9 +356,6 @@ void CAIPSendDataThread(void *threadData)
     }
 }
 
-#endif
-
-#ifndef SINGLE_THREAD
 // create IP packet for sending
 CAIPData_t *CACreateIPData(const CAEndpoint_t *remoteEndpoint, const void *data,
                            uint32_t dataLength, bool isMulticast)
@@ -409,5 +406,3 @@ void CADataDestroyer(void *data, uint32_t size)
 
     CAFreeIPData(etdata);
 }
-
-#endif // SINGLE_THREAD
