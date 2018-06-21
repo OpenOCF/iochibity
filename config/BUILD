@@ -30,6 +30,17 @@ config_setting(
     visibility = ["//visibility:public"]
 )
 
+# ipv6 is enabled by default and required for conformance
+# this option allows developers to disable it for dev/testing
+config_setting(name = "disable_ipv6",
+               visibility = ["//visibility:public"],
+               define_values = {"disable_dtls": "true"})
+
+# ipv4 is disabled by default
+config_setting(name = "enable_ipv4",
+               visibility = ["//visibility:public"],
+               define_values = {"enable_ipv4": "true"})
+
 # dtls is enabled by default and required for conformance
 # this option allows developers to disable it for dev/testing
 config_setting(name = "disable_dtls",
@@ -293,4 +304,3 @@ config_setting(
     visibility = ["//visibility:public"],
     define_values = { "debug_threads": "true"}
 )
-
