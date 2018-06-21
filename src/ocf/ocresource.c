@@ -434,17 +434,18 @@ OCEntityHandlerResult defaultResourceEHandler(OCEntityHandlerFlag flag,
 /* This method will retrieve the port at which the secure resource is hosted */
 static OCStackResult GetSecurePortInfo(OCDevAddr *endpoint, uint16_t *port)
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     uint16_t p = 0;
 
     if (endpoint->adapter == OC_ADAPTER_IP)
     {
         if (endpoint->flags & OC_IP_USE_V6)
         {
-            p = caglobals.ip.u6s.port;
+            p = udp_u6s.port;
         }
         else if (endpoint->flags & OC_IP_USE_V4)
         {
-            p = caglobals.ip.u4s.port;
+            p = udp_u4s.port;
         }
     }
 
@@ -456,6 +457,7 @@ static OCStackResult GetSecurePortInfo(OCDevAddr *endpoint, uint16_t *port)
 /* This method will retrieve the tcp port */
 OCStackResult GetTCPPortInfo(OCDevAddr *endpoint, uint16_t *port, bool secured)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY; adapter: %d", __func__, endpoint->adapter);
     if (NULL == endpoint)
     {
         OIC_LOG(ERROR, TAG, "GetTCPPortInfo failed!");
@@ -467,11 +469,11 @@ OCStackResult GetTCPPortInfo(OCDevAddr *endpoint, uint16_t *port, bool secured)
     {
         if (endpoint->flags & OC_IP_USE_V4)
         {
-            p = secured ? caglobals.tcp.ipv4s.port : caglobals.tcp.ipv4.port;
+            p = secured ? tcp_socket_ipv4s.port : tcp_socket_ipv4.port;
         }
         else if (endpoint->flags & OC_IP_USE_V6)
         {
-            p = secured ? caglobals.tcp.ipv6s.port : caglobals.tcp.ipv6.port;
+            p = secured ? tcp_socket_ipv6s.port : tcp_socket_ipv6.port;
         }
     }
 
@@ -781,7 +783,7 @@ static OCStackResult BuildDevicePlatformPayload(const OCResource *resourcePtr, O
 }
 
 OCStackResult BuildResponseRepresentation(const OCResource *resourcePtr,
-                    OCRepPayload** payload, OCDevAddr *devAddr)
+                    OCRepPayload** payload, OCDevAddr *devAddr) EXPORT
 {
     OCRepPayload *tempPayload = OCRepPayloadCreate();
 
@@ -836,6 +838,7 @@ OCStackResult BuildResponseRepresentation(const OCResource *resourcePtr,
         }
     }
 
+    OIC_LOG_V (INFO, TAG, "%s get attributes", __func__);
     for (OCAttribute *resAttrib = resourcePtr->rsrcAttributes; resAttrib; resAttrib = resAttrib->next)
     {
         if (resAttrib->attrName && resAttrib->attrValue)
@@ -863,6 +866,7 @@ OCStackResult BuildResponseRepresentation(const OCResource *resourcePtr,
         OCRepPayloadSetPropInt(policy, OC_RSRVD_HOSTING_PORT, securePort);
     }
     OCRepPayloadSetPropObjectAsOwner(tempPayload, OC_RSRVD_POLICY, policy);
+    OIC_LOG_V (INFO, TAG, "%s done with properties", __func__);
 
     if (!*payload)
     {
@@ -2185,6 +2189,7 @@ exit:
 
 static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resource)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (!request || !resource)
     {
         return OC_STACK_INVALID_PARAM;
@@ -2193,8 +2198,6 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     OCPayload* payload = NULL;
     char *interfaceQuery = NULL;
     char *resourceTypeQuery = NULL;
-
-    OIC_LOG(INFO, TAG, "Entering HandleVirtualResource");
 
     OCVirtualResources virtualUriInRequest = GetTypeOfVirtualURI (request->resourceUrl);
 
@@ -2256,7 +2259,12 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
             OIC_LOG(ERROR, TAG, "CAGetNetworkInformation has error on parsing network infomation");
             return OC_STACK_ERROR;
         }
-	OIC_LOG_V(DEBUG, TAG, "Network Information size = %d", (int) infoSize);
+	OIC_LOG_V(DEBUG, TAG, "EP count = %d", (int) infoSize);
+	/* if (infoSize > 0) { */
+	/*     OIC_LOG_V(INFO, TAG, "%s 1st addr: %s", __func__, networkInfo[0].addr); */
+	/*     OIC_LOG_V(INFO, TAG, "%s 1st port: %d", __func__, networkInfo[0].port); */
+	/*     OIC_LOG_V(INFO, TAG, "%s 1st ifindex: %d", __func__, networkInfo[0].ifindex); */
+	/* } */
 
         discoveryResult = getQueryParamsForFiltering (virtualUriInRequest, request->query,
                 &interfaceQuery, &resourceTypeQuery);
@@ -2661,7 +2669,7 @@ ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerReque
         }
         case OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER:
         {
-            OIC_LOG(INFO, TAG, "OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER");
+            OIC_LOG(ERROR, TAG, "OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER");
             return OC_STACK_ERROR;
         }
         case OC_RESOURCE_NOT_COLLECTION_WITH_ENTITYHANDLER:
@@ -2904,6 +2912,7 @@ LOCAL OCStackResult SetAttributeInternal(OCResource *resource,
                                           const void *value,
                                           bool updateDatabase)
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     OCAttribute *resAttrib = NULL;
 
     // Read-only attributes - these values are set via other APIs
@@ -2984,6 +2993,7 @@ LOCAL OCStackResult SetAttributeInternal(OCResource *resource,
         }
     }
 
+    OIC_LOG_V (INFO, TAG, "%s EXIT", __func__);
     return OC_STACK_OK;
 
 exit:
@@ -3037,6 +3047,7 @@ static OCStackResult IsDatabaseUpdateNeeded(const char *attribute, const void *v
 
 OCStackResult OC_CALL OCSetAttribute(OCResource *resource, const char *attribute, const void *value)
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     bool updateDatabase = false;
 
     // Check to see if we also need to update the database for this attribute. If the current

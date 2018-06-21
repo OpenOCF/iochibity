@@ -43,8 +43,7 @@ config_setting(name = "enable_ipv4",
 
 # dtls is enabled by default and required for conformance
 # this option allows developers to disable it for dev/testing
-config_setting(name = "disable_dtls",
-               visibility = ["//visibility:public"],
+config_setting(name = "disable_dtls", visibility = ["//visibility:public"],
                define_values = {"disable_dtls": "true"})
 
 # tcp is officially supported but disabled by default, so use enable_tcp
@@ -204,10 +203,15 @@ config_setting(
 ################################################################
 ####  Raspberry Pi 3B
 
+# build:rpi-arm8 --crosstool_top=//tools/ctng:toolchain
+# build:rpi-arm8 --define arm=true
+# build:rpi-arm8 --cpu=arm64-v8a
+
 config_setting(
-    name = "rpi",
+    name = "rpi_arm8",
     values = {
-        "crosstool_top": "//tools/ctng:toolchain"
+        "crosstool_top": "//tools/ctng:toolchain",
+        "cpu": "arm64-v8a"
     },
     define_values = {
         "arm": "true"
@@ -246,8 +250,11 @@ config_setting(
 # see https://developer.android.com/ndk/guides/abis
 # fat_apk_cpu values: armeabi, armeabi-v7a, arm64-v8a, mips, mips64, x86, x86_64
 
+config_setting(name = "android", visibility = ["//visibility:public"],
+               define_values = {"android": "true" })
+
 config_setting(
-    name = "android",
+    name = "android_arm7",
     values = {
         "cpu": "armeabi-v7a",
         #"fat_apk_cpu": "armeabi-v7a",
@@ -266,17 +273,9 @@ config_setting(
 
 # for android_binary:
 config_setting(
-    name = "android_arm64",
-    values = {
-        # android binaries:
-        "cpu": "arm64-v8a",
-        #"android_cpu": "arm64-v8a",
-        # "crosstool_top": "@androidndk//:default_crosstool",
-
-        # //:mkhdrs
-        #"fat_apk_cpu": "arm64-v8a",
-        # "android_cpu": "arm64-v8a",
-    },
+    name = "android_arm8",
+    define_values = { "android": "true",
+                      "android-arm8": "true"},
     visibility = ["//visibility:public"]
 )
 
@@ -296,6 +295,22 @@ config_setting(
     visibility = ["//visibility:public"]
 )
 
+config_setting(
+    name = "android_x86_64",
+    values = {
+        #"fat_apk_cpu": "x86",
+        # passing --fat_apk_cpu=x86 sets android_cpu?
+        "cpu": "x86_64",
+        "android_cpu": "x86_64",
+        #"android_crosstool_top": "//external:android/crosstool",
+        #"android_sdk": "@bazel_tools//tools/android:sdk"
+    },
+    # define_values = {
+    #     "with_android": "true"
+    # },
+    visibility = ["//visibility:public"]
+)
+
 ################################################################
 ####  Debugging
 
@@ -303,4 +318,16 @@ config_setting(
     name = "debug_threads",
     visibility = ["//visibility:public"],
     define_values = { "debug_threads": "true"}
+)
+
+config_setting(
+    name = "debug_msgs",
+    visibility = ["//visibility:public"],
+    define_values = { "debug_msgs": "true"}
+)
+
+config_setting(
+    name = "debug_tls",
+    visibility = ["//visibility:public"],
+    define_values = { "debug_tls": "true"}
 )

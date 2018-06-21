@@ -224,7 +224,7 @@ CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    CAIPUnSetNetworkMonitorCallback(adapter);
+    //CAIPUnSetNetworkMonitorCallback(adapter);
     if (!g_adapterCallbackList)
     {
         // Reset callback for receiving state changes.

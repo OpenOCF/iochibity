@@ -1,61 +1,5 @@
 # FIXME: remove deps on third_party, should depend only on openocf
 
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" }
-)
-config_setting(
-    name = "android",
-    values = {"define": "target=android",
-              "android_cpu": "x86",
-              "android_crosstool_top": "//platforms/ndk:toolchain" }
-)
-config_setting(
-    name = "linux",
-    values = { "cpu": "k8" }
-)
-config_setting(
-    name = "macos",
-    values = { "cpu": "darwin" }
-)
-config_setting(
-    name = "macos64",
-    values = { "cpu": "darwin_x86_64" }
-)
-config_setting(
-    name = "wrlinux",
-    values = { "crosstool_top": "//platforms/wrlinux:toolchain" }
-)
-config_setting(
-    name = "osx_rpi3b",
-    # FIXME: add --define arm=true?
-    values = { "crosstool_top": "//tools/ctng:toolchain",
-               # "host_cpu": "darwin"
-               # "cpu": "armv8"
-    }
-)
-
-config_setting(
-    name = "linux_rpi3b",
-    values = { "crosstool_top": "//tools/ctng:toolchain",
-               "cpu": "k8"}
-)
-
-genrule(
-    name = "json",
-    srcs = ["client_owner_config.edn"],
-    outs = ["client_config.json"],
-    cmd = "edn-to-json $(location client_owner_config.edn)  > \"$@\"",
-)
-
-genrule(
-    name = "config",
-    srcs = [":json"],
-    outs = ["client_config.cbor"],
-    cmd = "json2cbor $(location :json) > \"$@\"",
-    # tools = ["edn-to-json"],
-)
-
 cc_binary(
     name = "client",
     copts = ["-Isrc",
@@ -66,49 +10,48 @@ cc_binary(
              "-Isrc/ocf/client",
              "-Isrc/portability",
              "-Iexternal/cjson",
-             "-Iconfig/darwin",
-             "-Iconfig/darwin/coap",
+             # "-Iconfig/darwin",
+             # "-Iconfig/darwin/coap",
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
              "-Iexternal/tinycbor/src",
     ]
-    + select({":osx_rpi3b": ["-Iexternal/cosysroot_osx_rpi3b/usr/include",
-                             "-Iexternal/cosysroot_osx_rpi3b/usr/include/cdk",
-                             "-std=c11"],
-              ":android": ["-Iexternal/cosysroot_ndk/usr/include",
-                         "-Iexternal/cosysroot_ndk/usr/include/cdk",
-                         "-std=c11"],
-              ":wrlinux": ["-Iexternal/cosysroot_wrlinux/usr/local/include",
-                         "-Iexternal/cosysroot_wrlinux/usr/local/include/cdk",
-                         "-Iexternal/cosysroot_wrlinux/usr/include",
-                         "-std=c11"],
-              ":macos": ["-Iexternal/usr_local_macos/include",
-                         "-Iexternal/usr_local_macos/include/cdk",
-                         "-U DEBUG"],
-              ":macos64": ["-Iexternal/usr_local_macos/include",
-                           "-Iexternal/usr_local_macos/include/cdk",
-                           "-U DEBUG"],
-              ":linux": ["-Iexternal/usr_local_linux/include",
-                         "-Iexternal/usr_local_linux/include/cdk"],
+    + select({"//config:rpi_arm8": ["-Iexternal/cosysroot_osx_rpi3b/usr/include",
+                                    "-Iexternal/cosysroot_osx_rpi3b/usr/include/cdk",
+                                    "-std=c11"],
+              "//config:android_arm8": ["-Iexternal/cosysroot_ndk/usr/include",
+                                        "-Iexternal/cosysroot_ndk/usr/include/cdk",
+                                        "-std=c11"],
+              # ":wrlinux": ["-Iexternal/cosysroot_wrlinux/usr/local/include",
+              #            "-Iexternal/cosysroot_wrlinux/usr/local/include/cdk",
+              #            "-Iexternal/cosysroot_wrlinux/usr/include",
+              #            "-std=c11"],
+              "//config:darwin": ["-Iexternal/usr_local_macos/include",
+                                  "-Iexternal/usr_local_macos/include/cdk",
+                                  "-U DEBUG"],
+              "//config:darwin64": ["-Iexternal/usr_local_macos/include",
+                                    "-Iexternal/usr_local_macos/include/cdk",
+                                    "-U DEBUG"],
+              "//config:linux": ["-Iexternal/usr_local_linux/include",
+                                 "-Iexternal/usr_local_linux/include/cdk"],
               "//conditions:default": ["BROKEN"]}), # OS X
-    data = [":config"],
+
     deps = ["//src:config",
-            "//include",
-            "//src/ocf",
+            # "//include",
+            "//:openocf",
             # "//src/ocf:client",
-            "@tinycbor//:tinycbor",
+            # "@tinycbor//:tinycbor",
             "@cjson//:cjson",
-            "@libcoap//:libcoap"
-    ] + select({":osx_rpi3b": ["@cosysroot_osx_rpi3b//:cdk"],
-                ":macos": ["@usr_local_macos//:cdk"],
-                ":macos64": ["@usr_local_macos//:cdk"],
-                ":linux": ["@usr_local_linux//:cdk"],
+            # "@libcoap//:libcoap"
+    ] + select({"//config:rpi_arm8": ["@cosysroot_osx_rpi3b//:cdk"],
+                "//config:darwin": ["@usr_local_macos//:cdk"],
+                "//config:darwin64": ["@usr_local_macos//:cdk"],
+                "//config:linux": ["@usr_local_linux//:cdk"],
                 # "@usr_local_linux//:ncurses"],
-                ":android": ["@cosysroot_ndk//:cdk"],
-                ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
+                "//config:android_arm8": ["@cosysroot_ndk//:cdk"],
+                #":wrlinux": ["@cosysroot_wrlinux//:cdk"],
                 "//conditions:default": ["BORKED"]}),
-    # linkstatic = 1,
-    # linkopts = ["-Lexternal/cosysroot_osx_rpi3b/usr/local/lib/arm-linux-gnueabihf", "-Wl,-lcdk"],
+
     srcs = ["action_dialog.c",
             "action_dialog.h",
             "client_main.c",
@@ -141,9 +84,32 @@ cc_binary(
             "utils.h",
             # "subwindow.c",
             # "subwindow.h"
-            "config/acl.c",
-            "config/svr_config.c"
+            # "config/acl.c",
+            # "config/svr_config.c",
             # "config/doxm.c",
-            # "config/cred.c"
-    ]
+            # "config/cred.c",
+    ],
+    data = ["client_config.cbor"]
 )
+
+# genrule(
+#     name = "svrs",
+#     srcs = ["client_owner_config.edn"],
+#     outs = ["client_config.cbor"],
+#     cmd = "\n".join(["edn-to-json $(location client_config.edn)  > client_config.json",
+#                      "json2cbor client_config.json > \"$@\""])
+# )
+
+# genrule(
+#     name = "config",
+#     srcs = [":json"],
+#     outs = ["client_config.cbor"],
+#     cmd = "json2cbor $(location :json) > \"$@\"",
+# )
+
+# genrule(
+#     name = "config",
+#     srcs = [":json"],
+#     outs = ["client_config.cbor"],
+#     cmd = "json2cbor $(location :json) > \"$@\"",
+# )

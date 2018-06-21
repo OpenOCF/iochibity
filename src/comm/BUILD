@@ -18,7 +18,12 @@ cc_library(
              "-Iexternal/openocf/third_party/utlist",
     ]+ CSTD + OS_COPTS
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
+              "//conditions:default": []})
+    + select({"//config:debug_tls": ["-DDEBUG_TLS"],
+              "//conditions:default": []})
+    + select({"//config:debug_msgs": ["-DDEBUG_MSGS"],
               "//conditions:default": []}),
+
 
  # + select({"//config:enable_tcp": "-DSTATEFUL_PROTOCOL_SUPPORTED",
  #                                 "//conditions:default": []}),
@@ -30,6 +35,7 @@ cc_library(
     	    "//src/portability",
             "//src/comm/transport/util",
             "//src/comm/util",
+            "//src/coap",
             # FIXME: select for this
             "//third_party/utlist",
             # "//third_party/mbedtls",
@@ -38,7 +44,7 @@ cc_library(
             "@mbedtls//:mbedtls",
             "@libcoap//:libcoap"]
     + select({"//config:disable_dtls": [],
-                "//conditions:default": ["//src/comm/transport/udpip"]})
+              "//conditions:default": ["//src/comm/transport/udpip"]})
     + select({"//config:enable_tcp": ["//src/comm/transport/tcpip"],
               "//conditions:default": []}),
 

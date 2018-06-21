@@ -131,6 +131,7 @@ static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t 
  */
 void CAIPDestroyNetworkInterfaceList()
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     // Free any new addresses waiting to be indicated up.
     while (g_CAIPNetworkMonitorNewAddressQueue)
     {
@@ -473,7 +474,7 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
     if (!RegisterForIpAddressChange())
     {
         CAIPDestroyNetworkAddressList();
-        CAIPUnSetNetworkMonitorCallback(adapter);
+        //CAIPUnSetNetworkMonitorCallback(adapter);
         return CA_STATUS_FAILED;
     }
 #else
@@ -483,7 +484,7 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
     if (err != NO_ERROR)
     {
         CAIPDestroyNetworkAddressList();
-        CAIPUnSetNetworkMonitorCallback(adapter);
+        //CAIPUnSetNetworkMonitorCallback(adapter);
         return CA_STATUS_FAILED;
     }
 #endif
@@ -498,6 +499,7 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
  */
 CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (g_CAIPNetworkMonitorNotificationHandle != NULL)
     {
 #ifdef USE_SOCKET_ADDRESS_CHANGE_EVENT
@@ -510,7 +512,7 @@ CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
     }
 
     CAIPDestroyNetworkAddressList();
-    return CAIPUnSetNetworkMonitorCallback(adapter);
+    return CA_STATUS_OK; // CAIPUnSetNetworkMonitorCallback(adapter);
 }
 
 /**

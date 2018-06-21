@@ -66,6 +66,8 @@
 
 #define TCP_CHECKFD(FD)
 
+WSAEVENT tcp_updateEvent;   /**< Event used to signal thread to stop or update the FD list */
+
 /**
  * Push an exiting socket event to listen on
  *
@@ -145,23 +147,23 @@ void udp_handle_inbound_data()  // @was CAFindReadyMessage
     HANDLE eventArray[_countof(socketArray)];
     int arraySize = 0;
 
-    if (OC_INVALID_SOCKET != caglobals.tcp.ipv4.fd)
+    if (OC_INVALID_SOCKET != tcp_socket_ipv4.fd)
     {
-        CAPushSocket(caglobals.tcp.ipv4.fd, socketArray, eventArray, &arraySize, _countof(socketArray));
+        CAPushSocket(tcp_socket_ipv4.fd, socketArray, eventArray, &arraySize, _countof(socketArray));
     }
-    if (OC_INVALID_SOCKET != caglobals.tcp.ipv6.fd)
+    if (OC_INVALID_SOCKET != tcp_socket_ipv6.fd)
     {
-        CAPushSocket(caglobals.tcp.ipv6.fd, socketArray, eventArray, &arraySize, _countof(socketArray));
+        CAPushSocket(tcp_socket_ipv6.fd, socketArray, eventArray, &arraySize, _countof(socketArray));
     }
-    if (WSA_INVALID_EVENT != caglobals.tcp.updateEvent)
+    if (WSA_INVALID_EVENT != tcp_updateEvent)
     {
         CAPushEvent(OC_INVALID_SOCKET, socketArray,
-                    caglobals.tcp.updateEvent, eventArray, &arraySize, _countof(socketArray));
+                    tcp_updateEvent, eventArray, &arraySize, _countof(socketArray));
     }
 
     int svrlistBeginIndex = arraySize;
 
-    while (!caglobals.tcp.terminate)
+    while (!tcp_is_terminating)
     {
         CATCPSessionInfo_t *session = NULL;
         LL_FOREACH(g_sessionList, session)
@@ -179,9 +181,9 @@ void udp_handle_inbound_data()  // @was CAFindReadyMessage
         assert(ret < (WSA_WAIT_EVENT_0 + arraySize));
         DWORD eventIndex = ret - WSA_WAIT_EVENT_0;
 
-        if (caglobals.tcp.updateEvent == eventArray[eventIndex])
+        if (tcp_updateEvent == eventArray[eventIndex])
         {
-            OC_VERIFY(WSAResetEvent(caglobals.tcp.updateEvent));
+            OC_VERIFY(WSAResetEvent(tcp_updateEvent));
         }
         else
         {
@@ -215,9 +217,9 @@ void udp_handle_inbound_data()  // @was CAFindReadyMessage
         OC_VERIFY(WSACloseEvent(eventArray[arraySize]));
     }
 
-    if (caglobals.tcp.terminate)
+    if (tcp_is_terminating)
     {
-        caglobals.tcp.updateEvent = WSA_INVALID_EVENT;
+        tcp_updateEvent = WSA_INVALID_EVENT;
     }
 }
 
@@ -228,7 +230,7 @@ void udp_handle_inbound_data()  // @was CAFindReadyMessage
  */
 static void CASocketEventReturned(CASocketFd_t s, long networkEvents)
 {
-    if (caglobals.tcp.terminate)
+    if (tcp_is_terminating)
     {
         return;
     }
@@ -237,13 +239,13 @@ static void CASocketEventReturned(CASocketFd_t s, long networkEvents)
 
     if (FD_ACCEPT & networkEvents)
     {
-        if ((caglobals.tcp.ipv4.fd != OC_INVALID_SOCKET) && (caglobals.tcp.ipv4.fd == s))
+        if ((tcp_socket_ipv4.fd != OC_INVALID_SOCKET) && (tcp_socket_ipv4.fd == s))
         {
-            CAAcceptConnection(CA_IPV4, &caglobals.tcp.ipv4);
+            CAAcceptConnection(CA_IPV4, &tcp_socket_ipv4);
         }
-        else if ((caglobals.tcp.ipv6.fd != OC_INVALID_SOCKET) && (caglobals.tcp.ipv6.fd == s))
+        else if ((tcp_socket_ipv6.fd != OC_INVALID_SOCKET) && (tcp_socket_ipv6.fd == s))
         {
-            CAAcceptConnection(CA_IPV6, &caglobals.tcp.ipv6);
+            CAAcceptConnection(CA_IPV6, &tcp_socket_ipv6);
         }
     }
 
@@ -279,9 +281,9 @@ static void CASocketEventReturned(CASocketFd_t s, long networkEvents)
 
 static void CAWakeUpForReadFdsUpdate()
 {
-    if (WSA_INVALID_EVENT != caglobals.tcp.updateEvent)
+    if (WSA_INVALID_EVENT != tcp_updateEvent)
     {
-        if (!WSASetEvent(caglobals.tcp.updateEvent))
+        if (!WSASetEvent(tcp_updateEvent))
         {
             OIC_LOG_V(DEBUG, TAG, "CAWakeUpForReadFdsUpdate: set shutdown event failed: %u", GetLastError());
         }

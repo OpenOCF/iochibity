@@ -475,7 +475,7 @@ OCStackResult PstatToCBORPayload(const OicSecPstat_t *pstat,
 }
 
 OCStackResult CBORPayloadToPstat(const uint8_t *cborPayload, const size_t size,
-                                 OicSecPstat_t **secPstat)
+                                 OicSecPstat_t **secPstat) EXPORT
 {
     return CBORPayloadToPstatBin(cborPayload, size, secPstat, NULL, DOS_RESET);
 }

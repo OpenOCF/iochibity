@@ -11,6 +11,8 @@
 
 //static u_arraylist_t *g_netInterfaceList = NULL;
 
+// FIXME: the "network monitor list" is transport-independent - the
+// exact same code is in the UDP package. move it to pkg IP
 static CAResult_t CATCPInitializeNetworkMonitorList(void)
 {
     if (!g_networkMonitorContextMutex)
@@ -52,50 +54,53 @@ void CAIPDestroyNetworkAddressList()
     }
 }
 
-CAResult_t CATCPSetNetworkMonitorCallback(void (*callback)(CATransportAdapter_t adapter,
-							   CANetworkStatus_t status),
-					  //CAIPAdapterStateChangeCallback callback,
-					  CATransportAdapter_t adapter)
-{
-    if (!callback)
-    {
-        OIC_LOG(ERROR, TAG, "callback is null");
-        return CA_STATUS_INVALID_PARAM;
-    }
+// callback = tcp_status_change_handler, called directly by udp_if_change_handler, so this routine is obsolete
+/* CAResult_t CATCPSetNetworkMonitorCallback(void (*callback)(CATransportAdapter_t adapter, */
+/* 							   CANetworkStatus_t status), */
+/* 					  //CAIPAdapterStateChangeCallback callback, */
+/* 					  CATransportAdapter_t adapter) */
+/* { */
+/*     if (!callback) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "callback is null"); */
+/*         return CA_STATUS_INVALID_PARAM; */
+/*     } */
 
-    CAIPCBData_t *cbitem = NULL;
-    LL_FOREACH(g_adapterCallbackList, cbitem)
-    {
-        if (cbitem && adapter == cbitem->adapter && callback == cbitem->ip_status_change_event_handler)
-        {
-            OIC_LOG(DEBUG, TAG, "this callback is already added");
-            return CA_STATUS_OK;
-        }
-    }
+/*     CAIPCBData_t *cbitem = NULL; */
+/*     LL_FOREACH(g_adapterCallbackList, cbitem) */
+/*     { */
+/*         if (cbitem && adapter == cbitem->adapter && callback == cbitem->ip_status_change_event_handler) */
+/*         { */
+/*             OIC_LOG(DEBUG, TAG, "this callback is already added"); */
+/*             return CA_STATUS_OK; */
+/*         } */
+/*     } */
 
-    cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem));
-    if (!cbitem)
-    {
-        OIC_LOG(ERROR, TAG, "Malloc failed");
-        return CA_STATUS_FAILED;
-    }
+/*     cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem)); */
+/*     if (!cbitem) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "Malloc failed"); */
+/*         return CA_STATUS_FAILED; */
+/*     } */
 
-    cbitem->adapter = adapter;
-    cbitem->ip_status_change_event_handler = callback;
-    LL_APPEND(g_adapterCallbackList, cbitem);
+/*     cbitem->adapter = adapter; */
+/*     cbitem->ip_status_change_event_handler = callback; */
+/*     LL_APPEND(g_adapterCallbackList, cbitem); */
 
-    return CA_STATUS_OK;
-}
+/*     return CA_STATUS_OK; */
+/* } */
 
+// called by CAStartTCP
 CAResult_t CATCPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter,
 						     CANetworkStatus_t status),
 				    CATransportAdapter_t adapter)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     CAResult_t res = CATCPInitializeNetworkMonitorList();
     if (CA_STATUS_OK == res)
     {
 	// insert into g_adapterCallbackList
-        return CATCPSetNetworkMonitorCallback(callback, adapter);
+        /* return CATCPSetNetworkMonitorCallback(callback, adapter); */
     }
     return res;
 }
@@ -121,16 +126,16 @@ void CATCPConnectionHandler(const CAEndpoint_t *endpoint, bool isConnected, bool
 // GAR: since IF changes are low in the stack they are passed up to both transports
 // NOTE: this is called recursively, from CAIPGetInterfaceInformation
 // @rewrite: tcp_if_change_handler @was CAIPPassNetworkChangesToAdapter
-void tcp_if_change_handler(CANetworkStatus_t status)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, status: %d", __func__, status);
+/* void tcp_if_change_handler(CANetworkStatus_t status) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, status: %d", __func__, status); */
 
-    tcp_status_change_handler(CA_ADAPTER_TCP, status);
-    // log state of TCP services, not nw interface
-    CALogAdapterStateInfo(CA_ADAPTER_TCP, status);
+/*     tcp_status_change_handler(CA_ADAPTER_TCP, status); */
+/*     // log state of TCP services, not nw interface */
+/*     CALogAdapterStateInfo(CA_ADAPTER_TCP, status); */
 
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-}
+/*     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
+/* } */
 
 // GAR this is passed to CAIPStartNetworkMonitor, in CAStartTCP
 // signature: CAIPAdapterStateChangeCallback
@@ -138,10 +143,11 @@ void tcp_if_change_handler(CANetworkStatus_t status)
 void tcp_status_change_handler(CATransportAdapter_t adapter, // @was CATCPAdapterHandler
 			       CANetworkStatus_t status)
 {
-    if (tcp_networkChangeCallback)
-    {
-        tcp_networkChangeCallback(adapter, status);
-    }
+    /* if (tcp_networkChangeCallback) */
+    /* { */
+    /*     tcp_networkChangeCallback(adapter, status); */
+    /* } */
+    oocf_enqueue_nw_chg_work_pkg(adapter, status); // @was CAAdapterChangedCallback
 
     if (CA_INTERFACE_DOWN == status)
     {
@@ -150,14 +156,11 @@ void tcp_status_change_handler(CATransportAdapter_t adapter, // @was CATCPAdapte
     }
     else if (CA_INTERFACE_UP == status)
     {
-        OIC_LOG(DEBUG, TAG, "Network status is up, create new socket for listening");
+        OIC_LOG(DEBUG, TAG, "TCP Network status is up, create new socket for listening");
 
         CAResult_t ret = CA_STATUS_FAILED;
-#ifndef SINGLE_THREAD
-        ret = CATCPStartServer((const ca_thread_pool_t)caglobals.tcp.threadpool);
-#else
-        ret = CATCPStartServer();
-#endif
+
+        ret = CATCPStartServer((const ca_thread_pool_t)tcp_threadpool);
         if (CA_STATUS_OK != ret)
         {
             OIC_LOG_V(DEBUG, TAG, "CATCPStartServer failed[%d]", ret);

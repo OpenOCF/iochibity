@@ -66,7 +66,7 @@
 
 void tcp_handle_inbound_data()  // @was CAFindReadyMessage
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     fd_set readFds;
     //struct timeval timeout = { .tv_sec = caglobals.tcp.selectTimeout };
     struct timeval timeout = { .tv_sec = tcp_selectTimeout };
@@ -97,11 +97,12 @@ void tcp_handle_inbound_data()  // @was CAFindReadyMessage
         }
     }
 
-    int ret = select(caglobals.tcp.maxfd + 1, &readFds, NULL, NULL, &timeout);
+    int ret = select(tcp_maxfd + 1, &readFds, NULL, NULL, &timeout);
+    /* OIC_LOG_V(INFO, TAG, "%s select ready count: %d", __func__, ret); */
 
-    if (caglobals.tcp.terminate)
+    if (tcp_is_terminating)
     {
-        OIC_LOG_V(DEBUG, TAG, "Packet receiver Stop request received.");
+        OIC_LOG_V(DEBUG, TAG, "tcp_is_terminating flag is TRUE");
         return;
     }
 
@@ -124,33 +125,33 @@ LOCAL void CASelectReturned(fd_set *readFds)
 {
     VERIFY_NON_NULL_VOID(readFds, TAG, "readFds is NULL");
 
-    if (caglobals.tcp.ipv4.fd != -1 && FD_ISSET(caglobals.tcp.ipv4.fd, readFds))
+    if (tcp_socket_ipv4.fd != -1 && FD_ISSET(tcp_socket_ipv4.fd, readFds))
     {
-        CAAcceptConnection(CA_IPV4, &caglobals.tcp.ipv4);
+        CAAcceptConnection(CA_IPV4, &tcp_socket_ipv4);
         return;
     }
-    else if (caglobals.tcp.ipv4s.fd != -1 && FD_ISSET(caglobals.tcp.ipv4s.fd, readFds))
+    else if (tcp_socket_ipv4s.fd != -1 && FD_ISSET(tcp_socket_ipv4s.fd, readFds))
     {
-        CAAcceptConnection(CA_IPV4 | CA_SECURE, &caglobals.tcp.ipv4s);
+        CAAcceptConnection(CA_IPV4 | CA_SECURE, &tcp_socket_ipv4s);
         return;
     }
-    else if (caglobals.tcp.ipv6.fd != -1 && FD_ISSET(caglobals.tcp.ipv6.fd, readFds))
+    else if (tcp_socket_ipv6.fd != -1 && FD_ISSET(tcp_socket_ipv6.fd, readFds))
     {
-        CAAcceptConnection(CA_IPV6, &caglobals.tcp.ipv6);
+        CAAcceptConnection(CA_IPV6, &tcp_socket_ipv6);
         return;
     }
-    else if (caglobals.tcp.ipv6s.fd != -1 && FD_ISSET(caglobals.tcp.ipv6s.fd, readFds))
+    else if (tcp_socket_ipv6s.fd != -1 && FD_ISSET(tcp_socket_ipv6s.fd, readFds))
     {
-        CAAcceptConnection(CA_IPV6 | CA_SECURE, &caglobals.tcp.ipv6s);
+        CAAcceptConnection(CA_IPV6 | CA_SECURE, &tcp_socket_ipv6s);
         return;
     }
-    else if (-1 != caglobals.tcp.connectionFds[0] &&
-            FD_ISSET(caglobals.tcp.connectionFds[0], readFds))
+    else if (-1 != tcp_connectionFds[0] &&
+            FD_ISSET(tcp_connectionFds[0], readFds))
     {
         // new connection was created from remote device.
         // exit the function to update read file descriptor.
         char buf[MAX_ADDR_STR_SIZE_CA] = {0};
-        ssize_t len = read(caglobals.tcp.connectionFds[0], buf, sizeof (buf));
+        ssize_t len = read(tcp_connectionFds[0], buf, sizeof (buf));
         if (-1 == len)
         {
             return;

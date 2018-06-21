@@ -621,7 +621,9 @@ exit:
 }
 
 /* Caller must call FreeRoleCertChainList on roleEntries when finished. */
-OCStackResult CBORPayloadToRoles(const uint8_t *cborPayload, size_t size, RoleCertChain_t **roleEntries)
+OCStackResult CBORPayloadToRoles(const uint8_t *cborPayload,
+				 size_t size,
+				 RoleCertChain_t **roleEntries) EXPORT
 {
     if (NULL == cborPayload || 0 == size || NULL == roleEntries)
     {

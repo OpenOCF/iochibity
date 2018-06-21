@@ -32,13 +32,6 @@ static int32_t CAQueueIPData(bool isMulticast, const CAEndpoint_t *endpoint,
         return -1;
     }
 
-#ifdef SINGLE_THREAD
-
-    CAIPSendData(endpoint, data, dataLength, isMulticast);
-    return dataLength;
-
-#else
-
     // VERIFY_NON_NULL_RET(udp_sendQueueHandle, TAG, "sendQueueHandle", -1);
     // Create IPData to add to queue
     CAIPData_t *ipData = CACreateIPData(endpoint, data, dataLength, isMulticast);
@@ -49,8 +42,6 @@ static int32_t CAQueueIPData(bool isMulticast, const CAEndpoint_t *endpoint,
     }
     // Add message to send queue
     CAQueueingThreadAddData(&udp_sendQueueHandle, ipData, sizeof(CAIPData_t));
-
-#endif // SINGLE_THREAD
 
     return dataLength;
 }
@@ -93,6 +84,7 @@ EXPORT
 {
     (void)flags;
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s dest socket: %d", __func__, fd);
 #ifdef TB_LOG
     const char *secure = (endpoint->flags & CA_SECURE) ? "secure " : "insecure ";
 #endif
@@ -104,8 +96,9 @@ EXPORT
         /* { */
         /*     g_ipErrorHandler(endpoint, data, dlen, CA_SEND_FAILED); */
         /* } */
-	CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
-
+	// FIXME: short-circuit to CAAdapterErrorHandleCallback
+	//CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
+	CAErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
 
         OIC_LOG_V(ERROR, TAG, "%s%s %s sendTo failed: %s", secure, cast, fam, strerror(errno));
         CALogSendStateInfo(endpoint->adapter, endpoint->addr, endpoint->port,
@@ -121,8 +114,8 @@ EXPORT
 
 LOCAL void udp_send_data(CASocketFd_t fd, /*  @was sendData */
 			 const CAEndpoint_t *endpoint,
-	      const void *data, size_t dlen,
-	      const char *cast, const char *fam)
+			 const void *data, size_t dlen,
+			 const char *cast, const char *fam)
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
 
@@ -134,7 +127,8 @@ LOCAL void udp_send_data(CASocketFd_t fd, /*  @was sendData */
         /* { */
         /*     g_ipErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM); */
         /* } */
-	CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
+	CAErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
+	//CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
         return;
     }
 

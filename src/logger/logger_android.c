@@ -59,11 +59,11 @@
 #include <string.h>
 /* #include "logger_types.h" */
 
-#ifdef __ANDROID__
+/* #ifdef __ANDROID__ */
 #include <android/log.h>
-#elif defined(__TIZEN__)
-#include <dlog.h>
-#endif
+/* #elif defined(__TIZEN__) */
+/* #include <dlog.h> */
+/* #endif */
 
 #include <stdio.h>
 #include <stdarg.h>

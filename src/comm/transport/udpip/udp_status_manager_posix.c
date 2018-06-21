@@ -148,8 +148,9 @@ static CAResult_t CAAddToNetworkInterfaceList(CAInterface_t *ifitem)
 
 CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     CAIPDestroyNetworkInterfaceList();
-    return CAIPUnSetNetworkMonitorCallback(adapter);
+    return CA_STATUS_OK; // CAIPUnSetNetworkMonitorCallback(adapter);
 }
 
 /* CAResult_t CAIPUnSetNetworkMonitorCallback(CATransportAdapter_t adapter)
@@ -233,6 +234,7 @@ bool InterfaceListContains(uint32_t ifiindex) // @was InterfaceListContains
 
 /* GAR FIXME: CAIPGetAllInterfaceInformation(), not udp_get_ifs_for_rtm_newaddr(0) */
 // GAR: called on RTM_NEWADDR
+// FIXME: this is not transport-specific, put it in ip package
 // @rewrite: this has side effects, so refactor it
 // @rewrite: it adds addresses to g_netInterfaceList and calls status chg handlers
 // @rewrite: call it udp_get_interfaces_for_rtm_newaddr?
@@ -241,10 +243,10 @@ bool InterfaceListContains(uint32_t ifiindex) // @was InterfaceListContains
  * matter how many addresses.
  */
 u_arraylist_t			/**< @result list of CAInterface_t */
-*udp_get_ifs_for_rtm_newaddr(int desiredIndex) // @was udp_get_ifs_for_rtm_newaddr
+*udp_get_ifs_for_rtm_newaddr(int desiredIndex) // @was CAIPGetInterfaceInformation
 {
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-    OIC_LOG_V(DEBUG, TAG, "IN %s: desiredIndex = %d", __func__, desiredIndex);
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY; desiredIndex = %d", __func__, desiredIndex);
 #endif
     if (desiredIndex < 0)
     {
@@ -279,10 +281,9 @@ u_arraylist_t			/**< @result list of CAInterface_t */
     int i = 1;  // debugging
     char addr_str[256]; // debugging
     int ifindex = 0;
+
     for (ifa = ifp; ifa; ifa = ifa->ifa_next)
     {
-	if (ifa->ifa_next == NULL) break;
-
 	/* OIC_LOG_V(DEBUG, TAG, "item %d", i); */
 	ifindex = 0;
 

@@ -229,7 +229,7 @@ exit:
 }
 
 OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
-                                 OicSecAmacl_t **secAmacl)
+                                 OicSecAmacl_t **secAmacl) EXPORT
 {
     if (NULL == cborPayload || NULL == secAmacl || NULL != *secAmacl || 0 == size)
     {

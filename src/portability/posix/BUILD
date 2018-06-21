@@ -28,7 +28,7 @@ cc_library(
                        "//config:darwin": [],
                        "//config:linux": ["-lpthread"],
                        "//config:linux-x86_64": ["-lpthread"],
-                       "//config:rpi": ["-lpthread"],
+                       "//config:rpi_arm8": ["-lpthread"],
                        "//config:android_x86": ["BORKED1"],
                        "//conditions:default": ["BORKED"]}),
     srcs = glob(["*.c"]) + glob(["*.h"]),

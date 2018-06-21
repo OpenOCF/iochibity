@@ -878,7 +878,7 @@ static SslEndPoint_t *GetSslPeer(const CAEndpoint_t *peer)
                 && (0 == strncmp(peer->addr, tep->sep.endpoint.addr, MAX_ADDR_STR_SIZE_CA))
                 && (peer->port == tep->sep.endpoint.port || CA_ADAPTER_GATT_BTLE == peer->adapter))
         {
-            OIC_LOG_V(DEBUG, NET_SSL_TAG, "Out %s", __func__);
+	    OIC_LOG_V(INFO, TAG, "%s EXIT: matched", __func__);
             return tep;
         }
     }
@@ -1461,6 +1461,12 @@ static bool SetupCipher(mbedtls_ssl_config * config,
        g_cipherSuitesList[index] = MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256;
        OIC_LOG(DEBUG, NET_SSL_TAG, "PSK ciphersuite added");
        index++;
+    } else {
+	OIC_LOG_V(DEBUG, NET_SSL_TAG, "g_caSslContext->cipherFlag[0]: %d", g_caSslContext->cipherFlag[0]);
+	OIC_LOG_V(DEBUG, NET_SSL_TAG, "tlsCipher[g_caSslContext->cipher][0]: %d",
+		  tlsCipher[g_caSslContext->cipher][0]);
+	OIC_LOG_V(DEBUG, NET_SSL_TAG, "MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256: %d",
+		  MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256);
     }
 
     // Add all certificate ciphersuites
@@ -2086,8 +2092,10 @@ void CAsetSslHandshakeCallback(CAHandshakeErrorCallback tlsHandshakeCallback)
  */
 CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dataLen)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(INFO, TAG, "%s subject id: %s", __func__, sep->identity.id);
+
     int ret = 0;
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
     VERIFY_NON_NULL_RET(sep, NET_SSL_TAG, "endpoint is NULL" , CA_STATUS_INVALID_PARAM);
     VERIFY_NON_NULL_RET(data, NET_SSL_TAG, "Param data is NULL" , CA_STATUS_INVALID_PARAM);
 
@@ -2359,7 +2367,26 @@ CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dat
             }
             else if (0 < ret)
             {
-                g_caSslContext->adapterCallbacks[adapterIndex].recvCallback(&peer->sep, decryptBuffer, ret);
+                //g_caSslContext->adapterCallbacks[adapterIndex].recvCallback(&peer->sep, decryptBuffer, ret);
+		/* this is the ONLY place
+		   adapterCallbacks[x].recvCallback is invoked. we can
+		   eliminate the method lookup */
+		OIC_LOG_V(INFO, TAG, "%s peer user id   : %s", __func__, peer->sep.userId.id);
+		OIC_LOG_V(INFO, TAG, "%s peer subject id: %s", __func__, peer->sep.identity.id);
+		switch (peer->sep.endpoint.adapter) {
+#ifdef ENABLE_UDP
+		case CA_ADAPTER_IP:
+		    mh_CAReceivedPacketCallback(&peer->sep, decryptBuffer, /* dataLen */ ret);
+		    break;
+#endif
+#ifdef ENABLE_TCP
+		case CA_ADAPTER_TCP:
+		    CATCPPacketReceivedCB(&peer->sep, decryptBuffer, /* dataLen */ ret);
+		    break;
+#endif
+		default:
+		    break;
+		}
             }
         }
         else
@@ -2378,13 +2405,13 @@ CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dat
 
 void CAsetSslAdapterCallbacks(// CAPacketReceivedCallback recvCallback,
                               CAPacketSendCallback sendCallback,
-                              CAErrorHandleCallback errorCallback,
+                              //CAErrorHandleCallback errorCallback,
                               CATransportAdapter_t type)
 {
     OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
     VERIFY_NON_NULL_VOID(sendCallback, NET_SSL_TAG, "sendCallback is NULL");
     /* VERIFY_NON_NULL_VOID(recvCallback, NET_SSL_TAG, "recvCallback is NULL"); */
-    VERIFY_NON_NULL_VOID(errorCallback, NET_SSL_TAG, "errorCallback is NULL");
+    /* VERIFY_NON_NULL_VOID(errorCallback, NET_SSL_TAG, "errorCallback is NULL"); */
 
     oc_mutex_lock(g_sslContextMutex);
     if (NULL == g_caSslContext)
@@ -2399,9 +2426,13 @@ void CAsetSslAdapterCallbacks(// CAPacketReceivedCallback recvCallback,
     {
         // @rewrite g_caSslContext->adapterCallbacks[index].recvCallback  = recvCallback;
 	// CAUDPPacketReceivedCB > ifc_CAReceivedPacketCallbackg > mh_CAReceivedPacketCallback
+	// UDP: mh_CAReceivedPacketCallback;
+	// TCP: CATCPPacketReceivedCB
 	g_caSslContext->adapterCallbacks[index].recvCallback  = mh_CAReceivedPacketCallback;
         g_caSslContext->adapterCallbacks[index].sendCallback  = sendCallback;
-        g_caSslContext->adapterCallbacks[index].errorCallback = errorCallback;
+
+        /* g_caSslContext->adapterCallbacks[index].errorCallback = errorCallback; */
+	g_caSslContext->adapterCallbacks[index].errorCallback = CAAdapterErrorHandleCallback;
     }
 
     oc_mutex_unlock(g_sslContextMutex);

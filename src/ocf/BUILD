@@ -1,4 +1,4 @@
-load("//config:variables.bzl", "CSTD")
+load("//config:variables.bzl", "CSTD", "DEFINES")
 
 config_setting(
     name = "client_role",
@@ -17,16 +17,10 @@ cc_binary(
     # name = "libopenocf.dylib",
     name = "libopenocfa.so",
     linkshared = 1,
-    copts = ["-Iconfig/darwin",
-             "-Iconfig/darwin/coap",
-             "-Iexternal/libcoap",
-             "-Iexternal/libcoap/include",
+    copts = ["-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
-    ] + select({"//config:windows": [],
-                "//config:msvc": [],
-                "//config:msys": [],
-                "//config:darwin":["-std=c11", "-U DEBUG"],
-                "//conditions:default": ["-x c", "-std=c11"]})
+    ] + select({"//config:darwin":["-U DEBUG"],
+                "//conditions:default": []})
     + CSTD,
     deps = ["//src:config",
             # "//src/ocf:interface",
@@ -52,18 +46,10 @@ cc_library(
              "-Iexternal/openocf/src",
              "-Isrc/portability",
              "-Iexternal/openocf/src/portability",
-             # "-Isrc/comm/api",
-             # "-Iexternal/openocf/src/comm/api",
-             # "-Isrc/comm/common",
-             # "-Iexternal/openocf/src/comm/common",
-             # "-Isrc/comm/interface",
-             # "-Iexternal/openocf/src/comm/interface",
              "-Isrc/comm/util",
              "-Iexternal/openocf/src/comm/util",
              "-Isrc/logger",
              "-Iexternal/openocf/src/logger",
-             # "-Isrc/ocf/client",
-             # "-Iexternal/openocf/src/ocf/client",
              "-Isrc/ocf",
              "-Iexternal/openocf/src/ocf",
              "-Isrc/sec",
@@ -72,8 +58,6 @@ cc_library(
              "-Iexternal/openocf/src/sec/aclroles",
              "-Isrc/util",
              "-Iexternal/openocf/src/util",
-             "-Iconfig/darwin",
-             "-Iconfig/darwin/coap",
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
              "-Iexternal/tinycbor/src",
@@ -82,22 +66,25 @@ cc_library(
     ] + select({"//config:windows": [],
                 "//config:msvc": [],
                 "//config:msys": [],
-                "//config:android": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
+                "//config:android_arm8": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
                 "//config:linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
                 "//config:darwin": ["-std=c11", "-U DEBUG"],
-                "//conditions:default": ["-x c", "-std=c11"]}),
+                "//conditions:default": ["-x c", "-std=c11"]})
+    + CSTD,
+
+    defines = DEFINES,
+
     deps = ["//src:config",
-            "//src/comm",       # connectivity
+            "//src/comm",
             "//src/logger",
             "//src/portability",
             "//src/provisioning",
             "//src/routing",
             "//src/sec",
-            "//src/util",       # c_common
+            "//src/util",
+            "//src/coap",
             "@libcoap//:libcoap",
             "@tinycbor//:tinycbor",
-            #"@cjson//:cjson",
-            #"//third_party/cjson",
 	    "//third_party/utlist"]
     + select({":client_role": ["//src/ocf/ocf_services_client"],
               "//conditions:default": []}),

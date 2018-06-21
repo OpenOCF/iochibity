@@ -25,7 +25,7 @@
 
 #include <errno.h>
 
-CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
+CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @was CAReceiveMessage
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     char recvBuffer[RECV_MSG_BUF_LEN] = {0};
@@ -119,16 +119,16 @@ CAResult_t CAReceiveMessage(CASocketFd_t fd, CATransportFlags_t flags)
 
     CAConvertAddrToName(&srcAddr, namelen, sep.endpoint.addr, &sep.endpoint.port);
 
-    if (flags & CA_SECURE)
-    {
+    if (flags & CA_SECURE) {
 #ifdef __WITH_DTLS__
-#ifdef TB_LOG
+#ifdef DEBUG_TLS
         int decryptResult =
 #endif
+	    /*  */
         CAdecryptSsl(&sep, (uint8_t *)recvBuffer, recvLen);
-        OIC_LOG_V(DEBUG, TAG, "CAdecryptSsl returns [%d]", decryptResult);
+        OIC_LOG_TLS_V(DEBUG, TAG, "CAdecryptSsl returns [%d]", decryptResult);
 #else
-        OIC_LOG(ERROR, TAG, "Encrypted message but no DTLS");
+        OIC_LOG(ERROR, TAG, "Encrypted message but DTLS disabled");
 #endif // __WITH_DTLS__
     }
     else

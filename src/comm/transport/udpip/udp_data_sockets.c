@@ -62,9 +62,9 @@ CASocket_t udp_m4s = { .fd = OC_INVALID_SOCKET, .port = CA_SECURE_COAP }; /**< m
 int udp_netlinkFd;              /**< netlink */
 #endif
 
-int udp_shutdownFds[2] = { -1, -1 }; /**< pipe used to signal threads to stop */
+int udp_shutdownFds[2]; // = { 80, 81 }; /**< pipe used to signal threads to stop */
 
-CASocketFd_t udp_maxfd;         /**< highest fd (for select) */
+CASocketFd_t udp_maxfd = 0;         /**< highest fd (for select) */
 
 
 void *udp_threadpool;           /**< threadpool between Initialize and Start */
@@ -446,6 +446,7 @@ LOCAL void applyMulticast6(CASocketFd_t fd, struct in6_addr *addr, uint32_t ifin
 
 void applyMulticastToInterface6(uint32_t ifindex)
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
     OIC_LOG_V(DEBUG, TAG, "Adding IF %d to IPv6 multicast group", ifindex);
 #endif
@@ -502,8 +503,13 @@ CAResult_t udp_add_ifs_to_multicast_groups()
         }
         if ((ifitem->flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS)
         {
+	    OIC_LOG_V (INFO, TAG, "%s IF %d: %s not up and running ",
+		   __func__, ifitem->index, ifitem->name);
             continue;
         }
+	OIC_LOG_V (INFO, TAG, "%s adding IF %d: %s to multicast groups ",
+		   __func__, ifitem->index, ifitem->name);
+
         if (ifitem->family == AF_INET)
         {
             applyMulticastToInterface4(ifitem->index);

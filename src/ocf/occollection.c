@@ -357,11 +357,11 @@ static bool addPolicyPayload(OCResourceHandle* resourceHandle, OCDevAddr* devAdd
                     {
                         if (devAddr->flags & OC_IP_USE_V6)
                         {
-                            securePort = caglobals.ip.u6s.port;
+                            securePort = udp_u6s.port;
                         }
                         else if (devAddr->flags & OC_IP_USE_V4)
                         {
-                            securePort = caglobals.ip.u4s.port;
+                            securePort = udp_u4s.port;
                         }
                     }
                 }

@@ -18,19 +18,19 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "oic_time.h"
-#include "gtest/gtest.h"
+#include "oic_time_tests.hpp"
+#include <gtest/gtest.h>
 #include <stdint.h>
 
 // Tests to get current time in milli seconds
-TEST(TimeTests, GetCurrentTimeInMilliSec)
+static TEST(TimeTests, GetCurrentTimeInMilliSec)
 {
     uint64_t  currentMilliSecTime = OICGetCurrentTime(TIME_IN_MS);
     EXPECT_TRUE(0 != currentMilliSecTime);
 }
 
 //Test to get current time in micro seconds
-TEST(TimeTests, GetCurrentTimeInMicroSec)
+static TEST(TimeTests, GetCurrentTimeInMicroSec)
 {
     uint64_t currentMicroSecTime = OICGetCurrentTime(TIME_IN_US);
     EXPECT_TRUE(0 != currentMicroSecTime);

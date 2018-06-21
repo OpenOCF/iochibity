@@ -26,7 +26,7 @@ cc_library(
             "@mbedtls//:mbedtls"
     ] + select({"//config:linux": ["//src/portability/posix"],
                 "//config:linux-x86_64": ["//src/portability/posix"],
-                "//config:rpi": ["//src/portability/posix"],
+                "//config:rpi_arm8": ["//src/portability/posix"],
 			          # "//src/portability/linux"],
                 "//config:windows": ["//src/portability/windows:win"],
                 "//config:msvc": ["//src/portability/windows:win"],
@@ -35,7 +35,6 @@ cc_library(
                             "//src/portability/darwin"],
                 "//config:darwin64": ["//src/portability/posix",
                               "//src/portability/darwin"],
-                "//config:android_arm64": ["//src/portability/android"],
                 "//config:android": ["//src/portability/android"],
               "//conditions:default": ["BROKEN"]}),
     # hdrs = glob(["*.h"]),

@@ -520,8 +520,8 @@ OCStackResult DoxmToCBORPayload(const OicSecDoxm_t *doxm,
  * @return ::OC_STACK_OK for Success, otherwise some error value.
 */
 static OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t size,
-                                OicSecDoxm_t **secDoxm, bool *roParsed,
-                                OicSecDeviceOnboardingState_t stateForReadOnlyCheck)
+					  OicSecDoxm_t **secDoxm, bool *roParsed,
+					  OicSecDeviceOnboardingState_t stateForReadOnlyCheck)
 {
     if (NULL == cborPayload)
     {
@@ -860,7 +860,7 @@ static OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t siz
 exit:
     if (CborNoError != cborFindResult)
     {
-        OIC_LOG (ERROR, TAG, "CBORPayloadToDoxm failed!!!");
+        OIC_LOG (ERROR, TAG, "CBORPayloadToDoxmBin failed!!!");
         DeleteDoxmBinData(doxm);
         doxm = NULL;
         *secDoxm = NULL;
@@ -870,8 +870,7 @@ exit:
 }
 
 OCStackResult CBORPayloadToDoxm(const uint8_t *cborPayload, size_t size,
-                                OicSecDoxm_t **secDoxm)
-EXPORT
+                                OicSecDoxm_t **secDoxm) EXPORT
 {
     return CBORPayloadToDoxmBin(cborPayload, size, secDoxm, NULL, DOS_RESET);
 }

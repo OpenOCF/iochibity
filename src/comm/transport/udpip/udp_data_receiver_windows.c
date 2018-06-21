@@ -94,7 +94,7 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
 
 	// ISSET(udp_u6,  readFds, CA_IPV6)
 	if ( UDPSET(udp_u6) ) {
-	    (void)CAReceiveMessage(udp_u6.fd, CA_IPV6);
+	    (void)udp_recvmsg_on_socket(udp_u6.fd, CA_IPV6);
 	    FD_CLR(udp_u6.fd, &readFds);
 	    ready_count--;
 	}
@@ -102,7 +102,7 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
 	if (udp_is_terminating) return;
 	// ISSET(udp_u6s, readFds, CA_IPV6 | CA_SECURE)
 	if ( UDPSET(udp_u6s) ) {
-	    (void)CAReceiveMessage(udp_u6s.fd, CA_IPV6 | CA_SECURE);
+	    (void)udp_recvmsg_on_socket(udp_u6s.fd, CA_IPV6 | CA_SECURE);
 	    FD_CLR(udp_u6s.fd, &readFds);
 	    ready_count--;
 	}
@@ -110,37 +110,37 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
 	if (udp_is_terminating) return;
 	/* else ISSET(udp_u4,  readFds, CA_IPV4) */
 	if ( UDPSET(udp_u4) ) {
-	    (void)CAReceiveMessage(udp_u4.fd, CA_IPV4);
+	    (void)udp_recvmsg_on_socket(udp_u4.fd, CA_IPV4);
 	    FD_CLR(udp_u4.fd, &readFds);
 	}
 	if (udp_is_terminating) return;
 	/* else ISSET(udp_u4s, readFds, CA_IPV4 | CA_SECURE) */
 	if ( UDPSET(udp_u4s) ) {
-	    (void)CAReceiveMessage(udp_u4s.fd, CA_IPV4 | CA_SECURE);
+	    (void)udp_recvmsg_on_socket(udp_u4s.fd, CA_IPV4 | CA_SECURE);
 	    FD_CLR(udp_u4s.fd, &readFds);
 	}
 	if (udp_is_terminating) return;
 	/* else ISSET(udp_m6,  readFds, CA_MULTICAST | CA_IPV6) */
 	if ( UDPSET(udp_m6) ) {
-	    (void)CAReceiveMessage(udp_m6.fd, CA_MULTICAST | CA_IPV6);
+	    (void)udp_recvmsg_on_socket(udp_m6.fd, CA_MULTICAST | CA_IPV6);
 	    FD_CLR(udp_m6.fd, &readFds);
 	}
 	if (udp_is_terminating) return;
 	/* else ISSET(udp_m6s, readFds, CA_MULTICAST | CA_IPV6 | CA_SECURE) */
 	if ( UDPSET(udp_m6s) ) {
-	    (void)CAReceiveMessage(udp_m6s.fd, CA_MULTICAST | CA_IPV6 | CA_SECURE);
+	    (void)udp_recvmsg_on_socket(udp_m6s.fd, CA_MULTICAST | CA_IPV6 | CA_SECURE);
 	    FD_CLR(udp_m6s.fd, &readFds);
 	}
 	if (udp_is_terminating) return;
 	/* else ISSET(udp_m4,  readFds, CA_MULTICAST | CA_IPV4) */
 	if ( UDPSET(udp_m4) ) {
-	    (void)CAReceiveMessage(udp_m4.fd, CA_MULTICAST | CA_IPV4);
+	    (void)udp_recvmsg_on_socket(udp_m4.fd, CA_MULTICAST | CA_IPV4);
 	    FD_CLR(udp_m4.fd, &readFds);
 	}
 	if (udp_is_terminating) return;
 	/* else ISSET(udp_m4s, readFds, CA_MULTICAST | CA_IPV4 | CA_SECURE) */
 	if ( UDPSET(udp_m4s) ) {
-	    (void)CAReceiveMessage(udp_m4s.fd, CA_MULTICAST | CA_IPV4 | CA_SECURE);
+	    (void)udp_recvmsg_on_socket(udp_m4s.fd, CA_MULTICAST | CA_IPV4 | CA_SECURE);
 	    FD_CLR(udp_m4s.fd, &readFds);
 	    ready_count--;
 	}

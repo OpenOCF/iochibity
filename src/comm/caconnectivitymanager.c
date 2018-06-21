@@ -49,14 +49,14 @@ bool ocf_server; /**< server mode */
 
 #define TAG "OIC_CA_CONN_MGR"
 
-static bool g_isInitialized = false;
+bool g_isInitialized = false;
 
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
 // Taking callback all the way through adapters not the right approach, hence calling here.
-extern void CAsetPkixInfoCallback(CAgetPkixInfoHandler infCallback);
-extern void CAsetPskCredentialsCallback(CAgetPskCredentialsHandler credCallback);
-extern void CAsetCredentialTypesCallback(CAgetCredentialTypesHandler credCallback);
-#endif // __WITH_DTLS__ or __WITH_TLS__
+/* extern void CAsetPkixInfoCallback(CAgetPkixInfoHandler infCallback); */
+/* extern void CAsetPskCredentialsCallback(CAgetPskCredentialsHandler credCallback); */
+/* extern void CAsetCredentialTypesCallback(CAgetCredentialTypesHandler credCallback); */
+/* #endif // __WITH_DTLS__ or __WITH_TLS__ */
 
 
 CAResult_t CAInitialize(CATransportAdapter_t transportType)
@@ -81,7 +81,7 @@ CAResult_t CAInitialize(CATransportAdapter_t transportType)
 
 void CATerminate()
 {
-    OIC_LOG(DEBUG, TAG, "CATerminate");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     if (g_isInitialized)
     {
@@ -90,6 +90,7 @@ void CATerminate()
 
         g_isInitialized = false;
     }
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 }
 
 CAResult_t CAStartListeningServer()
@@ -134,11 +135,12 @@ void CARegisterHandler(CARequestCallback ReqHandler, CAResponseCallback RespHand
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
-    if (!g_isInitialized)
-    {
-        OIC_LOG(DEBUG, TAG, "CA is not initialized");
-        return;
-    }
+    // GAR: unnecessary
+    /* if (!g_isInitialized) */
+    /* { */
+    /*     OIC_LOG(DEBUG, TAG, "CA is not initialized"); */
+    /*     return; */
+    /* } */
 
     CASetInterfaceCallbacks(ReqHandler, RespHandler, ErrorHandler);
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
@@ -512,18 +514,18 @@ CAResult_t CAUnSelectNetwork(CATransportAdapter_t nonInterestedNetwork)
     return res;
 }
 
-CAResult_t CAHandleRequestResponse()
-{
-    if (!g_isInitialized)
-    {
-        OIC_LOG(ERROR, TAG, "not initialized");
-        return CA_STATUS_NOT_INITIALIZED;
-    }
+/* CAResult_t CAHandleRequestResponse() */
+/* { */
+/*     if (!g_isInitialized) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "not initialized"); */
+/*         return CA_STATUS_NOT_INITIALIZED; */
+/*     } */
 
-    CAHandleRequestResponseCallbacks();
+/*     oocf_handle_inbound_messages(); // @was CAHandleRequestResponseCallbacks */
 
-    return CA_STATUS_OK;
-}
+/*     return CA_STATUS_OK; */
+/* } */
 
 #if INTERFACE
 #include <inttypes.h>

@@ -20,8 +20,11 @@
 
 
 extern "C" {
-    #include "oic_malloc.h"
+#include "oic_malloc_tests.hpp"
 }
+
+//     #include "oic_malloc.h"
+// }
 
 #include "gtest/gtest.h"
 #include <sys/types.h>
@@ -40,7 +43,7 @@ extern "C" {
 
 #include <iostream>
 #include <stdint.h>
-using namespace std;
+// using namespace std;
 
 //-----------------------------------------------------------------------------
 // Private variables
@@ -51,7 +54,7 @@ static uint8_t *pBuffer;
 //  Tests
 //-----------------------------------------------------------------------------
 
-TEST(OICMalloc, MallocPass1)
+static TEST(OICMalloc, MallocPass1)
 {
     // Try to allocate a small buffer
     pBuffer = (uint8_t *)OICMalloc(1);
@@ -59,7 +62,7 @@ TEST(OICMalloc, MallocPass1)
     OICFree(pBuffer);
 }
 
-TEST(OICMalloc, MallocPass2)
+static TEST(OICMalloc, MallocPass2)
 {
     // Try to allocate a small buffer
     pBuffer = (uint8_t *)OICMalloc(128);
@@ -67,7 +70,7 @@ TEST(OICMalloc, MallocPass2)
     OICFree(pBuffer);
 }
 
-TEST(OICMalloc, MallocFail1)
+static TEST(OICMalloc, MallocFail1)
 {
     // Try to allocate a buffer of size 0
     pBuffer = (uint8_t *)OICMalloc(0);
@@ -75,7 +78,7 @@ TEST(OICMalloc, MallocFail1)
     OICFree(pBuffer);
 }
 
-TEST(OICMalloc, MallocFail2)
+static TEST(OICMalloc, MallocFail2)
 {
     // Try to allocate a ridiculous amount of RAM
     pBuffer = (uint8_t *)OICMalloc((size_t)0x7FFFFFFFFFFFFFFF);
@@ -83,7 +86,7 @@ TEST(OICMalloc, MallocFail2)
     OICFree(pBuffer);
 }
 
-TEST(OICCalloc, CallocPass1)
+static TEST(OICCalloc, CallocPass1)
 {
     // Try to allocate a small buffer
     pBuffer = (uint8_t *)OICCalloc(1, 1);
@@ -91,7 +94,7 @@ TEST(OICCalloc, CallocPass1)
     OICFree(pBuffer);
 }
 
-TEST(OICCalloc, CallocPass2)
+static TEST(OICCalloc, CallocPass2)
 {
     // Try to allocate a small buffer
     pBuffer = (uint8_t *)OICCalloc(1, 128);
@@ -99,7 +102,7 @@ TEST(OICCalloc, CallocPass2)
     OICFree(pBuffer);
 }
 
-TEST(OICCalloc, CallocPass3)
+static TEST(OICCalloc, CallocPass3)
 {
     // Try to allocate a buffer for an array
     pBuffer = (uint8_t *)OICCalloc(5, 128);
@@ -107,7 +110,7 @@ TEST(OICCalloc, CallocPass3)
     OICFree(pBuffer);
 }
 
-TEST(OICCalloc, CallocFail1)
+static TEST(OICCalloc, CallocFail1)
 {
     // Try to allocate a buffer of size 0
     pBuffer = (uint8_t *)OICCalloc(1, 0);
@@ -115,7 +118,7 @@ TEST(OICCalloc, CallocFail1)
     OICFree(pBuffer);
 }
 
-TEST(OICCalloc, CallocFail2)
+static TEST(OICCalloc, CallocFail2)
 {
     // Try to allocate a buffer with num of 0
     pBuffer = (uint8_t *)OICCalloc(0, 5);
@@ -123,7 +126,7 @@ TEST(OICCalloc, CallocFail2)
     OICFree(pBuffer);
 }
 
-TEST(OICCalloc, CallocFail3)
+static TEST(OICCalloc, CallocFail3)
 {
     // Try to allocate a buffer with size and num 0
     pBuffer = (uint8_t *)OICCalloc(0, 0);
@@ -131,7 +134,7 @@ TEST(OICCalloc, CallocFail3)
     OICFree(pBuffer);
 }
 
-TEST(OICCalloc, CallocFail4)
+static TEST(OICCalloc, CallocFail4)
 {
     // Try to allocate a ridiculous amount of RAM
     pBuffer = (uint8_t *)OICCalloc(1, (size_t)0x7FFFFFFFFFFFFFFF);

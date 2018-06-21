@@ -1,28 +1,5 @@
 # FIXME: remove deps on third_party, should depend only on openocf
 
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" }
-)
-config_setting(
-    name = "android",
-    values = {"define": "target=android",
-              "android_cpu": "x86",
-              "android_crosstool_top": "//platforms/ndk:toolchain" }
-)
-config_setting(
-    name = "linux",
-    values = { "cpu": "k8" }
-)
-config_setting(
-    name = "wrlinux",
-    values = { "crosstool_top": "//platforms/wrlinux:toolchain" }
-)
-config_setting(
-    name = "rpi3b",
-    values = { "crosstool_top": "//platforms/rpi3b:toolchain" }
-)
-
 cc_binary(
     name = "server",
     # linkstatic = 1,
@@ -35,21 +12,22 @@ cc_binary(
              "-Iconfig/darwin/coap",
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
-             "-Iexternal/tinycbor/src"]
-    + select({":rpi3b": ["-Iexternal/cosysroot_rpi3b/usr/include",
-                         "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
-                         "-std=c11"],
-              ":android": ["-Iexternal/cosysroot_ndk/usr/include",
-                         "-Iexternal/cosysroot_ndk/usr/include/cdk",
-                         "-std=c11"],
-              ":windows": ["-Iexternal/usr_local/include",
-                           "-Iexternal/usr_local/include/cdk"],
+             "-Iexternal/tinycbor/src",
+    ]
+    + select({"//config:rpi_arm8": ["-Iexternal/cosysroot_rpi3b/usr/include",
+                                    "-Iexternal/cosysroot_rpi3b/usr/include/cdk",
+                                    "-std=c11"],
+              "//config:android_arm8": ["-Iexternal/cosysroot_ndk/usr/include",
+                                        "-Iexternal/cosysroot_ndk/usr/include/cdk",
+                                        "-std=c11"],
+              "//config:windows": ["-Iexternal/usr_local/include",
+                                   "-Iexternal/usr_local/include/cdk"],
               "//conditions:default": ["-Iexternal/usr_local/include",
                                        "-Iexternal/usr_local/in[<clude/cdk",
                                        "-std=c11",
                                        "-U DEBUG"]}), # OS X
-    data = [":config"],
-    deps = ["//src/ocf",
+    data = ["server_config.cbor"],
+    deps = ["//:openocf",
             ## FIXME: remove all deps except //src/ocf
             "//src:config",
             "@libcoap//:libcoap",
@@ -58,18 +36,19 @@ cc_binary(
     #           ":android": ["@cosysroot_ndk//:cdk"],
     #           ":wrlinux": ["@cosysroot_wrlinux//:cdk"],
     #           "//conditions:default": ["@usr_local//:cdk"]}),
-    linkopts = select({"windows": [],
+    linkopts = select({"//config:windows": [],
                        # "msvc": [],
                        # "msys": ["-lpthread"],
-                       "linux": ["-lpthread"],
-                       "rpi3b": ["-lpthread"],
-                       "wrlinux": ["-lpthread"],
+                       "//config:linux": ["-lpthread"],
+                       "//config:rpi_arm8": ["-lpthread"],
+                       #"wrlinux": ["-lpthread"],
                        # "android": [],
                        # "androidx86": [],
                        #"ndk": [],
                        "//conditions:default": []}),
     srcs = ["server.c",
-            "config/svr_config.c"]
+            #"config/svr_config.c"
+    ]
             # "config/acl.c",
             # "config/pstat.c",
             # "config/doxm.c",
@@ -77,16 +56,28 @@ cc_binary(
 )
 
 genrule(
-    name = "json",
+    name = "svrs",
     srcs = ["server_config.edn"],
-    outs = ["server_config.json"],
-    cmd = "edn-to-json $(location server_config.edn)  > \"$@\"",
+    outs = ["config/server_config.cbor"],
+    # output_to_bindir = 1,
+    cmd = "\n".join(["edn-to-json $(location server_config.edn)  > server_config.json",
+                     "json2cbor server_config.json > /tmp/server_config.cbor",
+                     "chmod ug+rw /tmp/server_config.cbor",
+                     "ls -l /tmp",
+                     "cp -p /tmp/server_config.cbor \"$@\"",])
 )
 
-genrule(
-    name = "config",
-    srcs = [":json"],
-    outs = ["server_config.cbor"],
-    cmd = "json2cbor $(location :json) > \"$@\"",
-    # tools = ["edn-to-json"],
-)
+# genrule(
+#     name = "json",
+#     srcs = ["server_config.edn"],
+#     outs = ["server_config.json"],
+#     cmd = "edn-to-json $(location server_config.edn)  > \"$@\"",
+# )
+
+# genrule(
+#     name = "config",
+#     srcs = ["server_config.json"],
+#     outs = ["server_config.cbor"],
+#     cmd = "json2cbor $(location server_config.json) > \"$@\"",
+#     # tools = ["edn-to-json"],
+# )

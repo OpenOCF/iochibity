@@ -1301,7 +1301,7 @@ exit:
 
 #if defined(TCP_ADAPTER) && defined(WITH_CLOUD)
 
-OicSecAcl_t* CBORPayloadToCloudAcl(const uint8_t *cborPayload, const size_t size)
+OicSecAcl_t* CBORPayloadToCloudAcl(const uint8_t *cborPayload, const size_t size) EXPORT
 {
     if (NULL == cborPayload || 0 == size)
     {
@@ -1622,7 +1622,7 @@ exit:
 //              without decoding the rest of the payload.  If NULL, this function will complete
 //              decoding as normal, and will not assign a value to 'versionCheck'.
 static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const size_t size,
-    OicSecAclVersion_t *versionCheck)
+					       OicSecAclVersion_t *versionCheck) EXPORT
 {
     if (NULL == cborPayload || 0 == size)
     {
@@ -2306,7 +2306,7 @@ exit:
 // This function converts CBOR format to ACL data.
 // Caller needs to invoke 'OICFree' on returned value when done using
 // note: This function is used in unit test hence not declared static.
-OicSecAcl_t* CBORPayloadToAcl(const uint8_t *cborPayload, const size_t size)
+OicSecAcl_t* CBORPayloadToAcl(const uint8_t *cborPayload, const size_t size) EXPORT
 {
     return CBORPayloadToAclVersionOpt(cborPayload, size, NULL);
 }
@@ -3749,6 +3749,7 @@ OCStackResult DeInitACLResource()
     return (OC_STACK_OK != ret) ? ret : ret2;
 }
 
+/* get ACE based on UUID subject type */
 const OicSecAce_t* GetACLResourceData(const OicUuid_t* subjectId, OicSecAce_t **savePtr)
 {
     OicSecAce_t *ace = NULL;
@@ -3759,7 +3760,7 @@ const OicSecAce_t* GetACLResourceData(const OicUuid_t* subjectId, OicSecAce_t **
         return NULL;
     }
 
-    OIC_LOG(DEBUG, TAG, "GetACLResourceData: searching for ACE matching subject:");
+    OIC_LOG_V(DEBUG, TAG, "%s: searching for ACE matching subjectId->id...", __func__);
     OIC_LOG_BUFFER(DEBUG, TAG, subjectId->id, sizeof(subjectId->id));
 
     /*
@@ -3869,10 +3870,9 @@ const OicSecAce_t* GetACLResourceDataByRoles(const OicSecRole_t *roles, size_t r
 
 const OicSecAce_t* GetACLResourceDataByConntype(const OicSecConntype_t conntype, OicSecAce_t **savePtr)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, conntype %d", __func__, conntype);
     OicSecAce_t *ace = NULL;
     OicSecAce_t *begin = NULL;
-
-    OIC_LOG_V(DEBUG, TAG, "IN: %s(%d)", __func__, conntype);
 
     if ((NULL == savePtr) || (NULL == gAcl))
     {

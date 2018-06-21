@@ -28,7 +28,7 @@
 // Refer http://www.gnu.org/software/libc/manual/html_node/BSD-Random.html
 #define _DEFAULT_SOURCE
 
-#include "caprotocolmessage.h"
+#include "coap_codec.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -149,6 +149,7 @@ CAResult_t CAGetRequestInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *en
     return ret;
 }
 
+/* inbound responses only */
 CAResult_t CAGetResponseInfoFromPDU(const coap_pdu_t *pdu, CAResponseInfo_t *outResInfo,
                                     const CAEndpoint_t *endpoint)
 {
@@ -173,6 +174,7 @@ CAResult_t CAGetErrorInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endp
     return ret;
 }
 
+/* convert OCF data to CoAP PDU (outbound msgs only) */
 coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_t *endpoint,
                           coap_list_t **optlist, coap_transport_t *transport)
 {
@@ -1411,12 +1413,14 @@ bool CAIsSupportedBlockwiseTransfer(CATransportAdapter_t adapter)
 #ifdef WITH_TCP
 bool CAIsSupportedCoAPOverTCP(CATransportAdapter_t adapter)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (CA_ADAPTER_GATT_BTLE & adapter || CA_ADAPTER_RFCOMM_BTEDR & adapter
             || CA_ADAPTER_TCP & adapter || CA_DEFAULT_ADAPTER == adapter)
     {
+	OIC_LOG_V(INFO, TAG, "%s EXIT true", __func__);
         return true;
     }
-    OIC_LOG_V(INFO, TAG, "adapter value of CoAP/TCP is %d", adapter);
+    OIC_LOG_V(INFO, TAG, "%s EXIT false, adapter type: %d", __func__, adapter);
     return false;
 }
 #endif

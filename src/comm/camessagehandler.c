@@ -42,10 +42,12 @@
  */
 #define ANALYZER_TAG "OIC_ANALYZER"
 
+CAHistory_t requestHistory;  /**< filter IP family in requests */
+
 /**
  * Base Information received.
  *
- * This structure is used to hold request & response base information.
+ * This structure is used to hold inbound request & response base information.
  */
 #if EXPORT_INTERFACE
 typedef struct
@@ -87,15 +89,15 @@ typedef char *CAToken_t;
 #if EXPORT_INTERFACE
 typedef enum
 {
-    CA_REQUEST_DATA = 1,
-    CA_RESPONSE_DATA,
+    CA_REQUEST_DATA = 1,	/* inbound only? */
+    CA_RESPONSE_DATA,		/* inbound only? */
     CA_ERROR_DATA,
     CA_RESPONSE_FOR_RES
 } CADataType_t;
 #endif	/* INTERFACE */
 
-#define CA_MEMORY_ALLOC_CHECK(arg) { if (NULL == arg) {OIC_LOG(ERROR, TAG, "Out of memory"); \
-goto memory_error_exit;} }
+/* #define CA_MEMORY_ALLOC_CHECK(arg) { if (NULL == arg) {OIC_LOG(ERROR, TAG, "Out of memory"); \ */
+/* goto memory_error_exit;} } */
 
 #if EXPORT_INTERFACE
 /** IP, EDR, LE. **/
@@ -205,9 +207,9 @@ static CAQueueingThread_t g_receiveThread;
 static CARetransmission_t g_retransmissionContext;
 
 // handler field
-static CARequestCallback g_requestHandler = NULL;
-static CAResponseCallback g_responseHandler = NULL;
-static CAErrorCallback g_errorHandler = NULL;
+//static CARequestCallback g_requestHandler = NULL;
+//static CAResponseCallback g_responseHandler = NULL;
+//static CAErrorCallback g_errorHandler = NULL;
 static CANetworkMonitorCallback g_nwMonitorHandler = NULL;
 
 /* static void CAErrorHandler(const CAEndpoint_t *endpoint, */
@@ -265,12 +267,19 @@ static bool CAIsSelectedNetworkAvailable()
     return true;
 }
 
+/* convert incoming PDU to OCF data, handles both requests and
+   responses (inbound only); called by mh_CAReceivedPacketCallback
+   only. result is passed to msg handler
+*/
 static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
                                        const CARemoteId_t *identity,
-                                       const void *data, CADataType_t dataType)
+                                       const void *data,
+				       CADataType_t dataType)
 {
-    OIC_LOG(DEBUG, TAG, "CAGenerateHandlerData IN");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+#if defined(DEBUG_MSGS)
     CAInfo_t *info = NULL;
+#endif
     CAData_t *cadata = (CAData_t *) OICCalloc(1, sizeof(CAData_t));
     if (!cadata)
     {
@@ -286,25 +295,26 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
 
     OIC_LOG_V(DEBUG, TAG, "address : %s", ep->addr);
 
-    if (CA_RESPONSE_DATA == dataType)
+    if (CA_RESPONSE_DATA == dataType) /* CLIENT mode */
     {
-	OIC_LOG_V(DEBUG, TAG, "data type is CA_RESPONSE_DATA");
-        CAResponseInfo_t* resInfo = (CAResponseInfo_t*)OICCalloc(1, sizeof(CAResponseInfo_t));
-        if (!resInfo)
+	OIC_LOG_V(DEBUG, TAG, "data type is CA_RESPONSE_DATA (inbound)");
+        CAResponseInfo_t* inbound_response = (CAResponseInfo_t*)OICCalloc(1, sizeof(CAResponseInfo_t));
+        if (!inbound_response)
         {
             OIC_LOG(ERROR, TAG, "memory allocation failed");
             goto exit;
         }
 
-        CAResult_t result = CAGetResponseInfoFromPDU(data, resInfo, endpoint);
+        CAResult_t result = CAGetResponseInfoFromPDU(data, inbound_response, endpoint);
         if (CA_STATUS_OK != result)
         {
             OIC_LOG(ERROR, TAG, "CAGetResponseInfoFromPDU Failed");
-            CADestroyResponseInfoInternal(resInfo);
+            CADestroyResponseInfoInternal(inbound_response);
             goto exit;
         }
-        cadata->responseInfo = resInfo;
-        info = &resInfo->info;
+        cadata->responseInfo = inbound_response;
+#if defined(DEBUG_MSGS)
+        info = &inbound_response->info;
         if (identity)
         {
             info->identity = *identity;
@@ -315,42 +325,45 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
         }
         OIC_LOG(DEBUG, TAG, "Response Info :");
         CALogPayloadInfo(info);
+#endif
     }
-    else if (CA_REQUEST_DATA == dataType)
+    else if (CA_REQUEST_DATA == dataType) /* SERVER mode */
     {
-	OIC_LOG_V(DEBUG, TAG, "data type is CA_REQUEST_DATA");
-        CARequestInfo_t* reqInfo = (CARequestInfo_t*)OICCalloc(1, sizeof(CARequestInfo_t));
-        if (!reqInfo)
+	OIC_LOG_V(DEBUG, TAG, "data type is CA_REQUEST_DATA (inbound)");
+        CARequestInfo_t* inbound_request = (CARequestInfo_t*)OICCalloc(1, sizeof(CARequestInfo_t));
+        if (!inbound_request)
         {
             OIC_LOG(ERROR, TAG, "memory allocation failed");
             goto exit;
         }
 
-        CAResult_t result = CAGetRequestInfoFromPDU(data, endpoint, reqInfo);
+        CAResult_t result = CAGetRequestInfoFromPDU(data, endpoint, inbound_request);
         if (CA_STATUS_OK != result)
         {
             OIC_LOG(ERROR, TAG, "CAGetRequestInfoFromPDU failed");
-            CADestroyRequestInfoInternal(reqInfo);
+            CADestroyRequestInfoInternal(inbound_request);
             goto exit;
         }
 
-        if (CADropSecondMessage(&caglobals.ca.requestHistory, endpoint, reqInfo->info.messageId,
-                                reqInfo->info.token, reqInfo->info.tokenLength))
+        if (CADropSecondMessage(&requestHistory, endpoint, inbound_request->info.messageId,
+                                inbound_request->info.token, inbound_request->info.tokenLength))
         {
             OIC_LOG(INFO, TAG, "Second Request with same Token, Drop it");
-            CADestroyRequestInfoInternal(reqInfo);
+            CADestroyRequestInfoInternal(inbound_request);
             goto exit;
         }
 
-        cadata->requestInfo = reqInfo;
-        info = &reqInfo->info;
+        cadata->requestInfo = inbound_request;
+#if defined(DEBUG_MSGS)
+        info = &inbound_request->info;
         if (identity)
         {
             info->identity = *identity;
         }
         OIC_LOG(DEBUG, TAG, "Request Info :");
         CALogPayloadInfo(info);
-   }
+#endif
+    }
     else if (CA_ERROR_DATA == dataType)
     {
 	OIC_LOG_V(DEBUG, TAG, "data type is CA_ERROR_DATA");
@@ -370,6 +383,7 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
         }
 
         cadata->errorInfo = errorInfo;
+#if defined(DEBUG_MSGS)
         info = &errorInfo->info;
         if (identity)
         {
@@ -377,12 +391,13 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
         }
         OIC_LOG(DEBUG, TAG, "error Info :");
         CALogPayloadInfo(info);
+#endif
     }
 
     cadata->remoteEndpoint = ep;
     cadata->dataType = dataType;
 
-    OIC_LOG(DEBUG, TAG, "CAGenerateHandlerData OUT");
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return cadata;
 
 exit:
@@ -506,7 +521,7 @@ static void CAReceiveThreadProcess(void *threadData)
 #endif
 }
 
-static void CAErrorHandler(const CAEndpoint_t *endpoint,
+void CAErrorHandler(const CAEndpoint_t *endpoint,
                     const void *data, size_t dataLen,
                     CAResult_t result)
 {
@@ -990,6 +1005,7 @@ exit:
     return res;
 }
 
+/* send outbound multicast msg */
 static CAResult_t CAProcessMulticastData(const CAData_t *data)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -1219,7 +1235,7 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
             }
             CAProcessMulticastData(data);
             data->remoteEndpoint->adapter = CA_ADAPTER_IP;
-            CAProcessMulticastData(data);
+            CAProcessMulticastData(data); /* why twice? */
         }
         else
         {
@@ -1300,8 +1316,8 @@ LOCAL bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *ep, uin
     return ret;
 }
 
-// static
-void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
+/* called by both UDP and TCP; converts data and puts on recv queue */
+void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep, // @was CAReceivedPacketCallback
 				 const void *data,
 				 size_t dataLen) EXPORT
 {
@@ -1330,7 +1346,7 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
 
     OIC_LOG_V(DEBUG, TAG, "code = %d", code);
     if (CA_GET == code || CA_POST == code || CA_PUT == code || CA_DELETE == code)
-    {
+    {				/*  SERVER mode */
         cadata = CAGenerateHandlerData(&(sep->endpoint), &(sep->identity), pdu, CA_REQUEST_DATA);
         if (!cadata)
         {
@@ -1340,7 +1356,7 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
         }
     }
     else
-    {
+	{				/* CLIENT mode */
         cadata = CAGenerateHandlerData(&(sep->endpoint), &(sep->identity), pdu, CA_RESPONSE_DATA);
         if (!cadata)
         {
@@ -1352,7 +1368,7 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
 #ifdef WITH_TCP
         if (CAIsSupportedCoAPOverTCP(sep->endpoint.adapter))
         {
-            OIC_LOG(INFO, TAG, "retransmission is not supported");
+            OIC_LOG(INFO, TAG, "CoAP/TCP retransmission is not supported");
         }
         else
 #endif
@@ -1384,7 +1400,9 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep,
 
     cadata->type = SEND_TYPE_UNICAST;
 
+#if defined(DEBUG_MSGS)
     CALogPDUInfo(cadata, pdu);
+#endif
 
 #ifdef WITH_BWT
     if (CAIsSupportedBlockwiseTransfer(sep->endpoint.adapter))
@@ -1419,9 +1437,8 @@ exit:
     OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
 }
 
-void CAHandleRequestResponseCallbacks()
+void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
 {
-    /* OIC_LOG_V(DEBUG, TAG, "%s >>>>>>>>>>>>>>>> ENTRY >>>>>>>>>>>>>>>>", __func__); */
 #ifdef SINGLE_HANDLE
     // parse the data and call the callbacks.
     // #1 parse the data
@@ -1437,6 +1454,7 @@ void CAHandleRequestResponseCallbacks()
     {
         return;
     }
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     // get endpoint
     CAData_t *td = (CAData_t *) item->msg;
@@ -1447,33 +1465,47 @@ void CAHandleRequestResponseCallbacks()
 	      :(CA_RESPONSE_FOR_RES == td->dataType)? "RESPONSE_FOR_RES"
 	      : "UNKNOWN");
 
-    OIC_LOG_V(DEBUG, TAG, "Msg EP: [%s]:%d ", td->remoteEndpoint->addr, td->remoteEndpoint->port);
+    OIC_LOG_V(DEBUG, TAG, "Msg remote EP: [%s]:%d ", td->remoteEndpoint->addr, td->remoteEndpoint->port);
 
-    if (td->requestInfo && g_requestHandler)
-    {
+    if (td->requestInfo) // && g_requestHandler)
+    {			 /* inbound requests: SERVER mode? */
         OIC_LOG_V(DEBUG, TAG, "REQUEST callback option count: %d", td->requestInfo->info.numOptions);
 	OIC_LOG_V(DEBUG, TAG, "REQUEST method: %d", td->requestInfo->method); // get=1,post,put,delete
 	OIC_LOG_V(DEBUG, TAG, "REQUEST isMcast? %d", td->requestInfo->isMulticast);
-        g_requestHandler(td->remoteEndpoint, td->requestInfo);
+	OIC_LOG_V(DEBUG, TAG, "REQUEST subject id: %s", td->requestInfo->info.identity.id);
+#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+        /* g_requestHandler(td->remoteEndpoint, td->requestInfo); */
+	SRMRequestHandler(td->remoteEndpoint, td->requestInfo);
+#else
+#endif
     }
-    else if (td->responseInfo && g_responseHandler)
-    {
+    else if (td->responseInfo) // && g_responseHandler)
+    {			       /* inbound response, CLIENT mode */
         OIC_LOG_V(DEBUG, TAG, "RESPONSE callback option count: %d", td->responseInfo->info.numOptions);
 	OIC_LOG_V(DEBUG, TAG, "RESPONSE result: %d", td->responseInfo->result);
 	OIC_LOG_V(DEBUG, TAG, "RESPONSE isMcast? %d", td->responseInfo->isMulticast);
-        g_responseHandler(td->remoteEndpoint, td->responseInfo);
+        //g_responseHandler(td->remoteEndpoint, td->responseInfo);
+        HandleCAResponses(td->remoteEndpoint, td->responseInfo);
     }
-    else if (td->errorInfo && g_errorHandler)
+    else if (td->errorInfo) // && g_errorHandler)
     {
         OIC_LOG_V(DEBUG, TAG, "ERROR callback error: %d", td->errorInfo->result);
-        g_errorHandler(td->remoteEndpoint, td->errorInfo);
+        /* g_errorHandler(td->remoteEndpoint, td->errorInfo); */
+	// FIXME: rename to e.g. receiver_error_handler
+#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+	// FIXME: SRMErrorHandler=>gErrorHandler == HandleCAErrorResponse
+	// SRMErrorHandler(td->remoteEndpoint, td->errorInfo);
+	HandleCAErrorResponse(td->remoteEndpoint, td->errorInfo);
+#else
+	HandleCAErrorResponse(td->remoteEndpoint, td->errorInfo);
+#endif
     }
 
     CADestroyData(item->msg, sizeof(CAData_t));
     OICFree(item);
 
 #endif // SINGLE_HANDLE
-    OIC_LOG_V(DEBUG, TAG, "%s <<<<<<<<<<<<<<<< EXIT <<<<<<<<<<<<<<<<", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s <<<<<<<<<<<<<<<< EXIT <<<<<<<<<<<<<<<<", __func__); */
 }
 
 static CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
@@ -1597,9 +1629,9 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *endpoint, const void *sendMsg
 void CASetInterfaceCallbacks(CARequestCallback ReqHandler, CAResponseCallback RespHandler,
                              CAErrorCallback errorHandler)
 {
-    g_requestHandler = ReqHandler;
-    g_responseHandler = RespHandler;
-    g_errorHandler = errorHandler;
+    //g_requestHandler = ReqHandler;
+    // g_responseHandler = RespHandler;
+    // g_errorHandler = errorHandler;
 }
 
 void CASetNetworkMonitorCallback(CANetworkMonitorCallback nwMonitorHandler)
@@ -1842,14 +1874,12 @@ LOCAL void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu)
     VERIFY_NON_NULL_VOID(pdu, TAG, "pdu");
     OIC_TRACE_BEGIN(%s:CALogPDUInfo, TAG);
 
-    if(SEND_TYPE_MULTICAST == data->type)
-    {
-        OIC_LOG(DEBUG, ANALYZER_TAG, "Is Multicast = true");
-    }
-    else
-    {
-        OIC_LOG(DEBUG, ANALYZER_TAG, "Is Multicast = false");
-    }
+    OIC_LOG_V(INFO, TAG, "%s type: %s", __func__,
+	      (SEND_TYPE_MULTICAST == data->type)
+	      ? "SEND_TYPE_MULTICAST"
+	      :(SEND_TYPE_UNICAST == data->type)
+	      ? "SEND_TYPE_UNICAST"
+	      : "ERROR-UKNOWN TYPE");
 
     if (NULL != data->remoteEndpoint)
     {
@@ -1862,9 +1892,11 @@ LOCAL void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu)
     {
         case CA_REQUEST_DATA:
             OIC_LOG(DEBUG, ANALYZER_TAG, "Data Type = [CA_REQUEST_DATA]");
+            OIC_LOG_V(DEBUG, ANALYZER_TAG, "identity = ", data->requestInfo->info.identity);
             break;
         case CA_RESPONSE_DATA:
             OIC_LOG(DEBUG, ANALYZER_TAG, "Data Type = [CA_RESPONSE_DATA]");
+            OIC_LOG_V(DEBUG, ANALYZER_TAG, "identity = ", data->responseInfo->info.identity);
             break;
         case CA_ERROR_DATA:
             OIC_LOG(DEBUG, ANALYZER_TAG, "Data Type = [CA_ERROR_DATA]");

@@ -54,11 +54,13 @@ typedef struct
 } CATCPData;
 #endif
 
+void *tcp_threadpool;       /**< threadpool between Initialize and Start */
+
 /**
  * Adapter Changed Callback to CA.
  */
 // static CAAdapterChangeCallback tcp_networkChangeCallback = NULL;
-void (*tcp_networkChangeCallback)(CATransportAdapter_t adapter, CANetworkStatus_t status) = NULL;
+/* void (*tcp_networkChangeCallback)(CATransportAdapter_t adapter, CANetworkStatus_t status) = NULL; */
 
 /**
  * Connection Changed Callback to CA.
@@ -141,13 +143,11 @@ static void CATCPDestroyCond()
 
 CAResult_t CAStartTCP()
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     // Start network monitoring to receive adapter status changes.
-    // @rewrite CAIPStartNetworkMonitor(CATCPAdapterHandler, CA_ADAPTER_TCP);
-    CATCPStartNetworkMonitor(tcp_status_change_handler, CA_ADAPTER_TCP);
+    ip_create_network_interface_list(tcp_status_change_handler, CA_ADAPTER_TCP); // @was CAIPStartNetworkMonitor
 
-#ifndef SINGLE_THREAD
     if (CA_STATUS_OK != CATCPInitializeQueueHandles())
     {
         OIC_LOG(ERROR, TAG, "Failed to Initialize Queue Handle");
@@ -161,14 +161,6 @@ CAResult_t CAStartTCP()
         OIC_LOG(ERROR, TAG, "Failed to Start Send Data Thread");
         return CA_STATUS_FAILED;
     }
-#else
-    CAResult_t ret = CATCPStartServer();
-    if (CA_STATUS_OK != ret)
-    {
-        OIC_LOG_V(DEBUG, TAG, "CATCPStartServer failed[%d]", ret);
-        return ret;
-    }
-#endif
 
     return CA_STATUS_OK;
 }
@@ -177,13 +169,11 @@ CAResult_t CAStopTCP()
 {
     CAIPStopNetworkMonitor(CA_ADAPTER_TCP);
 
-#ifndef SINGLE_THREAD
     if (tcp_sendQueueHandle && tcp_sendQueueHandle->threadMutex)
     {
         CAQueueingThreadStop(tcp_sendQueueHandle);
     }
     CATCPDeinitializeQueueHandles();
-#endif
 
     CATCPStopServer();
 
@@ -199,7 +189,6 @@ CAResult_t CAStopTCP()
 
 CAResult_t CAStartTCPListeningServer()
 {
-#ifndef SINGLE_THREAD
     if (!ocf_server)
     {
         ocf_server = true;    // only needed to run CA tests
@@ -211,7 +200,6 @@ CAResult_t CAStartTCPListeningServer()
         OIC_LOG_V(ERROR, TAG, "Failed to start listening server![%d]", ret);
         return ret;
     }
-#endif
 
     return CA_STATUS_OK;
 }
@@ -249,21 +237,18 @@ CAResult_t CAInitializeTCP(// CARegisterConnectivityCallback registerCallback,
     /* VERIFY_NON_NULL_MSG(registerCallback, TAG, "registerCallback"); */
     /* VERIFY_NON_NULL_MSG(networkPacketCallback, TAG, "networkPacketCallback"); */
     /* VERIFY_NON_NULL_MSG(netCallback, TAG, "netCallback"); */
-#ifndef SINGLE_THREAD
+
     VERIFY_NON_NULL_MSG(handle, TAG, "thread pool handle");
-#endif
 
     // FIXME: call windows init code
 
     // tcp_networkPacketCallback = g_networkPacketReceivedCallback; //ifc_CAReceivedPacketCallback;   // networkPacketCallback;
-    tcp_networkChangeCallback = CAAdapterChangedCallback;       // netCallback;
+    //tcp_networkChangeCallback = CAAdapterChangedCallback;       // netCallback;
     tcp_connectionChangeCallback = CAConnectionChangedCallback; // connCallback;
     tcp_errorCallback = CAAdapterErrorHandleCallback;           // errorCallback;
 
     // initialization is now static - CAInitializeTCPGlobals();
-#ifndef SINGLE_THREAD
     tcp_threadpool = handle;
-#endif
 
     CATCPSetConnectionChangedCallback(CATCPConnectionHandler);
     CATCPSetPacketReceiveCallback(CATCPPacketReceivedCB);
@@ -277,28 +262,31 @@ CAResult_t CAInitializeTCP(// CARegisterConnectivityCallback registerCallback,
     else
     {
         CAsetSslAdapterCallbacks(//CATCPPacketReceivedCB,
-				 CATCPPacketSendCB, CATCPErrorHandler, CA_ADAPTER_TCP);
+				 CATCPPacketSendCB,
+				 //CATCPErrorHandler,
+				 CA_ADAPTER_TCP);
     }
 #endif
 
     /* These routines are called from cainterfacecontroller, where
        they are accessed via table lookup. that has been replaced by
        direct calls, so this can go away */
-    CAConnectivityHandler_t tcpHandler = {
-        .startAdapter = &CAStartTCP,
-        .stopAdapter = &CAStopTCP,
-        .startListenServer = &CAStartTCPListeningServer,
-        .stopListenServer = &CAStopTCPListeningServer,
-        .startDiscoveryServer = &CAStartTCPDiscoveryServer,
-        .unicast = &CASendTCPUnicastData,
-        .multicast = &CASendTCPMulticastData, /* not used? */
-        .GetNetInfo = &CAGetTCPInterfaceInformation,
-        .readData = &CAReadTCPData,
-        .terminate = &CATerminateTCP,
-        .cType = CA_ADAPTER_TCP};
+    //CAConnectivityHandler_t tcpHandler = {
+        // .startAdapter = &CAStartTCP,
+        // .stopAdapter = &CAStopTCP,
+        // .startListenServer = &CAStartTCPListeningServer,
+        // .stopListenServer = &CAStopTCPListeningServer,
+        // .startDiscoveryServer = &CAStartTCPDiscoveryServer,
+        // .unicast = &CASendTCPUnicastData,
+        // .multicast = &CASendTCPMulticastData,
+        // .GetNetInfo = &CAGetTCPInterfaceInformation,
+        // .readData = &CAReadTCPData,
+        // .terminate = &CATerminateTCP,
+        // .cType = CA_ADAPTER_TCP
+	//};
 
     //registerCallback(tcpHandler);
-    CARegisterCallback(tcpHandler);
+    //CARegisterCallback(tcpHandler);
 
     OIC_LOG(INFO, TAG, "OUT IntializeTCP is Success");
     return CA_STATUS_OK;
@@ -374,9 +362,10 @@ CAResult_t CATCPStartServer(const ca_thread_pool_t threadPool)
 
 void CATCPStopServer()
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (tcp_is_terminating) // caglobals.tcp.terminate
     {
-        OIC_LOG(DEBUG, TAG, "Adapter is not enabled");
+        OIC_LOG(DEBUG, TAG, "TCP is already terminating");
         return;
     }
 
@@ -431,14 +420,16 @@ void CATCPStopServer()
     CATCPDestroyMutex();
     CATCPDestroyCond();
 
-    OIC_LOG(DEBUG, TAG, "Adapter terminated successfully");
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 }
 
 void CATerminateTCP()
 {
 #ifdef __WITH_TLS__
     CAsetSslAdapterCallbacks(// NULL,
-			     NULL, NULL, CA_ADAPTER_TCP);
+			     NULL,
+			     //NULL,
+			     CA_ADAPTER_TCP);
 #endif
     CAStopTCP();
     CATCPSetPacketReceiveCallback(NULL);

@@ -1043,7 +1043,7 @@ OCStackResult CredToCBORPayload(const OicSecCred_t *credS, uint8_t **cborPayload
 
 
 OCStackResult CBORPayloadToCred(const uint8_t *cborPayload, size_t size,
-                                OicSecCred_t **secCred, OicUuid_t **rownerid)
+                                OicSecCred_t **secCred, OicUuid_t **rownerid) EXPORT
 {
     if (NULL == cborPayload || NULL == secCred || NULL != *secCred || 0 == size)
     {

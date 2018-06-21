@@ -1198,6 +1198,7 @@ static OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload,
 }
 #endif
 
+/* handle inbound response */
 void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -1807,7 +1808,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
  * @param endPoint CA remote endpoint.
  * @param responseInfo CA response info.
  */
-static void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
+void HandleCAResponses(const CAEndpoint_t* endPoint, const CAResponseInfo_t* responseInfo)
 {
     VERIFY_NON_NULL_NR(endPoint, FATAL);
     VERIFY_NON_NULL_NR(responseInfo, FATAL);
@@ -2082,7 +2083,9 @@ static OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolReque
         if (result == OC_STACK_OK)
         {
             result = ProcessRequest(resHandling, resource, request);
-        }
+        } else {
+	    OIC_LOG_V(DEBUG, TAG, "DetermineResourceHandling failure: %d", result);
+	}
     }
     else
     {
@@ -2312,7 +2315,7 @@ void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
  * @param endPoint CA remote endpoint.
  * @param requestInfo CA request info.
  */
-static void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
+void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
 {
     OIC_LOG(INFO, TAG, "Enter HandleCARequests");
     OIC_TRACE_BEGIN(%s:HandleCARequests, TAG);
@@ -2456,6 +2459,23 @@ OCStackResult OC_CALL OCInit2(OCMode mode, OCTransportFlags serverFlags, OCTrans
     return result;
 }
 
+/* #if defined(__clang__) || defined(__GNUC__) */
+/** test clang address sanitizer: stack-use-after-return */
+/* int *xtest_asan_ptr; */
+/* volatile int *xtest_asan_ptr2 = 0; */
+/* __attribute__((noinline)) */
+/* void xtest_asan_stack_use_after_return() { */
+/*   int local[100]; */
+/*   xtest_asan_ptr = &local[0]; */
+/* } */
+/* int *xtest_asan_heap_use_after_free() */
+/* { */
+/*     int *array = malloc(100); */
+/*     free(array); */
+/*     return array[1]; */
+/* } */
+/* #endif */
+
 /**
  * Initialize the stack.
  * Caller of this function must serialize calls to this function and the stop counterpart.
@@ -2476,6 +2496,41 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
                 OCStop() between them are ignored.");
         return OC_STACK_OK;
     }
+
+/* #if defined(__clang__) || defined(__GNUC__) */
+    /* clang address sanitizer tests */
+    /* heap-use-after-free */
+    /* int *x_asan_i = xtest_asan_heap_use_after_free(); */
+
+    /* heap-buffer-overflow */
+    /* int *array = calloc(100, sizeof(int)); */
+    /* int res = array[101];  // BOOM */
+    /* free(array); */
+
+    /* stack-buffer-overflow */
+    /* int stack_array[100]; */
+    /* stack_array[1] = 0; */
+    /* int i = stack_array[101]; */
+
+    /* global-buffer-overflow */
+    /* char c = COAP_TCP_SCHEME[10]; /\* COAP_TCP_SCHEME[] = "coap+tcp:" *\/ */
+
+    /* stack-use-after-return - run with ASAN_OPTIONS=detect_stack_use_after_return=1 */
+    /* xtest_asan_stack_use_after_return(); */
+    /* int xtest_asan_i = xtest_asan_ptr[1]; */
+
+    /* stack-use-after-scope */
+    /* { int x = 0; xtest_asan_ptr2 = &x; } */
+    /* *xtest_asan_ptr2 = 5; */
+
+    /* attempting free on address which was not malloc()-ed */
+    /* int xtest_asan_value = 42; */
+    /* free(&xtest_asan_value); */
+
+    /* attempting double-free */
+    /* int *xtest_asan_ptr = malloc(sizeof(int)); */
+    /* free(xtest_asan_ptr); free(xtest_asan_ptr); */
+/* #endif */
 
     oocf_cosp_mgr_init();		/* GAR: initialize co-serviceprovider mgr */
 
@@ -2556,12 +2611,14 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
 
     switch (myStackMode)
     {
+	// FIXME: initialize client/server mode statically at build time
         case OC_CLIENT:
             CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
             OIC_LOG(INFO, TAG, "Client mode: CAStartDiscoveryServer");
             result = CAResultToOCResult(CAStartDiscoveryServer());
             break;
         case OC_SERVER:
+	    // FIXME: SRMRegisterHandler just calls CARegisterHandler with secure handles if DTLS
             SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
             OIC_LOG(INFO, TAG, "Server mode: CAStartListeningServer");
             result = CAResultToOCResult(CAStartListeningServer());
@@ -2592,10 +2649,11 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     stackState = OC_STACK_INITIALIZED;
 
     // Initialize resource
-    if(myStackMode != OC_CLIENT)
-    {
-        result = initResources();
-    }
+    /* if(myStackMode != OC_CLIENT) */
+    /* { */
+    /*     result = initResources(); */
+    /* } */
+    result = initResources();
 
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     RMSetStackMode(mode);
@@ -2637,7 +2695,7 @@ exit:
 
 OCStackResult OC_CALL OCStop() EXPORT
 {
-    OIC_LOG(INFO, TAG, "Entering OCStop");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     // Serialize calls to start and stop the stack.
     OCEnterInitializer();
@@ -2662,6 +2720,7 @@ OCStackResult OC_CALL OCStop() EXPORT
     }
 
     OCLeaveInitializer();
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return result;
 }
 
@@ -2673,6 +2732,7 @@ OCStackResult OC_CALL OCStop() EXPORT
  */
 LOCAL OCStackResult OCDeInitializeInternal()
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     assert(stackState == OC_STACK_INITIALIZED);
 
 #ifdef WITH_PRESENCE
@@ -2720,6 +2780,7 @@ LOCAL OCStackResult OCDeInitializeInternal()
   *    CAUtilSetBTConfigure(configs); */
 
     stackState = OC_STACK_UNINITIALIZED;
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return OC_STACK_OK;
 }
 
@@ -3011,7 +3072,7 @@ OCStackResult OC_CALL OCDoResource(OCDoHandle *handle,
                                    uint8_t numOptions)
 /* EXPORT (deprecated, do not expose) */
 {
-    OIC_TRACE_BEGIN(%s:OCDoRequest, TAG);
+    OIC_TRACE_BEGIN(%s:OCDoResource, TAG);
     OCStackResult ret = OCDoRequest(handle, method, requestUri,destination, payload,
                 connectivityType, qos, cbData, options, numOptions);
     OIC_TRACE_END();
@@ -3050,10 +3111,9 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
                                   OCQualityOfService qos,
                                   OCCallbackData *cbData,
                                   OCHeaderOption *options,
-                                  uint8_t numOptions)
-EXPORT
+                                  uint8_t numOptions) EXPORT
 {
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(INFO, TAG, "%s ENTRY, request uri: %s", __func__, requestUri);
 
     // Validate input parameters
     VERIFY_NON_NULL(cbData, FATAL, OC_STACK_INVALID_CALLBACK);
@@ -3205,6 +3265,7 @@ EXPORT
     requestInfo.info.token = token;
     requestInfo.info.tokenLength = tokenLength;
 
+    /* set CoAP options */
     if ((method == OC_REST_OBSERVE) || (method == OC_REST_OBSERVE_ALL))
     {
         result = CreateObserveHeaderOption (&(requestInfo.info.options),
@@ -3375,7 +3436,7 @@ EXPORT
                                    requestInfo.isMulticast);
         if (OC_STACK_OK != result)
         {
-	    OIC_LOG_V(ERROR, TAG, "%s: OCSendRequest error: %d", __func__, result);
+	    OIC_LOG_V(ERROR, TAG, "%s: OCPreparePresence error: %d", __func__, result);
             goto exit;
         }
 
@@ -3402,7 +3463,7 @@ EXPORT
 
     if (OC_STACK_OK != result)
     {
-	OIC_LOG_V(ERROR, TAG, "%s: OCSendRequest error: %d", __func__, result);
+	OIC_LOG_V(ERROR, TAG, "%s: AddClientCB error: %d", __func__, result);
         goto exit;
     }
 
@@ -3514,6 +3575,23 @@ exit:
     OICFree(resourceType);
     OICFree(requestInfo.info.options);
     return result;
+}
+
+OCStackResult OC_CALL oocf_send_request(OCDoHandle *handle,
+					OCMethod method,
+					const char *requestUri,
+					const OCDevAddr *destination,
+					OCPayload* payload,
+					OCConnectivityType connectivityType,
+					OCQualityOfService qos,
+					OCCallbackData *cbData,
+					OCHeaderOption *options,
+					uint8_t numOptions) EXPORT
+{
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    return OCDoRequest(handle, method, requestUri,destination, payload,
+		       connectivityType, qos, cbData, options, numOptions);
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 }
 
 OCStackResult OC_CALL OCCancel(OCDoHandle handle, OCQualityOfService qos, OCHeaderOption * options,
@@ -3670,7 +3748,9 @@ OCStackResult OC_CALL OCProcess(void) EXPORT
 #ifdef WITH_PRESENCE
     OCProcessPresence();
 #endif
-    CAHandleRequestResponse();
+
+    if (g_isInitialized)
+	oocf_handle_inbound_messages(); // @was CAHandleRequestResponse
 
 #ifdef ROUTING_GATEWAY
     RMProcess();
@@ -3734,11 +3814,13 @@ OCStackResult OC_CALL OCCreateResourceWithEp(OCResourceHandle *handle,
 
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY; uri: %s", __func__, uri);
 
-    if(myStackMode == OC_CLIENT)
-    {
-	OIC_LOG_V(ERROR, TAG, "%s: invalid stack mode OC_CLIENT", __func__);
-        return OC_STACK_INVALID_PARAM;
-    }
+    /* Why no resources for OC_CLIENT? */
+    /* if(myStackMode == OC_CLIENT) */
+    /* { */
+    /* 	OIC_LOG_V(ERROR, TAG, "%s: invalid stack mode OC_CLIENT", __func__); */
+    /*     return OC_STACK_INVALID_PARAM; */
+    /* } */
+
     // Validate parameters
     if(!uri || uri[0]=='\0' || strlen(uri)>=MAX_URI_LENGTH )
     {
@@ -4370,7 +4452,7 @@ OCStackResult OC_CALL OCDeleteResource(OCResourceHandle handle)
     return OC_STACK_OK;
 }
 
-const char *OC_CALL OCGetResourceUri(OCResourceHandle handle)
+const char *OC_CALL OCGetResourceUri(OCResourceHandle handle) EXPORT
 {
     OCResource *resource = NULL;
 
@@ -4382,7 +4464,7 @@ const char *OC_CALL OCGetResourceUri(OCResourceHandle handle)
     return (const char *) NULL;
 }
 
-OCResourceProperty OC_CALL OCGetResourceProperties(OCResourceHandle handle)
+OCResourceProperty OC_CALL OCGetResourceProperties(OCResourceHandle handle) EXPORT
 {
     OCResource *resource = NULL;
 
@@ -4654,7 +4736,7 @@ OC_CALL OCNotifyListOfObservers (OCResourceHandle handle,
             payload, maxAge, qos));
 }
 
-OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse)
+OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse) EXPORT
 {
     OIC_TRACE_BEGIN(%s:OCDoResponse, TAG);
     OCStackResult result = OC_STACK_ERROR;
@@ -5520,6 +5602,8 @@ LOCAL CAResult_t OCSelectNetwork(OCTransportAdapter transportType)
 	OIC_LOG(ERROR, TAG, "Unable to support UDP");
 	// Throw an exception? If the build is configured for an adapter, it should initialize
     }
+    // NB: static init: CASelectNetwork can be replaced by calling directly:
+    // CAStartUDP();
 #endif
 
 #ifdef ENABLE_TCP
@@ -5846,7 +5930,7 @@ LOCAL OCStackResult SetHeaderOption(CAHeaderOption_t *caHdrOpt, size_t numOption
 }
 
 OCStackResult OC_CALL OCSetHeaderOption(OCHeaderOption* ocHdrOpt, size_t* numOptions, uint16_t optionID,
-                                        void* optionData, size_t optionDataLength)
+                                        void* optionData, size_t optionDataLength) EXPORT
 {
     if (!ocHdrOpt)
     {

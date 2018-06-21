@@ -506,6 +506,7 @@ static bool IsAccessWithinValidTime(const OicSecAce_t *ace)
  */
 static bool IsResourceInAce(SRMRequestContext_t *context, const OicSecAce_t *ace)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (NULL == context || NULL == ace)
     {
         return false;
@@ -533,22 +534,21 @@ static bool IsResourceInAce(SRMRequestContext_t *context, const OicSecAce_t *ace
         else if (0 == strcmp(context->resourceUri, rsrc->href) ||
                  0 == strcmp(WILDCARD_RESOURCE_URI, rsrc->href))
         {
-            OIC_LOG_V(DEBUG, TAG, "%s: found href %s matching resource.",
+            OIC_LOG_V(DEBUG, TAG, "%s EXIT: found href %s matching resource.",
                         __func__, rsrc->href);
             return true;
         }
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT: no matching resource found", __func__);
     return false;
 }
 
+/* match could be on conntype, subject, or role */
 static void ProcessMatchingACE(SRMRequestContext_t *context, const OicSecAce_t *currentAce)
 {
-    // Found the subject, so how about resource?
-    OIC_LOG_V(DEBUG, TAG, "%s: found ACE matching subject.", __func__);
-
-    // Subject was found, so err changes to Rsrc not found for now.
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     context->responseVal = ACCESS_DENIED_RESOURCE_NOT_FOUND;
-    OIC_LOG_V(DEBUG, TAG, "%s: Searching for resource...", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s: Searching ACE resources list for href: %s", __func__, context->resourceUri);
     if (IsResourceInAce(context, currentAce))
     {
         OIC_LOG_V(INFO, TAG, "%s: found matching resource in ACE.", __func__);
@@ -564,6 +564,8 @@ static void ProcessMatchingACE(SRMRequestContext_t *context, const OicSecAce_t *
                 context->responseVal = ACCESS_GRANTED;
             }
         }
+    } else {
+	OIC_LOG_V(INFO, TAG, "%s: no matching resource found in ACE", __func__);
     }
 }
 
@@ -574,13 +576,13 @@ static void ProcessMatchingACE(SRMRequestContext_t *context, const OicSecAce_t *
  */
 static void ProcessAccessRequest(SRMRequestContext_t *context)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY; uri: %s", __func__, context->resourceUri);
+
     if (NULL == context)
     {
         OIC_LOG(ERROR, TAG, "ProcessAccessRequest(): context is NULL, returning.");
         return;
     }
-
-    OIC_LOG_V(DEBUG, TAG, "Entering %s(%s)", __func__, context->resourceUri);
 
     const OicSecAce_t *currentAce = NULL;
     OicSecAce_t *aceSavePtr = NULL;
@@ -604,13 +606,15 @@ static void ProcessAccessRequest(SRMRequestContext_t *context)
 
         if (NULL != currentAce)
         {
-            OIC_LOG_V(DEBUG, TAG, "%s: found conntype %s match; processing for access.",
-                __func__, (AUTH_CRYPT == conntype?"auth-crypt":"anon-clear"));
+            OIC_LOG_V(DEBUG, TAG, "%s: found ACE with subject conntype %s",
+		      __func__, (AUTH_CRYPT == conntype?"auth-crypt":"anon-clear"), context->resourceUri);
             ProcessMatchingACE(context, currentAce);
+	    if ( !(context->responseVal & ACCESS_GRANTED) )
+		OIC_LOG_V(INFO, TAG, "%s access not granted, trying next conntype", __func__);
         }
         else
         {
-            OIC_LOG_V(INFO, TAG, "%s:no ACL found matching conntype %s for resource %s",
+            OIC_LOG_V(INFO, TAG, "%s: no ACE with conntypeSubject found",
                 __func__, (AUTH_CRYPT == conntype?"auth-crypt":"anon-clear"), context->resourceUri);
         }
     } while ((NULL != currentAce) && !IsAccessGranted(context->responseVal));
@@ -618,6 +622,7 @@ static void ProcessAccessRequest(SRMRequestContext_t *context)
     // If not granted via conntype, try Subject-based match.
     if (!IsAccessGranted(context->responseVal))
     {
+	OIC_LOG_V(INFO, TAG, "%s no conntypeSubject ACE grants access, trying UUIDSubject ACEs", __func__);
         currentAce = NULL;
         aceSavePtr = NULL;
         do

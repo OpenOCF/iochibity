@@ -27,10 +27,8 @@
 
 #include "utlist.h"
 
-#ifndef SINGLE_THREAD
 #include <assert.h>
 /* #include "caqueueingthread.h" */
-#endif
 
 #define TAG "OIC_CA_INF_CTR"
 
@@ -63,13 +61,20 @@ typedef void (*CAAdapterStateChangedCB)(CATransportAdapter_t adapter, bool enabl
 #define STATEFUL_PROTOCOL_SUPPORTED ((TCP_ADAPTER) || (EDR_ADAPTER) || (LE_ADAPTER))
 #endif	/* INTERFACE */
 
-#define CA_MEMORY_ALLOC_CHECK(arg) {if (arg == NULL) \
-    {OIC_LOG(ERROR, TAG, "memory error");goto memory_error_exit;} }
+/* #define CA_MEMORY_ALLOC_CHECK(arg) {if (arg == NULL) \ */
+/*     {OIC_LOG(ERROR, TAG, "memory error");goto memory_error_exit;} } */
 
 // GAR: array of controller structs containing method pointers
 static CAConnectivityHandler_t *g_adapterHandler = NULL;
 
-static size_t g_numberOfAdapters = 0;
+static size_t g_numberOfAdapters =
+#ifdef IP_ADAPTER
+1
+#endif
+#ifdef TCP_ADAPTER
++ 1
+#endif
+    ;
 
 // @rewrite g_networkPacketReceivedCallback removed
 /* static CANetworkPacketReceivedCallback g_networkPacketReceivedCallback = NULL; */
@@ -81,9 +86,7 @@ static CAErrorHandleCallback g_errorHandleCallback = NULL;
 
 static struct CANetworkCallback_t *g_networkChangeCallbackList = NULL;
 
-#ifndef SINGLE_THREAD
 CAQueueingThread_t g_networkChangeCallbackThread;
-#endif
 
 /**
  * network callback structure is handling
@@ -107,7 +110,6 @@ typedef struct CANetworkCallback_t
 
 } CANetworkCallback_t;
 
-#ifndef SINGLE_THREAD
 /**
  * struct to wrap the network change callback info.
  */
@@ -161,52 +163,51 @@ static void CADestroyNetworkChangeCallbackData(void *data, uint32_t size)
     OICFree(info);
     info = NULL;
 }
-#endif // SINGLE_THREAD
 
-static CAResult_t CAGetAdapterIndex(CATransportAdapter_t cType, size_t *adapterIndex)
-{
-    for (size_t index = 0 ; index < g_numberOfAdapters ; index++)
-    {
-        if (cType == g_adapterHandler[index].cType )
-        {
-            *adapterIndex = index;
-            return CA_STATUS_OK;
-        }
-    }
-    return CA_STATUS_FAILED;
-}
+/* static CAResult_t CAGetAdapterIndex(CATransportAdapter_t cType, size_t *adapterIndex) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
+/*     for (size_t index = 0 ; index < g_numberOfAdapters ; index++) */
+/*     { */
+/*         if (cType == g_adapterHandler[index].cType ) */
+/*         { */
+/*             *adapterIndex = index; */
+/*             return CA_STATUS_OK; */
+/*         } */
+/*     } */
+/*     return CA_STATUS_FAILED; */
+/* } */
 
 // @rewrite: eliminate CARegisterCallback
 //static
 void CARegisterCallback(CAConnectivityHandler_t handler)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, transport adapter %s (%d)", __func__,
-	      CA_TRANSPORT_ADAPTER_STRING(handler.cType), handler.cType);
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
-    if (handler.startAdapter == NULL ||
-        handler.startListenServer == NULL ||
-        handler.stopListenServer == NULL ||
-        handler.startDiscoveryServer == NULL ||
-        handler.unicast == NULL ||
-        handler.multicast == NULL ||
-        handler.GetNetInfo == NULL ||
-        handler.readData == NULL ||
-        handler.stopAdapter == NULL ||
-        handler.terminate == NULL)
-    {
-        OIC_LOG(ERROR, TAG, "connectivity handler is not enough to be used!");
-        return;
-    }
-    size_t numberofAdapters = g_numberOfAdapters + 1;
+    /* if (handler.startAdapter == NULL || */
+    /*     handler.startListenServer == NULL || */
+    /*     handler.stopListenServer == NULL || */
+    /*     handler.startDiscoveryServer == NULL || */
+    /*     handler.unicast == NULL || */
+    /*     handler.multicast == NULL || */
+    /*     handler.GetNetInfo == NULL || */
+    /*     handler.readData == NULL || */
+    /*     handler.stopAdapter == NULL || */
+    /*     handler.terminate == NULL) */
+    /* { */
+    /*     OIC_LOG(ERROR, TAG, "connectivity handler is not enough to be used!"); */
+    /*     return; */
+    /* } */
+    // statically initialized: size_t numberofAdapters = g_numberOfAdapters + 1;
     CAConnectivityHandler_t *adapterHandler = OICRealloc(g_adapterHandler,
-            (numberofAdapters) * sizeof(*adapterHandler));
+            (g_numberOfAdapters) * sizeof(*adapterHandler));
     if (NULL == adapterHandler)
     {
         OIC_LOG(ERROR, TAG, "Memory allocation failed during registration");
         return;
     }
     g_adapterHandler = adapterHandler;
-    g_numberOfAdapters = numberofAdapters;
+    //g_numberOfAdapters = numberofAdapters;
     g_adapterHandler[g_numberOfAdapters - 1] = handler;
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
@@ -222,15 +223,15 @@ void CARegisterCallback(CAConnectivityHandler_t handler)
  *     CAResult_t
  */
 // only called once?
-CAResult_t AddNetworkStateChangedCallback(void (*adapterCB)(CATransportAdapter_t adapter, bool enabled),
+CAResult_t AddNetworkStateChangedCallback(void (*nwChgCB)(CATransportAdapter_t adapter, bool enabled),
 					  // CAAdapterStateChangedCB adapterCB,
 					  CAConnectionStateChangedCB connCB)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
-    if (!adapterCB)
+    if (!nwChgCB)
     {
-        OIC_LOG(ERROR, TAG, "adapterCB is null");
+        OIC_LOG(ERROR, TAG, "nwChgCB is null");
         return CA_STATUS_INVALID_PARAM;
     }
 
@@ -245,7 +246,7 @@ CAResult_t AddNetworkStateChangedCallback(void (*adapterCB)(CATransportAdapter_t
     CANetworkCallback_t *callback = NULL;
     LL_FOREACH(g_networkChangeCallbackList, callback)
     {
-        if (callback && adapterCB == callback->adapter && connCB == callback->conn)
+        if (callback && nwChgCB == callback->adapter && connCB == callback->conn)
         {
             OIC_LOG(DEBUG, TAG, "this callback is already added");
             return CA_STATUS_OK;
@@ -259,7 +260,7 @@ CAResult_t AddNetworkStateChangedCallback(void (*adapterCB)(CATransportAdapter_t
         return CA_MEMORY_ALLOC_FAILED;
     }
 
-    callback->adapter = adapterCB;
+    callback->adapter = nwChgCB;
 #ifdef STATEFUL_PROTOCOL_SUPPORTED
     // Since IP adapter(UDP) is the Connectionless Protocol, it doesn't need.
     callback->conn = connCB;
@@ -310,8 +311,7 @@ CAResult_t RemoveNetworkStateChangedCallback(void(*adapterCB)(CATransportAdapter
  */
 static void RemoveAllNetworkStateChangedCallback()
 {
-    OIC_LOG(DEBUG, TAG, "Remove All NetworkStateChanged Callback");
-
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     CANetworkCallback_t *callback = NULL;
     CANetworkCallback_t *tmp = NULL;
     LL_FOREACH_SAFE(g_networkChangeCallbackList, callback, tmp)
@@ -349,51 +349,57 @@ CAResult_t CASetAdapterRAInfo(const CARAInfo_t *caraInfo)
 /*     } */
 /* } */
 
-// @rewrite CAAdapterChangedCallback called only by UDP (CAIPAdapterHandler)
+// @rewrite CAAdapterChangedCallback called by each transport
 // @rewrite We don't need this routine, since we call OCDefaultAdapterStateChangedHandler
 // @rewrite  directly from udp_if_change_handler,
 // static
-void CAAdapterChangedCallback(CATransportAdapter_t adapter, CANetworkStatus_t status)
+//void CAAdapterChangedCallback(CATransportAdapter_t adapter, CANetworkStatus_t status)
+void oocf_enqueue_nw_chg_work_pkg( // @was CAAdapterChangedCallback
+				  CATransportAdapter_t adapter, CANetworkStatus_t status)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     OIC_LOG_V(DEBUG, TAG, "[%d] adapter state is changed to [%d]", adapter, status);
 
-    // Call the callback.
-    CANetworkCallback_t *callback  = NULL;
-    LL_FOREACH(g_networkChangeCallbackList, callback)
-    {
-	// @rewrite callback->adapter is a chg event handler
-        if (callback && callback->adapter)
-        {
-#ifndef SINGLE_THREAD
-            CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
-                                        OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
-            if (!info)
-            {
-                OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
-                return;
-            }
-
-	    // the CB is OCDefaultAdapterStateChangedHandler
-            info->adapterCB = callback->adapter; /* change event handler */
-            info->adapter = adapter;
-            info->isInterfaceUp = (CA_INTERFACE_UP == status);
-
-            CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
-                                    sizeof(CANetworkCallbackThreadInfo_t));
-#else
-            if (CA_INTERFACE_UP == status)
-            {
-                callback->adapter(adapter, true); /* call chg event handler */
-            }
-            else if (CA_INTERFACE_DOWN == status)
-            {
-                callback->adapter(adapter, false);
-            }
-#endif //SINGLE_THREAD
-        }
+    CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
+	OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
+    if (!info) {
+	OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
+	return;
     }
+
+    info->adapterCB = OCDefaultAdapterStateChangedHandler;  // @was callback->adapter;
+    info->adapter = adapter;
+    info->isInterfaceUp = (CA_INTERFACE_UP == status);
+    CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
+			    sizeof(CANetworkCallbackThreadInfo_t));
+
+/*     // Call the callback. */
+/*     CANetworkCallback_t *callback  = NULL; */
+/*     LL_FOREACH(g_networkChangeCallbackList, callback) */
+/*     { */
+/* 	// @rewrite callback->adapter is a chg event handler */
+/*         if (callback && callback->adapter) */
+/*         { */
+/* /\* #ifndef SINGLE_THREAD *\/ */
+/*             CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *) */
+/*                                         OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t)); */
+/*             if (!info) */
+/*             { */
+/*                 OIC_LOG(ERROR, TAG, "OICCalloc to info failed!"); */
+/*                 return; */
+/*             } */
+
+/* 	    // the CB is OCDefaultAdapterStateChangedHandler */
+/*             info->adapterCB = callback->adapter; /\* change event handler *\/ */
+/*             info->adapter = adapter; */
+/*             info->isInterfaceUp = (CA_INTERFACE_UP == status); */
+
+/*             CAQueueingThreadAddData(&g_networkChangeCallbackThread, info, */
+/*                                     sizeof(CANetworkCallbackThreadInfo_t)); */
+
+/*         } */
+/*     } */
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
@@ -408,7 +414,7 @@ void CAConnectionChangedCallback(const CAEndpoint_t *endpoint, bool isConnected)
     {
         if (callback && callback->conn)
         {
-#ifndef SINGLE_THREAD
+/* #ifndef SINGLE_THREAD */
             CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
                                         OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
             if (!info)
@@ -431,15 +437,16 @@ void CAConnectionChangedCallback(const CAEndpoint_t *endpoint, bool isConnected)
 
             CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
                                     sizeof(CANetworkCallbackThreadInfo_t));
-#else
-            callback->conn(endpoint, isConnected);
-#endif //SINGLE_THREAD
+/* #else */
+/*             callback->conn(endpoint, isConnected); */
+/* #endif //SINGLE_THREAD */
         }
     }
 }
 #endif //STATEFUL_PROTOCOL_SUPPORTED
 
 // static
+// FIXME: this is only for outbound processing errors, rename it e.g. sender_error_handler
 void CAAdapterErrorHandleCallback(const CAEndpoint_t *endpoint,
         const void *data, size_t dataLen,
         CAResult_t result)
@@ -520,7 +527,6 @@ CAResult_t CAInitializeAdapters(ca_thread_pool_t thread_pool, CATransportAdapter
     }
 #endif /* NFC_ADAPTER */
 
-#ifndef SINGLE_THREAD
     CAResult_t res = CA_STATUS_OK;
 
     // Initialize & Start network-change-callback-thread.
@@ -543,7 +549,6 @@ CAResult_t CAInitializeAdapters(ca_thread_pool_t thread_pool, CATransportAdapter
         OIC_LOG(ERROR, TAG, "thread start error(callback thread).");
         return res;
     }
-#endif //SINGLE_THREAD
 
     return CA_STATUS_OK;
 }
@@ -612,13 +617,15 @@ void CAStopAdapter(CATransportAdapter_t transportType)
     if (transportType == CA_ADAPTER_IP) {
 #ifdef IP_ADAPTER
 	CAStopIP();
+	OIC_LOG_V(INFO, TAG, "%s (UDP) EXIT", __func__);
 	return;
 #endif
     }
 
     if (transportType == CA_ADAPTER_TCP) {
 #ifdef TCP_ADAPTER
-	CAStopTCP();
+	CAStopTCP();		/* GAR: why not CATerminateTCP? */
+	OIC_LOG_V(INFO, TAG, "%s (TCP) EXIT", __func__);
 	return;
 #endif
     }
@@ -639,141 +646,196 @@ void CAStopAdapter(CATransportAdapter_t transportType)
     /* } */
 }
 
-#ifndef SINGLE_THREAD
+/* #ifndef SINGLE_THREAD */
 void CAStopAdapters()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     // @rewrite
-/* #ifdef ENABLE_UDP */
-/*     CAStopAdapter(CA_ADAPTER_IP); */
-/* #endif */
-/* #ifdef ENABLE_TCP */
-/*     CAStopAdapter(CA_ADAPTER_TCP); */
-/* #endif */
+#ifdef ENABLE_UDP
+    CAStopAdapter(CA_ADAPTER_IP);
+#endif
+#ifdef ENABLE_TCP
+    CAStopAdapter(CA_ADAPTER_TCP);
+#endif
 
-    CATransportAdapter_t connType;
-    u_arraylist_t *list = CAGetSelectedNetworkList();
-    size_t length = u_arraylist_length(list);
+    /* CATransportAdapter_t connType; */
+    /* u_arraylist_t *list = CAGetSelectedNetworkList(); */
+    /* size_t length = u_arraylist_length(list); */
 
-    for (size_t i = 0; i < length; i++)
-    {
-        void* ptrType = u_arraylist_get(list, i);
+    /* for (size_t i = 0; i < length; i++) */
+    /* { */
+    /*     void* ptrType = u_arraylist_get(list, i); */
 
-        if (NULL == ptrType)
-        {
-            continue;
-        }
+    /*     if (NULL == ptrType) */
+    /*     { */
+    /*         continue; */
+    /*     } */
 
-        connType = *(CATransportAdapter_t *)ptrType;
-        CAStopAdapter(connType);
-    }
+    /*     connType = *(CATransportAdapter_t *)ptrType; */
+    /*     CAStopAdapter(connType); */
+    /* } */
 
     CAQueueingThreadStop(&g_networkChangeCallbackThread);
 }
-#endif // not SINGLE_THREAD
+/* #endif // not SINGLE_THREAD */
 
-CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
+CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    VERIFY_NON_NULL_MSG(info, TAG, "info is null");
-    VERIFY_NON_NULL_MSG(size, TAG, "size is null");
+    VERIFY_NON_NULL_MSG(ep_list_ptr, TAG, "ep_list_ptr is null");
+    VERIFY_NON_NULL_MSG(ep_count_ptr, TAG, "ep_count_ptr is null");
 
     OIC_LOG_V(DEBUG, TAG, "%s number of adapters: %d", __func__, g_numberOfAdapters);
 
-    CAEndpoint_t **tempInfo = (CAEndpoint_t **) OICCalloc(g_numberOfAdapters, sizeof(*tempInfo));
-    if (!tempInfo)
-    {
-        OIC_LOG(ERROR, TAG, "Out of memory!");
-        return CA_MEMORY_ALLOC_FAILED;
-    }
-    size_t *tempSize = (size_t *)OICCalloc(g_numberOfAdapters, sizeof(*tempSize));
-    if (!tempSize)
-    {
-        OIC_LOG(ERROR, TAG, "Out of memory!");
-        OICFree(tempInfo);
-        return CA_MEMORY_ALLOC_FAILED;
-    }
+    /* CAEndpoint_t **tempInfo = (CAEndpoint_t **) OICCalloc(g_numberOfAdapters, sizeof(*tempInfo)); */
+    /* if (!tempInfo) */
+    /* { */
+    /*     OIC_LOG(ERROR, TAG, "Out of memory!"); */
+    /*     return CA_MEMORY_ALLOC_FAILED; */
+    /* } */
+
+    /* size_t *tempSize = (size_t *)OICCalloc(g_numberOfAdapters, sizeof(*tempSize)); */
+    /* if (!tempSize) */
+    /* { */
+    /*     OIC_LOG(ERROR, TAG, "Out of memory!"); */
+    /*     OICFree(tempInfo); */
+    /*     return CA_MEMORY_ALLOC_FAILED; */
+    /* } */
 
     CAResult_t res = CA_STATUS_FAILED;
-    size_t resSize = 0;
-    for (size_t index = 0; index < g_numberOfAdapters; index++)
-    {
-        if (g_adapterHandler[index].GetNetInfo != NULL)
-        {
-            // #1. get information for each adapter
-            res = g_adapterHandler[index].GetNetInfo(&tempInfo[index],
-                    &tempSize[index]);
+    size_t ep_count = 0;
+    /* for (size_t index = 0; index < g_numberOfAdapters; index++) */
+    /* { */
+    /*     if (g_adapterHandler[index].GetNetInfo != NULL) */
+    /*     { */
+    /*         // #1. get information for each adapter */
+    /*         res = g_adapterHandler[index].GetNetInfo(&tempInfo[index], */
+    /*                 &tempSize[index]); */
 
-            // #2. total size
-            if (res == CA_STATUS_OK)
-            {
-                resSize += tempSize[index];
-            }
+    /*         // #2. total size */
+    /*         if (res == CA_STATUS_OK) */
+    /*         { */
+    /*             ep_count += tempSize[index]; */
+    /*         } */
 
-            OIC_LOG_V(DEBUG,
-                      TAG,
-                      "%" PRIuPTR " adapter network info size is %" PRIuPTR " res:%u",
-                      index,
-                      tempSize[index],
-                      res);
-        }
+    /*         OIC_LOG_V(DEBUG, */
+    /*                   TAG, */
+    /*                   "%" PRIuPTR " adapter network info size is %" PRIuPTR " res:%u", */
+    /*                   index, */
+    /*                   tempSize[index], */
+    /*                   res); */
+    /*     } */
+    /* } */
+
+    // static CAEndpoint_t null_ep;	/* static initialization */
+#ifdef ENABLE_UDP
+    size_t udp_ep_count;
+    CAEndpoint_t *udp_ep; /* array of eps */
+    //udp_ep = null_ep;		/* reinitialize */
+    //pudp_ep = NULL;
+    res = udp_get_local_endpoints(&udp_ep, &udp_ep_count);
+    if (res == CA_STATUS_OK) { ep_count += udp_ep_count; }
+    OIC_LOG_V(INFO, TAG, "%s got %d local udp eps", __func__, udp_ep_count);
+#endif
+
+#ifdef ENABLE_TCP
+    size_t tcp_ep_count;
+    CAEndpoint_t *tcp_ep; /* array */
+    res = CA_STATUS_FAILED;
+    res = tcp_get_local_endpoints(&tcp_ep, &tcp_ep_count); // @was CAGetTCPInterfaceInformation
+    if (res == CA_STATUS_OK) {
+	ep_count += tcp_ep_count;
+	OIC_LOG_V(INFO, TAG, "%s got %d local udp eps", __func__, tcp_ep_count);
+	OIC_LOG_V(INFO, TAG, "%s 1st addr: %s", __func__, tcp_ep[0].addr);
+	OIC_LOG_V(INFO, TAG, "%s 1st port: %d", __func__, tcp_ep[0].port);
+	OIC_LOG_V(INFO, TAG, "%s 1st ifindex: %d", __func__, tcp_ep[0].ifindex);
+    } else {
+	OIC_LOG_V(ERROR, TAG, "%s tcp_get_local_endpoints error %d", __func__, res);
     }
+#endif
 
-    OIC_LOG_V(DEBUG, TAG, "network info total size is %" PRIuPTR "!", resSize);
+    /* OIC_LOG_V(DEBUG, TAG, */
+    /* 	      "%" PRIuPTR " adapter network info size is %" PRIuPTR " res:%u", */
+    /* 	      0, sz, udp_res); */
 
-    if (resSize == 0)
-    {
-        OICFree(tempInfo);
-        OICFree(tempSize);
-        return res;
-    }
+    OIC_LOG_V(DEBUG, TAG, "network ip count total is %" PRIuPTR "!", ep_count);
+
+    /* if (ep_count == 0) */
+    /* { */
+    /*     OICFree(tempInfo); */
+    /*     OICFree(tempSize); */
+    /*     return res; */
+    /* } */
 
     // #3. add data into result
     // memory allocation
-    CAEndpoint_t *resInfo = (CAEndpoint_t *) OICCalloc(resSize, sizeof (*resInfo));
-    CA_MEMORY_ALLOC_CHECK(resInfo);
+    CAEndpoint_t *ep_list = (CAEndpoint_t *) OICCalloc(ep_count, sizeof (*ep_list));
+    /* CA_MEMORY_ALLOC_CHECK(ep_list); */
+    if (ep_list == NULL)
+    {
+        OIC_LOG(ERROR, TAG, "ep_list calloc failed!");
+        return CA_MEMORY_ALLOC_FAILED;
+    }
 
     // #4. save data
-    *info = resInfo;
-    *size = resSize;
+    *ep_list_ptr = ep_list;
+    *ep_count_ptr = ep_count;
 
-    for (size_t index = 0; index < g_numberOfAdapters; index++)
-    {
-        // check information
-        if (tempSize[index] == 0)
-        {
-            continue;
-        }
+    /* for (size_t index = 0; index < g_numberOfAdapters; index++) */
+    /* { */
+    /*     // check information */
+    /*     if (tempSize[index] == 0) */
+    /*     { */
+    /*         continue; */
+    /*     } */
 
-        memcpy(resInfo,
-               tempInfo[index],
-               sizeof(*resInfo) * tempSize[index]);
+    /*     memcpy(ep_list, */
+    /*            tempInfo[index], */
+    /*            sizeof(*ep_list) * tempSize[index]); */
 
-        resInfo += tempSize[index];
+    /*     ep_list += tempSize[index]; */
 
-        // free adapter data
-        OICFree(tempInfo[index]);
-        tempInfo[index] = NULL;
-    }
-    OICFree(tempInfo);
-    OICFree(tempSize);
+    /*     // free adapter data */
+    /*     OICFree(tempInfo[index]); */
+    /*     tempInfo[index] = NULL; */
+    /* } */
 
-    OIC_LOG(DEBUG, TAG, "each network info save success!");
-    return CA_STATUS_OK;
+    /* copy pointer array */
+#if defined(ENABLE_UDP)
+        memcpy(ep_list,
+               udp_ep,  // tempInfo[0],
+               sizeof(*ep_list) * udp_ep_count); // tempSize[index]);
+        ep_list += udp_ep_count; //tempSize[index];
+#endif
+#if defined(ENABLE_TCP)
+        memcpy(ep_list,
+               tcp_ep,  // tempInfo[0],
+               sizeof(*ep_list) * tcp_ep_count);
+        ep_list += udp_ep_count;
+#endif
+    /*     // free adapter data */
+    /*     OICFree(tempInfo[0]); */
+    /*     tempInfo[0] = NULL; */
 
-    // memory error label.
-memory_error_exit:
+    /* OICFree(tempInfo); */
+    /* OICFree(tempSize); */
 
-    for (size_t index = 0; index < g_numberOfAdapters; index++)
-    {
-        OICFree(tempInfo[index]);
-        tempInfo[index] = NULL;
-    }
-    OICFree(tempInfo);
-    OICFree(tempSize);
+	OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+	return CA_STATUS_OK;
 
-    return CA_MEMORY_ALLOC_FAILED;
+/*     // memory error label. */
+/* memory_error_exit: */
+
+/*     for (size_t index = 0; index < g_numberOfAdapters; index++) */
+/*     { */
+/*         OICFree(tempInfo[index]); */
+/*         tempInfo[index] = NULL; */
+/*     } */
+/*     OICFree(tempInfo); */
+/*     OICFree(tempSize); */
+
+/*     return CA_MEMORY_ALLOC_FAILED; */
 }
 
 /* GAR
@@ -790,20 +852,24 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
     // @rewrite
     int32_t sentDataLen = 0;
 
+    CATransportAdapter_t requestedAdapter = endpoint->adapter ? endpoint->adapter : CA_ALL_ADAPTERS;
+
     OIC_LOG(DEBUG, TAG, "unicast message to adapter");
-#ifdef IP_ADAPTER
-    sentDataLen = CASendIPUnicastData(endpoint, data, length, dataType);
+#ifdef ENABLE_UDP
+    if (requestedAdapter == CA_ADAPTER_IP)
+	sentDataLen = CASendIPUnicastData(endpoint, data, length, dataType);
 #endif
-#ifdef TCP_ADAPTER
-    sentDataLen = CASendTCPUnicastData(endpoint, data, length, dataType);
+#ifdef ENABLE_TCP
+    if (requestedAdapter == CA_ADAPTER_TCP)
+	sentDataLen = CASendTCPUnicastData(endpoint, data, length, dataType);
 #endif
 
     if ((0 > sentDataLen) || ((uint32_t)sentDataLen != length)) {
 	OIC_LOG(ERROR, TAG, "Error sending data. The error will be reported in adapter.");
-#ifdef SINGLE_THREAD
-	//in case of single thread, no error handler. Report error immediately
-	return CA_SEND_FAILED;
-#endif
+/* #ifdef SINGLE_THREAD */
+/* 	//in case of single thread, no error handler. Report error immediately */
+/* 	return CA_SEND_FAILED; */
+/* #endif */
     }
 
 /*     size_t index = 0; */
@@ -894,10 +960,10 @@ CAResult_t CASendMulticastData(const CAEndpoint_t *endpoint, const void *data, u
 
     if (sentDataLen != length) {
 	OIC_LOG(ERROR, TAG, "multicast failed! Error will be reported from adapter");
-#ifdef SINGLE_THREAD
-	//in case of single thread, no error handler. Report error immediately
-	return CA_SEND_FAILED;
-#endif
+/* #ifdef SINGLE_THREAD */
+/* 	//in case of single thread, no error handler. Report error immediately */
+/* 	return CA_SEND_FAILED; */
+/* #endif */
     }
 
 /*     size_t index = 0; */
@@ -1153,23 +1219,27 @@ bool CAIsLocalEndpoint(const CAEndpoint_t *ep)
     return false;
 }
 
+// FIXME: drop g_adapterHandler, use #ifdef to call directly
+// e.g. for udp: CATerminateIP
 void CATerminateAdapters()
 {
-    for (size_t index = 0; index < g_numberOfAdapters; index++)
-    {
-        if (g_adapterHandler[index].terminate != NULL)
-        {
-            g_adapterHandler[index].terminate();
-        }
-    }
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* for (size_t index = 0; index < g_numberOfAdapters; index++) */
+    /* { */
+    /*     if (g_adapterHandler[index].terminate != NULL) */
+    /*     { */
+    /*         g_adapterhandler[index].terminate(); */
+    /*     } */
+    /* } */
+#ifdef IP_ADAPTER
+    CATerminateIP();
+#endif
 
     OICFree(g_adapterHandler);
     g_adapterHandler = NULL;
     g_numberOfAdapters = 0;
 
-#ifndef SINGLE_THREAD
     CAQueueingThreadDestroy(&g_networkChangeCallbackThread);
-#endif //SINGLE_THREAD
-
     RemoveAllNetworkStateChangedCallback();
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }

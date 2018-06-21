@@ -290,7 +290,7 @@ struct OCRepPayloadValue
 
 static void OCFreeRepPayloadValueContents(OCRepPayloadValue* val);
 
-void OC_CALL OCPayloadDestroy(OCPayload* payload)
+void OC_CALL OCPayloadDestroy(OCPayload* payload) EXPORT
 {
     OIC_LOG_V(INFO, __FILE__, "%s: ENTRY", __func__);
     if (!payload)
@@ -328,8 +328,10 @@ void OC_CALL OCPayloadDestroy(OCPayload* payload)
     OIC_LOG_V(INFO, __FILE__, "%s: EXIT", __func__);
 }
 
-OCRepPayload* OC_CALL OCRepPayloadCreate()
+OCRepPayload* OC_CALL OCRepPayloadCreate() EXPORT
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
+
     OCRepPayload* payload = (OCRepPayload*)OICCalloc(1, sizeof(OCRepPayload));
 
     if (!payload)
@@ -344,6 +346,7 @@ OCRepPayload* OC_CALL OCRepPayloadCreate()
 
 void OC_CALL OCRepPayloadAppend(OCRepPayload* parent, OCRepPayload* child)
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     if (!parent)
     {
         return;
@@ -736,8 +739,9 @@ bool OC_CALL OCRepPayloadAddInterfaceAsOwner(OCRepPayload* payload, char* iface)
     }
 }
 
-bool OC_CALL OCRepPayloadSetUri(OCRepPayload* payload, const char*  uri)
+bool OC_CALL OCRepPayloadSetUri(OCRepPayload* payload, const char*  uri) EXPORT
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     if (!payload)
     {
         return false;
@@ -938,8 +942,9 @@ bool OC_CALL OCRepPayloadGetPropByteString(const OCRepPayload* payload, const ch
 }
 
 bool OC_CALL OCRepPayloadSetPropBool(OCRepPayload* payload,
-                             const char* name, bool value)
+                             const char* name, bool value) EXPORT
 {
+    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
     return OCRepPayloadSetProp(payload, name, &value, OCREP_PROP_BOOL);
 }
 
@@ -2098,9 +2103,11 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
         {
 	    OIC_LOG_V(DEBUG, TAG, "%s endpoint %d", __func__, i);
 
+	    // FIXME: use indexing?
             CAEndpoint_t *info = networkInfo + i;
-	    OIC_LOG_V(DEBUG, TAG, "%s adapter:0x%X", __func__, info->adapter);
-	    OIC_LOG_V(DEBUG, TAG, "%s index %d", __func__, info->ifindex);
+	    OIC_LOG_V(DEBUG, TAG, "%s adapter: 0x%X", __func__, info->adapter);
+	    OIC_LOG_V(DEBUG, TAG, "%s addr: %s", __func__, info->addr);
+	    OIC_LOG_V(DEBUG, TAG, "%s ifindex %d", __func__, info->ifindex);
 	    OIC_LOG_V(DEBUG, TAG, "%s dev index %d", __func__, devAddr->ifindex);
 
             if (((CA_ADAPTER_IP | CA_ADAPTER_TCP) & info->adapter &&
@@ -2371,6 +2378,7 @@ void OCDiscoveryPayloadAddResourceWithEps(OCDiscoveryPayload* payload, const OCR
                                                   uint16_t securePort, void *networkInfo, size_t infoSize,
                                                   const OCDevAddr *devAddr, uint16_t tcpPort)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OCDiscoveryPayloadAddNewResource(payload,
                                      OCCopyResource(res, securePort, (CAEndpoint_t *)networkInfo,
                                                     infoSize, devAddr, tcpPort));

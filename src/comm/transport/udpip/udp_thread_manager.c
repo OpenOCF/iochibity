@@ -8,19 +8,10 @@
 
 #define TAG "UDPTHREADMGR"
 
-#if INTERFACE
-#ifdef DEBUG_THREADING
-#define THREAD_DBUG(...) __VA_ARGS__ ,
-#else
-#define THREAD_DBUG(...)
-#endif
-#endif
-
-#ifndef SINGLE_THREAD
-
 /**
  * Queue handle for Send Data.
  */
+//FIXME: in tcp this is a pointer; make them match
 CAQueueingThread_t udp_sendQueueHandle;
 
 /* ONLY called by udp_initialize_send_thread */
@@ -109,4 +100,3 @@ CAResult_t udp_start_send_msg_queue()
     return CA_STATUS_OK;
 }
 
-#endif

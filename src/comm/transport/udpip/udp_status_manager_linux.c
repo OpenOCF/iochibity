@@ -248,57 +248,6 @@ void CARegisterForAddressChanges()
 /*     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__); */
 /* } */
 
-void CAInitializeFastShutdownMechanism(void)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    udp_selectTimeout = -1; // don't poll for shutdown
-    int ret = -1;
-#if defined(WSA_WAIT_EVENT_0)
-    udp_shutdownEvent = WSACreateEvent();
-    if (WSA_INVALID_EVENT != udp_shutdownEvent)
-    {
-        ret = 0;
-    }
-#elif defined(HAVE_PIPE2)
-    ret = pipe2(udp_shutdownFds, O_CLOEXEC);
-    UDP_CHECKFD(udp_shutdownFds[0]);
-    UDP_CHECKFD(udp_shutdownFds[1]);
-#else
-    ret = pipe(udp_shutdownFds);
-    if (-1 != ret)
-    {
-        ret = fcntl(udp_shutdownFds[0], F_GETFD);
-        if (-1 != ret)
-        {
-            ret = fcntl(udp_shutdownFds[0], F_SETFD, ret|FD_CLOEXEC);
-        }
-        if (-1 != ret)
-        {
-            ret = fcntl(udp_shutdownFds[1], F_GETFD);
-        }
-        if (-1 != ret)
-        {
-            ret = fcntl(udp_shutdownFds[1], F_SETFD, ret|FD_CLOEXEC);
-        }
-        if (-1 == ret)
-        {
-            close(udp_shutdownFds[1]);
-            close(udp_shutdownFds[0]);
-            udp_shutdownFds[0] = -1;
-            udp_shutdownFds[1] = -1;
-        }
-    }
-    UDP_CHECKFD(udp_shutdownFds[0]);
-    UDP_CHECKFD(udp_shutdownFds[1]);
-#endif
-    if (-1 == ret)
-    {
-        OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR);
-        udp_selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
-    }
-    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
-}
-
 static void CARemoveFromInterfaceList(int ifiindex) // @was  CARemoveNetworkMonitorList
 {
     VERIFY_NON_NULL_VOID(g_netInterfaceList, TAG, "g_netInterfaceList is NULL");
@@ -325,9 +274,8 @@ static void CARemoveFromInterfaceList(int ifiindex) // @was  CARemoveNetworkMoni
     return;
 }
 
-// FIXME: not called currently in udp_*
+// FIXME: move to ip package, this is transport independent?
 // @was: called by caipserver_linux::CASelectReturned when netlinkFd ready
-// TODO: implement status monitoring for Linux
 u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
 {
     u_arraylist_t *iflist = NULL;
@@ -347,6 +295,7 @@ u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
 
     for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len))
     {
+	/* NOTE: netlink stuff is transport-independent? e.g. newaddr for either udp or tcp? */
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
 	if (nh != NULL) {
 	    if (nh->nlmsg_type == RTM_DELADDR) {

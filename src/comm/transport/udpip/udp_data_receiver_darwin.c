@@ -67,12 +67,21 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
         FD_SET(udp_shutdownFds[0], &readFds);
     }
 
-    int ready_count = select(udp_maxfd + 1, &readFds, NULL, NULL, tv);
+    OIC_LOG_V(DEBUG, TAG, "SELECTing");
+    //int ready_count = select(udp_maxfd + 1, &readFds, NULL, NULL, tv);
+    int ready_count = 0;
+    while ((ready_count = select(udp_maxfd + 1, &readFds, NULL, NULL, tv)) == -1
+	   && errno == EINTR)	/* a signal interrupt */
+         continue;                       /* Restart if interrupted by signal */
+    if (ready_count == -1) {                   /* Unexpected error */
+        OIC_LOG_V(FATAL, TAG, "select error %s", CAIPS_GET_ERROR);
+    }
+
     OIC_LOG_V(DEBUG, TAG, "SELECT ready_count: %d", ready_count);
 
     if (udp_is_terminating)
     {
-        OIC_LOG_V(DEBUG, TAG, "Packet receiver Stop request received.");
+        OIC_LOG_V(DEBUG, TAG, "udp_is_terminating flag is TRUE (t%u)", pthread_self());
         return;
     }
 
@@ -84,74 +93,94 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
 	// udp_process_ready_sockets(&readFds, ready_count);
 #define UDPSET(SOCK) ( SOCK.fd != OC_INVALID_SOCKET && FD_ISSET(SOCK.fd, &readFds))
 
-	//while (!udp_is_terminating)
+	OIC_LOG(DEBUG, TAG, "checking udp_m6...");
+	if ( UDPSET(udp_m6) ) {
+	    OIC_LOG(DEBUG, TAG, "udp_m6 socket ready");
+	    (void)udp_recvmsg_on_socket(udp_m6.fd, CA_MULTICAST | CA_IPV6);
+	    FD_CLR(udp_m6.fd, &readFds);
+	    ready_count--;
+	}
+	if (ready_count < 1) return;
+	if (udp_is_terminating) return;
 
 	// ISSET(udp_u6,  readFds, CA_IPV6)
+	OIC_LOG(DEBUG, TAG, "checking udp_u6...");
 	if ( UDPSET(udp_u6) ) {
-	    (void)CAReceiveMessage(udp_u6.fd, CA_IPV6);
+	    OIC_LOG(DEBUG, TAG, "udp_u6 socket ready");
+	    (void)udp_recvmsg_on_socket(udp_u6.fd, CA_IPV6);
 	    FD_CLR(udp_u6.fd, &readFds);
 	    ready_count--;
 	}
 	if (ready_count < 1) return;
 	if (udp_is_terminating) return;
+
 	// ISSET(udp_u6s, readFds, CA_IPV6 | CA_SECURE)
+	OIC_LOG(DEBUG, TAG, "checking udp_u6s...");
 	if ( UDPSET(udp_u6s) ) {
-	    (void)CAReceiveMessage(udp_u6s.fd, CA_IPV6 | CA_SECURE);
+	    OIC_LOG(DEBUG, TAG, "udp_u6s socket ready");
+	    (void)udp_recvmsg_on_socket(udp_u6s.fd, CA_IPV6 | CA_SECURE);
 	    FD_CLR(udp_u6s.fd, &readFds);
 	    ready_count--;
 	}
 	if (ready_count < 1) return;
 	if (udp_is_terminating) return;
+
 	/* else ISSET(udp_u4,  readFds, CA_IPV4) */
 	if ( UDPSET(udp_u4) ) {
-	    (void)CAReceiveMessage(udp_u4.fd, CA_IPV4);
+	    (void)udp_recvmsg_on_socket(udp_u4.fd, CA_IPV4);
 	    FD_CLR(udp_u4.fd, &readFds);
+	    ready_count--;
 	}
+	if (ready_count < 1) return;
 	if (udp_is_terminating) return;
+
 	/* else ISSET(udp_u4s, readFds, CA_IPV4 | CA_SECURE) */
 	if ( UDPSET(udp_u4s) ) {
-	    (void)CAReceiveMessage(udp_u4s.fd, CA_IPV4 | CA_SECURE);
+	    (void)udp_recvmsg_on_socket(udp_u4s.fd, CA_IPV4 | CA_SECURE);
 	    FD_CLR(udp_u4s.fd, &readFds);
+	    ready_count--;
 	}
+	if (ready_count < 1) return;
 	if (udp_is_terminating) return;
 	/* else ISSET(udp_m6,  readFds, CA_MULTICAST | CA_IPV6) */
-	if ( UDPSET(udp_m6) ) {
-	    (void)CAReceiveMessage(udp_m6.fd, CA_MULTICAST | CA_IPV6);
-	    FD_CLR(udp_m6.fd, &readFds);
-	}
-	if (udp_is_terminating) return;
+
 	/* else ISSET(udp_m6s, readFds, CA_MULTICAST | CA_IPV6 | CA_SECURE) */
 	if ( UDPSET(udp_m6s) ) {
-	    (void)CAReceiveMessage(udp_m6s.fd, CA_MULTICAST | CA_IPV6 | CA_SECURE);
+	    (void)udp_recvmsg_on_socket(udp_m6s.fd, CA_MULTICAST | CA_IPV6 | CA_SECURE);
 	    FD_CLR(udp_m6s.fd, &readFds);
+	    ready_count--;
 	}
+	if (ready_count < 1) return;
 	if (udp_is_terminating) return;
+
 	/* else ISSET(udp_m4,  readFds, CA_MULTICAST | CA_IPV4) */
 	if ( UDPSET(udp_m4) ) {
-	    (void)CAReceiveMessage(udp_m4.fd, CA_MULTICAST | CA_IPV4);
+	    (void)udp_recvmsg_on_socket(udp_m4.fd, CA_MULTICAST | CA_IPV4);
 	    FD_CLR(udp_m4.fd, &readFds);
+	    ready_count--;
 	}
+	if (ready_count < 1) return;
 	if (udp_is_terminating) return;
+
 	/* else ISSET(udp_m4s, readFds, CA_MULTICAST | CA_IPV4 | CA_SECURE) */
 	if ( UDPSET(udp_m4s) ) {
-	    (void)CAReceiveMessage(udp_m4s.fd, CA_MULTICAST | CA_IPV4 | CA_SECURE);
+	    (void)udp_recvmsg_on_socket(udp_m4s.fd, CA_MULTICAST | CA_IPV4 | CA_SECURE);
 	    FD_CLR(udp_m4s.fd, &readFds);
 	    ready_count--;
 	}
 	if (ready_count < 1) return;
+	if (udp_is_terminating) return;
 
 	// NB: darwin does not use netlink sockets to detect interface changes
 
-	// FIXME: we don't even need to read the shutdown socket, it's enough for select to wake up
-	/* if (FD_ISSET(caglobals.ip.shutdownFds[0], &readFds)) { */
-	/*     char buf[10] = {0}; */
-	/*     ssize_t len = read(udp_shutdownFds[0], buf, sizeof (buf)); */
-	/*     if (len >= 0) */
-	/* 	return; */
-	/* } */
+	// FIXME: do we even need to read the shutdown socket, it's enough for select to wake up?
+	OIC_LOG(DEBUG, TAG, "checking shutdownFds[0]...");
+	if (FD_ISSET(udp_shutdownFds[0], &readFds)) {
+	    OIC_LOG(DEBUG, TAG, "shutdownFds[0] ready");
+	    char buf[10] = {0};
+	    ssize_t len = read(udp_shutdownFds[0], buf, sizeof (buf));
+	    if (len >= 0)
+		return;
+	}
     }
-    else // if (0 > ready_count)
-    {
-        OIC_LOG_V(FATAL, TAG, "select error %s", CAIPS_GET_ERROR);
-     }
 }
