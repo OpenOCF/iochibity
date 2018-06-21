@@ -68,7 +68,7 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
     }
 
     int ready_count = select(udp_maxfd + 1, &readFds, NULL, NULL, tv);
-    //OIC_LOG_V(DEBUG, TAG, "SELECT returned %d", ready_count);
+    OIC_LOG_V(DEBUG, TAG, "SELECT ready_count: %d", ready_count);
 
     if (udp_is_terminating)
     {

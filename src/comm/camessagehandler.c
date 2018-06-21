@@ -250,6 +250,7 @@ void CAAddDataToSendThread(CAData_t *data)
 
 void CAAddDataToReceiveThread(CAData_t *data)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_VOID(data, TAG, "data");
 
     // add thread
@@ -1065,6 +1066,8 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
 
     VERIFY_NON_NULL_MSG(data, TAG, "data");
     VERIFY_NON_NULL_MSG(data->remoteEndpoint, TAG, "remoteEndpoint");
+
+    OIC_LOG_V(DEBUG, TAG, "%s remote ep: %s", __func__, data->remoteEndpoint->addr);
 
     coap_pdu_t *pdu = NULL;
     CAInfo_t *info = NULL;

@@ -2096,7 +2096,12 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
     {
         for (size_t i = 0; i < infoSize; i++)
         {
+	    OIC_LOG_V(DEBUG, TAG, "%s endpoint %d", __func__, i);
+
             CAEndpoint_t *info = networkInfo + i;
+	    OIC_LOG_V(DEBUG, TAG, "%s adapter:0x%X", __func__, info->adapter);
+	    OIC_LOG_V(DEBUG, TAG, "%s index %d", __func__, info->ifindex);
+	    OIC_LOG_V(DEBUG, TAG, "%s dev index %d", __func__, devAddr->ifindex);
 
             if (((CA_ADAPTER_IP | CA_ADAPTER_TCP) & info->adapter &&
                  info->ifindex == devAddr->ifindex) ||
@@ -2192,6 +2197,7 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
                                          , uint16_t tcpPort)
 #endif
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY: %s", __func__, res->uri);
     OCResourcePayload* pl = (OCResourcePayload*)OICCalloc(1, sizeof(OCResourcePayload));
     if (!pl)
     {
@@ -2404,6 +2410,7 @@ exit:
 
 void OC_CALL OCDiscoveryPayloadAddNewResource(OCDiscoveryPayload* payload, OCResourcePayload* res)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (!payload)
     {
         return;

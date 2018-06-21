@@ -98,7 +98,7 @@ LOCAL void* ca_thread_pool_pthreads_delegate(void* data)
 // was greater than the number of requested threads.
 CAResult_t ca_thread_pool_init(int32_t num_of_threads, ca_thread_pool_t *thread_pool)
 {
-    OIC_LOG(DEBUG, TAG, "IN");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     if(!thread_pool)
     {
@@ -149,7 +149,7 @@ CAResult_t ca_thread_pool_init(int32_t num_of_threads, ca_thread_pool_t *thread_
         goto exit;
     }
 
-    OIC_LOG(DEBUG, TAG, "OUT");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 
 exit:
@@ -163,7 +163,7 @@ CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool,
 				   ca_thread_func method,
                                    void *data)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, %s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     if(NULL == thread_pool || NULL == method)
     {
@@ -232,11 +232,9 @@ void ca_thread_pool_free(ca_thread_pool_t thread_pool)
 
     oc_mutex_lock(thread_pool->details->list_lock);
 
-    for (size_t i = 0; i < u_arraylist_length(thread_pool->details->threads_list); ++i)
+    for (int i = 0; i < u_arraylist_length(thread_pool->details->threads_list); ++i)
     {
-#ifdef DEBUG_THREADING
-	OIC_LOG_V(DEBUG, TAG, "Freeing thread %d", __func__, i);
-#endif
+	OIC_LOG_THREADS_V(DEBUG, TAG, "Freeing thread %d", i);
         ca_thread_pool_thread_info_t *threadInfo = (ca_thread_pool_thread_info_t *)
                 u_arraylist_get(thread_pool->details->threads_list, i);
         if (threadInfo)

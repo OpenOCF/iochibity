@@ -77,9 +77,11 @@ typedef struct
 
 static void CAQueueingThreadBaseRoutine(void *threadValue)
 {
-    OIC_LOG(DEBUG, TAG, "message handler main thread start..");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     CAQueueingThread_t *thread = (CAQueueingThread_t *) threadValue;
+
+    OIC_LOG_THREADS_V(DEBUG, TAG, "%s thread: %s", __func__, thread->name);
 
     if (NULL == thread)
     {
@@ -95,12 +97,12 @@ static void CAQueueingThreadBaseRoutine(void *threadValue)
         // if queue is empty, thread will wait
         if (!thread->isStop && u_queue_get_size(thread->dataQueue) <= 0)
         {
-            OIC_LOG(DEBUG, TAG, "wait..");
+            OIC_LOG_THREADS_V(DEBUG, TAG, "%s %s waiting on queue..", __func__, thread->name);
 
             // wait
             oc_cond_wait(thread->threadCond, thread->threadMutex);
 
-            OIC_LOG(DEBUG, TAG, "wake up..");
+            OIC_LOG_THREADS_V(DEBUG, TAG, "%s %s waking up...", __func__, thread->name);
         }
 
         // check stop flag
@@ -140,7 +142,7 @@ static void CAQueueingThreadBaseRoutine(void *threadValue)
     oc_cond_signal(thread->threadCond);
     oc_mutex_unlock(thread->threadMutex);
 
-    OIC_LOG(DEBUG, TAG, "message handler main thread end..");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
 
@@ -337,7 +339,7 @@ CAResult_t CAQueueingThreadDestroy(CAQueueingThread_t *thread)
 
 CAResult_t CAQueueingThreadStop(CAQueueingThread_t *thread)
 {
-#ifdef DEBUG_THREADING
+#ifdef DEBUG_THREADS
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY: %s", __func__, thread->name);
 #else
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);

@@ -312,7 +312,7 @@ CATransportAdapter_t CAGetSelectedNetwork()
 
 CAResult_t CAGetNetworkInformationInternal(CAEndpoint_t **info, size_t *size)
 {
-    OIC_LOG(DEBUG, TAG, "get network information.");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     if (NULL == info || NULL == size)
     {

@@ -129,6 +129,7 @@ typedef struct CANetworkCallbackThreadInfo_t
 
 static void CANetworkChangeCallbackThreadProcess(void *threadData)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY (g_networkChangeCallbackThread)", __func__);
     assert(threadData);
 
     CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *) threadData;
@@ -674,9 +675,11 @@ void CAStopAdapters()
 
 CAResult_t CAGetNetworkInfo(CAEndpoint_t **info, size_t *size)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(info, TAG, "info is null");
     VERIFY_NON_NULL_MSG(size, TAG, "size is null");
 
+    OIC_LOG_V(DEBUG, TAG, "%s number of adapters: %d", __func__, g_numberOfAdapters);
 
     CAEndpoint_t **tempInfo = (CAEndpoint_t **) OICCalloc(g_numberOfAdapters, sizeof(*tempInfo));
     if (!tempInfo)

@@ -327,8 +327,10 @@ exit:
 
 char* OCCreateEndpointString(const OCEndpointPayload* endpoint)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (!endpoint)
     {
+	OIC_LOG_V(DEBUG, TAG, "%s ep is null", __func__);
         return NULL;
     }
 
@@ -374,6 +376,7 @@ char* OCCreateEndpointString(const OCEndpointPayload* endpoint)
         OIC_LOG_V(ERROR, TAG, "Payload has invalid TPS!!! %s", endpoint->tps);
         goto exit;
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT: %s", __func__, buf);
     return buf;
 
 exit:
