@@ -214,31 +214,29 @@ static CANetworkMonitorCallback g_nwMonitorHandler = NULL;
 /*                            const void *data, size_t dataLen, */
 /*                            CAResult_t result); */
 
-static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
-                                       const CARemoteId_t *identity,
-                                       const void *data, CADataType_t dataType);
+/* static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint, */
+/*                                        const CARemoteId_t *identity, */
+/*                                        const void *data, CADataType_t dataType); */
 
-static void CASendErrorInfo(const CAEndpoint_t *endpoint, const CAInfo_t *info,
-                            CAResult_t result);
+/* static void CASendErrorInfo(const CAEndpoint_t *endpoint, const CAInfo_t *info, */
+/*                             CAResult_t result); */
 
-#ifdef SINGLE_THREAD
-static void CAProcessReceivedData(CAData_t *data);
-#endif
-static void CADestroyData(void *data, uint32_t size);
-static void CALogPayloadInfo(CAInfo_t *info);
-static bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *endpoint, uint16_t id,
-                                CAToken_t token, uint8_t tokenLength);
+/* static void CADestroyData(void *data, uint32_t size); */
+/* static void CALogPayloadInfo(CAInfo_t *info); */
+/* static bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *endpoint, uint16_t id, */
+/*                                 CAToken_t token, uint8_t tokenLength); */
 
 /**
  * print send / receive message of CoAP.
  * @param[in] data      CA information which has send/receive message and endpoint.
  * @param[in] pdu       CoAP pdu low data.
  */
-static void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu);
+/* static void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu); */
 
 #ifdef WITH_BWT
 void CAAddDataToSendThread(CAData_t *data)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_VOID(data, TAG, "data");
 
     // add thread
