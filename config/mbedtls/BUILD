@@ -27,7 +27,7 @@ genrule(
          + ["patched/" + x for x in glob(["**/include/**/*.h"],
                                          exclude=["**/config.h"])],
     cmd  = "\n".join([
-        "cp -R external/mbedtls/ patched",
+        "cp -LR external/mbedtls/ patched",
         "patch -dpatched -p1 -l -f < $(location @//config/mbedtls:ocf.patch)",
         "cp -R patched $(@D)",
         ])
@@ -120,5 +120,3 @@ cc_library(
     includes = ["patched/include", "patched/include/mbedtls", "x"],
     visibility = ["//visibility:public"]
 )
-
-
