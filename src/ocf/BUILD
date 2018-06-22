@@ -1,4 +1,4 @@
-load("//config:variables.bzl", "CSTD", "DEFINES")
+load("//config:variables.bzl", "CSTD", "DEFINES", "DBG_COPTS")
 
 config_setting(
     name = "client_role",
@@ -67,10 +67,10 @@ cc_library(
                 "//config:msvc": [],
                 "//config:msys": [],
                 "//config:android_arm8": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
-                "//config:linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
-                "//config:darwin": ["-std=c11", "-U DEBUG"],
-                "//conditions:default": ["-x c", "-std=c11"]})
-    + CSTD,
+                "//config:linux": ["-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
+                "//config:darwin": ["-U DEBUG"],
+                "//conditions:default": ["BROKEN"]})
+    + CSTD + DBG_COPTS,
 
     defines = DEFINES,
 

@@ -25,12 +25,11 @@ cc_library(
                 "//conditions:default": ["-std=c11", "-Wextra"]})
     + DBG_COPTS,
 
-    # + select({#"//config::rpi": [],
+    # + select({#"//config::rpi_arm8": [],
     #          "//conditions:default": ["-DPORT_U6=$(FOO)", "-DPORT_U6S=0", "-DPORT_U4=0", "-DPORT_U4S=0"]}),
 
     defines = select({"//config:rpi_arm8": ["_DEFAULT_SOURCE"], # enables IFF_UP etc. defines in net/if.h
                       "//config:linux-x86_64": ["_DEFAULT_SOURCE"],
-                      "//config:rpi": ["_DEFAULT_SOURCE"], # enables IFF_UP etc. defines in net/if.
                       "//conditions:default": []})
     + DEFINES,
 
