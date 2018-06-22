@@ -2374,7 +2374,7 @@ CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dat
 		OIC_LOG_V(INFO, TAG, "%s peer user id   : %s", __func__, peer->sep.userId.id);
 		OIC_LOG_V(INFO, TAG, "%s peer subject id: %s", __func__, peer->sep.identity.id);
 		switch (peer->sep.endpoint.adapter) {
-#ifdef ENABLE_UDP
+#ifndef DISABLE_UDP
 		case CA_ADAPTER_IP:
 		    mh_CAReceivedPacketCallback(&peer->sep, decryptBuffer, /* dataLen */ ret);
 		    break;

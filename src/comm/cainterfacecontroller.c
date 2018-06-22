@@ -652,7 +652,7 @@ void CAStopAdapters()
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     // @rewrite
-#ifdef ENABLE_UDP
+#ifndef DISABLE_UDP
     CAStopAdapter(CA_ADAPTER_IP);
 #endif
 #ifdef ENABLE_TCP
@@ -729,7 +729,7 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
     /* } */
 
     // static CAEndpoint_t null_ep;	/* static initialization */
-#ifdef ENABLE_UDP
+#ifndef DISABLE_UDP
     size_t udp_ep_count;
     CAEndpoint_t *udp_ep; /* array of eps */
     //udp_ep = null_ep;		/* reinitialize */
@@ -802,7 +802,7 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
     /* } */
 
     /* copy pointer array */
-#if defined(ENABLE_UDP)
+#ifndef DISABLE_UDP
         memcpy(ep_list,
                udp_ep,  // tempInfo[0],
                sizeof(*ep_list) * udp_ep_count); // tempSize[index]);
@@ -855,7 +855,7 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
     CATransportAdapter_t requestedAdapter = endpoint->adapter ? endpoint->adapter : CA_ALL_ADAPTERS;
 
     OIC_LOG(DEBUG, TAG, "unicast message to adapter");
-#ifdef ENABLE_UDP
+#ifndef DISABLE_UDP
     if (requestedAdapter == CA_ADAPTER_IP)
 	sentDataLen = CASendIPUnicastData(endpoint, data, length, dataType);
 #endif
