@@ -402,6 +402,7 @@ CAResult_t CASelectNetwork(CATransportAdapter_t transport) // @was transport <- 
 
     if (!g_isInitialized)
     {
+	OIC_LOG_V(ERROR, TAG, "%s !g_isInitialized", __func__);
         return CA_STATUS_NOT_INITIALIZED;
     }
 

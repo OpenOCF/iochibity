@@ -72,6 +72,7 @@ u_arraylist_t *g_netInterfaceList = NULL;
 // exact same code is in the TCP package. move it to pkg IP
 CAResult_t ip_create_network_interface_list() // @was CAIPInitializeNetworkMonitorList
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (!g_networkMonitorContextMutex)
     {
         g_networkMonitorContextMutex = oc_mutex_new();
@@ -92,6 +93,7 @@ CAResult_t ip_create_network_interface_list() // @was CAIPInitializeNetworkMonit
             return CA_STATUS_FAILED;
         }
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 
