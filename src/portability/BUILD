@@ -15,7 +15,7 @@ cc_library(
                 "//config:msvc": [],
                 "//config:msys": [],
 		"//config:linux": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
-		"//config:linux-x86_64": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
+		"//config:linux64": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"],
                 "//config:darwin": ["-std=c11", "-UDEBUG"],
                 "//config:darwin64": ["-std=c11", "-UDEBUG"],
                 "//conditions:default": ["-std=c11"]}),
@@ -25,7 +25,7 @@ cc_library(
             # "//third_party/mbedtls:mbedtls-x509",
             "@mbedtls//:mbedtls"
     ] + select({"//config:linux": ["//src/portability/posix"],
-                "//config:linux-x86_64": ["//src/portability/posix"],
+                "//config:linux64": ["//src/portability/posix"],
                 "//config:rpi_arm8": ["//src/portability/posix"],
 			          # "//src/portability/linux"],
                 "//config:windows": ["//src/portability/windows:win"],

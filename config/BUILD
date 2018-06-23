@@ -142,7 +142,7 @@ config_setting(
 
 # cross-compile
 config_setting(
-    name = "linux-x86_64",
+    name = "linux64",
     values = {
         "crosstool_top": "//tools/ctng:toolchain",
         "cpu": "x86_64"

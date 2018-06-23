@@ -15,7 +15,7 @@ cc_library(
                 "//config:msvc": [],
                 "//config:msys": [],
                 "//config:linux": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
-                "//config:linux-x86_64": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
+                "//config:linux64": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
     + DBG_COPTS,
 

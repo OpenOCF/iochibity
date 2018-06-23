@@ -31,7 +31,7 @@ cc_library(
               "//config:android": ["logger_android.c", "logger_android.h"],
               "//config:darwin": ["logger_posix.c", "logger_posix.h"],
               "//config:linux": ["logger_posix.c", "logger_posix.h"],
-              "//config:linux-x86_64": ["logger_posix.c", "logger_posix.h"],
+              "//config:linux64": ["logger_posix.c", "logger_posix.h"],
               "//config:rpi_arm8": ["logger_posix.c", "logger_posix.h"],
               "//conditions:default": ["BROKEN"]}),
               # "//conditions:default": ["logger_posix.c", "logger_posix.h"]}),

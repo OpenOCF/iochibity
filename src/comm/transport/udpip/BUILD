@@ -21,7 +21,7 @@ cc_library(
                 "//config:msvc": [],
                 "//config:msys": [],
                 "//config:linux": ["-D_DEFAULT_SOURCE","-std=c11"],
-                "//config:linux-x86_64": ["-D_DEFAULT_SOURCE", "-std=c11"],
+                "//config:linux64": ["-D_DEFAULT_SOURCE", "-std=c11"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
     + DBG_COPTS,
 
@@ -29,7 +29,7 @@ cc_library(
     #          "//conditions:default": ["-DPORT_U6=$(FOO)", "-DPORT_U6S=0", "-DPORT_U4=0", "-DPORT_U4S=0"]}),
 
     defines = select({"//config:rpi_arm8": ["_DEFAULT_SOURCE"], # enables IFF_UP etc. defines in net/if.h
-                      "//config:linux-x86_64": ["_DEFAULT_SOURCE"],
+                      "//config:linux64": ["_DEFAULT_SOURCE"],
                       "//conditions:default": []})
     + DEFINES,
 
@@ -77,7 +77,7 @@ cc_library(
                                #    "@local_jdk//:jni_md_header-darwin"],
               "//config:linux": glob(["*_posix.c"]) + glob(["*_posix.h"])
 	                      + glob(["*_linux.c"]) + glob(["*_linux.h"]),
-              "//config:linux-x86_64": glob(["*_posix.c"]) + glob(["*_posix.h"])
+              "//config:linux64": glob(["*_posix.c"]) + glob(["*_posix.h"])
 	                             + glob(["*_linux.c"]) + glob(["*_linux.h"]),
               "//config:rpi_arm8": ["udp_status_manager_posix.c",
                                "udp_status_manager_posix.h",
