@@ -1,4 +1,4 @@
-# Bazel option defaults
+# Bazel option defaults. Documentation at https://docs.bazel.build/versions/master/guide.html
 
 ## This file is under version control. To customize,
 ## create user.bazelrc and do not put it under version control.
