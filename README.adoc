@@ -83,22 +83,14 @@ WARNING: See notes below if you are building on Windows.
 
 === configuration
 
-Start by configuring coap; see the comments in
-`third_party/coap/BUILD` for instructions.
+OpenOCF uses GNU autotools for configuration, as do some of the
+third-party libs like libcoap.
 
-Then configure OpenOCF:
+libcoap: automated. see src/coap/libcoap/BUILD.
 
-[source,sh]
-----
-$ automake --add-missing  # generates config.guess, config.sub (both required)
-$ autoheader && autoconf
-$ ./configure --enable-logging
-----
+OpenOCF:  see the shell files in ./bin.  To configure for the local machine: `.bin/local_config.sh`.
 
-Run `./configure --help` to see the `--enable-feature` and `--with-lib` options.
-
-WARNING: Configuration support for cross-compiling is WIP.
-
+For cross-compiling, 
 
 === building
 
@@ -110,13 +102,12 @@ makeheaders; this list varies by platform, so we use a Bazel target:
 $ bazel build :mkhdrs
 ----
 
-NOTE: for cross-compiling (e.g. targeting android) you must supply the appropriate --cpu value, e.g.:
+NOTE: for cross-compiling (e.g. targeting android) you must supply the appropriate --config value, e.g.:
 
 [source,sh]
 ----
-$ bazel build :mkhdrs --cpu armeabi-v7a
+$ bazel build :mkhdrs --config=rpi-arm8
 ----
-
 
 This creates `./bazel-bin/mkhdrs.dat`. We process this to create our
 headers. First build the makeheaders program:
@@ -142,7 +133,7 @@ $ makeheaders -f bazel-bin/mkhdrs.dat
 $ makeheaders -f bazel-bin/mkhdrs.dat -H > include/openocf_h.h
 ----
 
-
+See e.g. ./bin/rpi3b_arm8_mkhdrs.sh
 
 Targets are defined by BUILD files; cross-compilation by flags. Before
 building, see link:tools/bazel.rc[tools/bazel.rc] and make sure you've
@@ -154,6 +145,12 @@ got the right ones.  You can build any target.  Examples:
 
 The main target for building OpenOCF for use by an application is
 `//:openocf`. You can build it like so: `$ bazel build :openocf`.
+
+WARNING: third-party libraries are built using Bazel's support for
+external repos using the new_http_archive facility, as specified in
+the WORKSPACE file. You cannot build them using the above syntax; you
+have to use @ syntax. For example, instead of `bazel build
+src/sec/mbedtls`, do `bazel build @mbedtls//:mbedtls`.
 
 Now build test apps:
 
