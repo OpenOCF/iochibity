@@ -35,5 +35,5 @@ cc_library(
               "//config:rpi_arm8": ["logger_posix.c", "logger_posix.h"],
               "//conditions:default": ["BROKEN"]}),
               # "//conditions:default": ["logger_posix.c", "logger_posix.h"]}),
-    visibility = ["//src:__subpackages__"]
+     visibility = ["//visibility:public"]
 )
