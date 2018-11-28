@@ -26,7 +26,7 @@ cc_binary(
                                        "-Iexternal/usr_local/in[<clude/cdk",
                                        "-std=c11",
                                        "-U DEBUG"]}), # OS X
-    data = ["server_config.cbor"],
+    data = [":config"], # ["server_config.cbor"],
     deps = ["//:openocf",
             ## FIXME: remove all deps except //src/ocf
             "//src:config",
@@ -47,37 +47,49 @@ cc_binary(
                        #"ndk": [],
                        "//conditions:default": []}),
     srcs = ["server.c",
-            #"config/svr_config.c"
     ]
-            # "config/acl.c",
-            # "config/pstat.c",
-            # "config/doxm.c",
-            # "config/cred.c"]
+    # experimental static init:
+    #"config/svr_config.c"
+    # "config/acl.c",
+    # "config/pstat.c",
+    # "config/doxm.c",
+    # "config/cred.c"]
+)
+
+# genrule(
+#     name = "svrs",
+#     srcs = ["server_config.edn"],
+#     outs = ["config/server_config.cbor"],
+#     # output_to_bindir = 1,
+#     cmd = "\n".join(["edn-to-json $(location server_config.edn)  > server_config.json",
+#                      "json2cbor server_config.json > /tmp/server_config.cbor",
+#                      "chmod ug+rw /tmp/server_config.cbor",
+#                      "ls -l /tmp",
+#                      "cp -p /tmp/server_config.cbor \"$@\"",])
+# )
+
+genrule(
+    name = "json",
+    srcs = ["server_config.edn"],
+    outs = ["server_config.json"],
+    cmd = "edn-to-json $(location server_config.edn)  > \"$@\"",
 )
 
 genrule(
-    name = "svrs",
+    name = "config",
     srcs = ["server_config.edn"],
-    outs = ["config/server_config.cbor"],
-    # output_to_bindir = 1,
-    cmd = "\n".join(["edn-to-json $(location server_config.edn)  > server_config.json",
-                     "json2cbor server_config.json > /tmp/server_config.cbor",
-                     "chmod ug+rw /tmp/server_config.cbor",
-                     "ls -l /tmp",
-                     "cp -p /tmp/server_config.cbor \"$@\"",])
+    outs = ["server_config.cbor"],
+    #output_to_bindir = 1,
+    cmd = "\n".join(["edn-to-json $(location server_config.edn)  > server_config2.json",
+                     "echo FOO",
+                     "pwd",
+                     "ls -l",
+                     "json2cbor server_config2.json > server_config.cbor",
+                     "chmod ug+rw server_config.cbor",
+                     "ls -l",
+                     "cp -v server_config.cbor \"$@\"",
+                     "chmod -v ug+rw \"$@\""])
+                     #"chmod ug+rw \"$@\""])
+                     #"json2cbor $(location server_config.json) > \"$@\""]),
+    # tools = ["edn-to-json"],
 )
-
-# genrule(
-#     name = "json",
-#     srcs = ["server_config.edn"],
-#     outs = ["server_config.json"],
-#     cmd = "edn-to-json $(location server_config.edn)  > \"$@\"",
-# )
-
-# genrule(
-#     name = "config",
-#     srcs = ["server_config.json"],
-#     outs = ["server_config.cbor"],
-#     cmd = "json2cbor $(location server_config.json) > \"$@\"",
-#     # tools = ["edn-to-json"],
-# )

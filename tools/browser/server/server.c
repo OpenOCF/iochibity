@@ -63,6 +63,7 @@ void handleSigInt(int signum) {
 FILE *logfd;
 
 static char SVR_CONFIG_FILE[] = "tools/browser/server/server_config.cbor";
+//static char SVR_CONFIG_FILE[] = "config/server_config.cbor";
 
 /* local fopen for svr database overrides default filename */
 FILE* server_fopen(const char *path, const char *mode)
