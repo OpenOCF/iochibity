@@ -1934,6 +1934,7 @@ static bool includeThisResourceInResponse(OCResource *resource,
 static OCStackResult SendNonPersistantDiscoveryResponse(OCServerRequest *request,
                                 OCPayload *discoveryPayload, OCEntityHandlerResult ehResult)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OCEntityHandlerResponse *response = NULL;
     OCStackResult result = OC_STACK_ERROR;
 
@@ -1948,6 +1949,7 @@ static OCStackResult SendNonPersistantDiscoveryResponse(OCServerRequest *request
     result = OCDoResponse(response);
 
     OICFree(response);
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return result;
 
 exit:
@@ -2653,6 +2655,7 @@ static OCStackResult HandleCollectionResourceDefaultEntityHandler(OCServerReques
 OCStackResult
 ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerRequest *request)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OCStackResult ret = OC_STACK_OK;
 
     switch (resHandling)
@@ -2698,6 +2701,7 @@ ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerReque
             return OC_STACK_ERROR;
         }
     }
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return ret;
 }
 

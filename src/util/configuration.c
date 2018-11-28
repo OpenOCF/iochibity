@@ -10,5 +10,6 @@ const char * configuration() EXPORT
 
 const char * oocf_get_version() EXPORT
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY %s", __func__, version);
     return version;
 }
