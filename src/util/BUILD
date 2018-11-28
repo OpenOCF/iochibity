@@ -72,9 +72,9 @@ cc_library(
     # + select({":android": ["ifaddrs_android.c",
     #                        "ifaddrs_android.h"],
     #           "//conditions:default": []}),
-    visibility = ["//src:__subpackages__",
-                  "//tools/makeheaders:__pkg__",
-                  "//tools/cbor:__subpackages__"]
-    # visibility = ["//visibility:public"],
+    visibility = ["//visibility:public"]
+    # visibility = ["//src:__subpackages__",
+    #               "//tools/makeheaders:__pkg__",
+    #               "//tools/cbor:__subpackages__"]
 )
 
