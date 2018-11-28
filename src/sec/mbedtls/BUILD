@@ -1,3 +1,5 @@
+# this package builds and patches mbedtls-2.4.2
+
 exports_files(["config.h", "ocf.patch"])
 
 genrule(
@@ -10,9 +12,9 @@ genrule(
 # copy our custom config.h into the patch output dir
 genrule(
     name = "config",
-    srcs = ["@//config/mbedtls:config.h"],
+    srcs = ["@//src/sec/mbedtls:config.h"],
     outs = ["patched/include/mbedtls/config.h"],
-    cmd  = "cp $(location @//config/mbedtls:config.h) $@"
+    cmd  = "cp $(location @//src/sec/mbedtls:config.h) $@"
 )
 
 genrule(
@@ -22,13 +24,13 @@ genrule(
          + glob(["**/*.data"])
          + glob(["**/*.function"])
          + glob(["**/*.sh"])
-         + ["@//config/mbedtls:ocf.patch"],
+         + ["@//src/sec/mbedtls:ocf.patch"],
     outs = ["patched/" + x for x in glob(["**/library/*.c"])]
          + ["patched/" + x for x in glob(["**/include/**/*.h"],
                                          exclude=["**/config.h"])],
     cmd  = "\n".join([
         "cp -LR external/mbedtls/ patched",
-        "patch -dpatched -p1 -l -f < $(location @//config/mbedtls:ocf.patch)",
+        "patch -dpatched -p1 -l -f < $(location @//src/sec/mbedtls:ocf.patch)",
         "cp -R patched $(@D)",
         ])
 )

@@ -137,7 +137,7 @@ new_http_archive(
     urls = ["https://github.com/ARMmbed/mbedtls/archive/mbedtls-2.4.2.zip"],
     sha256 = "dacb9f5dd438c456b9ef6627637f46e16fd41e86d828217ec9f8547d3d22a338",
     strip_prefix = "mbedtls-mbedtls-2.4.2",
-    build_file = "config/mbedtls/BUILD",
+    build_file = "src/sec/mbedtls/BUILD",
 )
     # urls = ["https://github.com/ARMmbed/mbedtls/archive/mbedtls-2.7.zip"],
     # sha256 = "ab1ea18e7fa721bb4ab08294ab34008c4a934841b037a3cfa5f7ce65648228a2",
