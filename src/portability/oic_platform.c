@@ -144,15 +144,20 @@ bool OICGetPlatformUuid(uint8_t platformUuid[OIC_UUID_LENGTH])
         OIC_LOG_V(WARNING, TAG, "Failed gethostname() errno: %s", strerror(errno));
         return false;
     }
+    OIC_LOG_V(INFO, TAG, "%s hostname: %s", __func__, hostname);
 
-    // Get FDQN of the computer.
     char fqdnComputerName[MAX_COMPUTER_NAME_LENGTH] = { 0 };
+#if defined(__APPLE__)
+    /* On OS X getaddrinfo, local hostnames like "foo.local" will fail
+       with 'nodename nor servername provided, or not known'. So use
+       hostname. */
+        OICStrcpy(fqdnComputerName, MAX_COMPUTER_NAME_LENGTH, hostname);
+#else
+    // Get FDQN of the computer.
     struct addrinfo* addrInfo;
     struct addrinfo hints = { .ai_family = AF_UNSPEC,
                               .ai_socktype = SOCK_STREAM,
                               .ai_flags = AI_CANONNAME };
-    /* NB: on OS X local hostnames like "foo.local" will fail with
-       'nodename nor servername provided, or not known' */
     int rc = getaddrinfo(hostname, NULL, &hints, &addrInfo);
     if (rc == 0)
     {
@@ -175,10 +180,9 @@ bool OICGetPlatformUuid(uint8_t platformUuid[OIC_UUID_LENGTH])
     {
         OIC_LOG_V(WARNING, TAG, "Failed getaddrinfo() errcode %d: '%s'; using hostname: %s.",
 		  rc, gai_strerror(rc), hostname);
-
-        // Use hostname as getaddrinfo() failed.
         OICStrcpy(fqdnComputerName, MAX_COMPUTER_NAME_LENGTH, hostname);
     }
+#endif
 
     if (!HashStrToUuid(fqdnComputerName, strlen(fqdnComputerName), platformUuid))
     {
