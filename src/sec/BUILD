@@ -2,7 +2,7 @@ load("//config:variables.bzl", "DEFINES", "OS_COPTS")
 
 cc_library(
     name = "sec",
-    # alwayslink = True,
+    alwayslink = True,
     linkstatic = True,
     copts = ["-Isrc",
              "-Iexternal/openocf/src",
