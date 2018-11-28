@@ -66,7 +66,7 @@ cc_library(
     ] + select({"//config:windows": [],
                 "//config:msvc": [],
                 "//config:msys": [],
-                "//config:android_arm8": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
+                "@//config:android_arm8": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
                 "//config:linux": ["-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
                 "//config:darwin": ["-U DEBUG"],
                 "//conditions:default": ["BROKEN"]})
@@ -79,10 +79,10 @@ cc_library(
             "//src/logger",
             "//src/portability",
             "//src/provisioning",
-            "//src/routing",
             "//src/sec",
             "//src/util",
             "//src/coap",
+            "@cjson//:cjson",
             "@libcoap//:libcoap",
             "@tinycbor//:tinycbor",
 	    "//third_party/utlist"]
