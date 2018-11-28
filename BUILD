@@ -1,3 +1,5 @@
+load("//config:variables.bzl", "CSTD", "DEFINES", "DBG_COPTS")
+
 filegroup(
     name = "srcs",
     srcs = glob(["**"]),
@@ -80,14 +82,50 @@ cc_binary(
     visibility = ["//visibility:public"]
 )
 
+# cc_binary(
+#     name = "libopenocf.so",
+#     # copts = ["-Ithird_party/coap",
+#     #          "-Ithird_party/coap/include"
+#     # ] + select({":windows": [],
+#     #             ":msvc": [],
+#     #             ":msys": [],
+#     #             ":darwin": ["-std=c11", "-U DEBUG"],
+#     #             "//conditions:default": []}),
+#     #linkstatic = 1,
+#     linkshared = 1,
+#     # alwayslink = True,
+#     # data = ["//:mkhdrs"],
+#     deps = ["//src/ocf"],
+#     # srcs = ["libopenocf.so"],
+#     visibility = ["//visibility:public"]
+# )
+
+# cc_library(
+#     name = "openocf.a",
+#     linkstatic = 1,
+#     alwayslink = True,
+#     srcs = ["openocf"],
+#     visibility = ["//visibility:public"]
+# )
+
+# cc_binary(
+#     name = "libopenocf.a",
+#     linkstatic = 1,
+#     # linkopts = ["-static"],
+#     # alwayslink = True,
+#     deps = ["//src/ocf"],
+#     srcs = ["//src/ocf"],
+#     # hdrs = glob(["include/*h"]),
+#     visibility = ["//visibility:public"]
+# )
+
 cc_library(
     name = "openocf",
-    #linkstatic = 1,
-    # linkshared = 1,
-    # alwayslink = True,
+    linkstatic = True,
+    # linkopts = ["-static"],
+    alwayslink = True,
     deps = ["//src/ocf"],
-    hdrs = glob(["include/*h"]),
-    # srcs = ["libopenocf.so"],
+    srcs = ["libopenocf.c"],
     visibility = ["//visibility:public"]
 )
 

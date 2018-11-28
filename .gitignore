@@ -18,6 +18,9 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+# tmp:
+obsolete
+
 ## ignore all headers in src! we generate them a build time using makeheaders
 src/**/*.h
 src/*.[ch].in
