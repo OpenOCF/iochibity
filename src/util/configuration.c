@@ -1,5 +1,6 @@
 #include "configuration.h"
 #include <string.h>
+#include <stdio.h>
 
 static const char* version = "1.3.0";
 
