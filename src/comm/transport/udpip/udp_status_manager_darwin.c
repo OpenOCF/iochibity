@@ -231,10 +231,10 @@ void udp_if_change_handler_darwin(SCDynamicStoreRef store, CFArrayRef changedKey
     }
 
     // udp_if_change_handler(CA_INTERFACE_UP); // @was CAIPPassNetworkChangesToTransports
-#ifdef IP_ADAPTER
+#ifndef DISABLE_UDP
     udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler
 #endif
-#ifdef TCP_ADAPTER
+#ifdef ENABLE_TCP
     tcp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CATCPAdapterHandler
 #endif
 
