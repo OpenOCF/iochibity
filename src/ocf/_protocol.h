@@ -1,3 +1,5 @@
+/* from connectivity/api/cacommon.h etc. */
+
 /**
  * URI for the OIC base.CA considers relative URI as the URI.
  */
