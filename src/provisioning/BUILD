@@ -40,8 +40,9 @@ cc_library(
     # + select({"windows": ["//third_party/sqlite3"],
     #           "//conditions:default": []}),
     srcs = glob(["*.c"]) + glob(["*.h"]),
-    visibility = ["//src/ocf:__pkg__",
-                  "//src/sec/acl:__pkg__",
-                  "//src/sec:__pkg__",
-                  "//tools/cbor:__subpackages__"]
+    visibility = ["//visibility:public"]
+    # visibility = ["//src/ocf:__pkg__",
+    #               "//src/sec/acl:__pkg__",
+    #               "//src/sec:__pkg__",
+    #               "//tools/cbor:__subpackages__"]
     )
