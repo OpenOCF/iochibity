@@ -255,16 +255,15 @@ config_setting(name = "android", visibility = ["//visibility:public"],
 
 config_setting(
     name = "android_arm7",
-    values = {
-        "cpu": "armeabi-v7a",
-        #"fat_apk_cpu": "armeabi-v7a",
-        "android_cpu": "armeabi-v7a",
-        #"android_crosstool_top": "//external:android/crosstool",
-        #"android_sdk": "@bazel_tools//tools/android:sdk"
-    },
-    # define_values = {
-    #     "with_android": "true"
+    # values = {
+    #     "cpu": "armeabi-v7a",
+    #     #"fat_apk_cpu": "armeabi-v7a",
+    #     "android_cpu": "armeabi-v7a",
+    #     #"android_crosstool_top": "//external:android/crosstool",
+    #     #"android_sdk": "@bazel_tools//tools/android:sdk"
     # },
+    define_values = { "android": "true",
+                      "android_arm7": "true"},
     visibility = ["//visibility:public"]
 )
 
@@ -275,39 +274,37 @@ config_setting(
 config_setting(
     name = "android_arm8",
     define_values = { "android": "true",
-                      "android-arm8": "true"},
+                      "android_arm8": "true"},
     visibility = ["//visibility:public"]
 )
 
 config_setting(
     name = "android_x86",
-    values = {
-        #"fat_apk_cpu": "x86",
-        # passing --fat_apk_cpu=x86 sets android_cpu?
-        "cpu": "x86",
-        "android_cpu": "x86",
-        #"android_crosstool_top": "//external:android/crosstool",
-        #"android_sdk": "@bazel_tools//tools/android:sdk"
-    },
-    # define_values = {
-    #     "with_android": "true"
+    # values = {
+    #     #"fat_apk_cpu": "x86",
+    #     # passing --fat_apk_cpu=x86 sets android_cpu?
+    #     "cpu": "x86",
+    #     "android_cpu": "x86",
+    #     #"android_crosstool_top": "//external:android/crosstool",
+    #     #"android_sdk": "@bazel_tools//tools/android:sdk"
     # },
+    define_values = { "android": "true",
+                      "android_x86": "true"},
     visibility = ["//visibility:public"]
 )
 
 config_setting(
     name = "android_x86_64",
-    values = {
-        #"fat_apk_cpu": "x86",
-        # passing --fat_apk_cpu=x86 sets android_cpu?
-        "cpu": "x86_64",
-        "android_cpu": "x86_64",
-        #"android_crosstool_top": "//external:android/crosstool",
-        #"android_sdk": "@bazel_tools//tools/android:sdk"
-    },
-    # define_values = {
-    #     "with_android": "true"
+    # values = {
+    #     #"fat_apk_cpu": "x86",
+    #     # passing --fat_apk_cpu=x86 sets android_cpu?
+    #     "cpu": "x86_64",
+    #     "android_cpu": "x86_64",
+    #     #"android_crosstool_top": "//external:android/crosstool",
+    #     #"android_sdk": "@bazel_tools//tools/android:sdk"
     # },
+    define_values = { "android": "true",
+                      "android_x86_64": "true"},
     visibility = ["//visibility:public"]
 )
 
