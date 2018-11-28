@@ -73,8 +73,8 @@ typedef enum OicSecOxm_t
 #ifdef MULTIPLE_OWNER
     OIC_PRECONFIG_PIN                       = 0xFF00, /* ? */
 #endif //MULTIPLE_OWNER
-    OIC_MV_JUST_WORKS                       = 0xFF01, /* ? */
-    OIC_CON_MFG_CERT                        = 0xFF02, /* oic.sec.doxm.jw */
+    OIC_MV_JUST_WORKS                       = 0xFF01, /* Mutual Verified? */
+    OIC_CON_MFG_CERT                        = 0xFF02, /* Confirm Manufacturer Cert? */
 } OicSecOxm_t;
 
 /* typedef unsigned int OicSecOxm_t; */
