@@ -19,9 +19,13 @@
  ******************************************************************/
 
 #include "parsechain.h"
-/* #include "utlist.h" */
 /* #include "caadapterutils.h" */
 /* #include "oic_malloc.h" */
+
+#if INTERFACE
+#include "utlist.h"
+#include <mbedtls/ssl.h>
+#endif
 
 #define PARSE_CHAIN_TAG "OIC_PARSE_CHAIN"
 
