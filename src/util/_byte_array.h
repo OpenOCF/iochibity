@@ -46,13 +46,27 @@ typedef struct ByteArray
 #endif	/* INTERFACE */
 
 
-#if EXPORT_INTERFACE
+#if INTERFACE
+// typedef struct ByteArrayLL ByteArrayLL_t;
+typedef struct ByteArrayLL_t
+{
+    ByteArray_t *cert;
+    ByteArrayLL_t *next;
+} ByteArrayLL_t;
+
 /**@def BYTE_ARRAY_INITIALIZER
  *
  * Initializes of existing byte array pointer to \a NULL.
  */
 #undef BYTE_ARRAY_INITIALIZER
 #define BYTE_ARRAY_INITIALIZER {NULL, 0}
+
+/**@def CERT_CHAIN_INITIALIZER
+ *
+ * Initializes of existing certificate chain pointer to \a NULL.
+ */
+#undef CERT_CHAIN_INITIALIZER
+#define CERT_CHAIN_INITIALIZER {NULL, NULL}
 
 /**@def INIT_BYTE_ARRAY(array)
  *
@@ -72,7 +86,7 @@ typedef struct ByteArray
  *
  * @param array ByteArray_t
  */
-/* #undef DEINIT_BYTE_ARRAY */
+#undef DEINIT_BYTE_ARRAY
 #define DEINIT_BYTE_ARRAY(array) do{  \
         OICFree((array).data);       \
         (array).data = NULL;        \
