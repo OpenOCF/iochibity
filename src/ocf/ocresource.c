@@ -368,12 +368,12 @@ typedef enum
     /** When this bit is set, the resource supports access via non-secure endpoints. */
     OC_NONSECURE     = (1 << 6),
 
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-    /** When this bit is set, the resource is a secure resource.*/ /* GAR: ie. supports access via secure endpoint */
+/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
+/*     /\** When this bit is set, the resource is a secure resource.*\/ /\* GAR: ie. supports access via secure endpoint *\/ */
     OC_SECURE        = (1 << 4),
-#else
-    OC_SECURE        = (0),
-#endif
+/* #else */
+/*     OC_SECURE        = (0), */
+/* #endif */
 
     /** When this bit is set, the resource is allowed to be discovered only
      *  if discovery request contains an explicit querystring.
@@ -1217,7 +1217,7 @@ static OCStackResult UpdateDevicePropertiesDatabase(const OCDeviceProperties *de
     return result;
 }
 
-OCStackResult InitializeDeviceProperties()
+OCStackResult InitializeDeviceProperties(void)
 {
     OIC_LOG(DEBUG, TAG, "InitializeDeviceProperties IN");
 
@@ -1430,7 +1430,7 @@ exit:
 }
 
 OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourcePtr,
-    OCRepPayload** payload, OCDevAddr *devAddr)
+    OCRepPayload** payload, OCDevAddr *devAddr, bool includeBaselineProps)
 {
     size_t dimensions[MAX_REP_ARRAY_DEPTH] = { 0 };
     OCRepPayload *tempPayload = NULL;
@@ -1462,36 +1462,33 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
         goto exit;
     }
 
-    if (!OCRepPayloadSetUri(tempPayload, resourcePtr->uri))
+    if(includeBaselineProps)
     {
-        OIC_LOG(ERROR, TAG, "Failed to set payload URI");
-        ret = OC_STACK_ERROR;
-        goto exit;
+        resType = resourcePtr->rsrcType;
+        while (resType)
+        {
+            if (!OCRepPayloadAddResourceType(tempPayload, resType->resourcetypename))
+            {
+                OIC_LOG(ERROR, TAG, "Failed at add resource type");
+                ret = OC_STACK_ERROR;
+                goto exit;
+            }
+            resType = resType->next;
+        }
+
+        resInterface = resourcePtr->rsrcInterface;
+        while (resInterface)
+        {
+            if (!OCRepPayloadAddInterface(tempPayload, resInterface->name))
+            {
+                OIC_LOG(ERROR, TAG, "Failed to add interface");
+                ret = OC_STACK_ERROR;
+                goto exit;
+            }
+            resInterface = resInterface->next;
+        }
     }
 
-    resType = resourcePtr->rsrcType;
-    while (resType)
-    {
-        if (!OCRepPayloadAddResourceType(tempPayload, resType->resourcetypename))
-        {
-            OIC_LOG(ERROR, TAG, "Failed at add resource type");
-            ret = OC_STACK_ERROR;
-            goto exit;
-        }
-        resType = resType->next;
-    }
-
-    resInterface = resourcePtr->rsrcInterface;
-    while (resInterface)
-    {
-        if (!OCRepPayloadAddInterface(tempPayload, resInterface->name))
-        {
-            OIC_LOG(ERROR, TAG, "Failed to add interface");
-            ret = OC_STACK_ERROR;
-            goto exit;
-        }
-        resInterface = resInterface->next;
-    }
     if (!OCRepPayloadSetPropString(tempPayload, OC_RSRVD_INTROSPECTION_NAME, OC_RSRVD_INTROSPECTION_NAME_VALUE))
     {
         OIC_LOG(ERROR, TAG, "Failed to set Name property.");
@@ -1507,7 +1504,6 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
         goto exit;
     }
     OIC_LOG_V(DEBUG, TAG, "Network Information size = %d", (int) nCaEps);
-
 
     // Add a urlInfo object for each endpoint supported
     urlInfoPayload = (OCRepPayload **)OICCalloc(nCaEps, sizeof(OCRepPayload*));
@@ -1528,8 +1524,7 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
                 char *proto = NULL;
 
                 // consider IP or TCP adapter for payload that is visible to the client
-                if (((CA_ADAPTER_IP | CA_ADAPTER_TCP) & info->adapter) &&
-                    (info->ifindex == devAddr->ifindex))
+                if (((CA_ADAPTER_IP | CA_ADAPTER_TCP) & info->adapter))
                 {
                     OCTpsSchemeFlags matchedTps = OC_NO_TPS;
                     if (OC_STACK_OK != OCGetMatchedTpsFlags(info->adapter,
@@ -1550,6 +1545,8 @@ OCStackResult BuildIntrospectionResponseRepresentation(const OCResource *resourc
 
                         char *epStr = OCCreateEndpointStringFromCA(&caEps[i]);
                         urlInfoPayload[dimensions[0]] = BuildUrlInfoWithProtocol(proto, epStr);
+                        OICFree(epStr);
+                        OICFree(proto);
                         if (!urlInfoPayload[dimensions[0]])
                         {
                             OIC_LOG(ERROR, TAG, "Unable to build urlInfo object for protocol");
@@ -1595,13 +1592,15 @@ exit:
         }
     }
 
+    if (caEps)
+    {
+        OICFree(caEps);
+    }
+
     return OC_STACK_OK;
 }
 
-/**
- * Prepares a Payload for response.
- */
-static OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
+OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
                                            OCDiscoveryPayload *payload,
                                            OCDevAddr *devAddr,
                                            CAEndpoint_t *networkInfo,
@@ -1816,6 +1815,30 @@ OCStackResult EntityHandlerCodeToOCStackCode(OCEntityHandlerResult ehResult)
             break;
         case OC_EH_RESOURCE_NOT_FOUND:
             result = OC_STACK_NO_RESOURCE;
+            break;
+        case OC_EH_BAD_REQ:
+            result = OC_STACK_INVALID_QUERY;
+            break;
+        case OC_EH_UNAUTHORIZED_REQ:
+            result = OC_STACK_UNAUTHORIZED_REQ;
+            break;
+        case OC_EH_BAD_OPT:
+            result = OC_STACK_INVALID_OPTION;
+            break;
+        case OC_EH_METHOD_NOT_ALLOWED:
+            result = OC_STACK_INVALID_METHOD;
+            break;
+        case OC_EH_NOT_ACCEPTABLE:
+            result = OC_STACK_NOT_ACCEPTABLE;
+            break;
+        case OC_EH_TOO_LARGE:
+            result = OC_STACK_TOO_LARGE_REQ;
+            break;
+        case OC_EH_SERVICE_UNAVAILABLE:
+            result = OC_STACK_SERVICE_UNAVAILABLE;
+            break;
+        case OC_EH_RETRANSMIT_TIMEOUT:
+            result = OC_STACK_COMM_ERROR;
             break;
         default:
             result = OC_STACK_ERROR;
@@ -2218,6 +2241,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     {
         OIC_LOG_V(ERROR, TAG, "Resource : %s not permitted for method: %d",
             request->resourceUrl, request->method);
+        DeleteServerRequest (request);
         return OC_STACK_UNAUTHORIZED_REQ;
     }
 
@@ -2361,9 +2385,18 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     else if (OC_INTROSPECTION_URI == virtualUriInRequest)
     {
         // Received request for introspection
+        discoveryResult = getQueryParamsForFiltering(virtualUriInRequest, request->query,
+                                                     &interfaceQuery, &resourceTypeQuery);
+        VERIFY_SUCCESS_1 (discoveryResult);
+
         OCResource *resourcePtr = FindResourceByUri(OC_RSRVD_INTROSPECTION_URI_PATH);
+        bool includeBaselineProps = interfaceQuery
+                                    && (0 == strcmp(interfaceQuery, OC_RSRVD_INTERFACE_DEFAULT));
         VERIFY_PARAM_NON_NULL(TAG, resourcePtr, "Introspection URI not found.");
-        discoveryResult = BuildIntrospectionResponseRepresentation(resourcePtr, (OCRepPayload **)&payload, &request->devAddr);
+        discoveryResult = BuildIntrospectionResponseRepresentation(resourcePtr,
+                                                                   (OCRepPayload **)&payload,
+                                                                   &request->devAddr,
+                                                                   includeBaselineProps);
         OIC_LOG(INFO, TAG, "Request is for Introspection");
     }
     else if (OC_INTROSPECTION_PAYLOAD_URI == virtualUriInRequest)
@@ -2740,7 +2773,7 @@ EXPORT
     uint8_t uuid[UUID_SIZE];
     if (!OCConvertStringToUuid(info.platformID, uuid))
     {
-        OIC_LOG_V(ERROR, TAG, "Platform ID is not a UUID.");
+        OIC_LOG(ERROR, TAG, "Platform ID is not a UUID.");
         goto exit;
     }
 
@@ -2821,7 +2854,7 @@ exit:
     return OC_STACK_ERROR;
 }
 
-static OCStackResult OC_CALL OCGetAttribute(const OCResource *resource, const char *attribute, void **value)
+OCStackResult OC_CALL OCGetAttribute(const OCResource *resource, const char *attribute, void **value)
 {
     if (!resource || !attribute)
     {
