@@ -37,17 +37,6 @@
 
 #define TAG  "OIC_SRM_UTILITY"
 
-/**
- * Reason code for SRMAccessResponse.
- */
-enum access_reason_fixme
-{
-    NO_REASON_GIVEN = 0,
-    INSUFFICIENT_PERMISSION = INSUFFICIENT_PERMISSION_DEF,
-    SUBJECT_NOT_FOUND = SUBJECT_NOT_FOUND_DEF,
-    RESOURCE_NOT_FOUND = RESOURCE_NOT_FOUND_DEF,
-};
-
 #if EXPORT_INTERFACE
 typedef unsigned int SRMAccessResponseReasonCode_t;
 #endif	/* INTERFACE */
@@ -212,6 +201,30 @@ EXPORT
     return OC_STACK_OK;
 }
 
+#ifndef NDEBUG
+/**
+ * Log OicUuid_t structs.
+ */
+void LogUuid(const OicUuid_t* uuid)
+{
+    if(NULL == uuid)
+    {
+        OIC_LOG(ERROR, TAG, "ConvertUuidToStr : Invalid param");
+        return;
+    }
+
+    const size_t urnBufSize = (UUID_LENGTH * 2) + 4 + 1;
+    char* convertedUrn = (char*)OICCalloc(urnBufSize, sizeof(char));
+    VERIFY_NOT_NULL(TAG, convertedUrn, ERROR);
+    if(OCConvertUuidToString(uuid->id,convertedUrn))
+    {
+        OIC_LOG_V(DEBUG, TAG, "uuid: %s", convertedUrn);
+    }
+    OICFree(convertedUrn);
+exit:
+    return;
+}
+#endif
 
 /**
  * Compares two OicUuid_t structs.
@@ -243,6 +256,15 @@ const OicUuid_t THE_NIL_UUID = {.id={0000000000000000}};
  */
 bool IsNilUuid(const OicUuid_t *uuid)
 {
+#if !defined(NDEBUG)
+    char *strUuid = NULL;
+    ConvertUuidToStr(uuid, &strUuid);
+    if (strUuid)
+    {
+        OIC_LOG_V(DEBUG, TAG, "%s: uuid: %s.", __func__, strUuid);
+        OICFree(strUuid);
+    }
+#endif
     return UuidCmp(uuid, &THE_NIL_UUID);
 }
 
@@ -252,3 +274,129 @@ OCStackResult OC_CALL SetDeviceIdSeed(const uint8_t* seed, size_t seedSize)
     return SetDoxmDeviceIDSeed(seed, seedSize);
 }
 #endif
+
+bool SRMIsSecurityResourceURI(const char* uri)
+{
+    if (!uri)
+    {
+        return false;
+    }
+
+#ifdef _MSC_VER
+    // The strings below are const but they are also marked as extern so they cause warnings.
+#pragma warning(push)
+#pragma warning(disable:4204)
+#endif
+    const char *rsrcs[] = {
+        /* removed from OCF: OIC_RSRC_SVC_URI, */
+        OIC_RSRC_AMACL_URI,
+        OIC_RSRC_CRL_URI,
+        OIC_RSRC_CRED_URI,
+        OIC_RSRC_SP_URI,
+        OIC_RSRC_CSR_URI,
+        OIC_RSRC_ACL_URI,
+        OIC_RSRC_ACL2_URI,
+        OIC_RSRC_DOXM_URI,
+        OIC_RSRC_PSTAT_URI,
+        OIC_RSRC_VER_URI,
+        OIC_RSRC_ROLES_URI,
+        OC_RSRVD_PROV_CRL_URL
+    };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+    // Remove query from Uri for resource string comparison
+    size_t uriLen = strlen(uri);
+    char *query = strchr (uri, '?');
+    if (query)
+    {
+        uriLen = query - uri;
+    }
+
+    for (size_t i = 0; i < sizeof(rsrcs)/sizeof(rsrcs[0]); i++)
+    {
+        size_t svrLen = strlen(rsrcs[i]);
+
+        if ((uriLen == svrLen) &&
+            (strncmp(uri, rsrcs[i], svrLen) == 0))
+        {
+            OIC_LOG_V(INFO, TAG, "%s: resource %s is SVR.", __func__, uri);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * return true IFF the URI is for a DCR as defined by Security Specification.
+ */
+bool IsDeviceConfigurationResourceUri(const char *uri)
+{
+    if (!uri)
+    {
+        return false;
+    }
+
+    if (SRMIsSecurityResourceURI(uri))
+    {
+        return true;
+    }
+
+#ifdef _MSC_VER
+    // The strings below are const but they are also marked as extern so they cause warnings.
+#pragma warning(push)
+#pragma warning(disable:4204)
+#endif
+    const char *rsrcs[] = {
+        OC_RSRVD_DEVICE_URI,
+        OC_RSRVD_PLATFORM_URI,
+        OC_RSRVD_WELL_KNOWN_URI,
+        OC_RSRVD_CLOUDCONF_URI,
+        /* GAR FIXME: easy setup is an extension, what are these doing here? */
+        /* OC_RSRVD_ES_URI_EASYSETUP, */
+        /* OC_RSRVD_ES_URI_WIFICONF, */
+        /* OC_RSRVD_ES_URI_COAPCLOUDCONF, */
+        /* OC_RSRVD_ES_URI_DEVCONF */
+    };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+    // Remove query from Uri for resource string comparison
+    size_t uriLen = strlen(uri);
+    char *query = strchr (uri, '?');
+    if (query)
+    {
+        uriLen = query - uri;
+    }
+
+    for (size_t i = 0; i < sizeof(rsrcs)/sizeof(rsrcs[0]); i++)
+    {
+        size_t svrLen = strlen(rsrcs[i]);
+
+        if ((uriLen == svrLen) &&
+            (strncmp(uri, rsrcs[i], svrLen) == 0))
+        {
+            OIC_LOG_V(INFO, TAG, "%s: resource %s is DCR.", __func__, uri);
+            return true;
+        }
+    }
+
+    OIC_LOG_V(INFO, TAG, "%s: resource %s is not DCR => resource is NCR.", __func__, uri);
+    return false;
+}
+
+/**
+ * Is the URI for a Non0Configuration Resource as defined
+ * by Security Specification.
+ *
+ * @return true IFF the uri is for a NCR
+ */
+bool IsNonConfigurationResourceUri(const char *uri)
+{
+    return !IsDeviceConfigurationResourceUri(uri);
+}
