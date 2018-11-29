@@ -24,7 +24,6 @@
 #if !(defined(HAVE_STDBOOL_H))
 # define bool _Bool
 #endif
-#define TB_LOG /**/
 #if defined(TB_LOG)
 #define UUID_SIZE (16)
 #endif
