@@ -4,6 +4,8 @@
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 #if EXPORT_INTERFACE
+
+/* src: casecurityinterface.h */
 /**
  * @enum CADtlsPskCredType_t
  * Type of PSK credential required during DTLS handshake
@@ -25,13 +27,41 @@ typedef enum
  * Callers should not reference this memory after it has been provided to the SSL adapter via the
  * callback.
  */
+/* src: casecurityinterface.h */
 typedef struct
 {
-    ByteArray_t crt;    /**< own certificate chain as a null-terminated PEM string of certificates */
+    ByteArrayLL_t crt;  /**< own certificate chain as a null-terminated PEM string of certificates */
     ByteArray_t key;    /**< own private key as binary-encoded DER */
-    ByteArray_t ca;     /**< trusted CAs as a null-terminated PEM string of certificates */
+    ByteArrayLL_t ca;   /**< trusted CAs as a null-terminated PEM string of certificates */
     ByteArray_t crl;    /**< trusted CRLs as binary-encoded DER */
 } PkiInfo_t;
+
+/* uuid stuff from casecurityinterface.h */
+/**
+ * Node structure for UUID linked list
+ */
+typedef struct UuidInfo_s
+{
+    char uuid[UUID_STRING_SIZE];
+    struct UuidInfo_s * next;
+} UuidInfo_t;
+
+/**
+ * Context with UUID linked list to populate
+ */
+typedef struct
+{
+    UuidInfo_t* list;
+} UuidContext_t;
+
+/**
+ * Populates UUID linked list in the context with all
+ * UUIDs retrieved from OCF Device /oic/sec/cred/ entries.
+ * This is done to match allowed UUIDs against presented
+ * UUID in the leaf certificate during TLS handshake
+ */
+
+typedef void (*CAgetIdentityHandler)(UuidContext_t* list, unsigned char* p, size_t len);
 
 /**
  * This internal callback is used by CA layer to
@@ -46,6 +76,7 @@ typedef struct
  * @return The number of bytes written to @p result or a value
  *         less than zero on error.
  */
+/* src: casecurityinterface.h */
 typedef int (*CAgetPskCredentialsHandler)(CADtlsPskCredType_t type,
               const uint8_t *desc, size_t desc_len,
               uint8_t *result, size_t result_length);
@@ -73,6 +104,7 @@ typedef void (*CAgetPkixInfoHandler)(PkiInfo_t * inf);
 typedef void (*CAgetCredentialTypesHandler)(bool * list, const char* deviceId);
 #endif	/* INTERFACE */
 
+/* src: credresource.c */
 LOCAL bool ValueWithinBounds(uint64_t value, uint64_t maxValue)
 {
     if (value > maxValue)
@@ -84,6 +116,7 @@ LOCAL bool ValueWithinBounds(uint64_t value, uint64_t maxValue)
     return true;
 }
 
+/* src: credresource.c */
 int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
               const uint8_t *desc, size_t desc_len,
               uint8_t *result, size_t result_length)
