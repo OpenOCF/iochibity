@@ -11,19 +11,12 @@
     goto exit;} }
 
 /**
- * Macro to verify the validity of cbor operation.
+ * Macro to verify a conditional, if fails, log supplied message and goto exit
+ * eg: VERIFY_SUCCESS_OR_LOG_AND_EXIT(TAG, OC_STACK_OK == foo(), ERROR);
+ * @note Invoking function must define "exit:" label for goto functionality to work correctly.
  */
-/* FIXME: what this really means is "GOTO_EXIT_ON_ERROR_OTHER_THAN_OUT_OF_MEMORY" */
-#define VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(log_tag, err, log_message) \
-    if ((CborNoError != (err)) && (CborErrorOutOfMemory != (err))) \
-    { \
-        if ((log_tag) && (log_message)) \
-        { \
-            OIC_LOG_V(ERROR, (log_tag), "%s with cbor error: \'%s\'.", \
-                    (log_message), (cbor_error_string(err))); \
-        } \
-        goto exit; \
-    }
+#define VERIFY_OR_LOG_AND_EXIT(tag, op, msg, logLevel) do{ if (!(op)) \
+            {OIC_LOG((logLevel), tag, msg); goto exit; } }while(0)
 
 #define VERIFY_PARAM_NON_NULL(log_tag, err, log_message) \
     if (NULL == (err)) \
@@ -42,6 +35,36 @@
         } \
         goto exit; \
     }
+
+/* src:: ocpayload.h */
+/**
+ * Macro to verify the validity of cbor operation or out of memory condition
+ */
+/* FIXME: what this really means is "GOTO_EXIT_ON_ERROR_OTHER_THAN_OUT_OF_MEMORY" */
+#define VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(log_tag, err, log_message) \
+    if ((CborNoError != (err)) && !(CborErrorOutOfMemory & (err))) \
+    { \
+        if ((log_tag) && (log_message)) \
+        { \
+            OIC_LOG_V(ERROR, (log_tag), "%s with cbor error: \'%s\'.", \
+                    (log_message), (cbor_error_string(err))); \
+        } \
+        goto exit; \
+    } \
+
+/**
+ * Macro to verify the validity of cbor operation
+ */
+#define VERIFY_CBOR_SUCCESS(log_tag, err, log_message) \
+    if (CborNoError != (err)) \
+    { \
+        if ((log_tag) && (log_message)) \
+        { \
+            OIC_LOG_V(ERROR, (log_tag), "%s with cbor error: \'%s\'.", \
+                    (log_message), (cbor_error_string(err))); \
+        } \
+        goto exit; \
+    } \
 
 /* from ocresrouce.c */
 #define VERIFY_SUCCESS_1(op) { if (op != (OC_STACK_OK)) \
