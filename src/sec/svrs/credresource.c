@@ -58,8 +58,6 @@
 
 #define TAG  "OIC_SRM_CREDL"
 
-#define mkhdrs_cred_rp OCResourceProperty /* help makeheaders */
-
 #if EXPORT_INTERFACE
 #ifdef HAVE_WINDOWS_H
 #include <winsock2.h>
@@ -2649,8 +2647,8 @@ OCStackResult CreateCredResource()
                                          OIC_RSRC_CRED_URI,
                                          CredEntityHandler,
                                          NULL,
-                                         OC_SECURE |
-                                         OC_DISCOVERABLE);
+                                         (OCResourceProperty)OC_SECURE |
+                                         (OCResourceProperty)OC_DISCOVERABLE);
 
     if (OC_STACK_OK != ret)
     {
