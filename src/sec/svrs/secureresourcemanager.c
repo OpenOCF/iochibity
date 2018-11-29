@@ -42,6 +42,7 @@
 #define TAG  "OIC_SRM"
 
 #if EXPORT_INTERFACE
+/* src: securevirtualresourcetypes.h */
 typedef enum  OicSecSvrType_t
 {
     OIC_RESOURCE_TYPE_ERROR = 0,
@@ -58,12 +59,14 @@ typedef enum  OicSecSvrType_t
     OIC_R_CSR_TYPE,
     OIC_R_ACL2_TYPE,
     OIC_R_ROLES_TYPE,
+    OIC_R_SP_TYPE,
     OIC_SEC_SVR_TYPE_COUNT, //define the value to number of SVR
     NOT_A_SVR_RESOURCE = 99
 } OicSecSvrType_t;
 
 /* typedef unsigned int OicSecSvrType_t; */
 
+/* src: secureresourcemanager.h */
 typedef enum SubjectIdentityType
 {
     SUBJECT_ID_TYPE_ERROR = 0,
@@ -85,6 +88,8 @@ typedef struct SRMRequestContext
     bool                    responseSent;                       // Is servicing this request complete?
     SRMAccessResponse_t     responseVal;                        // The SRM internal response code
     const CARequestInfo_t   *requestInfo;                       // ptr to info for this request
+    bool                    resourceIsOcSecure;                 // Was Resource created w OC_SECURE bit set?
+    bool                    resourceIsOcNonsecure;              // Was Resource created w OC_NONSECURE bit set?
     bool                    secureChannel;                      // Was request recv'd over secure channel?
     bool                    slowResponseSent;                   // Is a full response still needed?
     OicSecDiscoverable_t    discoverable;                       // Is resource discoverable?
@@ -99,10 +104,11 @@ typedef struct SRMRequestContext
     size_t                  payloadSize;
 #endif //MULTIPLE_OWNER
 } SRMRequestContext_t;
+
 #endif
 
 //Request Callback handler
-static CARequestCallback gRequestHandler = NULL;
+//static CARequestCallback gRequestHandler = NULL;
 //Response Callback handler
 //static CAResponseCallback gResponseHandler = NULL;
 //Error Callback handler
@@ -231,7 +237,7 @@ static void SetResourceUriAndType(SRMRequestContext_t *context)
     return;
 }
 
-static void SetDiscoverable(SRMRequestContext_t *context)
+static void SetDiscoverableAndOcSecureFlags(SRMRequestContext_t *context)
 {
     if (NULL == context)
     {
@@ -239,7 +245,8 @@ static void SetDiscoverable(SRMRequestContext_t *context)
         context->discoverable = DISCOVERABLE_NOT_KNOWN;
         return;
     }
-    if ( 0 == *(context->resourceUri) )
+    /* contextUri->resourceUri is an array, which may not be initialized! */
+    if ( strncmp(context->resourceUri, "", 1) == 0)
     {
         OIC_LOG_V(ERROR, TAG, "%s: Null resourceUri.", __func__);
         context->discoverable = DISCOVERABLE_NOT_KNOWN;
@@ -264,6 +271,33 @@ static void SetDiscoverable(SRMRequestContext_t *context)
     {
         context->discoverable = DISCOVERABLE_FALSE;
         OIC_LOG_V(DEBUG, TAG, "%s: resource %s is NOT OC_DISCOVERABLE.",
+                  __func__, context->resourceUri);
+    }
+
+    if (OC_SECURE == (resource->resourceProperties & OC_SECURE))
+    {
+        context->resourceIsOcSecure = true;
+        OIC_LOG_V(DEBUG, TAG, "%s: resource %s is OC_SECURE.",
+                  __func__, context->resourceUri);
+    }
+    else
+    {
+        context->resourceIsOcSecure = false;
+        OIC_LOG_V(DEBUG, TAG, "%s: resource %s is *not* OC_SECURE.",
+                  __func__, context->resourceUri);
+    }
+    // Reminder: a Resource can set both flags, and expose both an
+    // unsecure (e.g. CoAP) and secure (e.g. CoAPS) endpoint.
+    if (OC_NONSECURE == (resource->resourceProperties & OC_NONSECURE))
+    {
+        context->resourceIsOcNonsecure = true;
+        OIC_LOG_V(DEBUG, TAG, "%s: resource %s is OC_NONSECURE.",
+                  __func__, context->resourceUri);
+    }
+    else
+    {
+        context->resourceIsOcNonsecure = false;
+        OIC_LOG_V(DEBUG, TAG, "%s: resource %s is *not* OC_NONSECURE.",
                   __func__, context->resourceUri);
     }
 }
@@ -304,7 +338,7 @@ static void ClearRequestContext(SRMRequestContext_t *context)
 // this function, or this function may incorrectly read the nil-UUID (0s)
 // and assume CoAP request (which can result in request being incorrectly
 // denied).
-bool isRequestOverSecureChannel(SRMRequestContext_t *context)
+bool IsRequestOverSecureChannel(SRMRequestContext_t *context)
 {
     OicUuid_t nullSubjectId = {.id = {0}};
 
@@ -340,8 +374,6 @@ bool isRequestOverSecureChannel(SRMRequestContext_t *context)
  */
 void SRMRequestHandler(const CAEndpoint_t *endPoint, const CARequestInfo_t *requestInfo)
 {
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
-
     OIC_LOG(DEBUG, TAG, "Received request from remote device");
 
     SRMRequestContext_t *ctx = &g_requestContext; // Always use our single ctx for now.
@@ -380,13 +412,32 @@ void SRMRequestHandler(const CAEndpoint_t *endPoint, const CARequestInfo_t *requ
 #endif
 
     // Set secure channel boolean.
-    ctx->secureChannel = isRequestOverSecureChannel(ctx);
+    ctx->secureChannel = IsRequestOverSecureChannel(ctx);
+
+#if defined( __WITH_TLS__) || defined(__WITH_DTLS__)
+
+    // [IOT-2858]
+    // If request is over Secure Channel but requester ID is Nil UUID
+    // it means that this request arrived over DTLS established via anon
+    // cipher suite.  This may be an opportunity to disable anon cipher
+    // suite, but for now, just log the event.
+#ifndef NDEBUG
+    if (SUBJECT_ID_TYPE_UUID == ctx->subjectIdType)
+    {
+        if (ctx->secureChannel &&
+            IsNilUuid(&(ctx->subjectUuid)))
+        {
+            OIC_LOG_V(INFO, TAG, "%s: request received over Secure Channel from Nil UUID client.", __func__);
+        }
+    }
+#endif // NDEBUG
+#endif // DTLS
 
     // Set resource URI and type.
     SetResourceUriAndType(ctx);
 
-    // Set discoverable enum.
-    SetDiscoverable(ctx);
+    // Set discoverable enum, and OC_SECURE and/or OC_NONSECURE flags.
+    SetDiscoverableAndOcSecureFlags(ctx);
 
     // Initialize responseInfo.
     memcpy(&(ctx->responseInfo.info), &(requestInfo->info),
@@ -486,12 +537,12 @@ OCStackResult SRMRegisterPersistentStorageHandler(OCPersistentStorage* persisten
     return OCRegisterPersistentStorageHandler(persistentStorageHandler);
 }
 
-OCPersistentStorage* SRMGetPersistentStorageHandler()
+OCPersistentStorage* SRMGetPersistentStorageHandler(void)
 {
     return OCGetPersistentStorageHandler();
 }
 
-OCStackResult SRMInitSecureResources()
+OCStackResult SRMInitSecureResources(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     // TODO: temporarily returning OC_STACK_OK every time until default
@@ -505,73 +556,21 @@ OCStackResult SRMInitSecureResources()
         ret = OC_STACK_ERROR;
     }
     CAregisterPkixInfoHandler(GetPkixInfo);
+    CAregisterIdentityHandler(GetIdentityHandler);
     CAregisterGetCredentialTypesHandler(InitCipherSuiteList);
 #endif // __WITH_DTLS__ or __WITH_TLS__
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return ret;
 }
 
-void SRMDeInitSecureResources()
+void SRMDeInitSecureResources(void)
 {
     DestroySecureResources();
 }
 
-bool SRMIsSecurityResourceURI(const char* uri)
-{
-    if (!uri)
-    {
-        return false;
-    }
-
-#ifdef _MSC_VER
-    // The strings below are const but they are also marked as extern so they cause warnings.
-#pragma warning(push)
-#pragma warning(disable:4204)
-#endif
-    const char *rsrcs[] = {
-        /*GAR OBSOLETE, not in OCF 1.3  OIC_RSRC_SVC_URI, */
-        OIC_RSRC_AMACL_URI,
-        OIC_RSRC_CRL_URI,
-        OIC_RSRC_CRED_URI,
-        OIC_RSRC_CSR_URI,
-        OIC_RSRC_ACL_URI,
-        OIC_RSRC_ACL2_URI,
-        OIC_RSRC_DOXM_URI,
-        OIC_RSRC_PSTAT_URI,
-        OIC_RSRC_VER_URI,
-        OIC_RSRC_ROLES_URI,
-        OC_RSRVD_PROV_CRL_URL
-    };
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
-    // Remove query from Uri for resource string comparison
-    size_t uriLen = strlen(uri);
-    char *query = strchr (uri, '?');
-    if (query)
-    {
-        uriLen = query - uri;
-    }
-
-    for (size_t i = 0; i < sizeof(rsrcs)/sizeof(rsrcs[0]); i++)
-    {
-        size_t svrLen = strlen(rsrcs[i]);
-
-        if ((uriLen == svrLen) &&
-            (strncmp(uri, rsrcs[i], svrLen) == 0))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 /**
  * Get the Secure Virtual Resource (SVR) type from the URI.
- * @param   uri [IN] Pointer to URI in question.
+ * @param[in] uri  Pointer to URI in question.
  * @return  The OicSecSvrType_t of the URI passed (note: if not a Secure Virtual
             Resource, e.g. /a/light, will return "NOT_A_SVR_TYPE" enum value)
  */
@@ -647,6 +646,15 @@ OicSecSvrType_t GetSvrTypeFromUri(const char* uri)
         }
     }
 
+    svrLen = strlen(OIC_RSRC_SP_URI);
+    if (uriLen == svrLen)
+    {
+        if (0 == strncmp(uri, OIC_RSRC_SP_URI, svrLen))
+        {
+            return OIC_R_SP_TYPE;
+        }
+    }
+
     svrLen = strlen(OIC_RSRC_DOXM_URI);
     if (uriLen == svrLen)
     {
@@ -674,16 +682,15 @@ OicSecSvrType_t GetSvrTypeFromUri(const char* uri)
         }
     }
 
-    /*GAR OBSOLETE removed in OCF 1.3
-    svrLen = strlen(OIC_RSRC_SVC_URI);
-    if (uriLen == svrLen)
-    {
-        if (0 == strncmp(uri, OIC_RSRC_SVC_URI, svrLen))
-        {
-            return OIC_R_SVC_TYPE;
-        }
-    }
-    */
+    //svc - removed from the OCF 1.0 Security spec and from IoTivity
+    /* svrLen = strlen(OIC_RSRC_SVC_URI); */
+    /* if (uriLen == svrLen) */
+    /* { */
+    /*     if (0 == strncmp(uri, OIC_RSRC_SVC_URI, svrLen)) */
+    /*     { */
+    /*         return OIC_R_SVC_TYPE; */
+    /*     } */
+    /* } */
 
     svrLen = strlen(OIC_RSRC_SACL_URI);
     if (uriLen == svrLen)
