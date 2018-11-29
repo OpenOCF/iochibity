@@ -78,6 +78,16 @@ const char * OIC_RSRC_TYPE_SEC_PSTAT = "oic.r.pstat";
 const char * OIC_RSRC_PSTAT_URI =  "/oic/sec/pstat";
 const char * OIC_JSON_PSTAT_NAME = "pstat";
 
+//sp
+#if EXPORT_INTERFACE
+extern const char * OIC_RSRC_TYPE_SEC_SP;
+extern const char * OIC_RSRC_SP_URI;
+extern const char * OIC_JSON_SP_NAME;
+#endif
+const char * OIC_RSRC_TYPE_SEC_SP = "oic.r.sp";
+const char * OIC_RSRC_SP_URI =  "/oic/sec/sp";
+const char * OIC_JSON_SP_NAME = "sp";
+
 //doxm
 #if EXPORT_INTERFACE
 extern const char * OIC_RSRC_TYPE_SEC_DOXM;
@@ -157,6 +167,17 @@ const char * OIC_RSRC_TYPE_SEC_VER = "oic.r.ver";
 const char * OIC_RSRC_VER_URI =  "/oic/sec/ver";
 const char * OIC_JSON_VER_NAME = "ver";
 
+//cloud conf
+#if EXPORT_INTERFACE
+extern const char * OIC_RSRC_TYPE_CLOUD_CONF;
+extern const char * OIC_RSRC_CLOUD_CONF_URI;
+extern const char * OIC_JSON_CLOUD_CONF_NAME;
+#endif
+const char * OIC_RSRC_TYPE_CLOUD_CONF = "oic.r.coapcloudconf";
+const char * OIC_RSRC_CLOUD_CONF_URI = "/oic/r/coapcloudconf";
+const char * OIC_JSON_CLOUD_CONF_NAME = "coapcloudconf";
+
+
 //reset profile
 #if EXPORT_INTERFACE
 extern const char * OIC_JSON_RESET_PF_NAME;
@@ -184,6 +205,8 @@ extern const char * OIC_JSON_CM_NAME;
 extern const char * OIC_JSON_TM_NAME;
 extern const char * OIC_JSON_OM_NAME;
 extern const char * OIC_JSON_SM_NAME;
+extern const char * OIC_JSON_SUPPORTED_SP_NAME;
+extern const char * OIC_JSON_CURRENT_SP_NAME;
 extern const char * OIC_JSON_CREDID_NAME;
 extern const char * OIC_JSON_SUBJECT_NAME;
 extern const char * OIC_JSON_SUBJECTID_NAME;
@@ -267,6 +290,8 @@ const char * OIC_JSON_CM_NAME = "cm";
 const char * OIC_JSON_TM_NAME = "tm";
 const char * OIC_JSON_OM_NAME = "om";
 const char * OIC_JSON_SM_NAME = "sm";
+const char * OIC_JSON_SUPPORTED_SP_NAME = "supportedprofiles";
+const char * OIC_JSON_CURRENT_SP_NAME = "currentprofile";
 const char * OIC_JSON_CREDID_NAME = "credid";
 const char * OIC_JSON_SUBJECT_NAME = "subject";
 const char * OIC_JSON_SUBJECTID_NAME = "subjectuuid";

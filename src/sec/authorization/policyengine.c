@@ -42,28 +42,29 @@
 #define TAG "OIC_SRM_PE"
 
 #if EXPORT_INTERFACE
+/* src: securevirtualresourcetypes.h */
 typedef enum OicSecConntype
 {
     AUTH_CRYPT, // any subject requesting over authenticated and encrypted channel
     ANON_CLEAR, // any subject requesting over anonymous and unencrypted channel
 } OicSecConntype_t;
-#endif	/* INTERFACE */
 
-#if EXPORT_INTERFACE
 typedef enum
 {
     DISCOVERABLE_NOT_KNOWN = 0,
     DISCOVERABLE_TRUE = 1,
     DISCOVERABLE_FALSE = 2
 } OicSecDiscoverable_t;
-#endif	/* INTERFACE */
+#endif	/* EXPORT_INTERFACE */
 
+/* src: policyengine.h */
 typedef OCStackResult (*GetSvrRownerId_t)(OicUuid_t *rowner);
 
 /**
  * Values used to create bit-maskable enums for single-value response with
  * embedded code.
  */
+/* src: securevirtualresourcetypes.h */
 #if EXPORT_INTERFACE
 #define ACCESS_GRANTED_DEF                      (1 << 0)
 #define ACCESS_DENIED_DEF                       (1 << 1)
@@ -79,7 +80,6 @@ typedef OCStackResult (*GetSvrRownerId_t)(OicUuid_t *rowner);
                                        RESOURCE_NOT_FOUND_DEF | \
                                        POLICY_ENGINE_ERROR_DEF | \
                                        SEC_RESOURCE_OVER_UNSECURE_CHANNEL_DEF)
-#endif	/* INTERFACE */
 
 /**
  * Access policy in least significant bits (from Spec):
@@ -89,7 +89,6 @@ typedef OCStackResult (*GetSvrRownerId_t)(OicUuid_t *rowner);
  * 4th lsb:  D (Delete)
  * 5th lsb:  N (Notify)
  */
-#if EXPORT_INTERFACE
 #define PERMISSION_ERROR        (0x0)
 #define PERMISSION_CREATE       (1 << 0)
 #define PERMISSION_READ         (1 << 1)
@@ -101,9 +100,7 @@ typedef OCStackResult (*GetSvrRownerId_t)(OicUuid_t *rowner);
                                  PERMISSION_WRITE | \
                                  PERMISSION_DELETE | \
                                  PERMISSION_NOTIFY)
-#endif	/* INTERFACE */
 
-#if EXPORT_INTERFACE
 /**
  * Returns 'true' iff request should be passed on to RI layer.
  */
@@ -126,9 +123,40 @@ typedef enum access_response_fixme
         | SEC_RESOURCE_OVER_UNSECURE_CHANNEL_DEF,
 } SRMAccessResponse_t;
 
-/* typedef unsigned int SRMAccessResponse_t; */
-#endif
+/* src: securevirtualresourcetypes.h */
+/**
+ * Reason code for SRMAccessResponse.
+ */
+enum access_reason_fixme
+{
+    NO_REASON_GIVEN = 0,
+    INSUFFICIENT_PERMISSION = INSUFFICIENT_PERMISSION_DEF,
+    SUBJECT_NOT_FOUND = SUBJECT_NOT_FOUND_DEF,
+    RESOURCE_NOT_FOUND = RESOURCE_NOT_FOUND_DEF,
+};
 
+/* typedef unsigned int SRMAccessResponse_t; */
+#endif  /* EXPORT_INTERFACE */
+
+/* src: securevirtualresourcetypes.h */
+typedef unsigned int SRMAccessResponseReasonCode_t;
+
+/**
+ * Extract Reason Code from Access Response.
+ */
+INLINE_API SRMAccessResponseReasonCode_t GetReasonCode(
+    SRMAccessResponse_t response)
+{
+    SRMAccessResponseReasonCode_t reason =
+        (SRMAccessResponseReasonCode_t)(response & REASON_MASK_DEF);
+    return reason;
+}
+
+/**
+ * Returns 'true' iff request should be passed on to RI layer.
+ */
+/* src: securevirtualresourcetypes.h */
+//FIXME: INLINE_API
 bool IsAccessGranted(SRMAccessResponse_t response)
 {
     if(ACCESS_GRANTED == (response & ACCESS_GRANTED))
@@ -409,6 +437,198 @@ exit:
 }
 
 /**
+ * Compare the request's subject to doxm.rownerID.
+ *
+ * @return true if context->subjectId equals doxm.rownerID, else return false
+ */
+bool IsRequestFromDoxs(SRMRequestContext_t *context)
+{
+    bool retVal = false;
+
+    if (NULL == context)
+    {
+        retVal = false;
+        goto exit;
+    }
+
+    if (SUBJECT_ID_TYPE_UUID != context->subjectIdType)
+    {
+        OIC_LOG_V(DEBUG, TAG, "%s: Non-UUID subject type cannot be DOXS.", __func__);
+        retVal = false;
+        goto exit;
+    }
+
+    if (IsNilUuid(&context->subjectUuid))
+    {
+        OIC_LOG_V(DEBUG, TAG, "%s: Nil UUID cannot be DOXS.", __func__);
+        retVal = false;
+        goto exit;
+    }
+
+    OCStackResult res = OC_STACK_ERROR;
+    OicUuid_t doxsUuid;
+
+    res = GetDoxmRownerId(&doxsUuid);
+
+#ifndef NDEBUG // if debug build, log the IDs being used for matching
+    char strUuid[UUID_STRING_SIZE] = "UUID_ERROR";
+    if (OCConvertUuidToString(context->subjectUuid.id, strUuid))
+    {
+        OIC_LOG_V(DEBUG, TAG, "context->subjectUuid for request: %s.", strUuid);
+    }
+    else
+    {
+        OIC_LOG(ERROR, TAG, "failed to convert context->subjectUuid to str.");
+    }
+    if (OCConvertUuidToString(doxsUuid.id, strUuid))
+    {
+        OIC_LOG_V(DEBUG, TAG, "DOXS UUID: %s.", strUuid);
+    }
+    else
+    {
+        OIC_LOG(ERROR, TAG, "failed to convert DOXS UUID to str.");
+    }
+#endif
+
+    if(OC_STACK_OK == res)
+    {
+        retVal = UuidCmp(&context->subjectUuid, &doxsUuid);
+    }
+
+exit:
+    OIC_LOG_V(INFO, TAG, "%s: returning %s", __func__, retVal ? "true" : "false");
+    return retVal;
+}
+
+/**
+ * Compare the request's subject to acl2.rownerID.
+ *
+ * @return true if context->subjectId equals acl2.rownerID, else return false
+ */
+bool IsRequestFromAms(SRMRequestContext_t *context)
+{
+    bool retVal = false;
+
+    if (NULL == context)
+    {
+        retVal = false;
+        goto exit;
+    }
+
+    if (SUBJECT_ID_TYPE_UUID != context->subjectIdType)
+    {
+        OIC_LOG_V(DEBUG, TAG, "%s: Non-UUID subject type cannot be AMS.", __func__);
+        retVal = false;
+        goto exit;
+    }
+
+    if (IsNilUuid(&context->subjectUuid))
+    {
+        OIC_LOG_V(DEBUG, TAG, "%s: Nil UUID cannot be AMS.", __func__);
+        retVal = false;
+        goto exit;
+    }
+
+    OCStackResult res = OC_STACK_ERROR;
+    OicUuid_t amsUuid;
+
+    res = GetAclRownerId(&amsUuid);
+
+#ifndef NDEBUG // if debug build, log the IDs being used for matching
+    char strUuid[UUID_STRING_SIZE] = "UUID_ERROR";
+    if (OCConvertUuidToString(context->subjectUuid.id, strUuid))
+    {
+        OIC_LOG_V(DEBUG, TAG, "context->subjectUuid for request: %s.", strUuid);
+    }
+    else
+    {
+        OIC_LOG(ERROR, TAG, "failed to convert context->subjectUuid to str.");
+    }
+    if (OCConvertUuidToString(amsUuid.id, strUuid))
+    {
+        OIC_LOG_V(DEBUG, TAG, "AMS UUID: %s.", strUuid);
+    }
+    else
+    {
+        OIC_LOG(ERROR, TAG, "failed to convert AMS UUID to str.");
+    }
+#endif
+
+    if(OC_STACK_OK == res)
+    {
+        retVal = UuidCmp(&context->subjectUuid, &amsUuid);
+    }
+
+exit:
+    OIC_LOG_V(INFO, TAG, "%s: returning %s", __func__, retVal ? "true" : "false");
+    return retVal;
+}
+
+/**
+ * Compare the request's subject to cred.rownerID.
+ *
+ * @return true if context->subjectId equals cred.rownerID, else return false
+ */
+bool IsRequestFromCms(SRMRequestContext_t *context)
+{
+    bool retVal = false;
+
+    if (NULL == context)
+    {
+        retVal = false;
+        goto exit;
+    }
+
+    if (SUBJECT_ID_TYPE_UUID != context->subjectIdType)
+    {
+        OIC_LOG_V(DEBUG, TAG, "%s: Non-UUID subject type cannot be CMS.", __func__);
+        retVal = false;
+        goto exit;
+    }
+
+    if (IsNilUuid(&context->subjectUuid))
+    {
+        OIC_LOG_V(DEBUG, TAG, "%s: Nil UUID cannot be CMS.", __func__);
+        retVal = false;
+        goto exit;
+    }
+
+    OCStackResult res = OC_STACK_ERROR;
+    OicUuid_t cmsUuid;
+
+    res = GetCredRownerId(&cmsUuid);
+
+#ifndef NDEBUG // if debug build, log the IDs being used for matching
+    char strUuid[UUID_STRING_SIZE] = "UUID_ERROR";
+    if (OCConvertUuidToString(context->subjectUuid.id, strUuid))
+    {
+        OIC_LOG_V(DEBUG, TAG, "context->subjectUuid for request: %s.", strUuid);
+    }
+    else
+    {
+        OIC_LOG(ERROR, TAG, "failed to convert context->subjectUuid to str.");
+    }
+    if (OCConvertUuidToString(cmsUuid.id, strUuid))
+    {
+        OIC_LOG_V(DEBUG, TAG, "CMS UUID: %s.", strUuid);
+    }
+    else
+    {
+        OIC_LOG(ERROR, TAG, "failed to convert CMS UUID to str.");
+    }
+#endif
+
+    if(OC_STACK_OK == res)
+    {
+        retVal = UuidCmp(&context->subjectUuid, &cmsUuid);
+    }
+
+exit:
+    OIC_LOG_V(INFO, TAG, "%s: returning %s", __func__, retVal ? "true" : "false");
+    return retVal;
+}
+
+/**
  * Bitwise check to see if 'permission' contains 'request'.
  *
  * @param permission is the allowed CRUDN permission.
@@ -461,8 +681,6 @@ INLINE_API bool IsWildCardSubject(OicUuid_t *subject)
  */
 static bool IsAccessWithinValidTime(const OicSecAce_t *ace)
 {
-#ifndef WITH_ARDUINO //Period & Recurrence not supported on Arduino due
-    //lack of absolute time
     if (NULL== ace || NULL == ace->validities)
     {
         return true;
@@ -489,10 +707,6 @@ static bool IsAccessWithinValidTime(const OicSecAce_t *ace)
     }
     OIC_LOG(ERROR, TAG, "Access request is in invalid time period");
     return false;
-
-#else
-    return true;
-#endif
 }
 
 /**
@@ -519,11 +733,27 @@ static bool IsResourceInAce(SRMRequestContext_t *context, const OicSecAce_t *ace
         {
             if (NO_WILDCARD != rsrc->wildcard)
             {
-                if ((ALL_RESOURCES == rsrc->wildcard) ||
-                    (ALL_DISCOVERABLE == rsrc->wildcard &&
-                        DISCOVERABLE_TRUE == context->discoverable) ||
-                    (ALL_NON_DISCOVERABLE == rsrc->wildcard &&
-                        DISCOVERABLE_FALSE == context->discoverable))
+                if  (IsNonConfigurationResourceUri(context->resourceUri) &&
+                        (
+                            // "*" matches all NCRs
+                            (
+                                (ALL_NCRS == rsrc->wildcard)
+                            ) ||
+                            // "+" matches all discoverable NCRs that expose at least one Secure Endpoint
+                            (
+                                (ALL_DISCOVERABLE_NCRS_WITH_OC_SECURE == rsrc->wildcard) &&
+                                (DISCOVERABLE_TRUE == context->discoverable) &&
+                                (true == context->resourceIsOcSecure)
+                            ) ||
+                            // "-" matches all discoverable NCRs that expose at least one Unsecure Endpoint
+                            (
+                                (ALL_DISCOVERABLE_NCRS_WITH_OC_NONSECURE == rsrc->wildcard) &&
+                                (DISCOVERABLE_TRUE == context->discoverable) &&
+                                (true == context->resourceIsOcNonsecure)
+                            )
+                        )
+                    )
+
                 {
                     OIC_LOG_V(DEBUG, TAG, "%s: found wc type %d matching resource.",
                         __func__, rsrc->wildcard);
@@ -547,6 +777,7 @@ static bool IsResourceInAce(SRMRequestContext_t *context, const OicSecAce_t *ace
 static void ProcessMatchingACE(SRMRequestContext_t *context, const OicSecAce_t *currentAce)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    // Subject was found, so err changes to Rsrc not found for now.
     context->responseVal = ACCESS_DENIED_RESOURCE_NOT_FOUND;
     OIC_LOG_V(DEBUG, TAG, "%s: Searching ACE resources list for href: %s", __func__, context->resourceUri);
     if (IsResourceInAce(context, currentAce))
@@ -607,7 +838,7 @@ static void ProcessAccessRequest(SRMRequestContext_t *context)
         if (NULL != currentAce)
         {
             OIC_LOG_V(DEBUG, TAG, "%s: found ACE with subject conntype %s",
-		      __func__, (AUTH_CRYPT == conntype?"auth-crypt":"anon-clear"), context->resourceUri);
+                      __func__, (AUTH_CRYPT == conntype?"auth-crypt":"anon-clear"), context->resourceUri);
             ProcessMatchingACE(context, currentAce);
 	    if ( !(context->responseVal & ACCESS_GRANTED) )
 		OIC_LOG_V(INFO, TAG, "%s access not granted, trying next conntype", __func__);
@@ -696,8 +927,17 @@ void CheckPermission(SRMRequestContext_t *context)
     OicSecDostype_t dos;
     VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDos(&dos), ERROR);
 
+    // As of Bangkok Security Specification, only the Device Configuration
+    // Resources are accessible outside of RFNOP
+    if ((DOS_RFNOP != dos.state) &&
+        (!IsDeviceConfigurationResourceUri(context->resourceUri)))
+    {
+        OIC_LOG_V(WARNING, TAG, "%s: denying request for any NCR when device is not"
+            " in RFNOP state!", __func__);
+        context->responseVal = ACCESS_DENIED;
+    }
     // Test for implicit access.
-    if (IsRequestFromDevOwner(context) &&
+    else if (IsRequestFromDevOwner(context) &&
         ((DOS_RFOTM == dos.state) || (DOS_SRESET == dos.state)) &&
         (NOT_A_SVR_RESOURCE != context->resourceType))
     {
@@ -727,6 +967,25 @@ void CheckPermission(SRMRequestContext_t *context)
              IsRequestFromOwnershipTransferSession(context))
     {
         OIC_LOG_V(INFO, TAG, "%s: granting implicit access to OT session request", __func__);
+        context->responseVal = ACCESS_GRANTED;
+    }
+    else if (((OIC_R_DOXM_TYPE == context->resourceType) ||
+              (OIC_R_PSTAT_TYPE == context->resourceType) ||
+              (OIC_R_CRED_TYPE == context->resourceType) ||
+              (OIC_R_ACL_TYPE == context->resourceType)) &&
+             (IsRequestFromDoxs(context)))
+    {
+        OIC_LOG_V(INFO, TAG, "%s: granting DOXS implicit access to /acl2, /cred, /doxm or /pstat.", __func__);
+        context->responseVal = ACCESS_GRANTED;
+    }
+    else if ((OIC_R_PSTAT_TYPE == context->resourceType) && IsRequestFromAms(context))
+    {
+        OIC_LOG_V(INFO, TAG, "%s: granting AMS implicit access to /pstat.", __func__);
+        context->responseVal = ACCESS_GRANTED;
+    }
+    else if ((OIC_R_PSTAT_TYPE == context->resourceType) && IsRequestFromCms(context))
+    {
+        OIC_LOG_V(INFO, TAG, "%s: granting CMS implicit access to /pstat.", __func__);
         context->responseVal = ACCESS_GRANTED;
     }
     // Else request is a "normal" request that must be tested against ACL.
