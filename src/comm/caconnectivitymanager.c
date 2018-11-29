@@ -79,7 +79,7 @@ CAResult_t CAInitialize(CATransportAdapter_t transportType)
     return CA_STATUS_OK;
 }
 
-void CATerminate()
+void CATerminate(void)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
@@ -93,7 +93,7 @@ void CATerminate()
     OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 }
 
-CAResult_t CAStartListeningServer()
+CAResult_t CAStartListeningServer(void)
 {
     OIC_LOG(DEBUG, TAG, "CAStartListeningServer");
 
@@ -118,7 +118,7 @@ CAResult_t CAStopListeningServer()
     return CAStopListeningServerAdapters();
 }
 
-CAResult_t CAStartDiscoveryServer()
+CAResult_t CAStartDiscoveryServer(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
@@ -247,6 +247,19 @@ CAResult_t CAregisterGetCredentialTypesHandler(CAgetCredentialTypesHandler getCr
     }
     CAsetCredentialTypesCallback(getCredTypesHandler);
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return CA_STATUS_OK;
+}
+
+CAResult_t CAregisterIdentityHandler(CAgetIdentityHandler getIdentityHandler)
+{
+    OIC_LOG_V(DEBUG, TAG, "In %s", __func__);
+
+    if (!g_isInitialized)
+    {
+        return CA_STATUS_NOT_INITIALIZED;
+    }
+    CAsetIdentityCallback(getIdentityHandler);
+    OIC_LOG_V(DEBUG, TAG, "Out %s", __func__);
     return CA_STATUS_OK;
 }
 #endif // __WITH_DTLS__ or __WITH_TLS__
@@ -566,7 +579,7 @@ CAResult_t CAEnableAnonECDHCipherSuite(const bool enable)
     (void)(enable); // prevent unused-parameter compiler warning
     OIC_LOG(ERROR, TAG, "Method not supported");
 #endif
-    OIC_LOG_V(ERROR, TAG, "Out %s", __func__);
+    OIC_LOG_V(DEBUG, TAG, "Out %s", __func__);
     return res;
 }
 
@@ -654,3 +667,10 @@ CAResult_t CAcloseSslSession(const CAEndpoint_t *endpoint)
     OIC_LOG(DEBUG, TAG, "OUT : CAcloseSslSession");
     return res;
 }
+
+#ifdef TCP_ADAPTER
+void CARegisterKeepAliveHandler(CAKeepAliveConnectionCallback ConnHandler)
+{
+    CATCPSetKeepAliveCallbacks(ConnHandler);
+}
+#endif
