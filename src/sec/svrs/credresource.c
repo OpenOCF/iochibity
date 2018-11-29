@@ -172,7 +172,7 @@ static const uint8_t ROLEID_MAP_SIZE = 1;
 /* application code must implment get_vendor_cred */
 /* extern OicSecCred_t* get_vendor_cred(); */
 
-static OicSecCred_t        *gCred = NULL;
+OicSecCred_t        *gCred = NULL;
 static OCResourceHandle    gCredHandle = NULL;
 static OicUuid_t           gRownerId = { .id = { 0 } };
 
