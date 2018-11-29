@@ -66,14 +66,14 @@ static const uint16_t CBOR_SIZE = 1024;
 static const uint16_t CBOR_MAX_SIZE = 4400;
 
 /** AMACL Map size - Number of mandatory items. */
-static const uint8_t AMACL_MAP_SIZE = 3;
+static const uint8_t AMACL_MAP_SIZE = 1;
 static const uint8_t AMACL_RSRC_MAP_SIZE = 1;
 static const uint8_t AMACL_RLIST_MAP_SIZE = 3;
 
 static OicSecAmacl_t *gAmacl = NULL;
 static OCResourceHandle gAmaclHandle = NULL;
 
-void DeleteAmaclList(OicSecAmacl_t* amacl)
+void DeleteAmaclList(OicSecAmacl_t *amacl)
 {
     if (amacl)
     {
@@ -95,7 +95,8 @@ void DeleteAmaclList(OicSecAmacl_t* amacl)
     }
 }
 
-OCStackResult AmaclToCBORPayload(const OicSecAmacl_t *amaclS, uint8_t **cborPayload, size_t *cborSize)
+OCStackResult AmaclToCBORPayload(const OicSecAmacl_t *amaclS, uint8_t **cborPayload,
+                                 size_t *cborSize)
 {
     if (NULL == amaclS || NULL == cborPayload || NULL != *cborPayload || NULL == cborSize)
     {
@@ -130,7 +131,7 @@ OCStackResult AmaclToCBORPayload(const OicSecAmacl_t *amaclS, uint8_t **cborPayl
 
     // resources -- Mandatory
     cborEncoderResult = cbor_encode_text_string(&amaclMap, OIC_JSON_RESOURCES_NAME,
-                strlen(OIC_JSON_RESOURCES_NAME));
+                        strlen(OIC_JSON_RESOURCES_NAME));
     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Addding Resource Name Tag.");
 
     cborEncoderResult = cbor_encoder_create_map(&amaclMap, &rsrcMap, AMACL_RSRC_MAP_SIZE);
@@ -138,7 +139,7 @@ OCStackResult AmaclToCBORPayload(const OicSecAmacl_t *amaclS, uint8_t **cborPayl
 
 
     cborEncoderResult = cbor_encode_text_string(&rsrcMap, OIC_JSON_RLIST_NAME,
-                strlen(OIC_JSON_RLIST_NAME));
+                        strlen(OIC_JSON_RLIST_NAME));
     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Addding RLIST Name Tag.");
 
     // TODO : Need to input array length by OicSecAmacl_t->resources->rlistLen based on spec.
@@ -154,28 +155,28 @@ OCStackResult AmaclToCBORPayload(const OicSecAmacl_t *amaclS, uint8_t **cborPayl
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Addding RLIST Map.");
 
         cborEncoderResult = cbor_encode_text_string(&rMap, OIC_JSON_HREF_NAME,
-                strlen(OIC_JSON_HREF_NAME));
+                            strlen(OIC_JSON_HREF_NAME));
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Addding HREF Name Tag.");
         cborEncoderResult = cbor_encode_text_string(&rMap, amacl->resources[i],
-                strlen(amacl->resources[i]));
+                            strlen(amacl->resources[i]));
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Addding HREF Value in Map.");
 
         cborEncoderResult = cbor_encode_text_string(&rMap, OIC_JSON_RT_NAME,
-                strlen(OIC_JSON_RT_NAME));
+                            strlen(OIC_JSON_RT_NAME));
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Addding RT Name Tag.");
 
         // TODO : Need to assign real value of RT
         cborEncoderResult = cbor_encode_text_string(&rMap, OIC_JSON_EMPTY_STRING,
-                strlen(OIC_JSON_EMPTY_STRING));
+                            strlen(OIC_JSON_EMPTY_STRING));
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Addding RT Value.");
 
         cborEncoderResult = cbor_encode_text_string(&rMap, OIC_JSON_IF_NAME,
-                strlen(OIC_JSON_IF_NAME));
+                            strlen(OIC_JSON_IF_NAME));
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Addding IF Name Tag.");
 
         // TODO : Need to assign real value of IF
         cborEncoderResult = cbor_encode_text_string(&rMap, OIC_JSON_EMPTY_STRING,
-                strlen(OIC_JSON_EMPTY_STRING));
+                            strlen(OIC_JSON_EMPTY_STRING));
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Addding IF Value.");
 
         cborEncoderResult = cbor_encoder_close_container(&rlistArray, &rMap);
@@ -252,7 +253,7 @@ OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
     cborFindResult = cbor_value_enter_container(&amaclCbor, &amaclMap);
     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Entering Amacl Map.");
 
-    while(cbor_value_is_valid(&amaclMap) && cbor_value_is_text_string(&amaclMap))
+    while (cbor_value_is_valid(&amaclMap) && cbor_value_is_text_string(&amaclMap))
     {
         char *name = NULL;
         size_t len = 0;
@@ -271,7 +272,7 @@ OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
             cborFindResult = cbor_value_enter_container(&amaclMap, &rsrcMap);
             VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Entering Resource Map");
 
-            while(cbor_value_is_valid(&rsrcMap) && cbor_value_is_text_string(&rsrcMap))
+            while (cbor_value_is_valid(&rsrcMap) && cbor_value_is_text_string(&rsrcMap))
             {
                 // resource name
                 char *rsrcName = NULL;
@@ -306,7 +307,7 @@ OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
                         cborFindResult = cbor_value_enter_container(&rsrcArray, &rMap);
                         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Entering Rlist Map");
 
-                        while(cbor_value_is_valid(&rMap) && cbor_value_is_text_string(&rMap))
+                        while (cbor_value_is_valid(&rMap) && cbor_value_is_text_string(&rMap))
                         {
                             char *rMapName = NULL;
                             size_t rMapNameLen = 0;
@@ -385,7 +386,7 @@ exit:
     return ret;
 }
 
-static OCEntityHandlerResult HandleAmaclGetRequest (const OCEntityHandlerRequest * ehRequest)
+static OCEntityHandlerResult HandleAmaclGetRequest (const OCEntityHandlerRequest *ehRequest)
 {
     // Convert Amacl data into JSON for transmission
     size_t size = 0;
@@ -400,11 +401,11 @@ static OCEntityHandlerResult HandleAmaclGetRequest (const OCEntityHandlerRequest
 
     OICFree(cborPayload);
 
-    OIC_LOG_V (DEBUG, TAG, "%s RetVal %d", __func__ , ehRet);
+    OIC_LOG_V (DEBUG, TAG, "%s RetVal %d", __func__, ehRet);
     return ehRet;
 }
 
-static OCEntityHandlerResult HandleAmaclPostRequest (const OCEntityHandlerRequest * ehRequest)
+static OCEntityHandlerResult HandleAmaclPostRequest (const OCEntityHandlerRequest *ehRequest)
 {
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
 
@@ -440,7 +441,7 @@ static OCEntityHandlerResult HandleAmaclPostRequest (const OCEntityHandlerReques
         OIC_LOG(ERROR, TAG, "SendSRMResponse failed in HandleAmaclPostRequest");
     }
 
-    OIC_LOG_V(DEBUG, TAG, "%s RetVal %d", __func__ , ehRet);
+    OIC_LOG_V(DEBUG, TAG, "%s RetVal %d", __func__, ehRet);
     return ehRet;
 }
 
@@ -485,7 +486,7 @@ static OCEntityHandlerResult AmaclEntityHandler (OCEntityHandlerFlag flag,
 /**
  * This internal method is used to create '/oic/sec/amacl' resource.
  */
-static OCStackResult CreateAmaclResource()
+static OCStackResult CreateAmaclResource(void)
 {
     OCStackResult ret = OCCreateResource(&gAmaclHandle,
                                          OIC_RSRC_TYPE_SEC_AMACL,
@@ -505,7 +506,7 @@ static OCStackResult CreateAmaclResource()
     return ret;
 }
 
-OCStackResult InitAmaclResource()
+OCStackResult InitAmaclResource(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OC_STACK_ERROR;

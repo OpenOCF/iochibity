@@ -42,7 +42,13 @@
 #define SPEC_MAX_VER_LEN (sizeof("core.x.x.x") + 1) // Spec Version length.
 #endif	/* INTERFACE */
 
+typedef enum {
+    ACL_ACELIST = 0,
+    ACL_ROWNERUUID,
+    ACL_PROPERTY_COUNT
+} ACLProperty_t;
 
+/* source: securevirtualresourcetypes.h */
 /**
  * @def GET_ACL_VER(specVer)
  * Gets ACL version depending on spec. version.
@@ -61,6 +67,7 @@
 #define IS_OIC(specVer) ((specVer)[0] == 'c' && (specVer)[1] == 'o' && (specVer)[2] == 'r' && (specVer)[3] == 'e')
 #endif	/* INTERFACE */
 
+/* source: acl_logging.h */
 #ifdef TB_LOG
 INLINE_API void printACE(LogLevel level, const OicSecAce_t *ace)
 {
@@ -188,9 +195,7 @@ INLINE_API void printACL(LogLevel level, const OicSecAcl_t* acl)
 #define OIC_LOG_ACE(level, ace)
 #endif
 
-
-
-static const uint8_t ACL_MAP_SIZE = 4; // aclist, rowneruuid, RT and IF
+static const uint8_t ACL_MAP_SIZE = 2; // RT and IF
 static const uint8_t ACL_ACLIST_MAP_SIZE = 1; // aces object
 static const uint8_t ACL_ACE_MAP_SIZE = 3; // subject, resource, permissions
 static const uint8_t ACL_ACE2_MAP_SIZE = 4; // aceid, subject, resource, permissions
@@ -210,6 +215,7 @@ static OCResourceHandle gAcl2Handle = NULL;
 
 #if EXPORT_INTERFACE
 #define fixme_rp2 OCResourceProperty /* help makeheaders */
+/* source: securevirtualresourcetypes.h */
 typedef struct OicSecRsrc_t
 {
     char *href; // 0:R:S:Y:String
@@ -250,12 +256,17 @@ typedef enum
     OicSecAceConntypeSubject
 } OicSecAceSubjectType;
 
+/**
+ * Note: the Resource wildcard definitions changed in OCF Bangkok specifation.
+ * IoTivity now implements the revised Resource wildcard behavior, which is
+ * more restrictive (i.e. the wildcards map to a subset of the prior Resources).
+ */
 typedef enum OicSecAceResourceWildcard
 {
     NO_WILDCARD = 0,
-    ALL_DISCOVERABLE,       // maps to "+" in JSON/CBOR
-    ALL_NON_DISCOVERABLE,   // maps to "-" in JSON/CBOR
-    ALL_RESOURCES           // maps to "*" in JSON/CBOR
+    ALL_DISCOVERABLE_NCRS_WITH_OC_SECURE,       // maps to "+" in JSON/CBOR
+    ALL_DISCOVERABLE_NCRS_WITH_OC_NONSECURE,    // maps to "-" in JSON/CBOR
+    ALL_NCRS                                    // maps to "*" in JSON/CBOR
 } OicSecAceResourceWildcard_t;
 
 /* typedef struct OicSecAcl OicSecAcl_t; */
@@ -286,6 +297,7 @@ enum ACL_IDS
 };
 
 #if EXPORT_INTERFACE
+/* src: securevirtualresourcetypes.h */
 typedef struct OicSecValidity_t
 {
     char* period; // 0:R:S:Y:String
@@ -584,6 +596,19 @@ static size_t OicSecAclSize(const OicSecAcl_t *secAcl)
 
 OCStackResult AclToCBORPayload(const OicSecAcl_t *secAcl,
     OicSecAclVersion_t aclVersion, uint8_t **payload, size_t *size)
+    {
+        bool allProps[ACL_PROPERTY_COUNT];
+
+        for (int i = 0; i < ACL_PROPERTY_COUNT; i++)
+        {
+            allProps[i] = true;
+        }
+        return AclToCBORPayloadPartial(secAcl, aclVersion, payload, size, allProps);
+
+    }
+
+OCStackResult AclToCBORPayloadPartial(const OicSecAcl_t *secAcl,
+    OicSecAclVersion_t aclVersion, uint8_t **payload, size_t *size, const bool *propertiesToInclude)
 {
     if (NULL == secAcl || NULL == payload || NULL != *payload || NULL == size)
     {
@@ -624,17 +649,29 @@ OCStackResult AclToCBORPayload(const OicSecAcl_t *secAcl,
         cborLen = CBOR_SIZE;
     }
 
+    int sizeOfMap = ACL_MAP_SIZE;
+    if (propertiesToInclude[ACL_ACELIST])
+    {
+        sizeOfMap++;
+    }
+    if (propertiesToInclude[ACL_ROWNERUUID])
+    {
+        sizeOfMap++;
+    }
+
     outPayload = (uint8_t *)OICCalloc(1, cborLen);
     VERIFY_NOT_NULL_RETURN(TAG, outPayload, ERROR, OC_STACK_ERROR);
 
     cbor_encoder_init(&encoder, outPayload, cborLen, 0);
 
     // Create ACL Map which contains aclist or aclist2, rowneruuid, rt and if
-    cborEncoderResult = cbor_encoder_create_map(&encoder, &aclMap, ACL_MAP_SIZE);
-    VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Creating ACL Map.");
-    OIC_LOG_V(DEBUG, TAG, "%s starting encoding of %s resource.",
-        __func__, (OIC_SEC_ACL_V1 == aclVersion)?"v1 acl":"v2 acl2");
-
+    if(propertiesToInclude[ACL_ACELIST])
+    {
+        cborEncoderResult = cbor_encoder_create_map(&encoder, &aclMap, sizeOfMap);
+        VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Creating ACL Map.");
+        OIC_LOG_V(DEBUG, TAG, "%s starting encoding of %s resource.",
+            __func__, (OIC_SEC_ACL_V1 == aclVersion)?"v1 acl":"v2 acl2");
+    
     // v1 uses "aclist" as the top-level tag, containing an "aces" object
     if (OIC_SEC_ACL_V1 == aclVersion)
     {
@@ -1041,13 +1078,13 @@ OCStackResult AclToCBORPayload(const OicSecAcl_t *secAcl,
                         OIC_LOG_V(DEBUG, TAG, "%s encoded v2 %s tag.", __func__, OIC_JSON_WC_NAME);
                         switch(rsrc->wildcard)
                         {
-                            case ALL_DISCOVERABLE:
+                            case ALL_DISCOVERABLE_NCRS_WITH_OC_SECURE:
                             wcstring = OIC_JSON_WC_PLUS_NAME;
                             break;
-                            case ALL_NON_DISCOVERABLE:
+                            case ALL_DISCOVERABLE_NCRS_WITH_OC_NONSECURE:
                             wcstring = OIC_JSON_WC_MINUS_NAME;
                             break;
-                            case ALL_RESOURCES:
+                            case ALL_NCRS:
                             wcstring = OIC_JSON_WC_ASTERISK_NAME;
                             break;
                             default:
@@ -1193,8 +1230,10 @@ OCStackResult AclToCBORPayload(const OicSecAcl_t *secAcl,
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborEncoderResult, "Failed Closing aclist/aclist2 Map.");
         OIC_LOG_V(DEBUG, TAG, "%s closed v1/v2 aclist/aclist2 map.", __func__);
     }
+    }
 
     // Rownerid
+    if(propertiesToInclude[ACL_ROWNERUUID])
     {
         char *rowner = NULL;
         cborEncoderResult = cbor_encode_text_string(&aclMap, OIC_JSON_ROWNERID_NAME,
@@ -1258,7 +1297,7 @@ OCStackResult AclToCBORPayload(const OicSecAcl_t *secAcl,
 
     if (CborNoError == cborEncoderResult)
     {
-        OIC_LOG(DEBUG, TAG, "AclToCBORPayload Succeeded");
+        OIC_LOG(DEBUG, TAG, "AclToCBORPayloadPartial Succeeded");
         *size = cbor_encoder_get_buffer_size(&encoder, outPayload);
         *payload = outPayload;
         ret = OC_STACK_OK;
@@ -1266,19 +1305,19 @@ OCStackResult AclToCBORPayload(const OicSecAcl_t *secAcl,
 exit:
     if (CborErrorOutOfMemory == cborEncoderResult)
     {
-        OIC_LOG(DEBUG, TAG, "AclToCBORPayload:CborErrorOutOfMemory : retry with more memory");
+        OIC_LOG(DEBUG, TAG, "AclToCBORPayloadPartial:CborErrorOutOfMemory : retry with more memory");
 
         // reallocate and try again!
         OICFree(outPayload);
         // Since the allocated initial memory failed, double the memory.
         cborLen += cbor_encoder_get_buffer_size(&encoder, encoder.end);
         cborEncoderResult = CborNoError;
-        ret = AclToCBORPayload(secAcl, aclVersion, payload, &cborLen);
+        ret = AclToCBORPayloadPartial(secAcl, aclVersion, payload, &cborLen, propertiesToInclude);
         *size = cborLen;
     }
     else if (cborEncoderResult != CborNoError)
     {
-        OIC_LOG(ERROR, TAG, "Failed to AclToCBORPayload");
+        OIC_LOG(ERROR, TAG, "Failed to AclToCBORPayloadPartial");
         OICFree(outPayload);
         outPayload = NULL;
         *size = 0;
@@ -1810,7 +1849,11 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                 // subjectuuid
                                 if (0 == strcmp(name, OIC_JSON_SUBJECTID_NAME)) // ace v1
                                 {
-                                    if (cbor_value_is_text_string(&aceMap))
+                                    if (OIC_SEC_ACL_V2 == aclistVersion)
+                                    {
+                                        OIC_LOG_V(WARNING, TAG, "%s v1 ACE subject tag found in v2 aclist2, skipping!", __func__);
+                                    }
+                                    else if (cbor_value_is_text_string(&aceMap))
                                     {
                                         char *subject = NULL;
                                         cborFindResult = cbor_value_dup_text_string(&aceMap, &subject, &tempLen, NULL);
@@ -1843,7 +1886,11 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                     memset(&subjectMap, 0, sizeof(subjectMap));
                                     size_t unusedLen = 0;
 
-                                    if (cbor_value_is_container(&aceMap))
+                                    if (OIC_SEC_ACL_V1 == aclistVersion)
+                                    {
+                                        OIC_LOG_V(WARNING, TAG, "%s v2 ACE subject tag found in v1 aclist, skipping!", __func__);
+                                    }
+                                    else if (cbor_value_is_container(&aceMap))
                                     {
                                         // next container within subject is either didtype, roletype, or conntype
                                         cborFindResult = cbor_value_enter_container(&aceMap, &subjectMap);
@@ -1947,6 +1994,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                 }
 
                                                 free(subjectTag);       // we are done with this instance
+                                                subjectTag = NULL;
                                             }
 
                                             // advance to next elt in subject map
@@ -2025,8 +2073,8 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                 {
                                                     free(rsrc->href);
                                                     rsrc->href = NULL;
-                                                    rsrc->wildcard = ALL_RESOURCES;
-                                                    OIC_LOG_V(DEBUG, TAG, "%s: replaced \"*\" href with wildcard = ALL_RESOURCES.",
+                                                    rsrc->wildcard = ALL_NCRS;
+                                                    OIC_LOG_V(DEBUG, TAG, "%s: replaced \"*\" href with wildcard = ALL_NCRS.",
                                                         __func__);
                                                 }
                                                 else
@@ -2100,18 +2148,18 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                 OIC_LOG_V(DEBUG, TAG, "%s found wc = %s.", __func__, wc);
                                                 if (0 == strcmp(OIC_JSON_WC_ASTERISK_NAME, wc))
                                                 {
-                                                    rsrc->wildcard = ALL_RESOURCES;
-                                                    OIC_LOG_V(DEBUG, TAG, "%s set wildcard = ALL_RESOURCES.", __func__);
+                                                    rsrc->wildcard = ALL_NCRS;
+                                                    OIC_LOG_V(DEBUG, TAG, "%s set wildcard = ALL_NCRS.", __func__);
                                                 }
                                                 else if (0 == strcmp(OIC_JSON_WC_PLUS_NAME, wc))
                                                 {
-                                                    rsrc->wildcard = ALL_DISCOVERABLE;
-                                                    OIC_LOG_V(DEBUG, TAG, "%s set wildcard = ALL_DISCOVERABLE.", __func__);
+                                                    rsrc->wildcard = ALL_DISCOVERABLE_NCRS_WITH_OC_SECURE;
+                                                    OIC_LOG_V(DEBUG, TAG, "%s set wildcard = ALL_DISCOVERABLE_NCRS_WITH_OC_SECURE.", __func__);
                                                 }
                                                 else if (0 == strcmp(OIC_JSON_WC_MINUS_NAME, wc))
                                                 {
-                                                    rsrc->wildcard = ALL_NON_DISCOVERABLE;
-                                                    OIC_LOG_V(DEBUG, TAG, "%s set wildcard = ALL_NON_DISCOVERABLE.", __func__);
+                                                    rsrc->wildcard = ALL_DISCOVERABLE_NCRS_WITH_OC_NONSECURE;
+                                                    OIC_LOG_V(DEBUG, TAG, "%s set wildcard = ALL_DISCOVERABLE_NCRS_WITH_OC_NONSECURE.", __func__);
                                                 }
                                                 else
                                                 {
@@ -2258,19 +2306,25 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
             }
 
             //rownerID -- Mandatory
-            if (strcmp(tagName, OIC_JSON_ROWNERID_NAME)  == 0)
+            if (IsNilUuid(&acl->rownerID))
             {
-                char *stRowner = NULL;
-                cborFindResult = cbor_value_dup_text_string(&aclMap, &stRowner, &len, NULL);
-                VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding Rownerid Value.");
-                ret = ConvertStrToUuid(stRowner, &acl->rownerID);
-                free(stRowner);
-                VERIFY_SUCCESS(TAG, ret == OC_STACK_OK, ERROR);
+                if (strcmp(tagName, OIC_JSON_ROWNERID_NAME)  == 0)
+                {
+                    char *stRowner = NULL;
+                    cborFindResult = cbor_value_dup_text_string(&aclMap, &stRowner, &len, NULL);
+                    VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding Rownerid Value.");
+                    ret = ConvertStrToUuid(stRowner, &acl->rownerID);
+                    OIC_LOG_V(DEBUG, TAG, "%s: rowner uuid: %s", __func__, stRowner);
+                    free(stRowner);
+                    VERIFY_SUCCESS(TAG, ret == OC_STACK_OK, ERROR);
+                }
+                else if (NULL != gAcl)
+                {
+                    memcpy(&(acl->rownerID), &(gAcl->rownerID), sizeof(OicUuid_t));
+                    OIC_LOG_V(DEBUG, TAG, "%s: rowner uuid from gAcl", __func__);
+                }
             }
-            else if (NULL != gAcl)
-            {
-                memcpy(&(acl->rownerID), &(gAcl->rownerID), sizeof(OicUuid_t));
-            }
+
             free(tagName);
             tagName = NULL;
         }
@@ -2924,7 +2978,7 @@ static OCStackResult RemoveAllAce(const char *resource) /* FIXME: correct the na
             }
         }
 
-        //Generate winnowed ACL payload
+        //Generate empty ACL payload
         ret = AclToCBORPayload(gAcl, OIC_SEC_ACL_V2, &payload, &size);
         if (OC_STACK_OK == ret )
         {
@@ -3156,29 +3210,16 @@ static OCEntityHandlerResult HandleACLPostRequest(const OCEntityHandlerRequest *
                     }
                 }
             }
-            memcpy(&(gAcl->rownerID), &(newAcl->rownerID), sizeof(OicUuid_t));
+
+            // set acl rowner id and save
+            OCStackResult ownerRes = SetAclRownerId(&newAcl->rownerID);
+            if (OC_STACK_OK != ownerRes && OC_STACK_NO_RESOURCE != ownerRes)
+            {
+                OIC_LOG_V(ERROR, TAG, "%s: set acl RownerId", __func__);
+                ehRet = OC_EH_ERROR;
+            }
 
             DeleteACLList(newAcl);
-
-            if(OC_EH_OK == ehRet)
-            {
-                size_t cborSize = 0;
-                uint8_t *cborPayload = NULL;
-
-                if (OC_STACK_OK == AclToCBORPayload(gAcl, OIC_SEC_ACL_V2, &cborPayload, &cborSize))
-                {
-                    if (UpdateSecureResourceInPS(OIC_JSON_ACL_NAME, cborPayload, cborSize) == OC_STACK_OK)
-                    {
-                        ehRet = OC_EH_CHANGED;
-                    }
-                    OICFree(cborPayload);
-                }
-
-                if(OC_EH_CHANGED != ehRet)
-                {
-                    ehRet = OC_EH_ERROR;
-                }
-            }
         }
         else
         {
@@ -3289,29 +3330,16 @@ static OCEntityHandlerResult HandleACL2PostRequest(const OCEntityHandlerRequest 
                     ehRet = OC_EH_ERROR;
                 }
             }
-            memcpy(&(gAcl->rownerID), &(newAcl->rownerID), sizeof(OicUuid_t));
+
+            // set acl rowner id and save
+            OCStackResult ownerRes = SetAclRownerId(&newAcl->rownerID);
+            if (OC_STACK_OK != ownerRes && OC_STACK_NO_RESOURCE != ownerRes)
+            {
+                OIC_LOG_V(ERROR, TAG, "%s: set acl RownerId", __func__);
+                ehRet = OC_EH_ERROR;
+            }
 
             DeleteACLList(newAcl);
-
-            if(OC_EH_OK == ehRet)
-            {
-                size_t cborSize = 0;
-                uint8_t *cborPayload = NULL;
-
-                if (OC_STACK_OK == AclToCBORPayload(gAcl, OIC_SEC_ACL_V2, &cborPayload, &cborSize))
-                {
-                    if (UpdateSecureResourceInPS(OIC_JSON_ACL_NAME, cborPayload, cborSize) == OC_STACK_OK)
-                    {
-                        ehRet = OC_EH_CHANGED;
-                    }
-                    OICFree(cborPayload);
-                }
-
-                if(OC_EH_CHANGED != ehRet)
-                {
-                    ehRet = OC_EH_ERROR;
-                }
-            }
         }
         else
         {
@@ -3343,6 +3371,17 @@ static OCEntityHandlerResult HandleACLDeleteRequest(const OCEntityHandlerRequest
     char resource[MAX_URI_LENGTH] = { 0 };
 
     VERIFY_NOT_NULL(TAG, ehRequest->query, ERROR);
+
+    OicSecDostype_t dos;
+    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDos(&dos), ERROR);
+    ehRet = OC_EH_OK;
+    if ((DOS_RESET == dos.state) ||
+        (DOS_RFNOP == dos.state))
+    {
+        OIC_LOG_V(WARNING, TAG, "%s /acl resource is read-only in RESET and RFNOP.", __func__);
+        ehRet = OC_EH_NOT_ACCEPTABLE;
+        goto exit;
+    }
 
     if (GetAceIdsFromQueryString(ehRequest->query, &aceIdList))
     {
@@ -3462,7 +3501,7 @@ OCEntityHandlerResult ACL2EntityHandler(OCEntityHandlerFlag flag, OCEntityHandle
 /**
  * This internal method is used to create the '/oic/sec/acl' and '/oic/sec/acl2' resources.
  */
-static OCStackResult CreateACLResource()
+static OCStackResult CreateACLResource(void)
 {
     OCStackResult ret;
 
@@ -3672,7 +3711,7 @@ exit:
     return ret;
 }
 
-OCStackResult InitACLResource()
+OCStackResult InitACLResource(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OC_STACK_ERROR;
@@ -3712,7 +3751,7 @@ OCStackResult InitACLResource()
         }
         // TODO Needs to update persistent storage
     }
-    /* VERIFY_NOT_NULL(TAG, gAcl, FATAL); */
+    VERIFY_NOT_NULL(TAG, gAcl, FATAL);
 
     /* GAR implemented by client */
     /* gAcl = get_vendor_acl(); */
@@ -3730,7 +3769,7 @@ exit:
     return ret;
 }
 
-OCStackResult DeInitACLResource()
+OCStackResult DeInitACLResource(void)
 {
     OCStackResult ret =  OCDeleteResource(gAclHandle);
     gAclHandle = NULL;
@@ -4048,7 +4087,7 @@ OCStackResult InstallACL(const OicSecAcl_t* acl)
  *
  * @return Default ACE for security resource.
  */
-static OicSecAce_t* GetSecDefaultACE()
+static OicSecAce_t* GetSecDefaultACE(void)
 {
     const int NUM_OF_DOXM_RT = 1;
     const int NUM_OF_DOXM_IF  = 1;
@@ -4149,7 +4188,7 @@ exit:
 
 }
 
-OCStackResult UpdateDefaultSecProvACE()
+OCStackResult UpdateDefaultSecProvACE(void)
 {
     OCStackResult ret = OC_STACK_OK;
     OicSecAce_t *ace = NULL;
@@ -4269,4 +4308,13 @@ OCStackResult GetAclRownerId(OicUuid_t *rowneruuid)
         return OC_STACK_OK;
     }
     return OC_STACK_ERROR;
+}
+
+bool IsAclRowneruuidTheNilUuid()
+{
+    if (gAcl)
+    {
+        return IsNilUuid(&gAcl->rownerID);
+    }
+    return true;
 }
