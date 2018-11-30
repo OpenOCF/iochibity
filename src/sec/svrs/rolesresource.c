@@ -70,6 +70,10 @@ struct OicSecRole
 
 typedef struct OicSecRole OicSecRole_t;
 
+//TODO: Confirm the length and type of ROLEID.
+#define ROLEID_LENGTH 64 // 64-byte authority max length
+#define ROLEAUTHORITY_LENGTH 64 // 64-byte authority max length
+
 #endif	/* INTERFACE */
 
 
@@ -245,31 +249,6 @@ static void FreeSymmetricRolesList(SymmetricRoleEntry_t *head)
             FreeSymmetricRoleEntry(entryTmp1);
         }
     }
-}
-
-static bool AddNullTerminator(OicSecKey_t *key)
-{
-    size_t length = key->len;
-    uint8_t *data = key->data;
-
-    if ((length > 0) && (data != NULL) && (data[length - 1] != 0))
-    {
-        key->data = OICRealloc(data, length + 1);
-
-        if (key->data == NULL)
-        {
-            OIC_LOG_V(ERROR, TAG, "%s: OICRealloc failed", __func__);
-            OICFree(data);
-            key->len = 0;
-            return false;
-        }
-
-        OIC_LOG(DEBUG, TAG, "Adding key null terminator");
-        key->data[length] = 0;
-        key->len++;
-    }
-
-    return true;
 }
 
 OCStackResult RegisterSymmetricCredentialRole(const OicSecCred_t *cred)
@@ -738,9 +717,6 @@ OCStackResult CBORPayloadToRoles(const uint8_t *cborPayload,
                             {
                                 cborFindResult = DeserializeEncodingFromCbor(&roleMap, &currEntry->certificate);
                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed to read publicData");
-
-                                /* mbedtls_x509_crt_parse requires null string terminator */
-                                VERIFY_TRUE_OR_EXIT(TAG, AddNullTerminator(&currEntry->certificate), ERROR);
                             }
                             else if (strcmp(tagName, OIC_JSON_CREDTYPE_NAME) == 0)
                             {
@@ -893,32 +869,77 @@ static OCEntityHandlerResult HandlePostRequest(OCEntityHandlerRequest *ehRequest
     {
         RoleCertChain_t *curr;
 
+        // Validate the new roles.
         for (curr = chains; NULL != curr; curr = curr->next)
         {
-            if (OC_STACK_OK != OCInternalIsValidRoleCertificate(curr->certificate.data, curr->certificate.len,
-                &pubKey, &pubKeyLength))
+            bool freeData = false;
+            uint8_t *data = curr->certificate.data;
+            size_t dataLength = curr->certificate.len;
+
+            if ((dataLength > 0) && (data[dataLength - 1] != 0))
+            {
+                /* mbedtls_x509_crt_parse requires null terminator */
+                data = OICMalloc(dataLength + 1);
+
+                if (data == NULL)
+                {
+                    OIC_LOG_V(ERROR, TAG, "%s: OICMalloc failed", __func__);
+                    res = OC_STACK_NO_MEMORY;
+                    break;
+                }
+
+                OIC_LOG(DEBUG, TAG, "Adding null terminator");
+                memcpy(data, curr->certificate.data, dataLength);
+                data[dataLength] = 0;
+                dataLength++;
+                freeData = true;
+            }
+
+            OCStackResult validationResult = OCInternalIsValidRoleCertificate(data, dataLength,
+                &pubKey, &pubKeyLength);
+
+            if (freeData)
+            {
+                OICFree(data);
+                freeData = false;
+            }
+
+            if (OC_STACK_OK != validationResult)
             {
                 OIC_LOG(ERROR, TAG, "Could not verify certificate is a valid role certificate");
                 ehRet = OC_EH_ERROR;
-                goto exit;
+                break;
             }
 
             if ((pubKeyLength != peerPubKeyLen) ||
                 (0 != memcmp(pubKey, peerPubKey, pubKeyLength)))
             {
                 OIC_LOG(ERROR, TAG, "Peer sent us certificate not for its public key");
-                continue;
-            }
-
-            if (OC_STACK_OK != AddRoleCertificate(curr, pubKey, pubKeyLength))
-            {
-                OIC_LOG(ERROR, TAG, "Could not AddRoleCertificate");
                 ehRet = OC_EH_ERROR;
-                goto exit;
+                break;
             }
         }
 
-        ehRet = OC_EH_OK;
+        // Check if the loop above verified the new roles successfully.
+        if (NULL != curr)
+        {
+            assert(OC_EH_OK != ehRet);
+        }
+        else
+        {
+            // Store the new roles.
+            for (curr = chains; NULL != curr; curr = curr->next)
+            {
+                if (OC_STACK_OK != AddRoleCertificate(curr, pubKey, pubKeyLength))
+                {
+                    OIC_LOG(ERROR, TAG, "Could not AddRoleCertificate");
+                    ehRet = OC_EH_ERROR;
+                    break;
+                }
+            }
+
+            ehRet = OC_EH_OK;
+        }
     }
 
 exit:
@@ -1012,7 +1033,10 @@ static OCEntityHandlerResult HandleDeleteRequest(OCEntityHandlerRequest *ehReque
                 LL_DELETE(entry->chains, curr1);
                 FreeRoleCertChain(curr1);
                 ehRet = OC_EH_RESOURCE_DELETED;
-                break;
+                if (0 != credId)
+                {
+                    break;
+                }
             }
         }
     }
@@ -1073,7 +1097,7 @@ static OCEntityHandlerResult RolesEntityHandler(OCEntityHandlerFlag flag,
     return ehRet;
 }
 
-OCStackResult InitRolesResource()
+OCStackResult InitRolesResource(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult res = OCCreateResource(&gRolesHandle,
@@ -1094,7 +1118,7 @@ OCStackResult InitRolesResource()
     return res;
 }
 
-OCStackResult DeInitRolesResource()
+OCStackResult DeInitRolesResource(void)
 {
     OCStackResult res = OCDeleteResource(gRolesHandle);
 
@@ -1109,6 +1133,7 @@ OCStackResult DeInitRolesResource()
     FreeSymmetricRolesList(gSymmetricRoles);
 
     gRoles = NULL;
+    gSymmetricRoles = NULL;
 
     return res;
 }
@@ -1174,7 +1199,7 @@ OCStackResult GetEndpointRoles(const CAEndpoint_t *endpoint, OicSecRole_t **role
     RolesEntry_t *targetEntry = NULL;
     OicSecRole_t *rolesToReturn = NULL;
     size_t rolesToReturnCount = 0;
-    ByteArray_t trustedCaCerts;
+    ByteArrayLL_t trustedCaCerts;
     memset(&trustedCaCerts, 0, sizeof(trustedCaCerts));
 
     OCStackResult res = GetPeerPublicKeyFromEndpoint(endpoint, &publicKey, &publicKeyLength);
@@ -1245,7 +1270,6 @@ OCStackResult GetEndpointRoles(const CAEndpoint_t *endpoint, OicSecRole_t **role
     /* Is the cache still valid? */
     struct tm now;
     memset(&now, 0, sizeof(now));
-#ifndef WITH_ARDUINO /* No reliable time on Arduino, so assume the cache is valid if present. */
     time_t nowTimeT = 0;
     nowTimeT = time(NULL);
     /* If we failed to get the current time, assume the cache is valid if present. */
@@ -1268,7 +1292,6 @@ OCStackResult GetEndpointRoles(const CAEndpoint_t *endpoint, OicSecRole_t **role
         }
 #endif
     }
-#endif /* WITH_ARDUINO */
 
     if (IsBefore(&now, &targetEntry->cacheValidUntil))
     {
@@ -1289,8 +1312,8 @@ OCStackResult GetEndpointRoles(const CAEndpoint_t *endpoint, OicSecRole_t **role
     InvalidateRoleCache(targetEntry);
 
     /* Retrieve the current set of trusted CAs from the cred resource. */
-    res = GetPemCaCert(&trustedCaCerts, TRUST_CA);
-    if (OC_STACK_OK != res)
+    GetCaCert(&trustedCaCerts, TRUST_CA);
+    if (NULL == trustedCaCerts.cert || 0 == trustedCaCerts.cert->len)
     {
         OIC_LOG_V(ERROR, TAG, "Could not get CA certs: %d", res);
         OICFree(publicKey);
@@ -1306,8 +1329,7 @@ OCStackResult GetEndpointRoles(const CAEndpoint_t *endpoint, OicSecRole_t **role
         struct tm notValidAfter;
         memset(&notValidAfter, 0, sizeof(notValidAfter));
 
-        res = OCInternalVerifyRoleCertificate(&chain->certificate, trustedCaCerts.data,
-                                              trustedCaCerts.len, &currCertRoles,
+        res = OCInternalVerifyRoleCertificate(&chain->certificate, &trustedCaCerts, &currCertRoles,
                                               &currCertRolesCount, &notValidAfter);
 
         if (OC_STACK_OK != res)
@@ -1327,7 +1349,7 @@ OCStackResult GetEndpointRoles(const CAEndpoint_t *endpoint, OicSecRole_t **role
             {
                 OIC_LOG(ERROR, TAG, "No memory reallocating rolesToReturn");
                 memset(&targetEntry->cacheValidUntil, 0, sizeof(targetEntry->cacheValidUntil));
-                OICFree(trustedCaCerts.data);
+                FreeCertChain(&trustedCaCerts);
                 OICFree(savePtr);
                 OICFree(currCertRoles);
                 OICFree(publicKey);
@@ -1370,14 +1392,14 @@ OCStackResult GetEndpointRoles(const CAEndpoint_t *endpoint, OicSecRole_t **role
     if (NULL == *roles)
     {
         OICFree(publicKey);
-        OICFree(trustedCaCerts.data);
+        FreeCertChain(&trustedCaCerts);
         return OC_STACK_NO_MEMORY;
     }
     memcpy(*roles, targetEntry->cachedRoles, (targetEntry->cachedRolesLength * sizeof(OicSecRole_t)));
     *roleCount = targetEntry->cachedRolesLength;
 
     OICFree(publicKey);
-    OICFree(trustedCaCerts.data);
+    FreeCertChain(&trustedCaCerts);
     return OC_STACK_OK;
 }
 
