@@ -34,7 +34,7 @@ config_setting(
 # this option allows developers to disable it for dev/testing
 config_setting(name = "disable_ipv6",
                visibility = ["//visibility:public"],
-               define_values = {"disable_dtls": "true"})
+               define_values = {"disable_ipv6": "true"})
 
 # ipv4 is disabled by default
 config_setting(name = "enable_ipv4",
