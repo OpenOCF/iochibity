@@ -58,7 +58,7 @@ void handleSigInt(int signum) {
 }
 
 int main() {
-    OCLogInit();
+    OCLogInit(NULL);    /* log to stdout */
     /* logfd = fopen("./logs/server.log", "w"); */
     /* OCLogHookFd(logfd); */
 

@@ -32,13 +32,14 @@
 #include <windows.h>
 #endif
 
-#define TAG ("client")
+#define TAG "client"
 
 /* static oc_thread ocf_thread; */
 
 int gQuitFlag = 0;
 
 FILE *logfd;
+
 
 void log_msg(const char *format, ...)
 {
@@ -578,8 +579,8 @@ OCStackApplicationResult resource_discovery_cb(void* ctx,
 
     /* WARNING: for this demo we exit as soon as discovery is done;
        that means we only get the first such message. */
-    /* gQuitFlag = 1; */
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    gQuitFlag = 1;
     //return OC_STACK_DELETE_TRANSACTION;
     return OC_STACK_KEEP_TRANSACTION | OC_STACK_KEEP_RESPONSE;
 }
@@ -635,6 +636,7 @@ void* ocf_routine(void *arg) {
     OIC_LOG(INFO, TAG, "Entering client main loop...");
     signal(SIGINT, handleSigInt);
     int i = 0;
+
     while (!gQuitFlag) {
 	OIC_LOG_V(INFO, TAG, "process loop %d, tid %d", i++, pthread_self());
         if (OCProcess() != OC_STACK_OK) {
