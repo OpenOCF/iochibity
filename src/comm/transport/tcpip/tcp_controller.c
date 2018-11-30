@@ -524,7 +524,6 @@ void CATCPSetKeepAliveCallbacks(CAKeepAliveConnectionCallback ConnHandler)
 }
 
 // from caconnectivitymanager.c:
-#ifdef TCP_ADAPTER
 /**
  * Callback function to pass the connection information from CA to RI.
  * @param[out]   object           remote device information.
@@ -540,12 +539,8 @@ typedef void (*CAKeepAliveConnectionCallback)(const CAEndpoint_t *object, bool i
  * connection informations are delivered these callbacks.
  * @param[in]   ConnHandler     Connection status changes callback.
  */
-void CARegisterKeepAliveHandler(CAKeepAliveConnectionCallback ConnHandler);
-#endif
 
-#ifdef TCP_ADAPTER
 void CARegisterKeepAliveHandler(CAKeepAliveConnectionCallback ConnHandler)
 {
     CATCPSetKeepAliveCallbacks(ConnHandler);
 }
-#endif

@@ -667,10 +667,3 @@ CAResult_t CAcloseSslSession(const CAEndpoint_t *endpoint)
     OIC_LOG(DEBUG, TAG, "OUT : CAcloseSslSession");
     return res;
 }
-
-#ifdef TCP_ADAPTER
-void CARegisterKeepAliveHandler(CAKeepAliveConnectionCallback ConnHandler)
-{
-    CATCPSetKeepAliveCallbacks(ConnHandler);
-}
-#endif
