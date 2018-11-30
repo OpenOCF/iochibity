@@ -63,6 +63,9 @@
 /** KeepAlive URI.*/
 #define OC_RSRVD_KEEPALIVE_URI                "/oic/ping" /* GAR: non-standard */
 
+/** Cloudconf URI.*/
+#define OC_RSRVD_CLOUDCONF_URI                "/CoapCloudConfResURI"
+
 /** Presence */
 
 /** Presence URI through which the OIC devices advertise their presence.*/
