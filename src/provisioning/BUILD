@@ -12,8 +12,8 @@ cc_library(
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
 
-             "-Ithird_party/utlist",
-             "-Iexternal/openocf/third_party/utlist",
+             # "-Ithird_party/utlist",
+             # "-Iexternal/openocf/third_party/utlist",
              "-Iexternal/sqlite3"
     ] + CSTD + OS_COPTS,
 
@@ -31,7 +31,7 @@ cc_library(
             "@mbedtls//:mbedtls",
             "@tinycbor//:tinycbor",
 	    "@sqlite3//:sqlite3",
-	    "//third_party/utlist"
+	    "@utlist//:utlist"
     ],
     #         # if MULTIPLE_OWNER
     #         #"//src/provisioning/multiowner"

@@ -155,6 +155,14 @@ new_http_archive(
     #strip_prefix = "tinycbor-0.5.1",
 )
 
+new_http_archive(
+    name = "utlist",
+    urls = ["https://github.com/troydhanson/uthash/archive/v2.0.2.zip"],
+    sha256 = "1c56f7e75ee42e162fb3f72cede7738118c3e6fb88514d40db6afc952dcd7cae",
+    strip_prefix = "uthash-2.0.2",
+    build_file = "src/util/utlist/BUILD"
+)
+
 # gtest
 new_http_archive(
     name = "gtest",

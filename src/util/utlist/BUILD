@@ -6,6 +6,6 @@ licenses(["permissive"])
 # included wherever used.
 cc_library(
     name = "utlist",
-    hdrs = ["utlist.h"],
+    hdrs = ["src/utlist.h"],
     visibility = ["//visibility:public"]
 )

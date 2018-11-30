@@ -14,8 +14,8 @@ cc_library(
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
 
-             "-Ithird_party/utlist",
-             "-Iexternal/openocf/third_party/utlist",
+             # "-Ithird_party/utlist",
+             # "-Iexternal/openocf/third_party/utlist",
     ]+ CSTD + OS_COPTS
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
               "//conditions:default": []})
@@ -37,7 +37,7 @@ cc_library(
             "//src/comm/util",
             "//src/coap",
             # FIXME: select for this
-            "//third_party/utlist",
+            "@utlist//:utlist",
             # "//third_party/mbedtls",
             # "//third_party/mbedtls:mbedtls-crypto",
             # "//third_party/mbedtls:mbedtls-x509",

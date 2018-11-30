@@ -31,14 +31,14 @@ cc_library(
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
 
-             "-Iconfig",
-             "-Iconfig/mbedtls",
+             # "-Iconfig",
+             # "-Iconfig/mbedtls",
              "-Iexternal/mbedtls/patched/include",
 
              "-Iexternal/tinycbor/src",
 
-             "-Ithird_party/utlist",
-             "-Iexternal/openocf/third_party/utlist"
+             # "-Ithird_party/utlist",
+             # "-Iexternal/openocf/third_party/utlist"
     ] + OS_COPTS,
 
     defines = DEFINES,
@@ -57,12 +57,13 @@ cc_library(
             "//src/sec/dox",
             "//src/sec/svrs",
             "//src/util",
-            "//third_party/utlist",
+            # "//third_party/utlist",
             # "//third_party/cjson",
             #"@cjson//:cjson",
             "@tinycbor//:tinycbor",
             "@libcoap//:libcoap",
-            "@mbedtls//:mbedtls"],
+            "@mbedtls//:mbedtls",
+            "@utlist//:utlist"],
     # hdrs = ["securevirtualresourcetypes.h"],
     srcs = glob(["*.c"]) + glob(["*.h"]),
     # + select({"windows": ["strptime.c"],

@@ -2,7 +2,7 @@
 # NB: for now we ignore platforms lacking pthreads
 cc_library(
     name = "posix",
-    copts = ["-Ithird_party/utlist",
+    copts = [# "-Ithird_party/utlist",
              "-DWITH_POSIX",
     #          "-Iexternal/openocf/src",
     #          "-Isrc/logger",
@@ -18,10 +18,12 @@ cc_library(
                 "//conditions:default": ["-std=c11",
                                          "-U DEBUG"]}), # OS X
     deps = [#"//src:config",
-            "//src/logger",
-            # "//src/portability:hdrs",
-            "@mbedtls//:mbedtls",
-            "//third_party/utlist"],
+        "//src/logger",
+        # "//src/portability:hdrs",
+        "@mbedtls//:mbedtls",
+        #"//third_party/utlist"
+        "@utlist//:utlist"
+    ],
     linkopts = select({"//config:windows": [],
                        "//config:msvc": [],
                        "//config:msys": ["-lpthread"],

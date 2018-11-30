@@ -6,8 +6,7 @@ cc_library(
 
     copts = ["-Isrc",
              "-Isrc/util",
-             "-Ithird_party/utlist",
-             "-Iexternal/openocf/third_party/utlist",
+             "-Iexternal/utlist/src",
              "-Iexternal/libcoap/include",
              "-Wall",
              "-DTCP_ADAPTER",
@@ -29,7 +28,7 @@ cc_library(
             "//src/comm/transport:sockets",
             "//src/portability",
 	    "@libcoap//:libcoap",
-	    "//third_party/utlist"],
+	    "@utlist//:utlist"],
     linkopts = select({"//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lwinsock2", "-liphlpapi", "-lws2_32"],
                        "//config:msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
                        "//config:windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],

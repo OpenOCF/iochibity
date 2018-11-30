@@ -27,8 +27,8 @@ cc_library(
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
              "-Iexternal/tinycbor/src",
-             "-Ithird_party/utlist",
-             "-Iexternal/openocf/third_party/utlist"
+             # "-Ithird_party/utlist",
+             # "-Iexternal/openocf/third_party/utlist"
     ] + select({"windows": [],
                 "darwin": ["-std=c11", "-UDEBUG"],
                 "darwin64": ["-std=c11", "UDEBUG"],
@@ -41,7 +41,8 @@ cc_library(
             "//src/portability",
             "//src/sec/calendar",
             "//src/util",
-            "//third_party/utlist",
+            # "third_party/utlist",
+            "@utlist//:utlist",
             "@libcoap//:libcoap",
             "@tinycbor//:tinycbor"],
     srcs = glob(["*.c"]) + glob(["*.h"]),
