@@ -1,4 +1,7 @@
-## load("//config:variables.bzl", "DEFINES", "OS_COPTS")
+## usage: load("//config:variables.bzl", "DEFINES", "OS_COPTS")
+
+# set config options in //user.bazelrc or //.bazelrc
+# e.g. build --define enable_logging=true
 
 CROSSTOOL_NG_HOME="/Volumes/CrossToolNG"
 
@@ -34,6 +37,12 @@ TESTDEPS = ["@gtest//:gtest_main",
             "//resource/c_common",
             "//resource/csdk/logger"]
 
+
+# global defines
+
+# WARNING: using "defines" in c rules adds -D flags to target and
+# everything that depends on it!
+
 # #ifdef WITH_TCP:: comm, provisioning
 # #ifdef TCP_ADAPTER: ocf, provisioning, sec/svrs, comm, comm/util, comm/util/bt, udp, tcp
 # FIXME: use ENABLE_TCP, ENABLE_TLS
@@ -47,18 +56,17 @@ DEFDTLS = select({"//config:disable_dtls": [],
 DEFTLS  = select({"//config:disable_tls": [],
                   "//conditions:default": []})
 
-DEFOCF = select({"//config:enable_logging": ["TB_LOG"],
+DEFLOG = select({"//config:enable_logging": ["TB_LOG"],
                  "//conditions:default": []})
 
-DEFINES = DEFDTLS + DEFTCP + DEFTLS
-
-DBG_THREADS = select({"//config:debug_threads": ["-DDEBUG_THREADS", "-DTB_LOG"],
+DBG_THREADS = select({"//config:debug_threads": ["DEBUG_THREADS"],
 	              "//conditions:default": []})
 
-DBG_TLS = select({"//config:debug_tls": ["-DDEBUG_TLS", "-DTB_LOG"],
+DBG_TLS = select({"//config:debug_tls": ["DEBUG_TLS"],
 	          "//conditions:default": []})
 
-DBG_MSGS = select({"//config:debug_msgs": ["-DDEBUG_MSGS", "-DTB_LOG"],
+DBG_MSGS = select({"//config:debug_msgs": ["DEBUG_MSGS"],
 	           "//conditions:default": []})
 
-DBG_COPTS = DBG_THREADS + DBG_TLS + DBG_MSGS
+DEFINES = DEFDTLS + DEFTCP + DEFTLS + DEFLOG + DBG_THREADS + DBG_TLS + DBG_MSGS + ["FOO"]
+
