@@ -1,5 +1,8 @@
 load("//config:variables.bzl", "CSTD", "OS_COPTS")
 
+# to turn on logging for entire stack add to //user.bazelrc:
+# build --define enable_logging=true
+
 cc_binary(
     name = "client",
     copts = ["-Iinclude",
