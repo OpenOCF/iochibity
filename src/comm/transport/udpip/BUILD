@@ -1,4 +1,4 @@
-load("//config:variables.bzl", "COPTS_ANDROID", "DEFINES", "DBG_COPTS")
+load("//config:variables.bzl", "CSTD", "COPTS_ANDROID", "DEFINES")
 
 ANDROID_SRCS = ["udp_status_manager_posix.c",
                 "udp_status_manager_posix.h",
@@ -22,7 +22,7 @@ cc_library(
                 "//config:linux": ["-D_DEFAULT_SOURCE","-std=c11"],
                 "//config:linux64": ["-D_DEFAULT_SOURCE", "-std=c11"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
-    + DBG_COPTS,
+    + CSTD,
 
     # + select({#"//config::rpi_arm8": [],
     #          "//conditions:default": ["-DPORT_U6=$(FOO)", "-DPORT_U6S=0", "-DPORT_U4=0", "-DPORT_U4S=0"]}),

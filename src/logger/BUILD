@@ -1,4 +1,4 @@
-load("//config:variables.bzl", "CSTD", "DEFINES", "DBG_COPTS", "OS_COPTS")
+load("//config:variables.bzl", "CSTD", "DEFINES", "OS_COPTS")
 
 cc_library(
     name = "logger",
@@ -11,7 +11,7 @@ cc_library(
               "//conditions:default": ["-std=c11"]})
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
               "//conditions:default": []})
-    + CSTD + DBG_COPTS,
+    + CSTD,
 
     defines = DEFINES,
 

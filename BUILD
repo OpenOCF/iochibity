@@ -1,4 +1,4 @@
-load("//config:variables.bzl", "CSTD", "DEFINES", "DBG_COPTS")
+load("//config:variables.bzl", "CSTD", "DEFINES")
 
 filegroup(
     name = "srcs",
@@ -119,13 +119,13 @@ cc_binary(
 #     visibility = ["//visibility:public"]
 # )
 
+# used by applications
 cc_library(
     name = "openocf",
     linkstatic = True,
     # linkopts = ["-static"],
     alwayslink = True,
     deps = ["//src/ocf"],
-    srcs = ["libopenocf.c"],
     visibility = ["//visibility:public"]
 )
 

@@ -1,4 +1,4 @@
-load("//config:variables.bzl", "CSTD", "DEFINES", "DBG_COPTS")
+load("//config:variables.bzl", "CSTD", "DEFINES")
 
 config_setting(
     name = "client_role",
@@ -69,7 +69,7 @@ cc_library(
                 "//config:linux": ["-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
                 "//config:darwin": ["-U DEBUG"],
                 "//conditions:default": ["BROKEN"]})
-    + CSTD + DBG_COPTS,
+    + CSTD,
 
     defines = DEFINES,
 
