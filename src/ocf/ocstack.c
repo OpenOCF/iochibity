@@ -2565,7 +2565,7 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     /* set caglobals common to all transports */
     if (mode == OC_CLIENT || mode == OC_CLIENT_SERVER || mode == OC_GATEWAY)
     {
-        ocf_client = true;
+        ocf_client = true;      // @rewrite caglobals
     }
     if (mode == OC_SERVER || mode == OC_CLIENT_SERVER || mode == OC_GATEWAY)
     {
@@ -2573,13 +2573,13 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     }
 
     //  evidently both IPv4 and IPv6 are required, so just hardcode them in caconnectivitymanager.c
-    ocf_serverFlags |= (CATransportFlags_t)serverFlags;
+    ocf_serverFlags |= (CATransportFlags_t)serverFlags; // @rewrite
     /* if (!(caglobals.serverFlags & CA_IPFAMILY_MASK)) */
     /* { */
     /*     caglobals.serverFlags = (CATransportFlags_t)(caglobals.serverFlags|CA_IPV4|CA_IPV6); */
     /* } */
 
-    ocf_clientFlags |= (CATransportFlags_t)clientFlags;
+    ocf_clientFlags |= (CATransportFlags_t)clientFlags; // @rewrite
     /* if (!(caglobals.clientFlags & CA_IPFAMILY_MASK)) */
     /* { */
     /*     caglobals.clientFlags = (CATransportFlags_t)(caglobals.clientFlags|CA_IPV4|CA_IPV6); */
@@ -2626,6 +2626,7 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
             break;
         case OC_SERVER:
 	    // FIXME: SRMRegisterHandler just calls CARegisterHandler with secure handles if DTLS
+            // GAR virtual lookups removed, this registration call can be removed?
             SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
             OIC_LOG(INFO, TAG, "Server mode: CAStartListeningServer");
             result = CAResultToOCResult(CAStartListeningServer());
