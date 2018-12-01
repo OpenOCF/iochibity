@@ -745,6 +745,7 @@ LOCAL OCStackResult CBORPayloadToDoxmBin(const uint8_t *cborPayload, size_t size
         doxm->mom->mode = gDoxm->mom->mode;
     }
 
+    // FIXME:  wrap in #ifdef MULTIPLE_OWNER?
     cborFindResult = cbor_value_map_find_value(&doxmCbor, OIC_JSON_SUBOWNERID_NAME, &doxmMap);
     if(CborNoError == cborFindResult && cbor_value_is_array(&doxmMap))
     {
