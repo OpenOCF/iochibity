@@ -76,22 +76,11 @@ typedef struct OCPairList_t
 #define PDM_SQLITE_TRANSACTION_COMMIT "COMMIT;"
 #define PDM_SQLITE_TRANSACTION_ROLLBACK "ROLLBACK;"
 
-/* #ifdef __GNUC__ */
-/* #if ((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 6)) */
-/* #define static_assert(value, message) _Static_assert((value) ? 1 : 0, message) */
-/* #else */
-/* #define static_assert(value, message) */
-/* #endif */
-/* #endif */
-
 #if EXPORT_INTERFACE
 #include <limits.h>
 
-/* GAR FIXME:: this FUCKING thing will not compile! */
-/* #define PDM_VERIFY_STATEMENT_SIZE((stmt)) \ */
-/*    static_assert((sizeof(stmt) < INT_MAX), #stmt " must be shorter than INT_MAX.") */
-
-#define PDM_VERIFY_STATEMENT_SIZE(stmt)
+#define PDM_VERIFY_STATEMENT_SIZE(stmt) \
+    static_assert(sizeof(stmt) < INT_MAX, #stmt " must be shorter than INT_MAX.")
 
 #define PDM_SQLITE_GET_STALE_INFO "SELECT ID,ID2 FROM T_DEVICE_LINK_STATE WHERE STATE = ?"
 #define PDM_SQLITE_GET_STALE_INFO_SIZE (int)sizeof(PDM_SQLITE_GET_STALE_INFO)
@@ -193,7 +182,7 @@ static OCStackResult createDB(const char* path)
 /**
  * Function to begin any transaction
  */
-static OCStackResult begin()
+static OCStackResult begin(void)
 {
     int res = 0;
     res = sqlite3_exec(g_db, PDM_SQLITE_TRANSACTION_BEGIN, NULL, NULL, NULL);
@@ -204,7 +193,7 @@ static OCStackResult begin()
 /**
  * Function to commit any transaction
  */
-static OCStackResult commit()
+static OCStackResult commit(void)
 {
     int res = 0;
     res = sqlite3_exec(g_db, PDM_SQLITE_TRANSACTION_COMMIT, NULL, NULL, NULL);
@@ -215,7 +204,7 @@ static OCStackResult commit()
 /**
  * Function to rollback any transaction
  */
-static OCStackResult rollback()
+static OCStackResult rollback(void)
 {
     int res = 0;
     res = sqlite3_exec(g_db, PDM_SQLITE_TRANSACTION_ROLLBACK, NULL, NULL, NULL);
@@ -849,7 +838,7 @@ OCStackResult PDMGetToBeUnlinkedDevices(OCPairList_t **staleDevList, size_t *num
     return OC_STACK_OK;
 }
 
-OCStackResult PDMClose()
+OCStackResult PDMClose(void)
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
 
