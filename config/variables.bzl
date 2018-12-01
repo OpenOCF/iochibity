@@ -68,5 +68,9 @@ DBG_TLS = select({"//config:debug_tls": ["DEBUG_TLS"],
 DBG_MSGS = select({"//config:debug_msgs": ["DEBUG_MSGS"],
 	           "//conditions:default": []})
 
-DEFINES = DEFDTLS + DEFTCP + DEFTLS + DEFLOG + DBG_THREADS + DBG_TLS + DBG_MSGS + ["FOO"]
+MULTIOWNER = select({"//config:multi_own": ["MULTIPLE_OWNER"],
+	           "//conditions:default": []})
+
+
+DEFINES = DEFDTLS + DEFTCP + DEFTLS + DEFLOG + DBG_THREADS + DBG_TLS + DBG_MSGS + MULTIOWNER
 

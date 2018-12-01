@@ -23,6 +23,14 @@ config_setting(name = "cstd_ansi", define_values = { "cstd": "ansi" },
     visibility = ["//visibility:public"])
 
 config_setting(
+    name = "multi_own",
+    define_values = {
+        "multi_own": "true",
+    },
+    visibility = ["//visibility:public"]
+)
+
+config_setting(
     name = "enable_logging",
     define_values = {
         "enable_logging": "true",
