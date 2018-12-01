@@ -52,16 +52,17 @@
 
 #define TAG "OIC_OTM"
 
+#if INTERFACE
 /* src: securevirtualresource.h */
 #ifdef MULTIPLE_OWNER
-enum multiowner_fixme
+typedef enum
 {
     MOT_STATUS_READY = 0,
     MOT_STATUS_IN_PROGRESS = 1,
     MOT_STATUS_DONE = 2,
-};
+} MotStatus_t;
 
-typedef unsigned int MotStatus_t;
+// typedef unsigned int MotStatus_t;
 
 /**
  * oic.sec.mom type definition
@@ -70,30 +71,29 @@ typedef unsigned int MotStatus_t;
  * 1 : Enable multiple owner (Always on)
  * 2 : Timely multiple owner enable
  */
-enum multiowner_status_fixme
+typedef enum
 {
     OIC_MULTIPLE_OWNER_DISABLE = 0,
     OIC_MULTIPLE_OWNER_ENABLE = 1,
     OIC_MULTIPLE_OWNER_TIMELY_ENABLE = 2,
     OIC_NUMBER_OF_MOM_TYPE = 3
-};
+} OicSecMomType_t;
 
-#if EXPORT_INTERFACE
-typedef unsigned int OicSecMomType_t;
-#endif	/* INTERFACE */
+//typedef unsigned int OicSecMomType_t;
 
-typedef struct OicSecSubOwner OicSecSubOwner_t;
+//typedef struct OicSecSubOwner OicSecSubOwner_t;
 typedef struct OicSecMom OicSecMom_t;
 
-struct OicSecSubOwner {
+typedef struct OicSecSubOwner {
     OicUuid_t uuid;
     MotStatus_t status;
-    OicSecSubOwner_t* next;
-};
+    struct OicSecSubOwner* next;
+} OicSecSubOwner_t;
 
 struct OicSecMom{
     OicSecMomType_t mode;
 };
+#endif	/* INTERFACE */
 #endif //MULTIPLE_OWNER
 
 /* #define fixme_otm_dp DoxmProperty_t /\* help makeheaders *\/ */

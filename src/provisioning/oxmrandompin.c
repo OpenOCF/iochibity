@@ -22,36 +22,15 @@
 
 #include <memory.h>
 
-/* #include "openocf.h" */
-
-/* #include "iotivity_config.h" */
-
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #else
 #error "errno.h required, not found"
 #endif
 
-/* #include "ocstack.h" */
-/* #include "securevirtualresourcetypes.h" */
-/* #include "doxmresource.h" */
-/* #include "credresource.h" */
-/* #include "cacommon.h" */
-/* #include "cainterface.h" */
-/* #include "ocrandom.h" */
-/* #include "oic_malloc.h" */
-/* #include "logger.h" */
-/* #include "pbkdf2.h" */
-/* #include "base64.h" */
-/* #include "oxmrandompin.h" */
-/* #include "ownershiptransfermanager.h" */
-/* #include "pinoxmcommon.h" */
-/* #include "ocstackinternal.h" */
 #include "mbedtls/ssl_ciphersuites.h"
 
 #define TAG "OIC_OXM_RandomPIN"
-
-#define fixme_doxm_p DoxmProperty_t /* help makeheaders */
 
 OCStackResult CreatePinBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
 {
@@ -60,7 +39,7 @@ OCStackResult CreatePinBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **pay
         return OC_STACK_INVALID_PARAM;
     }
 
-    bool propertiesToInclude[DOXM_PROPERTY_COUNT];
+    bool propertiesToInclude[(DoxmProperty_t)DOXM_PROPERTY_COUNT];
     memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
     propertiesToInclude[DOXM_OXMSEL] = true;
 
@@ -146,7 +125,7 @@ OCStackResult InputPinCodeCallback(OTMContext_t *otmCtx)
 
 OCStackResult CreateSecureSessionRandomPinCallback(OTMContext_t* otmCtx)
 {
-    OIC_LOG(INFO, TAG, "IN CreateSecureSessionRandomPinCallbak");
+    OIC_LOG(INFO, TAG, "IN CreateSecureSessionRandomPinCallback");
 
     if (!otmCtx || !otmCtx->selectedDeviceInfo)
     {
@@ -170,7 +149,29 @@ OCStackResult CreateSecureSessionRandomPinCallback(OTMContext_t* otmCtx)
     }
     OIC_LOG(INFO, TAG, "TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256 cipher suite selected.");
 
-    OIC_LOG(INFO, TAG, "OUT CreateSecureSessionRandomPinCallbak");
+    CAEndpoint_t endpoint;
+    OCProvisionDev_t* selDevInfo = otmCtx->selectedDeviceInfo;
+    CopyDevAddrToEndpoint(&selDevInfo->endpoint, &endpoint);
+
+    if (CA_ADAPTER_IP == endpoint.adapter)
+    {
+        endpoint.port = selDevInfo->securePort;
+    }
+#ifdef WITH_TCP
+    else if (CA_ADAPTER_TCP == endpoint.adapter)
+    {
+        endpoint.port = selDevInfo->tcpSecurePort;
+    }
+#endif
+
+    caresult = CAInitiateHandshake(&endpoint);
+    if (CA_STATUS_OK != caresult)
+    {
+        OIC_LOG_V(ERROR, TAG, "DTLS handshake failure.");
+        return OC_STACK_ERROR;
+    }
+
+    OIC_LOG(INFO, TAG, "OUT CreateSecureSessionRandomPinCallback");
 
     return OC_STACK_OK;
 }
