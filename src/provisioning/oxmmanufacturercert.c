@@ -20,31 +20,13 @@
 
 #include "oxmmanufacturercert.h"
 
+#ifdef HAVE_MEMORY_H
 #include <memory.h>
-
-/* #include "ocstack.h" */
-/* #include "securevirtualresourcetypes.h" */
-/* #include "doxmresource.h" */
-/* #include "credresource.h" */
-/* #include "cacommon.h" */
-/* #include "cainterface.h" */
-/* #include "casecurityinterface.h" */
-/* #include "ocrandom.h" */
-/* #include "oic_malloc.h" */
-/* #include "logger.h" */
-/* #include "pbkdf2.h" */
-/* #include "base64.h" */
-/* #include "oxmmanufacturercert.h" */
-/* #include "ownershiptransfermanager.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "pkix_interface.h" */
-/* #include "ocstackinternal.h" */
+#endif
 
 #include "mbedtls/ssl_ciphersuites.h"
 
 #define TAG "OXM_MCertificate"
-
-#define fixme_oxmmfg_dp DoxmProperty_t /* help makeheaders */
 
 OCStackResult CreateMCertificateBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
 {
@@ -55,7 +37,7 @@ OCStackResult CreateMCertificateBasedSelectOxmPayload(OTMContext_t* otmCtx, uint
 
     otmCtx->selectedDeviceInfo->doxm->oxmSel = OIC_MANUFACTURER_CERTIFICATE;
 
-    bool propertiesToInclude[DOXM_PROPERTY_COUNT];
+    bool propertiesToInclude[(DoxmProperty_t)DOXM_PROPERTY_COUNT];
     memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
     propertiesToInclude[DOXM_OXMSEL] = true;
 
@@ -118,6 +100,12 @@ OCStackResult PrepareMCertificateCallback(OTMContext_t *otmCtx)
     if (CA_STATUS_OK != CAregisterPkixInfoHandler(GetManufacturerPkixInfo))
     {
         OIC_LOG(ERROR, TAG, "Failed to register PkixInfohandler");
+        return OC_STACK_ERROR;
+    }
+
+    if (CA_STATUS_OK != CAregisterIdentityHandler(NULL))
+    {
+        OIC_LOG(ERROR, TAG, "Failed to register IdentityHandler");
         return OC_STACK_ERROR;
     }
 
