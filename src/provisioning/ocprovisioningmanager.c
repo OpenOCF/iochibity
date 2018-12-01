@@ -22,22 +22,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-/* #include "ocprovisioningmanager.h" */
-/* #include "pmutility.h" */
-/* #include "srmutility.h" */
-/* #include "ownershiptransfermanager.h" */
-/* #ifdef MULTIPLE_OWNER */
-/* #include "multipleownershiptransfermanager.h" */
-/* #endif //MULTIPLE_OWNER */
-/* #include "oic_malloc.h" */
-/* #include "logger.h" */
-/* #include "secureresourceprovider.h" */
-/* #include "provisioningdatabasemanager.h" */
-/* #include "credresource.h" */
 #include "utlist.h"
-/* #include "aclresource.h" //Note: SRM internal header */
-/* #include "psinterface.h" */
-/* #include "ocstackinternal.h" */
 
 #define TAG "OIC_OCPMAPI"
 
@@ -56,29 +41,29 @@ enum PRMBitmask
 
 typedef unsigned int OicSecPrm_t;
 
-/* device pairing is removed */
-/* struct OicPin
- * {
- *     uint8_t             val[DP_PIN_LENGTH];
- * }; */
+/* FIXME: device pairing is removed? */
+/* struct OicPin */
+/* { */
+/*     uint8_t             val[DP_PIN_LENGTH]; */
+/* }; */
 
-/* /\**
- *  * @brief   oic.sec.dpacltype (Device Pairing Access Control List) data type.
- *  *\/
- * struct OicSecPdAcl
- * {
- *     // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
- *     char                  **resources;        // 0:R:M:Y:String
- *     size_t                resourcesLen;      // the number of elts in Resources
- *     uint16_t             permission;        // 1:R:S:Y:UINT16
- *     char                  **periods;            // 2:R:M*:N:String (<--M*; see Spec)
- *     char                  **recurrences;    // 3:R:M:N:String
- *     size_t                prdRecrLen;         // the number of elts in Periods/Recurrences
- *     OicSecPdAcl_t    *next;
- * }; */
+/* /\** */
+/*  * @brief   oic.sec.dpacltype (Device Pairing Access Control List) data type. */
+/*  *\/ */
+/* struct OicSecPdAcl */
+/* { */
+/*     // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type> */
+/*     char                  **resources;        // 0:R:M:Y:String */
+/*     size_t                resourcesLen;      // the number of elts in Resources */
+/*     uint16_t             permission;        // 1:R:S:Y:UINT16 */
+/*     char                  **periods;            // 2:R:M*:N:String (<--M*; see Spec) */
+/*     char                  **recurrences;    // 3:R:M:N:String */
+/*     size_t                prdRecrLen;         // the number of elts in Periods/Recurrences */
+/*     OicSecPdAcl_t    *next; */
+/* }; */
 
-typedef struct Linkdata Linkdata_t;
-struct Linkdata
+/* typedef struct Linkdata Linkdata_t; */
+typedef struct Linkdata
 {
     void *ctx;
     const OCProvisionDev_t *pDev1;
@@ -90,7 +75,7 @@ struct Linkdata
     int currentCountResults;
     OCProvisionResultCB resultCallback;
 
-};
+} Linkdata_t;
 
 #ifdef MULTIPLE_OWNER
 typedef struct ProvPreconfPINCtx ProvPreconfPINCtx_t;
@@ -126,12 +111,12 @@ OCStackResult OC_CALL OCInitPM(const char* dbPath)
  *
  * @return  OC_STACK_OK in case of success and other value otherwise.
  */
-OCStackResult OC_CALL OCClosePM()
+OCStackResult OC_CALL OCClosePM(void)
 {
     return PDMClose();
 }
 
-OCStackResult OC_CALL OCPDMCleanupForTimeout()
+OCStackResult OC_CALL OCPDMCleanupForTimeout(void)
 {
     return PDMDeleteDeviceWithState(PDM_DEVICE_INIT);
 }
@@ -402,7 +387,7 @@ void OC_CALL OCDeleteDiscoveredDevices(OCProvisionDev_t *pList)
 OCStackResult OC_CALL OCProvisionACL(void* ctx, const OCProvisionDev_t *selectedDeviceInfo, OicSecAcl_t *acl,
                                      OCProvisionResultCB resultCallback)
 {
-    if (NULL == acl)
+    if (NULL == acl || NULL == selectedDeviceInfo)
     {
         return OC_STACK_INVALID_PARAM;
     }
@@ -503,6 +488,12 @@ OCStackResult OC_CALL OCGetCSRResource(void* ctx, const OCProvisionDev_t *select
                                        OCGetCSRResultCB resultCallback)
 {
     return SRPGetCSRResource(ctx, selectedDeviceInfo, resultCallback);
+}
+
+OCStackResult OC_CALL OCGetSpResource(void* ctx, const OCProvisionDev_t *selectedDeviceInfo,
+                                       OCGetSpResultCB resultCallback)
+{
+    return SRPGetSpResource(ctx, selectedDeviceInfo, resultCallback);
 }
 
 OCStackResult OC_CALL OCGetRolesResource(void *ctx, const OCProvisionDev_t *selectedDeviceInfo,
@@ -745,18 +736,23 @@ static OCStackResult RemoveDeviceInfoFromLocal(const OCProvisionDev_t* pTargetDe
     }
 
     // TODO: We need to add new mechanism to clean up the stale state of the device.
-
     // Close the DTLS session of the removed device.
-    CAEndpoint_t endpoint = {.adapter = CA_DEFAULT_ADAPTER};
-    CopyDevAddrToEndpoint(&pTargetDev->endpoint, &endpoint);
-    endpoint.port = pTargetDev->securePort;
-    CAResult_t caResult = CAcloseSslSession(&endpoint);
+    CAEndpoint_t *endpoint = (CAEndpoint_t *) OICMalloc(sizeof(pTargetDev->endpoint));
+    if (!endpoint)
+    {
+        OIC_LOG(ERROR, TAG, "memory alloc has failed");
+        return OC_STACK_NO_MEMORY;
+    }
+    memcpy(endpoint, &pTargetDev->endpoint, sizeof(CAEndpoint_t) );
+    endpoint->port = pTargetDev->securePort;
+    CAResult_t caResult = CAcloseSslSession(endpoint);
     if(CA_STATUS_OK != caResult)
     {
         OIC_LOG_V(WARNING, TAG, "OCRemoveDevice : Failed to close DTLS session : %d", caResult);
     }
-
+    OICFree(endpoint);
     OIC_LOG(DEBUG, TAG, "OUT RemoveDeviceInfoFromLocal");
+
 error:
     return res;
 }
@@ -1545,6 +1541,23 @@ OCStackResult OC_CALL OCProvisionTrustCertChain(void *ctx, OicSecCredType_t type
 }
 
 /**
+ * function to provision a security profile resource to devices.
+ *
+ * @param[in] ctx Application context returned in the result callback.
+ * @param[in] sp security profile to be provisioned
+ * @param[in] selectedDeviceInfo Pointer to OCProvisionDev_t instance,respresenting resource to be provisioned.
+ * @param[in] resultCallback callback provided by API user, callback will be called when
+ *            provisioning request recieves a response from first resource server.
+ * @return  OC_STACK_OK in case of success and other value otherwise.
+ */
+OCStackResult OC_CALL OCProvisionSecurityProfileInfo(void *ctx, OicSecSp_t *sp,
+                                      const OCProvisionDev_t *selectedDeviceInfo,
+                                      OCProvisionResultCB resultCallback)
+{
+    return SRPProvisionSecurityProfileInfo(ctx, sp, selectedDeviceInfo, resultCallback);
+}
+
+/**
  * function to save Trust certificate chain into Cred of SVR.
  *
  * @param[in] trustCertChain Trust certificate chain to be saved in Cred of SVR.
@@ -1620,6 +1633,16 @@ OCStackResult OC_CALL OCRegisterTrustCertChainNotifier(void *ctx, TrustCertChain
 void OC_CALL OCRemoveTrustCertChainNotifier()
 {
     SRPRemoveTrustCertChainNotifier();
+}
+
+/**
+ * Function to set the callback to utilize peer certificate Common Name field
+ */
+void OC_CALL OCSetPeerCNVerifyCallback(PeerCNVerifyCallback cb)
+{
+    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
+    CAsetPeerCNVerifyCallback(cb);
+    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 #endif // __WITH_DTLS__ || __WITH_TLS__
 
