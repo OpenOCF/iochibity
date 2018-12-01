@@ -49,12 +49,6 @@
 
 #define TAG  "OIC_SRM_CSR"
 
-#define fixme_csr_rp OCResourceProperty /* help makeheaders */
-
-#if defined(__WITH_TLS__) || defined(__WITH_DTLS__)
-
-#define fixme_encoding oic_sec_encoding_fixme /* help makeheaders */
-
 static const uint8_t CSR_MAP_SIZE = 4; // csr, encoding, RT, and IF
 
 static OCResourceHandle    gCsrHandle = NULL;
@@ -481,17 +475,17 @@ static OCEntityHandlerResult CredCsrEntityHandler(OCEntityHandlerFlag flag,
     return ret;
 }
 
-OCStackResult InitCSRResource()
+OCStackResult InitCSRResource(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult ret = OCCreateResource(&gCsrHandle,
-        OIC_RSRC_TYPE_SEC_CSR,
-        OC_RSRVD_INTERFACE_DEFAULT,
-        OIC_RSRC_CSR_URI,
-        CredCsrEntityHandler,
-        NULL,
-        OC_SECURE |
-        OC_DISCOVERABLE);
+                                         OIC_RSRC_TYPE_SEC_CSR,
+                                         OC_RSRVD_INTERFACE_DEFAULT,
+                                         OIC_RSRC_CSR_URI,
+                                         CredCsrEntityHandler,
+                                         NULL,
+                                         (OCResourceProperty)OC_SECURE |
+                                         (OCResourceProperty)OC_DISCOVERABLE);
 
     if (OC_STACK_OK != ret)
     {
@@ -502,7 +496,7 @@ OCStackResult InitCSRResource()
     return ret;
 }
 
-OCStackResult DeInitCSRResource()
+OCStackResult DeInitCSRResource(void)
 {
     OCStackResult res = OCDeleteResource(gCsrHandle);
 
@@ -515,5 +509,3 @@ OCStackResult DeInitCSRResource()
 
     return res;
 }
-
-#endif
