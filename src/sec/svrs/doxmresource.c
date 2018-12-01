@@ -46,9 +46,9 @@ typedef enum OicSecOxm_t
     OIC_MANUFACTURER_CERTIFICATE            = 0x2, /* oic.sec.doxm.mfgcert */
     OIC_DECENTRALIZED_PUBLIC_KEY            = 0x3, /* ? */
     OIC_OXM_COUNT,				   /* oic.sec.doxm.self? */
-#ifdef MULTIPLE_OWNER
+/* #ifdef MULTIPLE_OWNER */
     OIC_PRECONFIG_PIN                       = 0xFF00, /* ? */
-#endif //MULTIPLE_OWNER
+/* #endif //MULTIPLE_OWNER */
     OIC_MV_JUST_WORKS                       = 0xFF01, /* Mutual Verified? */
     OIC_CON_MFG_CERT                        = 0xFF02, /* Confirm Manufacturer Cert? */
 } OicSecOxm_t;
