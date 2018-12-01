@@ -19,7 +19,6 @@
  * *****************************************************************/
 #include "secureresourceprovider.h"
 
-/* #include "iotivity_config.h" */
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -30,11 +29,9 @@
 
 #include "utlist.h"
 
-#define DEFAULT_URI_LENGTH (MAX_URI_LENGTH + MAX_QUERY_LENGTH)
-
 #define TAG "OIC_SRPAPI"
 
-#define fixme_srp_pp PstatProperty_t /* help makeheaders */
+//#define fixme_srp_pp PstatProperty_t /* help makeheaders */
 
 #if EXPORT_INTERFACE
 // Enum type index for data types.
@@ -44,6 +41,10 @@ typedef enum
     ACL_TYPE,                             /**< Access control list.**/
     PSK_TYPE,                             /**< Pre-Shared Key.**/
     CERT_TYPE,                            /**< X.509 certificate.**/
+    SP_TYPE,                              /**< Security Profiles. **/
+#if defined(WITH_CLOUD)
+    CLOUD_TYPE,                           /**< CoAP Cloud Conf.**/
+#endif
     MOT_TYPE                              /**< Multiple Ownership Transfer.**/
 } DataType_t;
 
@@ -57,11 +58,14 @@ typedef struct Data
 } Data_t;
 #endif
 
+#define DEFAULT_URI_LENGTH (MAX_URI_LENGTH + MAX_QUERY_LENGTH)
+
 trustCertChainContext_t g_trustCertChainNotifier;
 
 /**
  * Structure to carry credential data to callback.
  */
+#if INTERFACE
 typedef struct CredentialData
 {
     void *ctx;                                  /**< Pointer to user context.**/
@@ -77,6 +81,7 @@ typedef struct CredentialData
     const OicSecRole_t *role1;                  /**< Role of the deviceInfo[0].**/
     const OicSecRole_t *role2;                  /**< Role of the deviceInfo[1].**/
 } CredentialData_t;
+#endif
 
 /**
  * Structure to carry ACL provision API data to callback.
@@ -119,6 +124,19 @@ typedef struct CertData
     const char* cert;                           /**< The certificate.**/
 } CertData_t;
 
+/**
+ * Structure to carry security profiles provision API data to callback.
+ */
+typedef struct SpData
+{
+    void *ctx;                                  /**< Pointer to user context.**/
+    const OCProvisionDev_t *targetDev;          /**< Pointer to OCProvisionDev_t.**/
+    OCProvisionResultCB resultCallback;         /**< Pointer to result callback.**/
+    OCProvisionResult_t *resArr;                /**< Result array.**/
+    int numOfResults;                           /**< Number of results in result array.**/
+    OicSecSp_t *sp;
+} SpData_t;
+
 // Structure to carry get security resource APIs data to callback.
 typedef struct GetSecData GetSecData_t;
 struct GetSecData {
@@ -137,6 +155,16 @@ struct GetCsrData {
     OCPMGetCsrResult_t *resArr;                 /**< Result array.**/
     size_t numOfResults;                        /**< Number of results in result array.**/
 };
+
+typedef struct GetSpData GetSpData_t;
+struct GetSpData {
+    void *ctx;
+    const OCProvisionDev_t *deviceInfo;         /**< Pointer to PMDevInfo_t.**/
+    OCGetSpResultCB resultCallback;             /**< Pointer to result callback.**/
+    OCPMGetSpResult_t *resArr;                  /**< Result array.**/
+    size_t numOfResults;                        /**< Number of results in result array.**/
+};
+
 
 typedef struct GetRolesData GetRolesData_t;
 struct GetRolesData {
@@ -184,14 +212,14 @@ struct RemoveData {
 /**
  * Function prototypes
  */
-static OCStackResult ProvisionCredentialsDos(void *ctx, OicSecCred_t *cred,
-        const OCProvisionDev_t *deviceInfo, OCClientResponseHandler responseHandler);
-static OCStackResult provisionCredentials(OicSecCred_t *cred,
-        const OCProvisionDev_t *deviceInfo, CredentialData_t *credData,
-        OCClientResponseHandler responseHandler);
-static OCStackApplicationResult  ProvisionPskCB(void *ctx, OCDoHandle UNUSED,
-        OCClientResponse *clientResponse);
-static OCStackResult ProvisionLocalCredential(void *ctx, OicSecCred_t *cred);
+/* static OCStackResult ProvisionCredentialsDos(void *ctx, OicSecCred_t *cred, */
+/*         const OCProvisionDev_t *deviceInfo, OCClientResponseHandler responseHandler); */
+/* static OCStackResult provisionCredentials(OicSecCred_t *cred, */
+/*         const OCProvisionDev_t *deviceInfo, CredentialData_t *credData, */
+/*         OCClientResponseHandler responseHandler); */
+/* static OCStackApplicationResult  ProvisionPskCB(void *ctx, OCDoHandle UNUSED, */
+/*         OCClientResponse *clientResponse); */
+/* static OCStackResult ProvisionLocalCredential(void *ctx, OicSecCred_t *cred); */
 
 typedef enum {
     DEVICE_1_FINISHED,
@@ -226,6 +254,13 @@ void FreeData(Data_t *data)
                 OICFree(chainData);
                 break;
             }
+        case SP_TYPE:
+            {
+                SpData_t *spData = (SpData_t *) data->ctx;
+                OICFree(spData->resArr);
+                OICFree(spData);
+                break;
+            }
         case ACL_TYPE:
             {
                 ACLData_t *aclData = (ACLData_t *) data->ctx;
@@ -258,6 +293,15 @@ void FreeData(Data_t *data)
                 OICFree(motData);
                 break;
             }
+#if defined(WITH_CLOUD)
+        case CLOUD_TYPE:
+            {
+                CloudData_t *cloudData = (CloudData_t *) data->ctx;
+                OICFree(cloudData->resArr);
+                OICFree(cloudData);
+                break;
+            }
+#endif
         default:
             {
                 OIC_LOG_V(INFO, TAG, "Unknown type %d", data->type);
@@ -515,7 +559,7 @@ static OCStackApplicationResult ProvisionCredentialDosCB1(void *ctx, OCDoHandle 
                 res = ProvisionLocalCredential(ctx, credInfo);
             }
 
-            if ((NULL != deviceInfo) || (OC_STACK_OK != res))
+            if (OC_STACK_OK != res)
             {
                 DeleteCredList(credInfo);
             }
@@ -557,7 +601,7 @@ static OCStackApplicationResult ProvisionCredentialDosCB1(void *ctx, OCDoHandle 
  * @param[in] responseHandler callbak called by OC stack when request API receives response.
  * @return  OC_STACK_OK in case of success and other value otherwise.
  */
-static OCStackResult provisionCredentials(OicSecCred_t *cred,
+LOCAL OCStackResult provisionCredentials(OicSecCred_t *cred,
         const OCProvisionDev_t *deviceInfo, CredentialData_t *credData,
         OCClientResponseHandler responseHandler)
 {
@@ -573,11 +617,14 @@ static OCStackResult provisionCredentials(OicSecCred_t *cred,
         }
         secPayload->base.type = PAYLOAD_TYPE_SECURITY;
         int secureFlag = 0;
-        res = CredToCBORPayload(cred, &secPayload->securityData, &secPayload->payloadSize, secureFlag);
+        bool propertiesToInclude[(CredProperty_t)CRED_PROPERTY_COUNT];
+        memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
+        propertiesToInclude[CRED_CREDS] = true;
+        res = CredToCBORPayloadPartial(cred, NULL, &secPayload->securityData, &secPayload->payloadSize, secureFlag, propertiesToInclude);
         if ((OC_STACK_OK != res) && (NULL == secPayload->securityData))
         {
             OCPayloadDestroy((OCPayload *)secPayload);
-            OIC_LOG(ERROR, TAG, "Failed to CredToCBORPayload");
+            OIC_LOG(ERROR, TAG, "Failed to CredToCBORPayloadPartial");
             return OC_STACK_NO_MEMORY;
         }
 
@@ -649,11 +696,14 @@ static OCStackResult ProvisionCredentialsDos(void *ctx, OicSecCred_t *cred,
         }
         secPayload->base.type = PAYLOAD_TYPE_SECURITY;
         int secureFlag = 0;
-        res = CredToCBORPayload(cred, &secPayload->securityData, &secPayload->payloadSize, secureFlag);
+        bool propertiesToInclude[CRED_PROPERTY_COUNT];
+        memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
+        propertiesToInclude[CRED_CREDS] = true;
+        res = CredToCBORPayloadPartial(cred, NULL, &secPayload->securityData, &secPayload->payloadSize, secureFlag, propertiesToInclude);
         if ((OC_STACK_OK != res) && (NULL == secPayload->securityData))
         {
             OCPayloadDestroy((OCPayload *)secPayload);
-            OIC_LOG(ERROR, TAG, "Failed to CredToCBORPayload");
+            OIC_LOG(ERROR, TAG, "Failed to CredToCBORPayloadPartial");
             return OC_STACK_NO_MEMORY;
         }
 
@@ -702,7 +752,7 @@ static OCStackResult ProvisionCredentialsDos(void *ctx, OicSecCred_t *cred,
  * @param[in] cred Instance of cred resource.
  * @return  OC_STACK_OK in case of success and other value otherwise.
  */
-static OCStackResult ProvisionLocalCredential(void *ctx, OicSecCred_t *cred)
+LOCAL OCStackResult ProvisionLocalCredential(void *ctx, OicSecCred_t *cred)
 {
     CredentialData_t *credData = (CredentialData_t *)((Data_t *)ctx)->ctx;
 
@@ -714,11 +764,6 @@ static OCStackResult ProvisionLocalCredential(void *ctx, OicSecCred_t *cred)
     return res;
 }
 
-/**
- * Updates result in result array of the target device.
- */
-static void RegisterProvResult(const OCProvisionDev_t *targetDev, OCProvisionResult_t *resArr,
-                               int *numOfResults, OCStackResult stackResult);
 /**
  * Callback handler for handling callback of posting DOS_RFNOP.
  *
@@ -755,6 +800,16 @@ static OCStackApplicationResult SetReadyForNormalOperationCB(void *ctx, OCDoHand
             dataCtx = chainData->ctx;
             break;
         }
+        case SP_TYPE:
+        {
+            SpData_t *spData = (SpData_t *) ((Data_t *) ctx)->ctx;
+            resultCallback = spData->resultCallback;
+            targetDev = spData->targetDev;
+            resArr = spData->resArr;
+            numOfResults = &(spData->numOfResults);
+            dataCtx = spData->ctx;
+            break;
+        }
         case ACL_TYPE:
         {
             ACLData_t *aclData = (ACLData_t *) ((Data_t *) ctx)->ctx;
@@ -789,6 +844,23 @@ static OCStackApplicationResult SetReadyForNormalOperationCB(void *ctx, OCDoHand
             dataCtx = certData->ctx;
             break;
         }
+#if defined(WITH_CLOUD)
+        case CLOUD_TYPE:
+        {
+            CloudData_t *cloudData = (CloudData_t *) ((Data_t *) ctx)->ctx;
+            if (NULL == cloudData)
+            {
+                OIC_LOG_V(ERROR, TAG, "%s: cloudData is NULL", __func__);
+                break;
+            }
+            resultCallback = cloudData->resultCallback;
+            targetDev = cloudData->targetDev;
+            resArr = cloudData->resArr;
+            numOfResults = &(cloudData->numOfResults);
+            dataCtx = cloudData->ctx;
+            break;
+        }
+#endif
         default:
         {
             OIC_LOG_V(ERROR, TAG, "Unknown type %d", dataType);
@@ -799,9 +871,18 @@ static OCStackApplicationResult SetReadyForNormalOperationCB(void *ctx, OCDoHand
 
     if (dataType != PSK_TYPE)
     {
-        RegisterProvResult(targetDev, resArr, numOfResults, clientResponse->result);
-        resultCallback(dataCtx, *numOfResults, resArr, clientResponse->result != OC_STACK_RESOURCE_CHANGED);
-        FreeData(ctx);
+        if (NULL != resultCallback)
+        {
+            RegisterProvResult(targetDev, resArr, numOfResults, clientResponse->result);
+            resultCallback(dataCtx, *numOfResults, resArr, clientResponse->result != OC_STACK_RESOURCE_CHANGED);
+            FreeData(ctx);
+        }
+        else
+        {
+            OIC_LOG_V(ERROR, TAG, "resultCallback is NULL");
+            OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
+            return OC_STACK_DELETE_TRANSACTION;
+        }
     }
     else
     {
@@ -821,8 +902,10 @@ static OCStackApplicationResult SetReadyForNormalOperationCB(void *ctx, OCDoHand
     return OC_STACK_DELETE_TRANSACTION;
 }
 
-OCStackResult SetDOS(const Data_t *data, OicSecDeviceOnboardingState_t dos,
-                            OCClientResponseHandler resultCallback)
+OCStackResult SetDOS(const Data_t *data,
+                     OicSecDeviceOnboardingState_t dos,
+                     OCClientResponseHandler resultCallback)
+                     /* OCStackResult(*resultCallback)(void *ctx, OCDoHandle UNUSED, OCClientResponse *clientResponse)) */
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
     if (NULL == data || NULL == resultCallback)
@@ -839,6 +922,11 @@ OCStackResult SetDOS(const Data_t *data, OicSecDeviceOnboardingState_t dos,
         case CHAIN_TYPE:
         {
             pTargetDev = ((TrustChainData_t *)data->ctx)->targetDev;
+            break;
+        }
+        case SP_TYPE:
+        {
+            pTargetDev = ((SpData_t *)data->ctx)->targetDev;
             break;
         }
         case ACL_TYPE:
@@ -862,6 +950,13 @@ OCStackResult SetDOS(const Data_t *data, OicSecDeviceOnboardingState_t dos,
             pTargetDev = ((OTMContext_t *)data->ctx)->selectedDeviceInfo;
             break;
         }
+#if defined(WITH_CLOUD)
+        case CLOUD_TYPE:
+        {
+            pTargetDev = ((CloudData_t *)data->ctx)->targetDev;
+            break;
+        }
+#endif
         default:
         {
             OIC_LOG_V(ERROR, TAG, "Unknown type: %d", data->type);
@@ -872,7 +967,6 @@ OCStackResult SetDOS(const Data_t *data, OicSecDeviceOnboardingState_t dos,
     if (IS_OIC(pTargetDev->specVer))
     {
         OCClientResponse clientResponse = {.result = OC_STACK_RESOURCE_CHANGED};
-	/* since we're synchronously calling the cb function, we do not need to check result */
         resultCallback((void*) data, NULL, &clientResponse);
         return OC_STACK_OK;
     }
@@ -900,11 +994,11 @@ OCStackResult SetDOS(const Data_t *data, OicSecDeviceOnboardingState_t dos,
     // should be updated to use the Partial payload APIs for the SVRs, so they
     // do not include read-only Properties for the Server device current
     // state.
-    bool propertiesToInclude[PSTAT_PROPERTY_COUNT] = {false};
+    bool propertiesToInclude[(PstatProperty_t)PSTAT_PROPERTY_COUNT] = {false};
     propertiesToInclude[PSTAT_DOS] = true;
 
     if (OC_STACK_OK != PstatToCBORPayloadPartial(pstat, &(secPayload->securityData),
-            &(secPayload->payloadSize), propertiesToInclude))
+            &(secPayload->payloadSize), propertiesToInclude, false))
     {
         OCPayloadDestroy((OCPayload *) secPayload);
         OIC_LOG(ERROR, TAG, "Failed to PstatToCBORPayload");
@@ -984,7 +1078,7 @@ static OCStackApplicationResult ProvisionCB(void *ctx, OCDoHandle handle,
 /**
  * Callback for PSK provisioning.
  */
-static OCStackApplicationResult  ProvisionPskCB(void *ctx, OCDoHandle UNUSED,
+LOCAL OCStackResult  ProvisionPskCB(void *ctx, OCDoHandle UNUSED,
                                                 OCClientResponse *clientResponse)
 {
     VERIFY_NOT_NULL_RETURN(TAG, ctx, ERROR, OC_STACK_DELETE_TRANSACTION);
@@ -1085,7 +1179,8 @@ static OCStackApplicationResult provisionCertificateCB(void *ctx, OCDoHandle UNU
 /**
  * Callback for Trust Chain provisioning.
  */
-static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUSED,
+
+static OCStackResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUSED,
         OCClientResponse *clientResponse)
 {
     OIC_LOG_V(INFO, TAG, "IN %s", __func__);
@@ -1093,8 +1188,7 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
     if (NULL == ctx)
     {
         OIC_LOG(ERROR, TAG, "Context is NULL");
-	errno = EINVAL;
-        return OC_STACK_DELETE_TRANSACTION;
+        return OC_STACK_INVALID_PARAM;
     }
     if (OC_STACK_RESOURCE_CHANGED == clientResponse->result)
     {
@@ -1102,16 +1196,14 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
         if (CHAIN_TYPE != data->type)
         {
             OIC_LOG(ERROR, TAG, "Invalid type");
-	    errno = EINVAL;
-            return OC_STACK_DELETE_TRANSACTION;
+            return OC_STACK_INVALID_PARAM;
         }
         TrustChainData_t *chainData = (TrustChainData_t *) (data->ctx);
         OicSecCred_t *trustCertChainCred = GetCredEntryByCredId(chainData->credId);
         if (NULL == trustCertChainCred)
         {
             OIC_LOG(ERROR, TAG, "Can not find matched Trust Cert. Chain.");
-	    errno = EPROTO;
-            return OC_STACK_DELETE_TRANSACTION;
+            return OC_STACK_NO_RESOURCE;
         }
 
         OCSecurityPayload *secPayload = (OCSecurityPayload *)OICCalloc(1, sizeof(OCSecurityPayload));
@@ -1119,19 +1211,20 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
         {
             DeleteCredList(trustCertChainCred);
             OIC_LOG(ERROR, TAG, "Failed to allocate memory");
-	    errno = ENOMEM;
-            return OC_STACK_DELETE_TRANSACTION;
+            return OC_STACK_NO_MEMORY;
         }
         secPayload->base.type = PAYLOAD_TYPE_SECURITY;
         int secureFlag = 1; /* Don't send the private key to the device, if it happens to be present */
-        if (OC_STACK_OK != CredToCBORPayload(trustCertChainCred, &secPayload->securityData,
-                                             &secPayload->payloadSize, secureFlag))
+        bool propertiesToInclude[CRED_PROPERTY_COUNT];
+        memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
+        propertiesToInclude[CRED_CREDS] = true;
+        if (OC_STACK_OK != CredToCBORPayloadPartial(trustCertChainCred, NULL, &secPayload->securityData,
+                                             &secPayload->payloadSize, secureFlag, propertiesToInclude))
         {
             DeleteCredList(trustCertChainCred);
             OCPayloadDestroy((OCPayload *)secPayload);
-            OIC_LOG(ERROR, TAG, "Failed to CredToCBORPayload");
-	    errno = EPROTO;	/* Protocol error */
-            return OC_STACK_DELETE_TRANSACTION;
+            OIC_LOG(ERROR, TAG, "Failed to CredToCBORPayloadPartial");
+            return OC_STACK_NO_MEMORY;
         }
         DeleteCredList(trustCertChainCred);
         OIC_LOG(DEBUG, TAG, "Created payload for Cred:");
@@ -1146,8 +1239,7 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
         {
             OIC_LOG(ERROR, TAG, "Failed to generate query");
             OCPayloadDestroy((OCPayload *)secPayload);
-	    errno = EPROTO;
-            return OC_STACK_DELETE_TRANSACTION;
+            return OC_STACK_ERROR;
         }
         OIC_LOG_V(DEBUG, TAG, "Query=%s", query);
 
@@ -1164,19 +1256,97 @@ static OCStackApplicationResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUS
         if (ret != OC_STACK_OK)
         {
             OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
-	    errno = EPROTO;
-            return OC_STACK_DELETE_TRANSACTION;
+            return ret;
         }
     }
     else
     {
-        OIC_LOG_V(ERROR, TAG, "OUT %s", __func__); /* GAR: why is this an error? */
-	errno = EPROTO;
-        return OC_STACK_DELETE_TRANSACTION;
+        OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
+        return OC_STACK_ERROR;
     }
 
     OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
-    return OC_STACK_DELETE_TRANSACTION;
+    return OC_STACK_OK;
+}
+
+/**
+ * Callback for Security Profile provisioning.
+ */
+static OCStackResult ProvisionSecurityProfileInfoCB(void *ctx, OCDoHandle UNUSED,
+        OCClientResponse *clientResponse)
+{
+    OIC_LOG_V(INFO, TAG, "IN %s", __func__);
+    (void) UNUSED;
+    if (NULL == ctx)
+    {
+        OIC_LOG(ERROR, TAG, "Context is NULL");
+        return OC_STACK_INVALID_PARAM;
+    }
+    if (OC_STACK_RESOURCE_CHANGED == clientResponse->result)
+    {
+        Data_t *data = (Data_t *) ctx;
+        if (SP_TYPE != data->type)
+        {
+            OIC_LOG(ERROR, TAG, "Invalid type");
+            return OC_STACK_INVALID_PARAM;
+        }
+        SpData_t *spData = (SpData_t *) (data->ctx);
+
+        OCSecurityPayload *secPayload = (OCSecurityPayload *)OICCalloc(1, sizeof(OCSecurityPayload));
+        if (!secPayload)
+        {
+            OIC_LOG(ERROR, TAG, "Failed to allocate memory");
+            return OC_STACK_NO_MEMORY;
+        }
+
+        secPayload->base.type = PAYLOAD_TYPE_SECURITY;
+        if (OC_STACK_OK != SpToCBORPayload(spData->sp, &secPayload->securityData,
+                                           &secPayload->payloadSize))
+        {
+            OCPayloadDestroy((OCPayload *)secPayload);
+            OIC_LOG(ERROR, TAG, "Failed to SpToCBORPayload");
+            return OC_STACK_NO_MEMORY;
+        }
+        OIC_LOG(DEBUG, TAG, "Created payload for SP:");
+        OIC_LOG_BUFFER(DEBUG, TAG, secPayload->securityData, secPayload->payloadSize);
+
+        char query[MAX_URI_LENGTH + MAX_QUERY_LENGTH] = {0};
+        if (!PMGenerateQuery(true,
+                             spData->targetDev->endpoint.addr,
+                             spData->targetDev->securePort,
+                             spData->targetDev->connType,
+                             query, sizeof(query), OIC_RSRC_SP_URI))
+        {
+            OIC_LOG(ERROR, TAG, "Failed to generate query");
+            OCPayloadDestroy((OCPayload *)secPayload);
+            return OC_STACK_ERROR;
+        }
+        OIC_LOG_V(DEBUG, TAG, "Query=%s", query);
+
+        OCCallbackData cbData =  {.context = NULL, .cb = NULL, .cd = NULL};
+        cbData.cb = ProvisionCB;
+        cbData.context = ctx;
+        cbData.cd = NULL;
+        OCMethod method = OC_REST_POST;
+        OCDoHandle handle = NULL;
+        OIC_LOG(DEBUG, TAG, "Sending SP info to resource server");
+        OCStackResult ret = OCDoResource(&handle, method, query,
+                                         &spData->targetDev->endpoint, (OCPayload *)secPayload,
+                                         spData->targetDev->connType, OC_HIGH_QOS, &cbData, NULL, 0);
+        if (ret != OC_STACK_OK)
+        {
+            OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
+            return ret;
+        }
+    }
+    else
+    {
+        OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
+        return OC_STACK_ERROR;
+    }
+
+    OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
+    return OC_STACK_OK;
 }
 
 OCStackResult SRPProvisionTrustCertChain(void *ctx, OicSecCredType_t type, uint16_t credId,
@@ -1213,10 +1383,67 @@ OCStackResult SRPProvisionTrustCertChain(void *ctx, OicSecCredType_t type, uint1
     }
 
     Data_t *data = (Data_t *) OICCalloc(1, sizeof(Data_t));
+    VERIFY_NOT_NULL_RETURN(TAG, data, ERROR, OC_STACK_NO_MEMORY);
     data->type = CHAIN_TYPE;
     data->ctx = chainData;
 
     if (SetDOS(data, DOS_RFPRO, ProvisionTrustChainCB) != OC_STACK_OK)
+    {
+        FreeData(data);
+        OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
+        return OC_STACK_ERROR;
+    }
+
+    OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
+    return OC_STACK_OK;
+}
+
+/**
+ * function to provision security profile info
+ *
+ * @param[in] ctx Application context to be returned in result callback.
+ * @param[in] sp security profile to be provisioned
+ * @param[in] selectedDeviceInfo Pointer to OCProvisionDev_t instance,respresenting resource to be provsioned.
+ * @param[in] resultCallback callback provided by API user, callback will be called when
+ *            provisioning request recieves a response from first resource server.
+ * @return  OC_STACK_OK in case of success and other value otherwise.
+ */
+OCStackResult SRPProvisionSecurityProfileInfo(void *ctx, OicSecSp_t *sp,
+                                              const OCProvisionDev_t *selectedDeviceInfo,
+                                              OCProvisionResultCB resultCallback)
+{
+    OIC_LOG_V(INFO, TAG, "IN %s", __func__);
+    VERIFY_NOT_NULL_RETURN(TAG, selectedDeviceInfo, ERROR,  OC_STACK_INVALID_PARAM);
+    VERIFY_NOT_NULL_RETURN(TAG, resultCallback, ERROR,  OC_STACK_INVALID_CALLBACK);
+
+    SpData_t *spData = (SpData_t *) OICCalloc(1, sizeof(SpData_t));
+    if (NULL == spData)
+    {
+        OIC_LOG(ERROR, TAG, "Memory allocation problem");
+        return OC_STACK_NO_MEMORY;
+    }
+
+    spData->targetDev = selectedDeviceInfo;
+    spData->resultCallback = resultCallback;
+    spData->ctx = ctx;
+    spData->numOfResults = 0;
+    spData->sp = sp;
+
+    int noOfRiCalls = 1;
+    spData->resArr = (OCProvisionResult_t *)OICCalloc(noOfRiCalls, sizeof(OCProvisionResult_t));
+    if (spData->resArr == NULL)
+    {
+        OICFree(spData);
+        OIC_LOG(ERROR, TAG, "Unable to allocate memory");
+        return OC_STACK_NO_MEMORY;
+    }
+
+    Data_t *data = (Data_t *) OICCalloc(1, sizeof(Data_t));
+    VERIFY_NOT_NULL_RETURN(TAG, data, ERROR, OC_STACK_NO_MEMORY);
+    data->type = SP_TYPE;
+    data->ctx = spData;
+
+    if (SetDOS(data, DOS_RFPRO, ProvisionSecurityProfileInfoCB) != OC_STACK_OK)
     {
         FreeData(data);
         OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
@@ -1255,15 +1482,15 @@ OCStackResult SRPSaveTrustCertChain(const uint8_t *trustCertChain, size_t chainS
 
     if (encodingType == OIC_ENCODING_PEM)
     {
-        cred->optionalData.data = (uint8_t *)OICCalloc(1, chainSize + 1);
-        VERIFY_NOT_NULL_RETURN(TAG, cred->optionalData.data, ERROR, OC_STACK_NO_MEMORY);
-        cred->optionalData.len = chainSize + 1;
+        cred->publicData.data = (uint8_t *)OICCalloc(1, chainSize + 1);
+        VERIFY_NOT_NULL_RETURN(TAG, cred->publicData.data, ERROR, OC_STACK_NO_MEMORY);
+        cred->publicData.len = chainSize + 1;
     }
     else if (encodingType == OIC_ENCODING_DER)
     {
-        cred->optionalData.data = (uint8_t *)OICCalloc(1, chainSize);
-        VERIFY_NOT_NULL_RETURN(TAG, cred->optionalData.data, ERROR, OC_STACK_NO_MEMORY);
-        cred->optionalData.len = chainSize;
+        cred->publicData.data = (uint8_t *)OICCalloc(1, chainSize);
+        VERIFY_NOT_NULL_RETURN(TAG, cred->publicData.data, ERROR, OC_STACK_NO_MEMORY);
+        cred->publicData.len = chainSize;
     }
     else
     {
@@ -1271,9 +1498,8 @@ OCStackResult SRPSaveTrustCertChain(const uint8_t *trustCertChain, size_t chainS
         DeleteCredList(cred);
         return OC_STACK_INVALID_PARAM;
     }
-    memcpy(cred->optionalData.data, trustCertChain, chainSize);
-    cred->optionalData.encoding = encodingType;
-    cred->optionalData.revstat = false;
+    memcpy(cred->publicData.data, trustCertChain, chainSize);
+    cred->publicData.encoding = encodingType;
 
     res = AddCredential(cred);
     if(res != OC_STACK_OK)
@@ -1382,7 +1608,7 @@ OCStackResult SRPSaveOwnRoleCert(OicSecKey_t * cert, uint16_t *credId)
 /**
  * Callback for Certificate provisioning.
  */
-static OCStackApplicationResult ProvisionCertificateCB(void *ctx, OCDoHandle handle,
+static OCStackResult ProvisionCertificateCB(void *ctx, OCDoHandle handle,
         OCClientResponse *clientResponse)
 {
     OIC_LOG_V(INFO, TAG, "IN %s", __func__);
@@ -1394,14 +1620,14 @@ static OCStackApplicationResult ProvisionCertificateCB(void *ctx, OCDoHandle han
     OicSecCred_t *cred = NULL;
     OCSecurityPayload *secPayload = NULL;
 
-    VERIFY_NOT_NULL_RETURN(TAG, ctx, ERROR,  OC_STACK_DELETE_TRANSACTION);
-    VERIFY_NOT_NULL_RETURN(TAG, clientResponse, ERROR,  OC_STACK_DELETE_TRANSACTION);
+    VERIFY_NOT_NULL_RETURN(TAG, ctx, ERROR,  OC_STACK_INVALID_PARAM);
+    VERIFY_NOT_NULL_RETURN(TAG, clientResponse, ERROR,  OC_STACK_INVALID_PARAM);
 
     VERIFY_SUCCESS_RETURN(TAG, (OC_STACK_RESOURCE_CHANGED == clientResponse->result), ERROR,
-        OC_STACK_DELETE_TRANSACTION);
+        OC_STACK_INVALID_PARAM);
 
     Data_t *data = (Data_t *) ctx;
-    VERIFY_SUCCESS_RETURN(TAG, (CERT_TYPE == data->type), ERROR, OC_STACK_DELETE_TRANSACTION);
+    VERIFY_SUCCESS_RETURN(TAG, (CERT_TYPE == data->type), ERROR, OC_STACK_INVALID_PARAM);
 
     CertData_t *certData = (CertData_t *) (data->ctx);
     VERIFY_NOT_NULL(TAG, certData, ERROR);
@@ -1415,8 +1641,11 @@ static OCStackApplicationResult ProvisionCertificateCB(void *ctx, OCDoHandle han
     secPayload->base.type = PAYLOAD_TYPE_SECURITY;
 
     int secureFlag = 0;//don't send private data(key)
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == CredToCBORPayload(cred, &secPayload->securityData,
-                                             &secPayload->payloadSize, secureFlag), ERROR);
+    bool propertiesToInclude[CRED_PROPERTY_COUNT];
+    memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
+    propertiesToInclude[CRED_CREDS] = true;
+    VERIFY_SUCCESS(TAG, OC_STACK_OK == CredToCBORPayloadPartial(cred, NULL, &secPayload->securityData,
+                                             &secPayload->payloadSize, secureFlag, propertiesToInclude), ERROR);
     OIC_LOG_BUFFER(DEBUG, TAG, secPayload->securityData, secPayload->payloadSize);
 
     query = OICCalloc(1, DEFAULT_URI_LENGTH);
@@ -1450,7 +1679,7 @@ exit:
 
     OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
 
-    return OC_STACK_DELETE_TRANSACTION;
+    return ret;
 }
 
 OCStackResult SRPProvisionCertificate(void *ctx,
@@ -1496,7 +1725,7 @@ OCStackResult SRPProvisionCertificate(void *ctx,
     deviceCert.encoding = OIC_ENCODING_PEM;
 
     OicSecCred_t *cred = GenerateCredential(&pDev->doxm->deviceID, SIGNED_ASYMMETRIC_KEY,
-        &deviceCert, NULL, /* &provTooldeviceID, */ NULL);
+        &deviceCert, NULL, NULL);
     VERIFY_NOT_NULL(TAG, cred, ERROR);
     certData->credInfo = cred;
 
@@ -1590,7 +1819,7 @@ OCStackResult SRPProvisionCredentials(void *ctx, OicSecCredType_t type, size_t k
 
             OicSecCred_t *firstCred = NULL;
             OicSecCred_t *secondCred = NULL;
-            OCStackResult res = PMGeneratePairWiseCredentials(type, keySize, &provTooldeviceID,
+            OCStackResult res = PMGeneratePairWiseCredentials(type, keySize,
                     &firstDevice->doxm->deviceID, (NULL != secondDevice) ? &secondDevice->doxm->deviceID : &provTooldeviceID,
                     role1, role2,
                     &firstCred, &secondCred);
@@ -1653,7 +1882,7 @@ OCStackResult SRPProvisionCredentials(void *ctx, OicSecCredType_t type, size_t k
             /* Create a credential object */
             OicSecCred_t* cred =  GenerateCredential(&pDev1->doxm->deviceID, SIGNED_ASYMMETRIC_KEY,
                     &deviceCert, NULL, // oic.sec.cred.publicdata = deviceCert, .privatedata = NULL
-                    /* &provTooldeviceID, */ NULL); // rowner is the provisioning tool and no eowner
+                    NULL); // no eowner
             VERIFY_NOT_NULL_RETURN(TAG, cred, ERROR, OC_STACK_ERROR);
 
             cred->publicData.encoding = OIC_ENCODING_PEM;
@@ -1710,6 +1939,7 @@ OCStackResult SRPProvisionCredentialsDos(void *ctx, OicSecCredType_t type, size_
                                          OCProvisionResultCB resultCallback)
 {
     VERIFY_NOT_NULL_RETURN(TAG, pDev1, ERROR,  OC_STACK_INVALID_PARAM);
+    VERIFY_NOT_NULL_RETURN(TAG, pDev2, ERROR,  OC_STACK_INVALID_PARAM);
     if (!resultCallback)
     {
         OIC_LOG(INFO, TAG, "SRPProvisionCredentialsDos: NULL Callback");
@@ -1777,7 +2007,7 @@ OCStackResult SRPProvisionCredentialsDos(void *ctx, OicSecCredType_t type, size_
             data->type = PSK_TYPE;
             OicSecCred_t *firstCred = NULL;
             OicSecCred_t *secondCred = NULL;
-            OCStackResult res = PMGeneratePairWiseCredentials(type, keySize, &provTooldeviceID,
+            OCStackResult res = PMGeneratePairWiseCredentials(type, keySize,
                                 &pDev1->doxm->deviceID, (NULL != pDev2) ? &pDev2->doxm->deviceID :
                                 &provTooldeviceID,
                                 role1, role2,
@@ -1826,12 +2056,6 @@ OCStackResult SRPProvisionCredentialsDos(void *ctx, OicSecCredType_t type, size_
         }
     }
 }
-/**
- * Callback for ACL provisioning.
- */
-static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
-        OCClientResponse *clientResponse);
-
 OCStackResult SRPProvisionACL(void *ctx, const OCProvisionDev_t *selectedDeviceInfo,
         OicSecAcl_t *acl, OicSecAclVersion_t aclVersion, OCProvisionResultCB resultCallback)
 {
@@ -2098,6 +2322,7 @@ static OCStackApplicationResult SRPUnlinkDevice2CB(void *unlinkCtx, OCDoHandle h
     if (clientResponse)
     {
         OIC_LOG(DEBUG, TAG, "Valid client response for device 2");
+        clientResponse->result = OC_STACK_RESOURCE_DELETED;
         registerResultForUnlinkDevices(unlinkData, clientResponse->result, IDX_SECOND_DEVICE_RES);
 
         if (OC_STACK_RESOURCE_DELETED == clientResponse->result)
@@ -2162,6 +2387,7 @@ static OCStackApplicationResult SRPUnlinkDevice1CB(void *unlinkCtx, OCDoHandle h
     if (clientResponse)
     {
         OIC_LOG(DEBUG, TAG, "Valid client response for device 1");
+        clientResponse->result = OC_STACK_RESOURCE_DELETED;
         registerResultForUnlinkDevices(unlinkData, clientResponse->result, IDX_FIRST_DEVICE_RES);
 
         if (OC_STACK_RESOURCE_DELETED == clientResponse->result)
@@ -3193,7 +3419,7 @@ OCStackResult SRPResetDevice(const OCProvisionDev_t* pTargetDev,
     propertiesToInclude[PSTAT_DOS] = true;
 
     if (OC_STACK_OK != PstatToCBORPayloadPartial(pstat, &(secPayload->securityData),
-                &(secPayload->payloadSize), propertiesToInclude))
+                &(secPayload->payloadSize), propertiesToInclude, false))
     {
         OCPayloadDestroy((OCPayload *) secPayload);
         OIC_LOG(ERROR, TAG, "Failed to PstatToCBORPayload");
@@ -3594,6 +3820,93 @@ static OCStackApplicationResult SRPGetCSRResourceCB(void *ctx, OCDoHandle UNUSED
     return OC_STACK_DELETE_TRANSACTION;
 }
 
+/**
+ * Internal Function to store results in result array during GetSpResourceCB.
+ */
+static void registerResultForGetSpResourceCB(GetSpData_t *getSpData,
+                                             OCStackResult stackresult,
+                                             const uint8_t *payload,
+                                             size_t payloadSize)
+{
+    /* SRPGetSpResource allocates the memory for getSpData. When it calls this callback,
+     * numOfResults points to the current entry we're filling out. Later when this structure
+     * gets returned to the caller, that's when it actually reflects the number of
+     * results returned.
+     */
+    OCPMGetSpResult_t* currentEntry = &getSpData->resArr[getSpData->numOfResults];
+    OIC_LOG_V(INFO, TAG, "Inside registerResultForGetSpResourceCB "
+        "getSpData->numOfResults is %zu\n", getSpData->numOfResults);
+    memcpy(currentEntry->deviceId.id,
+        getSpData->deviceInfo->doxm->deviceID.id, UUID_LENGTH);
+    currentEntry->res = stackresult;
+
+    OicSecSp_t *sp = NULL;
+
+    if (OC_STACK_OK == stackresult)
+    {
+        OCStackResult res = CBORPayloadToSp(payload, payloadSize, &sp, NULL);
+        if (OC_STACK_OK == res)
+        {
+            currentEntry->sp = sp;
+        }
+        else
+        {
+            currentEntry->sp = NULL;
+        }
+    }
+
+    ++(getSpData->numOfResults);
+}
+
+/**
+ * Callback handler of SRPGetSpResource.
+ *
+ * @param[in] ctx             ctx value passed to callback from calling function.
+ * @param[in] UNUSED          handle to an invocation
+ * @param[in] clientResponse  Response from queries to remote servers.
+ * @return  OC_STACK_DELETE_TRANSACTION to delete the transaction
+ *          and  OC_STACK_KEEP_TRANSACTION to keep it.
+ */
+static OCStackApplicationResult SRPGetSpResourceCB(void *ctx, OCDoHandle UNUSED,
+    OCClientResponse *clientResponse)
+{
+    OIC_LOG_V(INFO, TAG, "IN %s", __func__);
+    OC_UNUSED(UNUSED);
+    VERIFY_NOT_NULL_RETURN(TAG, ctx, ERROR, OC_STACK_DELETE_TRANSACTION);
+    GetSpData_t *getSpData = (GetSpData_t*)ctx;
+    OCGetSpResultCB resultCallback = getSpData->resultCallback;
+
+    if (clientResponse && (OC_STACK_OK == clientResponse->result))
+    {
+            uint8_t *payload = ((OCSecurityPayload*)clientResponse->payload)->securityData;
+            size_t size = ((OCSecurityPayload*)clientResponse->payload)->payloadSize;
+
+            OIC_LOG_BUFFER(DEBUG, TAG, payload, size);
+
+            registerResultForGetSpResourceCB(getSpData, OC_STACK_OK, payload, size);
+    }
+    else
+    {
+        registerResultForGetSpResourceCB(getSpData, OC_STACK_ERROR, NULL, 0);
+    }
+
+    ((OCGetSpResultCB)(resultCallback))(getSpData->ctx, getSpData->numOfResults,
+        getSpData->resArr,
+        false);
+    OIC_LOG_V(ERROR, TAG, "%s: received Null clientResponse", __func__);
+
+    for (size_t i = 0; i < getSpData->numOfResults; i++)
+    {
+        DeleteSpBinData((getSpData->resArr[i]).sp);
+    }
+
+    OICFree(getSpData->resArr);
+    OICFree(getSpData);
+    OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
+
+    return OC_STACK_DELETE_TRANSACTION;
+}
+
 OCStackResult SRPGetCSRResource(void *ctx, const OCProvisionDev_t *selectedDeviceInfo,
         OCGetCSRResultCB resultCallback)
 {
@@ -3650,6 +3963,62 @@ OCStackResult SRPGetCSRResource(void *ctx, const OCProvisionDev_t *selectedDevic
     return ret;
 }
 
+OCStackResult SRPGetSpResource(void *ctx, const OCProvisionDev_t *selectedDeviceInfo,
+        OCGetSpResultCB resultCallback)
+{
+    VERIFY_NOT_NULL_RETURN(TAG, selectedDeviceInfo, ERROR,  OC_STACK_INVALID_PARAM);
+    VERIFY_NOT_NULL_RETURN(TAG, resultCallback, ERROR,  OC_STACK_INVALID_CALLBACK);
+
+    char query[MAX_URI_LENGTH + MAX_QUERY_LENGTH] = {0};
+    if (!PMGenerateQuery(true,
+                        selectedDeviceInfo->endpoint.addr,
+                        selectedDeviceInfo->securePort,
+                        selectedDeviceInfo->connType,
+                        query, sizeof(query), OIC_RSRC_SP_URI))
+    {
+        OIC_LOG(ERROR, TAG, "SRPGetSpResource : Failed to generate query");
+        return OC_STACK_ERROR;
+    }
+    OIC_LOG_V(DEBUG, TAG, "Query=%s", query);
+
+    OCCallbackData cbData =  {.context=NULL, .cb=NULL, .cd=NULL};
+    cbData.cb = &SRPGetSpResourceCB;
+    GetSpData_t* getSpData = (GetSpData_t*)OICCalloc(1, sizeof(GetSpData_t));
+    if (NULL == getSpData)
+    {
+        OIC_LOG(ERROR, TAG, "Unable to allocate memory");
+        return OC_STACK_NO_MEMORY;
+    }
+    getSpData->deviceInfo = selectedDeviceInfo;
+    getSpData->resultCallback = resultCallback;
+    getSpData->numOfResults=0;
+    getSpData->ctx = ctx;
+
+    int noOfRiCalls = 1;
+    getSpData->resArr = (OCPMGetSpResult_t*)OICCalloc(noOfRiCalls, sizeof(OCPMGetSpResult_t));
+    if (NULL == getSpData->resArr)
+    {
+        OICFree(getSpData);
+        OIC_LOG(ERROR, TAG, "Unable to allocate memory");
+        return OC_STACK_NO_MEMORY;
+    }
+    cbData.context = (void *)getSpData;
+    OCMethod method = OC_REST_GET;
+    OCDoHandle handle = NULL;
+    OIC_LOG(DEBUG, TAG, "Sending Get SP to resource server");
+    OCStackResult ret = OCDoResource(&handle, method, query, NULL, NULL,
+            selectedDeviceInfo->connType, OC_HIGH_QOS, &cbData, NULL, 0);
+    if (OC_STACK_OK != ret)
+    {
+        OIC_LOG(ERROR, TAG, "OCStack resource error");
+        OICFree(getSpData->resArr);
+        OICFree(getSpData);
+    }
+    OIC_LOG(DEBUG, TAG, "OUT SRPGetSpResource");
+
+    return ret;
+}
+
 /**
  * Internal Function to store results in result array during GetRolesResourceCB.
  */
@@ -3664,7 +4033,7 @@ static void registerResultForGetRolesResourceCB(GetRolesData_t *getRolesData,
      * results returned.
      */
     OCPMGetRolesResult_t* currentEntry = &getRolesData->resArr[getRolesData->numOfResults];
-    OIC_LOG_V(INFO, TAG, "Inside registerResultForGetCSRResourceCB "
+    OIC_LOG_V(INFO, TAG, "Inside registerResultForGetRolesResourceCB "
         "getRolesData->numOfResults is %zu\n", getRolesData->numOfResults);
     memcpy(currentEntry->deviceId.id,
         getRolesData->deviceInfo->doxm->deviceID.id, UUID_LENGTH);
@@ -3932,10 +4301,10 @@ OCStackResult SRPReadTrustCertChain(uint16_t credId, uint8_t **trustCertChain,
     OIC_LOG(DEBUG, TAG, "IN SRPReadTrustCertChain");
 
     OCStackResult res = OC_STACK_ERROR;
-    int secureFlag = 0;
     OicSecCred_t* credData = GetCredEntryByCredId(credId);
     if(credData)
     {
+        int secureFlag = 0;
         res = CredToCBORPayload((const OicSecCred_t*) credData, trustCertChain,
                                 chainSize, secureFlag);
         if(OC_STACK_OK != res)
@@ -3951,24 +4320,31 @@ OCStackResult SRPReadTrustCertChain(uint16_t credId, uint8_t **trustCertChain,
 /**
  * Updates provisioning result.
  */
-static void RegisterProvResult(const OCProvisionDev_t *targetDev, OCProvisionResult_t *resArr,
+LOCAL OCStackResult RegisterProvResult(const OCProvisionDev_t *targetDev, OCProvisionResult_t *resArr,
                                int *numOfResults, OCStackResult stackResult)
 {
+    VERIFY_NOT_NULL_RETURN(TAG, targetDev, ERROR, OC_STACK_ERROR);
+    VERIFY_NOT_NULL_RETURN(TAG, resArr, ERROR, OC_STACK_ERROR);
+    VERIFY_NOT_NULL_RETURN(TAG, numOfResults, ERROR, OC_STACK_ERROR);
 
     OIC_LOG_V(INFO, TAG, "value of  numOfResults is %d", *numOfResults);
     memcpy(resArr[*numOfResults].deviceId.id, targetDev->doxm->deviceID.id, UUID_LENGTH);
     resArr[*numOfResults].res = stackResult;
     (*numOfResults)++;
+
+    return OC_STACK_OK;
 }
 
-static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
+/**
+ * Callback for ACL provisioning.
+ */
+LOCAL OCStackResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
         OCClientResponse *clientResponse)
 {
     if (NULL == ctx || NULL == clientResponse)
     {
         OIC_LOG_V(ERROR, TAG, " ctx: %p, clientResponse: %p", ctx, clientResponse);
-	errno = EINVAL;
-        return OC_STACK_DELETE_TRANSACTION;
+        return OC_STACK_INVALID_PARAM;
     }
     (void) UNUSED;
     if (OC_STACK_RESOURCE_CHANGED == clientResponse->result)
@@ -3977,8 +4353,7 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
         if (ACL_TYPE != data->type)
         {
             OIC_LOG(ERROR, TAG, "Invalid type");
-	    errno = EINVAL;
-            return OC_STACK_DELETE_TRANSACTION;
+            return OC_STACK_INVALID_PARAM;
         }
 
         ACLData_t *aclData = (ACLData_t *) (data->ctx);
@@ -3996,8 +4371,7 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
                 uri = OIC_RSRC_ACL2_URI;
                 break;
             default:
-		errno = EPROTONOSUPPORT; /* FIXME: use a custom E code? */
-                return OC_STACK_DELETE_TRANSACTION;
+                return OC_STACK_INVALID_PARAM;
         }
 
         // if rowneruuid is empty, set it to device ID
@@ -4015,8 +4389,7 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
             {
                 OIC_LOG(ERROR, TAG, "Failed to set Rowner to PT's deviceID\
                     becuase it failed to retrieve Doxm DeviceID");
-		errno = ENODEV;	/* No such device */
-                return OC_STACK_DELETE_TRANSACTION;
+                return OC_STACK_ERROR;
             }
         }
 
@@ -4025,18 +4398,19 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
         {
             OIC_LOG(ERROR, TAG, "Failed to allocate memory");
             OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
-	    errno = ENOMEM;
-            return OC_STACK_DELETE_TRANSACTION;
+            return OC_STACK_NO_MEMORY;
         }
         secPayload->base.type = PAYLOAD_TYPE_SECURITY;
-        if (OC_STACK_OK != AclToCBORPayload(aclData->acl, aclData->aclVersion, &secPayload->securityData,
-                                            &secPayload->payloadSize))
+        bool propertiesToInclude[(ACLProperty_t)ACL_PROPERTY_COUNT];
+        memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
+        propertiesToInclude[ACL_ACELIST] = true;
+        if (OC_STACK_OK != AclToCBORPayloadPartial(aclData->acl, aclData->aclVersion, &secPayload->securityData,
+                                            &secPayload->payloadSize, propertiesToInclude))
         {
             OCPayloadDestroy((OCPayload *)secPayload);
-            OIC_LOG(ERROR, TAG, "Failed to AclToCBORPayload");
+            OIC_LOG(ERROR, TAG, "Failed to AclToCBORPayloadPartial");
             OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
-	    errno = EPROTO;	/* protocol error FIXME: custom E code? */
-            return OC_STACK_DELETE_TRANSACTION;
+            return OC_STACK_NO_MEMORY;
         }
         OIC_LOG(DEBUG, TAG, "Created payload for ACL:");
         OIC_LOG_BUFFER(DEBUG, TAG, secPayload->securityData, secPayload->payloadSize);
@@ -4049,8 +4423,7 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
                              query, sizeof(query), uri))
         {
             OIC_LOG(ERROR, TAG, "DeviceDiscoveryHandler : Failed to generate query");
-	    errno = EPROTO;	/* FIXME: better E code */
-            return OC_STACK_DELETE_TRANSACTION;
+            return OC_STACK_ERROR;
         }
         OIC_LOG_V(DEBUG, TAG, "Query=%s", query);
 
@@ -4067,15 +4440,15 @@ static OCStackApplicationResult ProvisionAclCB(void *ctx, OCDoHandle UNUSED,
         if (ret != OC_STACK_OK)
         {
             OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
-	    errno = EPROTO;	/* FIXME: better E code */
-            return OC_STACK_DELETE_TRANSACTION;
+            return OC_STACK_ERROR;
         }
     }
     else
     {
         OIC_LOG_V(ERROR, TAG, "OUT %s", __func__);
-        return OC_STACK_DELETE_TRANSACTION;
+        return OC_STACK_ERROR;
     }
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
-    return OC_STACK_DELETE_TRANSACTION;
+    return OC_STACK_OK;
 }
+

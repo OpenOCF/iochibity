@@ -30,7 +30,6 @@
 
 #include "pmutility.h"
 
-/* #include "iotivity_config.h" */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -38,23 +37,7 @@
 #include <string.h>
 #endif
 
-/* #include "ocstack.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "oic_time.h" */
-/* #include "logger.h" */
 #include "utlist.h"
-/* #include "ocpayload.h" */
-
-/* #include "srmresourcestrings.h" //@note: SRM's internal header */
-/* #include "doxmresource.h"       //@note: SRM's internal header */
-/* #include "pstatresource.h"      //@note: SRM's internal header */
-
-/* #include "pmtypes.h" */
-/* #include "pmutility.h" */
-/* #include "pmutilityinternal.h" */
-
-/* #include "srmutility.h" */
 
 #define TAG ("OIC_PM_UTILITY")
 
@@ -62,6 +45,7 @@
  * Device Information of discoverd unowned/owned device(s) for provisioning.
  */
 #if EXPORT_INTERFACE
+/* src: pmtypes.h */
 typedef struct OCProvisionDev
 {
     OCDevAddr       endpoint;        /**< target address **/
@@ -79,7 +63,7 @@ typedef struct OCProvisionDev
     bool            ownerAclUnauthorizedRequest;        /**< true if the provisioning client has already re-tried posting the Owner ACE **/
     struct OCProvisionDev  *next;    /**< Next pointer. **/
 }OCProvisionDev_t;
-#endif	/* INTERFACE */
+#endif
 
 /**
  * Result information for each target device.
@@ -100,17 +84,20 @@ typedef struct OCPMGetCsrResult
     size_t              csrLen;
     OicEncodingType_t   encoding; /* Determines contents of csr; either OIC_ENCODING_DER or OIC_ENCODING_PEM */
 } OCPMGetCsrResult_t;
-#endif	/* INTERFACE */
 
-#if EXPORT_INTERFACE
+typedef struct OCPMGetSpResult
+{
+    OicUuid_t           deviceId;
+    OCStackResult       res;
+    OicSecSp_t         *sp;
+} OCPMGetSpResult_t;
+
 typedef struct OCPMRoleCertChain
 {
     uint64_t            credId;         /**< credential ID */
     OicSecKey_t         certificate;    /**< certificate chain including leaf and intermediate CA certificates */
 } OCPMRoleCertChain_t;
-#endif	/* INTERFACE */
 
-#if EXPORT_INTERFACE
 typedef struct OCPMGetRolesResult
 {
     OicUuid_t           deviceId;       /**< responding device ID */
@@ -118,7 +105,7 @@ typedef struct OCPMGetRolesResult
     OCPMRoleCertChain_t *chains;        /**< cert chains (if res is OC_STACK_OK) */
     size_t              chainsLength;   /**< length of chains array (if res is OC_STACK_OK */
 } OCPMGetRolesResult_t;
-#endif	/* INTERFACE */
+#endif	/* EXPORT_INTERFACE */
 
 /**
  * Owner device type
@@ -177,6 +164,21 @@ typedef void (*OCProvisionResultCB)(void* ctx, size_t nOfRes, OCProvisionResult_
 #if EXPORT_INTERFACE
 typedef void (*OCGetCSRResultCB)(void* ctx, size_t nOfRes, OCPMGetCsrResult_t *arr, bool hasError);
 #endif	/* INTERFACE */
+
+/**
+ * Callback function definition of SP retrieve API
+ *
+ * @param[out] ctx - If user set a context, it will be returned here.
+ * @param[out] nOfRes - total number of results
+ * @param[out] arr - Array of OCPMGetSpResult_t, containing one entry for each target device. If an entry's res
+ *                   member is OC_STACK_OK, This memory is only valid while the callback is executing;
+ *                   callers must make copies if the data needs to be kept longer.
+ * @param[out] hasError - If all calls succeded, this will be false. One or more errors, and this will
+ *                        be true. Examine the elements of arr to discover which failed.
+ */
+#if EXPORT_INTERFACE
+typedef void (*OCGetSpResultCB)(void* ctx, size_t nOfRes, OCPMGetSpResult_t *arr, bool hasError);
+#endif
 
 /**
  * Callback function definition of roles retrieve API
