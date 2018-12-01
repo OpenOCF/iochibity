@@ -20,13 +20,7 @@
 
 #include "otmcontextlist.h"
 
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "octypes.h" */
-/* #include "ownershiptransfermanager.h" */
 #include "utlist.h"
-/* #include "otmcontextlist.h" */
 
 #define TAG "OIC_OTM_CTX"
 
