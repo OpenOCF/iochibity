@@ -42,11 +42,13 @@
 #define SPEC_MAX_VER_LEN (sizeof("core.x.x.x") + 1) // Spec Version length.
 #endif	/* INTERFACE */
 
+#if INTERFACE
 typedef enum {
     ACL_ACELIST = 0,
     ACL_ROWNERUUID,
     ACL_PROPERTY_COUNT
 } ACLProperty_t;
+#endif
 
 /* source: securevirtualresourcetypes.h */
 /**
