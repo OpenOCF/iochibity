@@ -15,7 +15,9 @@ cc_library(
              # "-Ithird_party/utlist",
              # "-Iexternal/openocf/third_party/utlist",
              "-Iexternal/sqlite3"
-    ] + CSTD + OS_COPTS,
+    ] + CSTD + OS_COPTS
+    + select({"//config:multi_own": ["-DMULTIPLE_OWNER"],
+              "//conditions:default": []}),
 
     defines = DEFINES,
 
@@ -32,9 +34,8 @@ cc_library(
             "@tinycbor//:tinycbor",
 	    "@sqlite3//:sqlite3",
 	    "@utlist//:utlist"
-    ],
-    #         # if MULTIPLE_OWNER
-    #         #"//src/provisioning/multiowner"
+    ]+ select({"//config:multi_own": ["//src/provisioning/multiown"],
+              "//conditions:default": []}),
     #         # if WITH_TCP
     #         # "//src/provitioning/cloud"
     # + select({"windows": ["//third_party/sqlite3"],
