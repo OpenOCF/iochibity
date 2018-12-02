@@ -1,3 +1,4 @@
+
 /* *****************************************************************
  *
  * Copyright 2016 Samsung Electronics All Rights Reserved.
@@ -33,38 +34,52 @@
 #include <string.h>
 
 #include "utlist.h"
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "cacommon.h" */
-/* #include "cainterface.h" */
-/* #include "base64.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "doxmresource.h" */
-/* #include "pstatresource.h" */
-/* #include "credresource.h" */
-/* #include "aclresource.h" */
-/* #include "ownershiptransfermanager.h" */
-/* #include "oxmjustworks.h" */
-/* #include "pmtypes.h" */
-/* #include "pmutility.h" */
-/* #include "pmutilityinternal.h" */
-/* #include "srmutility.h" */
-/* #include "provisioningdatabasemanager.h" */
-/* #include "oxmrandompin.h" */
-/* #include "ocpayload.h" */
-/* #include "payload_logging.h" */
-/* #include "oxmjustworks.h" */
-/* #include "oxmpreconfpin.h" */
-/* #include "oxmrandompin.h" */
-/* #include "otmcontextlist.h" */
-/* #include "ocstackinternal.h" */
-/* #include "mbedtls/ssl_ciphersuites.h" */
-/* #include "ocrandom.h" */
+#include "mbedtls/ssl_ciphersuites.h"
+#include "mbedtls/base64.h"
 
 #define TAG "OIC_MULTIPLE_OTM"
 
-#ifdef MULTIPLE_OWNER
+#if INTERFACE
+/* src: securevirtualresource.h */
+typedef enum
+{
+    MOT_STATUS_READY = 0,
+    MOT_STATUS_IN_PROGRESS = 1,
+    MOT_STATUS_DONE = 2,
+} MotStatus_t;
+
+// typedef unsigned int MotStatus_t;
+
+/**
+ * oic.sec.mom type definition
+ * TODO: This type will be included to OIC Security Spec.
+ * 0 : Disable multiple owner
+ * 1 : Enable multiple owner (Always on)
+ * 2 : Timely multiple owner enable
+ */
+typedef enum
+{
+    OIC_MULTIPLE_OWNER_DISABLE = 0,
+    OIC_MULTIPLE_OWNER_ENABLE = 1,
+    OIC_MULTIPLE_OWNER_TIMELY_ENABLE = 2,
+    OIC_NUMBER_OF_MOM_TYPE = 3
+} OicSecMomType_t;
+
+//typedef unsigned int OicSecMomType_t;
+
+//typedef struct OicSecSubOwner OicSecSubOwner_t;
+typedef struct OicSecMom OicSecMom_t;
+
+typedef struct OicSecSubOwner {
+    OicUuid_t uuid;
+    MotStatus_t status;
+    struct OicSecSubOwner* next;
+} OicSecSubOwner_t;
+
+struct OicSecMom{
+    OicSecMomType_t mode;
+};
+#endif	/* INTERFACE */
 
 /**********************************************************************
  * API for Super Owner
@@ -189,7 +204,7 @@ static OCStackApplicationResult MOTSendPostDoxmCB(void *ctx, OCDoHandle handle,
     // This function appears to be called for updating oxmSel, mom, and subOwners,
     // but it previously was including ALL writeable Properties.  So we include
     // at least those three.
-    bool propertiesToInclude[DOXM_PROPERTY_COUNT];
+    bool propertiesToInclude[(DoxmProperty_t)DOXM_PROPERTY_COUNT];
     memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
     propertiesToInclude[DOXM_OXMSEL] = true;
     propertiesToInclude[DOXM_SUBOWNER] = true;
@@ -488,13 +503,15 @@ static OCStackApplicationResult MOTProvisionPreconfigPINCB(void *ctx, OCDoHandle
     VERIFY_NOT_NULL(TAG, data->ctx, ERROR);
     motCtx = (OTMContext_t *) (data->ctx);
 
-    //Generate the security payload using updated doxm
+    //Generate the security payload using updated cred
     secPayload = (OCSecurityPayload *)OICCalloc(1, sizeof(OCSecurityPayload));
     VERIFY_NOT_NULL(TAG, secPayload, ERROR);
     secPayload->base.type = PAYLOAD_TYPE_SECURITY;
-
-    postCredRes = CredToCBORPayload(motCtx->cred, &secPayload->securityData, &secPayload->payloadSize,
-                                    false);
+    bool propertiesToInclude[(CredProperty_t)CRED_PROPERTY_COUNT];
+    memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
+    propertiesToInclude[CRED_CREDS] = true;
+    postCredRes = CredToCBORPayloadPartial(motCtx->cred, NULL, &secPayload->securityData, &secPayload->payloadSize,
+                                    false, propertiesToInclude);
     VERIFY_SUCCESS(TAG, (OC_STACK_OK == postCredRes), ERROR);
 
     OIC_LOG(DEBUG, TAG, "Created Credential payload to register PIN credential:");
@@ -778,12 +795,13 @@ exit:
 OCStackResult MOTAddPreconfigPIN(const OCProvisionDev_t *targetDeviceInfo,
                                  const char *preconfPIN, size_t preconfPINLen)
 {
-    OCStackResult addCredRes = OC_STACK_INVALID_PARAM;
+    OCStackResult addCredRes = OC_STACK_ERROR;
     OicSecCred_t *pinCred = NULL;
 
     OIC_LOG(DEBUG, TAG, "IN MOTAddPreconfigPIN");
 
     VERIFY_NOT_NULL(TAG, targetDeviceInfo, ERROR);
+    VERIFY_NOT_NULL(TAG, targetDeviceInfo->doxm, ERROR);
     VERIFY_NOT_NULL(TAG, preconfPIN, ERROR);
     VERIFY_SUCCESS(TAG, (0 != preconfPINLen), ERROR);
     VERIFY_SUCCESS(TAG, (0 != preconfPINLen && OXM_PRECONFIG_PIN_MAX_SIZE >= preconfPINLen), ERROR);
@@ -795,7 +813,6 @@ OCStackResult MOTAddPreconfigPIN(const OCProvisionDev_t *targetDeviceInfo,
         return OC_STACK_OK;
     }
 
-    addCredRes = OC_STACK_NO_MEMORY;
     //Generate PIN based credential
     pinCred = (OicSecCred_t *)OICCalloc(1, sizeof(OicSecCred_t));
     VERIFY_NOT_NULL(TAG, pinCred, ERROR);
@@ -811,10 +828,8 @@ OCStackResult MOTAddPreconfigPIN(const OCProvisionDev_t *targetDeviceInfo,
     memcpy(pinCred->subject.id, targetDeviceInfo->doxm->deviceID.id, sizeof(pinCred->subject.id));
 
     addCredRes = AddCredential(pinCred);
-    VERIFY_SUCCESS(TAG, (OC_STACK_OK == addCredRes), ERROR);
-
 exit:
-    if (OC_STACK_OK != addCredRes)
+    if (OC_STACK_OK != addCredRes && NULL != pinCred)
     {
         OICFree(pinCred->privateData.data);
         OICFree(pinCred);
@@ -880,20 +895,34 @@ static OCStackResult SaveSubOwnerPSK(OCProvisionDev_t *selectedDeviceInfo)
         //Generating new credential for provisioning tool
         OicSecCred_t *cred = GenerateCredential(&selectedDeviceInfo->doxm->deviceID,
                                                 SYMMETRIC_PAIR_WISE_KEY, NULL,
-                                                &ownerKey, &ownerDeviceID, &ownerDeviceID);
+                                                &ownerKey, &ownerDeviceID);
         VERIFY_NOT_NULL(TAG, cred, ERROR);
 
         size_t outSize = 0;
-        size_t b64BufSize = B64ENCODE_OUT_SAFESIZE((OWNER_PSK_LENGTH_128 + 1));
-        char *b64Buf = (char *)OICCalloc(1, b64BufSize);
+        int encodeResult = mbedtls_base64_encode(NULL, 0, &outSize, cred->privateData.data, cred->privateData.len);
+        if (MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL != encodeResult)
+        {
+            OIC_LOG_V(ERROR, TAG, "%s: Error base64 encoding PSK private data", __func__);
+            res = OC_STACK_ERROR;
+            goto exit;
+        }
+        size_t b64BufSize = outSize;
+        unsigned char *b64Buf = (unsigned char *)OICCalloc(1, b64BufSize);
         VERIFY_NOT_NULL(TAG, b64Buf, ERROR);
-        b64Encode(cred->privateData.data, cred->privateData.len, b64Buf, b64BufSize, &outSize);
+        encodeResult = mbedtls_base64_encode(b64Buf, b64BufSize, &outSize, cred->privateData.data, cred->privateData.len);
+        if (0 != encodeResult)
+        {
+            OIC_LOG_V(ERROR, TAG, "%s: Error base64 encoding PSK private data", __func__);
+            OICFree(b64Buf);
+            res = OC_STACK_ERROR;
+            goto exit;
+        }
 
         OICFree(cred->privateData.data);
         cred->privateData.data = (uint8_t *)OICCalloc(1, outSize + 1);
         VERIFY_NOT_NULL(TAG, cred->privateData.data, ERROR);
 
-        strncpy((char *)(cred->privateData.data), b64Buf, outSize);
+        strncpy((char *)(cred->privateData.data), (char *)b64Buf, outSize);
         cred->privateData.data[outSize] = '\0';
         cred->privateData.encoding = OIC_ENCODING_BASE64;
         cred->privateData.len = outSize;
@@ -1094,7 +1123,7 @@ static OCStackApplicationResult PostSubOwnerCredentialCB(void *ctx, OCDoHandle h
 #endif
         //Send owner credential to new device : POST /oic/sec/cred [ owner credential ]
         if (OC_STACK_OK != CredToCBORPayload(&newCredential, &secPayload->securityData,
-                                             &secPayload->payloadSize, 0))
+                                            &secPayload->payloadSize, 0))
         {
             OICFree(secPayload);
             OIC_LOG(ERROR, TAG, "Error while converting bin to cbor.");
@@ -1263,8 +1292,8 @@ exit:
 /**
  * Function to handle the handshake result in MOT.
  * This function will be invoked after DTLS handshake
- * @param   endPoint  [IN] The remote endpoint.
- * @param   errorInfo [IN] Error information from the endpoint.
+ * @param[in] endPoint  The remote endpoint.
+ * @param[in] errorInfo Error information from the endpoint.
  * @return  NONE
  */
 static CAResult_t MOTDtlsHandshakeCB(const CAEndpoint_t *endpoint, const CAErrorInfo_t *info)
@@ -1311,7 +1340,7 @@ exit:
 /**
  * Function to add a device to the provisioning database via the
  * Provisioning Database Manager (PDM).
- * @param  selectedDevice [IN] Device to add to the provisioning database.
+ * @param[in] selectedDevice  Device to add to the provisioning database.
  * @return OC_STACK_OK in case of success and other values otherwise.
  */
 static OCStackResult SetupMOTPDM(OCProvisionDev_t *selectedDevice)
@@ -1543,4 +1572,3 @@ exit:
 
     return res;
 }
-#endif	/* MULTIPLE_OWNER */

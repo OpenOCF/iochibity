@@ -20,26 +20,28 @@
 
 #include "oxmpreconfpin.h"
 
+#ifdef HAVE_MEMORY_H
 #include <memory.h>
+#endif
 
 /* #include "ocstack.h" */
-/* #include "securevirtualresourcetypes.h" */
-/* #include "doxmresource.h" */
+/* #include "experimental/securevirtualresourcetypes.h" */
+/* #include "experimental/doxmresource.h" */
 /* #include "credresource.h" */
 /* #include "cacommon.h" */
 /* #include "cainterface.h" */
-/* #include "ocrandom.h" */
+/* #include "experimental/ocrandom.h" */
 /* #include "oic_malloc.h" */
 /* #include "oic_string.h" */
-/* #include "logger.h" */
+/* #include "experimental/logger.h" */
 /* #include "pbkdf2.h" */
-/* #include "base64.h" */
+#include "mbedtls/base64.h"
 /* #include "oxmpreconfpin.h" */
 /* #include "ownershiptransfermanager.h" */
 /* #include "pinoxmcommon.h" */
 /* #include "srmresourcestrings.h" */
 /* #include "ocstackinternal.h" */
-/* #include "mbedtls/ssl_ciphersuites.h" */
+#include "mbedtls/ssl_ciphersuites.h"
 
 #define TAG "OIC_OXM_PreconfigPIN"
 
@@ -52,7 +54,7 @@ OCStackResult CreatePreconfigPinBasedSelectOxmPayload(OTMContext_t *otmCtx, uint
 
     otmCtx->selectedDeviceInfo->doxm->oxmSel = OIC_PRECONFIG_PIN;
 
-    bool propertiesToInclude[DOXM_PROPERTY_COUNT];
+    bool propertiesToInclude[(DoxmProperty_t)DOXM_PROPERTY_COUNT];
     memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
     propertiesToInclude[DOXM_OXMSEL] = true;
 
@@ -102,26 +104,32 @@ OCStackResult LoadPreconfigPinCodeCallback(OTMContext_t *otmCtx)
         }
     }
 
-    uint8_t* pinBuffer = NULL;
+    unsigned char* pinBuffer = NULL;
     size_t pinBufLen = 0;
     if(OIC_ENCODING_BASE64 == cred->privateData.encoding)
     {
         //In case of 'preconfig PIN', secret data(PIN) already exist.
-        pinBufLen = B64DECODE_OUT_SAFESIZE(cred->privateData.len + 1);
-        pinBuffer = (uint8_t*)OICCalloc(1, pinBufLen);
-        if(NULL == pinBuffer)
+        size_t pinLen = 0;
+        int decodeResult = mbedtls_base64_decode(NULL, 0, &pinLen, cred->privateData.data, cred->privateData.len);
+        if (MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL != decodeResult)
+        {
+            OIC_LOG(ERROR, TAG, "Failed base64 decoding for preconfig PIN");
+            return OC_STACK_ERROR;
+        }
+        pinBufLen = pinLen;
+        pinBuffer = (unsigned char*)OICCalloc(1, pinBufLen);
+        if (NULL == pinBuffer)
         {
             OIC_LOG(ERROR, TAG, "Failed to memory allocation.");
             return OC_STACK_NO_MEMORY;
         }
-        size_t pinLen = 0;
-        if(B64_OK != b64Decode((char*)cred->privateData.data, cred->privateData.len, pinBuffer, pinBufLen, &pinLen))
+        decodeResult = mbedtls_base64_decode(pinBuffer, pinBufLen, &pinLen, cred->privateData.data, cred->privateData.len);
+        if (0 != decodeResult)
         {
-            OIC_LOG(ERROR, TAG, "Failed to base64 deconding for preconfig PIN");
+            OIC_LOG(ERROR, TAG, "Failed to base64 decoding for preconfig PIN");
             OICFree(pinBuffer);
             return OC_STACK_ERROR;
         }
-        pinBufLen = pinLen;
     }
     else if(OIC_ENCODING_RAW == cred->privateData.encoding)
     {
@@ -152,11 +160,14 @@ OCStackResult LoadPreconfigPinCodeCallback(OTMContext_t *otmCtx)
     //in case of OTM
     if(false == otmCtx->selectedDeviceInfo->doxm->owned)
     {
+#ifdef MULTIPLE_OWNER
+        // FIXME: GetDtlsPskForPreconfPinOxm only defined for MOT
         if(CA_STATUS_OK != CAregisterPskCredentialsHandler(GetDtlsPskForPreconfPinOxm))
         {
             OIC_LOG(ERROR, TAG, "Failed to register DTLS credentials handler for random PIN OxM.");
             res = OC_STACK_ERROR;
         }
+#endif
     }
 #ifdef MULTIPLE_OWNER
     //in case of MOT
@@ -204,6 +215,28 @@ OCStackResult CreateSecureSessionPreconfigPinCallback(OTMContext_t* otmCtx)
         return OC_STACK_ERROR;
     }
     OIC_LOG(INFO, TAG, "TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256 cipher suite selected.");
+
+    CAEndpoint_t endpoint;
+    OCProvisionDev_t* selDevInfo = otmCtx->selectedDeviceInfo;
+    CopyDevAddrToEndpoint(&selDevInfo->endpoint, &endpoint);
+
+    if (CA_ADAPTER_IP == endpoint.adapter)
+    {
+        endpoint.port = selDevInfo->securePort;
+    }
+#ifdef WITH_TCP
+    else if (CA_ADAPTER_TCP == endpoint.adapter)
+    {
+        endpoint.port = selDevInfo->tcpSecurePort;
+    }
+#endif
+
+    caresult = CAInitiateHandshake(&endpoint);
+    if (CA_STATUS_OK != caresult)
+    {
+        OIC_LOG_V(ERROR, TAG, "DTLS handshake failure.");
+        return OC_STACK_ERROR;
+    }
 
     OIC_LOG(INFO, TAG, "OUT CreateSecureSessionPreconfigPinCallback");
 
