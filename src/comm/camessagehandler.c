@@ -30,7 +30,7 @@
 #include <stdint.h>
 #endif	/* INTERFACE */
 
-#define UTLIST_H
+// #define UTLIST_H
 #include "coap/coap_list.h"
 
 /* #if INTERFACE */
