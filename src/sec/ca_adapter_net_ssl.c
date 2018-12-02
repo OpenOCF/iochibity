@@ -19,26 +19,16 @@
  ******************************************************************/
 
 
-/* #include "iotivity_config.h" */
-
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
+
+#include "ca_adapter_net_ssl.h"
 
 #include <stddef.h>
 #include <stdbool.h>
 #include <assert.h>
 #include <inttypes.h>
-
-#include "ca_adapter_net_ssl.h"
-
-/* #include "cacommon.h" */
-/* //#include "caipinterface.h" */
-/* #include "oic_malloc.h" */
-/* #include "ocrandom.h" */
-/* #include "byte_array.h" */
-/* #include "octhread.h" */
-/* #include "octimer.h" */
 
 // headers required for mbed TLS
 #include "mbedtls/platform.h"
@@ -115,13 +105,9 @@ typedef enum
     ADAPTER_CURVE_MAXIMUM
 } AdapterCurve_t;
 #define ADAPTER_CURVE_MAX 1
-#endif	/* INTERFACE */
+#endif	/* EXPORT_INTERFACE */
 
 #include "mbedtls/ecp.h"
-static mbedtls_ecp_group_id curve[ADAPTER_CURVE_MAX][2] =
-{
-    {MBEDTLS_ECP_DP_SECP256R1, MBEDTLS_ECP_DP_NONE}
-};
 
 /**
  * @def MBED_TLS_VERSION_LEN
@@ -293,6 +279,14 @@ typedef enum
     SSL_CIPHER_MAX
 } SslCipher_t;
 
+#if INTERFACE
+typedef enum
+{
+    ADAPTER_CURVE_SECP256R1,
+    ADAPTER_CURVE_MAX
+} AdapterCurve_t;
+#endif
+
 static const int tlsCipher[SSL_CIPHER_MAX][2] =
 {
     {MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA256, 0},
@@ -309,6 +303,11 @@ static const int tlsCipher[SSL_CIPHER_MAX][2] =
 };
 
 static int g_cipherSuitesList[SSL_CIPHER_MAX];
+
+mbedtls_ecp_group_id curve[ADAPTER_CURVE_MAX][2] =
+{
+    {MBEDTLS_ECP_DP_SECP256R1, MBEDTLS_ECP_DP_NONE}
+};
 
 typedef struct  {
     int code;
@@ -735,7 +734,6 @@ static int InitPKIX(CATransportAdapter_t adapter)
     {
         g_getPkixInfoCallback(&pkiInfo);
     }
-
     VERIFY_NON_NULL_RET(g_caSslContext, NET_SSL_TAG, "SSL Context is NULL", -1);
 
     mbedtls_x509_crt_free(&g_caSslContext->ca);
