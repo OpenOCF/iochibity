@@ -20,7 +20,6 @@
 
 #include "pbkdf2.h"
 
-/* #include "logger.h" */
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/md.h"
 #if EXPORT_INTERFACE
