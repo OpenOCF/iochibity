@@ -41,7 +41,7 @@
 #if EXPORT_INTERFACE
 #include <stdlib.h>
 /* src: securevirtualresourcetypes.h */
-typedef enum OicSecOxm_t
+typedef enum
 {
     OIC_JUST_WORKS                          = 0x0, /* oic.sec.doxm.jw */
     OIC_RANDOM_DEVICE_PIN                   = 0x1, /* oic.sec.doxm.rdp */
