@@ -21,16 +21,10 @@
 #include "iotvticalendar.h"
 
 #define _XOPEN_SOURCE  //Needed by strptime
-/* #include "iotivity_config.h" */
+
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
-/* #include "iotvticalendar.h" */
-/* #include "oic_string.h" */
-
-/* #ifndef HAVE_STRPTIME */
-/* char *strptime(const char *buf, const char *fmt, struct tm *tm); */
-/* #endif */
 
 #define FREQ_DAILY (1)
 #define MAX_BYDAY_SIZE (7)     //7 days of week
