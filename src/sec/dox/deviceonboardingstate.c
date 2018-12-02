@@ -20,21 +20,6 @@
 
 #include "deviceonboardingstate.h"
 
-/* #include "deviceonboardingstate.h" */
-/* #include "srmutility.h" */
-/* #include "octypes.h" */
-/* #include "logger.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "aclresource.h" */
-/* #include "amaclresource.h" */
-/* #include "credresource.h" */
-/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
-/* #include "crlresource.h" */
-/* #endif /\* (__WITH_DTLS__) || (__WITH_TLS__) *\/ */
-/* #include "doxmresource.h" */
-/* #include "pstatresource.h" */
-/* #include "resourcemanager.h" */
-
 #define TAG "OIC_SRM_DOS"
 
 #if EXPORT_INTERFACE
@@ -47,15 +32,13 @@ typedef enum OicSecDeviceOnboardingState
     DOS_SRESET,
     DOS_STATE_COUNT
 } OicSecDeviceOnboardingState_t;
-#endif	/* INTERFACE */
 
-#if EXPORT_INTERFACE
 typedef struct OicSecDostype
 {
     OicSecDeviceOnboardingState_t state;
     bool                          pending;
 } OicSecDostype_t;
-#endif	/* INTERFACE */
+#endif	/* EXPORT_INTERFACE */
 
 /**
  * @return true if changing from oldState to newState is valid transition.
@@ -114,25 +97,21 @@ static bool IsValidStateTransition(OicSecDeviceOnboardingState_t oldState,
 /**
  * @return true if Device meets requirements to enter RFNOP DOS.
  */
-static bool IsReadyToEnterRFNOP()
+static bool IsReadyToEnterRFNOP(void)
 {
     bool ret = false;
     bool tempBool = false;
-    OicUuid_t tempUuid = {.id={0}};
 
     // Note: pstat.dos.p asserted by DoStateChange(), so not checked here.
 
     // Verify doxm.owned == TRUE.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmIsOwned(&tempBool), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, tempBool, WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, IsDoxmOwned(), WARNING);
 
     // Verify doxm.devowneruuid != nil UUID.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmDevOwnerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsDoxmDevowneruuidTheNilUuid(), WARNING);
 
     // Verify doxm.deviceuuid != nil UUID.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmDeviceID(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsDoxmDeviceuuidTheNilUuid(), WARNING);
 
     // Verify oxmsel was the actual OTM used (no-op: CTT will verify this during
     // certification testing, as it requires OBT cooperation to verify).
@@ -142,17 +121,13 @@ static bool IsReadyToEnterRFNOP()
     VERIFY_TRUE_OR_EXIT(TAG, !tempBool, WARNING);
 
     // Verify implemented SVRs with rowneruuid Property have non-Nil rowneruuid
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetAclRownerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsAclRowneruuidTheNilUuid(), WARNING);
 
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetCredRownerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsCredRowneruuidTheNilUuid(), WARNING);
 
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmRownerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsDoxmRowneruuidTheNilUuid(), WARNING);
 
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetPstatRownerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsPstatRowneruuidTheNilUuid(), WARNING);
 
     // Verify each rowneruuid, devowneruuid has a corresponding /cred entry
     // TODO [IOT-2023]
@@ -167,28 +142,22 @@ exit:
 /**
  * @return true if Device meets requirements to enter RFOTM DOS.
  */
-static bool IsReadyToEnterRFOTM()
+static bool IsReadyToEnterRFOTM(void)
 {
     bool ret = false;
-    bool tempBool = false;
-    OicUuid_t tempUuid = {.id={0}};
 
     // Note: pstat.dos.p asserted by DoStateChange(), so not checked here.
 
     // Verify doxm.owned == FALSE.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmIsOwned(&tempBool), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !tempBool, WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsDoxmOwned(), WARNING);
 
     // Verify doxm.devowneruuid == nil UUID.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmDevOwnerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, IsDoxmDevowneruuidTheNilUuid(), WARNING);
 
     // Check and log whether doxm.deviceuuid == nil UUID ("may" reqt not "shall")
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmDeviceID(&tempUuid), ERROR);
-    if (!IsNilUuid(&tempUuid))
+    if(!IsDoxmDeviceuuidTheNilUuid())
     {
-        OIC_LOG_V(INFO, TAG, "%s: doxm.deviceuuid != Nil UUID... allowed but noted.",
-            __func__);
+        OIC_LOG_V(INFO, TAG, "%s: doxm.deviceuuid != Nil UUID... allowed but noted.", __func__);
     }
 
     ret = true;
@@ -201,40 +170,31 @@ exit:
 /**
  * @return true if Device meets requirements to enter RFPRO DOS.
  */
-static bool IsReadyToEnterRFPRO()
+static bool IsReadyToEnterRFPRO(void)
 {
     bool ret = false;
-    bool tempBool = false;
-    OicUuid_t tempUuid = {.id={0}};
 
     // Note: pstat.dos.p asserted by DoStateChange(), so not checked here.
 
     // Verify doxm.owned == TRUE.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmIsOwned(&tempBool), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, tempBool, WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, IsDoxmOwned(), WARNING);
 
     // Verify doxm.devowneruuid != nil UUID.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmDevOwnerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsDoxmDevowneruuidTheNilUuid(), WARNING);
 
     // Verify doxm.deviceuuid != nil UUID.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmDeviceID(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsDoxmDeviceuuidTheNilUuid(), WARNING);
 
     // doxm.sct and doxm.oxmsel retain previous values (checked by CTT)
 
     // Verify implemented SVRs with rowneruuid Property have non-Nil rowneruuid
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetAclRownerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsAclRowneruuidTheNilUuid(), WARNING);
 
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetCredRownerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsCredRowneruuidTheNilUuid(), WARNING);
 
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmRownerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsDoxmRowneruuidTheNilUuid(), WARNING);
 
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetPstatRownerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsPstatRowneruuidTheNilUuid(), WARNING);
 
     // Verify each rowneruuid, devowneruuid has a corresponding /cred entry
     // TODO [IOT-2023]
@@ -249,27 +209,22 @@ exit:
 /**
  * @return true if Device meets requirements to set pstat.dos.s = SRESET.
  */
-static bool IsReadyToEnterSRESET()
+static bool IsReadyToEnterSRESET(void)
 {
     bool ret = false;
-    bool tempBool = false;
-    OicUuid_t tempUuid = {.id={0}};
 
     // Note: pstat.dos.p set by DoStateChange(), so not checked here.
 
     // TODO [IOT-2023]: sanity check SVRs (optional)
 
     // Verify doxm.owned == TRUE.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmIsOwned(&tempBool), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, tempBool, WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, IsDoxmOwned(), WARNING);
 
     // Verify doxm.devowneruuid != nil UUID.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmDevOwnerId(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsDoxmDevowneruuidTheNilUuid(), WARNING);
 
     // Verify doxm.deviceuuid != nil UUID.
-    VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDoxmDeviceID(&tempUuid), ERROR);
-    VERIFY_TRUE_OR_EXIT(TAG, !IsNilUuid(&tempUuid), WARNING);
+    VERIFY_TRUE_OR_EXIT(TAG, !IsDoxmDeviceuuidTheNilUuid(), WARNING);
 
     // doxm.sct and doxm.oxmsel retain previous values (checked by CTT)
 
@@ -351,7 +306,7 @@ exit:
 /**
  * Enter RFNOP state and set all Server-controlled SVR Property values.
  */
-static bool EnterRFNOP()
+static bool EnterRFNOP(void)
 {
     bool ret = false;
 
@@ -368,7 +323,7 @@ static bool EnterRFNOP()
 /**
  * Enter RFOTM state and set all Server-controlled SVR Property values.
  */
-static bool EnterRFOTM()
+static bool EnterRFOTM(void)
 {
     bool ret = false;
 
@@ -385,7 +340,7 @@ static bool EnterRFOTM()
 /**
  * Enter RFPRO state and set all Server-controlled SVR Property values.
  */
-static bool EnterRFPRO()
+static bool EnterRFPRO(void)
 {
     bool ret = false;
 
@@ -402,7 +357,7 @@ static bool EnterRFPRO()
 /**
  * Enter RESET state and set all Server-controlled SVR Property values.
  */
-static bool EnterRESET()
+static bool EnterRESET(void)
 {
     bool ret = false;
 
@@ -411,7 +366,8 @@ static bool EnterRESET()
     // SVRs (e.g. the hard-coded SVRs in IoTivity) or it could be a backup
     // copy of the initally-provisioned SVRs (e.g. the ResetSecureResourceInPS
     // function in IoTivity).
-    // TODO [IOT-2633]: VERIFY_SUCCESS(TAG, OC_STACK_OK == ResetSecureResources(), ERROR);
+    // TODO [IOT-2633]: 
+    VERIFY_SUCCESS(TAG, OC_STACK_OK == ResetSecureResources(), ERROR);
 
     // Set doxm.deviceuuid = Mfr Default (handled above)
     // Set doxm.sct = Mfr Default ("")
@@ -428,12 +384,18 @@ static bool EnterRESET()
 
     // Set acl, doxm, cred and pstat rowneruuids = Nil UUID
     VERIFY_SUCCESS(TAG, OC_STACK_OK == SetAclRownerId(&THE_NIL_UUID), ERROR);
+    VERIFY_SUCCESS(TAG, OC_STACK_OK == SetCredRownerId(&THE_NIL_UUID), ERROR);
     VERIFY_SUCCESS(TAG, OC_STACK_OK == SetDoxmRownerId(&THE_NIL_UUID), ERROR);
     VERIFY_SUCCESS(TAG, OC_STACK_OK == SetPstatRownerId(&THE_NIL_UUID), ERROR);
 
+    // clear all bits in cm and tm before setting the 2 lsbs
+    OicSecDpm_t dpmZero = 0;
+    VERIFY_SUCCESS(TAG, OC_STACK_OK == SetPstatCm(dpmZero), ERROR);
+    VERIFY_SUCCESS(TAG, OC_STACK_OK == SetPstatTm(dpmZero), ERROR);
+
     // Set pstat.isop = FALSE
-    // Set pstat.cm RESET and unset TAKE_OWNER
-    // Unset pstat.tm and set TAKE_OWNER
+    // Set pstat.cm RESET, and unset TAKE_OWNER
+    // Unset pstat.tm RESET, and set TAKE_OWNER
     // Set pstat.dos.s to RESET
     VERIFY_SUCCESS(TAG,
         EnterStateGeneric(false, true, false, false, true, DOS_RESET),
@@ -449,6 +411,10 @@ static bool EnterRESET()
         isAnonEnabled ? "" : "NOT ");
 #endif // __WITH_DTLS__ or __WITH_TLS__
 
+#if defined(WITH_CLOUD)
+    ResetClouds();
+#endif
+
     ret = true;
 
 exit:
@@ -459,13 +425,13 @@ exit:
 /**
  * Enter SRESET state and set all Server-controlled SVR Property values.
  */
-static bool EnterSRESET()
+static bool EnterSRESET(void)
 {
     bool ret = false;
 
     // Set pstat.isop = FALSE
-    // Set pstat.cm RESET and unset TAKE_OWNER
-    // Unset pstat.tm and unset TAKE_OWNER
+    // Set pstat.cm RESET, and unset TAKE_OWNER
+    // Unset pstat.tm RESET, and unset TAKE_OWNER
     // Set pstat.dos.s to RESET
     VERIFY_SUCCESS(TAG,
         EnterStateGeneric(false, true, false, false, false, DOS_SRESET),
