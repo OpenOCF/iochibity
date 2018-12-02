@@ -20,13 +20,6 @@
 
 #include "oxmverifycommon.h"
 
-/* #include "ocstack.h" */
-/* #include "logger.h" */
-/* #include "base64.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "cainterface.h" */
-/* #include "oxmverifycommon.h" */
-
 #define TAG "OIC_VERIFY_COMMON"
 
 #if EXPORT_INTERFACE
@@ -49,13 +42,15 @@
 /**
  * Function pointer to display verification PIN
  */
-typedef OCStackResult (*DisplayNumCallback)(void * ctx, uint8_t verifNum[MUTUAL_VERIF_NUM_LEN]);
-
+#if INTERFACE
+typedef OCStackResult (/* OC_CALL */ *DisplayNumCallback)(void * ctx, uint8_t verifNum[MUTUAL_VERIF_NUM_LEN]);
+#endif
 /**
  * Function pointer to get user confirmation
  */
-typedef OCStackResult (*UserConfirmCallback)(void * ctx);
-
+#if INTERFACE
+typedef OCStackResult (/* OC_CALL */ *UserConfirmCallback)(void * ctx);
+#endif
 /**
  * Context for displaying verification PIN
  */
@@ -94,7 +89,7 @@ void OC_CALL SetDisplayNumCB(void * ptr, DisplayNumCallback displayNumCB)
     OIC_LOG(DEBUG, TAG, "OUT SetDisplayNumCB");
 }
 
-void* OC_CALL UnsetDisplayNumCB()
+void* OC_CALL UnsetDisplayNumCB(void)
 {
     OIC_LOG(DEBUG, TAG, "IN UnsetDisplayNumCB");
     void *prevctx = gDisplayNumContext.context;
@@ -117,7 +112,7 @@ void OC_CALL SetUserConfirmCB(void * ptr, UserConfirmCallback userConfirmCB)
     OIC_LOG(DEBUG, TAG, "OUT SetUserConfirmCB");
 }
 
-void* OC_CALL UnsetUserConfirmCB()
+void* OC_CALL UnsetUserConfirmCB(void)
 {
     OIC_LOG(DEBUG, TAG, "IN UnsetUserConfirmCB");
     void *prevctx = gUserConfirmContext.context;
