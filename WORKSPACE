@@ -155,6 +155,7 @@ new_http_archive(
     #strip_prefix = "tinycbor-0.5.1",
 )
 
+# https://troydhanson.github.io/uthash/
 new_http_archive(
     name = "uthash",
     urls = ["https://github.com/OpenOCF/uthash/archive/v2.0.2.zip"],
