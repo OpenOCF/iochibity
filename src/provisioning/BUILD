@@ -6,14 +6,8 @@ cc_library(
              "-Isrc/util",
              "-Iexternal/openocf/src/util",
              "-Iexternal/tinycbor/src",
-
-             "-Iconfig/darwin",
-             "-Iconfig/darwin/coap",
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
-
-             # "-Ithird_party/utlist",
-             # "-Iexternal/openocf/third_party/utlist",
              "-Iexternal/sqlite3"
     ] + CSTD + OS_COPTS
     + select({"//config:multi_own": ["-DMULTIPLE_OWNER"],
@@ -33,7 +27,7 @@ cc_library(
             "@mbedtls//:mbedtls",
             "@tinycbor//:tinycbor",
 	    "@sqlite3//:sqlite3",
-	    "@utlist//:utlist"
+	    "@uthash//:uthash"
     ]+ select({"//config:multi_own": ["//src/provisioning/multiown"],
               "//conditions:default": []}),
     #         # if WITH_TCP

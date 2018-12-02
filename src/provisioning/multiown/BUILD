@@ -5,7 +5,7 @@ cc_library(
     copts = ["-Isrc",
              "-Iexternal/tinycbor/src",
              "-Iexternal/libcoap/include",
-             "-Iexternal/utlist/src",
+             "-Iexternal/uthash/src",
     ] + CSTD + OS_COPTS,
 
     # defines = DEFINES,
@@ -22,7 +22,7 @@ cc_library(
             "@mbedtls//:mbedtls",
             "@tinycbor//:tinycbor",
 	    "@sqlite3//:sqlite3",
-	    "@utlist//:utlist"
+	    "@uthash//:uthash"
     ],
     srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//visibility:public"]

@@ -61,7 +61,7 @@ cc_library(
              "-Iexternal/libcoap/include",
              # "-Iexternal/libcoap/include/coap",
              "-Iexternal/tinycbor/src",
-             "-Iexternal/utlist/src",
+             "-Iexternal/uthash/src",
     ] + select({"//config:windows": [],
                 "//config:msvc": [],
                 "//config:msys": [],
@@ -84,7 +84,7 @@ cc_library(
             "@cjson//:cjson",
             "@libcoap//:libcoap",
             "@tinycbor//:tinycbor",
-	    "@utlist//:utlist"]
+	    "@uthash//:uthash"]
     + select({":client_role": ["//src/ocf/ocf_services_client"],
               "//conditions:default": []}),
     # hdrs = select({":client_role": ["client/co_service_provider_mgr.h"],
