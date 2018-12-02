@@ -24,7 +24,9 @@
 #if INTERFACE
 #include <time.h>
 #endif
+#ifdef HAVE_MEMORY_H
 #include <memory.h>
+#endif
 #include <stdbool.h>
 
 #define TM_BASE_YEAR   1900
