@@ -27,6 +27,8 @@
 #include <strings.h>
 #endif
 
+#include <cbor.h>
+
 #include "utlist.h"
 
 #if defined(__WITH_DTLS__) || defined (__WITH_TLS__)

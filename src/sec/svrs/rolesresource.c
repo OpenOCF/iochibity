@@ -34,25 +34,11 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-/* #include "oic_string.h" */
-/* #include "cainterface.h" */
-/* #include "payload_logging.h" */
-/* #include "ocstack.h" */
-/* #include "ocrandom.h" */
-/* #include "cacommon.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "ocpayload.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "credresource.h" */
-/* #include "doxmresource.h" */
-/* #include "srmutility.h" */
-/* #include "certhelpers.h" */
-/* #include "resourcemanager.h" */
+#if INTERFACE
+#include <cbor.h>
+#endif
+
 #include "utlist.h"
-/* #include "ca_adapter_net_ssl.h" */
-/* #include "ocstackinternal.h" */
-/* #include "rolesresource.h" */
-/* #include "secureresourcemanager.h" */
 
 #define TAG  "OIC_SRM_ROLES"
 

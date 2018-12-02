@@ -20,26 +20,16 @@
 #include "spresource.h"
 /* #include "iotivity_config.h" */
 
-#if EXPORT_INTERFACE
+/* #if EXPORT_INTERFACE */
 #include "cbor.h"
-#endif
+/* #endif */
 
+#if INTERFACE
+#include <stddef.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-
-/* #include "ocstack.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "ocpayload.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "experimental/payload_logging.h" */
-/* #include "psinterface.h" */
-/* #include "resourcemanager.h" */
-/* #include "spresource.h" */
-/* #include "deviceonboardingstate.h" */
-/* #include "srmutility.h" */
-/* #include "srmresourcestrings.h" */
 
 #define TAG  "OIC_SRM_SP"
 

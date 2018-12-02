@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
+#include <cbor.h>
 /* #include "oic_string.h" */
 /* #include "cainterface.h" */
 /* #include "payload_logging.h" */

@@ -34,9 +34,9 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#if EXPORT_INTERFACE
+/* #if EXPORT_INTERFACE */
 #include "cbor.h"
-#endif
+/* #endif */
 
 #include "utlist.h"
 

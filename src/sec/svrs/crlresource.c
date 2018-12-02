@@ -21,22 +21,9 @@
 #include "crlresource.h"
 
 #include "utlist.h"
-/* #include "crl_logging.h" */
-/* #include "payload_logging.h" */
-/* #include "psinterface.h" */
-/* #include "resourcemanager.h" */
-/* #include "srmresourcestrings.h" */
-/* #include "srmutility.h" */
-/* #include "doxmresource.h" */
-/* #include "ocpayload.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "crlresource.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "base64.h" */
 
 #include "mbedtls/base64.h"
+#include "cbor.h"
 
 #include <time.h>
 
