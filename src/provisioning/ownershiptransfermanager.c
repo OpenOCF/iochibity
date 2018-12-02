@@ -52,55 +52,13 @@
 
 #define TAG "OIC_OTM"
 
-#if INTERFACE
-/* src: securevirtualresource.h */
-#ifdef MULTIPLE_OWNER
-typedef enum
-{
-    MOT_STATUS_READY = 0,
-    MOT_STATUS_IN_PROGRESS = 1,
-    MOT_STATUS_DONE = 2,
-} MotStatus_t;
-
-// typedef unsigned int MotStatus_t;
-
-/**
- * oic.sec.mom type definition
- * TODO: This type will be included to OIC Security Spec.
- * 0 : Disable multiple owner
- * 1 : Enable multiple owner (Always on)
- * 2 : Timely multiple owner enable
- */
-typedef enum
-{
-    OIC_MULTIPLE_OWNER_DISABLE = 0,
-    OIC_MULTIPLE_OWNER_ENABLE = 1,
-    OIC_MULTIPLE_OWNER_TIMELY_ENABLE = 2,
-    OIC_NUMBER_OF_MOM_TYPE = 3
-} OicSecMomType_t;
-
-//typedef unsigned int OicSecMomType_t;
-
-//typedef struct OicSecSubOwner OicSecSubOwner_t;
-typedef struct OicSecMom OicSecMom_t;
-
-typedef struct OicSecSubOwner {
-    OicUuid_t uuid;
-    MotStatus_t status;
-    struct OicSecSubOwner* next;
-} OicSecSubOwner_t;
-
-struct OicSecMom{
-    OicSecMomType_t mode;
-};
-#endif	/* INTERFACE */
-#endif //MULTIPLE_OWNER
-
 /* #define fixme_otm_dp DoxmProperty_t /\* help makeheaders *\/ */
 /* #define fixme_otm_pstat PstatProperty_t /\* help makeheaders *\/ */
 
 #define OXM_STRING_MAX_LENGTH 32
+#if INTERFACE
 #define WRONG_PIN_MAX_ATTEMP 5
+#endif
 
 #if EXPORT_INTERFACE
 /**
