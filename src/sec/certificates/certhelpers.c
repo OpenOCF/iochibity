@@ -19,25 +19,12 @@
  * *****************************************************************/
 
 #include "certhelpers.h"
-/* #include "iotivity_config.h" */
 
-/* #include "logger.h" */
 #include <stddef.h>
 #include <string.h>
 #include <time.h>
 #include <inttypes.h>
 #include <assert.h>
-
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "cacommon.h" */
-/* #include "ocrandom.h" */
-/* #include "cacommonutil.h" */
-
-/* #include "ocpayload.h" */
-/* #include "payload_logging.h" */
-/* //GARtmp #include "pmutility.h" */
-/* #include "srmutility.h" */
 
 // headers required for mbed TLS
 #include "mbedtls/config.h"
