@@ -42,18 +42,89 @@
 
 #define TAG "OIC_CA_PRTCL_MSG"
 
-
 #if INTERFACE
-#include <coap/coap_list.h>
-#endif
+typedef enum
+{
+    /* Signaling code - START HERE */
+    CA_CSM = 701,                           /**< Capability and Settings messages */
+    CA_PING = 702,                          /**< Ping messages */
+    CA_PONG = 703,                          /**< Pong messages */
+    CA_RELEASE = 704,                       /**< Release messages */
+    CA_ABORT = 705,                         /**< Abort messages */
+    /* Signaling code - END HERE */
+} CASignalingCode_t;
 
+/**
+ * Signaling information received.
+ *
+ * This structure is used to hold signaling information.
+ */
+typedef struct                  /* FIXME: move to e.g. caop/signaling.c */
+{
+    CASignalingCode_t code;     /**< signaling code */
+    CAInfo_t info;              /**< Information of the signaling */
+} CASignalingInfo_t;
+
+#include "coap_config.h"
+#include "coap/coap_list.h"
+#include "coap/pdu.h"
 #include "coap/block.h"
 #include "coap_config.h"
 #include "coap/mem.h"
-#include "coap/pdu.h"
 #include "coap/prng.h"
+#endif
 
+/**
+ * option types - the highest option number 63.
+ */
 #if INTERFACE
+#define CA_OPTION_IF_MATCH 1          /**< match option */
+#define CA_OPTION_ETAG 4              /**< ETAG option */
+#define CA_OPTION_IF_NONE_MATCH 5     /**< non match option */
+#define CA_OPTION_OBSERVE 6           /**< observe option */
+#define CA_OPTION_LOCATION_PATH 8     /**< location path option */
+#define CA_OPTION_URI_PATH 11         /**< URI path option */
+#define CA_OPTION_CONTENT_FORMAT 12   /**< content format option */
+#define CA_OPTION_CONTENT_TYPE COAP_OPTION_CONTENT_FORMAT /**< content type option */
+#define CA_OPTION_MAXAGE 14           /**< max age option */
+#define CA_OPTION_URI_QUERY 15        /**< uri query option */
+#define CA_OPTION_ACCEPT 17           /**< accept option */
+#define CA_OPTION_LOCATION_QUERY 20   /**< location query option */
+#endif
+
+/* CoAP Option numbers and values */
+/* https://www.iana.org/assignments/core-parameters/core-parameters.xhtml */
+/* OCF spec 12.2.5 */
+#if EXPORT_INTERFACE
+ /* application/vnd.ocf+cbor */
+#define COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR 10000
+#define OCF_ACCEPT_CONTENT_FORMAT_VERSION       2049  /* CoAP option number */
+#define OCF_CONTENT_FORMAT_VERSION              2053  /* CoAP Option number */
+
+/** Integer value of spec version (OCF v1.0 0 = b0000:1000:0000:0000 = 2048).*/
+/* These are values for the OCF version CoAP Options above */
+#define OCF_VERSION_1_0_0                2048
+#define OCF_VERSION_1_1_0                2112
+#define OC_SPEC_VERSION_VALUE            OCF_VERSION_1_0_0
+
+// The Accept Version and Content-Format Version for OCF 1.0.0 (0b0000 1000 0000 0000).
+#define DEFAULT_VERSION_VALUE            OCF_VERSION_1_0_0
+#endif	/* EXPORT_INTERFACE */
+
+/**
+ * Option numbers for Signaling messages are specific to the message code.
+ * They do not share the number space with CoAP options for request/response
+ * messages or with Signaling messages using other codes.
+ */
+#if INTERFACE
+#define CA_OPTION_SERVER_NAME_SETTING 1    /**< Capability and Settings messages, code=7.01 */
+#define CA_OPTION_MAX_MESSAGE_SIZE 2       /**< Capability and Settings messages, code=7.01 */
+#define CA_OPTION_BLOCK_WISE_TRANSFER 4    /**< Capability and Settings messages, code=7.01 */
+#define CA_OPTION_CUSTODY 2                /**< Ping and Pong Messages, code=7.02 */
+#define CA_OPTION_BAD_SERVER_NAME 2        /**< Release Messages, code=7.04 */
+#define CA_OPTION_ALTERNATE_ADDRESS 4      /**< Abort Messages, code=7.05 */
+#define CA_OPTION_HOLD_OFF 6               /**< Abort Messages, code=7.05 */
+
 /**
  * Message Type for Base source code.
  */
@@ -81,6 +152,16 @@ typedef enum
  * Max header options data length.
  */
 #define CA_MAX_HEADER_OPTION_DATA_LENGTH 1024
+
+/**
+* Max token length.
+*/
+// exported for jni
+#if EXPORT_INTERFACE
+#define CA_MAX_TOKEN_LEN (8)
+#endif
+
+#define COAP_MAX_PDU_SIZE           1400 /* maximum size of a CoAP PDU for big platforms*/
 
 /**
  * Token information for mapping the request and responses by resource model.

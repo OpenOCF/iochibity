@@ -24,15 +24,51 @@
  */
 
 #include "caping.h"
-#include "camessagehandler.h"
-#include "octhread.h"
-#include "oic_malloc.h"
-#include "experimental/logger.h"
-#include "oic_time.h"
-#include "oic_string.h"
-#include "catcpadapter.h"
 
 #define TAG "OIC_CA_PING"
+
+#if INTERFACE
+/**
+ * Callback that notifies the user when a pong message is received
+ */
+typedef void (* CAPongHandler)(void *context, CAEndpoint_t endpoint, bool withCustody);
+
+/**
+ * Callback to delete the context upon removal of the callback/context pointer
+ * from the internal callback-list
+ */
+typedef void (* CAPongContextDeleter)(void *context);
+
+/**
+ * This info is passed when initiating ping message
+ */
+
+typedef struct CAPongCallbackData
+{
+    /** Pointer to the context */
+    void *context;
+
+    /** The pointer to a function the stack will call when a pong message is received */
+    CAPongHandler cb;
+
+    /** A pointer to a function to delete the context when this callback is removed */
+    CAPongContextDeleter cd;
+} CAPongCallbackData;
+
+typedef struct PingInfo_t
+{
+    CAEndpoint_t        endpoint;       // remote endpoint that was pinged
+    bool                withCustody;    // true if ping was sent with custody option
+    CAToken_t           token;          // token used in the ping message
+    uint8_t             tokenLength;    // length of the token
+    uint64_t            timeStamp;      // time stamp at which the ping was sent
+    CAPongCallbackData  cbData;         // Callback data associated with this ping/pong exchange
+    struct PingInfo_t   *next;          // pointer to next ping info
+} PingInfo;
+
+// Default ping timeout value in ms. Note: RFC 8323 does not specify a default timeout
+#define CA_DEFAULT_PING_TIMEOUT     10000
+#endif
 
 /**
  * List to hold the ping information
