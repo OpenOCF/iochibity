@@ -539,7 +539,7 @@ typedef void (*CAKeepAliveConnectionCallback)(const CAEndpoint_t *object, bool i
  * connection informations are delivered these callbacks.
  * @param[in]   ConnHandler     Connection status changes callback.
  */
-
+// src: caconnectivitymanager.c
 void CARegisterKeepAliveHandler(CAKeepAliveConnectionCallback ConnHandler)
 {
     CATCPSetKeepAliveCallbacks(ConnHandler);

@@ -20,7 +20,6 @@
 
 #include "caqueueingthread.h"
 
-/* #include "iotivity_config.h" */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,20 +30,11 @@
 #include <sys/types.h>
 #endif
 
-/* #include "caqueueingthread.h" */
-/* #include "oic_malloc.h" */
-/* #include "logger.h" */
-
 #define TAG "OIC_CA_QING"
 
 #if EXPORT_INTERFACE
 #include <stdint.h>
 #endif
-
-/* #include "cathreadpool.h" */
-/* #include "octhread.h" */
-/* #include "uqueue.h" */
-/* #include "cacommon.h" */
 
 #if EXPORT_INTERFACE
 /** Thread function to be invoked. **/
