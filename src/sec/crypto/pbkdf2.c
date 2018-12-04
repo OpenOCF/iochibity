@@ -18,6 +18,8 @@
 *
 ******************************************************************/
 
+/* PBKDF2: Password-Based Key Derivation Function 2 */
+
 #include "pbkdf2.h"
 
 #include "mbedtls/pkcs5.h"
