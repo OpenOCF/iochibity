@@ -292,3 +292,18 @@ void CADestroySignalingInfoInternal(CASignalingInfo_t *sig)
     CADestroyInfoInternal(&sig->info);
     OICFree(sig);
 }
+
+/* src: caprotocolmessage.c */
+CAResult_t CAGetSignalingInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
+                                     CASignalingInfo_t *outSigInfo)
+{
+    VERIFY_NON_NULL(pdu, TAG, "pdu");
+    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL(outSigInfo, TAG, "outSigInfo");
+
+    uint32_t code = CA_NOT_FOUND;
+    CAResult_t ret = CAGetInfoFromPDU(pdu, endpoint, &code, &(outSigInfo->info));
+    outSigInfo->code = code;
+
+    return ret;
+}

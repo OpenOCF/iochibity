@@ -496,9 +496,7 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
         if (0 == info->messageId)
         {
             /* initialize message id */
-	    /* prng files buf with len random bytes. alas it is private (static) to libcoap
-             * prng((uint8_t * ) &message_id, sizeof(message_id)); */
-	    OCGetRandomBytes((uint8_t * ) &message_id, sizeof(message_id));
+            prng((uint8_t * ) &message_id, sizeof(message_id));
 
             OIC_LOG_V(DEBUG, TAG, "gen msg id=%d", message_id);
         }
@@ -521,10 +519,27 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
         OIC_LOG_V(DEBUG, TAG, "token info token length: %d, token :", tokenLength);
         OIC_LOG_BUFFER(DEBUG, TAG, (const uint8_t *)info->token, tokenLength);
 
-        int32_t ret = coap_add_token2(pdu, tokenLength, (unsigned char *)info->token, *transport);
-        if (0 == ret)
+#ifdef ENABLE_TCP
+        if (info->payloadSize == 0 && (code == (CASignalingCode_t)CA_CSM || code == CA_PING ||
+                                       code == CA_PONG || code == CA_RELEASE ||
+                                       code == CA_ABORT))
         {
-            OIC_LOG(ERROR, TAG, "can't add token");
+            int32_t ret = coap_add_token_to_empty_message(pdu, tokenLength,
+                            (unsigned char *)info->token, *transport);
+            if (0 == ret)
+            {
+                OIC_LOG(ERROR, TAG, "can't add token");
+            }
+        }
+        else
+#endif
+        {
+            int32_t ret = coap_add_token2(pdu, tokenLength, (unsigned char *)info->token,
+                            *transport);
+            if (0 == ret)
+            {
+                OIC_LOG(ERROR, TAG, "can't add token");
+            }
         }
     }
 
@@ -679,68 +694,6 @@ CAResult_t CAParseUriPartial(const unsigned char *str, size_t length, uint16_t t
     return CA_STATUS_OK;
 }
 
-static CAResult_t CAParsePayloadFormatHeadOption(uint16_t formatOption, CAPayloadFormat_t format,
-        uint16_t versionOption, uint16_t version, coap_list_t **optlist)
-{
-    coap_list_t* encodeNode = NULL;
-    coap_list_t* versionNode = NULL;
-    uint8_t encodeBuf[CA_ENCODE_BUFFER_SIZE] = { 0 };
-    uint8_t versionBuf[CA_ENCODE_BUFFER_SIZE] = { 0 };
-
-    switch (format)
-    {
-        case CA_FORMAT_APPLICATION_CBOR:
-            encodeNode = CACreateNewOptionNode(formatOption,
-                    coap_encode_var_bytes(encodeBuf,
-                            (unsigned short) COAP_MEDIATYPE_APPLICATION_CBOR), (char *) encodeBuf);
-            break;
-        case CA_FORMAT_APPLICATION_VND_OCF_CBOR:
-            encodeNode = CACreateNewOptionNode(formatOption,
-                    coap_encode_var_bytes(encodeBuf,
-                            (unsigned short) COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR),
-                    (char *) encodeBuf);
-            break;
-        default:
-            OIC_LOG_V(ERROR, TAG, "Format option:[%d] not supported", format);
-    }
-    if (!encodeNode)
-    {
-        OIC_LOG(ERROR, TAG, "Format option not created");
-        return CA_STATUS_INVALID_PARAM;
-    }
-    int ret = coap_insert(optlist, encodeNode, CAOrderOpts);
-    if (0 >= ret)
-    {
-        coap_delete(encodeNode);
-        OIC_LOG(ERROR, TAG, "Format option not inserted in header");
-        return CA_STATUS_INVALID_PARAM;
-    }
-
-    if ((OCF_ACCEPT_CONTENT_FORMAT_VERSION == versionOption ||
-         OCF_CONTENT_FORMAT_VERSION == versionOption) &&
-        CA_FORMAT_APPLICATION_VND_OCF_CBOR == format)
-    {
-        versionNode = CACreateNewOptionNode(versionOption,
-                coap_encode_var_bytes(versionBuf, version), (char *) versionBuf);
-
-        if (!versionNode)
-        {
-            OIC_LOG(ERROR, TAG, "Version option not created");
-            coap_delete(encodeNode);
-            return CA_STATUS_INVALID_PARAM;
-        }
-        ret = coap_insert(optlist, versionNode, CAOrderOpts);
-        if (0 >= ret)
-        {
-            coap_delete(versionNode);
-            coap_delete(encodeNode);
-            OIC_LOG(ERROR, TAG, "Content version option not inserted in header");
-            return CA_STATUS_INVALID_PARAM;
-        }
-    }
-    return CA_STATUS_OK;
-}
-
 CAResult_t CAParseHeadOption(uint32_t code, const CAInfo_t *info, coap_list_t **optlist)
 {
     (void)code;
@@ -803,13 +756,73 @@ CAResult_t CAParseHeadOption(uint32_t code, const CAInfo_t *info, coap_list_t **
     return CA_STATUS_OK;
 }
 
+LOCAL CAResult_t CAParsePayloadFormatHeadOption(uint16_t formatOption, CAPayloadFormat_t format,
+        uint16_t versionOption, uint16_t version, coap_list_t **optlist)
+{
+    coap_list_t* encodeNode = NULL;
+    coap_list_t* versionNode = NULL;
+    uint8_t encodeBuf[CA_ENCODE_BUFFER_SIZE] = { 0 };
+    uint8_t versionBuf[CA_ENCODE_BUFFER_SIZE] = { 0 };
+
+    switch (format)
+    {
+        case CA_FORMAT_APPLICATION_CBOR:
+            encodeNode = CACreateNewOptionNode(formatOption,
+                    coap_encode_var_bytes(encodeBuf,
+                            (unsigned short) COAP_MEDIATYPE_APPLICATION_CBOR), (char *) encodeBuf);
+            break;
+        case CA_FORMAT_APPLICATION_VND_OCF_CBOR:
+            encodeNode = CACreateNewOptionNode(formatOption,
+                    coap_encode_var_bytes(encodeBuf,
+                            (unsigned short) COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR),
+                    (char *) encodeBuf);
+            break;
+        default:
+            OIC_LOG_V(ERROR, TAG, "Format option:[%d] not supported", format);
+    }
+    if (!encodeNode)
+    {
+        OIC_LOG(ERROR, TAG, "Format option not created");
+        return CA_STATUS_INVALID_PARAM;
+    }
+    int ret = coap_insert(optlist, encodeNode, CAOrderOpts);
+    if (0 >= ret)
+    {
+        coap_delete(encodeNode);
+        OIC_LOG(ERROR, TAG, "Format option not inserted in header");
+        return CA_STATUS_INVALID_PARAM;
+    }
+
+    if ((OCF_ACCEPT_CONTENT_FORMAT_VERSION == versionOption ||
+         OCF_CONTENT_FORMAT_VERSION == versionOption) &&
+        CA_FORMAT_APPLICATION_VND_OCF_CBOR == format)
+    {
+        versionNode = CACreateNewOptionNode(versionOption,
+                coap_encode_var_bytes(versionBuf, version), (char *) versionBuf);
+
+        if (!versionNode)
+        {
+            OIC_LOG(ERROR, TAG, "Version option not created");
+            coap_delete(encodeNode);
+            return CA_STATUS_INVALID_PARAM;
+        }
+        ret = coap_insert(optlist, versionNode, CAOrderOpts);
+        if (0 >= ret)
+        {
+            coap_delete(versionNode);
+            coap_delete(encodeNode);
+            OIC_LOG(ERROR, TAG, "Content version option not inserted in header");
+            return CA_STATUS_INVALID_PARAM;
+        }
+    }
+    return CA_STATUS_OK;
+}
+
 coap_list_t *CACreateNewOptionNode(uint16_t key, uint32_t length, const char *data)
 {
     VERIFY_NON_NULL_RET(data, TAG, "data", NULL);
 
-    /* coap_malloc is static (private to libcoap!) */
-    /* coap_option *option = coap_malloc(sizeof(coap_option) + length + 1); */
-    coap_option *option = (coap_option*)OICMalloc(sizeof(coap_option) + length + 1);
+    coap_option *option = coap_malloc(sizeof(coap_option) + length + 1);
     if (!option)
     {
         OIC_LOG(ERROR, TAG, "Out of memory");
@@ -849,8 +862,7 @@ coap_list_t *CACreateNewOptionNode(uint16_t key, uint32_t length, const char *da
     if (!node)
     {
         OIC_LOG(ERROR, TAG, "node is NULL");
-        /* coap_free(option);	/\* coap_free is static (private) to libcoap! *\/ */
-	OICFree(option);
+        coap_free(option);
         return NULL;
     }
 
@@ -915,17 +927,13 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
     VERIFY_NON_NULL_MSG(outCode, TAG, "outCode");
     VERIFY_NON_NULL_MSG(outInfo, TAG, "outInfo");
 
-    coap_transport_t transport;
+    coap_transport_t transport = COAP_UDP;
 #ifdef WITH_TCP
     if (CAIsSupportedCoAPOverTCP(endpoint->adapter))
     {
         transport = coap_get_tcp_header_type_from_initbyte(((unsigned char *)pdu->transport_hdr)[0] >> 4);
     }
-    else
 #endif
-    {
-        transport = COAP_UDP;
-    }
 
     coap_opt_iterator_t opt_iter;
     coap_option_iterator_init2((coap_pdu_t *) pdu, &opt_iter, COAP_OPT_ALL, transport);
@@ -1250,8 +1258,8 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
     else if(isProxyRequest && g_chproxyUri[0] != '\0')
     {
        /*
-        *   A request for Proxy will not have any uri element as per CoAP specs
-        *   and only COAP_OPTION_PROXY_URI will be present. Use preset proxy uri
+        *   A request for Proxy will not have any URI element as per CoAP specs
+        *   and only COAP_OPTION_PROXY_URI will be present. Use preset proxy URI
         *   for such requests.
         */
         outInfo->resourceUri = OICStrdup(g_chproxyUri);
