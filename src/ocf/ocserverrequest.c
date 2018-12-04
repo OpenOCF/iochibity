@@ -139,15 +139,6 @@ typedef enum
 } OCEntityHandlerFlag;
 #endif	/* INTERFACE */
 
-/**
- * Option ID of header option. The values match CoAP option types in pdu.h.
- */
-typedef enum
-{
-    CA_HEADER_OPTION_ID_LOCATION_PATH = 8,
-    CA_HEADER_OPTION_ID_LOCATION_QUERY = 20
-} CAHeaderOptionId_t;
-
 #if EXPORT_INTERFACE
 /**
  * The signature of the internal call back functions to handle responses from entity handler
@@ -873,7 +864,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
             }
 
             optionsPointer->protocolID = CA_COAP_ID;
-            optionsPointer->optionID = CA_HEADER_OPTION_ID_LOCATION_PATH;
+            optionsPointer->optionID = (CAHeaderOptionId_t)CA_HEADER_OPTION_ID_LOCATION_PATH;
             OICStrcpy(
                 optionsPointer->optionData,
                 sizeof(optionsPointer->optionData),

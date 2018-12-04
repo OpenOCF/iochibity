@@ -5,3 +5,9 @@ cc_library(
     srcs = ["_sockets.h"],
     visibility = ["//src/comm:__subpackages__"]
 )
+
+cc_library(
+    name = "transport",
+    srcs = ["_transport.h"],
+    visibility = ["//src/sec:__subpackages__"]
+)

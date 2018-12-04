@@ -36,7 +36,8 @@ cc_library(
              "-Isrc/portability",
              "-Iexternal/openocf/src/portability",
              "-Isrc/util",
-             "-Iexternal/openocf/src/util"]
+             "-Iexternal/openocf/src/util",
+             "-Iexternal/libcoap/include"]
     + select({":windows": [],
               ":msvc": [],
               ":msys": [],
@@ -45,7 +46,7 @@ cc_library(
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             # "//src/comm/api",
-            # "//src/ocf:hdrs",
+            "@libcoap//:libcoap",
             "//src/logger",
             "//src/util",
             "//src/portability"],

@@ -1,7 +1,7 @@
 /**
  * Enums for CA return values.
  */
-typedef enum
+typedef enum // FIXME: where does this belong?
 {
     /* Result code - START HERE */
     CA_STATUS_OK = 0,               /**< Success */

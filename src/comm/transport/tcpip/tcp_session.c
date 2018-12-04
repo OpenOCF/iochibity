@@ -79,8 +79,8 @@ typedef struct CATCPSessionInfo_t
     size_t tlsLen;                      /**< received tls data length */
     CAProtocol_t protocol;              /**< application-level protocol */
     CATCPConnectionState_t state;       /**< current tcp session state */
+    CACSMExchangeState_t CSMState;      /**< Capability and Setting Message shared status */
     bool isClient;                      /**< Host Mode of Operation. */
-    struct CATCPSessionInfo_t *next;    /**< Linked list; for multiple session list. */
 } CATCPSessionInfo_t;
 
 /**

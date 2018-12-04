@@ -31,6 +31,15 @@
 #define CALEADAPTER_TAG "OIC_CA_LE_ADAP"
 
 /**
+ * Adapter State to indicate the network changed notifications.
+ */
+typedef enum                    /* only used for gatt? */
+{
+    CA_ADAPTER_DISABLED,   /**< Adapter is Disabled */
+    CA_ADAPTER_ENABLED     /**< Adapter is Enabled */
+} CAAdapterState_t;
+
+/**
  * Information needed for registering an LE advertisement with BlueZ.
  */
 typedef struct CALeadvertisement

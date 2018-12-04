@@ -45,8 +45,6 @@
 #define CSV_SEPARATOR ','
 #define MASK_SECURE_FAMS (OC_FLAG_SECURE | OC_MASK_FAMS)
 
-#define COAP_MAX_PDU_SIZE           1400 /* maximum size of a CoAP PDU for big platforms*/
-
 /**
  * Format indicating which encoding has been used on the payload.
  */

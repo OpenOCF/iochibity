@@ -33,6 +33,8 @@
  */
 #define TAG "OIC_CA_EDR_ADAP"
 
+#define CA_MACADDR_SIZE 18
+
 /**
  * Reference to threadpool.
  */

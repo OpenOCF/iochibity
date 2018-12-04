@@ -80,6 +80,8 @@ oc_mutex log_mutex = NULL;
 
 #define TAG  "OCF LOGGER"
 
+#define ANALYZER_TAG "OIC_ANALYZER"
+
 #if EXPORT_INTERFACE
 #ifdef TB_LOG
 #define CA_TRANSPORT_ADAPTER_STRING(TRANSPORT) ( \

@@ -53,6 +53,20 @@
 
 #define TAG "OIC_OCCERTUTILITY"
 
+#if INTERFACE
+/**
+ * @def UUID_PREFIX
+ * @brief uuid prefix in certificate subject field
+ */
+#define UUID_PREFIX "uuid:"
+
+/**
+ * @def SUBJECT_PREFIX
+ * @brief prefix for specifying part of a cert's subject for a particular uuid
+ */
+#define SUBJECT_PREFIX "CN=" UUID_PREFIX
+#endif  /* INTERFACE */
+
 /* src: securevirtualresourcetypes.h */
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 typedef ByteArray_t OicSecCert_t;

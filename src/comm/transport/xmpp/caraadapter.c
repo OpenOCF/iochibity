@@ -46,6 +46,8 @@
 
 #ifdef RA_ADAPTER
 
+#define CA_RAJABBERID_SIZE 256
+
 /**
  * Callback for bound JID
  * @param[out]   jid           Boud Jabber Identifier.

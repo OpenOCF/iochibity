@@ -37,11 +37,6 @@
 #include "coap/pdu.h"
 /* #endif */
 
-/**
- * TAG of Analyzer log.
- */
-#define ANALYZER_TAG "OIC_ANALYZER"
-
 CAHistory_t requestHistory;  /**< filter IP family in requests */
 
 /**
@@ -74,7 +69,78 @@ typedef struct
     CARemoteId_t identity;      /**< endpoint identity */
     CADataType_t dataType;      /**< data type */
 } CAInfo_t;
-#endif	/* INTERFACE */
+
+/**
+ * Request Information to be sent.
+ *
+ * This structure is used to hold request information.
+ */
+typedef struct
+{
+    CAMethod_t method;  /**< Name of the Method Allowed */
+    CAInfo_t info;      /**< Information of the request. */
+    bool isMulticast;   /**< is multicast request */
+} CARequestInfo_t;
+
+// fn ptr typedefs from cacommon.h
+/**
+ * Callback function type for request delivery.
+ * @param[out]   object       Endpoint object from which the request is received.
+ *                            It contains endpoint address based on the connectivity type.
+ * @param[out]   requestInfo  Info for resource model to understand about the request.
+ */
+typedef void (*CARequestCallback)(const CAEndpoint_t *object,
+                                  const CARequestInfo_t *requestInfo);
+
+/**
+ * Response information received.
+ *
+ * This structure is used to hold response information.
+ */
+typedef struct
+{
+    CAResponseResult_t result;  /**< Result for response by resource model */
+    CAInfo_t info;              /**< Information of the response */
+    bool isMulticast;
+} CAResponseInfo_t;
+
+/**
+ * Callback function type for response delivery.
+ * @param[out]   object           Endpoint object from which the response is received.
+ * @param[out]   responseInfo     Identifier which needs to be mapped with response.
+ */
+typedef void (*CAResponseCallback)(const CAEndpoint_t *object,
+                                   const CAResponseInfo_t *responseInfo);
+
+/**
+ * Error information from CA
+ *        contains error code and message information.
+ *
+ * This structure holds error information.
+ */
+typedef struct
+{
+    CAResult_t result;  /**< CA API request result  */
+    CAInfo_t info;      /**< message information such as token and payload data
+                             helpful to identify the error */
+} CAErrorInfo_t;
+
+/**
+ * Callback function type for error.
+ * @param[out]   object           remote device information.
+ * @param[out]   errorInfo        CA Error information.
+ */
+typedef void (*CAErrorCallback)(const CAEndpoint_t *object,
+                                const CAErrorInfo_t *errorInfo);
+
+/**
+ * Callback function type for error.
+ * @param[out]   object           remote device information.
+ * @param[out]   result           error information.
+ */
+typedef CAResult_t (*CAHandshakeErrorCallback)(const CAEndpoint_t *object,
+                                               const CAErrorInfo_t *errorInfo);
+#endif	/* EXPORT_INTERFACE */
 
 /**
  * Token information for mapping the request and responses by resource model.
@@ -87,12 +153,15 @@ typedef char *CAToken_t;
  * Type will be set as error type for error callback.
  */
 #if EXPORT_INTERFACE
-typedef enum
+typedef enum                    /* => camessagehandler.c */
 {
-    CA_REQUEST_DATA = 1,	/* inbound only? */
-    CA_RESPONSE_DATA,		/* inbound only? */
-    CA_ERROR_DATA,
-    CA_RESPONSE_FOR_RES
+    CA_REQUEST_DATA = 1,                  /**< Request data */
+    CA_RESPONSE_DATA,                     /**< Response data */
+    CA_ERROR_DATA,                        /**< Error data */
+    CA_RESPONSE_FOR_RES,                  /**< Response for resource */
+#ifdef WITH_TCP
+    CA_SIGNALING_DATA                     /**< Signaling data */
+#endif
 } CADataType_t;
 #endif	/* INTERFACE */
 
@@ -171,12 +240,15 @@ typedef enum
 
 typedef struct
 {
-    CASendDataType_t type;
-    CAEndpoint_t *remoteEndpoint;
-    CARequestInfo_t *requestInfo;
-    CAResponseInfo_t *responseInfo;
-    CAErrorInfo_t *errorInfo;
-    CADataType_t dataType;
+    CASendDataType_t type;            /**< data type */
+    CAEndpoint_t *remoteEndpoint;     /**< remote endpoint */
+    CARequestInfo_t *requestInfo;     /**< request information */
+    CAResponseInfo_t *responseInfo;   /**< response information */
+    CAErrorInfo_t *errorInfo;         /**< error information */
+#ifdef WITH_TCP
+    CASignalingInfo_t *signalingInfo; /**< signaling information */
+#endif
+    CADataType_t dataType;            /**< data type */
 } CAData_t;
 #endif
 
@@ -1984,3 +2056,64 @@ LOCAL void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu)
     OIC_TRACE_END();
     OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", __func__);
 }
+
+#ifdef TCP_ADAPTER
+CAResult_t CAAddHeaderOption(CAHeaderOption_t **hdrOpt, uint8_t *numOptions,
+                             uint16_t optionID, void *optionData, size_t optionDataLength)
+{
+    OIC_LOG_V(DEBUG, TAG, "Entering CAAddHeaderOption with optionID: %d", optionID);
+
+    VERIFY_NON_NULL(hdrOpt, TAG, "hdrOpt");
+    VERIFY_NON_NULL(numOptions, TAG, "numOptions");
+    VERIFY_NON_NULL(optionData, TAG, "optionData");
+
+    CAHeaderOption_t *tmpOpt = OICRealloc(*hdrOpt, (*numOptions + 1) * sizeof(CAHeaderOption_t));
+    if (!tmpOpt)
+    {
+        OIC_LOG(ERROR, TAG, "out of memory");
+        return CA_MEMORY_ALLOC_FAILED;
+    }
+
+    tmpOpt[*numOptions].protocolID = CA_COAP_ID;
+    tmpOpt[*numOptions].optionID = optionID;
+    tmpOpt[*numOptions].optionLength = (uint16_t)optionDataLength;
+
+    if (optionData)
+    {
+        memcpy(tmpOpt[*numOptions].optionData, optionData,
+               sizeof(tmpOpt[*numOptions].optionData));
+    }
+
+    // increase the number of options.
+    *numOptions += 1;
+    *hdrOpt = tmpOpt;
+
+    OIC_LOG(DEBUG, TAG, "Added option successfully");
+    return CA_STATUS_OK;
+}
+
+CAResult_t CAGetHeaderOption(CAHeaderOption_t *hdrOpt, size_t numOptions, uint16_t optionID,
+                             void *optionData, size_t optionDataLength, uint16_t *receivedDataLen)
+{
+    OIC_LOG_V(DEBUG, TAG, "Entering CAGetHeaderOption with optionID: %d", optionID);
+
+    VERIFY_NON_NULL(hdrOpt, TAG, "hdrOpt");
+    VERIFY_NON_NULL(optionData, TAG, "optionData");
+    VERIFY_NON_NULL(receivedDataLen, TAG, "receivedDataLen");
+
+    for (size_t i = 0; i < numOptions; i++)
+    {
+        if (hdrOpt[i].optionID == optionID)
+        {
+            if (optionDataLength >= hdrOpt[i].optionLength)
+            {
+                memcpy(optionData, hdrOpt[i].optionData, hdrOpt[i].optionLength);
+                *receivedDataLen = hdrOpt[i].optionLength;
+                return CA_STATUS_OK;
+            }
+        }
+    }
+
+    return CA_STATUS_NOT_FOUND;
+}
+#endif //TCP_ADAPTER

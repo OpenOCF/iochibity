@@ -65,6 +65,28 @@
 #define TAG "TCPCOAP"
 
 #if INTERFACE
+typedef enum
+{
+    /* Signaling code - START HERE */
+    CA_CSM = 701,                           /**< Capability and Settings messages */
+    CA_PING = 702,                          /**< Ping messages */
+    CA_PONG = 703,                          /**< Pong messages */
+    CA_RELEASE = 704,                       /**< Release messages */
+    CA_ABORT = 705,                         /**< Abort messages */
+    /* Signaling code - END HERE */
+} CASignalingCode_t;
+
+/**
+ * Signaling information received.
+ *
+ * This structure is used to hold signaling information.
+ */
+typedef struct                  /* FIXME: move to e.g. caop/signaling.c */
+{
+    CASignalingCode_t code;     /**< signaling code */
+    CAInfo_t info;              /**< Information of the signaling */
+} CASignalingInfo_t;
+
 /**
  * TCP Capability and Settings message (CSM) exchange state.
  * Capability and Settings message must be sent
@@ -108,3 +130,108 @@ void CAUpdateCSMState(const CAEndpoint_t *endpoint, CACSMExchangeState_t state)
     return;
 }
 
+/* src: caremotehandler.c  */
+CASignalingInfo_t *CACloneSignalingInfo(const CASignalingInfo_t *sig)
+{
+    if (NULL == sig)
+    {
+        OIC_LOG(ERROR, TAG, "Singnaling pointer is NULL");
+        return NULL;
+    }
+
+    // check the result value of signaling info.
+    // Keep this check in sync with CASignalingCode_t.
+    switch (sig->code)
+    {
+        case CA_CSM:
+        case CA_PING:
+        case CA_PONG:
+        case CA_RELEASE:
+        case CA_ABORT:
+            break;
+        default:
+            OIC_LOG_V(ERROR, TAG, "Signaling code  %u is invalid", sig->code);
+            return NULL;
+    }
+
+    // allocate the signaling info structure.
+    CASignalingInfo_t *clone = (CASignalingInfo_t *) OICCalloc(1, sizeof(CASignalingInfo_t));
+    if (NULL == clone)
+    {
+        OIC_LOG(ERROR, TAG, "CACloneSignalingInfo Out of memory");
+        return NULL;
+    }
+
+    CAResult_t result = CACloneInfo(&sig->info, &clone->info);
+    if (CA_STATUS_OK != result)
+    {
+        OIC_LOG(ERROR, TAG, "CACloneResponseInfo error in CACloneInfo");
+        CADestroySignalingInfoInternal(clone);
+        return NULL;
+    }
+
+    clone->code = sig->code;
+    return clone;
+}
+
+/* src: caremotehandler.c  */
+void CADestroySignalingInfoInternal(CASignalingInfo_t *sig)
+{
+    if (NULL == sig)
+    {
+        OIC_LOG(ERROR, TAG, "parameter is null");
+        return;
+    }
+
+    CADestroyInfoInternal(&sig->info);
+    OICFree(sig);
+}
+
+/* src: camessagehandler.c */
+CAData_t *CAGenerateSignalingMessage(const CAEndpoint_t *endpoint, CASignalingCode_t code,
+                                     CAHeaderOption_t *headerOpt, uint8_t numOptions)
+{
+    OIC_LOG(DEBUG, TAG, "GenerateSignalingMessage - IN");
+
+    // create token for signaling message.
+    CAToken_t token = NULL;
+    uint8_t tokenLength = CA_MAX_TOKEN_LEN;
+    if (CA_STATUS_OK != CAGenerateTokenInternal(&token, tokenLength))
+    {
+        OIC_LOG(ERROR, TAG, "CAGenerateTokenInternal failed");
+        return NULL;
+    }
+
+    CAInfo_t signalingData = { .type = CA_MSG_NONCONFIRM,
+                               .token = token,
+                               .tokenLength = tokenLength,
+                               .numOptions = numOptions,
+                               .options = headerOpt };
+
+    CASignalingInfo_t sigMsg = { .code = code,
+                                 .info = signalingData };
+
+    return CAPrepareSendData(endpoint, &sigMsg, CA_SIGNALING_DATA);
+}
+
+CAData_t *CAGenerateSignalingMessageUsingToken(const CAEndpoint_t *endpoint, CASignalingCode_t code,
+                                               CAHeaderOption_t *headerOpt, uint8_t numOptions,
+                                               const CAToken_t pingToken, uint8_t pingTokenLength)
+{
+    OIC_LOG(DEBUG, TAG, "GenerateSignalingMessage - IN");
+
+    // create token for signaling message.
+    CAToken_t token = (char *)OICCalloc(pingTokenLength, sizeof(char));
+    memcpy(token, pingToken, pingTokenLength);
+
+    CAInfo_t signalingData = { .type = CA_MSG_NONCONFIRM,
+                               .token = token,
+                               .tokenLength = pingTokenLength,
+                               .numOptions = numOptions,
+                               .options = headerOpt };
+
+    CASignalingInfo_t sigMsg = { .code = code,
+                                 .info = signalingData };
+
+    return CAPrepareSendData(endpoint, &sigMsg, CA_SIGNALING_DATA);
+}

@@ -43,27 +43,6 @@
 #define TAG "OIC_CA_PRTCL_MSG"
 
 #if INTERFACE
-typedef enum
-{
-    /* Signaling code - START HERE */
-    CA_CSM = 701,                           /**< Capability and Settings messages */
-    CA_PING = 702,                          /**< Ping messages */
-    CA_PONG = 703,                          /**< Pong messages */
-    CA_RELEASE = 704,                       /**< Release messages */
-    CA_ABORT = 705,                         /**< Abort messages */
-    /* Signaling code - END HERE */
-} CASignalingCode_t;
-
-/**
- * Signaling information received.
- *
- * This structure is used to hold signaling information.
- */
-typedef struct                  /* FIXME: move to e.g. caop/signaling.c */
-{
-    CASignalingCode_t code;     /**< signaling code */
-    CAInfo_t info;              /**< Information of the signaling */
-} CASignalingInfo_t;
 
 #include "coap_config.h"
 #include "coap/coap_list.h"
@@ -90,6 +69,15 @@ typedef struct                  /* FIXME: move to e.g. caop/signaling.c */
 #define CA_OPTION_URI_QUERY 15        /**< uri query option */
 #define CA_OPTION_ACCEPT 17           /**< accept option */
 #define CA_OPTION_LOCATION_QUERY 20   /**< location query option */
+
+/**
+ * Option ID of header option. The values match CoAP option types in pdu.h.
+ */
+typedef enum
+{
+    CA_HEADER_OPTION_ID_LOCATION_PATH = 8,
+    CA_HEADER_OPTION_ID_LOCATION_QUERY = 20
+} CAHeaderOptionId_t;
 #endif
 
 /* CoAP Option numbers and values */
@@ -128,7 +116,7 @@ typedef struct                  /* FIXME: move to e.g. caop/signaling.c */
 /**
  * Message Type for Base source code.
  */
-typedef enum
+typedef enum // FIXME: move this to src/ocf? not really coap
 {
     CA_MSG_CONFIRM = 0,  /**< confirmable message (requires ACK/RST) */
     CA_MSG_NONCONFIRM,   /**< non-confirmable message (one-shot message) */
@@ -140,7 +128,7 @@ typedef enum
 /**
  * Allowed method to be used by resource model.
  */
-typedef enum
+typedef enum // FIXME: doesn't belong in coap_codec
 {
     CA_GET = 1, /**< GET Method  */
     CA_POST,    /**< POST Method */

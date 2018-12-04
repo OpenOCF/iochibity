@@ -1,10 +1,13 @@
+src/tmp/cacommon.h
+src/tmp/cainterface.h
+src/tmp/casecurityinterface.h
+src/coap/cablockwisetransfer.c
+src/coap/caping.c
 src/coap/coap_codec.c
-src/comm/ca_adapter_net_ssl.c
 src/comm/caadapterinterface.c
 src/comm/caadapternetdtls.c
-src/comm/cablockwisetransfer.c
-src/comm/caconnectivitymanager.c
 src/comm/cainterfacecontroller.c
+src/comm/caconnectivitymanager.c
 src/comm/camessagehandler.c
 src/comm/canetworkconfigurator.c
 src/comm/caqueueingthread.c
@@ -48,8 +51,6 @@ src/comm/transport/bredr/tizen/caedrutils_tizen.c
 src/comm/transport/nfc/android/canfcserver.c
 src/comm/transport/nfc/canfcadapter.c
 src/comm/transport/tcpip/_catcpinterface.h
-src/comm/transport/tcpip/catcpadapter.c
-src/comm/transport/tcpip/catcpserver.c
 src/comm/transport/tcpip/tcp_cm.c
 src/comm/transport/tcpip/tcp_controller.c
 src/comm/transport/tcpip/tcp_controller_windows.c
@@ -81,6 +82,7 @@ src/comm/transport/util/caadapterutils_android.c
 src/comm/transport/util/caadapterutils.c
 src/comm/transport/util/java/caadapterutils_java.c
 src/comm/transport/xmpp/caraadapter.c
+src/comm/transport/_transport.h
 src/comm/util/ble_manager/android/caleautoconnector.c
 src/comm/util/ble_manager/android/caleconnectionmanager.c
 src/comm/util/ble_manager/android/camanagerdevice.c
@@ -100,7 +102,7 @@ src/logger/logger_windows.c
 src/logger/trace.c
 src/ocf/occlientcb.c
 src/ocf/occollection.c
-src/ocf/occonnectionmanager.c
+src/cloud/occonnectionmanager.c
 src/ocf/ocendpoint.c
 src/ocf/ocf_services_client/coresource_db_mgr.c
 src/ocf/ocf_services_client/coresource_mgr.c
@@ -145,8 +147,8 @@ src/portability/windows/snprintf.c
 src/portability/windows/strptime.c
 src/portability/windows/win_sleep.c
 src/provisioning/credentialgenerator.c
-src/provisioning/multiowner/multipleownershiptransfermanager.c
-src/provisioning/multiowner/oxmpreconfpin.c
+src/provisioning/multiown/multipleownershiptransfermanager.c
+src/provisioning/oxmpreconfpin.c
 src/provisioning/ocprovisioningmanager.c
 src/provisioning/otmcontextlist.c
 src/provisioning/ownershiptransfermanager.c
@@ -158,6 +160,7 @@ src/provisioning/provisioningdatabasemanager.c
 src/provisioning/secureresourceprovider.c
 src/sec/ams.c
 src/sec/authorization/policyengine.c
+src/sec/ca_adapter_net_ssl.c
 src/sec/calendar/iotvticalendar.c
 src/sec/certificates/certhelpers.c
 src/sec/certificates/occertutility.c
@@ -183,7 +186,7 @@ src/sec/svrs/secureresourcemanager.c
 src/sec/util/srmutility.c
 src/util/base64.c
 src/util/configuration.c
-src/util/ifaddrs_android.c
+src/util/android-ifaddrs-master/ifaddrs_android.c
 src/util/uarraylist.c
 src/util/ulinklist.c
 src/util/uqueue.c
@@ -197,11 +200,9 @@ src/comm/_globals.h
 src/comm/_history.h
 src/comm/_network.h
 src/comm/_processing.h
-src/comm/_request.h
-src/comm/_response.h
 src/comm/transport/_bt.h
 src/comm/transport/_sockets.h
-src/comm/transport/ble/_cagattservice.h
+src/comm/transport/gatt/_cagattservice.h
 src/ocf/_constants.h
 src/ocf/_device.h
 src/ocf/_platform.h

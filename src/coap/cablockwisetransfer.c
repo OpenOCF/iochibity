@@ -150,7 +150,7 @@ typedef enum
     CA_BLOCK_SIZE_128_BYTE = 3,   /**< 128byte */
     CA_BLOCK_SIZE_256_BYTE = 4,   /**< 256byte */
     CA_BLOCK_SIZE_512_BYTE = 5,   /**< 512byte */
-    CA_BLOCK_SIZE_1024_BYTE = 6     /**< 1Kbyte */
+    CA_BLOCK_SIZE_1024_BYTE = 6   /**< 1Kbyte */
 } CABlockSize_t;
 
 #ifdef WITH_BWT

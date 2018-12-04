@@ -24,15 +24,6 @@
  * This file contains the APIs for adapters to be implemented.
  */
 
-/**
- * Adapter State to indicate the network changed notifications.
- */
-typedef enum
-{
-    CA_ADAPTER_DISABLED,   /**< Adapter is Disabled */
-    CA_ADAPTER_ENABLED     /**< Adapter is Enabled */
-} CAAdapterState_t;
-
 #if EXPORT_INTERFACE
 /**
  * Transport adapter protocol. Each transport adapter will have one of
