@@ -36,11 +36,6 @@
 
 #define TAG "OIC_CA_COMMON_UTILS"
 
-/* GAR: definition is in comm/cainterfacecontroller.c/AddNetworkStateChangedCallback */
-CAResult_t AddNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
-					  CAConnectionStateChangedCB connCB);
-
-/* GAR: inline this */
 static CAResult_t CASetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
 					       CAConnectionStateChangedCB connCB)
 {
@@ -420,6 +415,7 @@ CAResult_t CAUtilStopLEScan()
 }
 #endif // __JAVA__
 
+#ifdef ENABLE_BLE
 CAResult_t CAUtilStartLEAdvertising()
 {
     OIC_LOG(DEBUG, TAG, "CAUtilStartLEAdvertising");
@@ -455,6 +451,7 @@ CAResult_t CAUtilSetBTConfigure(CAUtilConfig_t config)
     return CA_NOT_SUPPORTED;
 #endif
 }
+#endif  /* ENABLE_BLE */
 
 CAResult_t CAGetIpv6AddrScope(const char *addr, CATransportFlags_t *scopeLevel)
 {

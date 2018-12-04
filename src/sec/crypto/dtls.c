@@ -101,6 +101,21 @@ typedef void (*CAgetPkixInfoHandler)(PkiInfo_t * inf);
 #endif	/* INTERFACE */
 
 #if EXPORT_INTERFACE
+/* src: casecurityinterface.h */
+/**
+ * Callback is used by application layer to check peer's certificate CN field.
+ * If set, this callback will be invoked during handshake after certificate verification.
+ *
+ * @param[out] cn     peer's certificate Common Name field.
+ *                    If common name was not found, cn will be set to NULL.
+ * @param[out] cnLen  peer's certificate Common Name field length.
+ *                    If CN was not found, cnLen will be set to 0.
+ *
+ * @return  CA_STATUS_OK or CA_STATUS_FAIL. In case CA_STATUS_FAIL is returned,
+ *          handshake will be dropped.
+ */
+typedef CAResult_t (*PeerCNVerifyCallback)(const unsigned char *cn, size_t cnLen);
+
 typedef void (*CAgetCredentialTypesHandler)(bool * list, const char* deviceId);
 #endif	/* INTERFACE */
 

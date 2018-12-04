@@ -18,37 +18,9 @@
  *
  ******************************************************************/
 
-/* #include "caadapterutils.h" */
-
-/*GAR FIXME: conditionalize on --with-ble etc. */
-/* #include "camanagerleinterface.h" */
-/* #include "cabtpairinginterface.h" */
-
 #include "cautilinterface.h"
 
-// GAR needed for fn prototypes: #include "cainterfacecontroller.h"
-/* #include "cacommon.h" */
-/* #include "logger.h" */
-
 #define TAG "OIC_CA_COMMON_UTILS"
-
-/* GAR: definition is in comm/cainterfacecontroller.c/AddNetworkStateChangedCallback */
-CAResult_t AddNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
-					  CAConnectionStateChangedCB connCB);
-
-/* GAR: inline this */
-static CAResult_t CASetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
-					       CAConnectionStateChangedCB connCB)
-{
-    OIC_LOG(DEBUG, TAG, "Set network monitoring callback");
-    CAResult_t res = AddNetworkStateChangedCallback(adapterCB, connCB);
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG(ERROR, TAG, "AddNetworkStateChangedCallback has failed");
-        return CA_STATUS_FAILED;
-    }
-    return CA_STATUS_OK;
-}
 
 CAResult_t CARegisterNetworkMonitorHandler(CAAdapterStateChangedCB adapterStateCB,
                                            CAConnectionStateChangedCB connStateCB)
@@ -56,24 +28,6 @@ CAResult_t CARegisterNetworkMonitorHandler(CAAdapterStateChangedCB adapterStateC
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     return CASetNetworkMonitorCallbacks(adapterStateCB, connStateCB);
-}
-
-/* GAR: definition is in comm/cainterfacecontroller.c/AddNetworkStateChangedCallback */
-CAResult_t RemoveNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
-					     CAConnectionStateChangedCB connCB);
-
-/* GAR: inline this */
-static CAResult_t CAUnsetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
-						 CAConnectionStateChangedCB connCB)
-{
-    OIC_LOG(DEBUG, TAG, "Unset network monitoring callback");
-    CAResult_t res = RemoveNetworkStateChangedCallback(adapterCB, connCB);
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG(ERROR, TAG, "RemoveNetworkStateChangedCallback has failed");
-        return CA_STATUS_FAILED;
-    }
-    return CA_STATUS_OK;
 }
 
 CAResult_t CAUnregisterNetworkMonitorHandler(CAAdapterStateChangedCB adapterStateCB,
@@ -236,6 +190,225 @@ CAResult_t CAUnsetAutoConnectionDeviceInfo(const char *address)
 /* #endif */
 /*     return 0; */
 /* } */
+
+#if defined(TCP_ADAPTER) && defined(WITH_CLOUD)
+CAResult_t CAUtilCMInitailize()
+{
+    return CACMInitialize();
+}
+
+CAResult_t CAUtilCMTerminate()
+{
+    return CACMTerminate();
+}
+
+CAResult_t CAUtilCMUpdateRemoteDeviceInfo(const CAEndpoint_t *endpoint, bool isCloud)
+{
+    return CACMUpdateRemoteDeviceInfo(endpoint, isCloud);
+}
+
+CAResult_t CAUtilCMResetRemoteDeviceInfo()
+{
+    return CACMResetRemoteDeviceInfo();
+}
+
+CAResult_t CAUtilCMSetConnectionUserConfig(CAConnectUserPref_t connPrefer)
+{
+    return CACMSetConnUserConfig(connPrefer);
+}
+
+CAResult_t CAUtilCMGetConnectionUserConfig(CAConnectUserPref_t *connPrefer)
+{
+    return CACMGetConnUserConfig(connPrefer);
+}
+#endif
+
+#ifdef __JAVA__
+#ifdef __ANDROID__
+/**
+ * initialize client connection manager
+ * @param[in]   env                   JNI interface pointer.
+ * @param[in]   jvm                   invocation inferface for JAVA virtual machine.
+ * @param[in]   context               application context.
+ */
+CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm, jobject context)
+{
+    OIC_LOG(DEBUG, TAG, "CAUtilClientInitialize");
+
+    CAResult_t res = CA_STATUS_OK;
+
+#ifdef LE_ADAPTER
+    if (CA_STATUS_OK != CAManagerLEClientInitialize(env, jvm, context))
+    {
+        OIC_LOG(ERROR, TAG, "CAManagerLEClientInitialize has failed");
+        res = CA_STATUS_FAILED;
+    }
+#endif
+
+#ifdef EDR_ADAPTER
+    if (CA_STATUS_OK != CABTPairingInitialize(env, jvm, context))
+    {
+        OIC_LOG(ERROR, TAG, "CABTPairingInitialize has failed");
+        res = CA_STATUS_FAILED;
+    }
+#endif
+
+#if !defined(LE_ADAPTER) && !defined(EDR_ADAPTER)
+    (void)env;
+    (void)jvm;
+    (void)context;
+#endif
+    return res;
+}
+#else //__ANDROID__
+/**
+ * initialize client connection manager
+ * @param[in]   env                   JNI interface pointer.
+ * @param[in]   jvm                   invocation inferface for JAVA virtual machine.
+ */
+CAResult_t CAUtilClientInitialize(JNIEnv *env, JavaVM *jvm)
+{
+    OIC_LOG(DEBUG, TAG, "CAUtilClientInitialize");
+    (void) env;
+    (void) jvm;
+    CAResult_t res = CA_STATUS_OK;
+
+#ifdef EDR_ADAPTER
+    if (CA_STATUS_OK != CABTPairingInitialize(env, jvm))
+    {
+        OIC_LOG(ERROR, TAG, "CABTPairingInitialize has failed");
+        res = CA_STATUS_FAILED;
+    }
+#endif
+    return res;
+}
+
+#endif //__ANDROID__
+
+/**
+ * terminate client connection manager
+ * @param[in]   env                   JNI interface pointer.
+ */
+CAResult_t CAUtilClientTerminate(JNIEnv *env)
+{
+    OIC_LOG(DEBUG, TAG, "CAUtilClientTerminate");
+#if defined(LE_ADAPTER) && defined(__ANDROID__)
+    return CAManagerLEClientTerminate(env);
+#else
+    OIC_LOG(DEBUG, TAG, "it is not supported");
+    (void)env;
+    return CA_NOT_SUPPORTED;
+#endif
+}
+
+// BT pairing
+CAResult_t CAUtilStartScan(JNIEnv *env)
+{
+#ifdef EDR_ADAPTER
+    return CABTPairingStartScan(env);
+#else
+    OIC_LOG(DEBUG, TAG, "it is not supported");
+    (void)env;
+    return CA_NOT_SUPPORTED;
+#endif
+}
+
+CAResult_t CAUtilStopScan(JNIEnv *env)
+{
+#ifdef EDR_ADAPTER
+    return CABTPairingStopScan(env);
+#else
+    OIC_LOG(DEBUG, TAG, "it is not supported");
+    (void)env;
+    return CA_NOT_SUPPORTED;
+#endif
+}
+
+CAResult_t CAUtilCreateBond(JNIEnv *env, jobject device)
+{
+#ifdef EDR_ADAPTER
+    return CABTPairingCreateBond(env, device);
+#else
+    OIC_LOG(DEBUG, TAG, "it is not supported");
+    (void)env;
+    (void)device;
+    return CA_NOT_SUPPORTED;
+#endif
+}
+
+void CAUtilSetFoundDeviceListener(jobject listener)
+{
+#ifdef EDR_ADAPTER
+    CABTPairingSetFoundDeviceListener(listener);
+#else
+    (void)listener;
+#endif
+}
+
+CAResult_t CAUtilSetLEScanInterval(jint intervalTime, jint workingCount)
+{
+    OIC_LOG(DEBUG, TAG, "CAUtilSetLEScanInterval");
+#if defined(LE_ADAPTER) && defined(__ANDROID__)
+    CAManagerLESetScanInterval(intervalTime, workingCount);
+    return CA_STATUS_OK;
+#else
+    (void)intervalTime;
+    (void)workingCount;
+    OIC_LOG(DEBUG, TAG, "it is not supported");
+    return CA_NOT_SUPPORTED;
+#endif
+}
+
+CAResult_t CAUtilStopLEScan()
+{
+    OIC_LOG(DEBUG, TAG, "CAUtilStopLEScan");
+#if defined(LE_ADAPTER) && defined(__ANDROID__)
+    CAManagerLEStopScan();
+    return CA_STATUS_OK;
+#else
+    OIC_LOG(DEBUG, TAG, "it is not supported");
+    return CA_NOT_SUPPORTED;
+#endif
+}
+#endif // __JAVA__
+
+#ifdef ENABLE_BLE
+CAResult_t CAUtilStartLEAdvertising(void)
+{
+    OIC_LOG(DEBUG, TAG, "CAUtilStartLEAdvertising");
+#if (defined(__ANDROID__) || defined(__TIZEN__)) && defined(LE_ADAPTER)
+    return CAManagerLEStartAdvertising();
+#else
+    OIC_LOG(DEBUG, TAG, "it is not supported");
+    return CA_NOT_SUPPORTED;
+#endif
+}
+
+CAResult_t CAUtilStopLEAdvertising(void)
+{
+    OIC_LOG(DEBUG, TAG, "CAUtilStopLEAdvertising");
+#if (defined(__ANDROID__) || defined(__TIZEN__)) && defined(LE_ADAPTER)
+    return CAManagerLEStopAdvertising();
+#else
+    OIC_LOG(DEBUG, TAG, "it is not supported");
+    return CA_NOT_SUPPORTED;
+#endif
+}
+
+CAResult_t CAUtilSetBTConfigure(CAUtilConfig_t config)
+{
+    OIC_LOG(DEBUG, TAG, "CAUtilSetConfigure");
+#if (defined(__ANDROID__) && defined(LE_ADAPTER))
+    OIC_LOG_V(DEBUG, TAG, "bleFlag [%d]", config.bleFlags);
+    CAManagerSetConfigure(config);
+    return CA_STATUS_OK;
+#else
+    (void) config;
+    OIC_LOG(DEBUG, TAG, "it is not supported");
+    return CA_NOT_SUPPORTED;
+#endif
+}
+#endif  /* ENABLE_BLE */
 
 CAResult_t CAGetIpv6AddrScope(const char *addr, CATransportFlags_t *scopeLevel)
 {

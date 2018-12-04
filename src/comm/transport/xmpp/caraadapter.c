@@ -52,13 +52,13 @@
  * Callback for bound JID
  * @param[out]   jid           Boud Jabber Identifier.
  */
-typedef void (*CAJidBoundCallback)(char *jid);
+typedef void (*CAJidBoundCallback)(char *jid); /* caraadapter */
 
 /**
  * CA Remote Access information for XMPP Client
  *
  */
-typedef struct
+typedef struct /* caraadapter */
 {
     char *hostName;     /**< XMPP server hostname */
     uint16_t port;      /**< XMPP server serivce port */
