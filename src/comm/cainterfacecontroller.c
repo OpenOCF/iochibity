@@ -82,6 +82,14 @@ static size_t g_numberOfAdapters =
 /* static void (*g_networkPacketReceivedCallback)(const CASecureEndpoint_t *sep, */
 /* 					       const void *data, size_t dataLen); */
 
+/**
+ * This will be used to notify error result to the connectivity common logic layer.
+ */
+#if INTERFACE
+typedef void (*CAErrorHandleCallback)(const CAEndpoint_t *endpoint,
+                                      const void *data, size_t dataLen,
+                                      CAResult_t result);
+#endif
 static CAErrorHandleCallback g_errorHandleCallback = NULL;
 
 static struct CANetworkCallback_t *g_networkChangeCallbackList = NULL;

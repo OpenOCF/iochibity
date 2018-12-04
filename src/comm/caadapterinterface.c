@@ -18,12 +18,6 @@
  *
  ******************************************************************/
 
-/**
- * @file
- *
- * This file contains the APIs for adapters to be implemented.
- */
-
 #if EXPORT_INTERFACE
 /**
  * Transport adapter protocol. Each transport adapter will have one of
@@ -82,6 +76,7 @@ typedef struct
 
     CATransportAdapter_t cType;
 } CAConnectivityHandler_t;
+#endif
 
 /* #if EXPORT_INTERFACE */
 /* // This is only explicitly used in this the nwmonitor files, but it is */
@@ -138,18 +133,18 @@ typedef struct
 /**
  * This will be used to notify connection changes to the connectivity common logic layer.
  */
-typedef void (*CAConnectionChangeCallback)(const CAEndpoint_t *info, bool isConnected);
+//typedef void (*CAConnectionChangeCallback)(const CAEndpoint_t *info, bool isConnected);
 
 /**
  * This will be used to notify error result to the connectivity common logic layer.
  */
-typedef void (*CAErrorHandleCallback)(const CAEndpoint_t *endpoint,
-                                      const void *data, size_t dataLen,
-                                      CAResult_t result);
-#endif	/* INTERFACE */
+/* typedef void (*CAErrorHandleCallback)(const CAEndpoint_t *endpoint, */
+/*                                       const void *data, size_t dataLen, */
+/*                                       CAResult_t result); */
+/* #endif	/\* INTERFACE *\/ */
 
 
-// OBSOLETE:
+// OBSOLETE: from caadapterinterface.h
 /**
  * Starting connectivity adapters and each adapter have transport specific behavior.
  * Transport Specific Behavior:
