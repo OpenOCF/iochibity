@@ -1,3 +1,7 @@
+
+
+// FIXME: the code here does nothing useful, get rid of it.
+
 /******************************************************************
  *
  * Copyright 2014 Samsung Electronics All Rights Reserved.
@@ -22,12 +26,8 @@
 
 #include <stdlib.h>
 
-/* #include "cainterfacecontroller.h" */
-/* #include "cainterface.h" */
-/* #include "uarraylist.h" */
-/* #include "logger.h" */
-
 #define TAG "OIC_CA_NW_CONFIG"
+
 
 // @rewrite: make this a static array?
 static u_arraylist_t *g_selectedNetworkList = NULL;
@@ -299,32 +299,32 @@ CAResult_t CARemoveNetworkType(CATransportAdapter_t transportType)
     return CA_STATUS_FAILED;
 }
 
-// WARNING: here "network" means "transport", e.g. UDP, TCP, etc.
-u_arraylist_t *CAGetSelectedNetworkList()
+u_arraylist_t *CAGetSelectedNetworkList(void)
 {
     return g_selectedNetworkList;
 }
 
-CATransportAdapter_t CAGetSelectedNetwork()
+CATransportAdapter_t CAGetSelectedNetwork(void)
 {
     return CASelectedNetwork;
 }
 
-CAResult_t CAGetNetworkInformationInternal(CAEndpoint_t **info, size_t *size)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+// remove redundant fn: CAGetNetworkInformationInternal
+/* CAResult_t CAGetNetworkInformationInternal(CAEndpoint_t **info, size_t *size) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
 
-    if (NULL == info || NULL == size)
-    {
-        OIC_LOG(ERROR, TAG, "Input parameter is invalid value");
+/*     if (NULL == info || NULL == size) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "Input parameter is invalid value"); */
 
-        return CA_STATUS_INVALID_PARAM;
-    }
+/*         return CA_STATUS_INVALID_PARAM; */
+/*     } */
 
-    return CAGetNetworkInfo(info, size);
-}
+/*     return CAGetNetworkInfo(info, size); */
+/* } */
 
-CAResult_t CATerminateNetworkType()
+CAResult_t CATerminateNetworkType(void)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (NULL != g_selectedNetworkList)
