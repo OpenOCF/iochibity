@@ -288,17 +288,18 @@ void CAAddDataToReceiveThread(CAData_t *data)
 }
 #endif
 
-static bool CAIsSelectedNetworkAvailable(void)
-{
-    u_arraylist_t *list = CAGetSelectedNetworkList();
-    if (!list || u_arraylist_length(list) == 0)
-    {
-        OIC_LOG(ERROR, TAG, "No selected network");
-        return false;
-    }
+// delete unneeded fn:
+/* static bool CAIsSelectedNetworkAvailable(void) */
+/* { */
+/*     u_arraylist_t *list = CAGetSelectedNetworkList(); */
+/*     if (!list || u_arraylist_length(list) == 0) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "No selected network"); */
+/*         return false; */
+/*     } */
 
-    return true;
-}
+/*     return true; */
+/* } */
 
 /* convert incoming PDU to OCF data, handles both requests and
    responses (inbound only); called by mh_CAReceivedPacketCallback
@@ -1254,10 +1255,11 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *endpoint, const void *sendMsg
     VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
     VERIFY_NON_NULL_MSG(sendMsg, TAG, "sendMsg");
 
-    if (false == CAIsSelectedNetworkAvailable())
-    {
-        return CA_STATUS_FAILED;
-    }
+    // we always have at least one transport available!
+    /* if (false == CAIsSelectedNetworkAvailable()) */
+    /* { */
+    /*     return CA_STATUS_FAILED; */
+    /* } */
 
     CAData_t *data = NULL;
 #ifdef TCP_ADAPTER

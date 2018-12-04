@@ -26,14 +26,6 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
-/* #include "ca_adapter_net_ssl.h" */
-/* #endif // __WITH_DTLS__ or __WITH_TLS__ */
-
-/* #ifdef TCP_ADAPTER */
-/* #include "catcpadapter.h" */
-/* #endif */
-
 /* IPv4 and IPv6 both forced on in OCInitializeInternal, so we initialize statically instead */
 // @rewrite: get rid of caglobals
 CAGlobals_t caglobals = { .clientFlags = CA_IPV4|CA_IPV6,
@@ -50,14 +42,6 @@ bool ocf_server; /**< server mode */
 #define TAG "OIC_CA_CONN_MGR"
 
 bool g_isInitialized = false;
-
-/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
-// Taking callback all the way through adapters not the right approach, hence calling here.
-/* extern void CAsetPkixInfoCallback(CAgetPkixInfoHandler infCallback); */
-/* extern void CAsetPskCredentialsCallback(CAgetPskCredentialsHandler credCallback); */
-/* extern void CAsetCredentialTypesCallback(CAgetCredentialTypesHandler credCallback); */
-/* #endif // __WITH_DTLS__ or __WITH_TLS__ */
-
 
 CAResult_t CAInitialize(CATransportAdapter_t transportType)
 {
@@ -86,7 +70,7 @@ void CATerminate(void)
     if (g_isInitialized)
     {
         CATerminateMessageHandler();
-        CATerminateNetworkType();
+        /* CATerminateNetworkType(); */
 
         g_isInitialized = false;
     }
@@ -317,7 +301,15 @@ CAResult_t CAGetNetworkInformation(CAEndpoint_t **info, size_t *size)
         return CA_STATUS_NOT_INITIALIZED;
     }
 
-    return CAGetNetworkInformationInternal(info, size);
+    if (NULL == info || NULL == size)
+    {
+        OIC_LOG(ERROR, TAG, "Input parameter is invalid value");
+
+        return CA_STATUS_INVALID_PARAM;
+    }
+
+    return CAGetNetworkInfo(info, size);
+    // return CAGetNetworkInformationInternal(info, size);
 }
 
 static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *object, const void *sendMsg,
@@ -408,125 +400,125 @@ CAResult_t CASendResponse(const CAEndpoint_t *object, const CAResponseInfo_t *re
     }
 }
 
-// called by ocstack/OCSelectNetwork, once per transport
-CAResult_t CASelectNetwork(CATransportAdapter_t transport) // @was transport <- interestedNetwork)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+// called by ocstack/OCSelectNetwork, once per transport, pointlessly
+/* CAResult_t CASelectNetwork(CATransportAdapter_t transport) // @was transport <- interestedNetwork) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
 
-    if (!g_isInitialized)
-    {
-	OIC_LOG_V(ERROR, TAG, "%s !g_isInitialized", __func__);
-        return CA_STATUS_NOT_INITIALIZED;
-    }
-
-    CAResult_t res = CA_STATUS_OK;
-
-    res = CAAddNetworkType(transport);
-
-    // @rewrite: init always uses OC_DEFAULT_FLAGS, so we already know
-    // this stuff at build time otoh, init2 is parameterized by
-    // transport type. seems a bad idea, this should be a build-time
-    // config option, not a runtime choice.  iow all this can be done
-    // via #ifdef <TRANSPORT>_ADAPTER - which is what
-    // e.g. cainterfacecontroller does.
-/*     if (interestedNetwork & CA_ADAPTER_IP) */
+/*     if (!g_isInitialized) */
 /*     { */
-/*         res = CAAddNetworkType(CA_ADAPTER_IP); */
-/*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_IP_ADAPTER) function returns result: %d", res); */
-/*     } */
-/*     else if (interestedNetwork & CA_ADAPTER_RFCOMM_BTEDR) */
-/*     { */
-/*         res = CAAddNetworkType(CA_ADAPTER_RFCOMM_BTEDR); */
-/*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_RFCOMM_ADAPTER) function returns result : %d", res); */
-/*     } */
-/*     else if (interestedNetwork & CA_ADAPTER_GATT_BTLE) */
-/*     { */
-/*         res = CAAddNetworkType(CA_ADAPTER_GATT_BTLE); */
-/*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_GATT_ADAPTER) function returns result : %d", res); */
+/* 	OIC_LOG_V(ERROR, TAG, "%s !g_isInitialized", __func__); */
+/*         return CA_STATUS_NOT_INITIALIZED; */
 /*     } */
 
+/*     CAResult_t res = CA_STATUS_OK; */
+
+/*     res = CAAddNetworkType(transport); */
+
+/*     // @rewrite: init always uses OC_DEFAULT_FLAGS, so we already know */
+/*     // this stuff at build time otoh, init2 is parameterized by */
+/*     // transport type. seems a bad idea, this should be a build-time */
+/*     // config option, not a runtime choice.  iow all this can be done */
+/*     // via #ifdef <TRANSPORT>_ADAPTER - which is what */
+/*     // e.g. cainterfacecontroller does. */
+/* /\*     if (interestedNetwork & CA_ADAPTER_IP) *\/ */
+/* /\*     { *\/ */
+/* /\*         res = CAAddNetworkType(CA_ADAPTER_IP); *\/ */
+/* /\*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_IP_ADAPTER) function returns result: %d", res); *\/ */
+/* /\*     } *\/ */
+/* /\*     else if (interestedNetwork & CA_ADAPTER_RFCOMM_BTEDR) *\/ */
+/* /\*     { *\/ */
+/* /\*         res = CAAddNetworkType(CA_ADAPTER_RFCOMM_BTEDR); *\/ */
+/* /\*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_RFCOMM_ADAPTER) function returns result : %d", res); *\/ */
+/* /\*     } *\/ */
+/* /\*     else if (interestedNetwork & CA_ADAPTER_GATT_BTLE) *\/ */
+/* /\*     { *\/ */
+/* /\*         res = CAAddNetworkType(CA_ADAPTER_GATT_BTLE); *\/ */
+/* /\*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_GATT_ADAPTER) function returns result : %d", res); *\/ */
+/* /\*     } *\/ */
+
+/* /\* #ifdef RA_ADAPTER *\/ */
+/* /\*     else if (interestedNetwork & CA_ADAPTER_REMOTE_ACCESS) *\/ */
+/* /\*     { *\/ */
+/* /\*         res = CAAddNetworkType(CA_ADAPTER_REMOTE_ACCESS); *\/ */
+/* /\*         OIC_LOG_V(DEBUG, TAG, *\/ */
+/* /\*                   "CAAddNetworkType(CA_ADAPTER_REMOTE_ACCESS) function returns result : %d", res); *\/ */
+/* /\*     } *\/ */
+/* /\* #endif *\/ */
+
+/* /\* #ifdef TCP_ADAPTER *\/ */
+/* /\*     else if (interestedNetwork & CA_ADAPTER_TCP) *\/ */
+/* /\*     { *\/ */
+/* /\*         res = CAAddNetworkType(CA_ADAPTER_TCP); *\/ */
+/* /\*         OIC_LOG_V(DEBUG, TAG, *\/ */
+/* /\*                   "CAAddNetworkType(CA_ADAPTER_TCP) function returns result : %d", res); *\/ */
+/* /\*     } *\/ */
+/* /\* #endif *\/ */
+/* /\*     else if (interestedNetwork & CA_ADAPTER_NFC) *\/ */
+/* /\*     { *\/ */
+/* /\*         res = CAAddNetworkType(CA_ADAPTER_NFC); *\/ */
+/* /\*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_ADAPTER_NFC) function returns result : %d", res); *\/ */
+/* /\*     } *\/ */
+/* /\*     else *\/ */
+/* /\*     { *\/ */
+/* /\*         res = CA_NOT_SUPPORTED; *\/ */
+/* /\*     } *\/ */
+/*     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
+
+/*     return res; */
+/* } */
+
+/* CAResult_t CAUnSelectNetwork(CATransportAdapter_t nonInterestedNetwork) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "unselected network : %d", nonInterestedNetwork); */
+
+/*     if (!g_isInitialized) */
+/*     { */
+/*         return CA_STATUS_NOT_INITIALIZED; */
+/*     } */
+
+/*     CAResult_t res = CA_STATUS_OK; */
+
+/*     if (nonInterestedNetwork & CA_ADAPTER_IP) */
+/*     { */
+/*         res = CARemoveNetworkType(CA_ADAPTER_IP); */
+/*         OIC_LOG_V(DEBUG, TAG, "CARemoveNetworkType(CA_IP_ADAPTER) function returns result : %d", res); */
+/*     } */
+/*     else if (nonInterestedNetwork & CA_ADAPTER_RFCOMM_BTEDR) */
+/*     { */
+/*         res = CARemoveNetworkType(CA_ADAPTER_RFCOMM_BTEDR); */
+/*         OIC_LOG_V(DEBUG, TAG, "CARemoveNetworkType(CA_RFCOMM_ADAPTER) function returns result : %d", res); */
+/*     } */
+/*     else if (nonInterestedNetwork & CA_ADAPTER_GATT_BTLE) */
+/*     { */
+/*         res = CARemoveNetworkType(CA_ADAPTER_GATT_BTLE); */
+/*         OIC_LOG_V(DEBUG, TAG, "CARemoveNetworkType(CA_GATT_ADAPTER) function returns result : %d", res); */
+/*     } */
 /* #ifdef RA_ADAPTER */
-/*     else if (interestedNetwork & CA_ADAPTER_REMOTE_ACCESS) */
+/*     else if (nonInterestedNetwork & CA_ADAPTER_REMOTE_ACCESS) */
 /*     { */
-/*         res = CAAddNetworkType(CA_ADAPTER_REMOTE_ACCESS); */
-/*         OIC_LOG_V(DEBUG, TAG, */
-/*                   "CAAddNetworkType(CA_ADAPTER_REMOTE_ACCESS) function returns result : %d", res); */
+/*         res = CARemoveNetworkType(CA_ADAPTER_REMOTE_ACCESS); */
+/*         OIC_LOG_V(DEBUG, TAG, "CARemoveNetworkType(CA_ADAPTER_REMOTE_ACCESS) function returns result : %d", */
+/*                   res); */
 /*     } */
 /* #endif */
+
 
 /* #ifdef TCP_ADAPTER */
-/*     else if (interestedNetwork & CA_ADAPTER_TCP) */
+/*     else if (nonInterestedNetwork & CA_ADAPTER_TCP) */
 /*     { */
-/*         res = CAAddNetworkType(CA_ADAPTER_TCP); */
-/*         OIC_LOG_V(DEBUG, TAG, */
-/*                   "CAAddNetworkType(CA_ADAPTER_TCP) function returns result : %d", res); */
+/*         res = CARemoveNetworkType(CA_ADAPTER_TCP); */
+/*         OIC_LOG_V(DEBUG, TAG, "CARemoveNetworkType(CA_ADAPTER_TCP) function returns result : %d", */
+/*                   res); */
 /*     } */
 /* #endif */
-/*     else if (interestedNetwork & CA_ADAPTER_NFC) */
-/*     { */
-/*         res = CAAddNetworkType(CA_ADAPTER_NFC); */
-/*         OIC_LOG_V(DEBUG, TAG, "CAAddNetworkType(CA_ADAPTER_NFC) function returns result : %d", res); */
-/*     } */
+
 /*     else */
 /*     { */
-/*         res = CA_NOT_SUPPORTED; */
+/*         res = CA_STATUS_FAILED; */
 /*     } */
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-
-    return res;
-}
-
-CAResult_t CAUnSelectNetwork(CATransportAdapter_t nonInterestedNetwork)
-{
-    OIC_LOG_V(DEBUG, TAG, "unselected network : %d", nonInterestedNetwork);
-
-    if (!g_isInitialized)
-    {
-        return CA_STATUS_NOT_INITIALIZED;
-    }
-
-    CAResult_t res = CA_STATUS_OK;
-
-    if (nonInterestedNetwork & CA_ADAPTER_IP)
-    {
-        res = CARemoveNetworkType(CA_ADAPTER_IP);
-        OIC_LOG_V(DEBUG, TAG, "CARemoveNetworkType(CA_IP_ADAPTER) function returns result : %d", res);
-    }
-    else if (nonInterestedNetwork & CA_ADAPTER_RFCOMM_BTEDR)
-    {
-        res = CARemoveNetworkType(CA_ADAPTER_RFCOMM_BTEDR);
-        OIC_LOG_V(DEBUG, TAG, "CARemoveNetworkType(CA_RFCOMM_ADAPTER) function returns result : %d", res);
-    }
-    else if (nonInterestedNetwork & CA_ADAPTER_GATT_BTLE)
-    {
-        res = CARemoveNetworkType(CA_ADAPTER_GATT_BTLE);
-        OIC_LOG_V(DEBUG, TAG, "CARemoveNetworkType(CA_GATT_ADAPTER) function returns result : %d", res);
-    }
-#ifdef RA_ADAPTER
-    else if (nonInterestedNetwork & CA_ADAPTER_REMOTE_ACCESS)
-    {
-        res = CARemoveNetworkType(CA_ADAPTER_REMOTE_ACCESS);
-        OIC_LOG_V(DEBUG, TAG, "CARemoveNetworkType(CA_ADAPTER_REMOTE_ACCESS) function returns result : %d",
-                  res);
-    }
-#endif
-
-
-#ifdef TCP_ADAPTER
-    else if (nonInterestedNetwork & CA_ADAPTER_TCP)
-    {
-        res = CARemoveNetworkType(CA_ADAPTER_TCP);
-        OIC_LOG_V(DEBUG, TAG, "CARemoveNetworkType(CA_ADAPTER_TCP) function returns result : %d",
-                  res);
-    }
-#endif
-
-    else
-    {
-        res = CA_STATUS_FAILED;
-    }
-    return res;
-}
+/*     return res; */
+/* } */
 
 /* CAResult_t CAHandleRequestResponse() */
 /* { */

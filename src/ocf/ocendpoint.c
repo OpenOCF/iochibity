@@ -133,6 +133,8 @@ typedef struct
 
 #define mkhrd_ep_rp OCResourceProperty /* help makeheaders */
 
+// default is to create resources with all TPS schemes
+// FIXME: configure at compile time, so all enabled TPS schemes always used
 OCStackResult OCGetSupportedEndpointFlags(const OCTpsSchemeFlags givenFlags, OCTpsSchemeFlags* out)
 {
     if (!out)
@@ -140,8 +142,9 @@ OCStackResult OCGetSupportedEndpointFlags(const OCTpsSchemeFlags givenFlags, OCT
         return OC_STACK_INVALID_PARAM;
     }
 
-    CATransportAdapter_t SelectedNetwork = CAGetSelectedNetwork();
-    if ((givenFlags & (OC_COAP | OC_COAPS)) && (SelectedNetwork & CA_ADAPTER_IP))
+#ifndef DISABLE_UDP
+    //CATransportAdapter_t SelectedNetwork = CAGetSelectedNetwork();
+    if (givenFlags & (OC_COAP | OC_COAPS)) // && (SelectedNetwork & CA_ADAPTER_IP))
     {
         *out = (OCTpsSchemeFlags)(*out | OC_COAP);
 
@@ -150,8 +153,9 @@ OCStackResult OCGetSupportedEndpointFlags(const OCTpsSchemeFlags givenFlags, OCT
             *out = (OCTpsSchemeFlags)(*out | OC_COAPS);
         }
     }
+#endif
 #ifdef TCP_ADAPTER
-    if ((givenFlags & (OC_COAP_TCP | OC_COAPS_TCP)) && (SelectedNetwork & CA_ADAPTER_TCP))
+    if (givenFlags & (OC_COAP_TCP | OC_COAPS_TCP)) // && (SelectedNetwork & CA_ADAPTER_TCP))
     {
 
         *out = (OCTpsSchemeFlags)(*out | OC_COAP_TCP);
@@ -163,25 +167,25 @@ OCStackResult OCGetSupportedEndpointFlags(const OCTpsSchemeFlags givenFlags, OCT
     }
 #endif
 #ifdef EDR_ADAPTER
-    if ((givenFlags & OC_COAP_RFCOMM) && (SelectedNetwork & CA_ADAPTER_RFCOMM_BTEDR))
+    if (givenFlags & OC_COAP_RFCOMM) //&& (SelectedNetwork & CA_ADAPTER_RFCOMM_BTEDR))
     {
         *out = (OCTpsSchemeFlags)(*out | OC_COAP_RFCOMM);
     }
 #endif
 #ifdef LE_ADAPTER
-    if ((givenFlags & OC_COAP_GATT) && (SelectedNetwork & CA_ADAPTER_GATT_BTLE))
+    if (givenFlags & OC_COAP_GATT) // && (SelectedNetwork & CA_ADAPTER_GATT_BTLE))
     {
         *out = (OCTpsSchemeFlags)(*out | OC_COAP_GATT);
     }
 #endif
 #ifdef NFC_ADAPTER
-    if ((givenFlags & OC_COAP_NFC) && (SelectedNetwork & CA_ADAPTER_NFC))
+    if (givenFlags & OC_COAP_NFC) // && (SelectedNetwork & CA_ADAPTER_NFC))
     {
         *out = (OCTpsSchemeFlags)(*out | OC_COAP_NFC);
     }
 #endif
 #ifdef RA_ADAPTER
-    if ((givenFlags & OC_COAP_RA) && (SelectedNetwork & CA_ADAPTER_REMOTE_ACCESS))
+    if (givenFlags & OC_COAP_RA) // && (SelectedNetwork & CA_ADAPTER_REMOTE_ACCESS))
     {
         *out = (OCTpsSchemeFlags)(*out | OC_COAP_RA);
     }
@@ -622,51 +626,54 @@ exit:
 OCTpsSchemeFlags OCGetSupportedTpsFlags()
 {
     OCTpsSchemeFlags ret = OC_NO_TPS;
-    CATransportAdapter_t SelectedNetwork = CAGetSelectedNetwork();
 
-    if (SelectedNetwork & CA_ADAPTER_IP)
-    {
+#ifndef DISABLE_UDP
+    //CATransportAdapter_t SelectedNetwork = CAGetSelectedNetwork();
+
+    /* if (SelectedNetwork & CA_ADAPTER_IP) */
+    /* { */
         ret = (OCTpsSchemeFlags)(ret | OC_COAP);
 
         if (OC_SECURE)
         {
             ret = (OCTpsSchemeFlags)(ret | OC_COAPS);
         }
-    }
+    /* } */
+#endif
 #ifdef TCP_ADAPTER
-    if (SelectedNetwork & CA_ADAPTER_TCP)
-    {
+    /* if (SelectedNetwork & CA_ADAPTER_TCP) */
+    /* { */
         ret = (OCTpsSchemeFlags)(ret | OC_COAP_TCP);
 
         if (OC_SECURE)
         {
             ret = (OCTpsSchemeFlags)(ret | OC_COAPS_TCP);
         }
-    }
+    /* } */
 #endif
 #ifdef EDR_ADAPTER
-    if (SelectedNetwork & CA_ADAPTER_RFCOMM_BTEDR)
-    {
+    /* if (SelectedNetwork & CA_ADAPTER_RFCOMM_BTEDR) */
+    /* { */
         ret = (OCTpsSchemeFlags)(ret | OC_COAP_RFCOMM);
-    }
+    /* } */
 #endif
 #ifdef LE_ADAPTER
-    if (SelectedNetwork & CA_ADAPTER_GATT_BTLE)
-    {
+    /* if (SelectedNetwork & CA_ADAPTER_GATT_BTLE) */
+    /* { */
         ret = (OCTpsSchemeFlags)(ret | OC_COAP_GATT);
-    }
+    /* } */
 #endif
 #ifdef NFC_ADAPTER
-    if (SelectedNetwork & CA_ADAPTER_NFC)
-    {
+    /* if (SelectedNetwork & CA_ADAPTER_NFC) */
+    /* { */
         ret = (OCTpsSchemeFlags)(ret | OC_COAP_NFC);
-    }
+    /* } */
 #endif
 #ifdef RA_ADAPTER
-    if (SelectedNetwork & CA_ADAPTER_REMOTE_ACCESS)
-    {
+    /* if (SelectedNetwork & CA_ADAPTER_REMOTE_ACCESS) */
+    /* { */
         ret = (OCTpsSchemeFlags)(ret | OC_COAP_RA);
-    }
+    /* } */
 #endif
     return ret;
 }

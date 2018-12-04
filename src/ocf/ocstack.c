@@ -2601,15 +2601,19 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "%d failed!!", result); goto exit;}
 
     // start transports:
-    //FIXME: OCSelectNetwork involves lots of indirection. just call directly, e.g. CAStartUDP, etc.
+    //FIXME: OCSelectNetwork does nothing but add the nw to
+    //g_selectedNetworkList in canetworkconfigurator, which serves no
+    //real purpose. Then it starts the adapter. This can all be statically configured.
 #ifndef DISABLE_UDP
-    result = CAResultToOCResult(OCSelectNetwork(OC_ADAPTER_IP));
-    if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "OCSelectNetwork failed for UDP, rc %d!!", result); goto exit;}
+    /* result = CAResultToOCResult(OCSelectNetwork(OC_ADAPTER_IP)); */
+    /* if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "OCSelectNetwork failed for UDP, rc %d!!", result); goto exit;} */
+    result = CAStartAdapter(CA_ADAPTER_IP);
 #endif
 
 #ifdef ENABLE_TCP
-    result = CAResultToOCResult(OCSelectNetwork(OC_ADAPTER_TCP));
-    if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "OCSelectNetwork failed for TCP, rc %d!!", result); goto exit;}
+    /* result = CAResultToOCResult(OCSelectNetwork(OC_ADAPTER_TCP)); */
+    /* if (result != OC_STACK_OK) {OIC_LOG_V(FATAL, TAG, "OCSelectNetwork failed for TCP, rc %d!!", result); goto exit;} */
+    result = CAStartAdapter(CA_ADAPTER_TCP);
 #endif
 
     result = CAResultToOCResult(CARegisterNetworkMonitorHandler(
@@ -5597,42 +5601,47 @@ const char* OC_CALL OCGetServerInstanceIDString(void)
  * @return ::CA_STATUS_OK on success, some other value upon failure.
  */
 // @rewrite: networks support is configured at build time, not runtime
-LOCAL CAResult_t OCSelectNetwork(OCTransportAdapter transportType)
-{
-    OIC_LOG_V(DEBUG, TAG, "OCSelectNetwork [%d]", transportType);
-    CAResult_t retResult = CA_STATUS_FAILED;
-    CAResult_t caResult = CA_STATUS_OK;
+/* LOCAL CAResult_t OCSelectNetwork(OCTransportAdapter transportType) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "OCSelectNetwork [%d]", transportType); */
+/*     CAResult_t retResult = CA_STATUS_FAILED; */
+/*     CAResult_t caResult = CA_STATUS_OK; */
 
-#ifndef DISABLE_UDP
-    OIC_LOG(DEBUG, TAG, "calling CASelectNetwork for CA_ADAPTER_IP");
-    caResult = CASelectNetwork(CA_ADAPTER_IP);
-    if (caResult != CA_STATUS_OK) {
-	OIC_LOG(ERROR, TAG, "Unable to support UDP");
-	// Throw an exception? If the build is configured for an adapter, it should initialize
-    }
-    // NB: static init: CASelectNetwork can be replaced by calling directly:
-    // CAStartUDP();
-#endif
+/*     // evidently the only thing CASelectNetwork does is calll */
+/*     // CAAddNetworkType, which adds nw to a list */
+/*     // g_selectedNetworkList, which moreover is only ever used in */
+/*     // canetworkconfigurator.c.  this is silly since it can all be */
+/*     // statically configured at compile time. */
 
-#ifdef ENABLE_TCP
-    OIC_LOG(DEBUG, TAG, "calling CASelectNetwork for CA_ADAPTER_TCP");
-    caResult = CASelectNetwork(CA_ADAPTER_TCP);
-    if (caResult != CA_STATUS_OK) {
-	OIC_LOG_V(ERROR, TAG, "Unable to support TCP, code %d", caResult);
-	// Throw an exception? If the build is configured for an adapter, it should initialize
-    }
-#endif
+/* #ifndef DISABLE_UDP */
+/*     OIC_LOG(DEBUG, TAG, "calling CASelectNetwork for CA_ADAPTER_IP"); */
+/*     caResult = CASelectNetwork(CA_ADAPTER_IP); */
+/*     if (caResult != CA_STATUS_OK) { */
+/* 	OIC_LOG(ERROR, TAG, "Unable to support UDP"); */
+/* 	// Throw an exception? If the build is configured for an adapter, it should initialize */
+/*     } */
+/*     // NB: static init: CASelectNetwork can be replaced by calling directly: */
+/*     // CAStartUDP(); */
+/* #endif */
 
-    //etc.
+/* #ifdef ENABLE_TCP */
+/*     OIC_LOG(DEBUG, TAG, "calling CASelectNetwork for CA_ADAPTER_TCP"); */
+/*     caResult = CASelectNetwork(CA_ADAPTER_TCP); */
+/*     if (caResult != CA_STATUS_OK) { */
+/* 	OIC_LOG_V(ERROR, TAG, "Unable to support TCP, code %d", caResult); */
+/* 	// Throw an exception? If the build is configured for an adapter, it should initialize */
+/*     } */
+/* #endif */
 
-    if (retResult != CA_STATUS_OK)
-    {
-        return caResult; // Returns error of appropriate transport that failed fatally.
-    }
+/*     //etc. */
 
-    return retResult;
-}
+/*     if (retResult != CA_STATUS_OK) */
+/*     { */
+/*         return caResult; // Returns error of appropriate transport that failed fatally. */
+/*     } */
 
+/*     return retResult; */
+/* } */
 
 /**
  * Converts a CAResult_t type to a OCStackResult type.
