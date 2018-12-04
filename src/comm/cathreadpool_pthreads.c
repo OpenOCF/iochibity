@@ -27,17 +27,13 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-/* #include "iotivity_config.h" */
+
+#include "cathreadpool_pthreads.h"
+
 #include <errno.h>
 #if defined HAVE_WINSOCK2_H
 #include <winsock2.h>
 #endif
-#include "cathreadpool_pthreads.h"
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
-/* #include "uarraylist.h" */
-/* #include "octhread.h" */
-/*GAR  #include "platform_features.h" */
 
 #define TAG PCF("OIC_CA_UTHREADPOOL")
 
@@ -189,6 +185,7 @@ CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool,
         OICFree(info);
         return CA_STATUS_FAILED;
     }
+
     oc_mutex_lock(thread_pool->details->list_lock);
     bool addResult = u_arraylist_add(thread_pool->details->threads_list, (void*) threadInfo);
     if (!addResult)
@@ -232,7 +229,7 @@ void ca_thread_pool_free(ca_thread_pool_t thread_pool)
 
     oc_mutex_lock(thread_pool->details->list_lock);
 
-    for (int i = 0; i < u_arraylist_length(thread_pool->details->threads_list); ++i)
+    for (size_t i = 0; i < u_arraylist_length(thread_pool->details->threads_list); ++i)
     {
 	OIC_LOG_THREADS_V(DEBUG, TAG, "Freeing thread %d", i);
         ca_thread_pool_thread_info_t *threadInfo = (ca_thread_pool_thread_info_t *)

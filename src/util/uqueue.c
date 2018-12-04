@@ -22,8 +22,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
 
 /**
  * @def NO_MESSAGES
@@ -75,7 +73,7 @@ typedef struct u_queue_t
 } u_queue_t;
 #endif
 
-u_queue_t *u_queue_create()
+u_queue_t *u_queue_create(void)
 {
     u_queue_t *queuePtr = (u_queue_t *) OICMalloc(sizeof(u_queue_t));
     if (NULL == queuePtr)

@@ -235,3 +235,60 @@ CAData_t *CAGenerateSignalingMessageUsingToken(const CAEndpoint_t *endpoint, CAS
 
     return CAPrepareSendData(endpoint, &sigMsg, CA_SIGNALING_DATA);
 }
+
+/* src: caremotehandler.c */
+CASignalingInfo_t *CACloneSignalingInfo(const CASignalingInfo_t *sig)
+{
+    if (NULL == sig)
+    {
+        OIC_LOG(ERROR, TAG, "Singnaling pointer is NULL");
+        return NULL;
+    }
+
+    // check the result value of signaling info.
+    // Keep this check in sync with CASignalingCode_t.
+    switch (sig->code)
+    {
+        case CA_CSM:
+        case CA_PING:
+        case CA_PONG:
+        case CA_RELEASE:
+        case CA_ABORT:
+            break;
+        default:
+            OIC_LOG_V(ERROR, TAG, "Signaling code  %u is invalid", sig->code);
+            return NULL;
+    }
+
+    // allocate the signaling info structure.
+    CASignalingInfo_t *clone = (CASignalingInfo_t *) OICCalloc(1, sizeof(CASignalingInfo_t));
+    if (NULL == clone)
+    {
+        OIC_LOG(ERROR, TAG, "CACloneSignalingInfo Out of memory");
+        return NULL;
+    }
+
+    CAResult_t result = CACloneInfo(&sig->info, &clone->info);
+    if (CA_STATUS_OK != result)
+    {
+        OIC_LOG(ERROR, TAG, "CACloneResponseInfo error in CACloneInfo");
+        CADestroySignalingInfoInternal(clone);
+        return NULL;
+    }
+
+    clone->code = sig->code;
+    return clone;
+}
+
+/* src: caremotehandler.c */
+void CADestroySignalingInfoInternal(CASignalingInfo_t *sig)
+{
+    if (NULL == sig)
+    {
+        OIC_LOG(ERROR, TAG, "parameter is null");
+        return;
+    }
+
+    CADestroyInfoInternal(&sig->info);
+    OICFree(sig);
+}

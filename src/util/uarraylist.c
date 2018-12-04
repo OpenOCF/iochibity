@@ -18,11 +18,10 @@
  *
  ******************************************************************/
 
+#include "uarraylist.h"
+
 #include <stdlib.h>
 #include <string.h>
-#include "uarraylist.h"
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
 
 #define TAG "OIC_UARRAYLIST"
 
@@ -48,7 +47,7 @@ struct u_arraylist_t
  */
 #define U_ARRAYLIST_DEFAULT_CAPACITY 1
 
-u_arraylist_t *u_arraylist_create()
+u_arraylist_t *u_arraylist_create(void)
 {
     u_arraylist_t *list = (u_arraylist_t *) OICCalloc(1, sizeof(u_arraylist_t));
     if (!list)
@@ -258,4 +257,16 @@ void u_arraylist_destroy(u_arraylist_t *list)
         OICFree(list->data[i]);
     }
     (void)u_arraylist_free(&list);
+}
+
+bool u_arraylist_swap(u_arraylist_t *list, size_t index1, size_t index2)
+{
+    if (!list || index1 >= list->length || index2 >= list->length)
+    {
+        return false;
+    }
+    void* tmp = list->data[index1];
+    list->data[index1] = list->data[index2];
+    list->data[index2] = tmp;
+    return true;
 }
