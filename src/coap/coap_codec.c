@@ -53,6 +53,12 @@
 #include "coap/prng.h"
 #endif
 
+#if EXPORT_INTERFACE
+/* src: caipinterface.c */
+#define CA_COAP        5683
+#define CA_SECURE_COAP 5684
+#endif
+
 /**
  * option types - the highest option number 63.
  */

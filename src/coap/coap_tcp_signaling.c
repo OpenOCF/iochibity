@@ -307,3 +307,31 @@ CAResult_t CAGetSignalingInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *
 
     return ret;
 }
+
+/* src: catcpserver.c */
+CACSMExchangeState_t CAGetCSMState(const CAEndpoint_t *endpoint)
+{
+    CACSMExchangeState_t csmState = NONE;
+    oc_refcounter ref = CAGetTCPSessionInfoRefCountedFromEndpoint(endpoint);
+    CATCPSessionInfo_t *svritem =  (CATCPSessionInfo_t *) oc_refcounter_get_data(ref);
+    if (svritem)
+    {
+        csmState = svritem->CSMState;
+    }
+    oc_refcounter_dec(ref);
+
+    return csmState;
+}
+
+void CAUpdateCSMState(const CAEndpoint_t *endpoint, CACSMExchangeState_t state)
+{
+    oc_refcounter ref = CAGetTCPSessionInfoRefCountedFromEndpoint(endpoint);
+    CATCPSessionInfo_t *svritem =  (CATCPSessionInfo_t *) oc_refcounter_get_data(ref);
+    if (svritem)
+    {
+        svritem->CSMState = state;
+    }
+    oc_refcounter_dec(ref);
+
+    return;
+}

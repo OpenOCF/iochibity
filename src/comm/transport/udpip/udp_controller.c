@@ -51,7 +51,7 @@ typedef enum
     CA_MULTICAST_SERVER,        /**< Multicast Server */
     CA_SECURED_UNICAST_SERVER,  /**< Secured Unicast Server */
     CA_NFC_SERVER               /**< Listening Server */
-} CAAdapterServerType_t;
+} CAAdapterServerType_t;        /* FIXME: transport-independent, move to ip */
 
 #if EXPORT_INTERFACE
 /**
@@ -62,9 +62,10 @@ typedef enum
  * @param[in]  dataLength    Length of data in bytes.
  * @pre  Callback must be registered using CAIPSetPacketReceiveCallback().
  */
-typedef void (*CAIPPacketReceivedCallback)(const CASecureEndpoint_t *sep,
-                                           const void *data,
-                                           size_t dataLength);
+/* src: caipinterface.h */
+/* typedef void (*CAIPPacketReceivedCallback)(const CASecureEndpoint_t *sep, */
+/*                                            const void *data, */
+/*                                            size_t dataLength); */
 
 /**
   * Callback to notify error in the IP adapter.
@@ -75,8 +76,8 @@ typedef void (*CAIPPacketReceivedCallback)(const CASecureEndpoint_t *sep,
   * @param[in]  result        result of request from R.I.
   * @pre  Callback must be registered using CAIPSetPacketReceiveCallback().
  */
-typedef void (*CAIPErrorHandleCallback)(const CAEndpoint_t *endpoint, const void *data,
-                                        size_t dataLength, CAResult_t result);
+/* typedef void (*CAIPErrorHandleCallback)(const CAEndpoint_t *endpoint, const void *data, */
+/*                                         size_t dataLength, CAResult_t result); */
 #endif
 
 #if EXPORT_INTERFACE

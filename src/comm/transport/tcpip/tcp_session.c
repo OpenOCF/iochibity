@@ -296,6 +296,22 @@ size_t CAGetTotalLengthFromHeader(const unsigned char *recvBuffer)
     return headerLen + optPaylaodLen;
 }
 
+uint32_t CAGetCodeFromHeader(const unsigned char *recvBuffer)
+{
+    OIC_LOG(DEBUG, TAG, "IN - CAGetCodeFromHeader");
+
+    coap_transport_t transport = coap_get_tcp_header_type_from_initbyte(
+                ((unsigned char *)recvBuffer)[0] >> 4);
+    size_t headerLen = coap_get_tcp_header_length_for_transport(transport);
+    uint32_t code = CA_TCP_RESPONSE_CODE(recvBuffer[headerLen -1]);
+
+    OIC_LOG_V(DEBUG, TAG, "header length [%zu]", headerLen);
+    OIC_LOG_V(DEBUG, TAG, "code [%d]", code);
+
+    OIC_LOG(DEBUG, TAG, "OUT - CAGetCodeFromHeader");
+    return code;
+}
+
 CASocketFd_t CAConnectTCPSession(const CAEndpoint_t *endpoint)
 {
     OIC_LOG_V(DEBUG, TAG, "%s", __func__);
@@ -388,6 +404,36 @@ void CATCPDisconnectAll()
 
 }
 
+oc_refcounter CAGetTCPSessionInfoRefCountedFromEndpoint(const CAEndpoint_t *endpoint)
+{
+    VERIFY_NON_NULL_RET(endpoint, TAG, "endpoint is NULL", NULL);
+
+    OIC_LOG_V(DEBUG, TAG, "Looking for [%s:%d]", endpoint->addr, endpoint->port);
+
+    oc_mutex_lock(g_mutexObjectList);
+
+    // get connection info from list
+    for (size_t i = 0; i < u_arraylist_length(s_sessionList); ++i)
+    {
+        oc_refcounter ref = (oc_refcounter) u_arraylist_get(s_sessionList, i);
+        CATCPSessionInfo_t *session = (CATCPSessionInfo_t *) oc_refcounter_get_data(ref);
+        if (!strncmp(session->sep.endpoint.addr, endpoint->addr,
+                     sizeof(session->sep.endpoint.addr))
+                && (session->sep.endpoint.port == endpoint->port)
+                && (session->sep.endpoint.flags & endpoint->flags))
+        {
+            OIC_LOG(DEBUG, TAG, "Found in session list");
+            oc_refcounter_inc(ref);
+            oc_mutex_unlock(g_mutexObjectList);
+            return ref;
+        }
+    }
+    oc_mutex_unlock(g_mutexObjectList);
+
+    OIC_LOG(DEBUG, TAG, "Session not found");
+    return NULL;
+}
+
 CATCPSessionInfo_t *CAGetTCPSessionInfoFromEndpoint(const CAEndpoint_t *endpoint)
 {
     VERIFY_NON_NULL_RET(endpoint, TAG, "endpoint is NULL", NULL);
@@ -441,4 +487,28 @@ CAResult_t CASearchAndDeleteTCPSession(const CAEndpoint_t *endpoint)
 
     OIC_LOG(DEBUG, TAG, "Session not found");
     return CA_STATUS_OK;
+}
+
+void CATCPCloseInProgressConnections()
+{
+    OIC_LOG(INFO, TAG, "IN - CATCPCloseInProgressConnections");
+
+#ifndef WSA_WAIT_EVENT_0
+    oc_mutex_lock(g_mutexObjectList);
+
+    for (size_t i = 0; i < u_arraylist_length(s_sessionList); ++i)
+    {
+        CATCPSessionInfo_t *session = session_list_get(s_sessionList, i);
+        if (session && session->fd >= 0 && session->state == CONNECTING)
+        {
+            shutdown(session->fd, SHUT_RDWR);
+            close(session->fd);
+            session->fd = -1;
+            session->state = DISCONNECTED;
+        }
+    }
+
+    oc_mutex_unlock(g_mutexObjectList);
+#endif
+    OIC_LOG(INFO, TAG, "OUT - CATCPCloseInProgressConnections");
 }
