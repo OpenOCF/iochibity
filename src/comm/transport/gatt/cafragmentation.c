@@ -23,11 +23,6 @@
 #include <string.h>
 #include <math.h>
 
-/* #include "cacommon.h"
- * #include "caadapterutils.h"
- * #include "cafragmentation.h"
- * #include "caleinterface.h" */
-
 /**
  * Debugging tag for fragmentation module.
  */

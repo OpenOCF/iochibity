@@ -21,8 +21,6 @@
 
 #include <string.h>
 #include <ctype.h>
-/* #include "oic_string.h" */
-/* #include "oic_malloc.h" */
 #include <errno.h>
 #include <inttypes.h>
 #if EXPORT_INTERFACE
@@ -31,6 +29,9 @@
 #endif
 #endif	/* INTERFACE */
 
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
