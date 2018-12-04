@@ -142,7 +142,7 @@ typedef struct
  * block size.
  * it depends on defined size in libCoAP.
  */
-typedef enum
+typedef enum                    /* src: cacommon.h */
 {
     CA_BLOCK_SIZE_16_BYTE = 0,    /**< 16byte */
     CA_BLOCK_SIZE_32_BYTE = 1,    /**< 32byte */
@@ -153,11 +153,10 @@ typedef enum
     CA_BLOCK_SIZE_1024_BYTE = 6   /**< 1Kbyte */
 } CABlockSize_t;
 
-#ifdef WITH_BWT
 #define CA_DEFAULT_BLOCK_SIZE       CA_BLOCK_SIZE_1024_BYTE
-#endif
 
 #if INTERFACE
+#define BLOCKWISE_OPTION_BUFFER    (sizeof(unsigned int))
 #define BLOCK_NUMBER_IDX           4
 #define BLOCK_M_BIT_IDX            3
 #define PORT_LENGTH                2
@@ -227,7 +226,7 @@ CAResult_t CAInitializeBlockWiseTransfer(CASendThreadFunc sendThreadFunc,
     return res;
 }
 
-CAResult_t CATerminateBlockWiseTransfer()
+CAResult_t CATerminateBlockWiseTransfer(void)
 {
     OIC_LOG(DEBUG, TAG, "CATerminateBlockWiseTransfer");
 
@@ -248,7 +247,7 @@ CAResult_t CATerminateBlockWiseTransfer()
     return CA_STATUS_OK;
 }
 
-CAResult_t CAInitBlockWiseMutexVariables()
+CAResult_t CAInitBlockWiseMutexVariables(void)
 {
     if (!g_context.blockDataListMutex)
     {
@@ -284,7 +283,7 @@ CAResult_t CAInitBlockWiseMutexVariables()
     return CA_STATUS_OK;
 }
 
-void CATerminateBlockWiseMutexVariables()
+void CATerminateBlockWiseMutexVariables(void)
 {
     if (g_context.blockDataListMutex)
     {
@@ -1568,6 +1567,8 @@ CAResult_t CAUpdateMessageId(coap_pdu_t *pdu, const CABlockDataID_t *blockID)
     return CA_STATUS_OK;
 }
 
+// CAAddBlockOption fns moved to camessagehandler.c
+
 CAResult_t CAAddOptionToPDU(coap_pdu_t *pdu, coap_list_t **options)
 {
     // after adding the block option to option list, add option list to pdu.
@@ -2421,7 +2422,7 @@ CAResult_t CARemoveBlockDataFromList(const CABlockDataID_t *blockID)
     return CA_STATUS_OK;
 }
 
-CAResult_t CARemoveAllBlockDataFromList()
+CAResult_t CARemoveAllBlockDataFromList(void)
 {
     OIC_LOG(DEBUG, TAG, "CARemoveAllBlockDataFromList");
 
@@ -2648,7 +2649,7 @@ CABlockMulticastData_t *CAGetBlockMulticastDataFromListWithSeed(const CAToken_t 
     return NULL;
 }
 
-CAResult_t CARemoveAllBlockMulticastDataFromList()
+CAResult_t CARemoveAllBlockMulticastDataFromList(void)
 {
     OIC_LOG(DEBUG, TAG, "CARemoveAllBlockMulticastDataFromList");
 

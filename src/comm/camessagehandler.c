@@ -668,7 +668,7 @@ void CAErrorHandler(const CAEndpoint_t *endpoint,
     return;
 }
 
-static CAResult_t CAAddBlockSizeOption(coap_pdu_t *pdu, uint16_t sizeType, size_t dataLength,
+CAResult_t CAAddBlockSizeOption(coap_pdu_t *pdu, uint16_t sizeType, size_t dataLength,
                                 coap_list_t **options)
 {
     OIC_LOG(DEBUG, TAG, "IN-CAAddBlockSizeOption");
