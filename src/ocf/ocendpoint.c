@@ -20,19 +20,7 @@
 
 #include "ocendpoint.h"
 
-/* #include "ocendpoint.h" */
-/* #include "logger.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
 #include <string.h>
-/* #include "cainterface.h" */
-
-/* #define VERIFY_NON_NULL(arg) { if (!arg) {OIC_LOG(FATAL, TAG, #arg " is NULL"); goto exit;} } */
-/* #define VERIFY_GT_ZERO(arg) { if (arg < 1) {OIC_LOG(FATAL, TAG, #arg " < 1"); goto exit;} } */
-/* #define VERIFY_GT(arg1, arg2) { if (arg1 <= arg2) {OIC_LOG(FATAL, TAG, #arg1 " <= " #arg2); goto exit;} } */
-/* #define VERIFY_LT_OR_EQ(arg1, arg2) { if (arg1 > arg2) {OIC_LOG(FATAL, TAG, #arg1 " > " #arg2); goto exit;} } */
-/* #define VERIFY_SNPRINTF_RET(arg1, arg2) \ */
-/*     { if (0 > arg1 || arg1 >= arg2) {OIC_LOG(FATAL, TAG, "Error (snprintf)"); goto exit;} } \ */
 
 #define TAG  "OIC_RI_ENDPOINT"
 
@@ -43,7 +31,8 @@
 #if EXPORT_INTERFACE
 #include <stdint.h>
 #include <stdio.h>
-typedef struct CAEndpoint_s
+/* src: cacommon.h */
+typedef struct /* added: */ CAEndpoint_s
 {
     CATransportAdapter_t    adapter;    // adapter type
     CATransportFlags_t      flags;      // transport modifiers
@@ -56,11 +45,9 @@ typedef struct CAEndpoint_s
                                                                     destination. **/
 #endif
 } CAEndpoint_t; // @rewrite -> OCLocalEndpoint
-#endif	/* INTERFACE */
 
-#if EXPORT_INTERFACE
 #define CA_SECURE_ENDPOINT_PUBLIC_KEY_MAX_LENGTH    (512)
-#endif	/* INTERFACE */
+#endif	/* EXPORT_INTERFACE */
 
 /**
  * Endpoint information for secure messages.
@@ -76,36 +63,28 @@ typedef struct
     uint8_t publicKey[CA_SECURE_ENDPOINT_PUBLIC_KEY_MAX_LENGTH]; /**< Peer's DER-encoded public key (if using certificate) */
     size_t publicKeyLength;     /**< Length of publicKey; zero if not using certificate */
 } CASecureEndpoint_t;
-#endif	/* INTERFACE */
 
 /**
  * Endpoint used for security administration - a special type of identity that
  * bypasses Access Control Entry checks for SVR resources, while the device is
  * not ready for normal operation yet.
  */
-#if EXPORT_INTERFACE
 #define CA_SECURE_ENDPOINT_ATTRIBUTE_ADMINISTRATOR  0x1
-#endif	/* INTERFACE */
 
 /**
  *Maximum length of the remoteEndpoint identity.
  */
-#if EXPORT_INTERFACE
 #define CA_MAX_ENDPOINT_IDENTITY_LEN  CA_MAX_IDENTITY_SIZE
-#endif	/* INTERFACE */
 
 /**
  * Max identity size.
  */
-#if EXPORT_INTERFACE
 #define CA_MAX_IDENTITY_SIZE (37)
-#endif	/* INTERFACE */
 
-#if EXPORT_INTERFACE
+/* src: ocendpoint.h */
 #define OC_MAX_TPS_STR_SIZE          (12)
 #define OC_MAX_ADDR_STR_SIZE         (46)
 #define OC_MAX_PORT_STR_SIZE         (6)
-#endif	/* INTERFACE */
 #define OC_ENDPOINT_TPS_TOKEN        "://"
 #define OC_ENDPOINT_ADDR_TOKEN       ':'
 #define OC_ENDPOINT_BRACKET_START     '['
@@ -130,6 +109,7 @@ typedef struct
 #ifdef EDR_ADAPTER
 #define COAP_RFCOMM_STR              "coap+rfcomm"
 #endif
+#endif	/* EXPORT_INTERFACE */
 
 #define mkhrd_ep_rp OCResourceProperty /* help makeheaders */
 
@@ -623,7 +603,7 @@ exit:
     return OC_STACK_ERROR;
 }
 
-OCTpsSchemeFlags OCGetSupportedTpsFlags()
+OCTpsSchemeFlags OCGetSupportedTpsFlags(void)
 {
     OCTpsSchemeFlags ret = OC_NO_TPS;
 
