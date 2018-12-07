@@ -55,6 +55,20 @@
 #define TAG "OIC_RI_CM"
 
 /**
+ * User Preference of connectivity channel for connection manager
+ */
+#if INTERFACE
+typedef enum
+{
+    /** Cloud TCP (Default) */
+    CA_USER_PREF_CLOUD = 0,
+    /** local UDP */
+    CA_USER_PREF_LOCAL_UDP = 1,
+    /** local TCP */
+    CA_USER_PREF_LOCAL_TCP = 2
+} CAConnectUserPref_t;
+#endif  /* INTERFACE */
+/**
  * Flag for first response message.
  * Afer first discovery response, D2D endpoint info need to be updated.
  */
@@ -66,7 +80,7 @@ static bool isFirstResponse = true;
  * @param[in] adapter   CA network adapter type.
  * @param[in] enabled   current adapter state.
  */
-static void OCAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled);
+// void OCAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled);
 
 /**
  *  Connection State change callback method.
@@ -223,34 +237,8 @@ OCStackResult OCCMDiscoveryResource(OCClientResponse *clientResponse)
     return OC_STACK_OK;
 }
 
-static void OCAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-
-    OC_UNUSED(adapter);
-    // check user configuration
-    CAConnectUserPref_t connPrefer = CA_USER_PREF_CLOUD;
-    CAResult_t ret = CAUtilCMGetConnectionUserConfig(&connPrefer);
-    if (CA_STATUS_OK != ret)
-    {
-        OIC_LOG_V(ERROR, TAG, "CAUtilCMGetConnectionUserConfig failed with error %u", ret);
-    }
-
-    if (CA_USER_PREF_CLOUD != connPrefer)
-    {
-        //set connection callback
-        if (true == enabled)
-        {
-            OIC_LOG(DEBUG, TAG, "CM ConnectionStatusChangedHandler ENABLED");
-        }
-        else
-        {
-            OIC_LOG(DEBUG, TAG, "CM ConnectionStatusChangedHandler DISABLED");
-        }
-    }
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-}
-
+// FIXME: this is for tcp+cloud only?
+// @rewrite: OCAdapterStateChangedHandler => tcp_status_manager.c
 static void OCConnectionStateChangedHandler(const CAEndpoint_t *info, bool isConnected)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
