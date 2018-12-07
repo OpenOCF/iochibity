@@ -26,19 +26,7 @@
 
 #include "ocpayload.h"
 
-/* #include "iotivity_config.h" */
 #include <stdio.h>
-/* #include "ocpayload.h" */
-/* #include "occollection.h" */
-/* #include <string.h> */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "ocstackinternal.h" */
-/* #include "ocresource.h" */
-/* #include "logger.h" */
-/* #include "ocendpoint.h" */
-/* #include "cacommon.h" */
-/* #include "presence_methods.h" */
 
 #define TAG "OIC_RI_PAYLOAD"
 
@@ -69,6 +57,7 @@ typedef enum
  * Payload information from resource model.
  */
 #if EXPORT_INTERFACE
+/* src: cacommon.h */
 typedef uint8_t *CAPayload_t;
 #endif	/* INTERFACE */
 
@@ -77,6 +66,7 @@ typedef uint8_t *CAPayload_t;
 #include <stdint.h>
 
 /** Enum to describe the type of object held by the OCPayload object.*/
+/* src: octypes.h */
 typedef enum
 {
     /** Contents of the payload are invalid */
@@ -99,18 +89,28 @@ typedef enum
     PAYLOAD_TYPE_INTROSPECTION
 } OCPayloadType;
 
+/** Enum to describe payload interface interface.*/
+/* src: octypes.h */
+typedef enum
+{
+    PAYLOAD_NON_BATCH_INTERFACE,
+    PAYLOAD_BATCH_INTERFACE
+} OCPayloadInterfaceType;
+
 /**
  * A generic struct representing a payload returned from a resource operation
  *
  * A pointer to OCPayLoad can be cast to a more specific struct to access members
  * for the its type.
  */
+/* src: octypes.h */
 typedef struct
 {
     /** The type of message that was received */
     OCPayloadType type;
 } OCPayload;
 
+/* src: octypes.h */
 typedef enum
 {
     OCREP_PROP_NULL,
@@ -124,6 +124,7 @@ typedef enum
 }OCRepPayloadPropType;
 
 /** This structure will be used to represent a binary string for CBOR payloads.*/
+/* src: octypes.h */
 typedef struct
 {
     /** pointer to data bytes.*/
@@ -133,118 +134,10 @@ typedef struct
     size_t   len;
 } OCByteString;
 
+/* src: octypes.h */
 #define MAX_REP_ARRAY_DEPTH 3
-
-typedef struct OCRepPayload	// @rewrite: -> OCResourcePayload
-{
-    OCPayload base;
-    char* uri;
-    OCStringLL* types;
-    OCStringLL* interfaces;
-    OCRepPayloadValue* values;
-    struct OCRepPayload* next;
-} OCRepPayload;
-
-// used inside an OCResourceLinkPayload inside an OCDiscoveryPayload
-// compare CAEndpoint_t for local endpoints
-typedef struct OCEndpointPayload // @rewrite => OCRemoteEndpoint
-{
-    char* tps;
-    char* addr;
-    OCTransportFlags family;
-    uint16_t port;
-    uint16_t pri;
-    struct OCEndpointPayload* next;
-} OCEndpointPayload;
-
-// used inside an OCDiscoveryPayload
-/* GAR: a Link? OCF 1.3.0 section 7.8.2. Compare OCResource in ocresource.h */
-typedef struct OCResourcePayload // @rewrite: -> OCResourceLink or OCF_Link
-{
-    char* uri;			/* property "href" (mandatory) */
-    char* rel;
-    char* anchor; /* NB: for OIC 1.1, a transfer URI; for OCF 1.0, a OCF URI */
-    OCStringLL* types;		/* property "rt" (mandatory) */
-    OCStringLL* interfaces;	/* property "if" (mandatory) */
-    /* in OCF: p: { bm: x, sec: y, port: z} */
-    uint8_t bitmap;		/* visibility policy bitmask: discoverable, observable */
-    /* OCF 1.0: "sec" and "port" ... used only in a response payload
-       when the request does not include an
-       OCF-Accept-Content-Format-Version option, i.e. OIC 1.1
-       clients. OCF 1.0 uses eps to convey info about encrypted
-       endpoints */
-    bool secure;
-    uint16_t port;
-#ifdef TCP_ADAPTER
-    uint16_t tcpPort;
-#endif
-    struct OCResourcePayload* next;
-    OCEndpointPayload* eps;  /* OCF 1.0 */
-    /* GAR: what about the remaining optional parameters, e.g. di, type (mt?), etc. */
-} OCResourcePayload;
-
-typedef struct OCDiscoveryPayload /* GAR: implicitly uri is "oic/res" (set in OCClientResponse parent) */
-{
-    OCPayload base;
-
-    /** Device Id */
-    char *sid;			/* property "di" (OIC 1.1 only mandatory) */
-
-    /** Name */
-    char *name;			/* propery "n" (optional) */
-
-    /** Resource Type */
-    OCStringLL *type;		/* propery "rt" (mandatory) */
-
-    /** Interface */
-    OCStringLL *iface;		/* property "if" (mandatory) */
-
-    /** This structure holds the old /oic/res response. */
-    OCResourcePayload *resources; /* property "links" (mandatory) */
-
-    /** Holding address of the next DiscoveryPayload. */
-    struct OCDiscoveryPayload *next;
-
-    /* GAR: property "mpro" (messaging protocol support)? */
-
-} OCDiscoveryPayload;
-
-typedef struct
-{
-    OCPayload base;
-    uint8_t* securityData;
-    size_t payloadSize;
-} OCSecurityPayload;
-
-typedef struct
-{
-    OCPayload base;
-    char* message;
-} OCDiagnosticPayload;
-
-typedef struct
-{
-    OCPayload base;
-    OCByteString cborPayload;
-} OCIntrospectionPayload;
-
-#endif	/* EXPORT_INTERFACE */
-
 #if EXPORT_INTERFACE
-/**
- *  Formats for payload encoding.
- */
-typedef enum
-{
-    OC_FORMAT_CBOR,
-    OC_FORMAT_VND_OCF_CBOR,
-    OC_FORMAT_JSON,
-    OC_FORMAT_UNDEFINED,
-    OC_FORMAT_UNSUPPORTED,
-} OCPayloadFormat;
-#endif	/* INTERFACE */
-
-#if EXPORT_INTERFACE
+/* src: octypes.h */
 struct OCRepPayloadValueArray
 {
     OCRepPayloadPropType type;
@@ -284,6 +177,118 @@ struct OCRepPayloadValue
     struct OCRepPayloadValue* next;
 
 };
+#endif	/* INTERFACE */
+
+/* src: octypes.h */
+typedef struct OCRepPayload
+{
+    OCPayload base;
+    OCPayloadInterfaceType ifType;
+    char* uri;
+    OCStringLL* types;
+    OCStringLL* interfaces;
+    OCRepPayloadValue* values;
+    struct OCRepPayload* next;
+} OCRepPayload;
+
+// used inside an OCResourceLinkPayload inside an OCDiscoveryPayload
+// compare CAEndpoint_t for local endpoints
+/* src: octypes.h */
+typedef struct OCEndpointPayload // @rewrite => OCRemoteEndpoint
+{
+    char* tps;
+    char* addr;
+    OCTransportFlags family;
+    uint16_t port;
+    uint16_t pri;
+    struct OCEndpointPayload* next;
+} OCEndpointPayload;
+
+// used inside an OCDiscoveryPayload
+/* GAR: a Link? OCF 1.3.0 section 7.8.2. Compare OCResource in ocresource.h */
+/* src: octypes.h */
+typedef struct OCResourcePayload // @rewrite: -> OCResourceLink or OCF_Link
+{
+    char* uri;			/* property "href" (mandatory) */
+    char* rel;
+    char* anchor; /* NB: for OIC 1.1, a transfer URI; for OCF 1.0, a OCF URI */
+    OCStringLL* types;		/* property "rt" (mandatory) */
+    OCStringLL* interfaces;	/* property "if" (mandatory) */
+    /* in OCF: p: { bm: x, sec: y, port: z} */
+    uint8_t bitmap;		/* visibility policy bitmask: discoverable, observable */
+    /* OCF 1.0: "sec" and "port" ... used only in a response payload
+       when the request does not include an
+       OCF-Accept-Content-Format-Version option, i.e. OIC 1.1
+       clients. OCF 1.0 uses eps to convey info about encrypted
+       endpoints */
+    bool secure;
+    uint16_t port;
+#ifdef TCP_ADAPTER
+    uint16_t tcpPort;
+#endif
+    struct OCResourcePayload* next;
+    OCEndpointPayload* eps;  /* OCF 1.0 */
+    /* GAR: what about the remaining optional parameters, e.g. di, type (mt?), etc. */
+} OCResourcePayload;
+/* src: octypes.h */
+typedef struct OCDiscoveryPayload /* GAR: implicitly uri is "oic/res" (set in OCClientResponse parent) */
+{
+    OCPayload base;
+
+    char *sid;			/* property "di" (OIC 1.1 only mandatory) */
+
+    char *name;			/* propery "n" (optional) */
+
+    OCStringLL *type;		/* propery "rt" (mandatory) */
+
+    OCStringLL *iface;		/* property "if" (mandatory) */
+
+    /** This structure holds the old /oic/res response. */
+    OCResourcePayload *resources; /* property "links" (mandatory) */
+
+    struct OCDiscoveryPayload *next;
+
+    /* GAR: property "mpro" (messaging protocol support)? */
+
+} OCDiscoveryPayload;
+
+/* src: octypes.h */
+typedef struct
+{
+    OCPayload base;
+    uint8_t* securityData;
+    size_t payloadSize;
+} OCSecurityPayload;
+
+/* src: octypes.h */
+typedef struct
+{
+    OCPayload base;
+    char* message;
+} OCDiagnosticPayload;
+
+/* src: octypes.h */
+typedef struct
+{
+    OCPayload base;
+    OCByteString cborPayload;
+} OCIntrospectionPayload;
+
+#endif	/* EXPORT_INTERFACE */
+
+#if EXPORT_INTERFACE
+/**
+ *  Formats for payload encoding.
+ */
+/* src: octypes.h */
+typedef enum
+{
+    OC_FORMAT_CBOR,
+    OC_FORMAT_VND_OCF_CBOR,
+    OC_FORMAT_JSON,
+    OC_FORMAT_UNDEFINED,
+    OC_FORMAT_UNSUPPORTED,
+} OCPayloadFormat;
 #endif	/* INTERFACE */
 
 static void OCFreeRepPayloadValueContents(OCRepPayloadValue* val);
@@ -326,7 +331,7 @@ void OC_CALL OCPayloadDestroy(OCPayload* payload) EXPORT
     OIC_LOG_V(INFO, __FILE__, "%s: EXIT", __func__);
 }
 
-OCRepPayload* OC_CALL OCRepPayloadCreate() EXPORT
+OCRepPayload* OC_CALL OCRepPayloadCreate(void) EXPORT
 {
     OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
 
@@ -337,6 +342,7 @@ OCRepPayload* OC_CALL OCRepPayloadCreate() EXPORT
         return NULL;
     }
 
+    payload->ifType = PAYLOAD_NON_BATCH_INTERFACE;
     payload->base.type = PAYLOAD_TYPE_REPRESENTATION;
 
     return payload;
@@ -747,6 +753,17 @@ bool OC_CALL OCRepPayloadSetUri(OCRepPayload* payload, const char*  uri) EXPORT
     OICFree(payload->uri);
     payload->uri = OICStrdup(uri);
     return payload->uri != NULL;
+}
+
+bool OC_CALL OCRepPayloadSetInterfaceType(OCRepPayload* payload, OCPayloadInterfaceType type)
+{
+    if (!payload)
+    {
+        return false;
+    }
+
+    payload->ifType = type;
+    return true;
 }
 
 bool OC_CALL OCRepPayloadIsNull(const OCRepPayload* payload, const char* name)
@@ -1877,6 +1894,7 @@ OCRepPayload* OC_CALL OCRepPayloadBatchClone(const OCRepPayload* repPayload)
     }
 
     clone->types  = CloneOCStringLL(repPayload->types);
+    clone->ifType = repPayload->ifType;
     clone->interfaces  = CloneOCStringLL(repPayload->interfaces);
     clone->values = OCRepPayloadValueClone(repPayload->values);
     OCRepPayloadSetPropObjectAsOwner(newPayload, OC_RSRVD_REPRESENTATION, clone);
@@ -1899,7 +1917,7 @@ void OC_CALL OCRepPayloadDestroy(OCRepPayload* payload)
     OICFree(payload);
 }
 
-OCDiscoveryPayload* OC_CALL OCDiscoveryPayloadCreate()
+OCDiscoveryPayload* OC_CALL OCDiscoveryPayloadCreate(void)
 {
     OCDiscoveryPayload* payload = (OCDiscoveryPayload*)OICCalloc(1, sizeof(OCDiscoveryPayload));
 
@@ -2108,9 +2126,7 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
 	    OIC_LOG_V(DEBUG, TAG, "%s ifindex %d", __func__, info->ifindex);
 	    OIC_LOG_V(DEBUG, TAG, "%s dev index %d", __func__, devAddr->ifindex);
 
-            if (((CA_ADAPTER_IP | CA_ADAPTER_TCP) & info->adapter &&
-                 info->ifindex == devAddr->ifindex) ||
-                info->adapter == CA_ADAPTER_RFCOMM_BTEDR)
+            if ((CA_ADAPTER_IP | CA_ADAPTER_TCP) & info->adapter)
             {
                 OCTpsSchemeFlags matchedTps = OC_NO_TPS;
                 if (OC_STACK_OK != OCGetMatchedTpsFlags(info->adapter,
@@ -2137,7 +2153,7 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
                     OCStackResult ret = OCConvertTpsToString(matchedTps, &(tmpNode->tps));
                     if (ret != OC_STACK_OK)
                     {
-                        OIC_LOG_V(DEBUG, TAG, "OCConvertTpsToString(%s) is false", tmpNode->tps);
+                        OIC_LOG_V(ERROR, TAG, "OCConvertTpsToString(%s) is false", tmpNode->tps);
                         OCDiscoveryEndpointDestroy(tmpNode);
                         goto exit;
                     }
@@ -2236,6 +2252,7 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
 
     // anchor
     char *anchor = OCCreateEndpointString(selfEp);
+    OIC_LOG_V(DEBUG, TAG, " OCCreateEndpointString anchor = %s", anchor);
     if (anchor)
     {
         pl->anchor = anchor;
@@ -2527,20 +2544,19 @@ void OC_CALL OCEndpointPayloadDestroy(OCEndpointPayload* payload)
 }
 
 OCRepPayload** OC_CALL OCLinksPayloadArrayCreate(const char* resourceUri,
-                       OCEntityHandlerRequest *ehRequest, size_t* createdArraySize)
+                       OCEntityHandlerRequest *ehRequest, bool insertSelfLink, size_t* createdArraySize)
 {
     OIC_LOG(DEBUG, TAG, "OCLinksPayloadValueCreate");
     OCRepPayload** linksRepPayloadArray = NULL;
     if ((resourceUri != NULL) && (ehRequest != NULL))
     {
-        bool isOCFContentFormat = false;
-        if (!OCRequestIsOCFContentFormat(ehRequest, &isOCFContentFormat))
+        OCPayloadFormat contentFormat = OC_FORMAT_UNDEFINED;
+        if ((OC_STACK_OK != OCGetRequestPayloadVersion(ehRequest, &contentFormat, NULL)) &&
+            (contentFormat == OC_FORMAT_VND_OCF_CBOR || contentFormat == OC_FORMAT_CBOR))
             return NULL;
 
-        linksRepPayloadArray = BuildCollectionLinksPayloadArray(resourceUri,
-                                                                isOCFContentFormat,
-                                                                &ehRequest->devAddr,
-                                                                createdArraySize);
+        linksRepPayloadArray = BuildCollectionLinksPayloadArray(resourceUri, contentFormat, &ehRequest->devAddr,
+            insertSelfLink, createdArraySize);
 
         OIC_LOG_V(DEBUG, TAG, "return value of BuildCollectionLinksPayloadArray() = %s",
                  (linksRepPayloadArray != NULL) ? "true" : "false");
@@ -2548,29 +2564,51 @@ OCRepPayload** OC_CALL OCLinksPayloadArrayCreate(const char* resourceUri,
     return linksRepPayloadArray;
 }
 
-// Check on Content Version option whether request has vnd.ocf+cbor format instead of cbor
-// Check on Accept Version option.
-bool OCRequestIsOCFContentFormat(OCEntityHandlerRequest *ehRequest, bool* isOCFContentFormat)
+OCStackResult OC_CALL OCGetRequestPayloadVersion(OCEntityHandlerRequest *ehRequest,
+                                  OCPayloadFormat* pContentFormat, uint16_t* pAcceptVersion)
 {
-    if ((ehRequest == NULL)||(isOCFContentFormat == NULL))
-        return false;
+    if ((ehRequest == NULL)||(pContentFormat == NULL))
+        return OC_STACK_ERROR;
 
     OCServerRequest* serverRequest = (OCServerRequest*) ehRequest->requestHandle;
+    switch (serverRequest->acceptFormat)
+    {
+        case OC_FORMAT_CBOR:
+        case OC_FORMAT_VND_OCF_CBOR:
+        case OC_FORMAT_JSON:
+        case OC_FORMAT_UNDEFINED:
+        case OC_FORMAT_UNSUPPORTED:
+            *pContentFormat = serverRequest->acceptFormat;
+            OIC_LOG_V(INFO, TAG,
+                      "Content format is %d, application/cbor = 0, application/vnd.ocf+cbor = 1",
+                      (int) *pContentFormat);
+            break;
+        default:
+            return OC_STACK_INVALID_OPTION;
+    }
 
-    if (OC_FORMAT_VND_OCF_CBOR == serverRequest->acceptFormat)
+    // accepting NULL input parameter in case version is not required
+    if (pAcceptVersion == NULL)
     {
-        *isOCFContentFormat = true;
-        OIC_LOG_V(INFO, TAG, "Content format is application/vnd.ocf+cbor");
+        return OC_STACK_OK;
     }
-    else if (OC_FORMAT_CBOR == serverRequest->acceptFormat)
+
+    uint8_t vOptionData[MAX_HEADER_OPTION_DATA_LENGTH];
+    size_t vOptionDataSize = sizeof(vOptionData);
+    uint16_t actualDataSize = 0;
+
+    OCGetHeaderOption(ehRequest->rcvdVendorSpecificHeaderOptions,
+                      ehRequest->numRcvdVendorSpecificHeaderOptions,
+                      OCF_ACCEPT_CONTENT_FORMAT_VERSION, vOptionData, vOptionDataSize, &actualDataSize);
+
+    // Check if "OCF-Accept-Content-Format-Version" is present,
+    // and size of its value is as expected (2 bytes).
+    if (actualDataSize != 2)
     {
-        *isOCFContentFormat = false;
-        OIC_LOG_V(INFO, TAG, "Content format is application/cbor");
+        return OC_STACK_INVALID_OPTION;
     }
-    else
-    {
-        OIC_LOG_V(ERROR, TAG, "Content format is neither application/vnd.ocf+cbor nor /cbor");
-        return false;
-    }
-    return true;
+
+    *pAcceptVersion = vOptionData[0] * 256 + vOptionData[1];
+
+    return OC_STACK_OK;
 }
