@@ -20,19 +20,9 @@
 
 #include "occlientcb.h"
 
-/* #include "iotivity_config.h" */
-/* #include "occlientcb_api.h" */
-
-/* #if LOCAL_INTERFACE */
 #include "coap_config.h"
-/* FIXME: put this in build logic? */
-#define WITH_POSIX
+#define WITH_POSIX              /* required to pull in coap_tick_t */
 #include "coap/coap_time.h"
-/* #endif */
-
-/* #include "logger.h" */
-/* #include "trace.h" */
-/* #include "oic_malloc.h" */
 
 #include "utlist.h"
 
@@ -44,10 +34,6 @@
 
 #include <assert.h>
 
-/* #include "cacommon.h" */
-/* #include "cainterface.h" */
-
-/// Module Name
 #define TAG "OIC_RI_CLIENTCB"
 
 #if EXPORT_INTERFACE
@@ -89,6 +75,7 @@ typedef struct OCCallbackData
 /**
  * Forward declaration of resource type.
  */
+/* src:: occlientcb.h */
 typedef struct resourcetype_t OCResourceType;
 
 /**
@@ -96,6 +83,7 @@ typedef struct resourcetype_t OCResourceType;
  * connectivity Types, presence and resource type, request uri etc.
  */
 #if EXPORT_INTERFACE
+/* src:: occlientcb.h */
 typedef struct ClientCB {
     /** callback method defined in application address space. */
     OCClientResponseHandler callBack; /* Always set errno = 0 before calling!  */
@@ -467,7 +455,7 @@ void DeleteClientCB(ClientCB * cbNode)
     OIC_LOG_V(INFO, __FILE__, "[%d] %s: EXIT", __LINE__, __func__);
 }
 
-void DeleteClientCBList()
+void DeleteClientCBList(void)
 {
     ClientCB* out = NULL;
     ClientCB* tmp = NULL;
@@ -551,7 +539,7 @@ ClientCB* GetClientCBUsingUri(const char *requestUri)
     ClientCB* tmp = NULL;
     LL_FOREACH_SAFE(g_cbList, out, tmp)
     {
-        /* de-annotate below line if want to see all uri in g_cbList */
+        /* de-annotate below line if want to see all URI in g_cbList */
         //OIC_LOG_V(INFO, TAG, "%s", out->requestUri);
         if (out->requestUri && strcmp(out->requestUri, requestUri ) == 0)
         {
