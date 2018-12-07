@@ -116,9 +116,10 @@ boost_deps()
 new_http_archive(
     name = "libcoap",
     build_file = "src/coap/libcoap/BUILD",
-    urls = ["https://github.com/dthaler/libcoap/archive/IoTivity-1.2.1d.zip"],
-    sha256 = "aac5b9101fad4cf722f0166f2739ebcefe55ad0ca7aa475550b11c8eb4740511",
-    strip_prefix = "libcoap-IoTivity-1.2.1d",
+    urls = ["https://github.com/dthaler/libcoap/archive/IoTivity-1.4.zip"],
+    sha256="d68062be5b8c82309295847b7d1924a78d466bdf32f691470af86184bfa8810d",
+    # sha256 = "aac5b9101fad4cf722f0166f2739ebcefe55ad0ca7aa475550b11c8eb4740511",
+    strip_prefix = "libcoap-IoTivity-1.4"
 )
     # urls = ["https://github.com/obgm/libcoap/archive/v4.1.2.zip"],
     # sha256 = "4caf73446a4994a0571afaf5e60a62a749bda92a29e9407174614733e984c238",
@@ -146,7 +147,7 @@ new_http_archive(
 # tinycbor
 new_http_archive(
     name = "tinycbor",
-    build_file = "src/payload/tinycbor/BUILD",
+    build_file = "src/payload/cbor/BUILD",
     urls = ["https://github.com/intel/tinycbor/archive/v0.5.1.zip"],
     sha256 = "48e664e10acec590795614ecec1a71be7263a04053acb9ee81f7085fb9116369",
     strip_prefix = "tinycbor-0.5.1",
