@@ -146,14 +146,14 @@ new_http_archive(
 # tinycbor
 new_http_archive(
     name = "tinycbor",
-    urls = ["https://github.com/intel/tinycbor/archive/v0.4.1.zip"],
-    sha256 = "c5ace3389cfdd6a121824a26f9c14486df298ba0088209d67aef5bc192827d6e",
-    strip_prefix = "tinycbor-0.4.1",
-    build_file = "config/tinycbor.BUILD",
-    #urls = ["https://github.com/intel/tinycbor/archive/v0.5.1.zip"],
-    #sha256 = "48e664e10acec590795614ecec1a71be7263a04053acb9ee81f7085fb9116369",
-    #strip_prefix = "tinycbor-0.5.1",
+    build_file = "src/payload/tinycbor/BUILD",
+    urls = ["https://github.com/intel/tinycbor/archive/v0.5.1.zip"],
+    sha256 = "48e664e10acec590795614ecec1a71be7263a04053acb9ee81f7085fb9116369",
+    strip_prefix = "tinycbor-0.5.1",
 )
+    # urls = ["https://github.com/intel/tinycbor/archive/v0.4.1.zip"],
+    # sha256 = "c5ace3389cfdd6a121824a26f9c14486df298ba0088209d67aef5bc192827d6e",
+    # strip_prefix = "tinycbor-0.4.1",
 
 # https://troydhanson.github.io/uthash/
 new_http_archive(
