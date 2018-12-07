@@ -118,13 +118,11 @@ new_http_archive(
     build_file = "src/coap/libcoap/BUILD",
     urls = ["https://github.com/dthaler/libcoap/archive/IoTivity-1.4.zip"],
     sha256="d68062be5b8c82309295847b7d1924a78d466bdf32f691470af86184bfa8810d",
-    # sha256 = "aac5b9101fad4cf722f0166f2739ebcefe55ad0ca7aa475550b11c8eb4740511",
     strip_prefix = "libcoap-IoTivity-1.4"
 )
     # urls = ["https://github.com/obgm/libcoap/archive/v4.1.2.zip"],
     # sha256 = "4caf73446a4994a0571afaf5e60a62a749bda92a29e9407174614733e984c238",
     # strip_prefix = "libcoap-4.1.2",
-
 
 # new_local_repository(
 # 	name = "coap_hdrs",

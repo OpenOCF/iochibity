@@ -146,7 +146,8 @@ cc_library(
              "-DWITH_POSIX",
              "-D_GNU_SOURCE",
              "-DWITH_UPSTREAM_LIBCOAP"]
-    + select({"@//config:enable_tcp": ["-DWITH_TCP"],
+    + select({"@//config:enable_tcp": ["-DWITH_TCP",
+                                       "-DWITH_WS"], # FIXME: bug in the libcoap code
               "//conditions:default": []}),
     #data = [":config"],
     srcs = glob(["src/**/*.c"],
