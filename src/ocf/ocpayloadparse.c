@@ -27,18 +27,8 @@
 
 #include "ocpayloadparse.h"
 
-/* #include "iotivity_config.h" */
-
 #include <string.h>
 #include <stdlib.h>
-/* #include "ocpayload.h" */
-/* #include "oic_string.h" */
-/* #include "oic_malloc.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "presence_methods.h" */
-/* #include "ocstackinternal.h" */
-/* #include "payload_logging.h" */
-/* #include "ocendpoint.h" */
 
 #include "cbor.h"
 
@@ -341,7 +331,7 @@ static OCStackResult OCParseDiscoveryPayloadCbor(OCPayload **outPayload,
                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to find port tag");
                 if (cbor_value_is_integer(&curVal))
                 {
-                    int port;
+                    int port = 0;
 
                     err = cbor_value_get_int(&curVal, &port);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to find port value");
@@ -353,7 +343,7 @@ static OCStackResult OCParseDiscoveryPayloadCbor(OCPayload **outPayload,
                 err = cbor_value_map_find_value(&policyMap, OC_RSRVD_TCP_PORT, &curVal);
                 if (cbor_value_is_integer(&curVal))
                 {
-                    int tcpPort;
+                    int tcpPort = 0;
 
                     err = cbor_value_get_int(&curVal, &tcpPort);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to find tcp port value");
@@ -365,7 +355,7 @@ static OCStackResult OCParseDiscoveryPayloadCbor(OCPayload **outPayload,
                 err = cbor_value_map_find_value(&policyMap, OC_RSRVD_TLS_PORT, &curVal);
                 if (cbor_value_is_integer(&curVal))
                 {
-                    int tlsPort;
+                    int tlsPort = 0;
 
                     err = cbor_value_get_int(&curVal, &tlsPort);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to find tcp tls port value");
@@ -569,15 +559,16 @@ static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *reso
         err = cbor_value_advance(resourceMap);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to advance resource map");
 
+        char* anchorPrefix =  "ocf://";
         // Parse di from anchor
-        if (!resource->anchor || strncmp(resource->anchor, "ocf://", 6))
+        if (!resource->anchor || strncmp(resource->anchor, anchorPrefix, strlen(anchorPrefix)))
         {
             OIC_LOG_V(ERROR, TAG, "Ignore unrecognized anchor %s", resource->anchor);
             OCDiscoveryResourceDestroy(resource);
         }
         else
         {
-            char *di = OICStrdup(resource->anchor + 6);
+            char *di = OICStrdup(resource->anchor + strlen(anchorPrefix));
             VERIFY_PARAM_NON_NULL(TAG, di, "Failed to duplicating di");
 
             char *slash = strchr(di, '/');
@@ -1384,9 +1375,7 @@ static OCStackResult OCParsePresencePayload(OCPayload **outPayload, CborValue *r
     }
 exit:
     OIC_LOG(ERROR, TAG, "CBOR error Parse Presence Payload");
-#ifdef WITH_PRESENCE
     OCPresencePayloadDestroy(payload);
-#endif
     return ret;
 }
 #endif

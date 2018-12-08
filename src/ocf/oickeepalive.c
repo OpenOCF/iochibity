@@ -22,51 +22,26 @@
 
 #include <stdio.h>
 #include <string.h>
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "oic_time.h" */
-/* #include "ocrandom.h" */
-/* #include "uarraylist.h" */
-/* #include "ocstackinternal.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "ocpayload.h" */
-/* #include "ocresourcehandler.h" */
-/* #include "logger.h" */
 
-/**
- * Logging tag for module name.
- */
 #define TAG "OIC_RI_KEEPALIVE"
 
 /**
  * Name of resource type.
  */
+/* src: oickeepalive.h */
 #define KEEPALIVE_RESOURCE_TYPE_NAME "oic.wk.ping"
 
 /**
  * Name of resource interface.
  */
+/* src: oickeepalive.h */
 #define KEEPALIVE_RESOURCE_INTF_NAME OC_RSRVD_INTERFACE_READ_WRITE
 
 /**
  * URI of the resource.
  */
+/* src: oickeepalive.h */
 #define KEEPALIVE_RESOURCE_URI "/oic/ping"
-
-//-----------------------------------------------------------------------------
-// Macros
-//-----------------------------------------------------------------------------
-/* #define VERIFY_SUCCESS(op, successCode) { if ((op) != (successCode)) \ */
-/*             {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} } */
-
-/* #define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \ */
-/*              TAG, #arg " is NULL"); return (retVal); } } */
-
-/* #define VERIFY_NON_NULL_NR(arg, logLevel) { if (!(arg)) { OIC_LOG((logLevel), \ */
-/*              TAG, #arg " is NULL"); return; } } */
-
-/* #define VERIFY_NON_NULL_V(arg) { if (!arg) {OIC_LOG_V(FATAL, TAG, "%s is NULL", #arg);\ */
-/*     goto exit;} } */
 
 /**
  * The KeepAlive table entries are removed
@@ -201,11 +176,7 @@ OCStackResult TerminateKeepAlive(OCMode mode)
     return OC_STACK_OK;
 }
 
-/**
- * This function creates KeepAlive resource.
- * @return  ::OC_STACK_OK or Appropriate error code.
- */
-LOCAL OCStackResult CreateKeepAliveResource()
+OCStackResult CreateKeepAliveResource(void)
 {
     OIC_LOG(DEBUG, TAG, "InitKeepAliveResource IN");
 
@@ -232,11 +203,7 @@ LOCAL OCStackResult CreateKeepAliveResource()
     return result;
 }
 
-/**
- * This function deletes KeepAlive resource.
- * @return  ::OC_STACK_OK or Appropriate error code.
- */
-LOCAL OCStackResult DeleteKeepAliveResource()
+OCStackResult DeleteKeepAliveResource(void)
 {
     OIC_LOG(DEBUG, TAG, "DeleteKeepAliveResource IN");
 
@@ -347,8 +314,8 @@ LOCAL OCStackResult SendKeepAliveResponse(OCServerRequest *request,
 LOCAL OCEntityHandlerResult HandleKeepAliveGETRequest(OCServerRequest *request,
 						       const OCResource *resource)
 {
-    VERIFY_NON_NULL(request, FATAL, OC_EH_ERROR);
-    VERIFY_NON_NULL(resource, FATAL, OC_EH_ERROR);
+    VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
+    VERIFY_NON_NULL(resource, FATAL, OC_STACK_INVALID_PARAM);
 
     OIC_LOG_V(DEBUG, TAG, "Find Ping resource [%s]", request->resourceUrl);
 
@@ -372,8 +339,8 @@ LOCAL OCEntityHandlerResult HandleKeepAliveGETRequest(OCServerRequest *request,
 LOCAL OCEntityHandlerResult HandleKeepAlivePOSTRequest(OCServerRequest *request,
 							const OCResource *resource)
 {
-    VERIFY_NON_NULL(request, FATAL, OC_EH_ERROR);
-    VERIFY_NON_NULL(resource, FATAL, OC_EH_ERROR);
+    VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
+    VERIFY_NON_NULL(resource, FATAL, OC_STACK_INVALID_PARAM);
 
     // Get entry from KeepAlive table.
     CAEndpoint_t endpoint = { .adapter = CA_DEFAULT_ADAPTER };

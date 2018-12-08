@@ -18,35 +18,17 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+#include "oicresourcedirectory.h"
+
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "oicresourcedirectory.h"
-
-/* #ifdef RD_SERVER */
-/* #include "sqlite3.h" */
-/* #endif */
-
-/* #include "octypes.h" */
-/* #include "ocstack.h" */
-/* #include "ocrandom.h" */
-/* #include "logger.h" */
-/* #include "ocpayload.h" */
-/* #include "ocendpoint.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "cainterface.h" /\* GAR is this needed? *\/ */
+#ifdef RD_SERVER
+#include "sqlite3.h"
+#endif
 
 #define TAG "OIC_RI_RESOURCEDIRECTORY"
-
-/* #define VERIFY_NON_NULL(arg) \ */
-/* if (!(arg)) \ */
-/* { \ */
-/*     OIC_LOG(ERROR, TAG, #arg " is NULL"); \ */
-/*     result = OC_STACK_NO_MEMORY; \ */
-/*     goto exit; \ */
-/* } */
 
 #ifdef RD_SERVER
 
@@ -407,6 +389,105 @@ exit:
     return result;
 }
 
+static OCStackResult deleteResources(const char *deviceId, const int64_t *instanceIds, uint16_t nInstanceIds)
+{
+    char *delResource = NULL;
+    sqlite3_stmt *stmt = NULL;
+
+    OCStackResult result;
+    VERIFY_SQLITE(sqlite3_exec(gRDDB, "BEGIN TRANSACTION", NULL, NULL, NULL));
+
+    if (!instanceIds || !nInstanceIds)
+    {
+        static const char delDevice[] = "DELETE FROM RD_DEVICE_LIST WHERE di=@deviceId";
+        int delDeviceSize = (int)sizeof(delDevice);
+
+        VERIFY_SQLITE(sqlite3_prepare_v2(gRDDB, delDevice, delDeviceSize, &stmt, NULL));
+        VERIFY_SQLITE(sqlite3_bind_text(stmt, sqlite3_bind_parameter_index(stmt, "@deviceId"),
+                                        deviceId, (int)strlen(deviceId), SQLITE_STATIC));
+    }
+    else
+    {
+        static const char pre[] = "DELETE FROM RD_DEVICE_LINK_LIST "
+            "WHERE ins IN ("
+            "SELECT RD_DEVICE_LINK_LIST.ins FROM RD_DEVICE_LINK_LIST "
+            "INNER JOIN RD_DEVICE_LIST ON RD_DEVICE_LINK_LIST.DEVICE_ID=RD_DEVICE_LIST.ID "
+            "WHERE RD_DEVICE_LINK_LIST.ins IN (";
+        size_t inLen = nInstanceIds + (nInstanceIds - 1);
+        static const char post[] = "))";
+        size_t delResourceSize = sizeof(pre) + inLen + (sizeof(post) - 1);
+        delResource = OICCalloc(delResourceSize, 1);
+        VERIFY_NON_NULL(delResource);
+        OICStrcat(delResource, delResourceSize, pre);
+        OICStrcat(delResource, delResourceSize, "?");
+        for (uint16_t i = 1; i < nInstanceIds; ++i)
+        {
+            OICStrcat(delResource, delResourceSize, ",?");
+        }
+        OICStrcat(delResource, delResourceSize, post);
+        VERIFY_SQLITE(sqlite3_prepare_v2(gRDDB, delResource, (int)delResourceSize,
+                        &stmt, NULL));
+        for (uint16_t i = 0; i < nInstanceIds; ++i)
+        {
+            VERIFY_SQLITE(sqlite3_bind_int64(stmt, 1 + i, instanceIds[i]));
+        }
+    }
+
+    int res = sqlite3_step(stmt);
+    if (SQLITE_DONE != res)
+    {
+        result = OC_STACK_ERROR;
+        goto exit;
+    }
+    VERIFY_SQLITE(sqlite3_finalize(stmt));
+    stmt = NULL;
+
+    VERIFY_SQLITE(sqlite3_exec(gRDDB, "COMMIT", NULL, NULL, NULL));
+    result = OC_STACK_OK;
+
+exit:
+    OICFree(delResource);
+    sqlite3_finalize(stmt);
+    if (OC_STACK_OK != result)
+    {
+        sqlite3_exec(gRDDB, "ROLLBACK", NULL, NULL, NULL);
+    }
+    return result;
+}
+
+static OCStackResult DeleteExpiredResources()
+{
+    sqlite3_stmt *stmt = NULL;
+    OCStackResult result;
+
+    uint64_t ttl = OICGetCurrentTime(TIME_IN_US);
+    static const char lapsed[] = "SELECT di FROM RD_DEVICE_LIST WHERE ttl < @ttl";
+    int lapsedSize = (int)sizeof(lapsed);
+    VERIFY_SQLITE(sqlite3_prepare_v2(gRDDB, lapsed, lapsedSize, &stmt, NULL));
+    VERIFY_SQLITE(sqlite3_bind_int64(stmt, sqlite3_bind_parameter_index(stmt, "@ttl"),
+                                     (int64_t)ttl));
+
+    while (SQLITE_ROW == sqlite3_step(stmt))
+    {
+        const unsigned char *di = sqlite3_column_text(stmt, 0);
+        if (SQLITE_OK != deleteResources((const char *)di, NULL, 0))
+        {
+            OIC_LOG_V(WARNING, TAG, "Error in deleteResources, Error Message: %s", sqlite3_errmsg(gRDDB));
+        }
+        else
+        {
+            OIC_LOG_V(INFO, TAG, "Deleted resources with di=%s", di);
+        }
+    }
+    VERIFY_SQLITE(sqlite3_finalize(stmt));
+    stmt = NULL;
+    result = OC_STACK_OK;
+
+ exit:
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 OCStackResult OC_CALL OCRDDatabaseDiscoveryPayloadCreate(const char *interfaceType,
         const char *resourceType, OCDiscoveryPayload **payload)
 {
@@ -436,12 +517,14 @@ OCStackResult OC_CALL OCRDDatabaseDiscoveryPayloadCreateWithEp(const char *inter
     {
         OIC_LOG_V(INFO, TAG, "SQLite debugging log initialized.");
     }
-    sqlite3_open_v2(OCRDDatabaseGetStorageFilename(), &gRDDB, SQLITE_OPEN_READONLY, NULL);
+    sqlite3_open_v2(OCRDDatabaseGetStorageFilename(), &gRDDB, SQLITE_OPEN_READWRITE, NULL);
     if (!gRDDB)
     {
         result = OC_STACK_ERROR;
         goto exit;
     }
+
+    DeleteExpiredResources();
 
     const char *serverID = OCGetServerInstanceIDString();
     const char input[] = "SELECT di, external_host FROM RD_DEVICE_LIST";
@@ -459,9 +542,9 @@ OCStackResult OC_CALL OCRDDatabaseDiscoveryPayloadCreateWithEp(const char *inter
         sqlite3_int64 externalHost = sqlite3_column_int64(stmt, external_host_index);
         *tail = OCDiscoveryPayloadCreate();
         result = OC_STACK_INTERNAL_SERVER_ERROR;
-        VERIFY_NON_NULL_1(*tail);
+        VERIFY_NON_NULL(*tail);
         (*tail)->sid = (char *)OICCalloc(1, UUID_STRING_SIZE);
-        VERIFY_NON_NULL_1((*tail)->sid);
+        VERIFY_NON_NULL((*tail)->sid);
         memcpy((*tail)->sid, di, UUID_STRING_SIZE);
         result = CheckResources(interfaceType, resourceType, externalHost ? NULL : endpoint, *tail);
         if (OC_STACK_OK == result)

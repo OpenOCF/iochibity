@@ -54,6 +54,8 @@
  * The maximum height of a red-black tree is 2lg (n+1).
  */
 
+#if INTERFACE
+
 #define SPLAY_HEAD(name, type)						\
 struct name {								\
 	struct type *sph_root; /* root of the tree */			\
@@ -813,11 +815,20 @@ name##_RBL_REMOVE(struct name *head, struct type *elm)			\
 		elm = RB_REMOVE(name, head, elm);			\
 	}								\
 	return elm;							\
+}								\
+								\
+attr struct type *							\
+name##_RBL_FIND(struct name *head, struct type *elm)			\
+{									\
+	elm = RB_FIND(name, head, elm);			\
+	return elm;							\
 }
 
 #define RBL_INSERT(name, x, y)	name##_RBL_INSERT(x, y)
 
 #define RBL_REMOVE(name, x, y)	name##_RBL_REMOVE(x, y)
+
+#define RBL_FIND(name, x, y)	name##_RBL_FIND(x, y)
 
 #ifdef _KERNEL
 
@@ -1041,4 +1052,5 @@ RBT_GENERATE_INTERNAL(_name, _type, _field, _cmp, _name##_RBT_AUGMENT)
 
 #endif /* _KERNEL */
 
+#endif  /* INTERFACE */
 /* #endif	/\* _SYS_TREE_H_ *\/ */

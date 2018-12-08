@@ -33,7 +33,6 @@
 #include <strings.h>
 #endif
 
-
 /* #include "coap/coap.h" */
 #include "cbor.h"
 
@@ -401,9 +400,6 @@ typedef enum
 
 // Using 1k as block size since most persistent storage implementations use a power of 2.
 #define INTROSPECTION_FILE_SIZE_BLOCK  1024
-
-/* #define VERIFY_SUCCESS(op) { if (op != (OC_STACK_OK)) \
- *             {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} } */
 
 /**
  * Default cbor payload size. This value is increased in case of CborErrorOutOfMemory.
@@ -1636,7 +1632,7 @@ OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
     return OC_STACK_OK;
 }
 
-OCResource *FindResourceByUri(const char* resourceUri)
+OCResource *OC_CALL FindResourceByUri(const char* resourceUri)
 {
     if(!resourceUri)
     {

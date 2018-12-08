@@ -22,31 +22,8 @@
 
 #include <string.h>
 
-/* #include "ocstack.h" */
-/* #include "ocserverrequest.h" */
-/* #include "ocresourcehandler.h" */
-/* #include "ocobserve.h" */
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "ocpayload.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "logger.h" */
-
-/* #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP) */
-/* #include "routingutility.h" */
-/* #endif */
-
-/* #include "cacommon.h" */
-/* #include "cainterface.h" */
-
 #include <coap/pdu.h>
 
-//-------------------------------------------------------------------------------------------------
-// Macros
-//-------------------------------------------------------------------------------------------------
-/* #define VERIFY_NON_NULL(arg) { if (!arg) {OIC_LOG(FATAL, TAG, #arg " is NULL"); goto exit;} } */
-
-// Module Name
 #define TAG "OIC_RI_SERVERREQUEST"
 
 /**
@@ -614,6 +591,11 @@ void DeleteServerRequest(OCServerRequest * serverRequest)
 {
     if (serverRequest)
     {
+        if (!RBL_FIND(ServerRequestTree, &g_serverRequestTree, serverRequest))
+        {
+            return;
+        }
+
         RBL_REMOVE(ServerRequestTree, &g_serverRequestTree, serverRequest);
         OICFree(serverRequest->requestToken);
         OICFree(serverRequest);
@@ -922,11 +904,13 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
     // Put the JSON prefix and suffix around the payload
     if(ehResponse->payload)
     {
+#ifdef WITH_PRESENCE
         if (ehResponse->payload->type == PAYLOAD_TYPE_PRESENCE)
         {
             responseInfo.isMulticast = true;
         }
         else
+#endif
         {
             responseInfo.isMulticast = false;
         }
@@ -1078,6 +1062,7 @@ OCStackResult HandleAggregateResponse(OCEntityHandlerResponse * ehResponse)
 
         if(!serverResponse->payload)
         {
+            OCRepPayloadSetInterfaceType(newPayload, PAYLOAD_BATCH_INTERFACE);
             serverResponse->payload = (OCPayload *)newPayload;
         }
         else
