@@ -60,10 +60,10 @@
 #define OC_RESOURCE_OBSERVABLE   1
 #define OC_RESOURCE_SECURE       1
 
+#if EXPORT_INTERFACE
 /**
  *  OIC Virtual resources supported by every OIC device.
  */
-#if EXPORT_INTERFACE
 typedef enum
 {
     /** unknown URI.*/
@@ -84,10 +84,10 @@ typedef enum
     /** "/oic/gateway" .*/
     OC_GATEWAY_URI,
 #endif
-#ifdef WITH_PRESENCE
-    /** "/oic/ad" .*/
-    OC_PRESENCE,
-#endif
+/* #ifdef WITH_PRESENCE */
+/*     /\** "/oic/ad" .*\/ */
+/*     OC_PRESENCE, */
+/* #endif */
 
 #ifdef MQ_BROKER
     /** "/oic/ps" .*/
@@ -109,10 +109,12 @@ typedef enum
     OC_MAX_VIRTUAL_RESOURCES    //<s Max items in the list
 
 } OCVirtualResources;
+#endif
 
 /**
  * The type of handling required to handle a request.
  */
+#if EXPORT_INTERFACE
 typedef enum
 {
     OC_RESOURCE_VIRTUAL = 0,
@@ -123,7 +125,7 @@ typedef enum
     OC_RESOURCE_DEFAULT_DEVICE_ENTITYHANDLER,
     OC_RESOURCE_NOT_SPECIFIED
 } ResourceHandling;
-#endif	/* INTERFACE */
+#endif	/* EXPORT_INTERFACE */
 
 #if EXPORT_INTERFACE
 
@@ -1634,7 +1636,7 @@ OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
     return OC_STACK_OK;
 }
 
-OCResource *OC_CALL FindResourceByUri(const char* resourceUri)
+OCResource *FindResourceByUri(const char* resourceUri)
 {
     if(!resourceUri)
     {
@@ -2119,6 +2121,7 @@ static bool isUnicast(OCServerRequest *request)
  * @return ::OC_STACK_OK on success, ::OC_STACK_DUPLICATE_REQUEST when registering a duplicate
  *         observer, some other value upon failure.
  */
+// FIXME: duplicate name, same in ocobserve.c
 static OCStackResult HandleVirtualObserveRequest(OCServerRequest *request)
 {
     OCStackResult result = OC_STACK_OK;

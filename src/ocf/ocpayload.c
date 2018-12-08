@@ -81,8 +81,10 @@ typedef enum
     PAYLOAD_TYPE_REPRESENTATION,
     /** The payload is an OCSecurityPayload */
     PAYLOAD_TYPE_SECURITY,
+#ifdef WITH_PRESENCE
     /** The payload is an OCPresencePayload */
     PAYLOAD_TYPE_PRESENCE,
+#endif
     /** The payload is an OCDiagnosticPayload */
     PAYLOAD_TYPE_DIAGNOSTIC,
     /** The payload is an OCIntrospectionPayload */
@@ -2483,6 +2485,8 @@ void OC_CALL OCDiscoveryResourceDestroy(OCResourcePayload* payload)
     OCDiscoveryResourceDestroy(payload->next);
     OICFree(payload);
 }
+
+//  OCPresencePayloadCreate moved to presence.c
 
 void OC_CALL OCDiscoveryPayloadDestroy(OCDiscoveryPayload* payload)
 {

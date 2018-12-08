@@ -20,18 +20,8 @@
 
 #include "ocpayloadconvert.h"
 
-/* #include "iotivity_config.h" */
-
-/* #include "ocpayloadcbor.h" */
 #include <stdlib.h>
-/* #include "oic_malloc.h" */
-/* #include "oic_string.h" */
-/* #include "logger.h" */
-/* #include "ocpayload.h" */
-/* #include "ocrandom.h" */
-/* #include "ocresourcehandler.h" */
 #include "cbor.h"
-/* #include "ocendpoint.h" */
 
 #define TAG "OIC_RI_PAYLOADCONVERT"
 
@@ -74,6 +64,13 @@ OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
         uint8_t** outPayload, size_t* size)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    // TinyCbor Version 47a78569c0 or better on master is required for the re-allocation
+    // strategy to work.  If you receive the following assertion error, please do a git-pull
+    // from the extlibs/tinycbor/tinycbor directory
+    #define CborNeedsUpdating  (((unsigned int)CborErrorOutOfMemory) < ((unsigned int)CborErrorDataTooLarge))
+    OC_STATIC_ASSERT(!CborNeedsUpdating, "tinycbor needs to be updated to at least 47a78569c0");
+    #undef CborNeedsUpdating
+
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     int64_t err = CborErrorOutOfMemory;
     uint8_t *out = NULL;
@@ -179,7 +176,7 @@ static int64_t OCConvertPayloadHelper(OCPayload* payload, OCPayloadFormat format
 
 static int64_t checkError(int64_t err, CborEncoder* encoder, uint8_t* outPayload, size_t* size)
 {
-    if (err == CborErrorOutOfMemory)
+    if (err & CborErrorOutOfMemory)
     {
         *size += cbor_encoder_get_extra_bytes_needed(encoder);
         return err;
@@ -260,6 +257,7 @@ static int64_t OCConvertResourcePayloadCbor(CborEncoder *linkArray, OCResourcePa
     if (endpoint)
     {
         char *endpointStr = OCCreateEndpointString(endpoint);
+        OIC_LOG_V(DEBUG, TAG, " OCCreateEndpointString endpointStr = %s", endpointStr);
         if (!endpointStr)
         {
             err = CborErrorInternalError;
@@ -498,7 +496,7 @@ exit:
 static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
                                                    uint8_t *outPayload, size_t *size)
 {
-    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     CborEncoder encoder;
     int64_t err = CborNoError;
 
@@ -625,6 +623,7 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
             size_t epsCount = OCEndpointPayloadGetEndpointCount(resource->eps);
 
             // Embed Endpoints in discovery response when any endpoint exist on the resource.
+            OIC_LOG_V(DEBUG, TAG, " Endpoint count: %d", epsCount);
             if (epsCount > 0)
             {
                 CborEncoder epsArray;
@@ -642,6 +641,7 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
                     VERIFY_PARAM_NON_NULL(TAG, endpoint, "Failed retrieving endpoint");
 
                     char* endpointStr = OCCreateEndpointString(endpoint);
+                    OIC_LOG_V(DEBUG, TAG, " OCCreateEndpointString endpointStr 2 = %s", endpointStr);
                     VERIFY_PARAM_NON_NULL(TAG, endpointStr, "Failed creating endpoint string");
 
                     err |= cbor_encoder_create_map(&epsArray, &endpointMap, EP_MAP_LEN);
@@ -662,6 +662,7 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
                     err |= cbor_encoder_close_container(&epsArray, &endpointMap);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed closing endpoint map");
                 }
+                OIC_LOG_V(DEBUG, TAG, "done with eps");
 
                 err |= cbor_encoder_close_container(&linkMap, &epsArray);
                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed closing endpoints map");
@@ -838,7 +839,7 @@ static int64_t OCConvertRepMap(CborEncoder *map, const OCRepPayload *payload)
     arrayLength = 0;
     for (value = payload->values; value; value = value->next)
     {
-        char *endp;
+        char *endp = NULL;
         long i = strtol(value->name, &endp, 0);
         if (*endp != '\0' || i < 0 || arrayLength != (size_t)i)
         {
@@ -957,13 +958,19 @@ static int64_t OCConvertRepPayload(OCRepPayload *payload, uint8_t *outPayload, s
 
     cbor_encoder_init(&encoder, outPayload, *size, 0);
 
+    int isBatch = 0;
+    if (payload != NULL && payload->ifType == PAYLOAD_BATCH_INTERFACE)
+    {
+        isBatch = 1;
+    }
+
     size_t arrayCount = 0;
     for (OCRepPayload *temp = payload; temp; temp = temp->next)
     {
         arrayCount++;
     }
     CborEncoder rootArray;
-    if (arrayCount > 1)
+    if (arrayCount > 1 || isBatch)
     {
         err |= cbor_encoder_create_array(&encoder, &rootArray, arrayCount);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed adding rep root map");
@@ -972,7 +979,7 @@ static int64_t OCConvertRepPayload(OCRepPayload *payload, uint8_t *outPayload, s
     while (payload != NULL && (err == CborNoError))
     {
         CborEncoder rootMap;
-        err |= cbor_encoder_create_map(((arrayCount == 1)? &encoder: &rootArray),
+        err |= cbor_encoder_create_map(((arrayCount == 1 && !isBatch)? &encoder: &rootArray),
                                             &rootMap, CborIndefiniteLength);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed creating root map");
 
@@ -980,12 +987,12 @@ static int64_t OCConvertRepPayload(OCRepPayload *payload, uint8_t *outPayload, s
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed setting rep payload");
 
         // Close main array
-        err |= cbor_encoder_close_container(((arrayCount == 1) ? &encoder: &rootArray),
+        err |= cbor_encoder_close_container(((arrayCount == 1 && !isBatch) ? &encoder: &rootArray),
                 &rootMap);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed closing root map");
         payload = payload->next;
     }
-    if (arrayCount > 1)
+    if (arrayCount > 1 || isBatch)
     {
         err |= cbor_encoder_close_container(&encoder, &rootArray);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed closing root array");
@@ -1066,7 +1073,7 @@ static int64_t AddTextStringToMap(CborEncoder* map, const char* key, size_t keyl
         return CborErrorInvalidUtf8TextString;
     }
     int64_t err = cbor_encode_text_string(map, key, keylen);
-    if (CborNoError != err)
+    if (CborNoError != err && CborErrorOutOfMemory != err)
     {
         return err;
     }
