@@ -2,11 +2,13 @@
 /**
  * Device properties persistent store name.
  */
+ /* src: ocresourcehandler.h */
 #define OC_DEVICE_PROPS_FILE_NAME  "device_properties.dat"
 
 /**
  * Device properties name
  */
+ /* src: ocresourcehandler.h */
 #define OC_JSON_DEVICE_PROPS_NAME "DeviceProperties"
 
 /**

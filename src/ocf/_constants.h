@@ -611,56 +611,56 @@
  * Maximum length of the URI supported by client/server while processing
  * REST requests/responses.
  */
-#define MAX_URI_LENGTH (256)
+#define MAX_URI_LENGTH (256)    /* src: ocstackconfig.h */
 
 /**
  * Maximum length of the query supported by client/server while processing
  * REST requests/responses.
  */
-#define MAX_QUERY_LENGTH (256)
+#define MAX_QUERY_LENGTH (256)  /* src: ocstackconfig.h */
 
 /**
  * Maximum length of the Manufacturer name supported by the server
  * for manufacturer name.
  * @deprecated use MAX_PLATFORM_NAME_LENGTH instead.
  */
-#define MAX_MANUFACTURER_NAME_LENGTH (64)
+#define MAX_MANUFACTURER_NAME_LENGTH (64)  /* src: ocstackconfig.h */
 
 /**
  * Maximum length of the URL to the Manufacturer details supported by
  * the server.
  * @deprecated use MAX_PLATFORM_URL_LENGTH instead.
  */
-#define MAX_MANUFACTURER_URL_LENGTH (256)
+#define MAX_MANUFACTURER_URL_LENGTH (256)  /* src: ocstackconfig.h */
 
 /**
  * Maximum length of the value supported by the server
  * for platform property of type string.
  */
-#define MAX_PLATFORM_NAME_LENGTH (64)
+#define MAX_PLATFORM_NAME_LENGTH (64)  /* src: ocstackconfig.h */
 
 /**
  * Maximum length of the URL supported by the server
  * for platform property of type url.
  */
-#define MAX_PLATFORM_URL_LENGTH (256)
+#define MAX_PLATFORM_URL_LENGTH (256)  /* src: ocstackconfig.h */
 
 /**
  * Maximum number of resources which can be contained inside collection
  * resource.
  */
-#define MAX_CONTAINED_RESOURCES  (5)
+#define MAX_CONTAINED_RESOURCES  (5)  /* src: ocstackconfig.h */
 
 /**
  *  Maximum number of vendor specific header options an application can set or receive
  *  in PDU
  */
-#define MAX_HEADER_OPTIONS (50)
+#define MAX_HEADER_OPTIONS (50)  /* src: ocstackconfig.h */
 
 /**
  *  Maximum Length of the vendor specific header option
  */
-#define MAX_HEADER_OPTION_DATA_LENGTH (1024)
+#define MAX_HEADER_OPTION_DATA_LENGTH (1024)  /* src: ocstackconfig.h */
 
 /**
  * Sets the time to live (TTL) for response callback(s).
@@ -670,6 +670,7 @@
  * @note: Changing the setting to a very long duration may lead to unsupported and untested
  * operation. Setting this to as small a value as reasonable will reclaim memory faster.
  */
+  /* src: ocstackconfig.h */
 #define MAX_CB_TIMEOUT_SECONDS   (2 * 60 * 60)  // 2 hours = 7200 seconds.
 
 /* debug stuff */

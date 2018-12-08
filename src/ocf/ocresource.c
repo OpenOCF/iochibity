@@ -46,6 +46,7 @@
  * These details are exposed in ocstackconfig.h file in the form of documentation.
  * Remember to update the documentation there if these are changed.
  */
+/* src: ocresourcehandler.h */
 #define OC_JSON_PREFIX                     "{\"oic\":["
 #define OC_JSON_PREFIX_LEN                 (sizeof(OC_JSON_PREFIX) - 1)
 #define OC_JSON_SUFFIX                     "]}"
@@ -56,6 +57,7 @@
 /**
  * Static values for various JSON attributes.
  */
+/* src: ocresourcehandler.h */
 #define OC_RESOURCE_OBSERVABLE   1
 #define OC_RESOURCE_SECURE       1
 
@@ -107,7 +109,7 @@ typedef enum
     /** Max items in the list */
     OC_MAX_VIRTUAL_RESOURCES    //<s Max items in the list
 
-} OCVirtualResources;
+} OCVirtualResources;           /* src: ocresourcehandler.c */
 #endif
 
 /**
@@ -123,7 +125,7 @@ typedef enum
     OC_RESOURCE_COLLECTION_DEFAULT_ENTITYHANDLER,
     OC_RESOURCE_DEFAULT_DEVICE_ENTITYHANDLER,
     OC_RESOURCE_NOT_SPECIFIED
-} ResourceHandling;
+} ResourceHandling;             /* src:: ocresource.c */
 #endif	/* EXPORT_INTERFACE */
 
 #if EXPORT_INTERFACE
