@@ -276,6 +276,7 @@ INLINE_API void OCPayloadLogPresence(LogLevel level, OCPresencePayload* payload)
     OIC_LOG_V(level, PL_TAG, "\tTrigger:%s", convertTriggerEnumToString(payload->trigger));
     OIC_LOG_V(level, PL_TAG, "\tResource Type:%s", payload->resourceType);
 }
+#endif
 
 INLINE_API void OCPayloadLogSecurity(LogLevel level, OCSecurityPayload* payload)
 {
