@@ -18,12 +18,8 @@
 ******************************************************************/
 
 #ifdef UWP_APP
-#include <inttypes.h>
 #include "ocsqlite3helper.h"
-#include "logger.h"
-#include "oic_platform.h"
-#include "oic_malloc.h"
-#include "sqlite3.h"
+#include <inttypes.h>
 
 OCStackResult InitSqlite3TempDir()
 {
