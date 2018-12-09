@@ -448,6 +448,7 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
         }
 
         cadata->signalingInfo = signalingInfo;
+#if defined(DEBUG_MSGS)
         info = &signalingInfo->info;
         if (identity)
         {
@@ -455,12 +456,13 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
         }
         OIC_LOG(DEBUG, TAG, "Signaling Info :");
         CALogPayloadInfo(info);
-
+#endif
         // Get CA_OPTION_MAX_MESSAGE_SIZE from pdu.
         unsigned char optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];
         size_t optionDataSize = sizeof(optionData);
         uint16_t receivedDataLength = 0;
 
+#if defined(DEBUG_MSGS)
         // TODO: We need to decide what options needs to be handled and which needs to be ignored.
         if(CAGetHeaderOption(info->options, info->numOptions, CA_OPTION_MAX_MESSAGE_SIZE,
                     optionData, optionDataSize, &receivedDataLength) == CA_STATUS_OK && receivedDataLength) {
@@ -470,6 +472,7 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
                 //TODO: Change the TCP sockets parameters for maxMsgSize > 1152
             }
         }
+#endif
     }
 #endif
 
