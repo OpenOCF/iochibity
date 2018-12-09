@@ -934,6 +934,9 @@ LOCAL bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *ep, uin
 }
 
 /* called by both UDP and TCP; converts data and puts on recv queue */
+/* called in ca_adapter_net_ssl.c via g_caSslContext->adapterCallbacks[adapterIndex].recvCallback(&peer->sep, decryptBuffer, ret); */
+/* called in udp_data_receiver.c via g_packetReceivedCallback(&sep, recvBuffer, recvLen); */
+/* called in tcp_data_receiver.c via tcp_networkPacketCallback(sep, svritem->data, svritem->totalLen); */
 void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep, // @was CAReceivedPacketCallback
 				 const void *data,
 				 size_t dataLen) EXPORT
@@ -1181,7 +1184,7 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
     /* OIC_LOG_V(DEBUG, TAG, "%s <<<<<<<<<<<<<<<< EXIT <<<<<<<<<<<<<<<<", __func__); */
 }
 
-static CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
+CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
                                    CADataType_t dataType)
 {
     OIC_LOG(DEBUG, TAG, "CAPrepareSendData IN");
@@ -1831,9 +1834,9 @@ CAResult_t CAGetHeaderOption(CAHeaderOption_t *hdrOpt, size_t numOptions, uint16
 {
     OIC_LOG_V(DEBUG, TAG, "Entering CAGetHeaderOption with optionID: %d", optionID);
 
-    VERIFY_NON_NULL(hdrOpt, TAG, "hdrOpt");
-    VERIFY_NON_NULL(optionData, TAG, "optionData");
-    VERIFY_NON_NULL(receivedDataLen, TAG, "receivedDataLen");
+    VERIFY_NON_NULL(hdrOpt, TAG, CA_STATUS_INVALID_PARAM);
+    VERIFY_NON_NULL(optionData, TAG, CA_STATUS_INVALID_PARAM);
+    VERIFY_NON_NULL(receivedDataLen, TAG, CA_STATUS_INVALID_PARAM);
 
     for (size_t i = 0; i < numOptions; i++)
     {
