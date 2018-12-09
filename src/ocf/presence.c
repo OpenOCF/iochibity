@@ -29,7 +29,7 @@
 /* #define VERIFY_NON_NULL_V(arg) { if (!arg) {OIC_LOG(FATAL, __FILE__, #arg " is NULL");\ */
 /*     goto exit;} } */
 
-#if EXPORT_INTERFACE
+#if INTERFACE
 /**
  * The OCPresenceTrigger enum delineates the three spec-compliant modes for
  * "Trigger." These enum values are then mapped to  strings
@@ -103,10 +103,11 @@ typedef enum
 #endif	/* INTERFACE */
 
 /* #ifdef WITH_PRESENCE */
+/* src: ocstack.c */
 OCPresenceState presenceState = OC_PRESENCE_UNINITIALIZED;
 PresenceResource presenceResource = {0};
 uint8_t PresenceTimeOutSize = 0;
-uint32_t PresenceTimeOut[5] = {50, 75, 85, 95, 100};
+uint32_t PresenceTimeOut[] = {50, 75, 85, 95, 100};
 /* #endif */
 
 /**
@@ -719,7 +720,7 @@ OCStackResult OCPreparePresence(CAEndpoint_t *endpoint,
     return OC_STACK_OK;
 }
 
-/* from ocpayload.h: */
+/* src: ocpayload.c: */
 OCPresencePayload* OC_CALL OCPresencePayloadCreate(uint32_t seqNum, uint32_t maxAge,
         OCPresenceTrigger trigger, const char* resourceType)
 {
@@ -737,6 +738,7 @@ OCPresencePayload* OC_CALL OCPresencePayloadCreate(uint32_t seqNum, uint32_t max
     return payload;
 }
 
+/* src: ocpayload.c: */
 void OC_CALL OCPresencePayloadDestroy(OCPresencePayload* payload)
 {
     if (!payload)
@@ -748,6 +750,7 @@ void OC_CALL OCPresencePayloadDestroy(OCPresencePayload* payload)
 }
 
 /* #ifdef WITH_PRESENCE */
+/* src: ocoberve.c */
 OCStackResult SendAllObserverNotificationWithPresence (OCMethod method,
 						       OCResource *resPtr,
 						       uint32_t maxAge,
