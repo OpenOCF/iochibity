@@ -1008,8 +1008,8 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
 
     OIC_LOG(INFO, TAG, "Calling OCSendResponse with:");
     OIC_LOG_V(INFO, TAG, "\tEndpoint address: %s", responseEndpoint.addr);
-    OIC_LOG_V(INFO, TAG, "\tEndpoint adapter: %s", responseEndpoint.adapter);
-    OIC_LOG_V(INFO, TAG, "\tResponse result : %s", responseInfo.result);
+    OIC_LOG_V(INFO, TAG, "\tEndpoint adapter: %d", responseEndpoint.adapter);
+    OIC_LOG_V(INFO, TAG, "\tResponse result : %d", responseInfo.result);
     OIC_LOG_V(INFO, TAG, "\tResponse for uri: %s", responseInfo.info.resourceUri);
 
     result = OCSendResponse(&responseEndpoint, &responseInfo);
