@@ -399,30 +399,30 @@ CAResult_t CAInitializeAdapters(ca_thread_pool_t thread_pool, CATransportAdapter
     }
 #endif /* DISABLE_UDP */
 
-#ifdef EDR_ADAPTER
-    if ((transportType & CA_ADAPTER_RFCOMM_BTEDR) || (CA_DEFAULT_ADAPTER == transportType))
-    {
-        CAInitializeEDR(/* CARegisterCallback, */
-			ifc_CAReceivedPacketCallback, CAAdapterChangedCallback,
-                        CAConnectionChangedCallback, CAAdapterErrorHandleCallback, thread_pool);
-    }
-#endif /* EDR_ADAPTER */
+/* #ifdef EDR_ADAPTER */
+/*     if ((transportType & CA_ADAPTER_RFCOMM_BTEDR) || (CA_DEFAULT_ADAPTER == transportType)) */
+/*     { */
+/*         CAInitializeEDR(/\* CARegisterCallback, *\/ */
+/* 			ifc_CAReceivedPacketCallback, CAAdapterChangedCallback, */
+/*                         CAConnectionChangedCallback, CAAdapterErrorHandleCallback, thread_pool); */
+/*     } */
+/* #endif /\* EDR_ADAPTER *\/ */
 
-#ifdef LE_ADAPTER
-    if ((transportType & CA_ADAPTER_GATT_BTLE) || (CA_DEFAULT_ADAPTER == transportType))
-    {
-        CAInitializeLE(CARegisterCallback, ifc_CAReceivedPacketCallback, CAAdapterChangedCallback,
-                       CAConnectionChangedCallback, CAAdapterErrorHandleCallback, thread_pool);
-    }
-#endif /* LE_ADAPTER */
+/* #ifdef LE_ADAPTER */
+/*     if ((transportType & CA_ADAPTER_GATT_BTLE) || (CA_DEFAULT_ADAPTER == transportType)) */
+/*     { */
+/*         CAInitializeLE(CARegisterCallback, ifc_CAReceivedPacketCallback, CAAdapterChangedCallback, */
+/*                        CAConnectionChangedCallback, CAAdapterErrorHandleCallback, thread_pool); */
+/*     } */
+/* #endif /\* LE_ADAPTER *\/ */
 
-#ifdef RA_ADAPTER
-    if ((transportType & CA_ADAPTER_REMOTE_ACCESS) || (CA_DEFAULT_ADAPTER == transportType))
-    {
-        CAInitializeRA(CARegisterCallback, ifc_CAReceivedPacketCallback, CAAdapterChangedCallback,
-                       thread_pool);
-    }
-#endif /* RA_ADAPTER */
+/* #ifdef RA_ADAPTER */
+/*     if ((transportType & CA_ADAPTER_REMOTE_ACCESS) || (CA_DEFAULT_ADAPTER == transportType)) */
+/*     { */
+/*         CAInitializeRA(CARegisterCallback, ifc_CAReceivedPacketCallback, CAAdapterChangedCallback, */
+/*                        thread_pool); */
+/*     } */
+/* #endif /\* RA_ADAPTER *\/ */
 
 #ifdef ENABLE_TCP
     OIC_LOG_V(DEBUG, TAG, "TCP is enabled");
@@ -432,13 +432,13 @@ CAResult_t CAInitializeAdapters(ca_thread_pool_t thread_pool, CATransportAdapter
     }
 #endif /* ENABLE_TCP */
 
-#ifdef NFC_ADAPTER
-    if ((transportType & CA_ADAPTER_NFC) || (CA_DEFAULT_ADAPTER == transportType))
-    {
-        CAInitializeNFC(CARegisterCallback, ifc_CAReceivedPacketCallback, CAAdapterChangedCallback,
-                        CAAdapterErrorHandleCallback, thread_pool);
-    }
-#endif /* NFC_ADAPTER */
+/* #ifdef NFC_ADAPTER */
+/*     if ((transportType & CA_ADAPTER_NFC) || (CA_DEFAULT_ADAPTER == transportType)) */
+/*     { */
+/*         CAInitializeNFC(CARegisterCallback, ifc_CAReceivedPacketCallback, CAAdapterChangedCallback, */
+/*                         CAAdapterErrorHandleCallback, thread_pool); */
+/*     } */
+/* #endif /\* NFC_ADAPTER *\/ */
 
     CAResult_t res = CA_STATUS_OK;
 
