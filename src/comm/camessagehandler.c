@@ -1851,53 +1851,6 @@ CAResult_t CAGetHeaderOption(CAHeaderOption_t *hdrOpt, size_t numOptions, uint16
     return CA_STATUS_NOT_FOUND;
 }
 
-CAData_t *CAGenerateSignalingMessage(const CAEndpoint_t *endpoint, CASignalingCode_t code,
-                                     CAHeaderOption_t *headerOpt, uint8_t numOptions)
-{
-    OIC_LOG(DEBUG, TAG, "GenerateSignalingMessage - IN");
-
-    // create token for signaling message.
-    CAToken_t token = NULL;
-    uint8_t tokenLength = CA_MAX_TOKEN_LEN;
-    if (CA_STATUS_OK != CAGenerateTokenInternal(&token, tokenLength))
-    {
-        OIC_LOG(ERROR, TAG, "CAGenerateTokenInternal failed");
-        return NULL;
-    }
-
-    CAInfo_t signalingData = { .type = CA_MSG_NONCONFIRM,
-                               .token = token,
-                               .tokenLength = tokenLength,
-                               .numOptions = numOptions,
-                               .options = headerOpt };
-
-    CASignalingInfo_t sigMsg = { .code = code,
-                                 .info = signalingData };
-
-    return CAPrepareSendData(endpoint, &sigMsg, CA_SIGNALING_DATA);
-}
-
-CAData_t *CAGenerateSignalingMessageUsingToken(const CAEndpoint_t *endpoint, CASignalingCode_t code,
-                                               CAHeaderOption_t *headerOpt, uint8_t numOptions,
-                                               const CAToken_t pingToken, uint8_t pingTokenLength)
-{
-    OIC_LOG(DEBUG, TAG, "GenerateSignalingMessage - IN");
-
-    // create token for signaling message.
-    CAToken_t token = (char *)OICCalloc(pingTokenLength, sizeof(char));
-    memcpy(token, pingToken, pingTokenLength);
-
-    CAInfo_t signalingData = { .type = CA_MSG_NONCONFIRM,
-                               .token = token,
-                               .tokenLength = pingTokenLength,
-                               .numOptions = numOptions,
-                               .options = headerOpt };
-
-    CASignalingInfo_t sigMsg = { .code = code,
-                                 .info = signalingData };
-
-    return CAPrepareSendData(endpoint, &sigMsg, CA_SIGNALING_DATA);
-}
 #endif //TCP_ADAPTER
 
 CAResult_t CAAddBlockSizeOption(coap_pdu_t *pdu, uint16_t sizeType, size_t dataLength,
