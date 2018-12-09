@@ -22,6 +22,7 @@ typedef enum // FIXME: where does this belong?
     CA_DTLS_AUTHENTICATION_FAILURE, /**< 15 Decryption error in DTLS */
     CA_CONTINUE_OPERATION,          /**< 16 Error happens but current operation should continue */
     CA_HANDLE_ERROR_OTHER_MODULE,   /**< 17 Error happens but it should be handled in other module */
+    CA_STATUS_NOT_FOUND,            /**< Not Found*/
     CA_STATUS_FAILED =255           /**< 255 Failure */
     /* Result code - END HERE */
 } CAResult_t;
