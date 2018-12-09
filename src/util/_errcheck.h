@@ -71,6 +71,10 @@
             {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} }
 
 
+/* src: ocstack.c */
+#define VERIFY_SUCCESS_2(op, successCode) { if ((op) != (successCode)) \
+            {OIC_LOG_V(FATAL, TAG, "%s failed!!", #op); goto exit;} }
+
 /* from srmutililty.h: */
 
 /**
