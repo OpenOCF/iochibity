@@ -41,13 +41,13 @@
 /* OpenOCF is C only, no GLIBCXX */
 
 // see https://gustedt.wordpress.com/2010/11/29/myth-and-reality-about-inline-in-c99/
-/* #ifndef INLINE_API */
+#ifndef INLINE_API
 #ifdef _MSC_VER
 #define INLINE_API static __inline
 #else
 #define INLINE_API static inline
 #endif
-/* #endif */
+#endif
 
 #ifdef _MSC_VER
 #  define OC_ANNOTATE_UNUSED
