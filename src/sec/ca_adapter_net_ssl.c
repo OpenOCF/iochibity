@@ -2543,7 +2543,7 @@ CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dat
             {
                 //g_caSslContext->adapterCallbacks[adapterIndex].recvCallback(&peer->sep, decryptBuffer, ret);
 		/* this is the ONLY place
-		   adapterCallbacks[x].recvCallback is invoked. we can
+		   g_caSslContext->adapterCallbacks[x].recvCallback is invoked. we can
 		   eliminate the method lookup */
 		OIC_LOG_V(INFO, TAG, "%s peer user id   : %s", __func__, peer->sep.userId.id);
 		OIC_LOG_V(INFO, TAG, "%s peer subject id: %s", __func__, peer->sep.identity.id);
@@ -2602,7 +2602,7 @@ void CAsetSslAdapterCallbacks(// CAPacketReceivedCallback recvCallback,
 	// CAUDPPacketReceivedCB > ifc_CAReceivedPacketCallbackg > mh_CAReceivedPacketCallback
 	// UDP: mh_CAReceivedPacketCallback;
 	// TCP: CATCPPacketReceivedCB
-	g_caSslContext->adapterCallbacks[index].recvCallback  = mh_CAReceivedPacketCallback;
+	/// g_caSslContext->adapterCallbacks[index].recvCallback  = mh_CAReceivedPacketCallback;
         g_caSslContext->adapterCallbacks[index].sendCallback  = sendCallback;
 
         /* g_caSslContext->adapterCallbacks[index].errorCallback = errorCallback; */
