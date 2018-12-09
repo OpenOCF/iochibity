@@ -214,7 +214,7 @@ void CAFreeEndpoint(CAEndpoint_t *rep)
     OICFree(rep);
 }
 
-static void CADestroyInfoInternal(CAInfo_t *info)
+void CADestroyInfoInternal(CAInfo_t *info)
 {
     // free token field
     OICFree(info->token);
