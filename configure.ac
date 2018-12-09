@@ -290,11 +290,11 @@ AS_IF([test "x$enable_tcpip" = "xyes"], [
   AC_DEFINE([TCP_ADAPTER], [], [Enable TCP/IP transport])
 ])
 
-dnl Presence is on by default
+dnl Presence is DISABLED by default
 AC_ARG_ENABLE([presence],
-    AS_HELP_STRING([--disable-presence], [Disable PRESENCE (enabled by default)]))
+    AS_HELP_STRING([--enable-presence], [Enable PRESENCE]))
 
-AS_IF([test "x$enable_presence" != "xno"], [
+AS_IF([test "x$enable_presence" = "xyes"], [
   AC_DEFINE([WITH_PRESENCE], [], [Enable PRESENCE])
 ])
 
