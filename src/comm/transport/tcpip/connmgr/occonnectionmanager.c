@@ -20,7 +20,6 @@
 
 #include "occonnectionmanager.h"
 
-/* #include "iotivity_config.h" */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,25 +29,9 @@
 #include <unistd.h>
 #endif
 #include <getopt.h>
-/* #include "octypes.h" */
-/* #include "ocstack.h" */
-/* #include "ocstackinternal.h" */
-/* #include "ocrandom.h" */
-/* #include "logger.h" */
-/* #include "occonnectionmanager.h" */
-/* #include "ocpayload.h" */
-/* #include "oic_string.h" */
-/* #include "oic_malloc.h" */
-
-/* #include "cacommon.h" */
-/* #include "cainterface.h" */
-/* #include "cautilinterface.h" */
 
 #define DEFAULT_CONTEXT_VALUE (0x99)
-/* #define VERIFY_NON_NULL(arg, logLevel, retVal) { if (!(arg)) { OIC_LOG((logLevel), \ */
-/*              TAG, #arg " is NULL"); return (retVal); } } */
-/* #define VERIFY_NON_NULL_NR(arg, logLevel) { if (!(arg)) { OIC_LOG((logLevel), \ */
-/*              TAG, #arg " is NULL"); return; } } */
+
 #define CLOUD_PREFIX "/oic/route\0"
 #define CLOUD_PREFIX_LENGTH 10
 
@@ -91,10 +74,10 @@ static bool isFirstResponse = true;
 static void OCConnectionStateChangedHandler(const CAEndpoint_t *info, bool isConnected);
 
 /**
- * Check uri has device id.
+ * Check URI has device id.
  *
- * @param[in]  uri  uri of resource.
- * @return  true if uri has device id, or false.
+ * @param[in]  uri  URI of resource.
+ * @return  true if URI has device id, or false.
  */
 static bool OCCMHasDeviceId(const char *uri);
 
@@ -104,7 +87,7 @@ static bool OCCMHasDeviceId(const char *uri);
  *
  * @return ::OC_STACK_OK or ERROR CODES (::OCStackResult_t error codes in octypes.h).
  */
-static OCStackResult OCCMFindResource();
+static OCStackResult OCCMFindResource(void);
 
 /**
  * Callback function for OCCMFindResource.
@@ -273,7 +256,7 @@ static void OCConnectionStateChangedHandler(const CAEndpoint_t *info, bool isCon
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
-static OCStackResult OCCMFindResource()
+static OCStackResult OCCMFindResource(void)
 {
     OIC_LOG_V(INFO, TAG, "%s", __func__);
 
@@ -339,12 +322,12 @@ static bool OCCMHasDeviceId(const char* uri)
 
 /* src: cautilinterface.c */
 // #if defined(TCP_ADAPTER) && defined(WITH_CLOUD)
-CAResult_t CAUtilCMInitailize()
+CAResult_t CAUtilCMInitailize(void)
 {
     return CACMInitialize();
 }
 
-CAResult_t CAUtilCMTerminate()
+CAResult_t CAUtilCMTerminate(void)
 {
     return CACMTerminate();
 }
@@ -354,7 +337,7 @@ CAResult_t CAUtilCMUpdateRemoteDeviceInfo(const CAEndpoint_t *endpoint, bool isC
     return CACMUpdateRemoteDeviceInfo(endpoint, isCloud);
 }
 
-CAResult_t CAUtilCMResetRemoteDeviceInfo()
+CAResult_t CAUtilCMResetRemoteDeviceInfo(void)
 {
     return CACMResetRemoteDeviceInfo();
 }
