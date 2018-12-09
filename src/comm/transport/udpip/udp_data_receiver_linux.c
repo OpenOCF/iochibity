@@ -41,7 +41,7 @@
 // FIXME: if there is no inbound data, this will cause hang upon termination?
 // @rewrite udp_handle_inboud_data  @was CAFindReadyMessage()
 /* called by udp_data_receiver_runloop */
-void udp_handle_inbound_data() // @was CAFindReadyMessage
+void udp_handle_inbound_data(void) // @was CAFindReadyMessage + CASelectReturned
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     fd_set readFds;
@@ -96,6 +96,7 @@ void udp_handle_inbound_data() // @was CAFindReadyMessage
         return;
     }
     else if (0 < ready_count) {
+        // @was: CASelectReturned
 	// udp_process_ready_sockets(&readFds, ready_count);
 #define UDPSET(SOCK) ( SOCK.fd != OC_INVALID_SOCKET && FD_ISSET(SOCK.fd, &readFds))
 

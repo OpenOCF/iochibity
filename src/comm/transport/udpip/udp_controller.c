@@ -106,7 +106,7 @@ oc_cond udp_data_receiver_runloop_cond;
 /**
  * List of the CAEndpoint_t* that has a stack-owned IP address.
  */
-u_arraylist_t *g_local_endpoint_cache = NULL;
+u_arraylist_t *g_local_endpoint_cache = NULL; /* FIXME: @rewrite udp_local_ep_cache */
 
 /**
  * Network Packet Received Callback to CA.
