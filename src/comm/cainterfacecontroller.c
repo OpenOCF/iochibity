@@ -314,58 +314,37 @@ void oocf_enqueue_nw_chg_work_pkg( // @was CAAdapterChangedCallback
 
     OIC_LOG_V(DEBUG, TAG, "[%d] adapter state is changed to [%d]", adapter, status);
 
+    // @rewrite: original code iterates over g_networkChangeCallbackList,
+    // which contains adapterchange callbacks for nw level and tcp
+
     CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
 	OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
     if (!info) {
 	OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
 	return;
     }
-
-    info->adapterCB = OCDefaultAdapterStateChangedHandler;  // @was callback->adapter;
+    // udp: OCDefaultAdapterStateChangedHandler
+    info->adapterCB = OCDefaultAdapterStateChangedHandler;
     info->adapter = adapter;
     info->isInterfaceUp = (CA_INTERFACE_UP == status);
     CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
 			    sizeof(CANetworkCallbackThreadInfo_t));
+
+#ifdef ENABLE_TCP
+    CANetworkCallbackThreadInfo_t *tcp_info = (CANetworkCallbackThreadInfo_t *)
+	OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
+    if (!tcp_info) {
+	OIC_LOG(ERROR, TAG, "OICCalloc to tcp_info failed!");
+	return;
+    }
+    tcp_info->adapterCB = OCAdapterStateChangedHandler;
+    tcp_info->adapter = adapter;
+    tcp_info->isInterfaceUp = (CA_INTERFACE_UP == status);
+    CAQueueingThreadAddData(&g_networkChangeCallbackThread, tcp_info,
+			    sizeof(CANetworkCallbackThreadInfo_t));
+#endif
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
-
-#ifdef STATEFUL_PROTOCOL_SUPPORTED
-static void CAConnectionChangedCallback(const CAEndpoint_t *endpoint, bool isConnected)
-{
-    OIC_LOG_V(DEBUG, TAG, "[%s] connection state is changed to [%d]", endpoint->addr, isConnected);
-
-    // Call the callback.
-    CANetworkCallback_t *callback = NULL;
-    LL_FOREACH(g_networkChangeCallbackList, callback)
-    {
-        if (callback && callback->conn)
-        {
-            CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
-                                        OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
-            if (!info)
-            {
-                OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
-                return;
-            }
-
-            CAEndpoint_t *cloneEp = CACloneEndpoint(endpoint);
-            if (!cloneEp)
-            {
-                OIC_LOG(ERROR, TAG, "CACloneEndpoint failed!");
-                OICFree(info);
-                return;
-            }
-
-            info->connectionCB = callback->conn;
-            info->endpoint = cloneEp;
-            info->isConnected = isConnected;
-
-            CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
-                                    sizeof(CANetworkCallbackThreadInfo_t));
-        }
-    }
-}
-#endif //STATEFUL_PROTOCOL_SUPPORTED
 
 // static
 // FIXME: this is only for outbound processing errors, rename it e.g. sender_error_handler
