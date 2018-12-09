@@ -84,6 +84,14 @@ oc_mutex log_mutex = NULL;
 
 #if EXPORT_INTERFACE
 #ifdef TB_LOG
+#define OIC_LOG_PAYLOAD(level, payload) OCPayloadLog((level),(payload))
+#else
+#define OIC_LOG_PAYLOAD(level, payload)
+#endif
+#endif	/* INTERFACE */
+
+#if EXPORT_INTERFACE
+#ifdef TB_LOG
 #define CA_TRANSPORT_ADAPTER_STRING(TRANSPORT) ( \
     (TRANSPORT == CA_DEFAULT_ADAPTER) ? "CA_DEFAULT_ADAPTER" : \
     (TRANSPORT == CA_ADAPTER_IP) ? "CA_ADAPTER_IP" : \
