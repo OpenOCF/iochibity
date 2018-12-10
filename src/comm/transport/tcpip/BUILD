@@ -24,10 +24,11 @@ cc_library(
     deps = ["//src:config",
             "//src/logger",
             "//src/util",
-    	    "//src/comm/transport/util",
+            "//src/comm/transport/tcpip/connmgr",
             "//src/comm/transport:sockets",
+    	    "//src/comm/transport/util",
             "//src/portability",
-	    "@libcoap//:libcoap",
+            "@libcoap//:libcoap",
 	    "@uthash//:uthash"],
     linkopts = select({"//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lwinsock2", "-liphlpapi", "-lws2_32"],
                        "//config:msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
@@ -41,7 +42,7 @@ cc_library(
             "tcp_data_sender.c", "tcp_data_sender.h",
             "tcp_session.c", "tcp_session.h",
             "tcp_sockets.c", "tcp_sockets.h",
-            "tcp_status_manager.c", "tcp_status_manager.h"
+            "tcp_status_manager.c", "tcp_status_manager.h",
     ]
     + select({"//config:windows": ["tcp_controller_windows.c", "tcp_controller_windows.h",
                                    "tcp_data_receiver_windows.c", "tcp_data_receiver_windows.h"],
