@@ -37,6 +37,240 @@ set callbacks
 => initialize udpController (a CAConnectivityHandler_t struct (callbacks))
 => CARegisterCallback(udpController)
 
+== Globals
+
+caipserver.c:
+
+g_ipErrorHandler                - CAIPErrorHandleCallback
+g_packetReceivedCallback        - CAIPPacketReceivedCallback
+
+caipadapter.c:
+
+g_sendQueueHandle               - CAQueueingThread_t *
+g_ownIpEndpointList             - static u_arraylist_t *  (caipadapter.c)
+g_networkPacketCallback         - CANetworkPacketReceivedCallback (caipadapter.c)
+g_networkChangeCallback         - CAAdapterChangeCallbac (caipadapter.c)
+g_errorCallback                 - CAErrorHandleCallback (caipadapter.c)
+
+caipnwmonitor.c:
+
+g_networkMonitorContextMutex    - oc_mutex
+g_netInterfaceList              - u_arraylist_t *
+g_adapterCallbackList           - struct CAIPCBData_t *
+
+cablockwisetransfer.c:
+
+g_context - CABlockWiseContext_t
+
+caconnectivitymanager.c:
+
+g_isInitialized - bool
+
+cainterfacecontroller.c
+
+g_adapterHandler                - array of CAConnectivityHandler_t
+g_numberOfAdapters              - size of g_adapterHandler array (cainterfacecontroller.c)
+g_networkPacketReceivedCallback - CANetworkPacketReceivedCallback
+g_errorHandleCallback           - CAErrorHandleCallback
+g_networkChangeCallbackList     - struct CANetworkCallback_t *
+g_networkChangeCallbackThread   - CAQueueingThread_t
+
+camessagehandler.c:
+
+g_threadPoolHandle              - ca_thread_pool_t
+g_sendThread                    - CAQueueingThread_t
+g_receiveThread                 - CAQueueingThread_t
+g_retransmissionContext         - CARetransmission_t
+g_requestHandler                - CARequestCallback
+g_responseHandler               - CAResponseCallback
+g_errorHandler                  - CAErrorCallback
+g_nwMonitorHandler              - CANetworkMonitorCallback
+
+caping.c:
+
+g_pingInfoList - PingInfo *
+g_pingInfoListMutex - oc_mutex
+g_timeout - uint64_t
+
+caprotocolmessage.c:
+
+g_chproxyUri[CA_MAX_URI_LENGTH] - char array
+
+the CALLBACKS that do the work:
+
+CAReceivedPacketCallback (camessagehandler.c)
+CAErrorHandler (camessagehandler.c)
+OCAdapterStateChangedHandler (occonnectionmanager.c)
+OCConnectionStateChangedHandler (occonnectionmanager.c)
+OCDefaultAdapterStateChangedHandler UNUSED
+OCDefaultConnectionStateChangedHandler (ocstack.c)
+
+usage:
+
+CAInitializeMessageHandler
+=> CASetPacketReceivedCallback(CAReceivedPacketCallback)
+=> CASetErrorHandleCallback(CAErrorHandler);
+=> CAQueueingThreadInitialize(&g_sendThread, g_threadPoolHandle, CASendThreadProcess, CADestroyData);
+=> CAQueueingThreadStart(&g_sendThread);
+=> CAQueueingThreadInitialize(&g_receiveThread, g_threadPoolHandle, CAReceiveThreadProcess, CADestroyData);
+=> CAQueueingThreadStart(&g_receiveThread);
+=> CARetransmissionInitialize(&g_retransmissionContext, g_threadPoolHandle, CASendUnicastData, CATimeoutCallback, NULL);
+=> CAInitializeBlockWiseTransfer(CAAddDataToSendThread, CAAddDataToReceiveThread);
+=> CARetransmissionStart(&g_retransmissionContext);
+=> CAInitializeAdapters (DELETE - replace with static initialization)
+
+g_adapterHandler.startAdapter:
+OCInitializeInternal
+=> CAInitialize
+==> CAInitializeMessageHandler
+===> CAInitializeAdapters
+====> CAInitializeIP sets g_adapterHandler[xport].startAdapter to CAStartIP
+=> OCSelectNetwork  (DELETE - unnecessary virtual method lookup)
+        replace with direct call to CAStartIP
+==> CASelectNetwork  (DELETE - not needed)
+===> CAAddNetworkType (DELETE - does nothing useful)
+====> CAStartAdapter (DELETE - only looks up handler for transport)
+======> g_adapterHandler.startAdapter (== CAStartIP)
+
+g_adapterCallbackList:
+CAStartIP (caipadapter.c)
+=> initializes globals
+=> CAIPStartNetworkMonitor (passing CAIPAdapterHandler)
+==> CAIPSetNetworkMonitorCallback (caipnwmonitor.c)
+        (compare: CASetNetworkMonitorCallbacks (cainterfacecontroller.c)
+====> LL_APPEND(g_adapterCallbackList, cbitem)
+======>  so CAIPAdapterHandler is added to g_adapterCallbackList
+=> CAIPInitializeQueueHandles())
+=> CAQueueingThreadStart(g_sendQueueHandle))
+=> CAIPStartServer((const ca_thread_pool_t)caglobals.ip.threadpool);
+
+g_networkChangeCallback called by CAIPAdapterHandler (caipadapter.c)
+
+
+CAIPAdapterHandler
+=> g_networkChangeCallback
+
+CASelectReturned (caipserver.c), CAFindReadyMessage
+=> CAFindInterfaceChange (caipnwmonitor.c),
+==> CAIPPassNetworkChangesToAdapter
+===>  iterates over g_adapterCallbackList, invoking callback
+
+CAIPStartListenServer (caipserver.c), CAIPSendData,
+=> CAIPGetInterfaceInformation (caipnwmonitor.c)
+==> CAIPPassNetworkChangesToAdapter
+===>  iterates over g_adapterCallbackList, invoking callback
+
+initialization:
+        OCInitializeInternal (ocstack.c)
+        =>CAInitialize (caconnectivitymanager.c)
+        ==> CAInitializeMessageHandler (camesagehandler.c)
+        ===> CAInitializeAdapters (cainterfacecontroller.c) passes hardcoded callbacks to
+        ====> CAInitializeIP (caipadapter.c)
+       ======> sets g_networkChangeCallback = CAAdapterChangedCallback  //netCallback;
+       ========   CAAdapterChangedCallback iterates over g_networkChangeCallbackList
+       ======> sets g_networkPacketCallback = CAReceivedPacketCallback //networkPacketCallback;
+       ======> sets g_errorCallback = CAAdapterErrorHandleCallback  //errorCallback;
+       =========  (CAAdapterErrorHandleCallback calls g_errorHandleCallback)
+       =========  (g_errorHandleCallback set to CAErrorHandler)
+       =======> calls allocates a CAConnectivityHandler_t, initializes it:
+                       .startAdapter = CAStartIP,
+                       .stopAdapter = CAStopIP,
+                       .startListenServer = CAStartIPListeningServer,
+                       .stopListenServer = CAStopIPListeningServer,
+                       .startDiscoveryServer = CAStartIPDiscoveryServer,
+                       .sendData = CASendIPUnicastData,
+                       .sendDataToAll = CASendIPMulticastData,
+                       .GetnetInfo = CAGetIPInterfaceInformation,
+                       .readData = CAReadIPData,
+                       .terminate = CATerminateIP,
+                       .cType = CA_ADAPTER_IP
+       =======>   the calls CARegisterCallback (cainterfacecontroller.c), passing the CAConnectivityHandler
+       ========>    adds 1 to g_numberOfAdapters
+       ========>    reallocs g_adapterHandler to array of CAConnectivityHandler_t
+       ========>    sets g_adapterHandler to the newly allocated array of CAConnectivityHandler_t
+       ========>    sets g_numberOfAdapters
+       ========>    sets  g_adapterHandler[g_numberOfAdapters - 1] to passed CAConnectivityHandler_t
+
+
+g_packetReceivedCallback   caipserver.c
+    initialzed by caipadapter.c:
+        CAIPSetPacketReceiveCallback sets g_packetReceivedCallback to CAIPPacketReceivedCB (caipadapter.c)
+        CAIPPacketReceivedCB calls g_networkPacketCallback == CAReceivedPacketCallback (ifctrlr)
+            CAReceivedPacketCallback => g_networkPacketReceivedCallback == CAReceivedPacketCallback (mh)
+
+To add to the confusion, there are two implementations of CAReceivedPacketCallback, one in cainterfacecontroller.c and one in camessagehandler.c
+
+so
+g_packetReceivedCallback == CAIPPacketReceivedCB
+=> g_networkPacketCallback == CAReceivedPacketCallback (static in cainterfacecontroller.c)
+=> g_networkPacketReceivedCallback == CAReceivedPacketCallback (static in camessagehandler .c)
+
+NB: CAReceivedPacketCallback (cainterfacecontroller) does nothing but fwd the call to g_networkPacketReceivedCallback(camessagehandler)
+
+
+also CAIpPacketReceivedCB used by ssl:
+CAsetSslAdapterCallbacks sets g_caSslContext->adapterCallbacks[index].recvCallback <= CAIPPacketReceivedCB
+CAdecryptSsl
+=> g_caSslContext->adapterCallbacks[index].recvCallback (ONLY place called)
+   ==  CAIPPacketReceivedCB
+
+        CAsetSslAdapterCallbacks(CAIPPacketReceivedCB, CAIPPacketSendCB, CAIPErrorHandler, CA_ADAPTER_IP);
+
+g_errorHandleCallback (cainterfacecontroller.c),
+g_networkPacketReceivedCallback
+    OCInitializeInternal (ocstack.c)
+    => CAInitialize (caconnectivitymanager.c)
+    ==> CAInitializeMessageHandler (camessagehandler.c)
+    ===> CASetPacketReceivedCallback(CAReceivedPacketCallback)
+    =====>  sets g_networkPacketReceivedCallback to CAReceivedPacketCallback
+    ===> CASetErrorHandleCallback(CAErrorHandler)  (cainterfacecontroller.c)
+    =====>  sets g_errorHandleCallback to CAErrorHandler (cainterfacecontroller.c)
+    ===> CAInitializeAdapters (see above - sets various g_*)
+
+
+
+
+g_networkChangeCallbackList (cainterfacecontroller.c)
+
+OCInitializeInternal (ocstack.c) passes OCDefaultAdapterStateChangedHandler, OCDefaultConnectionStateChangedHandler
+=> OCCMInitialize (stack/src/occonnectionmanager.c) (if tcp+cloud)
+             passes OCAdapterStateChangedHandler, OCConnectionStateChangedHandler to
+===> CARegisterNetworkMonitorHandler (DELETE - only fwds call)
+====> CASetNetworkMonitorCallbacks (cainterfacecontroller.c)
+            (compare CAIPSetNetworkMonitorCallbacks)
+=====> AddNetworkStateChangedCallback (cainterfacecontroller.c)
+=======> calls LL_APPEND to add CBs to g_networkChangeCallbackList
+=> CARegisterNetworkMonitorHandler
+===> CASetNetworkMonitorCallbacks (cainterfacecontroller.c)
+=====> AddNetworkStateChangedCallback (cainterfacecontroller.c)
+=======> calls LL_APPEND to add CBs to g_networkChangeCallbackList
+
+tcp:
+
+g_connectionCallback == CATCPConnectionHandler (in CATCPSetConnectionChangedCallback)
+        @rename: tcp_connectionChangeCallback
+=> g_connKeepAliveCallback (tcp_connKeepAliveCallback)
+=> g_connectionChangeCallback == CAConnectionChangedCallback (in CAInitializeTCP)
+==> iterates over g_networkChangeCallbackList, which has a connCB for tcp
+
+tcp_connectionChangeCalllback (g_connectionCallback) == CATCPConnectionHandler is called by:
+CAConnectTCPSession
+CADtorTCPSession
+CAAcceptConnection
+
+g_networkChangeCallbackList set by AddNetworkStateChangedCallback (see above)
+callbacks are:
+    nw level:
+        OCDefaultAdapterStateChangedHandler (nop)
+        OCDefaultConnectionStateChangedHandler (ocstack.c)
+        => SendPresenceNotification
+        => removes observers in case tcp connection is closed
+    tcp: OCAdapterStateChangedHandler, OCConnectionStateChangedHandler to
+
+So we have two routines that iterate over g_networkChangeCallbackList:
+    CAAdapterChangedCallback (nw level, all transports)
+    CAConnectionChangedCallback (tcp only)
+
 
 == pdus
 
