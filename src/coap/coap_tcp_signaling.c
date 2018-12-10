@@ -101,6 +101,16 @@ typedef enum
 } CACSMExchangeState_t;
 #endif
 
+/* src: tcpadapter.c */
+bool CATCPIsSignalingData(const CATCPData *tcpData)
+{
+    // Check if the tcp data is a COAP signaling message as per RFC 8323
+    // by checking the code in the header
+    uint32_t code = CAGetCodeFromHeader(tcpData->data);
+    return code == CA_CSM || code == CA_PING ||
+           code == CA_PONG || code == CA_RELEASE || code == CA_ABORT;
+}
+
 /* from catcpserver.c */
 CACSMExchangeState_t CAGetCSMState(const CAEndpoint_t *endpoint)
 {
