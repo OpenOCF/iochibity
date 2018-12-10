@@ -527,9 +527,9 @@ void log_payload_type(OCPayload *payload)
     case PAYLOAD_TYPE_SECURITY:
 	OIC_LOG_V(INFO, TAG, "Message payload type: SECURITY");
 	break;
-    case PAYLOAD_TYPE_PRESENCE:
-	OIC_LOG_V(INFO, TAG, "Message payload type: PRESENCE");
-	break;
+    /* case PAYLOAD_TYPE_PRESENCE: */
+    /*     OIC_LOG_V(INFO, TAG, "Message payload type: PRESENCE"); */
+    /*     break; */
     case PAYLOAD_TYPE_DIAGNOSTIC:
 	OIC_LOG_V(INFO, TAG, "Message payload type: DIAGNOSTIC");
 	break;
