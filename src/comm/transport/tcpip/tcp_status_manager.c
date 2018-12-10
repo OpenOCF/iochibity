@@ -11,6 +11,20 @@
 
 //static u_arraylist_t *g_netInterfaceList = NULL;
 
+/* struct CANetworkCallback_t */
+/* { */
+
+/*     /\** Linked list; for multiple callback list.*\/ */
+/*     struct CANetworkCallback *next; */
+
+/*     /\** Adapter state changed event callback. *\/ */
+/*     CAAdapterStateChangedCB adapter; */
+
+/*     /\** Connection state changed event callback. *\/ */
+/*     CAConnectionStateChangedCB conn; */
+
+/* }; */
+
 // FIXME: the "network monitor list" is transport-independent - the
 // exact same code is in the UDP package. move it to pkg IP
 static CAResult_t CATCPInitializeNetworkMonitorList(void)
@@ -54,56 +68,20 @@ void CAIPDestroyNetworkAddressList()
     }
 }
 
-// callback = tcp_status_change_handler, called directly by udp_if_change_handler, so this routine is obsolete
-/* CAResult_t CATCPSetNetworkMonitorCallback(void (*callback)(CATransportAdapter_t adapter, */
-/* 							   CANetworkStatus_t status), */
-/* 					  //CAIPAdapterStateChangeCallback callback, */
-/* 					  CATransportAdapter_t adapter) */
-/* { */
-/*     if (!callback) */
-/*     { */
-/*         OIC_LOG(ERROR, TAG, "callback is null"); */
-/*         return CA_STATUS_INVALID_PARAM; */
-/*     } */
-
-/*     CAIPCBData_t *cbitem = NULL; */
-/*     LL_FOREACH(g_adapterCallbackList, cbitem) */
-/*     { */
-/*         if (cbitem && adapter == cbitem->adapter && callback == cbitem->ip_status_change_event_handler) */
-/*         { */
-/*             OIC_LOG(DEBUG, TAG, "this callback is already added"); */
-/*             return CA_STATUS_OK; */
-/*         } */
-/*     } */
-
-/*     cbitem = (CAIPCBData_t *)OICCalloc(1, sizeof(*cbitem)); */
-/*     if (!cbitem) */
-/*     { */
-/*         OIC_LOG(ERROR, TAG, "Malloc failed"); */
-/*         return CA_STATUS_FAILED; */
-/*     } */
-
-/*     cbitem->adapter = adapter; */
-/*     cbitem->ip_status_change_event_handler = callback; */
-/*     LL_APPEND(g_adapterCallbackList, cbitem); */
-
-/*     return CA_STATUS_OK; */
-/* } */
-
 // called by CAStartTCP
-CAResult_t CATCPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter,
-						     CANetworkStatus_t status),
-				    CATransportAdapter_t adapter)
-{
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
-    CAResult_t res = CATCPInitializeNetworkMonitorList();
-    if (CA_STATUS_OK == res)
-    {
-	// insert into g_adapterCallbackList
-        /* return CATCPSetNetworkMonitorCallback(callback, adapter); */
-    }
-    return res;
-}
+/* CAResult_t CATCPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter, */
+/* 						     CANetworkStatus_t status), */
+/* 				    CATransportAdapter_t adapter) */
+/* { */
+/*     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__); */
+/*     CAResult_t res = CATCPInitializeNetworkMonitorList(); */
+/*     if (CA_STATUS_OK == res) */
+/*     { */
+/* 	// insert into g_adapterCallbackList */
+/*         /\* return CATCPSetNetworkMonitorCallback(callback, adapter); *\/ */
+/*     } */
+/*     return res; */
+/* } */
 
 void CATCPConnectionHandler(const CAEndpoint_t *endpoint, bool isConnected, bool isClient)
 {
@@ -114,11 +92,75 @@ void CATCPConnectionHandler(const CAEndpoint_t *endpoint, bool isConnected, bool
     }
 
     // Pass the changed connection status to CAUtil.
-    if (tcp_connectionChangeCallback)
-    {
-        tcp_connectionChangeCallback(endpoint, isConnected);
-    }
+    /* if (tcp_connectionChangeCallback) */
+    /*     @was: g_connectionChangeCallback = CAConnectionChangedCallback */
+    /* { */
+    /*     tcp_connectionChangeCallback(endpoint, isConnected); */
+    /* } */
+    oocf_enqueue_tcp_conn_ch_work_pkg(endpoint, isConnected); // @was CAConnectionChangedCallback
 }
+
+/* src: cainterfacecontroller.c */
+#ifdef STATEFUL_PROTOCOL_SUPPORTED
+void oocf_enqueue_tcp_conn_ch_work_pkg /* @was: CAConnectionChangedCallback ifctrlr */
+(const CAEndpoint_t *endpoint, bool isConnected)
+{
+    OIC_LOG_V(DEBUG, TAG, "[%s] connection state is changed to [%d]", endpoint->addr, isConnected);
+
+    // Call the callback.
+    struct CANetworkCallback *callback = NULL;
+
+    // udp
+    CANetworkCallbackThreadInfo_t *info = (CANetworkCallbackThreadInfo_t *)
+        OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
+    if (!info)
+        {
+            OIC_LOG(ERROR, TAG, "OICCalloc to info failed!");
+            return;
+        }
+
+    CAEndpoint_t *cloneEp = CACloneEndpoint(endpoint);
+    if (!cloneEp)
+        {
+            OIC_LOG(ERROR, TAG, "CACloneEndpoint failed!");
+            OICFree(info);
+            return;
+        }
+
+    info->connectionCB = callback->conn;
+    info->endpoint = cloneEp;
+    info->isConnected = isConnected;
+
+    CAQueueingThreadAddData(&g_networkChangeCallbackThread, info,
+                            sizeof(CANetworkCallbackThreadInfo_t));
+
+#ifdef ENABLE_TCP
+    CANetworkCallbackThreadInfo_t *tcp_info = (CANetworkCallbackThreadInfo_t *)
+        OICCalloc(1, sizeof(CANetworkCallbackThreadInfo_t));
+    if (!tcp_info)
+        {
+            OIC_LOG(ERROR, TAG, "OICCalloc to tcp_info failed!");
+            return;
+        }
+
+    CAEndpoint_t *tcp_cloneEp = CACloneEndpoint(endpoint);
+    if (!tcp_cloneEp)
+        {
+            OIC_LOG(ERROR, TAG, "CACloneEndpoint failed!");
+            OICFree(tcp_info);
+            return;
+        }
+
+    tcp_info->connectionCB = callback->conn;
+    tcp_info->endpoint = tcp_cloneEp;
+    tcp_info->isConnected = isConnected;
+
+    CAQueueingThreadAddData(&g_networkChangeCallbackThread, tcp_info,
+                            sizeof(CANetworkCallbackThreadInfo_t));
+
+#endif
+}
+#endif //STATEFUL_PROTOCOL_SUPPORTED
 
 /**
  * Pass the changed network status through the stored callback.
@@ -140,14 +182,12 @@ void CATCPConnectionHandler(const CAEndpoint_t *endpoint, bool isConnected, bool
 // GAR this is passed to CAIPStartNetworkMonitor, in CAStartTCP
 // signature: CAIPAdapterStateChangeCallback
 // see also CAIPAdapterHandler (= udp_status_change_handler)
-void tcp_status_change_handler(CATransportAdapter_t adapter, // @was CATCPAdapterHandler
+// FIXME: naming. this is about interface status - tcp_if_status_chg_handler?
+void tcp_interface_change_handler(CATransportAdapter_t adapter, // @was CATCPAdapterHandler
 			       CANetworkStatus_t status)
 {
-    /* if (tcp_networkChangeCallback) */
-    /* { */
-    /*     tcp_networkChangeCallback(adapter, status); */
-    /* } */
-    oocf_enqueue_nw_chg_work_pkg(adapter, status); // @was CAAdapterChangedCallback
+    /* g_networkChangeCallback == CAAdapterChangedCallback, iterates over g_networkChangeCallbackList */
+    oocf_enqueue_interface_chg_work_pkg(adapter, status); // @was CAAdapterChangedCallback
 
     if (CA_INTERFACE_DOWN == status)
     {
@@ -167,3 +207,33 @@ void tcp_status_change_handler(CATransportAdapter_t adapter, // @was CATCPAdapte
         }
     }
 }
+
+// FIXME: rename tcp_state_chg_handler?
+void OCAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled)
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
+    OC_UNUSED(adapter);
+    // check user configuration
+    CAConnectUserPref_t connPrefer = CA_USER_PREF_CLOUD;
+    CAResult_t ret = CAUtilCMGetConnectionUserConfig(&connPrefer);
+    if (CA_STATUS_OK != ret)
+    {
+        OIC_LOG_V(ERROR, TAG, "CAUtilCMGetConnectionUserConfig failed with error %u", ret);
+    }
+
+    if (CA_USER_PREF_CLOUD != connPrefer)
+    {
+        //set connection callback
+        if (true == enabled)
+        {
+            OIC_LOG(DEBUG, TAG, "CM ConnectionStatusChangedHandler ENABLED");
+        }
+        else
+        {
+            OIC_LOG(DEBUG, TAG, "CM ConnectionStatusChangedHandler DISABLED");
+        }
+    }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+}
+

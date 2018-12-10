@@ -39,6 +39,8 @@
  */
 #define TAG "TCPSOCK"
 
+/* STATIC INIT of globals, replacing CAInitializeTCPGlobals */
+
 /* tcp globals, from CAGlobals_t in _globals.h */
 #ifndef TCP_V6
 #define TCP_V6 0
@@ -78,81 +80,6 @@ bool tcp_is_started;           /**< the TCP adapter has started */
 volatile bool tcp_is_terminating;/**< the TCP adapter needs to stop */
 bool tcp_is_ipv4_enabled = true; // ipv4tcpenabled;    /**< IPv4 TCP enabled by OCInit flags */
 bool tcp_is_ipv6_enabled = true; //ipv6tcpenabled;    /**< IPv6 TCP enabled by OCInit flags */
-
-/* static void CAInitializeTCPGlobals() */
-/* { */
-/*     caglobals.tcp.ipv4.fd = OC_INVALID_SOCKET; */
-/*     caglobals.tcp.ipv4s.fd = OC_INVALID_SOCKET; */
-/*     caglobals.tcp.ipv6.fd = OC_INVALID_SOCKET; */
-/*     caglobals.tcp.ipv6s.fd = OC_INVALID_SOCKET; */
-
-/*     // Set the port number received from application. */
-/*     caglobals.tcp.ipv4.port = caglobals.ports.tcp.u4; */
-/*     caglobals.tcp.ipv4s.port = caglobals.ports.tcp.u4s; */
-/*     caglobals.tcp.ipv6.port = caglobals.ports.tcp.u6; */
-/*     caglobals.tcp.ipv6s.port = caglobals.ports.tcp.u6s; */
-
-/*     caglobals.tcp.selectTimeout = CA_TCP_SELECT_TIMEOUT; */
-/*     caglobals.tcp.listenBacklog = CA_TCP_LISTEN_BACKLOG; */
-
-/*     CATransportFlags_t flags = 0; */
-/*     if (caglobals.client) */
-/*     { */
-/*         flags |= caglobals.clientFlags; */
-/*     } */
-/*     if (caglobals.server) */
-/*     { */
-/*         flags |= caglobals.serverFlags; */
-/*     } */
-
-/*     caglobals.tcp.ipv4tcpenabled = flags & CA_IPV4; */
-/*     caglobals.tcp.ipv6tcpenabled = flags & CA_IPV6; */
-/* } */
-
-void CAAcceptConnection(CATransportFlags_t flag, CASocket_t *sock)
-{
-    VERIFY_NON_NULL_VOID(sock, TAG, "sock is NULL");
-
-    struct sockaddr_storage clientaddr;
-    socklen_t clientlen = sizeof (struct sockaddr_in);
-    if (flag & CA_IPV6)
-    {
-        clientlen = sizeof(struct sockaddr_in6);
-    }
-
-    CASocketFd_t sockfd = accept(sock->fd, (struct sockaddr *)&clientaddr, &clientlen);
-    if (OC_INVALID_SOCKET != sockfd)
-    {
-        CATCPSessionInfo_t *svritem =
-                (CATCPSessionInfo_t *) OICCalloc(1, sizeof (*svritem));
-        if (!svritem)
-        {
-            OIC_LOG(ERROR, TAG, "Out of memory");
-            OC_CLOSE_SOCKET(sockfd);
-            return;
-        }
-
-        svritem->fd = sockfd;
-        svritem->sep.endpoint.flags = flag;
-        svritem->sep.endpoint.adapter = CA_ADAPTER_TCP;
-        svritem->state = CONNECTED;
-        svritem->isClient = false;
-        CAConvertAddrToName((struct sockaddr_storage *)&clientaddr, clientlen,
-                            svritem->sep.endpoint.addr, &svritem->sep.endpoint.port);
-
-        oc_mutex_lock(tcp_mutexObjectList);
-        LL_APPEND(tcp_sessionList, svritem);
-        oc_mutex_unlock(tcp_mutexObjectList);
-
-        TCP_CHECKFD(sockfd);
-
-        // pass the connection information to CA Common Layer.
-        if (tcp_connectionCallback)
-        {
-            tcp_connectionCallback(&(svritem->sep.endpoint), true, svritem->isClient);
-        }
-    }
-}
 
 #if !defined(WSA_WAIT_EVENT_0)
 static ssize_t CAWakeUpForReadFdsUpdate(const char *host)
@@ -366,9 +293,9 @@ CASocketFd_t CAGetSocketFDFromEndpoint(const CAEndpoint_t *endpoint)
 
     // get connection info from list.
     oc_mutex_lock(tcp_mutexObjectList);
-    CATCPSessionInfo_t *session = NULL;
-    LL_FOREACH(tcp_sessionList, session)
+    for (size_t i = 0; i < u_arraylist_length(s_sessionList); ++i)
     {
+        CATCPSessionInfo_t *session = session_list_get(s_sessionList, i);
         if (!strncmp(session->sep.endpoint.addr, endpoint->addr,
                      sizeof(session->sep.endpoint.addr))
                 && (session->sep.endpoint.port == endpoint->port)
@@ -379,6 +306,19 @@ CASocketFd_t CAGetSocketFDFromEndpoint(const CAEndpoint_t *endpoint)
             return session->fd;
         }
     }
+    /* CATCPSessionInfo_t *session = NULL; */
+    /* LL_FOREACH(tcp_sessionList, session) */
+    /* { */
+    /*     if (!strncmp(session->sep.endpoint.addr, endpoint->addr, */
+    /*                  sizeof(session->sep.endpoint.addr)) */
+    /*             && (session->sep.endpoint.port == endpoint->port) */
+    /*             && (session->sep.endpoint.flags & endpoint->flags)) */
+    /*     { */
+    /*         oc_mutex_unlock(tcp_mutexObjectList); */
+    /*         OIC_LOG(DEBUG, TAG, "Found in session list"); */
+    /*         return session->fd; */
+    /*     } */
+    /* } */
 
     oc_mutex_unlock(tcp_mutexObjectList);
     OIC_LOG(DEBUG, TAG, "Session not found");

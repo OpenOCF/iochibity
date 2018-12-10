@@ -64,7 +64,7 @@
 
 #define TAG "TCPRCVRPOSIX"
 
-void tcp_handle_inbound_data()  // @was CAFindReadyMessage
+void tcp_handle_inbound_data(u_arraylist_t* sessionList)  // @was static CAFindReadyMessage tcpserver.c
 {
     /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     fd_set readFds;
@@ -72,25 +72,18 @@ void tcp_handle_inbound_data()  // @was CAFindReadyMessage
     struct timeval timeout = { .tv_sec = tcp_selectTimeout };
 
     FD_ZERO(&readFds);
-    //CA_FD_SET(ipv4, &readFds);
     if (tcp_socket_ipv4.fd != OC_INVALID_SOCKET) FD_SET(tcp_socket_ipv4.fd, &readFds);
-
-    //CA_FD_SET(ipv4s, &readFds);
     if (tcp_socket_ipv4s.fd != OC_INVALID_SOCKET) FD_SET(tcp_socket_ipv4s.fd, &readFds);
-
-    //CA_FD_SET(ipv6, &readFds);
     if (tcp_socket_ipv6.fd != OC_INVALID_SOCKET) FD_SET(tcp_socket_ipv6.fd, &readFds);
-
-    // CA_FD_SET(ipv6s, &readFds);
     if (tcp_socket_ipv6s.fd != OC_INVALID_SOCKET) FD_SET(tcp_socket_ipv6s.fd, &readFds);
 
     if (OC_INVALID_SOCKET != tcp_shutdownFds[0]) FD_SET(tcp_shutdownFds[0], &readFds);
 
     if (OC_INVALID_SOCKET != tcp_connectionFds[0]) FD_SET(tcp_connectionFds[0], &readFds);
 
-    CATCPSessionInfo_t *session = NULL;
-    LL_FOREACH(tcp_sessionList, session)
+    for (size_t i = 0; i < u_arraylist_length(sessionList); ++i)
     {
+        CATCPSessionInfo_t *session = session_list_get(sessionList, i);
         if (session && session->fd != OC_INVALID_SOCKET && session->state == CONNECTED)
         {
             FD_SET(session->fd, &readFds);
@@ -112,7 +105,7 @@ void tcp_handle_inbound_data()  // @was CAFindReadyMessage
     }
     else if (0 < ret)
     {
-        CASelectReturned(&readFds);
+        CASelectReturned(sessionList, &readFds);
     }
     else // if (0 > ret)
     {
@@ -121,7 +114,7 @@ void tcp_handle_inbound_data()  // @was CAFindReadyMessage
     }
 }
 
-LOCAL void CASelectReturned(fd_set *readFds)
+LOCAL void CASelectReturned(u_arraylist_t* sessionList, fd_set *readFds)
 {
     VERIFY_NON_NULL_VOID(readFds, TAG, "readFds is NULL");
 
@@ -161,11 +154,10 @@ LOCAL void CASelectReturned(fd_set *readFds)
     }
     else
     {
-        oc_mutex_lock(tcp_mutexObjectList);
-        CATCPSessionInfo_t *session = NULL;
-        CATCPSessionInfo_t *tmp = NULL;
-        LL_FOREACH_SAFE(tcp_sessionList, session, tmp)
+        for (size_t i = 0; i < u_arraylist_length(sessionList); ++i)
         {
+            oc_refcounter ref = (oc_refcounter)u_arraylist_get(sessionList, i);
+            CATCPSessionInfo_t *session = (CATCPSessionInfo_t*) oc_refcounter_get_data(ref);
             if (session && session->fd != OC_INVALID_SOCKET)
             {
                 if (FD_ISSET(session->fd, readFds))
@@ -180,14 +172,11 @@ LOCAL void CASelectReturned(fd_set *readFds)
                             OIC_LOG(ERROR, TAG, "Failed to close TLS session");
                         }
 #endif
-                        LL_DELETE(tcp_sessionList, session);
-                        CADisconnectTCPSession(session);
-                        oc_mutex_unlock(tcp_mutexObjectList);
+                        CARemoveSession(session);
                         return;
                     }
                 }
             }
         }
-        oc_mutex_unlock(tcp_mutexObjectList);
     }
 }

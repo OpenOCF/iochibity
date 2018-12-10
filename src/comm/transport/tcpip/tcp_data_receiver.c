@@ -87,7 +87,8 @@ void CATCPPacketReceivedCB(const CASecureEndpoint_t *sep,
     size_t bufferLen = dataLength;
 
     //get remote device information from file descriptor.
-    CATCPSessionInfo_t *svritem = CAGetTCPSessionInfoFromEndpoint(&sep->endpoint);
+    oc_refcounter ref = CAGetTCPSessionInfoRefCountedFromEndpoint(&sep->endpoint);
+    CATCPSessionInfo_t *svritem =  (CATCPSessionInfo_t *) oc_refcounter_get_data(ref);
     if (!svritem)
     {
         OIC_LOG(ERROR, TAG, "there is no connection information in list");
@@ -106,6 +107,7 @@ void CATCPPacketReceivedCB(const CASecureEndpoint_t *sep,
         if (CA_STATUS_OK != res)
         {
             OIC_LOG_V(ERROR, TAG, "CAConstructCoAP return error : %d", res);
+            oc_refcounter_dec(ref);
             return;
         }
 
@@ -129,19 +131,33 @@ void CATCPPacketReceivedCB(const CASecureEndpoint_t *sep,
                                 svritem->totalLen - svritem->len);
         }
     }
+    oc_refcounter_dec(ref);
 }
 
-// static void CAReceiveHandler(void *data)
 void tcp_data_receiver_runloop(void *data) // @was CAReceiveHandler
 {
     (void)data;
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
-    //while (!caglobals.tcp.terminate)
-    while (!tcp_is_terminating)
+    u_arraylist_t* sessionList = u_arraylist_create();
+    while (sessionList && !tcp_is_terminating)
     {
-        tcp_handle_inbound_data();  // @was CAFindReadyMessage();
+        oc_mutex_lock(tcp_mutexObjectList);
+        for (size_t i = 0; i < u_arraylist_length(s_sessionList); ++i)
+        {
+            u_arraylist_add(sessionList, oc_refcounter_inc((oc_refcounter)u_arraylist_get(s_sessionList, i)));
+        }
+        oc_mutex_unlock(tcp_mutexObjectList);
+
+        tcp_handle_inbound_data(sessionList);  // @was CAFindReadyMessage(sessionList);
+
+        for (size_t i = u_arraylist_length(sessionList); i > 0; --i)
+        {
+            oc_refcounter_dec((oc_refcounter)u_arraylist_remove(sessionList, i - 1));
+        }
     }
+
+    u_arraylist_free(&sessionList);
 
     oc_mutex_lock(tcp_mutexObjectList);
     oc_cond_signal(tcp_condObjectList);

@@ -70,6 +70,8 @@ u_arraylist_t *g_netInterfaceList = NULL;
 
 // FIXME: the "network monitor list" is transport-independent - the
 // exact same code is in the TCP package. move it to pkg IP
+// the original code also set nw monitor callbacks, that is now done statically
+// CAIPStartNetworkMonitor calls this
 CAResult_t ip_create_network_interface_list() // @was CAIPInitializeNetworkMonitorList
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -138,7 +140,12 @@ CAResult_t ip_create_network_interface_list() // @was CAIPInitializeNetworkMonit
 /*     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
 /* } */
 
-// @rewrite: udp_status_change_handler @was CAIPAdapterHandler
+/**
+ * FIXME: naming: this is for interface changes, regardless of transport.
+ * maybe interface_status_change_handler?
+ * but iface changes entail transport-layer reactions, which we statically configure here
+ * udp_status_change_handler @was CAIPAdapterHandler
+ */
 void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapterHandler
 			       CANetworkStatus_t status)
 {
@@ -148,7 +155,7 @@ void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapter
 
     // original code called g_networkChangeCallback, which is ptr to CAAdapterChangedCallback
     // we do not need to go through g_networkChangeCallbackList, we can just call directly
-    oocf_enqueue_nw_chg_work_pkg(CA_ADAPTER_IP, status); // @was CAAdapterChangedCallback (cainterfacecontrolller.c)
+    oocf_enqueue_interface_chg_work_pkg(CA_ADAPTER_IP, status); // @was CAAdapterChangedCallback (cainterfacecontrolller.c)
     // the handler is OCDefaultAdapterStateChangedHandler(CA_ADAPTER_IP, status);
 
     // CAAdapterChangedCallback in turn iterates over
@@ -172,6 +179,7 @@ void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapter
     /* CAQueueingThreadAddData(&g_networkChangeCallbackThread, info, */
     /* 			    sizeof(CANetworkCallbackThreadInfo_t)); */
 
+#if defined(ENABLE_TCP) || !defined(DISABLE_UDP)
     if (CA_INTERFACE_DOWN == status)
     {
         OIC_LOG(DEBUG, TAG, "Network status for IP is down");
@@ -180,7 +188,32 @@ void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapter
         CAcloseSslConnectionAll(CA_ADAPTER_IP);
 #endif
     }
+#endif
+
+#ifndef DISABLE_UDP
     CALogAdapterStateInfo(CA_ADAPTER_IP, status);
+#endif
+
+#ifdef ENABLE_TCP
+    // from CATCPAdapterHandler:
+    /* if (CA_INTERFACE_DOWN == status) */
+    /* { */
+    /*     OIC_LOG(DEBUG, TAG, "Network status is down, close all session"); */
+    /*     CATCPStopServer(); */
+    /* } */
+    /* else if (CA_INTERFACE_UP == status) */
+    /* { */
+    /*     OIC_LOG(DEBUG, TAG, "TCP Network status is up, create new socket for listening"); */
+
+    /*     CAResult_t ret = CA_STATUS_FAILED; */
+
+    /*     ret = CATCPStartServer((const ca_thread_pool_t)tcp_threadpool); */
+    /*     if (CA_STATUS_OK != ret) */
+    /*     { */
+    /*         OIC_LOG_V(DEBUG, TAG, "CATCPStartServer failed[%d]", ret); */
+    /*     } */
+    /* } */
+#endif
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }

@@ -428,7 +428,7 @@ u_arraylist_t			/**< @result list of CAInterface_t */
 	    udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler
 #endif
 #ifdef TCP_ADAPTER
-	    tcp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CATCPAdapterHandler
+	    tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CATCPAdapterHandler
 #endif
             OIC_LOG_V(DEBUG, TAG, "Processed IF/family %s/%d (%s)",
 		      ifitem->name, ifitem->family,

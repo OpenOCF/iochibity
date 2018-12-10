@@ -333,7 +333,7 @@ u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
 		    udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
 #endif
 #ifdef TCP_ADAPTER
-		    tcp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); //@was CATCPAdapterHandler
+		    tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); //@was CATCPAdapterHandler
 #endif
 		    // @was CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
                 }

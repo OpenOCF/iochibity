@@ -90,21 +90,20 @@ typedef void (*CAErrorHandleCallback)(const CAEndpoint_t *endpoint,
                                       const void *data, size_t dataLen,
                                       CAResult_t result);
 #endif
+CAQueueingThread_t g_networkChangeCallbackThread;
+
 static CAErrorHandleCallback g_errorHandleCallback = NULL;
-
-static struct CANetworkCallback_t *g_networkChangeCallbackList = NULL;
-
-static CAQueueingThread_t g_networkChangeCallbackThread;
 
 /**
  * network callback structure is handling
  * for adapter state changed and connection state changed event.
  */
-typedef struct CANetworkCallback_t
+#if INTERFACE
+struct CANetworkCallback
 {
 
     /** Linked list; for multiple callback list.*/
-    struct CANetworkCallback_t *next;
+    struct CANetworkCallback *next;
 
     /** Adapter state changed event callback. */
     // GAR FIXME: change name to indicate its an event handler
@@ -115,7 +114,8 @@ typedef struct CANetworkCallback_t
     // @rewrite CAConnectionStateChangedCB conn;
     void (*conn)(const CAEndpoint_t *info, bool isConnected);
 
-} CANetworkCallback_t;
+};
+#endif
 
 /**
  * struct to wrap the network change callback info.
@@ -190,109 +190,6 @@ void CARegisterCallback(CAConnectivityHandler_t handler)
     g_adapterHandler[g_numberOfAdapters - 1] = handler;
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-}
-
-/**
- * Add a network callback from caller to the network callback list
- *
- * @param adapterCB  adapter state changed callback
- * @param connCB     connection state changed callback
- *
- * @return
- *     CAResult_t
- */
-static CAResult_t AddNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
-        CAConnectionStateChangedCB connCB)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-
-    if (!adapterCB)
-    {
-        OIC_LOG(ERROR, TAG, "adapterCB is null");
-        return CA_STATUS_INVALID_PARAM;
-    }
-
-#ifdef STATEFUL_PROTOCOL_SUPPORTED
-    if (!connCB)
-    {
-        OIC_LOG(ERROR, TAG, "connCB is null");
-        return CA_STATUS_INVALID_PARAM;
-    }
-#endif
-
-    CANetworkCallback_t *callback = NULL;
-    LL_FOREACH(g_networkChangeCallbackList, callback)
-    {
-        if (callback && adapterCB == callback->adapter && connCB == callback->conn)
-        {
-            OIC_LOG(DEBUG, TAG, "this callback is already added");
-            return CA_STATUS_OK;
-        }
-    }
-
-    callback = (CANetworkCallback_t *) OICCalloc(1, sizeof(CANetworkCallback_t));
-    if (NULL == callback)
-    {
-        OIC_LOG(ERROR, TAG, "Memory allocation failed during registration");
-        return CA_MEMORY_ALLOC_FAILED;
-    }
-
-    callback->adapter = adapterCB;
-#ifdef STATEFUL_PROTOCOL_SUPPORTED
-    // Since IP adapter(UDP) is the Connectionless Protocol, it doesn't need.
-    callback->conn = connCB;
-#endif
-    LL_APPEND(g_networkChangeCallbackList, callback);
-    OIC_LOG_V(DEBUG, TAG, "Appended CB to g_networkChangeCallbackList");
-
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-    return CA_STATUS_OK;
-}
-
-/**
- * Remove a network callback from the network callback list
- *
- * @param adapterCB  adapter state changed callback
- * @param connCB     connection state changed callback
- *
- * @return
- *     CAResult_t
- */
-static CAResult_t RemoveNetworkStateChangedCallback(CAAdapterStateChangedCB adapterCB,
-        CAConnectionStateChangedCB connCB)
-{
-    OIC_LOG(DEBUG, TAG, "Remove NetworkStateChanged Callback");
-
-    CANetworkCallback_t *callback = NULL;
-    LL_FOREACH(g_networkChangeCallbackList, callback)
-    {
-        if (callback && adapterCB == callback->adapter && connCB == callback->conn)
-        {
-            OIC_LOG(DEBUG, TAG, "remove specific callback");
-            LL_DELETE(g_networkChangeCallbackList, callback);
-            OICFree(callback);
-            callback = NULL;
-            return CA_STATUS_OK;
-        }
-    }
-    return CA_STATUS_OK;
-}
-
-/**
- * Remove all network callback from the network callback list
- */
-static void RemoveAllNetworkStateChangedCallback(void)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    CANetworkCallback_t *callback = NULL;
-    CANetworkCallback_t *tmp = NULL;
-    LL_FOREACH_SAFE(g_networkChangeCallbackList, callback, tmp)
-    {
-        LL_DELETE(g_networkChangeCallbackList, callback);
-        OICFree(callback);
-        callback = NULL;
-    }
-    g_networkChangeCallbackList = NULL;
 }
 
 #ifdef RA_ADAPTER
@@ -451,12 +348,12 @@ CAResult_t CASetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
 					       CAConnectionStateChangedCB connCB)
 {
     OIC_LOG(DEBUG, TAG, "Set network monitoring callback");
-    CAResult_t res = AddNetworkStateChangedCallback(adapterCB, connCB);
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG(ERROR, TAG, "AddNetworkStateChangedCallback has failed");
-        return CA_STATUS_FAILED;
-    }
+    /* CAResult_t res = AddNetworkStateChangedCallback(adapterCB, connCB); */
+    /* if (CA_STATUS_OK != res) */
+    /* { */
+    /*     OIC_LOG(ERROR, TAG, "AddNetworkStateChangedCallback has failed"); */
+    /*     return CA_STATUS_FAILED; */
+    /* } */
     return CA_STATUS_OK;
 }
 
@@ -464,12 +361,12 @@ CAResult_t CAUnsetNetworkMonitorCallbacks(CAAdapterStateChangedCB adapterCB,
                                           CAConnectionStateChangedCB connCB)
 {
     OIC_LOG(DEBUG, TAG, "Unset network monitoring callback");
-    CAResult_t res = RemoveNetworkStateChangedCallback(adapterCB, connCB);
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG(ERROR, TAG, "RemoveNetworkStateChangedCallback has failed");
-        return CA_STATUS_FAILED;
-    }
+    /* CAResult_t res = RemoveNetworkStateChangedCallback(adapterCB, connCB); */
+    /* if (CA_STATUS_OK != res) */
+    /* { */
+    /*     OIC_LOG(ERROR, TAG, "RemoveNetworkStateChangedCallback has failed"); */
+    /*     return CA_STATUS_FAILED; */
+    /* } */
     return CA_STATUS_OK;
 }
 
@@ -748,6 +645,6 @@ void CATerminateAdapters(void)
     g_numberOfAdapters = 0;
 
     CAQueueingThreadDestroy(&g_networkChangeCallbackThread);
-    RemoveAllNetworkStateChangedCallback();
+    /* RemoveAllNetworkStateChangedCallback(); */
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }

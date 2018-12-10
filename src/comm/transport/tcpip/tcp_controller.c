@@ -44,6 +44,7 @@ typedef enum CAProtocol
  * Holds internal thread TCP data information.
  */
 #if INTERFACE
+/* src: catcpadapter.c */
 typedef struct
 {
     CAEndpoint_t *remoteEndpoint;
@@ -54,39 +55,63 @@ typedef struct
 } CATCPData;
 #endif
 
-void *tcp_threadpool;       /**< threadpool between Initialize and Start */
+void *tcp_threadpool;           /* replaces caglobals.tcp.threadpool */
+
+// NB: we use fn ptr prototypes rather than typedefs
+
+/**
+ * This will be used to notify network changes to the connectivity common logic layer.
+ */
+//typedef void (*CAAdapterChangeCallback)(CATransportAdapter_t adapter, CANetworkStatus_t status);
 
 /**
  * Adapter Changed Callback to CA.
  */
-// static CAAdapterChangeCallback tcp_networkChangeCallback = NULL;
+// static CAAdapterChangeCallback g_networkChangeCallback = NULL;
 /* void (*tcp_networkChangeCallback)(CATransportAdapter_t adapter, CANetworkStatus_t status) = NULL; */
+
+/**
+ * This will be used to notify connection changes to the connectivity common logic layer.
+ */
+/* src: caadapterinterface.h */
+/* typedef void (*CAConnectionChangeCallback)(const CAEndpoint_t *info, bool isConnected); */
+void (*tcp_connectionChangeCallback)(const CAEndpoint_t *info, bool isConnected);
 
 /**
  * Connection Changed Callback to CA.
  */
-void (*tcp_connectionChangeCallback)(const CAEndpoint_t *info, bool isConnected);
-// CAConnectionChangeCallback tcp_connectionChangeCallback; // = NULL;
+/**
+// static CAConnectionChangeCallback g_connectionChangeCallback = NULL;
 
 /**
- * error Callback to CA adapter.
+ * This will be used to notify error result to the connectivity common logic layer.
  */
+/* typedef void (*CAErrorHandleCallback)(const CAEndpoint_t *endpoint, */
+/*                                       const void *data, size_t dataLen, */
+/*                                       CAResult_t result); */
 void (*tcp_errorCallback)(const CAEndpoint_t *endpoint,
 			  const void *data, size_t dataLen,
 			  CAResult_t result);
+/**
+ * error Callback to CA adapter.
+ */
 //CAErrorHandleCallback tcp_errorCallback; // = NULL;
+
+/* typedef void (*CAKeepAliveConnectionCallback)(const CAEndpoint_t *object, bool isConnected, */
+/*                                               bool isClient); */
+void (*tcp_connKeepAliveCallback)(const CAEndpoint_t *object,
+				  bool isConnected,
+				  bool isClient);
 
 /**
  * KeepAlive Connected or Disconnected Callback to CA adapter.
  */
-void (*tcp_connKeepAliveCallback)(const CAEndpoint_t *object,
-				  bool isConnected,
-				  bool isClient);
-// CAKeepAliveConnectionCallback tcp_connKeepAliveCallback; // = NULL;
+// CAKeepAliveConnectionCallback g_connKeepAliveCallback; // = NULL;
 
 /**
  * Mutex to synchronize device object list.
  */
+/* src: catcpserver.c */
 oc_mutex tcp_mutexObjectList = NULL;
 
 static CAResult_t CATCPCreateMutex()
@@ -141,33 +166,16 @@ static void CATCPDestroyCond()
     }
 }
 
-CAResult_t CAStartTCP()
-{
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
-
-    // Start network monitoring to receive adapter status changes.
-    ip_create_network_interface_list(tcp_status_change_handler, CA_ADAPTER_TCP); // @was CAIPStartNetworkMonitor
-
-    if (CA_STATUS_OK != CATCPInitializeQueueHandles())
-    {
-        OIC_LOG(ERROR, TAG, "Failed to Initialize Queue Handle");
-        CATerminateTCP();
-        return CA_STATUS_FAILED;
-    }
-
-    // Start send queue thread
-    if (CA_STATUS_OK != CAQueueingThreadStart(tcp_sendQueueHandle))
-    {
-        OIC_LOG(ERROR, TAG, "Failed to Start Send Data Thread");
-        return CA_STATUS_FAILED;
-    }
-
-    return CA_STATUS_OK;
-}
-
 CAResult_t CAStopTCP()
 {
     CAIPStopNetworkMonitor(CA_ADAPTER_TCP);
+
+    /* Some times send queue thread fails to terminate as it's worker
+       thread gets blocked at TCP session's socket connect operation.
+       So closing sockets which are in connect operation at the time
+       of termination of adapter would save send queue thread from
+       getting blocked. */
+    CATCPCloseInProgressConnections();
 
     if (tcp_sendQueueHandle && tcp_sendQueueHandle->threadMutex)
     {
@@ -183,6 +191,130 @@ CAResult_t CAStopTCP()
 #ifdef __WITH_TLS__
     CAdeinitSslAdapter();
 #endif
+
+    return CA_STATUS_OK;
+}
+
+void CATerminateTCP()
+{
+#ifdef __WITH_TLS__
+    CAsetSslAdapterCallbacks(// NULL,
+			     NULL,
+			     //NULL,
+			     CA_ADAPTER_TCP);
+#endif
+    CAStopTCP();
+    CATCPSetPacketReceiveCallback(NULL);
+
+#ifdef WSA_WAIT_EVENT_0
+    // Windows-specific clean-up.
+    OC_VERIFY(0 == WSACleanup());
+#endif
+}
+
+CAResult_t CAInitializeTCP(// CARegisterConnectivityCallback registerCallback,
+                           //CANetworkPacketReceivedCallback networkPacketCallback,
+                           //CAAdapterChangeCallback netCallback,
+                           //CAConnectionChangeCallback connCallback,
+                           //CAErrorHandleCallback errorCallback,
+			   ca_thread_pool_t handle)
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* VERIFY_NON_NULL_MSG(registerCallback, TAG, "registerCallback"); */
+    /* VERIFY_NON_NULL_MSG(networkPacketCallback, TAG, "networkPacketCallback"); */
+    /* VERIFY_NON_NULL_MSG(netCallback, TAG, "netCallback"); */
+
+    VERIFY_NON_NULL_MSG(handle, TAG, "thread pool handle");
+
+    // FIXME: call windows init code
+
+    //tcp_networkChangeCallback = CAAdapterChangedCallback;
+    // @was: g_networkChangeCallback = netCallback;
+
+    // FIXME: eliminate tcp_connectionChangeCallback
+    tcp_connectionChangeCallback = oocf_enqueue_tcp_conn_ch_work_pkg;
+    // @was: g_connectionChangeCallback = connCallback;
+
+    // tcp_networkPacketCallback = g_networkPacketReceivedCallback;
+    // @was: g_networkPacketCallback = networkPacketCallback;
+
+    // FIXME: eliminate tcp_errorCallback
+    tcp_errorCallback = CAAdapterErrorHandleCallback;           // errorCallback;
+
+    // g_errorCallback = errorCallback;
+
+    // initialization is now static - CAInitializeTCPGlobals();
+    tcp_threadpool = handle;
+
+    // DELETED: fwding fn CATCPSetConnectionChangedCallback(CATCPConnectionHandler);
+    CATCPSetPacketReceiveCallback(CATCPPacketReceivedCB);
+    // @rewrite: replaced by static init: CATCPSetErrorHandler(CATCPErrorHandler);
+
+#ifdef __WITH_TLS__
+    if (CA_STATUS_OK != CAinitSslAdapter())
+    {
+        OIC_LOG(ERROR, TAG, "Failed to init SSL adapter");
+    }
+    else
+    {
+        CAsetSslAdapterCallbacks(//CATCPPacketReceivedCB,
+				 CATCPPacketSendCB,
+				 //CATCPErrorHandler,
+				 CA_ADAPTER_TCP);
+    }
+#endif
+
+    /* These routines are originallcalled from cainterfacecontroller,
+or tcp_data_sender.c where they are accessed via table lookup. that
+has been replaced by direct calls, so this can go away */
+
+    //CAConnectivityHandler_t tcpHandler = {
+        // .startAdapter = &CAStartTCP,  // tcp_controller.c
+        // .stopAdapter = &CAStopTCP,    // tcp_controller.c
+        // .startListenServer = &CAStartTCPListeningServer, // tcp_controller.c
+        // .stopListenServer = &CAStopTCPListeningServer,    // tcp_controller.c
+        // .startDiscoveryServer = &CAStartTCPDiscoveryServer, // tcp_controller.c
+        // .unicast = &CASendTCPUnicastData,   // tcp_data_sender.c
+        // .multicast = &CASendTCPMulticastData,  // tcp_data_sender.c
+        // .GetNetInfo = &CAGetTCPInterfaceInformation, // tcp_sockets.c,  tcp_get_local_endpoints
+        // .readData = &CAReadTCPData,   // NOP - not used
+        // .terminate = &CATerminateTCP,  // tcp_controller.c
+        // .cType = CA_ADAPTER_TCP
+	//};
+
+    //registerCallback(tcpHandler);
+    //CARegisterCallback(tcpHandler);
+
+    OIC_LOG(INFO, TAG, "OUT IntializeTCP is Success");
+    return CA_STATUS_OK;
+}
+
+CAResult_t CAStartTCP()
+{
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+
+    // Start network monitoring to receive adapter status changes.
+
+    // original code: CAIPStartNetworkMonitor, which calls
+    // CAIPInitializeNetworkMonitorList, then initializes nw monitor
+    // cbs. those are now statically initialized, so all we need do is
+    // create the "nw monitor" (i.e. interface) list
+    // FIXME: the if chg handler can be statically initialized, no need to pass it!
+    ip_create_network_interface_list(tcp_interface_change_handler, CA_ADAPTER_TCP);
+
+    if (CA_STATUS_OK != CATCPInitializeQueueHandles())
+    {
+        OIC_LOG(ERROR, TAG, "Failed to Initialize Queue Handle");
+        CATerminateTCP();
+        return CA_STATUS_FAILED;
+    }
+
+    // Start send queue thread
+    if (CA_STATUS_OK != CAQueueingThreadStart(tcp_sendQueueHandle))
+    {
+        OIC_LOG(ERROR, TAG, "Failed to Start Send Data Thread");
+        return CA_STATUS_FAILED;
+    }
 
     return CA_STATUS_OK;
 }
@@ -226,73 +358,7 @@ CAResult_t CAStartTCPDiscoveryServer()
     return CA_STATUS_OK;
 }
 
-CAResult_t CAInitializeTCP(// CARegisterConnectivityCallback registerCallback,
-                           //CANetworkPacketReceivedCallback networkPacketCallback,
-                           //CAAdapterChangeCallback netCallback,
-                           //CAConnectionChangeCallback connCallback,
-                           //CAErrorHandleCallback errorCallback,
-			   ca_thread_pool_t handle)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    /* VERIFY_NON_NULL_MSG(registerCallback, TAG, "registerCallback"); */
-    /* VERIFY_NON_NULL_MSG(networkPacketCallback, TAG, "networkPacketCallback"); */
-    /* VERIFY_NON_NULL_MSG(netCallback, TAG, "netCallback"); */
-
-    VERIFY_NON_NULL_MSG(handle, TAG, "thread pool handle");
-
-    // FIXME: call windows init code
-
-    // tcp_networkPacketCallback = g_networkPacketReceivedCallback; //ifc_CAReceivedPacketCallback;   // networkPacketCallback;
-    //tcp_networkChangeCallback = CAAdapterChangedCallback;       // netCallback;
-    tcp_connectionChangeCallback = CAConnectionChangedCallback; // connCallback;
-    tcp_errorCallback = CAAdapterErrorHandleCallback;           // errorCallback;
-
-    // initialization is now static - CAInitializeTCPGlobals();
-    tcp_threadpool = handle;
-
-    CATCPSetConnectionChangedCallback(CATCPConnectionHandler);
-    CATCPSetPacketReceiveCallback(CATCPPacketReceivedCB);
-    // @rewrite: replaced by static init: CATCPSetErrorHandler(CATCPErrorHandler);
-
-#ifdef __WITH_TLS__
-    if (CA_STATUS_OK != CAinitSslAdapter())
-    {
-        OIC_LOG(ERROR, TAG, "Failed to init SSL adapter");
-    }
-    else
-    {
-        CAsetSslAdapterCallbacks(//CATCPPacketReceivedCB,
-				 CATCPPacketSendCB,
-				 //CATCPErrorHandler,
-				 CA_ADAPTER_TCP);
-    }
-#endif
-
-    /* These routines are called from cainterfacecontroller, where
-       they are accessed via table lookup. that has been replaced by
-       direct calls, so this can go away */
-    //CAConnectivityHandler_t tcpHandler = {
-        // .startAdapter = &CAStartTCP,
-        // .stopAdapter = &CAStopTCP,
-        // .startListenServer = &CAStartTCPListeningServer,
-        // .stopListenServer = &CAStopTCPListeningServer,
-        // .startDiscoveryServer = &CAStartTCPDiscoveryServer,
-        // .unicast = &CASendTCPUnicastData,
-        // .multicast = &CASendTCPMulticastData,
-        // .GetNetInfo = &CAGetTCPInterfaceInformation,
-        // .readData = &CAReadTCPData,
-        // .terminate = &CATerminateTCP,
-        // .cType = CA_ADAPTER_TCP
-	//};
-
-    //registerCallback(tcpHandler);
-    //CARegisterCallback(tcpHandler);
-
-    OIC_LOG(INFO, TAG, "OUT IntializeTCP is Success");
-    return CA_STATUS_OK;
-}
-
-CAResult_t CATCPStartServer(const ca_thread_pool_t threadPool)
+CAResult_t CATCPStartServer(const ca_thread_pool_t threadPool) /* src: catcpserver.c */
 {
     if (tcp_is_started)
     {
@@ -300,25 +366,29 @@ CAResult_t CATCPStartServer(const ca_thread_pool_t threadPool)
         return CA_STATUS_OK;
     }
 
-    /* if (!caglobals.tcp.ipv4tcpenabled) */
-    /* { */
-    /*     caglobals.tcp.ipv4tcpenabled = true;    // only needed to run CA tests */
-    /* } */
-    /* if (!caglobals.tcp.ipv6tcpenabled) */
-    /* { */
-    /*     caglobals.tcp.ipv6tcpenabled = true;    // only needed to run CA tests */
-    /* } */
-    tcp_is_ipv4_enabled = true;
-    tcp_is_ipv6_enabled = true;
+    tcp_is_ipv4_enabled = true; // only needed to run CA tests
+    tcp_is_ipv6_enabled = true; // only needed to run CA tests
 
-    CAResult_t res = CATCPCreateMutex();
-    if (CA_STATUS_OK == res)
+    CAResult_t res = CA_STATUS_OK;
+    s_sessionList = u_arraylist_create();
+    if (!s_sessionList)
     {
-        res = CATCPCreateCond();
+        res = CA_MEMORY_ALLOC_FAILED;
     }
+    if (CA_STATUS_OK != res) {
+        OIC_LOG(ERROR, TAG, "failed to alloc s_sessionList");
+        return res;
+    }
+    res = CATCPCreateMutex();
     if (CA_STATUS_OK != res)
     {
-        OIC_LOG(ERROR, TAG, "failed to create mutex/cond");
+        OIC_LOG(ERROR, TAG, "failed to create mutex");
+        return res;
+    }
+    res = CATCPCreateCond();
+    if (CA_STATUS_OK != res)
+    {
+        OIC_LOG(ERROR, TAG, "failed to create cond");
         return res;
     }
 
@@ -326,6 +396,7 @@ CAResult_t CATCPStartServer(const ca_thread_pool_t threadPool)
 
     // create mechanism for fast shutdown
 #ifdef WSA_WAIT_EVENT_0
+    // FIXME: windows support
     caglobals.tcp.updateEvent = WSACreateEvent();
     if (WSA_INVALID_EVENT == caglobals.tcp.updateEvent)
     {
@@ -423,23 +494,6 @@ void CATCPStopServer()
     OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 }
 
-void CATerminateTCP()
-{
-#ifdef __WITH_TLS__
-    CAsetSslAdapterCallbacks(// NULL,
-			     NULL,
-			     //NULL,
-			     CA_ADAPTER_TCP);
-#endif
-    CAStopTCP();
-    CATCPSetPacketReceiveCallback(NULL);
-
-#ifdef WSA_WAIT_EVENT_0
-    // Windows-specific clean-up.
-    OC_VERIFY(0 == WSACleanup());
-#endif
-}
-
 /**
  * Callback to be notified on reception of any data from remote OIC devices.
  *
@@ -481,11 +535,11 @@ typedef void (*CATCPConnectionHandleCallback)(const CAEndpoint_t *endpoint,
 //CATCPConnectionHandleCallback tcp_connectionCallback = NULL;
 void (*tcp_connectionCallback)(const CAEndpoint_t *endpoint, bool isConnected,
                                               bool isClient);
-// CATCPSetConnectionChangedCallback(CATCPConnectionHandler);
-void CATCPSetConnectionChangedCallback(CATCPConnectionHandleCallback connHandler)
-{
-    tcp_connectionCallback = connHandler;
-}
+// DELETE: fwding fn CATCPSetConnectionChangedCallback(CATCPConnectionHandler);
+/* void CATCPSetConnectionChangedCallback(CATCPConnectionHandleCallback connHandler) */
+/* { */
+/*     tcp_connectionCallback = connHandler; */ // @was g_connectionCallback
+/* } */
 
 /**
   * Callback to notify error in the TCP adapter.
@@ -518,6 +572,7 @@ static CATCPErrorHandleCallback tcp_tcpErrorHandler = CATCPErrorHandler;
 /*     tcp_tcpErrorHandler = errorHandleCallback; */
 /* } */
 
+// FIXME: move to tcp_status_manager.c?
 void CATCPSetKeepAliveCallbacks(CAKeepAliveConnectionCallback ConnHandler)
 {
     tcp_connKeepAliveCallback = ConnHandler;
