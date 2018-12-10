@@ -114,7 +114,7 @@ CAResult_t CAMsgArbiterGetMessageData(CAData_t *data)
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(data, TAG, "data is NULL");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is NULL");
 
     CMDeviceInfo_t *targetInfo = NULL;
 
@@ -220,8 +220,8 @@ CAResult_t CAMsgArbiterUpdateDeviceInfo(const CAEndpoint_t *endpoint, bool isClo
 {
     OIC_LOG(DEBUG, TAG, "IN - CAMsgArbiterUpdateDeviceInfo");
 
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
-    VERIFY_NON_NULL(endpoint->remoteId, TAG, "remoteId");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(endpoint->remoteId, TAG, "remoteId");
 
     CAResult_t ret = CA_STATUS_FAILED;
 

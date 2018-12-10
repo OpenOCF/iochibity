@@ -1800,9 +1800,9 @@ CAResult_t CAAddHeaderOption(CAHeaderOption_t **hdrOpt, uint8_t *numOptions,
 {
     OIC_LOG_V(DEBUG, TAG, "Entering CAAddHeaderOption with optionID: %d", optionID);
 
-    VERIFY_NON_NULL(hdrOpt, TAG, "hdrOpt");
-    VERIFY_NON_NULL(numOptions, TAG, "numOptions");
-    VERIFY_NON_NULL(optionData, TAG, "optionData");
+    VERIFY_NON_NULL_MSG(hdrOpt, TAG, "hdrOpt");
+    VERIFY_NON_NULL_MSG(numOptions, TAG, "numOptions");
+    VERIFY_NON_NULL_MSG(optionData, TAG, "optionData");
 
     CAHeaderOption_t *tmpOpt = OICRealloc(*hdrOpt, (*numOptions + 1) * sizeof(CAHeaderOption_t));
     if (!tmpOpt)
@@ -1834,9 +1834,9 @@ CAResult_t CAGetHeaderOption(CAHeaderOption_t *hdrOpt, size_t numOptions, uint16
 {
     OIC_LOG_V(DEBUG, TAG, "Entering CAGetHeaderOption with optionID: %d", optionID);
 
-    VERIFY_NON_NULL(hdrOpt, TAG, CA_STATUS_INVALID_PARAM);
-    VERIFY_NON_NULL(optionData, TAG, CA_STATUS_INVALID_PARAM);
-    VERIFY_NON_NULL(receivedDataLen, TAG, CA_STATUS_INVALID_PARAM);
+    VERIFY_NON_NULL_MSG(hdrOpt, TAG, "hdrOpt");
+    VERIFY_NON_NULL_MSG(optionData, TAG, "optionData");
+    VERIFY_NON_NULL_MSG(receivedDataLen, TAG, "receivedDataLen");
 
     for (size_t i = 0; i < numOptions; i++)
     {

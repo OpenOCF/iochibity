@@ -250,9 +250,9 @@ CAData_t *CAGenerateSignalingMessageUsingToken(const CAEndpoint_t *endpoint, CAS
 CAResult_t CAGetSignalingInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                                      CASignalingInfo_t *outSigInfo)
 {
-    VERIFY_NON_NULL(pdu, TAG, "pdu");
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
-    VERIFY_NON_NULL(outSigInfo, TAG, "outSigInfo");
+    VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(outSigInfo, TAG, "outSigInfo");
 
     uint32_t code = CA_NOT_FOUND;
     CAResult_t ret = CAGetInfoFromPDU(pdu, endpoint, &code, &(outSigInfo->info));

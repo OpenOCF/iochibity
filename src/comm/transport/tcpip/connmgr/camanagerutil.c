@@ -101,10 +101,10 @@ CAResult_t CAMgrUtilAddDevInfoToList(CMDeviceInfoList_t **devInfoList,
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(devInfoList, TAG, "devInfoList");
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
-    VERIFY_NON_NULL(endpoint->remoteId, TAG, "deviceId");
-    VERIFY_NON_NULL(endpoint->addr, TAG, "address");
+    VERIFY_NON_NULL_MSG(devInfoList, TAG, "devInfoList");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(endpoint->remoteId, TAG, "deviceId");
+    VERIFY_NON_NULL_MSG(endpoint->addr, TAG, "address");
 
     CMDeviceInfo_t *node = NULL;
     CAResult_t ret = CAMgrUtilGetDevInfo(*devInfoList, endpoint->remoteId, &node);
@@ -149,8 +149,8 @@ CAResult_t CAMgrUtilGetDevInfo(CMDeviceInfoList_t *devInfoList, const char *devi
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(devInfoList, TAG, "devInfoList");
-    VERIFY_NON_NULL(deviceId, TAG, "deviceId");
+    VERIFY_NON_NULL_MSG(devInfoList, TAG, "devInfoList");
+    VERIFY_NON_NULL_MSG(deviceId, TAG, "deviceId");
 
     CMDeviceInfoList_t *cur = devInfoList;
     *devInfo = NULL;
@@ -173,10 +173,10 @@ CAResult_t CAMgrUtilUpdateDevInfo(CMDeviceInfoList_t *devInfoList, const CAEndpo
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(devInfoList, TAG, "devInfoList");
-    VERIFY_NON_NULL(endpoint, TAG, "endpoint");
-    VERIFY_NON_NULL(endpoint->remoteId, TAG, "deviceId");
-    VERIFY_NON_NULL(endpoint->addr, TAG, "localAddr");
+    VERIFY_NON_NULL_MSG(devInfoList, TAG, "devInfoList");
+    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    VERIFY_NON_NULL_MSG(endpoint->remoteId, TAG, "deviceId");
+    VERIFY_NON_NULL_MSG(endpoint->addr, TAG, "localAddr");
 
     CMDeviceInfo_t *node = NULL;
     CAResult_t ret = CAMgrUtilGetDevInfo(devInfoList, endpoint->remoteId, &node);
@@ -215,7 +215,7 @@ CAResult_t CAMgrUtilResetDevInfo(CMDeviceInfoList_t *devInfoList)
 {
     OIC_LOG(DEBUG, TAG, "IN");
 
-    VERIFY_NON_NULL(devInfoList, TAG, "devInfoList");
+    VERIFY_NON_NULL_MSG(devInfoList, TAG, "devInfoList");
 
     CMDeviceInfoList_t *cur = devInfoList;
     CMDeviceInfo_t *devInfo = NULL;

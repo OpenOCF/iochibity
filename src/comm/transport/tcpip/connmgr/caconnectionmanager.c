@@ -72,7 +72,7 @@ CAResult_t CACMGetMessageData(CAData_t *data)
 {
     OIC_LOG(DEBUG, TAG, "CACMGetMessageData");
 
-    VERIFY_NON_NULL(data, TAG, "data is null");
+    VERIFY_NON_NULL_MSG(data, TAG, "data is null");
 
     return CAMsgArbiterGetMessageData(data);
 }
