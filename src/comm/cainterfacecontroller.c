@@ -204,7 +204,10 @@ CAResult_t CASetAdapterRAInfo(const CARAInfo_t *caraInfo)
 // @rewrite CAAdapterChangedCallback called by each transport
 // @rewrite We don't need this routine, since we call OCDefaultAdapterStateChangedHandler
 // @rewrite  directly from udp_if_change_handler,
-void oocf_enqueue_nw_chg_work_pkg( // @was CAAdapterChangedCallback
+// this is for "adapter changes" (udp and tcp), for tcp connection changes: CAConnectionChangedCallback
+// FIXME: move this to comm/L2_status_manager.c?
+// FIXME: rename nw to linklayer, interfacelayer?
+void oocf_enqueue_interface_chg_work_pkg( // @was CAAdapterChangedCallback
 				  CATransportAdapter_t adapter, CANetworkStatus_t status)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
