@@ -25,6 +25,7 @@ cc_library(
             "//src/portability",
             "//src/sec/calendar",
             "//src/util",
+            "@mbedtls//:mbedtls",
             "@uthash//:uthash",
             "@libcoap//:libcoap",
             "@tinycbor//:tinycbor"],

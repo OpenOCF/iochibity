@@ -35,7 +35,9 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/oid.h"
+#if INTERFACE
 #include "mbedtls/x509_crt.h"
+#endif
 #include "mbedtls/oid.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/base64.h"
