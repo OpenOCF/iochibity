@@ -109,6 +109,7 @@ bool OCGetRandomBytes(uint8_t * output, size_t len)
         return false;
     }
 
+#if defined(__unix__) || defined(__APPLE__)
     FILE* urandom = fopen("/dev/urandom", "r");
     if (urandom == NULL)
     {
@@ -125,6 +126,43 @@ bool OCGetRandomBytes(uint8_t * output, size_t len)
         return false;
     }
     fclose(urandom);
+
+#elif defined(_WIN32)
+    /*
+     * size_t may be 64 bits, but ULONG is always 32.
+     * If len is larger than the maximum for ULONG, just fail.
+     * It's unlikely anything ever will want to ask for this much randomness.
+     */
+    if (len > 0xFFFFFFFFULL)
+    {
+        OIC_LOG(FATAL, OCRANDOM_TAG, "Requested number of bytes too large for ULONG");
+        assert(false);
+        return false;
+    }
+
+    NTSTATUS status = BCryptGenRandom(NULL, output, (ULONG)len, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+    if (!BCRYPT_SUCCESS(status))
+    {
+        OIC_LOG_V(FATAL, OCRANDOM_TAG, "BCryptGenRandom failed (%X)!", status);
+        assert(false);
+        return false;
+    }
+
+/* #elif defined(ARDUINO) */
+/*     if (!g_isSeeded) */
+/*     { */
+/*         OCSeedRandom(); */
+/*     } */
+
+/*     size_t i; */
+/*     for (i = 0; i < len; i++) */
+/*     { */
+/*         output[i] = OC_arduino_random_function() & 0x00ff; */
+/*     } */
+
+#else
+    #error Unrecognized platform
+#endif
 
     return true;
 }
