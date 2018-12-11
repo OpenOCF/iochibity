@@ -146,7 +146,11 @@ void OCLog(int level, const char * tag, const char * logStr)
 	    /* GAR FIXME: make a separate Log fn for timestamped msgs */
 	    /* printf("%02d:%02d.%03d %s: %s: %s\n", min, sec, ms, LEVEL[level], tag, logStr); */
 	    /* printf("%s %s %s\n", LEVEL[level], tag, logStr); */
-	    write_log("%s %s %s\n", LEVEL[level], tag, logStr);
-	    fflush(stdout);
+	    /* write_log("%s %s %s\n", LEVEL[level], tag, logStr); */
+	    /* fflush(stdout); */
+	       /* flockfile(logfd);  not on mingw */
+	       fprintf(logfd, "%s %s %s\n", LEVEL[level], tag, logStr);
+	       fflush(logfd);
+	       /* funlockfile(logfd); */
 	}
 }

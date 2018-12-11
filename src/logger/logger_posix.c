@@ -51,9 +51,9 @@
 #endif
 
 /* #if EXPORT_INTERFACE		/\* FIXME: why doesn't CNOH_INTERFACE work? *\/ */
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#endif
+/* #ifdef HAVE_WINDOWS_H */
+/* #include <windows.h> */
+/* #endif */
 /* #endif */
 
 /* #include "logger.h" */
@@ -62,8 +62,8 @@
 
 /* static const uint16_t LINE_BUFFER_SIZE = (16 * 2) + 16 + 1;  // Show 16 bytes, 2 chars/byte, spaces between bytes, null termination */
 
-oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO,
-                                      OC_LOG_WARNING, OC_LOG_ERROR, OC_LOG_FATAL};
+/* oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO, */
+/*                                       OC_LOG_WARNING, OC_LOG_ERROR, OC_LOG_FATAL}; */
 
 #include <stdio.h>
 #include <stdarg.h>
