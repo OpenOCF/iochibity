@@ -72,46 +72,6 @@ int32_t CASendIPMulticastData(const CAEndpoint_t *endpoint, const void *data, ui
     return CAQueueIPData(true, endpoint, data, dataLength);
 }
 
-void PORTABLE_sendto(CASocketFd_t fd,
-                     const void *data,
-		     size_t dlen,
-		     int flags,
-		     struct sockaddr_storage * sockaddrptr,
-		     socklen_t socklen,
-		     const CAEndpoint_t *endpoint,
-		     const char *cast, const char *fam)
-EXPORT
-{
-    (void)flags;
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    OIC_LOG_V(DEBUG, TAG, "%s dest socket: %d", __func__, fd);
-#ifdef TB_LOG
-    const char *secure = (endpoint->flags & CA_SECURE) ? "secure " : "insecure ";
-#endif
-    ssize_t len = sendto(fd, data, dlen, 0, (struct sockaddr *)sockaddrptr, socklen);
-    if (OC_SOCKET_ERROR == len)
-    {
-	// @rewrite: g_ipErrorHandler removed, call CAIPErrorHandler directly
-        /* if (g_ipErrorHandler) */
-        /* { */
-        /*     g_ipErrorHandler(endpoint, data, dlen, CA_SEND_FAILED); */
-        /* } */
-	// FIXME: short-circuit to CAAdapterErrorHandleCallback
-	//CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
-	CAErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
-
-        OIC_LOG_V(ERROR, TAG, "%s%s %s sendTo failed: %s", secure, cast, fam, strerror(errno));
-        CALogSendStateInfo(endpoint->adapter, endpoint->addr, endpoint->port,
-                           len, false, strerror(errno));
-    }
-    else
-    {
-        OIC_LOG_V(INFO, TAG, "%s%s %s sendTo is successful: %zd bytes", secure, cast, fam, len);
-        CALogSendStateInfo(endpoint->adapter, endpoint->addr, endpoint->port,
-                           len, true, NULL);
-    }
-}
-
 LOCAL void udp_send_data(CASocketFd_t fd, /*  @was sendData */
 			 const CAEndpoint_t *endpoint,
 			 const void *data, size_t dlen,
@@ -272,7 +232,7 @@ void sendMulticastData4(const u_arraylist_t *iflist,
                              .imr_ifindex = 0};
 #else
     struct ip_mreq mreq  = { .imr_multiaddr.s_addr = IPv4MulticastAddress.s_addr,
-                             .imr_interface = {0}};
+                             .imr_interface = {{0}}};
 #endif
 
     OICStrcpy(endpoint->addr, sizeof(endpoint->addr), IPv4_MULTICAST);

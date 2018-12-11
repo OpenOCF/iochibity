@@ -9,6 +9,9 @@
 #define _GNU_SOURCE // for in6_pktinfo
 #endif
 
+#ifdef _WIN32
+#undef ERROR
+#endif
 #include "udp_data_receiver.h"
 
 #ifdef HAVE_ARPA_INET_H
@@ -24,125 +27,6 @@
 #endif
 
 #include <errno.h>
-
-CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @was CAReceiveMessage
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    char recvBuffer[RECV_MSG_BUF_LEN] = {0};
-    int level = 0;
-    int type = 0;
-    int namelen = 0;
-    struct sockaddr_storage srcAddr = { .ss_family = 0 };
-    unsigned char *pktinfo = NULL;
-    size_t len = 0;
-    struct cmsghdr *cmp = NULL;
-    struct iovec iov = { .iov_base = recvBuffer, .iov_len = sizeof (recvBuffer) };
-    union control
-    {
-        struct cmsghdr cmsg;
-        unsigned char data[CMSG_SPACE(sizeof (struct in6_pktinfo))];
-    } cmsg;
-
-    if (flags & CA_IPV6)
-    {
-        namelen = sizeof (struct sockaddr_in6);
-        level = IPPROTO_IPV6;
-        type = IPV6_PKTINFO;
-        len = sizeof (struct in6_pktinfo);
-    }
-    else
-    {
-        namelen = sizeof (struct sockaddr_in);
-        level = IPPROTO_IP;
-        type = IP_PKTINFO;
-        len = sizeof (struct in6_pktinfo);
-    }
-
-    struct msghdr msg = { .msg_name = &srcAddr,
-                          .msg_namelen = namelen,
-                          .msg_iov = &iov,
-                          .msg_iovlen = 1,
-                          .msg_control = &cmsg,
-                          .msg_controllen = CMSG_SPACE(len) };
-
-    ssize_t recvLen = recvmsg(fd, &msg, flags);
-    if (OC_SOCKET_ERROR == recvLen)
-    {
-        OIC_LOG_V(ERROR, TAG, "Recvfrom failed %s", strerror(errno));
-        return CA_STATUS_FAILED;
-    }
-
-    for (cmp = CMSG_FIRSTHDR(&msg); cmp != NULL; cmp = CMSG_NXTHDR(&msg, cmp))
-    {
-        if (cmp->cmsg_level == level && cmp->cmsg_type == type)
-        {
-            pktinfo = CMSG_DATA(cmp);
-        }
-    }
-    if (!pktinfo)
-    {
-        OIC_LOG(ERROR, TAG, "pktinfo is null");
-        return CA_STATUS_FAILED;
-    }
-
-    CASecureEndpoint_t sep = {.endpoint = {.adapter = CA_ADAPTER_IP, .flags = flags}};
-
-    if (flags & CA_IPV6)
-    {
-        sep.endpoint.ifindex = ((struct in6_pktinfo *)pktinfo)->ipi6_ifindex;
-
-        if (flags & CA_MULTICAST)
-        {
-            struct in6_addr *addr = &(((struct in6_pktinfo *)pktinfo)->ipi6_addr);
-            unsigned char topbits = ((unsigned char *)addr)[0];
-            if (topbits != 0xff)
-            {
-                sep.endpoint.flags &= ~CA_MULTICAST;
-            }
-        }
-    }
-    else
-    {
-        sep.endpoint.ifindex = ((struct in_pktinfo *)pktinfo)->ipi_ifindex;
-
-        if (flags & CA_MULTICAST)
-        {
-            struct in_addr *addr = &((struct in_pktinfo *)pktinfo)->ipi_addr;
-            uint32_t host = ntohl(addr->s_addr);
-            unsigned char topbits = ((unsigned char *)&host)[3];
-            if (topbits < 224 || topbits > 239)
-            {
-                sep.endpoint.flags &= ~CA_MULTICAST;
-            }
-        }
-    }
-
-    CAConvertAddrToName(&srcAddr, namelen, sep.endpoint.addr, &sep.endpoint.port);
-
-    if (flags & CA_SECURE) {
-#ifdef __WITH_DTLS__
-#ifdef DEBUG_TLS
-        int decryptResult =
-#endif
-	    /*  */
-        CAdecryptSsl(&sep, (uint8_t *)recvBuffer, recvLen);
-        OIC_LOG_TLS_V(DEBUG, TAG, "CAdecryptSsl returns [%d]", decryptResult);
-#else
-        OIC_LOG(ERROR, TAG, "Encrypted message but DTLS disabled");
-#endif // __WITH_DTLS__
-    }
-    else
-    {
-        /* if (g_packetReceivedCallback) */
-        /* { */
-        /*     g_packetReceivedCallback(&sep, recvBuffer, recvLen); */
-        /* } */
-	mh_CAReceivedPacketCallback(&sep, recvBuffer, recvLen);
-    }
-
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-    return CA_STATUS_OK;
-}
 
 // runs on a dedicated thread, put there by CAIPStartServer
 // @rewrite: udp_data_receiver_runloop @was CAReceiveHandler

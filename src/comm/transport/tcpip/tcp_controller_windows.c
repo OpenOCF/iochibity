@@ -29,11 +29,7 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#if defined(_WIN32)
-        WSAEVENT updateEvent;   /**< Event used to signal thread to stop or update the FD list */
-#else
-// ...
-#endif
+WSAEVENT updateEvent;   /**< Event used to signal thread to stop or update the FD list */
 
 void init()
 {
