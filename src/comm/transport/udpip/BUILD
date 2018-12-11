@@ -16,7 +16,7 @@ cc_library(
              "-Iexternal/uthash/src",
              "-Iexternal/libcoap/include",
              "-Wall",
-    ] + select({"//config:windows": [],
+    ] + select({"//config:mingw": [],
                 "//config:msvc": [],
                 "//config:msys": [],
                 "//config:linux": ["-D_DEFAULT_SOURCE","-std=c11"],
@@ -55,7 +55,7 @@ cc_library(
     #                                    "//src/portability/darwin"]}),
     linkopts = select({"//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lwinsock2", "-liphlpapi", "-lws2_32"],
                        "//config:msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
-                       "//config:windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
+                       "//config:mingw": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
                        "//config:darwin": ["-framework SystemConfiguration"], # for network monitory
                        "//config:android": ["-llog"],
                        "//conditions:default": []}),
@@ -67,7 +67,7 @@ cc_library(
             "udp_thread_manager.c", "udp_thread_manager.h"]
     + select({"//config:msvc": glob(["*_windows.c"]) + glob(["*_windows.h"]),
               "//config:msys": glob(["*_windows.c"]) + glob(["*_windows.h"]),
-              "//config:windows": glob(["*_windows.c"]) + glob(["*_windows.h"]),
+              "//config:mingw": glob(["*_windows.c"]) + glob(["*_windows.h"]),
               "//config:darwin": glob(["*_posix.c"]) + glob(["*_posix.h"])
 	                       + glob(["*_darwin.c"]) + glob(["*_darwin.h"]),
               # "//config:darwin_with_jni": glob(["*_posix.c"]) + glob(["*_posix.h"])
