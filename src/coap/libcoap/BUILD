@@ -1,5 +1,19 @@
 load("@//config:variables.bzl", "ANDROID_SDK_ROOT", "CROSSTOOL_NG_HOME")
 
+exports_files(["msyspatch.sed", "msyspatch-wsa.sed"])
+
+# genrule(
+#     name = "patch",
+#     srcs = ["@//src/coap/libcoap:msyspatch.sed", "configure.ac"],
+#     outs = ["configure.msys.ac"],
+#     cmd  = "".join([
+#         "sed -f $(location @//src/coap/libcoap:msyspatch.sed) external/libcoap/configure.ac > configure.msys;",
+#         "mv -v configure.msys configure.ac;",
+#         "cp configure.ac $@;"])
+# )
+#   cmd = "find external/ -name configure.ac > $@"
+
+
 LOCAL_CONFIG  = "".join([
     " (cd external/libcoap;",
     " bash -c ./autogen.sh 2>&1;",
@@ -75,6 +89,25 @@ ANDROID_X86_64_CONFIG="".join([
     " --disable-examples;);",
     " cp external/libcoap/coap_config.h $(@D);",
     " cp external/libcoap/include/coap/coap.h $(@D);",])
+MINGW_CONFIG  = "".join([
+    # patch coap_config.h.windows to pull in the mingw header
+    " sed -f $(location @//src/coap/libcoap:msyspatch-wsa.sed) external/libcoap/coap_config.h.windows > coap_config.h;",
+    " mv -v coap_config.h $(@D);",
+    # patch configure.ac
+    " sed -f $(location @//src/coap/libcoap:msyspatch.sed) external/libcoap/configure.ac > configure.msys;",
+    " mv -v configure.msys external/libcoap/configure.ac;",
+    " (cd external/libcoap;",
+    " bash -c ./autogen.sh 2>&1;",
+    " ./configure --disable-examples --disable-tests --disable-documentation);",
+    " cp -v external/libcoap/include/coap/coap.h $(@D);"])
+
+#    " cp -v external/libcoap/coap_config.h.windows coap_config.h;",
+
+# MINGW_CONFIG  = "".join([
+#     " cp external/libcoap/coap_config.h.windows external/libcoap/coap_config.h;",
+#     " cp external/libcoap/coap_config.h $(@D);",
+#     " cp external/libcoap/include/coap/coap.h $(@D);"])
+
 
 RPI_ARM8_CONFIG  = "".join([
     "(cd external/libcoap; ",
@@ -122,7 +155,8 @@ CONFIG_SRCS = ["autogen.sh",
                "tests/Makefile.am",
                "m4/ax_check_compile_flag.m4",
                "m4/ax_check_link_flag.m4",
-               "libcoap-1.pc.in"]
+               "libcoap-1.pc.in"] + select({"@//config:mingw": ["@//src/coap/libcoap:msyspatch.sed",
+                                                                "@//src/coap/libcoap:msyspatch-wsa.sed"]})
 
 genrule(name = "config",
         srcs = CONFIG_SRCS,
@@ -132,6 +166,9 @@ genrule(name = "config",
                        "@//config:android_x86_64": ANDROID_X86_64_CONFIG,
                        "@//config:darwin"     : LOCAL_CONFIG,
                        "@//config:linux"     : LOCAL_CONFIG,
+                       "@//config:mingw"     : MINGW_CONFIG,
+                       "@//config:msys"     : "BORKED MSYS",
+                       "@//config:msvc"     : "BORKED MSVC",
                        "@//config:rpi_arm8"     : RPI_ARM8_CONFIG,
                        "//conditions:default"   : "BORKED",}))
 
@@ -143,15 +180,15 @@ cc_library(
              "-Iexternal/libcoap",
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
-             "-DWITH_POSIX",
              "-D_GNU_SOURCE",
              "-DWITH_UPSTREAM_LIBCOAP"]
     + select({"@//config:enable_tcp": ["-DWITH_TCP",
                                        "-DWITH_WS"], # FIXME: bug in the libcoap code
-              "//conditions:default": []}),
-    #data = [":config"],
+              "@//config:mingw": ["-DHAVE_WS2TCPIP_H"],
+              "//conditions:default": ["-DWITH_POSIX"]}),
     srcs = glob(["src/**/*.c"],
-                exclude=["src/**/coap_io_lwip.c"])
+                exclude=["src/**/coap_io_lwip.c",
+                         "src/**/coap_io.c"])
     + glob(["include/**/*.h"]) + [":coap_config.h", ":coap.h"],
     visibility = ["//visibility:public"]
 )
