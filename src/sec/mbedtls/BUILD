@@ -1,6 +1,6 @@
 # this package builds and patches mbedtls-2.4.2
 
-exports_files(["config-iotivity.h", "config-iotivity_windows.h", "ocf.patch"])
+exports_files(["_config-iotivity.h", "_config-iotivity_windows.h", "ocf.patch"])
 
 mbedtls_hdrs = ["include/mbedtls/aes.h",
                 "include/mbedtls/aesni.h",
@@ -152,12 +152,12 @@ genrule(
 # copy our custom config.h into the patch output dir
 genrule(
     name = "config",
-    srcs = ["@//src/sec/mbedtls:config-iotivity.h",
-            "@//src/sec/mbedtls:config-iotivity_windows.h"],
+    srcs = ["@//src/sec/mbedtls:_config-iotivity.h",
+            "@//src/sec/mbedtls:_config-iotivity_windows.h"],
     outs = ["patched/include/mbedtls/config.h"],
     #outs = ["include/mbedtls/config.h"],
-    cmd  = select({"@//config:mingw": "cp $(location @//src/sec/mbedtls:config-iotivity_windows.h) $@",
-                   "//conditions:default": "cp $(location @//src/sec/mbedtls:config-iotivity.h) $@"}),
+    cmd  = select({"@//config:mingw": "cp $(location @//src/sec/mbedtls:_config-iotivity_windows.h) $@",
+                   "//conditions:default": "cp $(location @//src/sec/mbedtls:_config-iotivity.h) $@"}),
 )
 
 genrule(
@@ -191,7 +191,6 @@ cc_library(
              # "-Iconfig/mbedtls",
              # "-Iexternal/config",
              # "-Iexternal/config/mbedtls",
-             # "-DMBEDTLS_CONFIG_FILE=\\\"config-windows.h\\\""
              ],
     defines = select({"@//config:rpi_arm8": ["_POSIX_C_SOURCE=200809L"],
                       "//conditions:default": []}),
