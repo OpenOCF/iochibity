@@ -12,7 +12,7 @@ cc_library(
              "-Iconfig",
              "-Iconfig/mbedtls",
              "-Iexternal/mbedtls/patched/include",
-    ] + select({"//config:windows": [],
+    ] + select({"//config:mingw": [],
                 "//config:msvc": [],
                 "//config:msys": [],
                 "//conditions:default": ["-std=c11",
@@ -21,8 +21,7 @@ cc_library(
             "@mbedtls//:mbedtls",
             "@uthash//:uthash"
     ],
-    linkopts = select({"//config:windows": [],
-                       "//config:msvc": [],
+    linkopts = select({"//config:msvc": [],
                        "//config:msys": ["-lpthread"],
                        "//config:mingw": ["-lpthread"],
                        "//config:darwin": [],

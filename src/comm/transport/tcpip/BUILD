@@ -10,7 +10,7 @@ cc_library(
              "-Iexternal/libcoap/include",
              "-Wall",
              "-DTCP_ADAPTER",
-    ] + select({"//config:windows": [],
+    ] + select({"//config:mingw": [],
                 "//config:msvc": [],
                 "//config:msys": [],
                 "//config:linux": ["-std=c11"] + ["-Iexternal/local_jdk/include/linuxY"],
@@ -34,7 +34,7 @@ cc_library(
 
     linkopts = select({"//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lwinsock2", "-liphlpapi", "-lws2_32"],
                        "//config:msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
-                       "//config:windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
+                       "//config:mingw": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lwinsock2", "-liphlpapi", "-lws2_32"],
                        "//config:darwin": ["-framework SystemConfiguration"], # for network monitory
                        "//config:android": ["-llog"],
                        "//conditions:default": []}),
@@ -46,8 +46,8 @@ cc_library(
             "tcp_sockets.c", "tcp_sockets.h",
             "tcp_status_manager.c", "tcp_status_manager.h",
     ]
-    + select({"//config:windows": ["tcp_controller_windows.c", "tcp_controller_windows.h",
-                                   "tcp_data_receiver_windows.c", "tcp_data_receiver_windows.h"],
+    + select({"//config:mingw": ["tcp_controller_windows.c", "tcp_controller_windows.h",
+                                 "tcp_data_receiver_windows.c", "tcp_data_receiver_windows.h"],
               # "//config:posix": ["tcp_data_receiver_posix.c", "tcp_data_receiver_posix.h"],
               "//conditions:default": ["tcp_data_receiver_posix.c", "tcp_data_receiver_posix.h"]})
 
