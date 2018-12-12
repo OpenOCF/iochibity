@@ -41,15 +41,6 @@ cc_library(
             "camessagearbiter.c", "camessagearbiter.h",
             "capolicymanager.c", "capolicymanager.h",
             "occonnectionmanager.c", "occonnectionmanager.h",
-            "tcp_cm.c", "tcp_cm.h"]
-    # + select({"//config:windows": ["tcp_controller_windows.c", "tcp_controller_windows.h",
-    #                                "tcp_data_receiver_windows.c", "tcp_data_receiver_windows.h"],
-    #           # "//config:posix": ["tcp_data_receiver_posix.c", "tcp_data_receiver_posix.h"],
-    #           "//conditions:default": ["tcp_data_receiver_posix.c", "tcp_data_receiver_posix.h"]}),
-
-# with_cloud:
-# tcp_cm.c
-# tcp_cm.h
-# userprefs.c
-# userprefs.h
+            "tcp_cm.c", "tcp_cm.h",
+            "userprefs.c", "userprefs.h"]
 )

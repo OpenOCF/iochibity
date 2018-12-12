@@ -24,12 +24,14 @@ cc_library(
     deps = ["//src:config",
             "//src/logger",
             "//src/util",
-            "//src/comm/transport/tcpip/connmgr",
             "//src/comm/transport:sockets",
     	    "//src/comm/transport/util",
             "//src/portability",
             "@libcoap//:libcoap",
-	    "@uthash//:uthash"],
+	    "@uthash//:uthash"]
+    + select({# "//config:cloud": ["userprefs.c", "userprefs.h"],
+              "//conditions:default":["//src/comm/transport/tcpip/connmgr"]}),
+
     linkopts = select({"//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lwinsock2", "-liphlpapi", "-lws2_32"],
                        "//config:msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
                        "//config:windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
@@ -47,7 +49,7 @@ cc_library(
     + select({"//config:windows": ["tcp_controller_windows.c", "tcp_controller_windows.h",
                                    "tcp_data_receiver_windows.c", "tcp_data_receiver_windows.h"],
               # "//config:posix": ["tcp_data_receiver_posix.c", "tcp_data_receiver_posix.h"],
-              "//conditions:default": ["tcp_data_receiver_posix.c", "tcp_data_receiver_posix.h"]}),
+              "//conditions:default": ["tcp_data_receiver_posix.c", "tcp_data_receiver_posix.h"]})
 
 # with_cloud:
 # tcp_cm.c

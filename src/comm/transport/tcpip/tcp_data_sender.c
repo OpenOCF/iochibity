@@ -355,7 +355,7 @@ void CATCPSendDataThread(void *threadData)
                 }
 
                 // if capability and settings message sent successfully update csm state.
-                if (CAGetCodeFromHeader(tcpData->data) == CA_CSM)
+                if (CAGetCodeFromHeader(tcpData->data) == (CASignalingCode_t)CA_CSM)
                 {
                     OIC_LOG(DEBUG, TAG, "CSM sent successfully.");
                     CACSMExchangeState_t csmState = CAGetCSMState(tcpData->remoteEndpoint);

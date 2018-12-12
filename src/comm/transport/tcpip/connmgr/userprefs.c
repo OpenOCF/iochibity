@@ -7,12 +7,9 @@
  */
 typedef enum
 {
-    /** Cloud TCP */
-    OC_USER_PREF_CLOUD = 0,
-    /** local UDP */
+    OC_USER_PREF_CLOUD     = 0,     /* TCP */
     OC_USER_PREF_LOCAL_UDP = 1,
-    /** local TCP */
-    OC_USER_PREF_LOCAL_TCP =2
+    OC_USER_PREF_LOCAL_TCP = 2
 } OCConnectUserPref_t;
 #endif
 #endif	/* INTERFACE */
