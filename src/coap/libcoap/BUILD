@@ -155,8 +155,10 @@ CONFIG_SRCS = ["autogen.sh",
                "tests/Makefile.am",
                "m4/ax_check_compile_flag.m4",
                "m4/ax_check_link_flag.m4",
-               "libcoap-1.pc.in"] + select({"@//config:mingw": ["@//src/coap/libcoap:msyspatch.sed",
-                                                                "@//src/coap/libcoap:msyspatch-wsa.sed"]})
+               "libcoap-1.pc.in",
+] + select({"@//config:mingw": ["@//src/coap/libcoap:msyspatch.sed",
+                                "@//src/coap/libcoap:msyspatch-wsa.sed"],
+            "//conditions:default"   : [],})
 
 genrule(name = "config",
         srcs = CONFIG_SRCS,
@@ -181,10 +183,11 @@ cc_library(
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
              "-D_GNU_SOURCE",
-             "-DWITH_UPSTREAM_LIBCOAP"]
-    + select({"@//config:enable_tcp": ["-DWITH_TCP",
-                                       "-DWITH_WS"], # FIXME: bug in the libcoap code
-              "@//config:mingw": ["-DHAVE_WS2TCPIP_H"],
+             "-DWITH_UPSTREAM_LIBCOAP"
+    ] + select({"@//config:enable_tcp": ["-DWITH_TCP",
+                                         "-DWITH_WS"], # FIXME: bug in the libcoap code
+                "//conditions:default": []})
+    + select({"@//config:mingw": ["-DHAVE_WS2TCPIP_H"],
               "//conditions:default": ["-DWITH_POSIX"]}),
     srcs = glob(["src/**/*.c"],
                 exclude=["src/**/coap_io_lwip.c",
