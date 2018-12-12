@@ -1,41 +1,78 @@
 # this package builds and patches mbedtls-2.4.2
 
-exports_files(["config.h", "ocf.patch"])
+exports_files(["config-iotivity.h", "config-iotivity_windows.h", "ocf.patch"])
 
-genrule(
-    name = "gentest",
-    srcs = glob(["**/*"]),
-    outs = ["genrule.log"],
-    cmd  = "find -L external -name *.data > $@"
-)
+mbedtls_hdrs = ["include/mbedtls/aes.h",
+                "include/mbedtls/aesni.h",
+                "include/mbedtls/arc4.h",
+                "include/mbedtls/asn1.h",
+                "include/mbedtls/asn1write.h",
+                "include/mbedtls/base64.h",
+                "include/mbedtls/bignum.h",
+                "include/mbedtls/blowfish.h",
+                "include/mbedtls/bn_mul.h",
+                "include/mbedtls/camellia.h",
+                "include/mbedtls/ccm.h",
+                "include/mbedtls/certs.h",
+                "include/mbedtls/check_config.h",
+                "include/mbedtls/cipher.h",
+                "include/mbedtls/cipher_internal.h",
+                "include/mbedtls/cmac.h",
+                "include/mbedtls/compat-1.3.h",
+                # "patched/include/mbedtls/config.h",
+                "include/mbedtls/ctr_drbg.h",
+                "include/mbedtls/debug.h",
+                "include/mbedtls/des.h",
+                "include/mbedtls/dhm.h",
+                "include/mbedtls/ecdh.h",
+                "include/mbedtls/ecdsa.h",
+                "include/mbedtls/ecjpake.h",
+                "include/mbedtls/ecp.h",
+                "include/mbedtls/entropy.h",
+                "include/mbedtls/entropy_poll.h",
+	        "include/mbedtls/error.h",
+	        "include/mbedtls/gcm.h",
+	        "include/mbedtls/havege.h",
+	        "include/mbedtls/hmac_drbg.h",
+	        "include/mbedtls/md.h",
+	        "include/mbedtls/md2.h",
+	        "include/mbedtls/md4.h",
+	        "include/mbedtls/md5.h",
+	        "include/mbedtls/md_internal.h",
+	        "include/mbedtls/memory_buffer_alloc.h",
+	        "include/mbedtls/net.h",
+	        "include/mbedtls/net_sockets.h",
+	        "include/mbedtls/oid.h",
+	        "include/mbedtls/padlock.h",
+	        "include/mbedtls/pem.h",
+	        "include/mbedtls/pk.h",
+	        "include/mbedtls/pk_internal.h",
+	        "include/mbedtls/pkcs11.h",
+	        "include/mbedtls/pkcs12.h",
+	        "include/mbedtls/pkcs5.h",
+	        "include/mbedtls/platform.h",
+	        "include/mbedtls/platform_time.h",
+	        "include/mbedtls/ripemd160.h",
+	        "include/mbedtls/rsa.h",
+	        "include/mbedtls/sha1.h",
+	        "include/mbedtls/sha256.h",
+	        "include/mbedtls/sha512.h",
+	        "include/mbedtls/ssl.h",
+	        "include/mbedtls/ssl_cache.h",
+	        "include/mbedtls/ssl_ciphersuites.h",
+	        "include/mbedtls/ssl_cookie.h",
+	        "include/mbedtls/ssl_internal.h",
+	        "include/mbedtls/ssl_ticket.h",
+	        "include/mbedtls/threading.h",
+	        "include/mbedtls/timing.h",
+	        "include/mbedtls/version.h",
+	        "include/mbedtls/x509.h",
+	        "include/mbedtls/x509_crl.h",
+	        "include/mbedtls/x509_crt.h",
+	        "include/mbedtls/x509_csr.h",
+	        "include/mbedtls/xtea.h"]
 
-# copy our custom config.h into the patch output dir
-genrule(
-    name = "config",
-    srcs = ["@//src/sec/mbedtls:config.h"],
-    outs = ["patched/include/mbedtls/config.h"],
-    cmd  = "cp $(location @//src/sec/mbedtls:config.h) $@"
-)
-
-genrule(
-    name = "patch",
-    srcs = glob(["**/*.c"])
-         + glob(["**/*.h"])
-         + glob(["**/*.data"])
-         + glob(["**/*.function"])
-         + glob(["**/*.sh"])
-         + ["@//src/sec/mbedtls:ocf.patch"],
-    outs = ["patched/" + x for x in glob(["**/library/*.c"])]
-         + ["patched/" + x for x in glob(["**/include/**/*.h"],
-                                         exclude=["**/config.h"])],
-    cmd  = "\n".join([
-        "cp -LR external/mbedtls/ patched",
-        "patch -dpatched -p1 -l -f < $(location @//src/sec/mbedtls:ocf.patch)",
-        "cp -R patched $(@D)",
-        ])
-)
-
-mbedtls_hdrs = ["patched/include/mbedtls/aes.h",
+patch_mbedtls_hdrs = ["patched/include/mbedtls/aes.h",
                 "patched/include/mbedtls/aesni.h",
                 "patched/include/mbedtls/arc4.h",
                 "patched/include/mbedtls/asn1.h",
@@ -52,7 +89,7 @@ mbedtls_hdrs = ["patched/include/mbedtls/aes.h",
                 "patched/include/mbedtls/cipher_internal.h",
                 "patched/include/mbedtls/cmac.h",
                 "patched/include/mbedtls/compat-1.3.h",
-                "patched/include/mbedtls/config.h",
+                # "patched/include/mbedtls/config.h",
                 "patched/include/mbedtls/ctr_drbg.h",
                 "patched/include/mbedtls/debug.h",
                 "patched/include/mbedtls/des.h",
@@ -105,20 +142,65 @@ mbedtls_hdrs = ["patched/include/mbedtls/aes.h",
 	        "patched/include/mbedtls/x509_csr.h",
 	        "patched/include/mbedtls/xtea.h"]
 
+genrule(
+    name = "gentest",
+    srcs = glob(["**/*"]),
+    outs = ["genrule.log"],
+    cmd  = "find -L external -name config.h > $@"
+)
+
+# copy our custom config.h into the patch output dir
+genrule(
+    name = "config",
+    srcs = ["@//src/sec/mbedtls:config-iotivity.h",
+            "@//src/sec/mbedtls:config-iotivity_windows.h"],
+    outs = ["patched/include/mbedtls/config.h"],
+    #outs = ["include/mbedtls/config.h"],
+    cmd  = select({"@//config:mingw": "cp $(location @//src/sec/mbedtls:config-iotivity_windows.h) $@",
+                   "//conditions:default": "cp $(location @//src/sec/mbedtls:config-iotivity.h) $@"}),
+)
+
+genrule(
+    name = "patch",
+    srcs = glob(["**/*.c"])
+    + mbedtls_hdrs
+         #+ glob(["**/*.h"], exclude=["external/mbedtls/include/mbedtls/config.h"])
+         + glob(["**/*.data"])
+         + glob(["**/*.function"])
+         + glob(["**/*.sh"])
+         + ["@//src/sec/mbedtls:ocf.patch"],
+    outs = ["patched/" + x for x in glob(["**/library/*.c"])]
+         + ["patched/" + x for x in mbedtls_hdrs],
+         # + ["patched/" + x for x in glob(["**/include/mbedtls/*.h"],
+         #                                 exclude=["external/mbedtls/include/mbedtls/config.h"])],
+    cmd  = "\n".join([
+        "cp -LR external/mbedtls/ patched",
+        "rm patched/include/mbedtls/config.h",
+        "patch -dpatched -p1 -l -f < $(location @//src/sec/mbedtls:ocf.patch)",
+        "cp -R patched $(@D)",
+        ])
+)
+
 cc_library(
     name = "mbedtls",
-    copts = ["-Ipatched/include",
+    copts = ["-Iexternal/mbedtls/patched",
+             "-Iexternal/mbedtls/patched/include/mbedtls",
+             "-Ipatched/include",
              "-Ipatched/include/mbedtls",
-             "-Iconfig",
-             "-Iconfig/mbedtls",
-             "-Iexternal/config",
-             "-Iexternal/config/mbedtls",
+             "-I.",
+             # "-Iconfig/mbedtls",
+             # "-Iexternal/config",
+             # "-Iexternal/config/mbedtls",
+             # "-DMBEDTLS_CONFIG_FILE=\\\"config-windows.h\\\""
              ],
     defines = select({"@//config:rpi_arm8": ["_POSIX_C_SOURCE=200809L"],
                       "//conditions:default": []}),
-    data = [":patch"],
-    srcs = [":patch", ":config"],
-    hdrs = mbedtls_hdrs, # + ["@//config/mbedtls:config.h"],
-    includes = ["patched/include", "patched/include/mbedtls", "x"],
+    # data = [":patch"],
+    # srcs = glob(["**/library/*c"]) + glob(["**/include/*h"]),
+    srcs = [":patch", ":patched/include/mbedtls/config.h"], # genfiles
+    #hdrs = glob(["patched/**/*.h"]),
+    #hdrs = mbedtls_hdrs + [":config.h"], # + ["@//config/mbedtls:config.h"],
+    # include_prefix = "mbedtls",
+    includes = ["patched/include", "patched/include/mbedtls"],
     visibility = ["//visibility:public"]
 )

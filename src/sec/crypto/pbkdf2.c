@@ -27,6 +27,7 @@
 #if EXPORT_INTERFACE
 #include <stddef.h>
 #include <inttypes.h>
+#include <limits.h>		/* UINT_MAX */
 #endif	/* INTERFACE */
 
 #define TAG "OIC_SEC_PBDKF2"

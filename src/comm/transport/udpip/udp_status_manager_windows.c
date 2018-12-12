@@ -20,7 +20,7 @@
 *
 ******************************************************************/
 
-#include "caipnwmonitor_windows.h"
+#include "udp_status_manager_windows.h"
 
 #include <assert.h>
 #include <sys/types.h>
@@ -55,6 +55,19 @@
 #include "utlist.h"
 
 #define TAG "IPNWMW"
+
+#if EXPORT_INTERFACE
+#define UDP_CHECKFD(FD)
+#endif
+
+WSAEVENT udp_addressChangeEvent;/**< Event used to signal address changes */
+WSAEVENT udp_shutdownEvent;     /**< Event used to signal threads to stop */
+
+#if EXPORT_INTERFACE
+#define IFF_UP_RUNNING_FLAGS  (IFF_UP)
+
+typedef int socklen_t;
+#endif
 
 // When this is defined, a socket will be used to get address change events.  The
 // SIO_ADDRESS_LIST_CHANGE socket option is accessible on all versions of Windows
@@ -158,6 +171,15 @@ void CAIPDestroyNetworkInterfaceList()
         oc_mutex_free(g_networkMonitorContextMutex);
         g_networkMonitorContextMutex = NULL;
     }
+}
+
+void CADeInitializeMonitorGlobals()
+{
+    if (udp_addressChangeEvent != WSA_INVALID_EVENT)
+	{
+	    OC_VERIFY(WSACloseEvent(udp_addressChangeEvent));
+	    udp_addressChangeEvent = WSA_INVALID_EVENT;
+	}
 }
 
 /**
@@ -457,13 +479,13 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
         return CA_STATUS_OK;
     }
 
-    CAResult_t res = CAIPInitializeNetworkAddressList();
-    if (res != CA_STATUS_OK)
-    {
-        return res;
-    }
+    /* CAResult_t res = CAIPInitializeNetworkAddressList(); */
+    /* if (res != CA_STATUS_OK) */
+    /* { */
+    /*     return res; */
+    /* } */
 
-    res = CAIPSetNetworkMonitorCallback(callback, adapter);
+    CAResult_t res = CAIPSetNetworkMonitorCallback(callback, adapter);
     if (res != CA_STATUS_OK)
     {
         CAIPDestroyNetworkAddressList();
@@ -736,6 +758,18 @@ CAInterface_t *AddCAInterface(u_arraylist_t *iflist, const char *name, uint32_t 
     return ifitem;
 }
 
+void CARegisterForAddressChanges()
+{
+    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
+/* #ifdef _WIN32 */
+    udp_addressChangeEvent = WSACreateEvent();
+    if (WSA_INVALID_EVENT == udp_addressChangeEvent)
+    {
+        OIC_LOG(ERROR, TAG, "WSACreateEvent failed");
+    }
+    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
+}
+
 bool IsValidAddress(PIP_ADAPTER_UNICAST_ADDRESS pAddress)
 {
     if (pAddress->Address.lpSockaddr->sa_family != AF_INET6)
@@ -984,4 +1018,22 @@ CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
     }
 
     return CA_STATUS_OK;
+}
+
+void CAInitializeFastShutdownMechanism() /* FIXME: move to controller? */
+{
+    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
+    udp_selectTimeout = -1; // don't poll for shutdown
+    int ret = -1;
+    udp_shutdownEvent = WSACreateEvent();
+    if (WSA_INVALID_EVENT != udp_shutdownEvent)
+    {
+        ret = 0;
+    }
+    if (-1 == ret)
+    {
+        OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR);
+        udp_selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
+    }
+    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }

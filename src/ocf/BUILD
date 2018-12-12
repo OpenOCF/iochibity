@@ -62,7 +62,7 @@ cc_library(
              # "-Iexternal/libcoap/include/coap",
              "-Iexternal/tinycbor/src",
              "-Iexternal/uthash/src",
-    ] + select({"//config:windows": [],
+    ] + select({"//config:mingw": [],
                 "//config:msvc": [],
                 "//config:msys": [],
                 "@//config:android_arm8": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap

@@ -181,10 +181,6 @@ void oocf_log_hook_stdout(FILE *fd);
 #define OC_LOG_PRIVATE_DATA (1 << 31)
 
 // Log levels
-/** @todo temporary work-around until better names with prefixes are used for the enum values. */
-/* #ifdef ERROR */
-/* #undef ERROR */
-/* #endif */
 
 #define DEBUG_PRIVATE       ((OC_LOG_PRIVATE_DATA) | (DEBUG))
 #define INFO_PRIVATE        ((OC_LOG_PRIVATE_DATA) | (INFO))
@@ -234,6 +230,8 @@ typedef LogLevel LogLevel;
 #define DEBUG 0
 #define INFO 1
 #define WARNING 2
+//#ifdef _WIN32
+#undef ERROR
 #define ERROR 3
 #define FATAL 4
 #define DEBUG_LITE 5
@@ -277,8 +275,8 @@ oc_log_ctx_t *logCtx = 0;
 
 /* #ifdef __ANDROID__ */
 /* #elif defined(__linux__) || defined(__APPLE__) || defined(_WIN32) */
-/* oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO, */
-/*                                       OC_LOG_WARNING, OC_LOG_ERROR, OC_LOG_FATAL}; */
+oc_log_level LEVEL_XTABLE[] = {OC_LOG_DEBUG, OC_LOG_INFO,
+                                      OC_LOG_WARNING, OC_LOG_ERROR, OC_LOG_FATAL};
 /* #endif */
 
 /* // Convert LogLevel to platform-specific severity level.  Store in PROGMEM on Arduino */

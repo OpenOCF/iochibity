@@ -24,6 +24,7 @@ cc_library(
     linkopts = select({"//config:windows": [],
                        "//config:msvc": [],
                        "//config:msys": ["-lpthread"],
+                       "//config:mingw": ["-lpthread"],
                        "//config:darwin": [],
                        "//config:linux": ["-lpthread"],
                        "//config:linux64": ["-lpthread"],

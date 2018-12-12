@@ -35,7 +35,9 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/x509_csr.h"
-#include "mbedtls/x509_crt.h"
+#if EXPORT_INTERFACE
+#include <mbedtls/x509_crt.h>
+#endif
 #include "mbedtls/oid.h"
 
 #ifndef NDEBUG

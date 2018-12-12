@@ -20,14 +20,22 @@
 #endif
 
 #if INTERFACE
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+
 #include <inttypes.h>
 #endif
 
 #include <errno.h>
 
 #define USE_IP_MREQN
+#if defined(_WIN32)
+#undef USE_IP_MREQN
+#endif
 
 /* udp globals */
 // from CAGlobals_t in _globals.h
@@ -78,27 +86,27 @@ bool  udp_is_dualstack   = true;    /**< IPv6 and IPv4 enabled */
 
 /* DELEGATED: #define UDP_CHECKFD(FD) */
 
-bool PORTABLE_check_setsockopt_err() EXPORT
-{
-    return EADDRINUSE != errno;
-}
+/* bool PORTABLE_check_setsockopt_err(void) EXPORT */
+/* { */
+/*     return EADDRINUSE != errno; */
+/* } */
 
-bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn *mreq, int ret) EXPORT
-{
-    /* args not used in posix, used in windows */
-    (void)mreq;
-    (void)ret;
-    return EADDRINUSE != errno;
-}
+/* bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn *mreq, int ret) EXPORT */
+/* { */
+/*     /\* args not used in posix, used in windows *\/ */
+/*     (void)mreq; */
+/*     (void)ret; */
+/*     return EADDRINUSE != errno; */
+/* } */
 
-bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq,  int ret) EXPORT
-{
-    /* args not used in posix, used in windows */
-    (void)fd;
-    (void)mreq;
-    (void)ret;
-    return EADDRINUSE != errno;
-}
+/* bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq,  int ret) EXPORT */
+/* { */
+/*     /\* args not used in posix, used in windows *\/ */
+/*     (void)fd; */
+/*     (void)mreq; */
+/*     (void)ret; */
+/*     return EADDRINUSE != errno; */
+/* } */
 
 CASocketFd_t udp_create_socket(int family, uint16_t *port, bool isMulticast)
 {
@@ -229,10 +237,12 @@ do \
 
 #if INTERFACE
 /* LINUX: */
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
+#ifdef HAVE_NET_IF_H
 #include <net/if.h>
-#define IFF_UP_RUNNING_FLAGS  (IFF_UP|IFF_RUNNING)
-
+#endif
 #endif	/* INTERFACE */
 
 #if EXPORT_INTERFACE

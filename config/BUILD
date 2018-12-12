@@ -178,19 +178,22 @@ config_setting(
 ################################################################
 ####  Windows
 
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" },
+config_setting( # toolchain: msys_x64_mingw
+    name = "mingw",
+    values = { "cpu": "x64_windows",
+               "compiler": "mingw-gcc"},
     visibility = ["//visibility:public"]
 )
-config_setting(
+config_setting( # toolchain: msvc_x64
     name = "msvc",
-    values = { "cpu": "x64_windows_msvc" },
+    values = { "cpu": "x64_windows_msvc",
+               "compiler": "msvc-cl"},
     visibility = ["//visibility:public"]
 )
-config_setting(
+config_setting( # toolchain: msys_x64
     name = "msys",
-    values = { "cpu": "x64_windows_msys" },
+    values = { "cpu": "x64_windows_msys",
+               "compiler": "msys-gcc"},
     visibility = ["//visibility:public"]
 )
 

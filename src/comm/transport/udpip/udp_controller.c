@@ -32,11 +32,6 @@
 
 #include <errno.h>
 
-#define USE_IP_MREQN
-#if defined(_WIN32)
-#undef USE_IP_MREQN
-#endif
-
 /**
  * Logging tag for module name.
  */

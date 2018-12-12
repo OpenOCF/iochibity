@@ -4,7 +4,7 @@ cc_library(
     name = "logger",
     copts = ["-Isrc",
              "-Iexternal/openocf/src"]
-    + select({"//config:windows": [],
+    + select({"//config:mingw": [],
               "//config:msvc": [],
               "//config:msys": [],
               "//config:darwin": ["-U DEBUG", "-std=c11"],
@@ -25,7 +25,7 @@ cc_library(
             "trace.c",
             "trace.h"
     ]
-    + select({"//config:windows":  glob(["logger_windows.*"]),
+    + select({"//config:mingw":  glob(["logger_windows.*"]),
               "//config:msvc":   glob(["logger_windows.*"]),
               "//config:msys":   glob(["logger_windows.*"]),
               "//config:android": ["logger_android.c", "logger_android.h"],
