@@ -2,6 +2,45 @@
 
 == monitoring
 
+The routines that do the work:
+
+OCDefaultAdapterStateChangedHandler - NOP (ocstack.c)
+OCDefaultConnectionStateChangedHandler - NOP for UDP, fixup observers for TCP chg (ocstack.c)
+
+TCP and Cloud only:
+OCAdapterStateChangedHandler - TCP nif changes (occonnectionmanager.c)
+OCConnectionStateChangedHandler - TCP connection changes (occonnectionmanager.c)
+
+These callbacks get packaged in pairs in a CANetworkCallback_t struct,
+ which then gets added to g_networkChangeCallbackList (via a
+ convoluted initialization routine).
+
+We also have:
+
+CAAdapterChangedCallback (cainterfacecontroller.c) iteratees over
+g_networkChangeCallbackList. For each it creates a
+CANetworkCallbackThreadInfo_t and adds it to the
+g_networkChangeCallbackThread dispatch queue.
+
+CAAdapterChangedCallback gets put in g_networkChangeCallback, which
+gets called by CA<transport>AdapterHandler, which is added to
+g_adapterCallbackList (via CAStart<transport> ->
+CAIPStartNetworkMonitor -> CAIPSetNetworkMonitorCallback).
+
+This happens once per transport, so g_adapterCallbackList will have an
+entry for each transport.
+
+When a NWIF change is detected CAFindInterfaceChange is called, with
+call CAIPPassNetworkChangesToAdapter, which iterates over
+g_adapterCallbackList, so the CB for each transport is called.  That
+CB then iterates over the CBs in g_networkChangeCallbackList and adds
+them to the g_networkChangeCallbackThread dispatch queue.  The queue
+is serviced by ??, which finally invokes the handlers mentioned at the
+top above.
+
+==== old notes
+
+
 Parallel structure: cainteracecontroller and cautilinterface setup
 callbacks etc. So does the transport-specific code. E.g. in
 cainterfacecontroller we have g_networkChangeCallbackList, and in
