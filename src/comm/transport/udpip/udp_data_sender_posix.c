@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #endif
 
+#include <stdio.h>
 #include <errno.h>
 
 #define TAG "UDPSEND"

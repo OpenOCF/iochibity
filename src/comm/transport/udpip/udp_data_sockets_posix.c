@@ -28,13 +28,6 @@
 #include "udp_data_sockets_posix.h"
 
 #include <sys/types.h>
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-#if EXPORT_INTERFACE
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#endif
 #include <stdio.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -46,8 +39,13 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
+#if INTERFACE
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
 #endif
 #ifdef HAVE_NET_IF_H
 #include <net/if.h>

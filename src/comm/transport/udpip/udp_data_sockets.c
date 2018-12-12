@@ -26,6 +26,9 @@
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+/* #ifdef HAVE_NETINET_IP_H */
+/* #include <netinet/ip.h> */
+/* #endif */
 
 #include <inttypes.h>
 #endif
@@ -65,15 +68,6 @@ CASocket_t udp_m4  = { .fd = OC_INVALID_SOCKET, .port = CA_COAP };        /**< m
 CASocket_t udp_m4s = { .fd = OC_INVALID_SOCKET, .port = CA_SECURE_COAP }; /**< multicast IPv4 secure */
 
 //FIXME: status and shutdown monitoring are platform-specific
-
-#ifndef __APPLE__
-int udp_netlinkFd;              /**< netlink */
-#endif
-
-int udp_shutdownFds[2]; // = { 80, 81 }; /**< pipe used to signal threads to stop */
-
-CASocketFd_t udp_maxfd = 0;         /**< highest fd (for select) */
-
 
 void *udp_threadpool;           /**< threadpool between Initialize and Start */
 int   udp_selectTimeout;          /**< in seconds */
