@@ -24,9 +24,6 @@
 #if !(defined(HAVE_STDBOOL_H))
 # define bool _Bool
 #endif
-#if defined(TB_LOG)
-#define UUID_SIZE (16)
-#endif
 #define UUID_SIZE (16)
 #define UUID_STRING_SIZE (37)
 extern "C" bool OCConvertUuidToString(const uint8_t uuid[UUID_SIZE],char uuidString[UUID_STRING_SIZE]);
