@@ -40,14 +40,6 @@
  */
 #define UINT64_MAX_STRLEN 20
 
-static OCStackResult OCParseDiscoveryPayload(OCPayload **outPayload, OCPayloadFormat format,
-        CborValue *arrayVal);
-static CborError OCParseSingleRepPayload(OCRepPayload **outPayload, CborValue *repParent, bool isRoot);
-static OCStackResult OCParseRepPayload(OCPayload **outPayload, CborValue *arrayVal);
-static OCStackResult OCParsePresencePayload(OCPayload **outPayload, CborValue *arrayVal);
-static OCStackResult OCParseDiagnosticPayload(OCPayload **outPayload, CborValue *arrayVal);
-static OCStackResult OCParseSecurityPayload(OCPayload **outPayload, const uint8_t *payload, size_t size);
-
 OCStackResult OCParsePayload(OCPayload **outPayload, OCPayloadFormat payloadFormat,
         OCPayloadType payloadType, const uint8_t *payload, size_t payloadSize)
 {
