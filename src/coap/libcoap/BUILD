@@ -89,6 +89,7 @@ ANDROID_X86_64_CONFIG="".join([
     " --disable-examples;);",
     " cp external/libcoap/coap_config.h $(@D);",
     " cp external/libcoap/include/coap/coap.h $(@D);",])
+
 MINGW_CONFIG  = "".join([
     # patch coap_config.h.windows to pull in the mingw header
     " sed -f $(location @//src/coap/libcoap:msyspatch-wsa.sed) external/libcoap/coap_config.h.windows > coap_config.h;",
@@ -108,6 +109,26 @@ MINGW_CONFIG  = "".join([
 #     " cp external/libcoap/coap_config.h $(@D);",
 #     " cp external/libcoap/include/coap/coap.h $(@D);"])
 
+
+
+IOS_CONFIG  = "".join([
+    "(cd external/libcoap; ",
+    "bash -c ./autogen.sh 2>&1; ",
+    "export PATH=\"",
+    CROSSTOOL_NG_HOME,
+    "/armv8-rpi3-linux-gnueabihf/bin:$${PATH}\"; ",
+    "export CC=armv8-rpi3-linux-gnueabihf-gcc;",
+    " ./configure",
+    " --build=x86_64-apple-darwin",
+    " --host=armv8-rpi3-linux-gnueabihf",
+    " --prefix=/usr",
+    " --mandir=\"/usr/share/man\"",
+    " --libdir=\"/usr/lib/arm-linux-gnueabihf\"",
+    " --disable-examples",
+    " CPPFLAGS=\"-P\";);",
+    " cp external/libcoap/coap_config.h $(@D);",
+    " cp external/libcoap/include/coap/coap.h $(@D);",]
+)
 
 RPI_ARM8_CONFIG  = "".join([
     "(cd external/libcoap; ",
@@ -172,6 +193,9 @@ genrule(name = "config",
                        "@//config:msys"     : "BORKED MSYS",
                        "@//config:msvc"     : "BORKED MSVC",
                        "@//config:rpi_arm8"     : RPI_ARM8_CONFIG,
+                       "@//config:ios_arm7"     : LOCAL_CONFIG,
+                       "@//config:ios_arm64"     : LOCAL_CONFIG,
+                       "@//config:ios_x86"     : LOCAL_CONFIG,
                        "//conditions:default"   : "BORKED",}))
 
 cc_library(
