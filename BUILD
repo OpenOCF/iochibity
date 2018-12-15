@@ -94,3 +94,14 @@ cc_library(
     visibility = ["//visibility:public"]
 )
 
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+apple_static_library(
+    name = "ios_openocf",
+    minimum_os_version = "8.0",
+    platform_type = "ios",
+    # linkopts=["--no_warnings_for_no_symbols"],
+    deps = ["//src/ocf"],
+    visibility = ["//visibility:public"]
+)
+
