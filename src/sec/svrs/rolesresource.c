@@ -125,7 +125,7 @@ static OCStackResult GetPeerPublicKeyFromEndpoint(const CAEndpoint_t *endpoint,
                                                   uint8_t **publicKey,
                                                   size_t *publicKeyLength)
 {
-    CASecureEndpoint_t sep;
+    CASecureEndpoint_t sep = { .publicKey = {0}};
     CAResult_t res = GetCASecureEndpointData(endpoint, &sep);
     if (CA_STATUS_OK != res)
     {
