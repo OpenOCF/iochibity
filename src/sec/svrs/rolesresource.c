@@ -1387,4 +1387,4 @@ OCStackResult GetEndpointRoles(const CAEndpoint_t *endpoint, OicSecRole_t **role
     return OC_STACK_OK;
 }
 
-#endif /* defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
+// #endif /* defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
