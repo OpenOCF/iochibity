@@ -25,6 +25,7 @@ obsolete
 src/**/*.h
 src/*.[ch].in
 include/*h
+test/**/*.hpp
 
 src/openocf_config.c
 
