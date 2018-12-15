@@ -80,6 +80,24 @@
 #define MAX_BUFFER_SIZE 8
 #define MAX_LINE_LEN ((MAX_BUFFER_SIZE) * 2) + 1
 
+void CAUtilSetLogLevel(CAUtilLogLevel_t level, bool hidePrivateLogEntries)
+{
+    OIC_LOG(DEBUG, TAG, "CAUtilSetLogLevel");
+    LogLevel logLevel = DEBUG;
+    switch(level)
+    {
+        case CA_LOG_LEVEL_INFO:
+            logLevel = INFO;
+            break;
+        case CA_LOG_LEVEL_ALL:
+        default:
+            logLevel = DEBUG;
+            break;
+    }
+
+    OCSetLogLevel(logLevel, hidePrivateLogEntries);
+}
+
 void oic_trace_buffer(const char *name, const uint8_t * buffer, size_t bufferSize)
 {
     if (!name || !buffer || (0 == bufferSize))
@@ -109,8 +127,6 @@ void oic_trace_buffer(const char *name, const uint8_t * buffer, size_t bufferSiz
 }
 
 #ifndef __TIZEN__
-
-#include "logger.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
