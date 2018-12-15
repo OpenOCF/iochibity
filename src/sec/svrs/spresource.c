@@ -18,11 +18,8 @@
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 #include "spresource.h"
-/* #include "iotivity_config.h" */
 
-/* #if EXPORT_INTERFACE */
 #include "cbor.h"
-/* #endif */
 
 #if INTERFACE
 #include <stddef.h>

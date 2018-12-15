@@ -22,15 +22,9 @@
 #include <string.h>
 #include <time.h>
 
-#if INTERFACE
 #include <mbedtls/error.h>
 #include <mbedtls/x509_crt.h>
 #include <mbedtls/oid.h>
-#endif
-
-/* #include "cacommonutil.h" */
-/* #include "cacertprofile.h" */
-/* #include "experimental/logger.h" */
 
 #define TAG "OIC_CC_CERT_PROFILE"
 
@@ -545,6 +539,9 @@ CertProfileViolations ValidateCertTimeWindow(const mbedtls_x509_crt *cert)
     return profileViolations;
 }
 
+#if INTERFACE
+#include <mbedtls/x509_crt.h>
+#endif
 int CheckCertListTimeWindows(const mbedtls_x509_crt *certList)
 {
     int numInvalid = 0;

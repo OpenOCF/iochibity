@@ -21,8 +21,14 @@
 #include "occlientcb.h"
 
 #include "coap_config.h"
-#define WITH_POSIX              /* required to pull in coap_tick_t */
+#ifdef _MSC_VER
+#define HAVE_WS2TCPIP_H
+#else
+#define WITH_POSIX
+#include <time.h>
+#include "coap_config.h"
 #include "coap/coap_time.h"
+#endif
 
 #include "utlist.h"
 

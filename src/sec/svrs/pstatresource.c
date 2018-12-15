@@ -24,7 +24,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include <cbor.h>
+#include "cbor.h"
 
 #define TAG  "OIC_SRM_PSTAT"
 

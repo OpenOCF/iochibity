@@ -57,13 +57,15 @@
 #endif
 #include <errno.h>
 #include <limits.h>		/* UINT_MAX */
-#if EXPORT_INTERFACE
+
+#if INTERFACE
 #include <stdint.h>
 #endif	/* INTERFACE */
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
+
 #include "coap_config.h"
 /* FIXME PORTABILITY: one of these is required for coap_time.h */
 #ifdef _MSC_VER

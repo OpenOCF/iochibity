@@ -22,7 +22,6 @@
 
 #include "credresource.h"
 
-/* #include "iotivity_config.h" */
 #include <stdlib.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -34,10 +33,9 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-/* #if EXPORT_INTERFACE */
+#if INTERFACE
 #include "cbor.h"
-/* #endif */
-
+#endif
 #include "utlist.h"
 
 #ifdef __unix__			/* FIXME: feature test */
@@ -3861,7 +3859,7 @@ static int cloneSecKey(OicSecKey_t * dst, OicSecKey_t * src)
 }
 
 /* Caller must call FreeRoleCertChainList on roleEntries when finished. */
-OCStackResult GetAllRoleCerts(RoleCertChain_t ** output)
+OCStackResult GetAllRoleCerts(struct RoleCertChain **output)
 {
     OIC_LOG_V(DEBUG, TAG, "In %s", __func__);
 
@@ -3880,7 +3878,7 @@ OCStackResult GetAllRoleCerts(RoleCertChain_t ** output)
                 continue;
             }
 
-            RoleCertChain_t * add = (RoleCertChain_t *) OICCalloc(1, sizeof(RoleCertChain_t));
+            struct RoleCertChain *add = (struct RoleCertChain *) OICCalloc(1, sizeof(struct RoleCertChain));
             if (add == NULL)
             {
                 OIC_LOG_V(ERROR, TAG, "%s Failed to allocate memory", __func__);

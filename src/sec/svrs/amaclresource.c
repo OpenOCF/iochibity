@@ -20,22 +20,11 @@
 
 #include "amaclresource.h"
 
-/* #include "iotivity_config.h" */
 #include <stdlib.h>
 #include <string.h>
 
-/* #include "oic_malloc.h" */
-/* #include "ocpayload.h" */
-/* #include "ocpayloadcbor.h" */
-/* #include "payload_logging.h" */
-/* #include "psinterface.h" */
-/* #include "resourcemanager.h" */
-#include "utlist.h"
-/* #include "srmresourcestrings.h" */
-/* #include "srmutility.h" */
-/* #include "amaclresource.h" */
-
 #include "cbor.h"
+#include "utlist.h"
 
 #define TAG  "OIC_SRM_AMACL"
 

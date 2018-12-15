@@ -35,7 +35,9 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#if INTERFACE
 #include <stdint.h>
+#endif
 #include <string.h>
 
 #define TAG "OIC_CA_BWT"
@@ -1569,6 +1571,9 @@ CAResult_t CAUpdateMessageId(coap_pdu_t *pdu, const CABlockDataID_t *blockID)
 
 // CAAddBlockOption fns moved to camessagehandler.c
 
+#if INTERFACE
+#include "coap/coap_list.h"
+#endif
 CAResult_t CAAddOptionToPDU(coap_pdu_t *pdu, coap_list_t **options)
 {
     // after adding the block option to option list, add option list to pdu.

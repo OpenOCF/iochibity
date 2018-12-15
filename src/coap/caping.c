@@ -25,6 +25,9 @@
 
 #include "caping.h"
 
+#include "coap_config.h"
+#include "coap/encode.h"
+
 #define TAG "OIC_CA_PING"
 
 #if INTERFACE

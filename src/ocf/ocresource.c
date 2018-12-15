@@ -33,7 +33,6 @@
 #include <strings.h>
 #endif
 
-/* #include "coap/coap.h" */
 #include "cbor.h"
 
 #include "utlist.h"

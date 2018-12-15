@@ -55,6 +55,8 @@
 #ifdef HAVE_NET_IF_H
 #include <net/if.h>
 #endif
+
+#include <string.h>
 #include <errno.h>
 
 #if INTERFACE

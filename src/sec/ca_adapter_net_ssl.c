@@ -33,13 +33,15 @@
 // headers required for mbed TLS
 #include "mbedtls/platform.h"
 #include "mbedtls/ssl.h"
+//#if INTERFACE
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
+#include "mbedtls/x509.h"
+//#endif
 #include "mbedtls/pkcs12.h"
 #include "mbedtls/ssl_internal.h"
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/oid.h"
-#include "mbedtls/x509.h"
 #include "mbedtls/error.h"
 #ifdef __WITH_DTLS__
 #include "mbedtls/timing.h"
@@ -74,7 +76,9 @@
 /**
  * Currently TLS supported adapters(3) WIFI, ETHERNET and BLE for linux platform.
  */
+#if INTERFACE
 #define MAX_SUPPORTED_ADAPTERS 3
+#endif
 
 #if EXPORT_INTERFACE
 #include <stddef.h>
