@@ -593,7 +593,9 @@ static OCEntityHandlerResult HandleSpGetRequest (const OCEntityHandlerRequest * 
                    OC_EH_OK : OC_EH_ERROR;
     OICFree(payload);
 
-    LogSp(gSp, DEBUG, TAG, "SP resource being sent in response to GET:");
+    // FIXME: get rid of this hack
+    // LogSp(gSp, DEBUG, TAG, "SP resource being sent in response to GET:");
+    OIC_LOG(DEBUG, TAG, "SP resource being sent in response to GET:");
 
     return ehRet;
 }
@@ -821,7 +823,9 @@ exit:
             DeleteSpBinData(gSp);
             gSp = spUpdate;
 
-            LogSp(gSp, DEBUG, TAG, "State of SP resource after being updated by POST:");
+            // FIXME: hack! LogSp(gSp, DEBUG, TAG, "State of SP resource after being updated by POST:");
+            OIC_LOG(INFO, TAG,  "State of SP resource after being updated by POST:");
+
 
             ehRet = OC_EH_OK;
         }
@@ -970,7 +974,9 @@ exit:
     }
     else
     {
-        LogSp(gSp, DEBUG, TAG, "SP resource after startup initialization");
+        // FIXME: get rid of this hack
+        // LogSp(gSp, DEBUG, TAG, "SP resource after startup initialization");
+        OIC_LOG(INFO, TAG,  "SP resource after startup initialization");
     }
 
     return ret;
@@ -1032,29 +1038,4 @@ void SetAllSpProps(bool* spProps, bool setTo)
     {
         spProps[i] = setTo;
     }
-}
-
-
-void LogSp(OicSecSp_t* sp, int level, const char* tag, const char* msg)
-{
-    // some compilers not flagging the use of level and tag in the logging
-    // macros as being used.  This is to get around these compiler warnings
-    (void) level;
-    (void) tag;
-    (void) msg;
-
-    if (NULL != msg)
-    {
-        OIC_LOG(level, tag, "-------------------------------------------------");
-        OIC_LOG_V(level, tag, "%s", msg);
-    }
-
-    OIC_LOG(level, tag, "-------------------------------------------------");
-    OIC_LOG_V(level, tag, "# security profiles supported: %lu", (unsigned long)sp->supportedLen);
-    for (size_t i = 0; i < sp->supportedLen; i++)
-    {
-        OIC_LOG_V(level, tag, "  %lu: %s", (unsigned long)i, sp->supportedProfiles[i]);
-    }
-    OIC_LOG_V(level, tag, "Current security profile: %s", sp->currentProfile);
-    OIC_LOG(level, tag, "-------------------------------------------------");
 }

@@ -588,3 +588,28 @@ void OCLogStr(int level, const char * tag, int line_nbr, const char * header, co
 #endif
 
 #endif	/* EXPORT_INTERFACE */
+
+// FIXME: this is a hack from spresource.c. get rid of it
+void LogSp(OicSecSp_t* sp, int level, const char* tag, const char* msg)
+{
+    // some compilers not flagging the use of level and tag in the logging
+    // macros as being used.  This is to get around these compiler warnings
+    (void) level;
+    (void) tag;
+    (void) msg;
+
+    if (NULL != msg)
+    {
+        OIC_LOG(level, tag, "-------------------------------------------------");
+        OIC_LOG_V(level, tag, "%s", msg);
+    }
+
+    OIC_LOG(level, tag, "-------------------------------------------------");
+    OIC_LOG_V(level, tag, "# security profiles supported: %lu", (unsigned long)sp->supportedLen);
+    for (size_t i = 0; i < sp->supportedLen; i++)
+    {
+        OIC_LOG_V(level, tag, "  %lu: %s", (unsigned long)i, sp->supportedProfiles[i]);
+    }
+    OIC_LOG_V(level, tag, "Current security profile: %s", sp->currentProfile);
+    OIC_LOG(level, tag, "-------------------------------------------------");
+}
