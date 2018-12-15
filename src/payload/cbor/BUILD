@@ -9,8 +9,11 @@ cc_library(
     srcs = ["src/cborparser.c",
             "src/cborparser_dup_string.c",
             "src/cborencoder.c",
-            "src/cborerrorstrings.c"],
-    hdrs = glob(["src/*.h"]),
+            "src/cborerrorstrings.c",
+            "src/cborinternal_p.h",
+            "src/compilersupport_p.h"],
+    hdrs = ["src/cbor.h",
+            "src/tinycbor-version.h"],
     visibility = ["//visibility:public"]
 )
 
