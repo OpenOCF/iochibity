@@ -444,7 +444,7 @@ EXPORT
     }
 }
 
-void OCLogShutdown()
+void OCLogShutdown(void)
 {
     oc_mutex_free(log_mutex);
 #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
