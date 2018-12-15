@@ -1081,7 +1081,7 @@ static OCStackApplicationResult ProvisionCB(void *ctx, OCDoHandle handle,
 LOCAL OCStackResult  ProvisionPskCB(void *ctx, OCDoHandle UNUSED,
                                                 OCClientResponse *clientResponse)
 {
-    VERIFY_NOT_NULL_RETURN(TAG, ctx, ERROR, OC_STACK_DELETE_TRANSACTION);
+    VERIFY_NOT_NULL_RETURN(TAG, ctx, ERROR, OC_STACK_INVALID_PARAM);
     (void) UNUSED;
     CredentialData_t *credData = (CredentialData_t *) ((Data_t *) ctx)->ctx;
     const OCProvisionDev_t *device = credData->deviceInfo[credData->currIndex];
@@ -1099,7 +1099,7 @@ LOCAL OCStackResult  ProvisionPskCB(void *ctx, OCDoHandle UNUSED,
                 ((OCProvisionResultCB)(resultCallback))(credData->ctx, credData->numOfResults,
                                                         credData->resArr, true);
                 FreeData(ctx);
-                return OC_STACK_DELETE_TRANSACTION;
+                return res;
             }
         }
         else
