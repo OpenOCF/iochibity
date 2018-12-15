@@ -230,10 +230,13 @@ static const unsigned char EKU_IDENTITY[] = { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x82
  * Calls \a fn for \a clientConf and \a serverConf.
  *
  */
+// GAR: what's the point of this? why not just apply the fn?
+#if INTERFACE
 #define CONF_SSL(clientConf, serverConf, fn, ...) do {                                             \
 fn((clientConf), __VA_ARGS__);                                                                     \
 fn((serverConf), __VA_ARGS__);                                                                     \
 } while (0)
+#endif
 
 /** @def CHECK_MBEDTLS_RET(f, ...)
  * A macro that checks \a f function return code
@@ -364,6 +367,12 @@ typedef struct TlsCallBacks
 /**
  * Data structure for holding the mbedTLS interface related info.
  */
+#if INTERFACE
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/ssl_cookie.h"
+#include "mbedtls/x509_crt.h"
 typedef struct SslContext
 {
     u_arraylist_t *peerList;         /**< peer list which holds the mapping between
@@ -391,12 +400,13 @@ typedef struct SslContext
 #endif
 
 } SslContext_t;
+#endif
 
 /**
  * @var g_caSslContext
  * @brief global context which holds tls context and cache list information.
  */
-static SslContext_t * g_caSslContext = NULL;
+SslContext_t * g_caSslContext = NULL;
 
 /**
  * @var g_getCredentialsCallback
@@ -426,7 +436,7 @@ static CAgetIdentityHandler g_getIdentityCallback = NULL;
  * @var g_dtlsContextMutex
  * @brief Mutex to synchronize access to g_caSslContext and g_sslCallback.
  */
-static oc_mutex g_sslContextMutex = NULL;
+oc_mutex g_sslContextMutex = NULL;
 
 /**
  * @var g_sslCallback
@@ -2597,7 +2607,7 @@ void CAsetSslAdapterCallbacks(// CAPacketReceivedCallback recvCallback,
  * @return   corresponding enum
  */
 
-static SslCipher_t GetCipherIndex(const uint32_t cipher)
+SslCipher_t GetCipherIndex(const uint32_t cipher)
 {
     switch(cipher)
     {

@@ -62,11 +62,9 @@
 #ifndef __APPLE__
 int udp_netlinkFd;              /**< netlink */
 #endif
-
-//#if INTERFACE
 int udp_shutdownFds[2]; // = { 80, 81 }; /**< pipe used to signal threads to stop */
-//#endif
 CASocketFd_t udp_maxfd = 0;         /**< highest fd (for select) */
+#endif
 
 #if EXPORT_INTERFACE
 #include <inttypes.h>
