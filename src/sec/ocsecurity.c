@@ -185,7 +185,7 @@ OCStackResult OC_CALL OCAssertRoles(void *ctx, const OCDevAddr *devAddr, OCAsser
     OIC_LOG_V(DEBUG, TAG, "%s:     remoteid: %s", __func__, endpoint.remoteId);
 
     /* 1. Retrieve all our stored role certificates */
-    RoleCertChain_t *roles = NULL;
+    struct RoleCertChain *roles = NULL;
     OCStackResult res = GetAllRoleCerts(&roles);
     if (res != OC_STACK_OK)
     {
