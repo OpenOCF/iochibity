@@ -1,5 +1,6 @@
 src/tmp/cacommon.h
 src/tmp/cainterface.h
+src/tmp/caipadapter.c
 src/tmp/casecurityinterface.h
 src/coap/cablockwisetransfer.c
 src/coap/caping.c
@@ -99,6 +100,7 @@ src/comm/util/cautilinterface.c
 src/comm/util/bt/cautilinterface_android.c
 src/logger/logger.c
 src/logger/logger_android.c
+src/logger/payload_logging.c
 src/logger/logger_posix.c
 src/logger/logger_windows.c
 src/logger/trace.c
@@ -117,7 +119,12 @@ src/ocf/ocstack.c
 src/ocf/oicgroup.c
 src/ocf/oickeepalive.c
 src/ocf/oicresourcedirectory.c
-src/ocf/payload_logging.c
+src/ocf/oocf_client.c
+src/ocf/oocf_device.c
+src/ocf/oocf_host.c
+src/ocf/oocf_resource_list.c
+src/ocf/oocf_server.c
+src/ocf/oocf_uri.c
 src/ocf/presence.c
 src/ocf/windows/ocsqlite3helper.c
 src/portability/android/octhread_android.c
@@ -125,7 +132,6 @@ src/portability/darwin/ocatomic_darwin.c
 src/portability/darwin/ocevent_darwin.c
 src/portability/noop/octhread.c
 src/portability/noop/oic_otherplatforms.c
-src/portability/ocrandom.c
 src/portability/octhread.c
 src/portability/octimer.c
 src/portability/oic_malloc.c
@@ -133,6 +139,7 @@ src/portability/oic_platform.c
 src/portability/oic_string.c
 src/portability/posix/ocatomic_posix.c
 src/portability/posix/ocevent_posix.c
+src/portability/posix/ocrandom.c
 src/portability/posix/octhread_posix.c
 src/portability/posix/oic_platform_posix.c
 src/portability/posix/oic_time_posix.c
@@ -141,6 +148,7 @@ src/portability/windows/getopt.c
 src/portability/windows/memmem.c
 src/portability/windows/ocatomic_windows.c
 src/portability/windows/ocevent_windows.c
+src/portability/windows/ocrandom.c
 src/portability/windows/octhread_windows.c
 src/portability/windows/oic_time_windows.c
 src/portability/windows/pthread_create.c
@@ -171,6 +179,7 @@ src/sec/dox/deviceonboardingstate.c
 src/sec/dox/oxmpincommon.c
 src/sec/dox/oxmverifycommon.c
 src/sec/ocsecurity.c
+src/sec/oocf_cipher_suites.c
 src/sec/psinterface.c
 src/sec/srmresourcestrings.c
 src/sec/svrs/aclresource.c
@@ -183,6 +192,7 @@ src/sec/svrs/pstatresource.c
 src/sec/svrs/resourcemanager.c
 src/sec/svrs/rolesresource.c
 src/sec/svrs/secureresourcemanager.c
+src/sec/svrs/spresource.c
 src/sec/util/srmutility.c
 src/util/base64.c
 src/util/configuration.c
