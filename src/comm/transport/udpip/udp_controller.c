@@ -484,7 +484,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
 
 u_arraylist_t *local_endpoints = NULL;
 
-u_arraylist_t *oocp_get_local_endpoints() EXPORT
+u_arraylist_t *oocf_get_local_endpoints(void) EXPORT
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 

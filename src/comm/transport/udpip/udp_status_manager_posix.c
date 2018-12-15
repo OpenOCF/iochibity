@@ -92,7 +92,7 @@
 /* in nwmonitor0: CAResult_t CAIPInitializeNetworkAddressList() */
 
 // @rewrite CAIPDestroyNetworkInterfaceList @was CAIPDestroyNetworkMonitorList
-void CAIPDestroyNetworkInterfaceList()
+void CAIPDestroyNetworkInterfaceList(void)
 {
     if (g_netInterfaceList)
     {

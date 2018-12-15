@@ -68,7 +68,7 @@
  */
 #define TAG "OIC_DARWIN_CA_IP_SERVER"
 
-void CADeInitializeMonitorGlobals()
+void CADeInitializeMonitorGlobals(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     /* Currently, same as for posix. that will change */
@@ -111,7 +111,7 @@ void *ip_watcher(void *data)
     CFRelease(sourceRef);
 }
 
-void launch_ip_watcher()
+void launch_ip_watcher(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
@@ -136,7 +136,7 @@ void launch_ip_watcher()
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
-void CARegisterForAddressChanges()
+void CARegisterForAddressChanges(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     launch_ip_watcher();

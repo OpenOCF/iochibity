@@ -45,7 +45,7 @@
 // FIXME: if there is no inbound data, this will cause hang upon termination?
 // @rewrite udp_handle_inboud_data  @was CAFindReadyMessage()
 /* called by udp_data_receiver_runloop */
-void udp_handle_inbound_data() // @was CAFindReadyMessage
+void udp_handle_inbound_data(void) // @was CAFindReadyMessage
 {
     // OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     fd_set readFds;
