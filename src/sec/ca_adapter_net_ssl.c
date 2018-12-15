@@ -252,21 +252,7 @@ if (0 != ret) {                                                                 
     goto exit;                                                                                     \
 } } while (0)
 
-typedef enum
-{
-    SSL_RSA_WITH_AES_256_CBC_SHA256,
-    SSL_RSA_WITH_AES_128_GCM_SHA256,
-    SSL_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-    SSL_ECDHE_ECDSA_WITH_AES_128_CCM_8,
-    SSL_ECDHE_ECDSA_WITH_AES_128_CCM,
-    SSL_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
-    SSL_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,
-    SSL_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-    SSL_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
-    SSL_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
-    SSL_ECDH_ANON_WITH_AES_128_CBC_SHA256,
-    SSL_CIPHER_MAX
-} SslCipher_t;
+/* enum SslCipher_t => sec/oocf_cipher_suites.c */
 
 #if INTERFACE
 typedef enum
@@ -276,22 +262,9 @@ typedef enum
 } AdapterCurve_t;
 #endif
 
-static const int tlsCipher[SSL_CIPHER_MAX][2] =
-{
-    {MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA256, 0},
-    {MBEDTLS_TLS_RSA_WITH_AES_128_GCM_SHA256, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CCM, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, 0},
-    {MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256, 0},
-    {MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, 0},
-    {MBEDTLS_TLS_ECDH_ANON_WITH_AES_128_CBC_SHA256, 0}
-};
+/* tlsCipher => sec/oocf_cipher_suites.c */
 
-static int g_cipherSuitesList[SSL_CIPHER_MAX];
+static int g_cipherSuitesList[(SslCipher_t)SSL_CIPHER_MAX];
 
 mbedtls_ecp_group_id curve[ADAPTER_CURVE_MAX][2] =
 {
@@ -2679,41 +2652,7 @@ static SslCipher_t GetCipherIndex(const uint32_t cipher)
     }
 }
 
-CAResult_t CAsetTlsCipherSuite(const uint32_t cipher)
-{
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
-    oc_mutex_lock(g_sslContextMutex);
-
-    if (NULL == g_caSslContext)
-    {
-        OIC_LOG(ERROR, NET_SSL_TAG, "SSL context is not initialized.");
-        oc_mutex_unlock(g_sslContextMutex);
-        return CA_STATUS_NOT_INITIALIZED;
-    }
-
-    SslCipher_t index = GetCipherIndex(cipher);
-    if (SSL_CIPHER_MAX == index)
-    {
-        OIC_LOG(WARNING, NET_SSL_TAG, "Unknown cipher");
-    }
-    else
-    {
-#ifdef __WITH_TLS__
-        CONF_SSL(&g_caSslContext->clientTlsConf, &g_caSslContext->serverTlsConf,
-        mbedtls_ssl_conf_ciphersuites, tlsCipher[index]);
-#endif
-#ifdef __WITH_DTLS__
-        CONF_SSL(&g_caSslContext->clientDtlsConf, &g_caSslContext->serverDtlsConf,
-        mbedtls_ssl_conf_ciphersuites, tlsCipher[index]);
-#endif
-        OIC_LOG_V(DEBUG, NET_SSL_TAG, "Selected cipher: 0x%x", cipher);
-    }
-    g_caSslContext->cipher = index;
-
-    oc_mutex_unlock(g_sslContextMutex);
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "Out %s", __func__);
-    return CA_STATUS_OK;
-}
+/* CAsetTlsCipherSuite => oocf_cipher_suites.c */
 
 CAResult_t CAinitiateSslHandshake(const CAEndpoint_t *endpoint)
 {
