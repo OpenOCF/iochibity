@@ -2132,7 +2132,7 @@ exit:
     return result;
 }
 
-static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resource)
+OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resource)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (!request || !resource)
@@ -2408,7 +2408,7 @@ exit:
     return discoveryResult;
 }
 
-static OCStackResult
+OCStackResult
 HandleDefaultDeviceEntityHandler(OCServerRequest *request)
 {
     if (!request)
@@ -2440,7 +2440,7 @@ exit:
     return result;
 }
 
-static OCStackResult
+OCStackResult
 HandleResourceWithEntityHandler(OCServerRequest *request,
                                 OCResource *resource)
 {
@@ -2586,7 +2586,7 @@ exit:
     return result;
 }
 
-static OCStackResult HandleCollectionResourceDefaultEntityHandler(OCServerRequest *request,
+OCStackResult HandleCollectionResourceDefaultEntityHandler(OCServerRequest *request,
                                                                   OCResource *resource)
 {
     if (!request || !resource)
@@ -2605,58 +2605,7 @@ static OCStackResult HandleCollectionResourceDefaultEntityHandler(OCServerReques
     return result;
 }
 
-OCStackResult
-ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerRequest *request)
-{
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
-    OCStackResult ret = OC_STACK_OK;
-
-    switch (resHandling)
-    {
-        case OC_RESOURCE_VIRTUAL:
-        {
-            ret = HandleVirtualResource (request, resource);
-            break;
-        }
-        case OC_RESOURCE_DEFAULT_DEVICE_ENTITYHANDLER:
-        {
-            ret = HandleDefaultDeviceEntityHandler(request);
-            break;
-        }
-        case OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER:
-        {
-            OIC_LOG(ERROR, TAG, "OC_RESOURCE_NOT_COLLECTION_DEFAULT_ENTITYHANDLER");
-            return OC_STACK_ERROR;
-        }
-        case OC_RESOURCE_NOT_COLLECTION_WITH_ENTITYHANDLER:
-        {
-            ret = HandleResourceWithEntityHandler (request, resource);
-            break;
-        }
-        case OC_RESOURCE_COLLECTION_WITH_ENTITYHANDLER:
-        {
-            ret = HandleResourceWithEntityHandler (request, resource);
-            break;
-        }
-        case OC_RESOURCE_COLLECTION_DEFAULT_ENTITYHANDLER:
-        {
-            ret = HandleCollectionResourceDefaultEntityHandler (request, resource);
-            break;
-        }
-        case OC_RESOURCE_NOT_SPECIFIED:
-        {
-            ret = OC_STACK_NO_RESOURCE;
-            break;
-        }
-        default:
-        {
-            OIC_LOG(INFO, TAG, "Invalid Resource Determination");
-            return OC_STACK_ERROR;
-        }
-    }
-    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
-    return ret;
-}
+/* ProcessRequest => oocf_server.c */
 
 OCStackResult OC_CALL OCSetPlatformInfo(OCPlatformInfo info)
 EXPORT
