@@ -23,17 +23,14 @@ cc_binary(
                 "//conditions:default": []})
     + CSTD,
     deps = ["//src:config",
-            # "//src/ocf:interface",
-            # "//src/ocf:hdrs",
-            "//src/ocf",
             "//src/logger",
             "//src/comm",
-            # "//src/comm/api",
+            "//src/ocf",
             "//src/portability",
             "//src/provisioning",
             "//src/sec",
-            "@libcoap//:libcoap"
-    ] + select({":client_role": ["//src/ocf/ocf_services_client"],
+            "@libcoap//:libcoap"]
+    + select({":client_role": ["//src/ocf/ocf_services_client"],
               "//conditions:default": []}),
     visibility = ["//visibility:public"]
 )
@@ -48,8 +45,6 @@ cc_library(
              "-Iexternal/openocf/src/portability",
              "-Isrc/comm/util",
              "-Iexternal/openocf/src/comm/util",
-             "-Isrc/logger",
-             "-Iexternal/openocf/src/logger",
              "-Isrc/ocf",
              "-Iexternal/openocf/src/ocf",
              "-Isrc/sec",
@@ -68,6 +63,9 @@ cc_library(
                 "@//config:android_arm8": ["-std=c11", "-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
                 "//config:linux": ["-DHAVE_CONFIG_H", "-D_GNU_SOURCE", "-DWITH_POSIX"], # for building coap
                 "//config:darwin": ["-U DEBUG"],
+                "//config:ios_arm7": ["-U DEBUG"],
+                "//config:ios_arm64": ["-U DEBUG"],
+                "//config:ios_x86": ["-U DEBUG"],
                 "//conditions:default": ["BROKEN"]})
     + CSTD,
 

@@ -2,25 +2,16 @@
 # NB: for now we ignore platforms lacking pthreads
 cc_library(
     name = "posix",
-    copts = [# "-Ithird_party/uthash",
-             "-DWITH_POSIX",
-    #          "-Iexternal/openocf/src",
-    #          "-Isrc/logger",
-    #          "-Iexternal/openocf/src/logger",
-    #          "-Isrc/portability"]
-             # Some source files #include "mbedtls/config.h", others just "config.h"
-             "-Iconfig",
-             "-Iconfig/mbedtls",
+    copts = ["-DWITH_POSIX",
              "-Iexternal/mbedtls/patched/include",
-    ] + select({"//config:mingw": [],
+    ] + select({"//config:darwin": ["-U DEBUG"],
+                "//config:mingw": [],
                 "//config:msvc": [],
                 "//config:msys": [],
-                "//conditions:default": ["-std=c11",
-                                         "-U DEBUG"]}), # OS X
+                "//conditions:default": ["-std=c11"]}),
     deps = ["//src/logger",
             "@mbedtls//:mbedtls",
-            "@uthash//:uthash"
-    ],
+            "@uthash//:uthash"],
     linkopts = select({"//config:msvc": [],
                        "//config:msys": ["-lpthread"],
                        "//config:mingw": ["-lpthread"],
