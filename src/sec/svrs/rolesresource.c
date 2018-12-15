@@ -133,7 +133,7 @@ static OCStackResult GetPeerPublicKeyFromEndpoint(const CAEndpoint_t *endpoint,
         return OC_STACK_INVALID_PARAM;
     }
 
-    if ((NULL == sep.publicKey) || (0 == sep.publicKeyLength))
+    if ( /* (NULL == sep.publicKey) || */ (0 == sep.publicKeyLength))
     {
         OIC_LOG_V(WARNING, TAG, "%s: Peer did not have a public key", __func__);
         return OC_STACK_NO_RESOURCE;
