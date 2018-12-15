@@ -4042,7 +4042,7 @@ static void registerResultForGetRolesResourceCB(GetRolesData_t *getRolesData,
 
     if (OC_STACK_OK == stackresult)
     {
-        RoleCertChain_t *chains = NULL;
+        struct RoleCertChain *chains = NULL;
         OCStackResult res = CBORPayloadToRoles(payload, payloadSize, &chains);
         if (OC_STACK_OK != res)
         {
@@ -4051,7 +4051,7 @@ static void registerResultForGetRolesResourceCB(GetRolesData_t *getRolesData,
         }
         else
         {
-            RoleCertChain_t *curr = NULL;
+            struct RoleCertChain *curr = NULL;
             for (curr = chains; NULL != curr; curr = curr->next)
             {
                 currentEntry->chainsLength++;
