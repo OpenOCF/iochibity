@@ -31,7 +31,9 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
+#if INTERFACE
 #include "cbor.h"
+#endif
 
 #define TAG "OIC_RI_PAYLOADPARSE"
 
@@ -91,7 +93,7 @@ exit:
    return result;
 }
 
-static OCStackResult OCParseSecurityPayload(OCPayload** outPayload, const uint8_t *payload,
+LOCAL OCStackResult OCParseSecurityPayload(OCPayload** outPayload, const uint8_t *payload,
         size_t size)
 {
     if (size > 0)
@@ -690,7 +692,7 @@ exit:
     return ret;
 }
 
-static OCStackResult OCParseDiscoveryPayload(OCPayload **outPayload, OCPayloadFormat format,
+LOCAL OCStackResult OCParseDiscoveryPayload(OCPayload **outPayload, OCPayloadFormat format,
         CborValue *rootValue)
 {
     if (OC_FORMAT_VND_OCF_CBOR == format)
@@ -1032,7 +1034,7 @@ exit:
     return err;
 }
 
-static CborError OCParseSingleRepPayload(OCRepPayload **outPayload, CborValue *objMap, bool isRoot)
+LOCAL CborError OCParseSingleRepPayload(OCRepPayload **outPayload, CborValue *objMap, bool isRoot)
 {
     CborError err = CborUnknownError;
     char *name = NULL;
@@ -1204,7 +1206,7 @@ exit:
     return err;
 }
 
-static OCStackResult OCParseRepPayload(OCPayload **outPayload, CborValue *root)
+LOCAL OCStackResult OCParseRepPayload(OCPayload **outPayload, CborValue *root)
 {
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     CborError err;
@@ -1373,7 +1375,7 @@ exit:
 }
 #endif
 
-static OCStackResult OCParseDiagnosticPayload(OCPayload **outPayload, CborValue *rootValue)
+LOCAL OCStackResult OCParseDiagnosticPayload(OCPayload **outPayload, CborValue *rootValue)
 {
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     OCDiagnosticPayload *payload = NULL;
