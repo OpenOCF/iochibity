@@ -85,8 +85,6 @@ oc_mutex log_mutex = NULL;
 #if EXPORT_INTERFACE
 #ifdef TB_LOG
 #define OIC_LOG_PAYLOAD(level, payload) OCPayloadLog((level),(payload))
-#else
-#define OIC_LOG_PAYLOAD(level, payload)
 #endif
 #endif	/* INTERFACE */
 
@@ -563,15 +561,6 @@ void OCLogStr(int level, const char * tag, int line_nbr, const char * header, co
     if (((int)OC_MINIMUM_LOG_LEVEL) <= ((int)(level & (~OC_LOG_PRIVATE_DATA)))) \
 	    OCLogStr((level), __FILE__, __LINE__, __VA_ARGS__); \
     } while(0)
-#else // TB_LOG
-#define OIC_LOG_CONFIG(ctx)
-#define OIC_LOG_SHUTDOWN()
-#define OIC_LOG(level, tag, logStr)
-#define OIC_LOG_V(level, tag, ...)
-#define OIC_LOG_STR(level, tag, ...)
-#define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)
-#define OIC_LOG_CA_BUFFER(level, tag, buffer, bufferSize, isHeader)
-#define OIC_LOG_INIT()
 #endif // TB_LOG
 
 #ifdef DEBUG_THREADS

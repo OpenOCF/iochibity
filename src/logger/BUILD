@@ -46,9 +46,9 @@ cc_library(
     hdrs = ["logger.h"],
     srcs = ["logger.c",
             "payload_logging.c",
-            "payload_logging.h"]
-            # "trace.c",
-            # "trace.h"]
+            "payload_logging.h",
+            "trace.c",
+            "trace.h"]
     # FIXME: trace.c for android, tizen
     + select({"//config:android": ["logger_android.c", "logger_android.h"],
               "//config:darwin": ["logger_posix.c", "logger_posix.h"],
