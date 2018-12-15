@@ -1,5 +1,16 @@
 # bind(name = "android/crosstool", actual = "@android_ndk//:toolchain-libcpp")
 
+git_repository(
+    name = "build_bazel_rules_apple",
+    remote = "https://github.com/bazelbuild/rules_apple.git",
+    tag = "0.4.0",
+)
+git_repository(
+    name = "bazel_skylib",
+    remote = "https://github.com/bazelbuild/bazel-skylib.git",
+    tag = "0.3.1",
+)
+
 android_sdk_repository(
     name="androidsdk",
     path="/home/gar/sdk/android",
