@@ -326,17 +326,17 @@ u_arraylist_t			/**< @result list of CAInterface_t */
 	    continue;
 	}
 
-	/* GAR: hidden semantics: if desiredIndex == 0, then every if will be added to list */
+	/* GAR: hidden semantics: if desiredIndex == 0, then every nif will be added to list */
         if ( (desiredIndex > 0) && (ifindex != desiredIndex))
         {
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-	    OIC_LOG_V(DEBUG, TAG, "Skipping IF %d (searching for %d)", ifindex, desiredIndex);
+	    OIC_LOG_V(DEBUG, TAG, "Skipping NIF %d (searching for %d)", ifindex, desiredIndex);
 #endif
             continue;
         }
 
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-	OIC_LOG_V(DEBUG, TAG, "Found good IF/family: %d/%d (%s)", ifindex, family,
+	OIC_LOG_V(DEBUG, TAG, "Found good NIF/family: %d/%d (%s)", ifindex, family,
 		  (family == AF_INET? "AF_INET" : family == AF_INET6? "AF_INET6" : "OTHER"));
 #endif
 
