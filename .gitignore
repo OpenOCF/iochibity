@@ -34,6 +34,7 @@ config.guess
 config.status
 config.sub
 configure
+libtool
 ltmain.sh
 
 src/iotivity_config.h
