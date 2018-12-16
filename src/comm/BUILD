@@ -2,7 +2,7 @@ load("//config:variables.bzl", "CSTD", "DEFINES", "OS_COPTS")
 
 cc_library(
     name = "comm",
-    # alwayslink = True,
+    alwayslink = True,
     linkstatic = 1,
     copts = ["-Isrc",
              "-Iexternal/openocf/src/util",
@@ -28,11 +28,11 @@ cc_library(
     defines = DEFINES,
 
     deps = ["//src:config",
-            "//src/logger",
     	    "//src/portability",
             "//src/comm/transport/util",
             "//src/comm/util",
             "//src/coap",
+            "//src/logger",
             # FIXME: select for this
             "@uthash//:uthash",
             # "//third_party/mbedtls",
@@ -44,7 +44,6 @@ cc_library(
               "//conditions:default": ["//src/comm/transport/udpip"]})
     + select({"//config:enable_tcp": ["//src/comm/transport/tcpip"],
               "//conditions:default": []}),
-
     srcs = glob(["*.c"], exclude=["caadapternetdtls.c"])
     + glob(["*.h"], exclude=["caadapternetdtls.h"]),
     visibility = ["//visibility:public"]

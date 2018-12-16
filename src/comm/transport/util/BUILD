@@ -1,45 +1,22 @@
-config_setting(
-    name = "android",
-    # values = { "crosstool_top": "//external:android/crosstool."} # "@android_ndk//:toolchain-libcpp"
-    values = {"cpu": "armeabi-v7a"}
-)
-
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" }
-)
-config_setting(
-    name = "msvc",
-    values = { "cpu": "x64_windows_msvc" }
-)
-config_setting(
-    name = "msys",
-    values = { "cpu": "x64_windows_msys" }
-)
-
 cc_library(
     name = "util",
     alwayslink = True,
     copts = ["-D_GNU_SOURCE",
      "-DWITH_POSIX"
-    ] + select({":windows": [],
-                ":msvc": [],
-                ":msys": [],
+    ] + select({"//config:mingw": [],
+                "//config:msvc": [],
+                "//config:msys": [],
 		# FIXME: don't we want jni.h, jni_md.h from the target instead of the build host???
-                ":android": ["-std=c11",
+                "//config:android": ["-std=c11",
                              "-Iexternal/local_jdk/include",
                              "-Iexternal/local_jdk/include/linux"],
               "//conditions:default": ["-std=c11",
                                        "-U DEBUG"]}), # OS X
     deps  = ["//src:config",
-    	     # "//src/comm",
              "//src/logger",
              "//src/portability",
              "//src/util",
              "@libcoap//:libcoap",
-             # "//third_party/mbedtls",
-             # "//third_party/mbedtls:mbedtls-crypto",
-             # "//third_party/mbedtls:mbedtls-x509"
              "@mbedtls//:mbedtls"],
     # + select({":android": [":jnihdrs"],
     #           "//conditions:default": []}),

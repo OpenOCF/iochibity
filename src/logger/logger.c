@@ -85,8 +85,6 @@ oc_mutex log_mutex = NULL;
 #if EXPORT_INTERFACE
 #ifdef TB_LOG
 #define OIC_LOG_PAYLOAD(level, payload) OCPayloadLog((level),(payload))
-#else
-#define OIC_LOG_PAYLOAD(level, payload)
 #endif
 #endif	/* INTERFACE */
 
@@ -446,7 +444,7 @@ EXPORT
     }
 }
 
-void OCLogShutdown()
+void OCLogShutdown(void)
 {
     oc_mutex_free(log_mutex);
 #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
@@ -563,15 +561,6 @@ void OCLogStr(int level, const char * tag, int line_nbr, const char * header, co
     if (((int)OC_MINIMUM_LOG_LEVEL) <= ((int)(level & (~OC_LOG_PRIVATE_DATA)))) \
 	    OCLogStr((level), __FILE__, __LINE__, __VA_ARGS__); \
     } while(0)
-#else // TB_LOG
-#define OIC_LOG_CONFIG(ctx)
-#define OIC_LOG_SHUTDOWN()
-#define OIC_LOG(level, tag, logStr)
-#define OIC_LOG_V(level, tag, ...)
-#define OIC_LOG_STR(level, tag, ...)
-#define OIC_LOG_BUFFER(level, tag, buffer, bufferSize)
-#define OIC_LOG_CA_BUFFER(level, tag, buffer, bufferSize, isHeader)
-#define OIC_LOG_INIT()
 #endif // TB_LOG
 
 #ifdef DEBUG_THREADS
@@ -599,3 +588,28 @@ void OCLogStr(int level, const char * tag, int line_nbr, const char * header, co
 #endif
 
 #endif	/* EXPORT_INTERFACE */
+
+// FIXME: this is a hack from spresource.c. get rid of it
+void LogSp(OicSecSp_t* sp, int level, const char* tag, const char* msg)
+{
+    // some compilers not flagging the use of level and tag in the logging
+    // macros as being used.  This is to get around these compiler warnings
+    (void) level;
+    (void) tag;
+    (void) msg;
+
+    if (NULL != msg)
+    {
+        OIC_LOG(level, tag, "-------------------------------------------------");
+        OIC_LOG_V(level, tag, "%s", msg);
+    }
+
+    OIC_LOG(level, tag, "-------------------------------------------------");
+    OIC_LOG_V(level, tag, "# security profiles supported: %lu", (unsigned long)sp->supportedLen);
+    for (size_t i = 0; i < sp->supportedLen; i++)
+    {
+        OIC_LOG_V(level, tag, "  %lu: %s", (unsigned long)i, sp->supportedProfiles[i]);
+    }
+    OIC_LOG_V(level, tag, "Current security profile: %s", sp->currentProfile);
+    OIC_LOG(level, tag, "-------------------------------------------------");
+}

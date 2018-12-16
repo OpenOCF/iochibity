@@ -1,3 +1,4 @@
+
 /** @file udp_status_manager_darwin.c
  *
  * @was: caipserver_darwin.c
@@ -28,7 +29,7 @@
 #define _GNU_SOURCE // for in6_pktinfo
 #endif
 
-#include "udp_status_manager_darwin.h"
+#include "udp_status_manager_ios.h"
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_SOCKET_H
@@ -91,24 +92,24 @@ void *ip_watcher(void *data)
     CFRunLoopSourceRef sourceRef = NULL;
     OSStatus result;
 
-    result = CreateIPAddressListChangeCallbackSCF(NULL, /* void* contextPtr */
-						  &storeRef,
-						  &sourceRef);
-    if (result != noErr) {
-	OIC_LOG_V(ERROR, TAG, "Register for addr change failed: %s", result);
-    }
-    CFRunLoopRef runLoop = CFRunLoopGetCurrent();
-    // https://developer.apple.com/documentation/corefoundation/1543356-cfrunloopaddsource?language=objc
-    CFRunLoopAddSource(runLoop, sourceRef, kCFRunLoopDefaultMode);
-    while(true) // _threadKeepGoing)   // may be set to false by main thread at shutdown time
-	{
-	    CFRunLoopRun();
-	}
+    /* result = CreateIPAddressListChangeCallbackSCF(NULL, /\* void* contextPtr *\/ */
+    /*     					  &storeRef, */
+    /*     					  &sourceRef); */
+    /* if (result != noErr) { */
+    /*     OIC_LOG_V(ERROR, TAG, "Register for addr change failed: %s", result); */
+    /* } */
+    /* CFRunLoopRef runLoop = CFRunLoopGetCurrent(); */
+    /* // https://developer.apple.com/documentation/corefoundation/1543356-cfrunloopaddsource?language=objc */
+    /* CFRunLoopAddSource(runLoop, sourceRef, kCFRunLoopDefaultMode); */
+    /* while(true) // _threadKeepGoing)   // may be set to false by main thread at shutdown time */
+    /*     { */
+    /*         CFRunLoopRun(); */
+    /*     } */
 
-    // cleanup time:  release our resources
-    CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sourceRef, kCFRunLoopDefaultMode);
-    CFRelease(storeRef);
-    CFRelease(sourceRef);
+    /* // cleanup time:  release our resources */
+    /* CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sourceRef, kCFRunLoopDefaultMode); */
+    /* CFRelease(storeRef); */
+    /* CFRelease(sourceRef); */
 }
 
 void launch_ip_watcher(void)
@@ -196,17 +197,17 @@ void udp_if_change_handler_darwin(SCDynamicStoreRef store, CFArrayRef changedKey
     CFIndex nameCount = CFArrayGetCount( changedKeys );
     const char *strName;
     const char *strVal;
-    for( int i = 0; i < nameCount ; ++i  ) {
-	CFStringRef key = (CFStringRef)CFArrayGetValueAtIndex( changedKeys, i );
-	strName = CFStringGetCStringPtr( key , kCFStringEncodingMacRoman );
-	OIC_LOG_V(DEBUG, TAG, "Change key: %s", strName);
-	CFPropertyListRef prop;
-	prop = SCDynamicStoreCopyValue(store, key);
-	CFStringRef val = CFCopyDescription(prop);
-	strVal = CFStringGetCStringPtr( val , kCFStringEncodingMacRoman );
-	OIC_LOG_V(DEBUG, TAG, "Change val: %s", strVal);
-	CFShow(prop);
-    }
+    /* for( int i = 0; i < nameCount ; ++i  ) { */
+    /*     CFStringRef key = (CFStringRef)CFArrayGetValueAtIndex( changedKeys, i ); */
+    /*     strName = CFStringGetCStringPtr( key , kCFStringEncodingMacRoman ); */
+    /*     OIC_LOG_V(DEBUG, TAG, "Change key: %s", strName); */
+    /*     CFPropertyListRef prop; */
+    /*     prop = SCDynamicStoreCopyValue(store, key); */
+    /*     CFStringRef val = CFCopyDescription(prop); */
+    /*     strVal = CFStringGetCStringPtr( val , kCFStringEncodingMacRoman ); */
+    /*     OIC_LOG_V(DEBUG, TAG, "Change val: %s", strVal); */
+    /*     CFShow(prop); */
+    /* } */
     // For now, process all IFs
     // u_arraylist_t *iflist = CAFindInterfaceChange();
 
@@ -316,133 +317,3 @@ static void CFQRelease(CFTypeRef cf)
 
 /* see https://github.com/erluko/netwatcher/blob/master/netwatcher.cpp */
 /* https://public.msli.com/lcs/jaf/osx_ip_change_notify.cpp */
-LOCAL OSStatus CreateIPAddressListChangeCallbackSCF(
-					      /* SCDynamicStoreCallBack callback, */
-					      void *contextPtr,
-					      SCDynamicStoreRef *storeRef,
-					      CFRunLoopSourceRef *sourceRef) EXPORT
-    // Create a SCF dynamic store reference and a
-    // corresponding CFRunLoop source. If you add the
-    // run loop source to your run loop then the supplied
-    // callback function will be called when local IP
-    // address list changes.
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-
-    OSStatus                err;
-    SCDynamicStoreContext   context     = {0, NULL, NULL, NULL, NULL};
-    SCDynamicStoreRef       ref         = NULL;
-    CFStringRef             pattern[2]  = { NULL, NULL };
-    CFArrayRef              patternList = NULL;
-    CFRunLoopSourceRef      rls         = NULL;
-
-    /* assert(callback   != NULL); */
-    assert( storeRef  != NULL);
-    assert(*storeRef  == NULL);
-    assert( sourceRef != NULL);
-    assert(*sourceRef == NULL);
-
-    // Create a connection to the dynamic store, then create
-    // a search pattern that finds all IPv4 entities.
-    // The pattern is "State:/Network/Service/[^/]+/IPv4".
-
-    context.info = contextPtr;
-    ref = SCDynamicStoreCreate( NULL,
-                                CFSTR("AddIPAddressListChangeCallbackSCF"),
-                                udp_if_change_handler_darwin,
-                                &context);
-    err = MoreSCError(ref);
-
-    /* State:/Network/Interface/.*\/Link */
-    /* State:/Network/Interface/.*\/IPv4 */
-    /* State:/Network/Interface/.*\/IPv6 */
-    /* State:/Network/Global/DNS */
-    /* State:/Network/Global/IPv4 */
-
-    if (err != noErr) {
-	OIC_LOG_V(ERROR, TAG, "SCDynamicStoreCreate failed: %d", err);
-    }
-
-    if (err == noErr) {
-        pattern[0] = SCDynamicStoreKeyCreateNetworkServiceEntity(
-                                NULL,
-                                kSCDynamicStoreDomainState,
-                                kSCCompAnyRegex,
-				// "State:/Network/Service/[^/]+/IPv4"
-                                kSCEntNetIPv6
-				//CFSTR("State:/Network/Global/IPv6"));
-				// CFSTR("State:/Network/Interface/.*\/Link")
-								 );
-        err = MoreSCError(pattern[0]);
-    }
-    if (err != noErr) {
-	OIC_LOG_V(ERROR, TAG, "SCDynamicStoreKeyCreateNetworkServiceEntity 1 failed: %d", err);
-    }
-
-    if (err == noErr) {
-        pattern[1] = SCDynamicStoreKeyCreateNetworkServiceEntity(
-                                NULL,
-                                kSCDynamicStoreDomainState,
-                                kSCCompAnyRegex,
-                                kSCEntNetIPv4
-				//CFSTR("State:/Network/Interface/.*\/IPv6")
-								 );
-        err = MoreSCError(pattern[0]);
-    }
-    if (err != noErr) {
-	OIC_LOG_V(ERROR, TAG, "SCDynamicStoreKeyCreateNetworkServiceEntity 2 failed: %d", err);
-    }
-
-
-    // Create a pattern list containing just one pattern,
-    // then tell SCF that we want to watch changes in keys
-    // that match that pattern list, then create our run loop
-    // source.
-
-    if (err == noErr) {
-        patternList = CFArrayCreate(NULL,
-                                    (const void **) pattern,
-				    2,
-                                    &kCFTypeArrayCallBacks);
-        err = CFQError(patternList);
-    }
-    if (err != noErr) {
-	OIC_LOG_V(ERROR, TAG, "CFArrayCreate failed: %d", err);
-    }
-    if (err == noErr) {
-        err = MoreSCErrorBoolean(
-                SCDynamicStoreSetNotificationKeys(
-                    ref,
-                    NULL,
-                    patternList)
-              );
-    }
-    if (err != noErr) {
-	OIC_LOG_V(ERROR, TAG, "SCDynamicStoreSetNotificationKeys failed: %d", err);
-    }
-    if (err == noErr) {
-        rls = SCDynamicStoreCreateRunLoopSource(NULL, ref, 0);
-        err = MoreSCError(rls);
-    }
-    if (err != noErr) {
-	OIC_LOG_V(ERROR, TAG, "SCDynamicStoreCreateRunLoopSource failed: %d", err);
-    }
-
-    // Clean up.
-
-    CFQRelease(pattern[0]);
-    CFQRelease(pattern[1]);
-    CFQRelease(patternList);
-    if (err != noErr) {
-        CFQRelease(ref);
-        ref = NULL;
-    }
-    *storeRef = ref;
-    *sourceRef = rls;
-
-    assert( (err == noErr) == (*storeRef  != NULL) );
-    assert( (err == noErr) == (*sourceRef != NULL) );
-
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    return err;
-}

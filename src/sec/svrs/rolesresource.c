@@ -1,28 +1,26 @@
-//******************************************************************
-//
-// Copyright 2017 Microsoft
-//
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-//******************************************************************
+/******************************************************************
+
+ Copyright 2017 Microsoft
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+******************************************************************/
 
 #include "rolesresource.h"
 
-/* #include "iotivity_config.h" */
-
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+//#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 #include <stdlib.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -34,9 +32,9 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#if INTERFACE
-#include <cbor.h>
-#endif
+//#if INTERFACE
+#include "cbor.h"
+//#endif
 
 #include "utlist.h"
 
@@ -47,14 +45,14 @@
  * Derived from OIC Security Spec; see Spec for details.
  */
 #if EXPORT_INTERFACE
-struct OicSecRole
+typedef struct OicSecRole_t
 {
     // <Attribute ID>:<Read/Write>:<Multiple/Single>:<Mandatory?>:<Type>
     char id[ROLEID_LENGTH];                 // 0:R:S:Y:String
     char authority[ROLEAUTHORITY_LENGTH];   // 1:R:S:N:String
-};
+}  OicSecRole_t;
 
-typedef struct OicSecRole OicSecRole_t;
+// typedef struct OicSecRole OicSecRole_t;
 
 //TODO: Confirm the length and type of ROLEID.
 #define ROLEID_LENGTH 64 // 64-byte authority max length
@@ -66,18 +64,17 @@ typedef struct OicSecRole OicSecRole_t;
 #define fixme_rp OCResourceProperty /* help makeheaders find the enum */
 
 #if EXPORT_INTERFACE
-typedef struct RoleCertChain {
+struct RoleCertChain {
     uint32_t                credId;             /**< locally assigned ID number for use with DELETE */
     OicSecKey_t             certificate;        /**< certificate chain including leaf and intermediate CA certificates */
 
     struct RoleCertChain    *next;              /**< next chain in list */
-} RoleCertChain_t;
-#endif
+};
 
 typedef struct RolesEntry {
     uint8_t                 *publicKey;         /**< DER-encoded public key */
     size_t                  publicKeyLength;    /**< length of publicKey */
-    RoleCertChain_t         *chains;            /**< stored certificates */
+    struct RoleCertChain    *chains;            /**< stored certificates */
 
     struct tm               cacheValidUntil;    /**< Cache valid until time; use 0 if cache is not yet set */
     OicSecRole_t            *cachedRoles;       /**< Cached roles; must free with OICFree */
@@ -85,6 +82,7 @@ typedef struct RolesEntry {
 
     struct RolesEntry       *next;
 } RolesEntry_t;
+#endif
 
 typedef struct SymmetricRoleEntry {
     OicUuid_t                 subject;          /**< Subject of the symmetric credential */
@@ -127,7 +125,7 @@ static OCStackResult GetPeerPublicKeyFromEndpoint(const CAEndpoint_t *endpoint,
                                                   uint8_t **publicKey,
                                                   size_t *publicKeyLength)
 {
-    CASecureEndpoint_t sep;
+    CASecureEndpoint_t sep = { .publicKey = {0}};
     CAResult_t res = GetCASecureEndpointData(endpoint, &sep);
     if (CA_STATUS_OK != res)
     {
@@ -135,7 +133,7 @@ static OCStackResult GetPeerPublicKeyFromEndpoint(const CAEndpoint_t *endpoint,
         return OC_STACK_INVALID_PARAM;
     }
 
-    if ((NULL == sep.publicKey) || (0 == sep.publicKeyLength))
+    if ( /* (NULL == sep.publicKey) || */ (0 == sep.publicKeyLength))
     {
         OIC_LOG_V(WARNING, TAG, "%s: Peer did not have a public key", __func__);
         return OC_STACK_NO_RESOURCE;
@@ -163,7 +161,7 @@ static OCStackResult GetPeerPublicKey(const OCDevAddr *peer, uint8_t **publicKey
     return GetPeerPublicKeyFromEndpoint(&endpoint, publicKey, publicKeyLength);
 }
 
-static void FreeRoleCertChain(RoleCertChain_t *roleCert)
+static void FreeRoleCertChain(struct RoleCertChain *roleCert)
 {
     if (NULL == roleCert)
     {
@@ -174,15 +172,15 @@ static void FreeRoleCertChain(RoleCertChain_t *roleCert)
     OICFree(roleCert);
 }
 
-void FreeRoleCertChainList(RoleCertChain_t *roleCertList)
+void FreeRoleCertChainList(struct RoleCertChain *roleCertList)
 {
     if (NULL == roleCertList)
     {
         return;
     }
 
-    RoleCertChain_t *certTmp1 = NULL;
-    RoleCertChain_t *certTmp2 = NULL;
+    struct RoleCertChain *certTmp1 = NULL;
+    struct RoleCertChain *certTmp2 = NULL;
     LL_FOREACH_SAFE(roleCertList, certTmp1, certTmp2)
     {
         LL_DELETE(roleCertList, certTmp1);
@@ -278,12 +276,12 @@ OCStackResult RegisterSymmetricCredentialRole(const OicSecCred_t *cred)
     return OC_STACK_OK;
 }
 
-static OCStackResult DuplicateRoleCertChain(const RoleCertChain_t *roleCert, RoleCertChain_t **duplicate)
+static OCStackResult DuplicateRoleCertChain(const struct RoleCertChain *roleCert, struct RoleCertChain **duplicate)
 {
     OIC_LOG(DEBUG, TAG, "DuplicateRoleCertChain IN");
 
     OCStackResult res = OC_STACK_ERROR;
-    RoleCertChain_t *tmp = NULL;
+    struct RoleCertChain *tmp = NULL;
 
     if ((NULL == roleCert) || (NULL == duplicate))
     {
@@ -291,7 +289,7 @@ static OCStackResult DuplicateRoleCertChain(const RoleCertChain_t *roleCert, Rol
         goto exit;
     }
 
-    tmp = (RoleCertChain_t *)OICCalloc(1, sizeof(RoleCertChain_t));
+    tmp = (struct RoleCertChain *)OICCalloc(1, sizeof(struct RoleCertChain));
     if (NULL == tmp)
     {
         OIC_LOG(ERROR, TAG, "No memory for tmp");
@@ -326,9 +324,9 @@ exit:
     return res;
 }
 
-static bool RoleCertChainContains(RoleCertChain_t *chain, const RoleCertChain_t* roleCert)
+static bool RoleCertChainContains(struct RoleCertChain *chain, const struct RoleCertChain* roleCert)
 {
-    RoleCertChain_t *temp = NULL;
+    struct RoleCertChain *temp = NULL;
 
     LL_FOREACH(chain, temp)
     {
@@ -341,11 +339,11 @@ static bool RoleCertChainContains(RoleCertChain_t *chain, const RoleCertChain_t*
     return false;
 }
 
-static OCStackResult AddRoleCertificate(const RoleCertChain_t *roleCert, const uint8_t *pubKey, size_t pubKeyLength)
+static OCStackResult AddRoleCertificate(const struct RoleCertChain *roleCert, const uint8_t *pubKey, size_t pubKeyLength)
 {
     OCStackResult res = OC_STACK_ERROR;
     RolesEntry_t *targetEntry = NULL;
-    RoleCertChain_t *copy = NULL;
+    struct RoleCertChain *copy = NULL;
 
     OIC_LOG(DEBUG, TAG, "AddRoleCertificate IN");
 
@@ -425,7 +423,7 @@ exit:
     return res;
 }
 
-OCStackResult RolesToCBORPayload(const RoleCertChain_t *roles, uint8_t **cborPayload,
+OCStackResult RolesToCBORPayload(const struct RoleCertChain *roles, uint8_t **cborPayload,
                                         size_t *cborSize)
 {
     OCStackResult ret = OC_STACK_OK;
@@ -436,7 +434,7 @@ OCStackResult RolesToCBORPayload(const RoleCertChain_t *roles, uint8_t **cborPay
     CborEncoder rolesRootMap;
     CborEncoder rolesArray;
     size_t roleCount = 0;
-    const RoleCertChain_t *currChain = NULL;
+    const struct RoleCertChain *currChain = NULL;
 
     VERIFY_NOT_NULL_RETURN(TAG, cborPayload, ERROR, OC_STACK_INVALID_PARAM);
     VERIFY_NOT_NULL_RETURN(TAG, cborSize, ERROR, OC_STACK_INVALID_PARAM);
@@ -588,7 +586,7 @@ exit:
 /* Caller must call FreeRoleCertChainList on roleEntries when finished. */
 OCStackResult CBORPayloadToRoles(const uint8_t *cborPayload,
 				 size_t size,
-				 RoleCertChain_t **roleEntries) EXPORT
+				 struct RoleCertChain **roleEntries) EXPORT
 {
     if (NULL == cborPayload || 0 == size || NULL == roleEntries)
     {
@@ -598,7 +596,7 @@ OCStackResult CBORPayloadToRoles(const uint8_t *cborPayload,
     CborValue rolesCbor = { .parser = NULL };
     CborParser parser = { .end = NULL };
     CborError cborFindResult = CborNoError;
-    RoleCertChain_t *headRoleCertChain = NULL;
+    struct RoleCertChain *headRoleCertChain = NULL;
     char* tagName = NULL;
     size_t len = 0;
 
@@ -643,7 +641,7 @@ OCStackResult CBORPayloadToRoles(const uint8_t *cborPayload,
             {
                 // Enter role array
                 int roleCount = 0;
-                RoleCertChain_t *currEntry = NULL;
+                struct RoleCertChain *currEntry = NULL;
                 CborValue roleArray;
                 memset(&roleArray, 0, sizeof(roleArray));
 
@@ -661,13 +659,13 @@ OCStackResult CBORPayloadToRoles(const uint8_t *cborPayload,
                     if (NULL == currEntry)
                     {
                         assert(NULL == headRoleCertChain);
-                        headRoleCertChain = currEntry = (RoleCertChain_t *)OICCalloc(1, sizeof(RoleCertChain_t));
+                        headRoleCertChain = currEntry = (struct RoleCertChain *)OICCalloc(1, sizeof(struct RoleCertChain));
                         VERIFY_NOT_NULL(TAG, currEntry, ERROR);
                     }
                     else
                     {
                         assert(NULL != headRoleCertChain);
-                        currEntry->next = (RoleCertChain_t *)OICCalloc(1, sizeof(RoleCertChain_t));
+                        currEntry->next = (struct RoleCertChain *)OICCalloc(1, sizeof(struct RoleCertChain));
                         VERIFY_NOT_NULL(TAG, currEntry->next, ERROR);
                         currEntry = currEntry->next;
                     }
@@ -787,7 +785,7 @@ static OCEntityHandlerResult HandleGetRequest(OCEntityHandlerRequest *ehRequest)
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
     size_t size = 0;
     uint8_t *payload = NULL;
-    const RoleCertChain_t *roles = NULL;
+    const struct RoleCertChain *roles = NULL;
     uint8_t *publicKey = NULL;
     size_t publicKeyLength = 0;
 
@@ -838,7 +836,7 @@ static OCEntityHandlerResult HandlePostRequest(OCEntityHandlerRequest *ehRequest
 
     OIC_LOG(DEBUG, TAG, "Roles HandlePostRequest IN");
 
-    RoleCertChain_t *chains = NULL;
+    struct RoleCertChain *chains = NULL;
     uint8_t *payload = (((OCSecurityPayload*)ehRequest->payload)->securityData);
     size_t size = (((OCSecurityPayload*)ehRequest->payload)->payloadSize);
 
@@ -853,7 +851,7 @@ static OCEntityHandlerResult HandlePostRequest(OCEntityHandlerRequest *ehRequest
     res = CBORPayloadToRoles(payload, size, &chains);
     if (OC_STACK_OK == res)
     {
-        RoleCertChain_t *curr;
+        struct RoleCertChain *curr;
 
         // Validate the new roles.
         for (curr = chains; NULL != curr; curr = curr->next)
@@ -1009,8 +1007,8 @@ static OCEntityHandlerResult HandleDeleteRequest(OCEntityHandlerRequest *ehReque
 
     if (NULL != entry->chains)
     {
-        RoleCertChain_t *curr1 = NULL;
-        RoleCertChain_t *curr2 = NULL;
+        struct RoleCertChain *curr1 = NULL;
+        struct RoleCertChain *curr2 = NULL;
         LL_FOREACH_SAFE(entry->chains, curr1, curr2)
         {
             // credId of zero means delete all creds; we never assign zero as a credId.
@@ -1306,10 +1304,10 @@ OCStackResult GetEndpointRoles(const CAEndpoint_t *endpoint, OicSecRole_t **role
         return res;
     }
 
-    RoleCertChain_t *chain = targetEntry->chains;
+    struct RoleCertChain *chain = targetEntry->chains;
     while (NULL != chain)
     {
-        RoleCertChain_t *chainToRemove = NULL;
+        struct RoleCertChain *chainToRemove = NULL;
         OicSecRole_t *currCertRoles = NULL;
         size_t currCertRolesCount = 0;
         struct tm notValidAfter;
@@ -1389,4 +1387,4 @@ OCStackResult GetEndpointRoles(const CAEndpoint_t *endpoint, OicSecRole_t **role
     return OC_STACK_OK;
 }
 
-#endif /* defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
+// #endif /* defined(__WITH_DTLS__) || defined(__WITH_TLS__) */

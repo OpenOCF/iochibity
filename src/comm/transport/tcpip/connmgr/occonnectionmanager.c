@@ -110,6 +110,7 @@ OCStackResult OCCMInitialize()
     }
 
     // Register NetworkMonitor
+    // GAR: this is for tcp only?
     ret = CARegisterNetworkMonitorHandler(OCAdapterStateChangedHandler,
                                           OCConnectionStateChangedHandler);
     if (CA_STATUS_OK != ret)

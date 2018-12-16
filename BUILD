@@ -1,27 +1,10 @@
 load("//config:variables.bzl", "CSTD", "DEFINES")
 
-filegroup(
-    name = "srcs",
-    srcs = glob(["**"]),
-    visibility = ["//src/test/shell/bazel/testdata:__pkg__"],
-)
-
-cc_binary(
-    name = "hello",
-    srcs = ["hello.cc"],
-)
-
-cc_library(
-    name = "cbor",
-    deps = ["@tinycbor//:tinycbor-x509"])
-
-cc_library(
-    name = "coap",
-    deps = ["@libcoap//:libcoap-lib"])
-
-# cc_library(
-#     name = "mbed",
-#     deps = ["@mbedtls//:mbedtls-lib"])
+# filegroup(
+#     name = "srcs",
+#     srcs = glob(["**"]),
+#     visibility = ["//src/test/shell/bazel/testdata:__pkg__"],
+# )
 
 load("//tools/makeheaders:makeheaders.bzl", "prep_headers", "make_headers")
 
@@ -82,24 +65,6 @@ cc_binary(
     visibility = ["//visibility:public"]
 )
 
-# cc_binary(
-#     name = "libopenocf.so",
-#     # copts = ["-Ithird_party/coap",
-#     #          "-Ithird_party/coap/include"
-#     # ] + select({":windows": [],
-#     #             ":msvc": [],
-#     #             ":msys": [],
-#     #             ":darwin": ["-std=c11", "-U DEBUG"],
-#     #             "//conditions:default": []}),
-#     #linkstatic = 1,
-#     linkshared = 1,
-#     # alwayslink = True,
-#     # data = ["//:mkhdrs"],
-#     deps = ["//src/ocf"],
-#     # srcs = ["libopenocf.so"],
-#     visibility = ["//visibility:public"]
-# )
-
 # cc_library(
 #     name = "openocf.a",
 #     linkstatic = 1,
@@ -125,6 +90,17 @@ cc_library(
     linkstatic = True,
     # linkopts = ["-static"],
     alwayslink = True,
+    deps = ["//src/ocf"],
+    visibility = ["//visibility:public"]
+)
+
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+apple_static_library(
+    name = "ios_openocf",
+    minimum_os_version = "8.0",
+    platform_type = "ios",
+    # linkopts=["--no_warnings_for_no_symbols"],
     deps = ["//src/ocf"],
     visibility = ["//visibility:public"]
 )

@@ -31,7 +31,6 @@ cc_library(
                 "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/logger",
-            # "//src/ocf:hdrs",
             "//src/portability",
             "//src/sec/crypto",
             "//src/sec/util",

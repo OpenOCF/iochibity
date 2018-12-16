@@ -187,17 +187,6 @@ typedef enum
     OC_REST_DISCOVER       = (1 << 8)
 } OCMethod;
 
-/**
- * Host Mode of Operation.
- */
-typedef enum
-{
-    OC_CLIENT = 0,
-    OC_SERVER,
-    OC_CLIENT_SERVER,
-    OC_GATEWAY          /**< Client server mode along with routing capabilities.*/
-} OCMode;
-
 #define OC_MASK_RESOURCE_SECURE    (OC_NONSECURE | OC_SECURE)
 
 /**

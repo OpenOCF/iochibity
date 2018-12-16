@@ -59,7 +59,6 @@
 #include <netdb.h>
 #endif
 
-#include <coap/pdu.h>
 #include <inttypes.h>
 
 #define TAG "TCPCOAP"
@@ -247,6 +246,11 @@ CAData_t *CAGenerateSignalingMessageUsingToken(const CAEndpoint_t *endpoint, CAS
 }
 
 /* src: caprotocolmessage.c */
+
+#if INTERFACE
+// #include "coap_config.h"
+#include <coap/pdu.h>
+#endif
 CAResult_t CAGetSignalingInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                                      CASignalingInfo_t *outSigInfo)
 {

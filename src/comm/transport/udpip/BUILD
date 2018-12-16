@@ -32,27 +32,16 @@ cc_library(
                       "//conditions:default": []})
     + DEFINES,
 
+    alwayslink = 1,
     linkstatic = 1,
     deps = ["//src:config",
-            "//src/logger",
-            "//src/util",
-    	    # "//src/comm:hdrs",
-            # "//src/comm/security",
     	    "//src/comm/transport/util",
             "//src/comm/transport:sockets",
+            "//src/logger",
             "//src/portability",
+            "//src/util",
 	    "@libcoap//:libcoap",
 	    "@uthash//:uthash"],
-    # ] + select({":windows": ["//src/portability/windows"],
-    #           #":msvc": ["windows/caipnwmonitor.c"],
-    #           #":msys": ["linux/caipnwmonitor.c"],
-    #           ":darwin64": ["//src/portability/posix",
-    #                         "//src/portability/darwin"],
-    #           # ":android": ["//src/comm/transport/udpip/android"],
-    #           # ":ndk": ["//src/comm/transport/udpip/android"],
-    #           # ":linux": ["//src/comm/transport/udpip/linux"],
-    #           "//conditions:default": ["//src/portability/posix",
-    #                                    "//src/portability/darwin"]}),
     linkopts = select({"//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-liphlpapi", "-lws2_32"],
                        "//config:msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
                        "//config:mingw": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-liphlpapi", "-lws2_32"],
@@ -65,11 +54,28 @@ cc_library(
             "udp_data_sockets.c", "udp_data_sockets.h",
             "udp_status_manager.c", "udp_status_manager.h",
             "udp_thread_manager.c", "udp_thread_manager.h"]
-    + select({"//config:msvc": glob(["*_windows.c"]) + glob(["*_windows.h"]),
+    + select({"//config:android": ANDROID_SRCS,
+              "//config:msvc": glob(["*_windows.c"]) + glob(["*_windows.h"]),
               "//config:msys": glob(["*_windows.c"]) + glob(["*_windows.h"]),
               "//config:mingw": glob(["*_windows.c"]) + glob(["*_windows.h"]),
               "//config:darwin": glob(["*_posix.c"]) + glob(["*_posix.h"])
 	                       + glob(["*_darwin.c"]) + glob(["*_darwin.h"]),
+
+              "//config:ios_arm7": glob(["*_posix.c"]) + glob(["*_posix.h"])
+	      + glob(["*_darwin.c"], exclude=["udp_status_manager_darwin.c"])
+              + glob(["*_darwin.h"], exclude=["udp_status_manager_darwin.h"])
+              + ["udp_status_manager_ios.c", "udp_status_manager_ios.h"],
+
+              "//config:ios_arm64": glob(["*_posix.c"]) + glob(["*_posix.h"])
+	      + glob(["*_darwin.c"], exclude=["udp_status_manager_darwin.c"])
+              + glob(["*_darwin.h"], exclude=["udp_status_manager_darwin.h"])
+              + ["udp_status_manager_ios.c", "udp_status_manager_ios.h"],
+
+              "//config:ios_x86": glob(["*_posix.c"]) + glob(["*_posix.h"])
+	      + glob(["*_darwin.c"], exclude=["udp_status_manager_darwin.c"])
+              + glob(["*_darwin.h"], exclude=["udp_status_manager_darwin.h"])
+              + ["udp_status_manager_ios.c", "udp_status_manager_ios.h"],
+
               # "//config:darwin_with_jni": glob(["*_posix.c"]) + glob(["*_posix.h"])
 	      #                  + glob(["*_darwin.c"]) + glob(["*_darwin.h"])
                                # + ["@local_jdk//:jni_header",
@@ -86,7 +92,6 @@ cc_library(
                                "udp_data_receiver_posix.h",
                                "udp_data_receiver_linux.c",
                                "udp_data_receiver_linux.h"],
-              "//config:android": ANDROID_SRCS,
               "//conditions:default": ["BROKEN2"]}),
 
     visibility = ["//src/comm:__subpackages__"]

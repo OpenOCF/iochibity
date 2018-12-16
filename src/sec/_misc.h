@@ -13,6 +13,7 @@ typedef struct OicSecSvc OicSecSvc_t;
 
 typedef char *OicUrn_t; //TODO is URN type defined elsewhere?
 
+#if INTERFACE
 #include <stdint.h>
 typedef struct OicUuid OicUuid_t; //TODO is UUID type defined elsewhere?
 
@@ -29,3 +30,4 @@ struct OicUuid
     //TODO fill in unless this is defined elsewhere?
     uint8_t             id[UUID_LENGTH];
 };
+#endif

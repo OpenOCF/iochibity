@@ -29,8 +29,11 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
+#if INTERFACE
 #include "cbor.h"
+#endif
 
 #define TAG "OIC_RI_PAYLOADPARSE"
 
@@ -38,14 +41,6 @@
  * The length of UINT64_MAX as a decimal string.
  */
 #define UINT64_MAX_STRLEN 20
-
-static OCStackResult OCParseDiscoveryPayload(OCPayload **outPayload, OCPayloadFormat format,
-        CborValue *arrayVal);
-static CborError OCParseSingleRepPayload(OCRepPayload **outPayload, CborValue *repParent, bool isRoot);
-static OCStackResult OCParseRepPayload(OCPayload **outPayload, CborValue *arrayVal);
-static OCStackResult OCParsePresencePayload(OCPayload **outPayload, CborValue *arrayVal);
-static OCStackResult OCParseDiagnosticPayload(OCPayload **outPayload, CborValue *arrayVal);
-static OCStackResult OCParseSecurityPayload(OCPayload **outPayload, const uint8_t *payload, size_t size);
 
 OCStackResult OCParsePayload(OCPayload **outPayload, OCPayloadFormat payloadFormat,
         OCPayloadType payloadType, const uint8_t *payload, size_t payloadSize)
@@ -98,7 +93,7 @@ exit:
    return result;
 }
 
-static OCStackResult OCParseSecurityPayload(OCPayload** outPayload, const uint8_t *payload,
+LOCAL OCStackResult OCParseSecurityPayload(OCPayload** outPayload, const uint8_t *payload,
         size_t size)
 {
     if (size > 0)
@@ -697,7 +692,7 @@ exit:
     return ret;
 }
 
-static OCStackResult OCParseDiscoveryPayload(OCPayload **outPayload, OCPayloadFormat format,
+LOCAL OCStackResult OCParseDiscoveryPayload(OCPayload **outPayload, OCPayloadFormat format,
         CborValue *rootValue)
 {
     if (OC_FORMAT_VND_OCF_CBOR == format)
@@ -1039,7 +1034,7 @@ exit:
     return err;
 }
 
-static CborError OCParseSingleRepPayload(OCRepPayload **outPayload, CborValue *objMap, bool isRoot)
+LOCAL CborError OCParseSingleRepPayload(OCRepPayload **outPayload, CborValue *objMap, bool isRoot)
 {
     CborError err = CborUnknownError;
     char *name = NULL;
@@ -1211,7 +1206,7 @@ exit:
     return err;
 }
 
-static OCStackResult OCParseRepPayload(OCPayload **outPayload, CborValue *root)
+LOCAL OCStackResult OCParseRepPayload(OCPayload **outPayload, CborValue *root)
 {
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     CborError err;
@@ -1380,7 +1375,7 @@ exit:
 }
 #endif
 
-static OCStackResult OCParseDiagnosticPayload(OCPayload **outPayload, CborValue *rootValue)
+LOCAL OCStackResult OCParseDiagnosticPayload(OCPayload **outPayload, CborValue *rootValue)
 {
     OCStackResult ret = OC_STACK_INVALID_PARAM;
     OCDiagnosticPayload *payload = NULL;

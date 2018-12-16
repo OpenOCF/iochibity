@@ -1,16 +1,3 @@
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" }
-)
-config_setting(
-    name = "msvc",
-    values = { "cpu": "x64_windows_msvc" }
-)
-config_setting(
-    name = "msys",
-    values = { "cpu": "x64_windows_msys" }
-)
-
 cc_library(
     name = "util",
     alwayslink = 1,
@@ -20,11 +7,11 @@ cc_library(
              "-Iconfig/darwin/coap",
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
-    ] + select({":windows": [],
-              ":msvc": [],
-              ":msys": [],
-              "//conditions:default": ["-std=c11",
-                                       "-U DEBUG"]}), # OS X
+    ] + select({"//config:darwin": ["-U DEBUG"],
+                "//config:mingw": [],
+                "//config:msvc": [],
+                "//config:msys": [],
+                "//conditions:default": ["-std=c11"]}),
     deps = ["//src:config",
             "//src/logger",
             "//src/portability",

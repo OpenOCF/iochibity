@@ -147,8 +147,8 @@ typedef enum
     CA_SCOPE_SITE      = 0x5, // IPv6 Site-Local scope
     CA_SCOPE_ORG       = 0x8, // IPv6 Organization-Local scope
     CA_SCOPE_GLOBAL    = 0xE, // IPv6 Global scope
-} CATransportFlags_t;         /* == OOCTransportFlags */
-#endif                        /* INTERFACE */
+} CATransportFlags_t;         /* == OCTransportFlags */
+#endif                        /* EXPORT_INTERFACE */
 
 /* from cacommon.h */
 typedef enum

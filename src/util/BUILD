@@ -2,56 +2,25 @@
 
 load("//config:variables.bzl", "COPTS_ANDROID")
 
-config_setting(
-    name = "android",
-    values = {# "define": "target=android",
-        # "crosstool_top": "@android_ndk//:toolchain-libcpp",
-	#"target_system_name": "arm-linux-androideabi",
-	# "crosstool_top": "@androidndk//:toolchain-libcpp",
-        "cpu": "armeabi-v7a",
-              # "android_cpu": "x86",
-              # "android_crosstool_top": "//platforms/ndk:toolchain"
-    }
-)
-config_setting(
-    name = "ndk",
-    values = { "crosstool_top": "//platforms/ndk:toolchain" }
-)
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" }
-)
-config_setting(
-    name = "msvc",
-    values = { "cpu": "x64_windows_msvc" }
-)
-config_setting(
-    name = "msys",
-    values = { "cpu": "x64_windows_msys" }
-)
-
 cc_library(
     name = "util",
-    # alwayslink = True,
-    copts = [#"-Isrc",
-        # "-Iexternal/openocf/src",
-        "-Isrc/logger",
-        "-Iexternal/openocf/src/logger",
-        "-Isrc/portability",
-        "-Iexternal/tinycbor/src",
-    ]
-    + select({"windows": [],
-              "msvc": [],
-              "msys": [],
-              "android": COPTS_ANDROID,
-              "//conditions:default": ["-std=c11",
-                                       "-U DEBUG"]}),
+    alwayslink = True,
+    copts = ["-Isrc/portability",
+             "-Iexternal/tinycbor/src"]
+    + select({"//config:android_arm7": COPTS_ANDROID,
+              "//config:android_arm8": COPTS_ANDROID,
+              "//config:android_x86": COPTS_ANDROID,
+              "//config:darwin": ["-U DEBUG"],
+              "//config:ios": ["-U DEBUG"],
+              "//config:mingw": [],
+              "//config:msvc": [],
+              "//config:msys": [],
+              "//conditions:default": ["-std=c11"]}),
     deps = ["//src/logger",
-            "@tinycbor//:tinycbor",
-            # "//third_party/ndk",
-            # "//src/portability"
-    ],
-    linkopts = select({"android": ["-llog"],
+            "@tinycbor//:tinycbor"],
+    linkopts = select({"//config:android_arm7": ["-llog"],
+                       "//config:android_arm8": ["-llog"],
+                       "//config:android_x86": ["-llog"],
                        "//conditions:default": []}),
     srcs = ["_byte_array.h",
             "_errcheck.h",
@@ -68,10 +37,6 @@ cc_library(
             "ulinklist.h",
             "uqueue.c",
             "uqueue.h"],
-    # FIXME: move to portability:
-    # + select({":android": ["ifaddrs_android.c",
-    #                        "ifaddrs_android.h"],
-    #           "//conditions:default": []}),
     visibility = ["//visibility:public"]
     # visibility = ["//src:__subpackages__",
     #               "//tools/makeheaders:__pkg__",

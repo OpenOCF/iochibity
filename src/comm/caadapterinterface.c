@@ -33,18 +33,18 @@
 typedef struct
 {
     /** Start Transport specific functions. */
-    CAResult_t (*startAdapter)();
+    CAResult_t (*startAdapter)(void);
     /* CAAdapterStart startAdapter; */
 
     /** start multicast listener */
-    CAResult_t (*startListenServer)();
+    CAResult_t (*startListenServer)(void);
     //CAAdapterStartListeningServer *startListenServer;
 
     /** Stops receiving the multicast traffic. */
-    CAResult_t (*stopListenServer)();
+    CAResult_t (*stopListenServer)(void);
     //CAAdapterStopListeningServer *stopListenServer;
 
-    CAResult_t (*startDiscoveryServer)();
+    CAResult_t (*startDiscoveryServer)(void);
     //CAAdapterStartDiscoveryServer *startDiscoveryServer;
 
     /** Send unicast data **/
@@ -64,14 +64,14 @@ typedef struct
 			     size_t *size     /**< [out] nbr of local connectivity structs */);
     //CAAdapterGetNetworkInfo *GetnetInfo;
 
-    CAResult_t (*readData)();
+    CAResult_t (*readData)(void);
     /* CAAdapterReadData *readData; */
 
     /** Stop Transport specific functions. */
-    CAResult_t (*stopAdapter)();
+    CAResult_t (*stopAdapter)(void);
     /* CAAdapterStop *stopAdapter; */
 
-    void (*terminate)();
+    void (*terminate)(void);
     //CAAdapterTerminate *terminate;
 
     CATransportAdapter_t cType;

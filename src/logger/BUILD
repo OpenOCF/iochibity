@@ -1,39 +1,68 @@
 load("//config:variables.bzl", "CSTD", "DEFINES", "OS_COPTS")
 
+# select({"//config:enable_logging": ["logger.c",
+#                                                "payload_logging.c",
+#                                                "payload_logging.h",
+#                                                "trace.c",
+#                                                "trace.h"]
+
 cc_library(
     name = "logger",
-    copts = ["-Isrc",
-             "-Iexternal/openocf/src"]
-    + select({"//config:mingw": [],
-              "//config:msvc": [],
-              "//config:msys": [],
-              "//config:darwin": ["-U DEBUG", "-std=c11"],
-              "//conditions:default": ["-std=c11"]})
+    copts =  select({"//config:msvc": [],
+                     "//config:darwin": ["-U DEBUG", "-std=c11"],
+                     "//conditions:default": ["-std=c11"]})
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
               "//conditions:default": []})
     + CSTD,
 
     defines = DEFINES,
 
-    hdrs = ["logger.h"],
     linkopts = select({"//config:android": ["-llog"],
                        "//conditions:default": []}),
-    # alwayslink = True,
+    alwayslink = True,
     linkstatic = 1,
+    deps = select({"//config:enable_logging": [":logger_impl"],
+                   "//conditions:default": []}),
+    srcs = select({"//config:enable_logging": [],
+                   "//conditions:default": ["nologger.c", "nologger.h"]}),
+    visibility = ["//visibility:public"]
+)
+
+cc_library(
+    name = "logger_impl",
+    copts =  select({"//config:msvc": [],
+                     "//config:darwin": ["-U DEBUG", "-std=c11"],
+                     "//conditions:default": ["-std=c11"]})
+    + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
+              "//conditions:default": []})
+    + CSTD,
+
+    defines = DEFINES,
+
+    linkopts = select({"//config:android": ["-llog"],
+                       "//conditions:default": []}),
+    alwayslink = True,
+    linkstatic = 1,
+    hdrs = ["logger.h"],
     srcs = ["logger.c",
-            "logger.h",
+            "payload_logging.c",
+            "payload_logging.h",
             "trace.c",
-            "trace.h"
-    ]
-    + select({"//config:mingw":  glob(["logger_windows.*"]),
-              "//config:msvc":   glob(["logger_windows.*"]),
-              "//config:msys":   glob(["logger_windows.*"]),
-              "//config:android": ["logger_android.c", "logger_android.h"],
+            "trace.h"]
+    # FIXME: trace.c for android, tizen
+    + select({"//config:android": ["logger_android.c", "logger_android.h"],
               "//config:darwin": ["logger_posix.c", "logger_posix.h"],
+              "//config:ios_arm7": ["logger_posix.c", "logger_posix.h"],
+              "//config:ios_arm64": ["logger_posix.c", "logger_posix.h"],
+              "//config:ios_x86": ["logger_posix.c", "logger_posix.h"],
               "//config:linux": ["logger_posix.c", "logger_posix.h"],
               "//config:linux64": ["logger_posix.c", "logger_posix.h"],
+              "//config:mingw":  glob(["logger_windows.*"]),
+              "//config:msvc":   glob(["logger_windows.*"]),
+              "//config:msys":   glob(["logger_windows.*"]),
               "//config:rpi_arm8": ["logger_posix.c", "logger_posix.h"],
-              "//conditions:default": ["BROKEN"]}),
-              # "//conditions:default": ["logger_posix.c", "logger_posix.h"]}),
+              #"//conditions:default": ["BROKEN"]}),
+              "//conditions:default": []}),
+
      visibility = ["//visibility:public"]
 )

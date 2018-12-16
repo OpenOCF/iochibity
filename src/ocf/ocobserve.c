@@ -24,7 +24,6 @@
 
 #include "utlist.h"
 
-#include "coap_config.h"
 #include "coap/pdu.h"
 /* FIXME PORTABILITY: one of these is required for coap_time.h */
 /* use --per_file_copt cmd line option? */
@@ -32,8 +31,10 @@
 #define HAVE_WS2TCPIP_H
 #else
 #define WITH_POSIX
-#endif
+#include <time.h>
+#include "coap_config.h"
 #include "coap/coap_time.h"
+#endif
 
 // Module Name
 #define MOD_NAME "ocobserve"

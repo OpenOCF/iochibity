@@ -20,29 +20,26 @@
 
 #include "crlresource.h"
 
-#include "utlist.h"
-
-#include "mbedtls/base64.h"
 #include "cbor.h"
+#include "mbedtls/base64.h"
+#include "utlist.h"
 
 #include <time.h>
 
 #define TAG  "OIC_SRM_CRL"
 
+//#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 #if EXPORT_INTERFACE
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 typedef struct OicSecCrl OicSecCrl_t;
-#endif /* __WITH_DTLS__ or __WITH_TLS__*/
 
-#if defined(__WITH_DTLS__) ||  defined(__WITH_TLS__)
 struct OicSecCrl
 {
     uint16_t CrlId;
     ByteArray_t ThisUpdate;
     OicSecKey_t CrlData;
 };
-#endif /* __WITH_DTLS__ or __WITH_TLS__ */
 #endif	/* INTERFACE */
+//#endif /* __WITH_DTLS__ or __WITH_TLS__ */
 
 #define fixme_crl_rp OCResourceProperty /* help makeheaders */
 

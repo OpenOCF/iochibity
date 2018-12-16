@@ -79,8 +79,8 @@ typedef struct OCPairList_t
 #if EXPORT_INTERFACE
 #include <limits.h>
 
-#define PDM_VERIFY_STATEMENT_SIZE(stmt) \
-    static_assert(sizeof(stmt) < INT_MAX, #stmt " must be shorter than INT_MAX.")
+#define PDM_VERIFY_STATEMENT_SIZE(stmt)
+/*     static_assert(sizeof(stmt) < INT_MAX, /\* stmt *\/ "stmt must be shorter than INT_MAX."); */
 
 #define PDM_SQLITE_GET_STALE_INFO "SELECT ID,ID2 FROM T_DEVICE_LINK_STATE WHERE STATE = ?"
 #define PDM_SQLITE_GET_STALE_INFO_SIZE (int)sizeof(PDM_SQLITE_GET_STALE_INFO)

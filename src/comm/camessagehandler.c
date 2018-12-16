@@ -28,11 +28,14 @@
 #endif
 
 #if INTERFACE
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
 #endif	/* INTERFACE */
 
+#include "coap_config.h"
 #include "coap/coap_list.h"
+#include "coap/block.h"
 #include "coap/pdu.h"
 
 CAHistory_t requestHistory;  /**< filter IP family in requests */

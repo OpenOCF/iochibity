@@ -29,7 +29,7 @@ cc_library(
 	    "@sqlite3//:sqlite3",
 	    "@uthash//:uthash"
     ]+ select({"//config:multi_own": ["//src/provisioning/multiown"],
-              "//conditions:default": []}),
+               "//conditions:default": []}),
     #         # if WITH_TCP
     #         # "//src/provitioning/cloud"
     # + select({"windows": ["//third_party/sqlite3"],

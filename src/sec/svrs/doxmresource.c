@@ -27,14 +27,12 @@
 #include <strings.h>
 #endif
 
-#include <cbor.h>
-
-#include "utlist.h"
-
+#include "cbor.h"
 #if defined(__WITH_DTLS__) || defined (__WITH_TLS__)
 #include <mbedtls/ssl_ciphersuites.h>
 #include <mbedtls/md.h>
 #endif
+#include "utlist.h"
 
 #define TAG  "OIC_SRM_DOXM"
 

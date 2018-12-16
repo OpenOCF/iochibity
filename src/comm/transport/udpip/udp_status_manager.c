@@ -155,12 +155,13 @@ void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapter
 
     // original code called g_networkChangeCallback, which is ptr to CAAdapterChangedCallback
     // we do not need to go through g_networkChangeCallbackList, we can just call directly
-    oocf_enqueue_interface_chg_work_pkg(CA_ADAPTER_IP, status); // @was CAAdapterChangedCallback (cainterfacecontrolller.c)
     // the handler is OCDefaultAdapterStateChangedHandler(CA_ADAPTER_IP, status);
 
     // CAAdapterChangedCallback in turn iterates over
     // g_networkChangeCallbackList, putting a task on the msg queue
     // for each.
+
+    oocf_enqueue_interface_chg_work_pkg(CA_ADAPTER_IP, status); // @was CAAdapterChangedCallback (cainterfacecontrolller.c)
 
     // code from CAAdapterChangedCallback:
     /* CANetworkCallbackThreadInfo_t *info */
@@ -171,7 +172,7 @@ void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapter
     /* 	    return; */
     /* 	} */
 
-    /* // the CB is OCDefaultAdapterStateChangedHandler */
+    /* // the CB is OCDefaultAdapterStateChangedHandler which does nothing */
     /* info->adapterCB = OCDefaultAdapterStateChangedHandler; // @was callback->adapter; */
     /* info->adapter = CA_ADAPTER_IP;  // @was adapter; */
     /* info->isInterfaceUp = (CA_INTERFACE_UP == status); */

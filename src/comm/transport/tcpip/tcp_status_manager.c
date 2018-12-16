@@ -209,6 +209,7 @@ void tcp_interface_change_handler(CATransportAdapter_t adapter, // @was CATCPAda
 }
 
 // FIXME: rename tcp_state_chg_handler?
+/* src: occonnectionmanager.c */
 void OCAdapterStateChangedHandler(CATransportAdapter_t adapter, bool enabled)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);

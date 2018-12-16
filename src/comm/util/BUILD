@@ -1,16 +1,3 @@
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" }
-)
-config_setting(
-    name = "msvc",
-    values = { "cpu": "x64_windows_msvc" }
-)
-config_setting(
-    name = "msys",
-    values = { "cpu": "x64_windows_msys" }
-)
-
 cc_library(
     name = "util",
     copts = ["-Isrc",
@@ -21,17 +8,15 @@ cc_library(
              "-Iexternal/openocf/src/comm/transport/util",
              "-Isrc/comm/util",
              "-Iexternal/openocf/src/comm/util",
-             "-Isrc/logger",
-             "-Iexternal/openocf/src/logger",
     	     "-Isrc/portability",
              "-Iexternal/openocf/src/portability",
 	     "-Isrc/util",
              "-Iexternal/openocf/src/util",
              "-Iexternal/libcoap/include",
              "-Iexternal/openocf/third_party/coap/include"]
-    + select({":windows": [],
-              ":msvc": [],
-              ":msys": [],
+    + select({"//config:mingw": [],
+              "//config:msvc": [],
+              "//config:msys": [],
               "//conditions:default": ["-std=c11",
                                        "-U DEBUG"]}), # OS X
     deps = ["//src:config",

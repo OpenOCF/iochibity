@@ -33,13 +33,15 @@
 // headers required for mbed TLS
 #include "mbedtls/platform.h"
 #include "mbedtls/ssl.h"
+//#if INTERFACE
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
+#include "mbedtls/x509.h"
+//#endif
 #include "mbedtls/pkcs12.h"
 #include "mbedtls/ssl_internal.h"
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/oid.h"
-#include "mbedtls/x509.h"
 #include "mbedtls/error.h"
 #ifdef __WITH_DTLS__
 #include "mbedtls/timing.h"
@@ -74,7 +76,9 @@
 /**
  * Currently TLS supported adapters(3) WIFI, ETHERNET and BLE for linux platform.
  */
+#if INTERFACE
 #define MAX_SUPPORTED_ADAPTERS 3
+#endif
 
 #if EXPORT_INTERFACE
 #include <stddef.h>
@@ -226,10 +230,13 @@ static const unsigned char EKU_IDENTITY[] = { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x82
  * Calls \a fn for \a clientConf and \a serverConf.
  *
  */
+// GAR: what's the point of this? why not just apply the fn?
+#if INTERFACE
 #define CONF_SSL(clientConf, serverConf, fn, ...) do {                                             \
 fn((clientConf), __VA_ARGS__);                                                                     \
 fn((serverConf), __VA_ARGS__);                                                                     \
 } while (0)
+#endif
 
 /** @def CHECK_MBEDTLS_RET(f, ...)
  * A macro that checks \a f function return code
@@ -248,21 +255,7 @@ if (0 != ret) {                                                                 
     goto exit;                                                                                     \
 } } while (0)
 
-typedef enum
-{
-    SSL_RSA_WITH_AES_256_CBC_SHA256,
-    SSL_RSA_WITH_AES_128_GCM_SHA256,
-    SSL_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-    SSL_ECDHE_ECDSA_WITH_AES_128_CCM_8,
-    SSL_ECDHE_ECDSA_WITH_AES_128_CCM,
-    SSL_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
-    SSL_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,
-    SSL_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-    SSL_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
-    SSL_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
-    SSL_ECDH_ANON_WITH_AES_128_CBC_SHA256,
-    SSL_CIPHER_MAX
-} SslCipher_t;
+/* enum SslCipher_t => sec/oocf_cipher_suites.c */
 
 #if INTERFACE
 typedef enum
@@ -272,22 +265,9 @@ typedef enum
 } AdapterCurve_t;
 #endif
 
-static const int tlsCipher[SSL_CIPHER_MAX][2] =
-{
-    {MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA256, 0},
-    {MBEDTLS_TLS_RSA_WITH_AES_128_GCM_SHA256, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CCM, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, 0},
-    {MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, 0},
-    {MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256, 0},
-    {MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, 0},
-    {MBEDTLS_TLS_ECDH_ANON_WITH_AES_128_CBC_SHA256, 0}
-};
+/* tlsCipher => sec/oocf_cipher_suites.c */
 
-static int g_cipherSuitesList[SSL_CIPHER_MAX];
+static int g_cipherSuitesList[(SslCipher_t)SSL_CIPHER_MAX];
 
 mbedtls_ecp_group_id curve[ADAPTER_CURVE_MAX][2] =
 {
@@ -387,6 +367,12 @@ typedef struct TlsCallBacks
 /**
  * Data structure for holding the mbedTLS interface related info.
  */
+#if INTERFACE
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/ssl_cookie.h"
+#include "mbedtls/x509_crt.h"
 typedef struct SslContext
 {
     u_arraylist_t *peerList;         /**< peer list which holds the mapping between
@@ -414,12 +400,13 @@ typedef struct SslContext
 #endif
 
 } SslContext_t;
+#endif
 
 /**
  * @var g_caSslContext
  * @brief global context which holds tls context and cache list information.
  */
-static SslContext_t * g_caSslContext = NULL;
+SslContext_t * g_caSslContext = NULL;
 
 /**
  * @var g_getCredentialsCallback
@@ -449,7 +436,7 @@ static CAgetIdentityHandler g_getIdentityCallback = NULL;
  * @var g_dtlsContextMutex
  * @brief Mutex to synchronize access to g_caSslContext and g_sslCallback.
  */
-static oc_mutex g_sslContextMutex = NULL;
+oc_mutex g_sslContextMutex = NULL;
 
 /**
  * @var g_sslCallback
@@ -2620,7 +2607,7 @@ void CAsetSslAdapterCallbacks(// CAPacketReceivedCallback recvCallback,
  * @return   corresponding enum
  */
 
-static SslCipher_t GetCipherIndex(const uint32_t cipher)
+SslCipher_t GetCipherIndex(const uint32_t cipher)
 {
     switch(cipher)
     {
@@ -2675,41 +2662,7 @@ static SslCipher_t GetCipherIndex(const uint32_t cipher)
     }
 }
 
-CAResult_t CAsetTlsCipherSuite(const uint32_t cipher)
-{
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
-    oc_mutex_lock(g_sslContextMutex);
-
-    if (NULL == g_caSslContext)
-    {
-        OIC_LOG(ERROR, NET_SSL_TAG, "SSL context is not initialized.");
-        oc_mutex_unlock(g_sslContextMutex);
-        return CA_STATUS_NOT_INITIALIZED;
-    }
-
-    SslCipher_t index = GetCipherIndex(cipher);
-    if (SSL_CIPHER_MAX == index)
-    {
-        OIC_LOG(WARNING, NET_SSL_TAG, "Unknown cipher");
-    }
-    else
-    {
-#ifdef __WITH_TLS__
-        CONF_SSL(&g_caSslContext->clientTlsConf, &g_caSslContext->serverTlsConf,
-        mbedtls_ssl_conf_ciphersuites, tlsCipher[index]);
-#endif
-#ifdef __WITH_DTLS__
-        CONF_SSL(&g_caSslContext->clientDtlsConf, &g_caSslContext->serverDtlsConf,
-        mbedtls_ssl_conf_ciphersuites, tlsCipher[index]);
-#endif
-        OIC_LOG_V(DEBUG, NET_SSL_TAG, "Selected cipher: 0x%x", cipher);
-    }
-    g_caSslContext->cipher = index;
-
-    oc_mutex_unlock(g_sslContextMutex);
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "Out %s", __func__);
-    return CA_STATUS_OK;
-}
+/* CAsetTlsCipherSuite => oocf_cipher_suites.c */
 
 CAResult_t CAinitiateSslHandshake(const CAEndpoint_t *endpoint)
 {

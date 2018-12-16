@@ -55,6 +55,8 @@
 #ifdef HAVE_NET_IF_H
 #include <net/if.h>
 #endif
+
+#include <string.h>
 #include <errno.h>
 
 #if INTERFACE
@@ -224,7 +226,7 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
     return CA_STATUS_OK;
 }
 
-void CAIPStopServer()
+void CAIPStopServer(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
@@ -250,7 +252,7 @@ void CAIPStopServer()
     udp_is_started = false;
 }
 
-void CAWakeUpForChange()
+void CAWakeUpForChange(void)
 {
     if (udp_shutdownFds[1] != -1)
     {

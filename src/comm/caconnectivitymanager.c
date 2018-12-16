@@ -536,44 +536,9 @@ CAResult_t CASendResponse(const CAEndpoint_t *object, const CAResponseInfo_t *re
 #if INTERFACE
 #include <inttypes.h>
 #endif
-CAResult_t CASelectCipherSuite(const uint16_t cipher, CATransportAdapter_t adapter)
-{
-    (void)(adapter); // prevent unused-parameter warning when building release variant
-    OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
-    OIC_LOG_V(DEBUG, TAG, "cipher : %d , CATransportAdapter : %d", cipher, adapter);
-    CAResult_t res = CA_STATUS_FAILED;
-#if defined (__WITH_DTLS__) || defined(__WITH_TLS__)
-    res = CAsetTlsCipherSuite(cipher);
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG_V(ERROR, TAG, "Failed to CAsetTlsCipherSuite : %d", res);
-    }
-#else
-    (void)(cipher); // prevent unused-parameter warning
-    OIC_LOG(ERROR, TAG, "Method not supported");
-#endif
-    OIC_LOG_V(DEBUG, TAG, "Out %s", __func__);
-    return res;
-}
+/* CASelectCipherSuite => src/sec/oocf_cipher_suites.c */
 
-CAResult_t CAEnableAnonECDHCipherSuite(const bool enable)
-{
-    OIC_LOG(DEBUG, TAG, "CAEnableAnonECDHCipherSuite");
-    CAResult_t res = CA_STATUS_FAILED;
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-    // TLS_ECDH_ANON_WITH_AES_128_CBC_SHA256    0xFF00 replaces 0xC018
-    res = CAsetTlsCipherSuite(enable ? 0xFF00 : 0x00);
-    if (CA_STATUS_OK != res)
-    {
-        OIC_LOG_V(ERROR, TAG, "Failed to CAsetTlsCipherSuite : %d", res);
-    }
-#else
-    (void)(enable); // prevent unused-parameter compiler warning
-    OIC_LOG(ERROR, TAG, "Method not supported");
-#endif
-    OIC_LOG_V(DEBUG, TAG, "Out %s", __func__);
-    return res;
-}
+/* CAEnableAnonECDHCipherSuite => src/sec/oocf_cipher_suites.c */
 
 CAResult_t CAGenerateOwnerPSK(const CAEndpoint_t* endpoint,
                     const uint8_t* label, const size_t labelLen,

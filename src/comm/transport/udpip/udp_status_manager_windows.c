@@ -173,7 +173,7 @@ static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t 
 /*     } */
 /* } */
 
-void CADeInitializeMonitorGlobals()
+void CADeInitializeMonitorGlobals(void)
 {
     if (udp_addressChangeEvent != WSA_INVALID_EVENT)
 	{
@@ -294,7 +294,7 @@ static void CALLBACK IpAddressChangeCallback(void *context,
 #ifdef USE_SOCKET_ADDRESS_CHANGE_EVENT
 static HANDLE g_CAIPNetworkMonitorShutdownEvent = NULL;
 
-void UnregisterForIpAddressChange()
+void UnregisterForIpAddressChange(void)
 {
     if (g_CAIPNetworkMonitorShutdownEvent != NULL)
     {
@@ -423,7 +423,7 @@ done:
     return err;
 }
 
-BOOL RegisterForIpAddressChange()
+BOOL RegisterForIpAddressChange(void)
 {
     assert(g_CAIPNetworkMonitorNotificationHandle == NULL);
 
@@ -649,7 +649,7 @@ static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t 
  *
  * @return  Dynamically allocated IP address list, or NULL if no change.
  */
-u_arraylist_t  *CAFindInterfaceChange()
+u_arraylist_t  *CAFindInterfaceChange(void)
 {
     u_arraylist_t *iflist = u_arraylist_create();
     if (!iflist)
@@ -771,7 +771,7 @@ CAInterface_t *AddCAInterface(u_arraylist_t *iflist, const char *name, uint32_t 
     return ifitem;
 }
 
-void CARegisterForAddressChanges()
+void CARegisterForAddressChanges(void)
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
 /* #ifdef _WIN32 */
@@ -881,7 +881,7 @@ bool AddAddresses(PIP_ADAPTER_ADDRESSES pAdapterAddr, u_arraylist_t *iflist, int
  * @return List of network adapters.
  */
 #include <iphlpapi.h>
-PIP_ADAPTER_ADDRESSES GetAdapters()
+PIP_ADAPTER_ADDRESSES GetAdapters(void)
 {
     ULONG ulOutBufLen = 0;
     PIP_ADAPTER_ADDRESSES pAdapterAddr = NULL;
@@ -1054,7 +1054,7 @@ CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
     return CA_STATUS_OK;
 }
 
-void CAInitializeFastShutdownMechanism() /* FIXME: move to controller? */
+void CAInitializeFastShutdownMechanism(void) /* FIXME: move to controller? */
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
     udp_selectTimeout = -1; // don't poll for shutdown

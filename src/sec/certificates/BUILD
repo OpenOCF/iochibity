@@ -5,7 +5,6 @@ cc_library(
     alwayslink = 1,
     linkstatic = True,
     copts = ["-Isrc",
-             "-Isrc/logger",
              "-Isrc/comm/api",
              "-Isrc/ocf",
              "-Isrc/portability",

@@ -170,8 +170,46 @@ config_setting(
 )
 config_setting(
     name = "darwin64",
-    values = { "host_cpu": "darwin_x86_64",
+    values = { # "host_cpu": "darwin_x86_64",
                "cpu": "darwin_x86_64" },
+    visibility = ["//visibility:public"]
+)
+
+################################################################
+####  ios
+
+# -target armv7-apple-ios
+
+config_setting(
+    name = "ios",
+    values = {"cpu": "ios"
+    },
+    visibility = ["//visibility:public"]
+)
+config_setting(
+    name = "ios_arm7",
+    values = {"cpu": "ios_armv7"
+    },
+    visibility = ["//visibility:public"]
+)
+config_setting(
+    name = "ios_arm64",
+    values = {"cpu": "ios_arm64"
+    },
+    visibility = ["//visibility:public"]
+)
+
+config_setting(
+    name = "ios_i386",
+    values = {"cpu": "ios_i386"
+    },
+    visibility = ["//visibility:public"]
+)
+
+config_setting(
+    name = "ios_x86",
+    values = {"cpu": "ios_x86_64"
+    },
     visibility = ["//visibility:public"]
 )
 

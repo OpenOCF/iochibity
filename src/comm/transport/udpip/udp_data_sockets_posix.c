@@ -62,9 +62,9 @@
 #ifndef __APPLE__
 int udp_netlinkFd;              /**< netlink */
 #endif
+
 int udp_shutdownFds[2]; // = { 80, 81 }; /**< pipe used to signal threads to stop */
 CASocketFd_t udp_maxfd = 0;         /**< highest fd (for select) */
-#endif
 
 #if EXPORT_INTERFACE
 #include <inttypes.h>
@@ -85,7 +85,7 @@ bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn *mreq, int ret) EXPORT
     return EADDRINUSE != errno;
 }
 
-bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq,  int ret) EXPORT
+bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq, int ret) EXPORT
 {
     /* args not used in posix, used in windows */
     (void)fd;

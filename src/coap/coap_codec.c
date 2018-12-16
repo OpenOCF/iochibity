@@ -42,8 +42,7 @@
 
 #define TAG "OIC_CA_PRTCL_MSG"
 
-#if INTERFACE
-
+//#if INTERFACE
 #include "coap_config.h"
 #include "coap/coap_list.h"
 #include "coap/pdu.h"
@@ -51,7 +50,7 @@
 #include "coap_config.h"
 #include "coap/mem.h"
 #include "coap/prng.h"
-#endif
+//#endif
 
 #if EXPORT_INTERFACE
 /* src: caipinterface.c */
@@ -824,6 +823,9 @@ LOCAL CAResult_t CAParsePayloadFormatHeadOption(uint16_t formatOption, CAPayload
     return CA_STATUS_OK;
 }
 
+#if INTERFACE
+#include "coap/coap_list.h"
+#endif
 coap_list_t *CACreateNewOptionNode(uint16_t key, uint32_t length, const char *data)
 {
     VERIFY_NON_NULL_RET(data, TAG, "data", NULL);
@@ -924,6 +926,9 @@ CAResult_t CAGetOptionCount(coap_opt_iterator_t opt_iter, uint8_t *optionCount)
     return result;
 }
 
+#if INTERFACE
+#include <coap/pdu.h>
+#endif
 CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                             uint32_t *outCode, CAInfo_t *outInfo)
 {

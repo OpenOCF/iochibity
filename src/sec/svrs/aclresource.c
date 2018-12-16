@@ -28,6 +28,10 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
+//#if INTERFACE
+#include <cbor.h>
+//#endif
+
 #include "utlist.h"
 
 #define TAG  "OIC_SRM_ACL"
