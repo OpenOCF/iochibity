@@ -800,17 +800,29 @@ bool IsValidAddress(PIP_ADAPTER_UNICAST_ADDRESS pAddress)
         return true;
     }
 
-    PSOCKADDR_IN6 sockAddr = (PSOCKADDR_IN6)pAddress->Address.lpSockaddr;
-    if (Ipv6UnicastAddressScope(sockAddr->sin6_addr.s6_addr) == ScopeLevelLink)
-    {
-        // IPv6 link local addresses are valid.
-        return true;
-    }
+    /* PSOCKADDR_IN6 sockAddr = (PSOCKADDR_IN6)pAddress->Address.lpSockaddr; */
+    /* if (Ipv6UnicastAddressScope(sockAddr->sin6_addr.s6_addr) == ScopeLevelLink) */
+    /* { */
+    /*     // IPv6 link local addresses are valid. */
+    /*     return true; */
+    /* } */
 
     // Other IPv6 addresses are valid if they are DNS eligible.
     // That is, ignore temporary addresses.
     return ((pAddress->Flags & IP_ADAPTER_ADDRESS_DNS_ELIGIBLE) != 0);
 }
+
+/* mingw version of mstcpip.h lacks this function */
+#if defined(__MINGW32__) || defined(__MINGW64__)
+INLINE_API PUCHAR INETADDR_ADDRESS(const SOCKADDR* a)
+{
+	if (a->sa_family == AF_INET6) {
+		return (PUCHAR)&((PSOCKADDR_IN6)a)->sin6_addr;
+	} else {
+		return (PUCHAR)&((PSOCKADDR_IN)a)->sin_addr;
+	}
+}
+#endif
 
 bool AddAddresses(PIP_ADAPTER_ADDRESSES pAdapterAddr, u_arraylist_t *iflist, int desiredIndex)
 {
