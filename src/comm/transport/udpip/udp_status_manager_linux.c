@@ -248,31 +248,31 @@ void CARegisterForAddressChanges()
 /*     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__); */
 /* } */
 
-static void CARemoveFromInterfaceList(int ifiindex) // @was  CARemoveNetworkMonitorList
-{
-    VERIFY_NON_NULL_VOID(g_netInterfaceList, TAG, "g_netInterfaceList is NULL");
+/* static void CARemoveFromInterfaceList(int ifiindex) // @was  CARemoveNetworkMonitorList */
+/* { */
+/*     VERIFY_NON_NULL_VOID(g_netInterfaceList, TAG, "g_netInterfaceList is NULL"); */
 
-    oc_mutex_lock(g_networkMonitorContextMutex);
+/*     oc_mutex_lock(g_networkMonitorContextMutex); */
 
-    size_t list_length = u_arraylist_length(g_netInterfaceList);
-    for (size_t list_index = 0; list_index < list_length; list_index++)
-    {
-        CAInterface_t *removedifitem = (CAInterface_t *) u_arraylist_get(
-                g_netInterfaceList, list_index);
-        if (removedifitem && ((int)removedifitem->index) == ifiindex)
-        {
-            if (u_arraylist_remove(g_netInterfaceList, list_index))
-            {
-                OICFree(removedifitem);
-                oc_mutex_unlock(g_networkMonitorContextMutex);
-                return;
-            }
-            continue;
-        }
-    }
-    oc_mutex_unlock(g_networkMonitorContextMutex);
-    return;
-}
+/*     size_t list_length = u_arraylist_length(g_netInterfaceList); */
+/*     for (size_t list_index = 0; list_index < list_length; list_index++) */
+/*     { */
+/*         CAInterface_t *removedifitem = (CAInterface_t *) u_arraylist_get( */
+/*                 g_netInterfaceList, list_index); */
+/*         if (removedifitem && ((int)removedifitem->index) == ifiindex) */
+/*         { */
+/*             if (u_arraylist_remove(g_netInterfaceList, list_index)) */
+/*             { */
+/*                 OICFree(removedifitem); */
+/*                 oc_mutex_unlock(g_networkMonitorContextMutex); */
+/*                 return; */
+/*             } */
+/*             continue; */
+/*         } */
+/*     } */
+/*     oc_mutex_unlock(g_networkMonitorContextMutex); */
+/*     return; */
+/* } */
 
 // FIXME: move to ip package, this is transport independent?
 // @was: called by caipserver_linux::CASelectReturned when netlinkFd ready

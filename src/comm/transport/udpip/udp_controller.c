@@ -271,7 +271,7 @@ CAResult_t CAStartUDP()		// @rewrite @was CAStartIP (?)
 
     /* addresses will be added by udp_get_ifs_for_rtm_newaddr, from CAFindInterfaceChange etc. */
     // @rewrite: the created list is never used, so why bother?
-    ip_create_network_interface_list();  // @was CAIPInitializeNetworkMonitorList, called by CAIPStartNetworkMonitor
+    // ip_create_network_interface_list();  // @was CAIPInitializeNetworkMonitorList, called by CAIPStartNetworkMonitor
 
     if (CA_STATUS_OK != udp_start_send_msg_queue())
     {

@@ -53,7 +53,7 @@ oc_mutex g_networkMonitorContextMutex = NULL;
 // g_netInterfaceList is a list of nw INTERFACES! one entry per interface,
 // regardless of address and address family. InterfaceListContains compares only the IF index.
 // @rewrite g_netInterfaceList @was g_netInterfaceList
-u_arraylist_t *g_netInterfaceList = NULL;
+// u_arraylist_t *g_netInterfaceList = NULL;
 
 // struct CAIPCBData_t *g_adapterCallbackList = NULL;
 
@@ -72,32 +72,32 @@ u_arraylist_t *g_netInterfaceList = NULL;
 // exact same code is in the TCP package. move it to pkg IP
 // the original code also set nw monitor callbacks, that is now done statically
 // CAIPStartNetworkMonitor calls this
-CAResult_t ip_create_network_interface_list() // @was CAIPInitializeNetworkMonitorList
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    if (!g_networkMonitorContextMutex)
-    {
-        g_networkMonitorContextMutex = oc_mutex_new();
-        if (!g_networkMonitorContextMutex)
-        {
-            OIC_LOG(ERROR, TAG, "oc_mutex_new has failed");
-            return CA_STATUS_FAILED;
-        }
-    }
+/* CAResult_t ip_create_network_interface_list() // @was CAIPInitializeNetworkMonitorList */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
+/*     if (!g_networkMonitorContextMutex) */
+/*     { */
+/*         g_networkMonitorContextMutex = oc_mutex_new(); */
+/*         if (!g_networkMonitorContextMutex) */
+/*         { */
+/*             OIC_LOG(ERROR, TAG, "oc_mutex_new has failed"); */
+/*             return CA_STATUS_FAILED; */
+/*         } */
+/*     } */
 
-    if (!g_netInterfaceList)
-    {
-        g_netInterfaceList = u_arraylist_create();
-        if (!g_netInterfaceList)
-        {
-            OIC_LOG(ERROR, TAG, "u_arraylist_create has failed");
-            CAIPDestroyNetworkInterfaceList();
-            return CA_STATUS_FAILED;
-        }
-    }
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-    return CA_STATUS_OK;
-}
+/*     if (!g_netInterfaceList) */
+/*     { */
+/*         g_netInterfaceList = u_arraylist_create(); */
+/*         if (!g_netInterfaceList) */
+/*         { */
+/*             OIC_LOG(ERROR, TAG, "u_arraylist_create has failed"); */
+/*             CAIPDestroyNetworkInterfaceList(); */
+/*             return CA_STATUS_FAILED; */
+/*         } */
+/*     } */
+/*     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
+/*     return CA_STATUS_OK; */
+/* } */
 
 /**
  * Pass the changed network status through the stored callback.

@@ -142,36 +142,36 @@ static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t 
 /**
  * Destroy the network monitoring list.
  */
-void CAIPDestroyNetworkInterfaceList()
-{
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
-    // Free any new addresses waiting to be indicated up.
-    while (g_CAIPNetworkMonitorNewAddressQueue)
-    {
-        CANewAddress_t *change = g_CAIPNetworkMonitorNewAddressQueue;
-        DL_DELETE(g_CAIPNetworkMonitorNewAddressQueue, change);
-        OICFree(change->ipAddressInfo);
-        OICFree(change);
-    }
+/* void CAIPDestroyNetworkInterfaceList() */
+/* { */
+/*     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__); */
+/*     // Free any new addresses waiting to be indicated up. */
+/*     while (g_CAIPNetworkMonitorNewAddressQueue) */
+/*     { */
+/*         CANewAddress_t *change = g_CAIPNetworkMonitorNewAddressQueue; */
+/*         DL_DELETE(g_CAIPNetworkMonitorNewAddressQueue, change); */
+/*         OICFree(change->ipAddressInfo); */
+/*         OICFree(change); */
+/*     } */
 
-    // Free our cache of operational addresses.
-    if (g_CAIPNetworkMonitorAddressList)
-    {
-        u_arraylist_destroy(g_CAIPNetworkMonitorAddressList);
-        g_CAIPNetworkMonitorAddressList = NULL;
-    }
+/*     // Free our cache of operational addresses. */
+/*     if (g_CAIPNetworkMonitorAddressList) */
+/*     { */
+/*         u_arraylist_destroy(g_CAIPNetworkMonitorAddressList); */
+/*         g_CAIPNetworkMonitorAddressList = NULL; */
+/*     } */
 
-    /* if (g_CAIPNetworkMonitorMutex)
-     * {
-     *     oc_mutex_free(g_CAIPNetworkMonitorMutex);
-     *     g_CAIPNetworkMonitorMutex = NULL;
-     * } */
-    if (g_networkMonitorContextMutex)
-    {
-        oc_mutex_free(g_networkMonitorContextMutex);
-        g_networkMonitorContextMutex = NULL;
-    }
-}
+/*     /\* if (g_CAIPNetworkMonitorMutex) */
+/*      * { */
+/*      *     oc_mutex_free(g_CAIPNetworkMonitorMutex); */
+/*      *     g_CAIPNetworkMonitorMutex = NULL; */
+/*      * } *\/ */
+/*     if (g_networkMonitorContextMutex) */
+/*     { */
+/*         oc_mutex_free(g_networkMonitorContextMutex); */
+/*         g_networkMonitorContextMutex = NULL; */
+/*     } */
+/* } */
 
 void CADeInitializeMonitorGlobals()
 {
@@ -485,17 +485,17 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
     /*     return res; */
     /* } */
 
-    CAResult_t res = CAIPSetNetworkMonitorCallback(callback, adapter);
-    if (res != CA_STATUS_OK)
-    {
-        CAIPDestroyNetworkAddressList();
-        return res;
-    }
+    /* CAResult_t res = CAIPSetNetworkMonitorCallback(callback, adapter); */
+    /* if (res != CA_STATUS_OK) */
+    /* { */
+    /*     CAIPDestroyNetworkAddressList(); */
+    /*     return res; */
+    /* } */
 
 #ifdef USE_SOCKET_ADDRESS_CHANGE_EVENT
     if (!RegisterForIpAddressChange())
     {
-        CAIPDestroyNetworkAddressList();
+        /* CAIPDestroyNetworkAddressList(); */
         //CAIPUnSetNetworkMonitorCallback(adapter);
         return CA_STATUS_FAILED;
     }
@@ -505,7 +505,7 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
                                            &g_CAIPNetworkMonitorNotificationHandle);
     if (err != NO_ERROR)
     {
-        CAIPDestroyNetworkAddressList();
+        /* CAIPDestroyNetworkAddressList(); */
         //CAIPUnSetNetworkMonitorCallback(adapter);
         return CA_STATUS_FAILED;
     }
@@ -533,7 +533,7 @@ CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 #endif
     }
 
-    CAIPDestroyNetworkAddressList();
+    /* CAIPDestroyNetworkAddressList(); */
     return CA_STATUS_OK; // CAIPUnSetNetworkMonitorCallback(adapter);
 }
 
