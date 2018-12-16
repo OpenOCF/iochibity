@@ -390,7 +390,7 @@ LOCAL void udp_close_data_sockets()
     CLOSE_SOCKET(udp_m6s);
     CLOSE_SOCKET(udp_m4);
     CLOSE_SOCKET(udp_m4s);
-    /* CAUnregisterForAddressChanges(); */
+    CAUnregisterForAddressChanges();
 }
 
 void applyMulticastToInterface4(uint32_t ifindex)

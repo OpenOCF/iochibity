@@ -770,6 +770,15 @@ void CARegisterForAddressChanges()
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 
+void CAUnregisterForAddressChanges(void)
+{
+    if (udp_addressChangeEvent != WSA_INVALID_EVENT)
+    {
+        OC_VERIFY(WSACloseEvent(udp_addressChangeEvent));
+        udp_addressChangeEvent = WSA_INVALID_EVENT;
+    }
+}
+
 bool IsValidAddress(PIP_ADAPTER_UNICAST_ADDRESS pAddress)
 {
     if (pAddress->Address.lpSockaddr->sa_family != AF_INET6)
