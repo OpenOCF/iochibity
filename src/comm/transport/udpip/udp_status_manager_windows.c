@@ -690,13 +690,26 @@ u_arraylist_t  *CAFindInterfaceChange()
 
     if (someAddressWentAway)
     {
-        CAIPPassNetworkChangesToTransports(CA_INTERFACE_DOWN);
-        /* CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN); */
+        // CAIPPassNetworkChangesToTransports(CA_INTERFACE_DOWN);
+	//udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports
+#ifdef IP_ADAPTER
+	udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
+#endif
+#ifdef TCP_ADAPTER
+	tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); //@was CATCPAdapterHandler
+#endif
     }
     if (newAddress)
     {
-        CAIPPassNetworkChangesToTransports(CA_INTERFACE_UP);
+        // CAIPPassNetworkChangesToTransports(CA_INTERFACE_UP);
 	/* CAIPPassNetworkChangesToAdapter(CA_INTERFACE_UP); */
+#ifdef IP_ADAPTER
+	udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler
+#endif
+#ifdef TCP_ADAPTER
+	tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); //@was CATCPAdapterHandler
+#endif
+
     }
 
     return iflist;
