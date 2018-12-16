@@ -1,25 +1,6 @@
 # svrs = Security Virtual Resources
 load("//config:variables.bzl", "DEFINES")
 
-config_setting(
-    name = "darwin",
-    values = { "cpu": "darwin" })
-config_setting(
-    name = "darwin64",
-    values = { "cpu": "darwin_x86_64" })
-config_setting(
-    name = "windows",
-    values = { "cpu": "x64_windows" }
-)
-config_setting(
-    name = "msvc",
-    values = { "cpu": "x64_windows_msvc" }
-)
-config_setting(
-    name = "msys",
-    values = { "cpu": "x64_windows_msys" }
-)
-
 cc_library(
     name = "pbkdf2",
     srcs = glob(["pbkdf2.*"])
@@ -41,11 +22,11 @@ cc_library(
              "-Iconfig/mbedtls",
              "-Iexternal/mbedtls/patched/include",
              "-Iexternal/tinycbor/src",
-    ] + select({":windows": [],
-                ":msvc": [],
-                ":msys": [],
-                "darwin": ["-std=c11", "-UDEBUG"],
-                "darwin64": ["-std=c11", "UDEBUG"],
+    ] + select({"//config:mingw": [],
+                "//config:msvc": [],
+                "//config:msys": [],
+                "//config:darwin": ["-std=c11", "-UDEBUG"],
+                "//config:darwin64": ["-std=c11", "UDEBUG"],
                 "//conditions:default": ["-std=c11"]}),
 
     defines = DEFINES,
@@ -62,9 +43,9 @@ cc_library(
             "@tinycbor//:tinycbor",
             "@uthash//:uthash",
     ],
-    linkopts = select({":msys": ["-L:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lcrypt32"],
-                       ":msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 crypt32.lib"],
-                       ":windows": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 crypt32.lib"],
+    linkopts = select({"//config:msys": ["-L:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lcrypt32"],
+                       "//config:msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 crypt32.lib"],
+                       "//config:mingw": ["-L:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lcrypt32"],
               "//conditions:default": []}),
     srcs = glob(["*.c"], exclude = ["_events.c"])
     + glob(["*.h"]),

@@ -53,9 +53,9 @@ cc_library(
     #           # ":linux": ["//src/comm/transport/udpip/linux"],
     #           "//conditions:default": ["//src/portability/posix",
     #                                    "//src/portability/darwin"]}),
-    linkopts = select({"//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lwinsock2", "-liphlpapi", "-lws2_32"],
+    linkopts = select({"//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-liphlpapi", "-lws2_32"],
                        "//config:msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
-                       "//config:mingw": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
+                       "//config:mingw": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-liphlpapi", "-lws2_32"],
                        "//config:darwin": ["-framework SystemConfiguration"], # for network monitory
                        "//config:android": ["-llog"],
                        "//conditions:default": []}),
