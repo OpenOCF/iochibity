@@ -341,21 +341,21 @@ u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
             continue;
         }
 
-        // Netlink message type is RTM_NEWADDR.
-        struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
-        if (ifa)
-        {
-            int ifiIndex = ifa->ifa_index;
-	    /* FIXME: BUG. what if > 1 new addrs? only last will be in iflist */
-	    // GAR: udp_get_ifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter
-            iflist = udp_get_ifs_for_rtm_newaddr(ifiIndex);
-            if (!iflist)
-            {
-                OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
-                return NULL;
-            }
-	    /* GAR: CAProcessNewInterfaceItem? (android) */
-        }
+        if (RTM_NEWADDR == nh->nlmsg_type) {
+	    struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
+	    if (ifa) {
+		int ifiIndex = ifa->ifa_index;
+		/* FIXME: BUG. what if > 1 new addrs? only last will be in iflist */
+		// GAR: udp_get_ifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter
+		iflist = udp_get_ifs_for_rtm_newaddr(ifiIndex);
+		if (!iflist)
+		    {
+			OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
+			return NULL;
+		    }
+		/* GAR: CAProcessNewInterfaceItem? (android) */
+	    }
+	}
     }
 #endif
     return iflist;
