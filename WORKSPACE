@@ -104,13 +104,13 @@ new_local_repository(
 ####  External repos
 # Third-party package for Boost, from https://github.com/nelhage/rules_boost
 # This will download and compile Boost when you reference labels like "@boost//:iostreams"
-git_repository(
-    name = "com_github_nelhage_rules_boost",
-    commit = "239ce40e42ab0e3fe7ce84c2e9303ff8a277c41a",
-    remote = "https://github.com/nelhage/rules_boost",
-)
-load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
-boost_deps()
+# git_repository(
+#     name = "com_github_nelhage_rules_boost",
+#     commit = "239ce40e42ab0e3fe7ce84c2e9303ff8a277c41a",
+#     remote = "https://github.com/nelhage/rules_boost",
+# )
+# load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+# boost_deps()
 
 # libcoap
 new_http_archive(
