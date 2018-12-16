@@ -37,7 +37,9 @@
 #include <unistd.h>
 #endif
 #include <fcntl.h>
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
 #include <netinet/in.h>
 #include <net/if.h>
 #include <netdb.h>

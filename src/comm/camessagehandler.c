@@ -23,7 +23,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
 
 #if INTERFACE
 #include <stdlib.h>
