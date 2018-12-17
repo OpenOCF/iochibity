@@ -717,11 +717,11 @@ static int InitPKIX(CATransportAdapter_t adapter)
     mbedtls_x509_crt_init(&g_caSslContext->crt);
     mbedtls_pk_init(&g_caSslContext->pkey);
     mbedtls_x509_crl_init(&g_caSslContext->crl);
-    mbedtls_ssl_config * serverConf = (adapter == CA_ADAPTER_IP ||
-                                   adapter == CA_ADAPTER_GATT_BTLE ?
+    mbedtls_ssl_config * serverConf = ((adapter == CA_ADAPTER_IP ||
+                                        adapter == CA_ADAPTER_GATT_BTLE) ?
                                    &g_caSslContext->serverDtlsConf : &g_caSslContext->serverTlsConf);
-    mbedtls_ssl_config * clientConf = (adapter == CA_ADAPTER_IP ||
-                                   adapter == CA_ADAPTER_GATT_BTLE ?
+    mbedtls_ssl_config * clientConf = ((adapter == CA_ADAPTER_IP ||
+                                        adapter == CA_ADAPTER_GATT_BTLE) ?
                                    &g_caSslContext->clientDtlsConf : &g_caSslContext->clientTlsConf);
     // optional
     int ret;
@@ -841,7 +841,7 @@ static int InitPKIX(CATransportAdapter_t adapter)
  * PSK callback.
  *
  * @param[in]  notUsed     opaque context
- * @param[in]  ssl    mbedTLS context
+ * @param[in,out]  ssl    mbedTLS context
  * @param[in]  desc    identity
  * @param[in]  descLen    identity length
  *
@@ -1531,12 +1531,12 @@ static bool SetupCipher(mbedtls_ssl_config * config, CATransportAdapter_t adapte
     g_caSslContext->cipherFlag[0] = false;
     g_caSslContext->cipherFlag[1] = false;
 
-    if (NULL == g_getCredentialTypesCallback)
-    {
-        OIC_LOG(ERROR, NET_SSL_TAG, "Param callback is null");
-        OIC_LOG_V(DEBUG, NET_SSL_TAG, "Out %s", __func__);
-        return false;
-    }
+    /* if (NULL == g_getCredentialTypesCallback) */
+    /* { */
+    /*     OIC_LOG(ERROR, NET_SSL_TAG, "Param callback is null"); */
+    /*     OIC_LOG_V(DEBUG, NET_SSL_TAG, "Out %s", __func__); */
+    /*     return false; */
+    /* } */
 
     g_getCredentialTypesCallback(g_caSslContext->cipherFlag, deviceId);
 
