@@ -22,6 +22,12 @@
 
 #define TAG "OIC_SRM_PKIX_INTERFACE"
 
+/**
+ * This method is used by mbedTLS/SRM to retrieve PKIX related info
+ *
+ * @param[out] inf structure with certificate, private key and crl to be filled.
+ *
+ */
 void GetPkixInfo(PkiInfo_t * inf)
 {
     OIC_LOG_V(DEBUG, TAG, "In %s", __func__);
@@ -54,6 +60,12 @@ void GetPkixInfo(PkiInfo_t * inf)
     OIC_LOG_V(DEBUG, TAG, "Out %s", __func__);
 }
 
+/**
+ * This method is used by mbedTLS/SRM to retrieve manufacturer PKIX related info
+ *
+ * @param[out] inf structure with certificate, private key and crl to be filled.
+ *
+ */
 void GetManufacturerPkixInfo(PkiInfo_t * inf)
 {
     OIC_LOG_V(DEBUG, TAG, "In %s", __func__);

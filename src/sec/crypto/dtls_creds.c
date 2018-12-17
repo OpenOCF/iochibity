@@ -131,6 +131,19 @@ LOCAL bool ValueWithinBounds(uint64_t value, uint64_t maxValue)
     return true;
 }
 
+/**
+ * This internal callback is used by lower stack (i.e. CA layer) to
+ * retrieve PSK credentials from RI security layer.
+ *
+ * @param [in] type of PSK data required by CA layer during DTLS handshake.
+ * @param [in] desc Additional request information.
+ * @param [in] desc_len is the actual length of desc.
+ * @param [out] result  is must be filled with the requested information.
+ * @param [in] result_length is the maximum size of @p result.
+ *
+ * @return The number of bytes written to @p result or a value
+ *         less than zero on error.
+ */
 /* src: credresource.c */
 int32_t GetDtlsPskCredentials(CADtlsPskCredType_t type,
               const uint8_t *desc, size_t desc_len,

@@ -472,6 +472,20 @@ int DerivePSKUsingPIN(uint8_t* result)
     return dtlsRes;
 }
 
+/**
+ * This internal callback is used while Random PIN based OTM.
+ * This callback will be used to establish a temporary secure session according to
+ * TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256.
+ *
+ * @param[in]  type type of PSK data required by tinyDTLS layer during DTLS handshake.
+ * @param[in]  UNUSED1 UNUSED.
+ * @param[in]  UNUSED2 UNUSED.
+ * @param[out] result  Must be filled with the requested information.
+ * @param[in]  result_length  Maximum size of @p result.
+ *
+ * @return The number of bytes written to @p result or a value
+ *         less than zero on error.
+ */
 int32_t GetDtlsPskForRandomPinOxm( CADtlsPskCredType_t type,
               const unsigned char *UNUSED1, size_t UNUSED2,
               unsigned char *result, size_t result_length)
@@ -534,6 +548,20 @@ int32_t GetDtlsPskForRandomPinOxm( CADtlsPskCredType_t type,
     return ret;
 }
 
+/**
+ * This internal callback is used while Preconfigured-PIN OTM.
+ * This callback will be used to establish a temporary secure session according to
+ * TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256.
+ *
+ * @param[in]  type type of PSK data required by tinyDTLS layer during DTLS handshake.
+ * @param[in]  UNUSED1 UNUSED.
+ * @param[in]  UNUSED2 UNUSED.
+ * @param[out] result  Must be filled with the requested information.
+ * @param[in]  result_length  Maximum size of @p result.
+ *
+ * @return The number of bytes written to @p result or a value
+ *         less than zero on error.
+ */
 #ifdef MULTIPLE_OWNER
 int32_t GetDtlsPskForMotRandomPinOxm( CADtlsPskCredType_t type,
               const unsigned char *UNUSED1, size_t UNUSED2,
@@ -589,6 +617,20 @@ int32_t GetDtlsPskForMotRandomPinOxm( CADtlsPskCredType_t type,
 }
 
 
+/**
+ * This internal callback is used while Preconfigured-PIN MOT.
+ * This callback will be used to establish a temporary secure session according to
+ * TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256.
+ *
+ * @param[in]  type type of PSK data required by tinyDTLS layer during DTLS handshake.
+ * @param[in]  UNUSED1 UNUSED.
+ * @param[in]  UNUSED2 UNUSED.
+ * @param[out] result  Must be filled with the requested information.
+ * @param[in]  result_length  Maximum size of @p result.
+ *
+ * @return The number of bytes written to @p result or a value
+ *         less than zero on error.
+ */
 int32_t GetDtlsPskForPreconfPinOxm( CADtlsPskCredType_t type,
               const unsigned char *UNUSED1, size_t UNUSED2,
               unsigned char *result, size_t result_length)
@@ -717,7 +759,20 @@ int32_t GetDtlsPskForPreconfPinOxm( CADtlsPskCredType_t type,
     return ret;
 }
 
-
+/**
+ * This internal callback is used while Preconfigured-PIN MOT.
+ * This callback will be used to establish a temporary secure session according to
+ * TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256.
+ *
+ * @param[in]  type type of PSK data required by tinyDTLS layer during DTLS handshake.
+ * @param[in]  UNUSED1 UNUSED.
+ * @param[in]  UNUSED2 UNUSED.
+ * @param[out] result  Must be filled with the requested information.
+ * @param[in]  result_length  Maximum size of @p result.
+ *
+ * @return The number of bytes written to @p result or a value
+ *         less than zero on error.
+ */
 int32_t GetDtlsPskForMotPreconfPinOxm( CADtlsPskCredType_t type,
               const unsigned char *UNUSED1, size_t UNUSED2,
               unsigned char *result, size_t result_length)
