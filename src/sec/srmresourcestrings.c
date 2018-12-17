@@ -354,7 +354,7 @@ extern const char * PRIMARY_CERT;
 extern const char * ROLE_CERT;
 #endif
 const char * TRUST_CA = "oic.sec.cred.trustca";
-const char * PRIMARY_CERT = "oic.sec.cred.cert";
+const char * PRIMARY_CERT = "oic.sec.cred.cert"; /* identity certificate, EKU OID 1.3.6.1.4.1.44924.1.6 */
 const char * ROLE_CERT = "oic.sec.cred.rolecert";
 
 // Certificates provided by manufacturer
