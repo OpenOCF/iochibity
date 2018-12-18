@@ -9,6 +9,7 @@ load("//config:variables.bzl", "CSTD", "DEFINES", "OS_COPTS")
 cc_library(
     name = "logger",
     copts =  select({"//config:msvc": [],
+                     "//config:mingw": ["-DNOGDI", "-DNOSERVICE"], # avoid warnings about redefined macros
                      "//config:darwin": ["-U DEBUG", "-std=c11"],
                      "//conditions:default": ["-std=c11"]})
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
@@ -30,7 +31,11 @@ cc_library(
 
 cc_library(
     name = "logger_impl",
-    copts =  select({"//config:msvc": [],
+    copts = ["-Iexternal/uthash/src",
+             "-Iexternal/tinycbor/src",
+             "-Iexternal/mbedtls"
+    ]
+    + select({"//config:msvc": [],
                      "//config:darwin": ["-U DEBUG", "-std=c11"],
                      "//conditions:default": ["-std=c11"]})
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
@@ -43,6 +48,9 @@ cc_library(
                        "//conditions:default": []}),
     alwayslink = True,
     linkstatic = 1,
+    deps = ["@mbedtls//:mbedtls",
+            "@tinycbor//:tinycbor",
+            "@uthash//:uthash"],
     hdrs = ["logger.h"],
     srcs = ["logger.c",
             "log_svrs.c",
