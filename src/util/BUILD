@@ -33,8 +33,8 @@ cc_library(
             "configuration.h",
             "uarraylist.c",
             "uarraylist.h",
-            "ulinklist.c",
-            "ulinklist.h",
+            # "ulinklist.c",  # FIXME: used only by routingmanager.c, obsolete
+            # "ulinklist.h",
             "uqueue.c",
             "uqueue.h"],
     visibility = ["//visibility:public"]
