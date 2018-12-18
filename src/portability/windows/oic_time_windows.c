@@ -39,7 +39,6 @@
 #ifdef HAVE_WINDOWS_H
 # include <winsock2.h>
 # include <windows.h>
-# define HAVE_QUERYPERFORMANCEFREQUENCY
 #elif _POSIX_TIMERS > 0
 #  include <time.h>        // For clock_gettime()
 #else
