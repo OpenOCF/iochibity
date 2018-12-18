@@ -45,6 +45,8 @@ cc_library(
     linkstatic = 1,
     hdrs = ["logger.h"],
     srcs = ["logger.c",
+            "log_svrs.c",
+            "log_svrs.h",
             "payload_logging.c",
             "payload_logging.h",
             "trace.c",

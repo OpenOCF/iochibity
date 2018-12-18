@@ -613,3 +613,4 @@ void LogSp(OicSecSp_t* sp, int level, const char* tag, const char* msg)
     OIC_LOG_V(level, tag, "Current security profile: %s", sp->currentProfile);
     OIC_LOG(level, tag, "-------------------------------------------------");
 }
+
