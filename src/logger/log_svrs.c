@@ -1,7 +1,12 @@
-#include "log_svrs.c"
+#include "log_svrs.h"
+
+#include "utlist.h"
+
+#include <mbedtls/x509_crt.h>
+
 
 /* source: acl_logging.h */
-static void printACE(LogLevel level, const OicSecAce_t *ace)
+void printACE(LogLevel level, const OicSecAce_t *ace)
 {
     OIC_LOG(level, ACL_TAG, "=================================================");
     OIC_LOG_V(level, ACL_TAG, "ACE @ %p", ace);
@@ -90,7 +95,7 @@ static void printACE(LogLevel level, const OicSecAce_t *ace)
     OIC_LOG(level, ACL_TAG, "=================================================");
 }
 
-static void printACL(LogLevel level, const OicSecAcl_t* acl)
+void printACL(LogLevel level, const OicSecAcl_t* acl)
 {
     OIC_LOG_V(level, ACL_TAG, "Print ACL @ %p:", acl);
 
@@ -119,8 +124,10 @@ static void printACL(LogLevel level, const OicSecAcl_t* acl)
         ace_count++;
     }
 }
+#if INTERFACE
 #define OIC_LOG_ACL(level, acl) printACL((level),(acl))
 #define OIC_LOG_ACE(level, ace) printACE((level),(ace))
+#endif
 
 /* Produce debugging output for all credentials, output metadata. */
 void logCredMetadata(void)
@@ -360,7 +367,7 @@ void LogCredResource(OicSecCred_t *cred, const char* tag, const char* label)
 
 void LogCurrrentCredResource(void)
 {
-    LogCredResource(gCred, TAG_LOG, "Server cred Resource");
+    LogCredResource(gCred, "CRED", "Server cred Resource");
 }
 
 void printCRL(LogLevel level, const OicSecCrl_t *crl)

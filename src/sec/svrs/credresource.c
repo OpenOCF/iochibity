@@ -169,7 +169,7 @@ static const uint8_t ROLEID_MAP_SIZE = 1;
 
 OicSecCred_t        *gCred = NULL;
 static OCResourceHandle    gCredHandle = NULL;
-static OicUuid_t           gRownerId = { .id = { 0 } };
+OicUuid_t           gRownerId = { .id = { 0 } };
 
 typedef enum CredCompareResult{
     CRED_CMP_EQUAL = 0,
@@ -3297,7 +3297,7 @@ exit:
 #ifndef NDEBUG
 
 /* Caller must call OICFree on *pem when finished. */
-static int ConvertDerCertToPem(const uint8_t* der, size_t derLen, uint8_t** pem)
+int ConvertDerCertToPem(const uint8_t* der, size_t derLen, uint8_t** pem)
 {
     const char* pemHeader = "-----BEGIN CERTIFICATE-----\n";
     const char* pemFooter = "-----END CERTIFICATE-----\n";
