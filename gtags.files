@@ -173,6 +173,7 @@ src/sec/ca_adapter_net_ssl.c
 src/sec/calendar/iotvticalendar.c
 src/sec/certificates/certhelpers.c
 src/sec/certificates/occertutility.c
+src/sec/crypto/dtls_creds.c
 src/sec/crypto/pbkdf2.c
 src/sec/crypto/pkix_interface.c
 src/sec/dox/deviceonboardingstate.c
