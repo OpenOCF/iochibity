@@ -1,10 +1,10 @@
 cc_library(
     name = "windows",
-    copts = select({"//config:mingw": [],
-              "//config:msvc": [],
-              "//config:msys": [],
-              "//config:darwin": ["-U DEBUG"],
-              "//conditions:default": ["-std=c11"]}),
+    copts = select({"//config:mingw": ["-DNOGDI", "-DNOSERVICE"], # avoid warnings about redefined macros
+                    "//config:msvc": [],
+                    "//config:msys": [],
+                    "//config:darwin": ["-U DEBUG"],
+                    "//conditions:default": ["-std=c11"]}),
     deps = ["//src/logger",
             "@mbedtls//:mbedtls"],
     # linkopts = ["-W,crypt32.lib"],
