@@ -33,9 +33,6 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#if INTERFACE
-#include "cbor.h"
-#endif
 #include "utlist.h"
 
 #ifdef __unix__			/* FIXME: feature test */
@@ -602,6 +599,9 @@ static CborError DeserializeEncodingFromCborInternal(CborValue *map, char *name,
     return cborFindResult;
 }
 
+#if INTERFACE
+#include "cbor.h"
+#endif
 CborError DeserializeEncodingFromCbor(CborValue *rootMap, OicSecKey_t *value)
 {
     CborValue map = { .parser = NULL };
@@ -636,7 +636,7 @@ CborError DeserializeEncodingFromCbor(CborValue *rootMap, OicSecKey_t *value)
     return cborFindResult;
 }
 
-CborError DeserializeSecOptFromCbor(CborValue *rootMap, OicSecOpt_t *value)
+static CborError DeserializeSecOptFromCbor(CborValue *rootMap, OicSecOpt_t *value)
 {
     CborValue map = { .parser = NULL };
     CborError cborFindResult = cbor_value_enter_container(rootMap, &map);
