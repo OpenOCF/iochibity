@@ -1,4 +1,4 @@
-#include "oocf_server.h"
+#include "oocf_host_server.h"
 
 /**
  * Possible returned values from entity handler.
