@@ -622,8 +622,8 @@ static OCStackResult CreateCRLResource(void)
                                          OIC_RSRC_CRL_URI,
                                          CRLEntityHandler,
                                          NULL,
-                                         OC_SECURE |
-                                         OC_DISCOVERABLE);
+                                         (OCResourceProperty)OC_SECURE |
+                                         (OCResourceProperty)OC_DISCOVERABLE);
 
     if (OC_STACK_OK != ret)
     {
