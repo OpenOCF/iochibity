@@ -23,6 +23,7 @@ cc_library(
              "-Iexternal/mbedtls/patched/include",
              "-Iexternal/tinycbor/src",
     ] + select({"//config:msvc": [],
+                "//config:mingw": ["-DNOGDI", "-DNOSERVICE"], # avoid warnings about redefined macros
                 "//config:darwin": ["-std=c11", "-UDEBUG", "-DWITH_POSIX"],
                 "//config:darwin64": ["-std=c11", "UDEBUG"],
                 "//conditions:default": ["-std=c11", "-DWITH_POSIX"]}),
