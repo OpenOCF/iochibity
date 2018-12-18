@@ -1,3 +1,48 @@
+/* @todo: unify enums OCTransportAdapter and CATransportAdapter_t; */
+
+/* union oocf_transport { // OCTransportAdapter and CATransportAdapter_t; */
+/*     unsigned char all_transports; */
+/*     struct { */
+/* 	// FIXME: CA/OC_DEFAULT_ADAPTER is interpreted to mean ALL */
+/* 	// adapters in ocserverrequest.c, cainterfacecontroller.c, */
+/* 	// caconnectivitymanager.c */
+/* 	//FIXME: delete X_DEFAULT_ADAPTER, use explicit X_ALL_ADAPTERS instead */
+/* 	// unsigned char is_default : 1;  // udp? OC_DEFAULT_ADAPTER = 0,	/\* value zero indicates discovery. (?)*\/ */
+/* 	// FIXME: IP is not a transport; does it mean UDP? see camessagehandler.c, search CA_DEFAULT_ADAPTER */
+/* 	unsigned char is_udp : 1;  // OC_ADAPTER_IP = (1 << 0),	/\* IPv4 and IPv6, including 6LoWPAN.*\/ */
+/* 	unsigned char is_tcp : 1; // OC_ADAPTER_TCP           = (1 << 4), /\* CoAP over TCP *\/ */
+/* 	unsigned char is_gatt : 1;  // OC_ADAPTER_GATT_BTLE    = (1 << 1), */
+/* 	unsigned char is_rfcomm : 1; // OC_ADAPTER_RFCOMM_BTEDR = (1 << 2), */
+/* /\* #ifdef RA_ADAPTER *\/ */
+/* /\* 	unsigned char is_ra : 1;  // OC_ADAPTER_REMOTE_ACCESS = (1 << 3), /\\* Remote Access over XMPP.*\\/ *\/ */
+/* /\* #endif *\/ */
+/* 	unsigned char is_nfc : 1; // OC_ADAPTER_NFC           = (1 << 5), /\** NFC Transport for Messaging.*\/ */
+/* 	//OC_ALL_ADAPTERS          = 0xffffffff, same meaning as OC_DEFAULT_ADAPTER */
+/*     } */
+/* }; */
+/* union oocf_transport transport; */
+/* transport.is_udp = true; */
+/* transport.is_tcp = true; */
+
+/* @todo: unify structs CATransportFlags_t and OCTransportFlags */
+
+/* struct oocf_transport_flags { /\* == OCTransportFlags *\/ */
+/*     //CA_DEFAULT_FLAGS = 0;	/\* FIXME: meaning what? *\/ */
+/*     uint16_t is_secure		: 1; // CA_SECURE          = (1 << 4),   // secure the transport path */
+/*     uint16_t is_ipv6		: 1; //CA_IPV6            = (1 << 5),   // IP adapter only */
+/*     uint16_t is_ipv4		: 1; // CA_IPV4            = (1 << 6),   // IP adapter only */
+/*     uint16_t is_multicast	: 1; // CA_MULTICAST       = (1 << 7), */
+/*     struct ipv6_scope { */
+/* 	uint8_t is_interface	: 1; // CA_SCOPE_INTERFACE = 0x1, // IPv6 Interface-Local scope */
+/* 	uint8_t is_link		: 1; // CA_SCOPE_LINK      = 0x2, // IPv6 Link-Local scope (default) */
+/* 	uint8_t is_realm	: 1; // CA_SCOPE_REALM     = 0x3, // IPv6 Realm-Local scope */
+/* 	uint8_t is_admin	: 1; // CA_SCOPE_ADMIN     = 0x4, // IPv6 Admin-Local scope */
+/* 	uint8_t is_site		: 1; // CA_SCOPE_SITE      = 0x5, // IPv6 Site-Local scope */
+/* 	uint8_t is_org		: 1; // CA_SCOPE_ORG       = 0x8, // IPv6 Organization-Local scope */
+/* 	uint8_t is_global	: 1; // CA_SCOPE_GLOBAL    = 0xE, // IPv6 Global scope */
+/*     } */
+/* } */
+
 #if EXPORT_INTERFACE
   /* OC_ prefix: from //src/ocf/octypes.h: */
 typedef enum

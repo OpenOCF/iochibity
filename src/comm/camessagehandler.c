@@ -855,9 +855,9 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
             {
                 data->remoteEndpoint->adapter = data->remoteEndpoint->adapter ^ CA_ADAPTER_IP;
             }
-            CAProcessMulticastData(data);
+            CAProcessMulticastData(data); /* send to all except IP (UDP?) */
             data->remoteEndpoint->adapter = CA_ADAPTER_IP;
-            CAProcessMulticastData(data); /* why twice? */
+            CAProcessMulticastData(data); /* send to IP (UDP?) */
         }
         else
         {
