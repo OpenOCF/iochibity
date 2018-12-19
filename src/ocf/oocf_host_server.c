@@ -1,5 +1,22 @@
 #include "oocf_host_server.h"
 
+/* Inbound Request Handling
+ *
+ * CoAP msg data are passed up the stack and converted to various
+ * structs, from CAInfo_t to OCServerProtocolRequest to
+ * OCServerRequest.
+ *
+ * HandleCARequests
+ * => OCHandleRequests (convert CARequestInfo_t to OCServerProtocolRequest)
+ * ==> HandleStackRequests (convert OCServerProtocolRequest to OCServerRequest)
+ * ===> ProcessRequest
+ * ====> handler, depending on resource type.
+ *         for user-defined, convert OCServerRequest to OCEntityHandlerRequest and invoke user CB
+ *
+ * TODO: eliminate intermediate structs.
+ */
+
+
 /**
  * Possible returned values from entity handler.
  */
@@ -32,6 +49,7 @@ typedef enum
 
 /**
  * This structure will be created in occoap and passed up the stack on the server side.
+ * A CoAP msg.
  */
 #if INTERFACE
 typedef struct
@@ -88,20 +106,201 @@ typedef struct
     uint8_t reqMorePacket;
 
     /** The number of requested packet.*/
-    uint32_t reqPacketNum;
+    uint32_t reqPacketNum;      /* @UNUSED */
 
     /** The size of requested packet.*/
-    uint16_t reqPacketSize;
+    uint16_t reqPacketSize;     /* @UNUSED */
 
     /** The number of responded packet.*/
-    uint32_t resPacketNum;
+    uint32_t resPacketNum;      /* @UNUSED */
 
     /** Responded packet size.*/
-    uint16_t resPacketSize;
+    uint16_t resPacketSize;     /* @UNUSED */
 
     /** The total size of requested packet.*/
     size_t reqTotalSize;
 } OCServerProtocolRequest; /* src: ocstackinternal.h */
+
+/**
+ * following structure will be created in occoap and passed up the stack on the server side.
+ */
+typedef struct OCServerRequest  /* FIXME: essentially same as OCServerProtocolRequest */
+{
+    OCMethod method;
+
+    /** Accept format retrieved from the received request PDU. */
+    OCPayloadFormat acceptFormat;
+
+    /** Accept version retrieved from the received request PDU. */
+    uint16_t acceptVersion;
+
+    /** resourceUrl will be filled in occoap using the path options in received request PDU.*/
+    char resourceUrl[MAX_URI_LENGTH];
+
+    /** resource query send by client.*/
+    char query[MAX_QUERY_LENGTH];
+
+    /** qos is indicating if the request is CON or NON.*/
+    OCQualityOfService qos;
+
+    /** Observe option field.*/
+
+    uint32_t observationOption;
+
+    /** Observe Result field.*/
+    OCStackResult observeResult;
+
+    /** number of Responses.*/
+    uint8_t numResponses;
+
+    /** Response Entity Handler .*/
+    OCEHResponseHandler ehResponseHandler;
+
+    /** Remote endpoint address **/
+    OCDevAddr devAddr;
+
+    /** The ID of server request*/
+    uint32_t requestId;
+
+    /** Token for the request.*/
+    CAToken_t requestToken;
+
+    /** token length the request.*/
+    uint8_t tokenLength;
+
+    /** The ID of CoAP pdu (Kept in CoAp).*/
+    uint16_t coapID;
+
+    /** For Delayed Response.*/
+    uint8_t delayedResNeeded;
+
+    /** Number of vendor specific header options.*/
+    uint8_t numRcvdVendorSpecificHeaderOptions;
+
+    /** An Array  of received vendor specific header options.*/
+    OCHeaderOption rcvdVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
+
+    /** Request to complete.*/
+    uint8_t requestComplete;
+
+    /** Node entry in red-black tree of linked lists.*/
+    RBL_ENTRY(OCServerRequest) entry;
+
+    /** Flag indicating slow response.*/
+    uint8_t slowFlag;
+
+    /** Flag indicating notification.*/
+    uint8_t notificationFlag;
+
+    /** Payload format retrieved from the received request PDU. */
+    OCPayloadFormat payloadFormat;
+
+    /** Payload Size.*/
+    size_t payloadSize;
+
+    /** payload is retrieved from the payload of the received request PDU.*/
+    uint8_t payload[1];
+
+    // WARNING: Do NOT add attributes after payload as they get overwritten
+    // when payload content gets copied over!
+
+} OCServerRequest;
+#endif
+
+/**
+ * Incoming requests handled by the server. Requests are passed in as a parameter to the
+ * OCEntityHandler callback API.
+ * The OCEntityHandler callback API must be implemented in the application in order
+ * to receive these requests.
+ */
+#if EXPORT_INTERFACE
+#include <stdint.h>
+typedef struct
+{
+    OCResourceHandle   resource; /* ptr to struct OCResource  FIXME: name resourceHandle*/
+    OCRequestHandle    requestHandle; /* ptr to struct OCServerRequest */
+    OCMethod           method;  /* REST method, inbound request PDU.*/
+    OCDevAddr          devAddr; /* endpoint of origin */
+    char              *query;
+    OCObservationInfo  obsInfo; /* valid only when OCEntityHandler flag includes ::OC_OBSERVE_FLAG.*/
+    uint8_t            numRcvdVendorSpecificHeaderOptions; /* CoAP Options */
+    OCHeaderOption    *rcvdVendorSpecificHeaderOptions;
+    uint16_t           messageID;
+    OCPayload         *payload;
+} OCEntityHandlerRequest;
+#endif	/* INTERFACE */
+
+/**
+ * Request handle is passed to server via the entity handler for each incoming request.
+ * Stack assigns when request is received, server sets to indicate what request response is for.
+ */
+#if EXPORT_INTERFACE
+typedef struct
+{
+    /** Request handle.*/
+    OCRequestHandle requestHandle;
+
+    /** Resource handle. (@deprecated: This parameter is not used.) */
+    OCResourceHandle resourceHandle;
+
+    /** Allow the entity handler to pass a result with the response.*/
+    OCEntityHandlerResult  ehResult;
+
+    /** This is the pointer to server payload data to be transferred.*/
+    OCPayload* payload;
+
+    /** number of the vendor specific header options .*/
+    uint8_t numSendVendorSpecificHeaderOptions;
+
+    /** An array of the vendor specific header options the entity handler wishes to use in response.*/
+    OCHeaderOption sendVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
+
+    /** Resource path of new resource that entity handler might create.*/
+    char resourceUri[MAX_URI_LENGTH];
+
+    /** Server sets to true for persistent response buffer,false for non-persistent response buffer*/
+    uint8_t persistentBufferFlag;
+} OCEntityHandlerResponse;
+#endif	/* INTERFACE */
+
+/**
+ * Entity's state
+ */
+#if EXPORT_INTERFACE
+typedef enum
+{
+    /** Request state.*/
+    OC_REQUEST_FLAG = (1 << 1),
+    /** Observe state.*/
+    OC_OBSERVE_FLAG = (1 << 2)
+} OCEntityHandlerFlag;
+
+/**
+ * The signature of the internal call back functions to handle responses from entity handler
+ */
+typedef OCStackResult (* OCEHResponseHandler)(OCEntityHandlerResponse * ehResponse);
+
+#endif	/* EXPORT_INTERFACE */
+
+/**
+ * Following structure will be created in ocstack to aggregate responses
+ * (in future: for block transfer).
+ */
+#if INTERFACE
+typedef struct OCServerResponse
+{
+    /** Node entry in red-black tree.*/
+    RB_ENTRY(OCServerResponse) entry;
+
+    /** this is the pointer to server payload data to be transferred.*/
+    OCPayload* payload;
+
+    /** Remaining size of the payload data to be transferred.*/
+    uint16_t remainingPayloadSize;
+
+    /** Requests to handle.*/
+    OCRequestHandle requestHandle;
+} OCServerResponse;
 #endif
 
 /**
@@ -188,6 +387,8 @@ void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
     OIC_TRACE_END();
 }
 
+/** convert inbound request msg from CA structs to OC structs, then pass to handler  */
+// FIXME: eliminate this routine! unify CA and OC layers
 void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
 {
     OIC_TRACE_MARK(%s:OCHandleRequests:%s, TAG, requestInfo->info.resourceUri);
@@ -366,7 +567,7 @@ void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
                sizeof(CAHeaderOption_t) * tempNum);
     }
 
-    requestResult = HandleStackRequests (&serverRequest);
+    requestResult = HandleStackRequests(&serverRequest);
 
     if (requestResult == OC_STACK_SLOW_RESOURCE)
     {
@@ -400,118 +601,6 @@ void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
     OICFree(serverRequest.payload);
     OICFree(serverRequest.requestToken);
     OIC_LOG(INFO, TAG, "Exit OCHandleRequests");
-}
-
-/*
- * This function sends out Direct Stack Responses. These are responses that are not coming
- * from the application entity handler. These responses have no payload and are usually ACKs,
- * RESETs or some error conditions that were caught by the stack.
- */
-OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16_t coapID,
-        const CAResponseResult_t responseResult, const CAMessageType_t type,
-        const uint8_t numOptions, const CAHeaderOption_t *options,
-        CAToken_t token, uint8_t tokenLength, const char *resourceUri,
-        CADataType_t dataType)
-{
-    OIC_LOG(DEBUG, TAG, "Entering SendDirectStackResponse");
-    CAResponseInfo_t respInfo = {
-        .result = responseResult
-    };
-    respInfo.info.messageId = coapID;
-    respInfo.info.numOptions = numOptions;
-
-    if (respInfo.info.numOptions)
-    {
-        respInfo.info.options =
-            (CAHeaderOption_t *)OICCalloc(respInfo.info.numOptions, sizeof(CAHeaderOption_t));
-        if (NULL == respInfo.info.options)
-        {
-            OIC_LOG(ERROR, TAG, "Calloc failed");
-            return OC_STACK_NO_MEMORY;
-        }
-        memcpy (respInfo.info.options, options,
-                sizeof(CAHeaderOption_t) * respInfo.info.numOptions);
-
-    }
-
-    respInfo.info.payload = NULL;
-    respInfo.info.token = token;
-    respInfo.info.tokenLength = tokenLength;
-    respInfo.info.type = type;
-    respInfo.info.resourceUri = OICStrdup (resourceUri);
-    respInfo.info.acceptFormat = CA_FORMAT_UNDEFINED;
-    respInfo.info.dataType = dataType;
-
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
-    // Add the destination to route option from the endpoint->routeData.
-    bool doPost = false;
-    OCStackResult result = RMAddInfo(endPoint->routeData, &respInfo, false, &doPost);
-    if(OC_STACK_OK != result)
-    {
-        OIC_LOG_V(ERROR, TAG, "Add routing option failed [%d]", result);
-        OICFree (respInfo.info.resourceUri);
-        OICFree (respInfo.info.options);
-        return result;
-    }
-    if (doPost)
-    {
-        OIC_LOG(DEBUG, TAG, "Sending a POST message for EMPTY ACK in Client Mode");
-        CARequestInfo_t reqInfo = {.method = CA_POST };
-        /* The following initialization is not done in a single initializer block as in
-         * arduino, .c file is compiled as .cpp and moves it from C99 to C++11.  The latter
-         * does not have designated initalizers. This is a work-around for now.
-         */
-        reqInfo.info.type = CA_MSG_NONCONFIRM;
-        reqInfo.info.messageId = coapID;
-        reqInfo.info.tokenLength = tokenLength;
-        reqInfo.info.token = token;
-        reqInfo.info.numOptions = respInfo.info.numOptions;
-        reqInfo.info.payload = NULL;
-        reqInfo.info.resourceUri = OICStrdup (OC_RSRVD_GATEWAY_URI);
-        if (reqInfo.info.numOptions)
-        {
-            reqInfo.info.options =
-                (CAHeaderOption_t *)OICCalloc(reqInfo.info.numOptions, sizeof(CAHeaderOption_t));
-            if (NULL == reqInfo.info.options)
-            {
-                OIC_LOG(ERROR, TAG, "Calloc failed");
-                OICFree (reqInfo.info.resourceUri);
-                OICFree (respInfo.info.resourceUri);
-                OICFree (respInfo.info.options);
-                return OC_STACK_NO_MEMORY;
-            }
-            memcpy (reqInfo.info.options, respInfo.info.options,
-                    sizeof(CAHeaderOption_t) * reqInfo.info.numOptions);
-
-        }
-        CAResult_t caResult = CASendRequest(endPoint, &reqInfo);
-        OICFree (reqInfo.info.resourceUri);
-        OICFree (reqInfo.info.options);
-        OICFree (respInfo.info.resourceUri);
-        OICFree (respInfo.info.options);
-        if (CA_STATUS_OK != caResult)
-        {
-            OIC_LOG(ERROR, TAG, "CASendRequest error");
-            return CAResultToOCResult(caResult);
-        }
-    }
-    else
-#endif
-    {
-        CAResult_t caResult = CASendResponse(endPoint, &respInfo);
-
-        // resourceUri in the info field is cloned in the CA layer and
-        // thus ownership is still here.
-        OICFree (respInfo.info.resourceUri);
-        OICFree (respInfo.info.options);
-        if(CA_STATUS_OK != caResult)
-        {
-            OIC_LOG(ERROR, TAG, "CASendResponse error");
-            return CAResultToOCResult(caResult);
-        }
-    }
-    OIC_LOG(DEBUG, TAG, "Exit SendDirectStackResponse");
-    return OC_STACK_OK;
 }
 
 /**
@@ -640,5 +729,337 @@ OCStackResult ProcessRequest(ResourceHandling resHandling, OCResource *resource,
     }
     OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return ret;
+}
+
+/* src: ocresource.c */
+OCStackResult HandleResourceWithEntityHandler(OCServerRequest *request,
+                                              OCResource *resource)
+{
+    if(!request || ! resource)
+    {
+        return OC_STACK_INVALID_PARAM;
+    }
+
+    OCStackResult result = OC_STACK_ERROR;
+    OCEntityHandlerResult ehResult = OC_EH_ERROR;
+    OCEntityHandlerFlag ehFlag = OC_REQUEST_FLAG;
+    ResourceObserver *resObs = NULL;
+
+    OCEntityHandlerRequest ehRequest = {0};
+
+    OIC_LOG(INFO, TAG, "Entering HandleResourceWithEntityHandler");
+    OCPayloadType type = PAYLOAD_TYPE_REPRESENTATION;
+    // check the security resource
+    if (request /* GAR: this is always true: && request->resourceUrl */
+	&& SRMIsSecurityResourceURI(request->resourceUrl))
+    {
+        type = PAYLOAD_TYPE_SECURITY;
+    }
+
+    result = EHRequest(&ehRequest, type, request, resource);
+    VERIFY_SUCCESS_1(result);
+
+    if(ehRequest.obsInfo.action == OC_OBSERVE_NO_OPTION)
+    {
+        OIC_LOG(INFO, TAG, "No observation requested");
+        ehFlag = OC_REQUEST_FLAG;
+    }
+    else if(ehRequest.obsInfo.action == OC_OBSERVE_REGISTER)
+    {
+        OIC_LOG(INFO, TAG, "Observation registration requested");
+
+        ResourceObserver *obs = GetObserverUsingToken(resource,
+                                                      request->requestToken, request->tokenLength);
+
+        if (obs)
+        {
+            OIC_LOG (INFO, TAG, "Observer with this token already present");
+            OIC_LOG (INFO, TAG, "Possibly re-transmitted CON OBS request");
+            OIC_LOG (INFO, TAG, "Not adding observer. Not responding to client");
+            OIC_LOG (INFO, TAG, "The first request for this token is already ACKED.");
+
+            // server requests are usually free'd when the response is sent out
+            // for the request in ocserverrequest.c : HandleSingleResponse()
+            // Since we are making an early return and not responding, the server request
+            // needs to be deleted.
+            DeleteServerRequest (request);
+            return OC_STACK_OK;
+        }
+
+        result = GenerateObserverId(&ehRequest.obsInfo.obsId);
+        VERIFY_SUCCESS_1(result);
+
+        result = AddObserver ((const char*)(request->resourceUrl),
+                (const char *)(request->query),
+                ehRequest.obsInfo.obsId, request->requestToken, request->tokenLength,
+                resource, request->qos, request->acceptFormat,
+                request->acceptVersion, &request->devAddr);
+
+        if(result == OC_STACK_OK)
+        {
+            OIC_LOG(INFO, TAG, "Added observer successfully");
+            request->observeResult = OC_STACK_OK;
+            ehFlag = (OCEntityHandlerFlag)(OC_REQUEST_FLAG | OC_OBSERVE_FLAG);
+        }
+        else if (result == OC_STACK_RESOURCE_ERROR)
+        {
+            OIC_LOG(INFO, TAG, "The Resource is not active, discoverable or observable");
+            request->observeResult = OC_STACK_ERROR;
+            ehFlag = OC_REQUEST_FLAG;
+        }
+        else
+        {
+            // The error in observeResult for the request will be used when responding to this
+            // request by omitting the observation option/sequence number.
+            request->observeResult = OC_STACK_ERROR;
+            OIC_LOG(ERROR, TAG, "Observer Addition failed");
+            ehFlag = OC_REQUEST_FLAG;
+            DeleteServerRequest(request);
+            goto exit;
+        }
+
+    }
+    else if(ehRequest.obsInfo.action == OC_OBSERVE_DEREGISTER)
+    {
+        OIC_LOG(INFO, TAG, "Deregistering observation requested");
+
+        resObs = GetObserverUsingToken (resource,
+                                        request->requestToken, request->tokenLength);
+
+        if (NULL == resObs)
+        {
+            // Stack does not contain this observation request
+            // Either token is incorrect or observation list is corrupted
+            result = OC_STACK_ERROR;
+            goto exit;
+        }
+        ehRequest.obsInfo.obsId = resObs->observeId;
+        ehFlag = (OCEntityHandlerFlag)(ehFlag | OC_OBSERVE_FLAG);
+
+        result = DeleteObserverUsingToken (resource,
+                                           request->requestToken, request->tokenLength);
+
+        if(result == OC_STACK_OK)
+        {
+            OIC_LOG(INFO, TAG, "Removed observer successfully");
+            request->observeResult = OC_STACK_OK;
+            // There should be no observe option header for de-registration response.
+            // Set as an invalid value here so we can detect it later and remove the field in response.
+            request->observationOption = MAX_SEQUENCE_NUMBER + 1;
+        }
+        else
+        {
+            request->observeResult = OC_STACK_ERROR;
+            OIC_LOG(ERROR, TAG, "Observer Removal failed");
+            DeleteServerRequest(request);
+            goto exit;
+        }
+    }
+    else
+    {
+        result = OC_STACK_ERROR;
+        goto exit;
+    }
+
+    ehResult = resource->entityHandler(ehFlag, &ehRequest, resource->entityHandlerCallbackParam);
+    if(ehResult == OC_EH_SLOW)
+    {
+        OIC_LOG(INFO, TAG, "This is a slow resource");
+        request->slowFlag = 1;
+    }
+    else if(ehResult == OC_EH_ERROR)
+    {
+        DeleteServerRequest(request);
+    }
+    result = EntityHandlerCodeToOCStackCode(ehResult);
+exit:
+    OCPayloadDestroy(ehRequest.payload);
+    return result;
+}
+
+/* src: ocresource.c */
+OCStackResult EHRequest(OCEntityHandlerRequest *ehRequest,
+                        OCPayloadType type,
+                        struct OCServerRequest *request,
+                        struct OCResource *resource)
+{
+    return FormOCEntityHandlerRequest(ehRequest,
+                                     (OCRequestHandle)request,
+                                     request->method,
+                                     &request->devAddr,
+                                     (OCResourceHandle)resource,
+                                     request->query,
+                                     type,
+                                     request->payloadFormat,
+                                     request->payload,
+                                     request->payloadSize,
+                                     request->numRcvdVendorSpecificHeaderOptions,
+                                     request->rcvdVendorSpecificHeaderOptions,
+                                     (OCObserveAction)(request->notificationFlag ? OC_OBSERVE_NO_OPTION :
+                                                       request->observationOption),
+                                     (OCObservationId)0,
+                                     request->coapID);
+}
+
+/* src: ocserverrequest.c */
+OCStackResult FormOCEntityHandlerRequest(OCEntityHandlerRequest * entityHandlerRequest,
+                                         OCRequestHandle request,
+                                         OCMethod method,
+                                         OCDevAddr *endpoint,
+                                         OCResourceHandle resource,
+                                         char * queryBuf,
+                                         OCPayloadType payloadType,
+                                         OCPayloadFormat payloadFormat,
+                                         uint8_t * payload,
+                                         size_t payloadSize,
+                                         uint8_t numVendorOptions,
+                                         OCHeaderOption * vendorOptions,
+                                         OCObserveAction observeAction,
+                                         OCObservationId observeID,
+                                         uint16_t messageID)
+{
+    if (entityHandlerRequest)
+    {
+        entityHandlerRequest->resource = (OCResourceHandle) resource;
+        entityHandlerRequest->requestHandle = request;
+        entityHandlerRequest->method = method;
+        entityHandlerRequest->devAddr = *endpoint;
+        entityHandlerRequest->query = queryBuf;
+        entityHandlerRequest->obsInfo.action = observeAction;
+        entityHandlerRequest->obsInfo.obsId = observeID;
+        entityHandlerRequest->messageID = messageID;
+
+        if(payload && payloadSize)
+        {
+            if(OCParsePayload(&entityHandlerRequest->payload, payloadFormat, payloadType,
+                        payload, payloadSize) != OC_STACK_OK)
+            {
+                return OC_STACK_ERROR;
+            }
+        }
+        else
+        {
+            entityHandlerRequest->payload = NULL;
+        }
+
+        entityHandlerRequest->numRcvdVendorSpecificHeaderOptions = numVendorOptions;
+        entityHandlerRequest->rcvdVendorSpecificHeaderOptions = vendorOptions;
+
+        return OC_STACK_OK;
+    }
+
+    return OC_STACK_INVALID_PARAM;
+}
+
+/*
+ * This function sends out Direct Stack Responses. These are responses that are not coming
+ * from the application entity handler. These responses have no payload and are usually ACKs,
+ * RESETs or some error conditions that were caught by the stack.
+ */
+OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16_t coapID,
+        const CAResponseResult_t responseResult, const CAMessageType_t type,
+        const uint8_t numOptions, const CAHeaderOption_t *options,
+        CAToken_t token, uint8_t tokenLength, const char *resourceUri,
+        CADataType_t dataType)
+{
+    OIC_LOG(DEBUG, TAG, "Entering SendDirectStackResponse");
+    CAResponseInfo_t respInfo = {
+        .result = responseResult
+    };
+    respInfo.info.messageId = coapID;
+    respInfo.info.numOptions = numOptions;
+
+    if (respInfo.info.numOptions)
+    {
+        respInfo.info.options =
+            (CAHeaderOption_t *)OICCalloc(respInfo.info.numOptions, sizeof(CAHeaderOption_t));
+        if (NULL == respInfo.info.options)
+        {
+            OIC_LOG(ERROR, TAG, "Calloc failed");
+            return OC_STACK_NO_MEMORY;
+        }
+        memcpy (respInfo.info.options, options,
+                sizeof(CAHeaderOption_t) * respInfo.info.numOptions);
+
+    }
+
+    respInfo.info.payload = NULL;
+    respInfo.info.token = token;
+    respInfo.info.tokenLength = tokenLength;
+    respInfo.info.type = type;
+    respInfo.info.resourceUri = OICStrdup (resourceUri);
+    respInfo.info.acceptFormat = CA_FORMAT_UNDEFINED;
+    respInfo.info.dataType = dataType;
+
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+    // Add the destination to route option from the endpoint->routeData.
+    bool doPost = false;
+    OCStackResult result = RMAddInfo(endPoint->routeData, &respInfo, false, &doPost);
+    if(OC_STACK_OK != result)
+    {
+        OIC_LOG_V(ERROR, TAG, "Add routing option failed [%d]", result);
+        OICFree (respInfo.info.resourceUri);
+        OICFree (respInfo.info.options);
+        return result;
+    }
+    if (doPost)
+    {
+        OIC_LOG(DEBUG, TAG, "Sending a POST message for EMPTY ACK in Client Mode");
+        CARequestInfo_t reqInfo = {.method = CA_POST };
+        /* The following initialization is not done in a single initializer block as in
+         * arduino, .c file is compiled as .cpp and moves it from C99 to C++11.  The latter
+         * does not have designated initalizers. This is a work-around for now.
+         */
+        reqInfo.info.type = CA_MSG_NONCONFIRM;
+        reqInfo.info.messageId = coapID;
+        reqInfo.info.tokenLength = tokenLength;
+        reqInfo.info.token = token;
+        reqInfo.info.numOptions = respInfo.info.numOptions;
+        reqInfo.info.payload = NULL;
+        reqInfo.info.resourceUri = OICStrdup (OC_RSRVD_GATEWAY_URI);
+        if (reqInfo.info.numOptions)
+        {
+            reqInfo.info.options =
+                (CAHeaderOption_t *)OICCalloc(reqInfo.info.numOptions, sizeof(CAHeaderOption_t));
+            if (NULL == reqInfo.info.options)
+            {
+                OIC_LOG(ERROR, TAG, "Calloc failed");
+                OICFree (reqInfo.info.resourceUri);
+                OICFree (respInfo.info.resourceUri);
+                OICFree (respInfo.info.options);
+                return OC_STACK_NO_MEMORY;
+            }
+            memcpy (reqInfo.info.options, respInfo.info.options,
+                    sizeof(CAHeaderOption_t) * reqInfo.info.numOptions);
+
+        }
+        CAResult_t caResult = CASendRequest(endPoint, &reqInfo);
+        OICFree (reqInfo.info.resourceUri);
+        OICFree (reqInfo.info.options);
+        OICFree (respInfo.info.resourceUri);
+        OICFree (respInfo.info.options);
+        if (CA_STATUS_OK != caResult)
+        {
+            OIC_LOG(ERROR, TAG, "CASendRequest error");
+            return CAResultToOCResult(caResult);
+        }
+    }
+    else
+#endif
+    {
+        CAResult_t caResult = CASendResponse(endPoint, &respInfo);
+
+        // resourceUri in the info field is cloned in the CA layer and
+        // thus ownership is still here.
+        OICFree (respInfo.info.resourceUri);
+        OICFree (respInfo.info.options);
+        if(CA_STATUS_OK != caResult)
+        {
+            OIC_LOG(ERROR, TAG, "CASendResponse error");
+            return CAResultToOCResult(caResult);
+        }
+    }
+    OIC_LOG(DEBUG, TAG, "Exit SendDirectStackResponse");
+    return OC_STACK_OK;
 }
 
