@@ -1596,7 +1596,7 @@ OCPersistentStorage *OC_CALL OCGetPersistentStorageHandler(void)
     return g_PersistentStorageHandler;
 }
 
-OCStackResult OC_CALL OCProcess(void)
+OCStackResult OC_CALL OCProcess(void) EXPORT
 {
     if (stackState == OC_STACK_UNINITIALIZED)
     {
