@@ -22,6 +22,8 @@
 obsolete
 
 ## ignore all headers in src! we generate them a build time using makeheaders
+extensions/**/*.h
+extensions/**/*.hpp
 src/**/*.h
 src/*.[ch].in
 include/*h
