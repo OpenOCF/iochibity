@@ -1,3 +1,4 @@
+extensions/resource_directory/oicresourcedirectory.c
 src/tmp/cacommon.h
 src/tmp/cainterface.h
 src/tmp/caipadapter.c
@@ -118,12 +119,11 @@ src/ocf/ocserverrequest.c
 src/ocf/ocstack.c
 src/ocf/oicgroup.c
 src/ocf/oickeepalive.c
-src/ocf/oicresourcedirectory.c
-src/ocf/oocf_client.c
 src/ocf/oocf_device.c
 src/ocf/oocf_host.c
+src/ocf/oocf_host_client.c
+src/ocf/oocf_host_server.c
 src/ocf/oocf_resource_list.c
-src/ocf/oocf_server.c
 src/ocf/oocf_uri.c
 src/ocf/presence.c
 src/ocf/windows/ocsqlite3helper.c
