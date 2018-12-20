@@ -61,6 +61,46 @@
 
 #define TAG "OIC_CA_RETRANS"
 
+#if INTERFACE
+typedef struct
+{
+    /** retransmission support transport type. **/
+    CATransportAdapter_t supportType;
+
+    /** retransmission trying count. **/
+    uint8_t tryingCount;
+
+} CARetransmissionConfig_t;
+
+typedef struct
+{
+    /** Thread pool of the thread started. **/
+    ca_thread_pool_t threadPool;
+
+    /** mutex for synchronization. **/
+    oc_mutex threadMutex;
+
+    /** conditional mutex for synchronization. **/
+    oc_cond threadCond;
+
+    /** send method for retransmission data. **/
+    CADataSendMethod_t dataSendMethod;
+
+    /** callback function for retransmit timeout. **/
+    CATimeoutCallback_t timeoutCallback;
+
+    /** retransmission configure data. **/
+    CARetransmissionConfig_t config;
+
+    /** Variable to inform the thread to stop. **/
+    bool isStop;
+
+    /** array list on which the thread is operating. **/
+    u_arraylist_t *dataList;
+
+} CARetransmission_t;
+#endif
+
 typedef struct
 {
     uint64_t timeStamp;                 /**< last sent time. microseconds */
