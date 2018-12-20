@@ -43,10 +43,6 @@
 #elif defined(HAVE_STRINGS_H)
 #include <strings.h>
 #endif
-#if defined(__ANDROID__)
-#include <ctype.h>
-#endif
-#endif	/* EXPORT_INTERFACE */
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -90,7 +86,6 @@ bool OCGetRandomBytes(uint8_t * output, size_t len)
         return false;
     }
     fclose(urandom);
-#endif
 
     return true;
 }
