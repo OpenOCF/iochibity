@@ -155,6 +155,9 @@ CAResult_t udp_start_services(const ca_thread_pool_t threadPool) // @was CAIPSta
 
     udp_is_terminating = false;
     udp_data_receiver_runloop_cond = oc_cond_new();
+#ifdef DEBUG_THREADS
+    //    udp_data_receiver_runloop_thread.name = "udp_data_receiver_runloop";
+#endif
     OIC_LOG_THREADS_V(DEBUG, TAG, "Adding udp_data_receiver_runloop to thread pool"); // for debugging
     res = ca_thread_pool_add_task(threadPool, udp_data_receiver_runloop, NULL);
     if (CA_STATUS_OK != res)

@@ -1458,9 +1458,9 @@ void CATerminateMessageHandler(void)
     // delete thread data
     if (NULL != g_receiveThread.threadMutex)
     {
-#ifndef SINGLE_HANDLE // This will be enabled when RI supports multi threading
+      //#ifndef SINGLE_HANDLE // This will be enabled when RI supports multi threading
         CAQueueingThreadStop(&g_receiveThread);
-#endif
+	//#endif
     }
 
     // destroy thread pool

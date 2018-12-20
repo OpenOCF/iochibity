@@ -146,7 +146,7 @@ CAResult_t CARetransmissionStart(CARetransmission_t *context)
         return CA_STATUS_INVALID_PARAM;
     }
 
-    OIC_LOG_THREADS_V(DEBUG, TAG, "Adding CARetransmissionBaseRoutine to thread pool");
+    OIC_LOG_THREADS_V(DEBUG, TAG, "Adding task CARetransmissionBaseRoutine to thread pool");
     CAResult_t res = ca_thread_pool_add_task(context->threadPool, CARetransmissionBaseRoutine, context);
 
     if (CA_STATUS_OK != res)
@@ -586,13 +586,12 @@ CAResult_t CARetransmissionReceivedData(CARetransmission_t *context,
 
 CAResult_t CARetransmissionStop(CARetransmission_t *context)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (NULL == context)
     {
         OIC_LOG(ERROR, TAG, "context is empty..");
         return CA_STATUS_INVALID_PARAM;
     }
-
-    OIC_LOG(DEBUG, TAG, "retransmission stop request!!");
 
     // mutex lock
     oc_mutex_lock(context->threadMutex);
@@ -608,6 +607,7 @@ CAResult_t CARetransmissionStop(CARetransmission_t *context)
     // mutex unlock
     oc_mutex_unlock(context->threadMutex);
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 

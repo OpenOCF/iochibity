@@ -43,7 +43,7 @@ void udp_data_receiver_runloop(void *data) // @was CAReceiveHandler
     }
     udp_cleanup(); // @was CACloseFDs();
     //oc_mutex_lock(udp_data_receiver_runloop_mutex);
-    oc_cond_signal(udp_data_receiver_runloop_cond);
+    /* oc_cond_signal(udp_data_receiver_runloop_cond); */
     //oc_mutex_unlock(udp_data_receiver_runloop_mutex);
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);

@@ -159,7 +159,7 @@ CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool,
 				   ca_thread_func method,
                                    void *data)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_THREADS_V(DEBUG, TAG, "%s ENTRY, pool sz %d", __func__,  u_arraylist_length(thread_pool->details->threads_list));
 
     if(NULL == thread_pool || NULL == method)
     {
@@ -188,6 +188,8 @@ CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool,
 
     oc_mutex_lock(thread_pool->details->list_lock);
     bool addResult = u_arraylist_add(thread_pool->details->threads_list, (void*) threadInfo);
+    OIC_LOG_THREADS_V(DEBUG, TAG, "pool sz after add: %d", u_arraylist_length(thread_pool->details->threads_list));
+
     if (!addResult)
     {
         // Note that this is considered non-fatal.
@@ -213,13 +215,13 @@ CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool,
     }
     oc_mutex_unlock(thread_pool->details->list_lock);
 
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    OIC_LOG_THREADS_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 
 void ca_thread_pool_free(ca_thread_pool_t thread_pool)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_THREADS_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     if (!thread_pool)
     {
@@ -229,9 +231,10 @@ void ca_thread_pool_free(ca_thread_pool_t thread_pool)
 
     oc_mutex_lock(thread_pool->details->list_lock);
 
-    for (size_t i = 0; i < u_arraylist_length(thread_pool->details->threads_list); ++i)
+    int len = u_arraylist_length(thread_pool->details->threads_list);
+    for (size_t i = 0; i < len; ++i)
     {
-	OIC_LOG_THREADS_V(DEBUG, TAG, "Freeing thread %d", i);
+        OIC_LOG_THREADS_V(DEBUG, TAG, "Freeing thread %d of %d", i, len);
         ca_thread_pool_thread_info_t *threadInfo = (ca_thread_pool_thread_info_t *)
                 u_arraylist_get(thread_pool->details->threads_list, i);
         if (threadInfo)
@@ -243,6 +246,7 @@ void ca_thread_pool_free(ca_thread_pool_t thread_pool)
             }
             OICFree(threadInfo);
         }
+	OIC_LOG_THREADS_V(DEBUG, TAG, "Freed thread %d", i);
     }
 
     u_arraylist_free(&(thread_pool->details->threads_list));
@@ -253,5 +257,5 @@ void ca_thread_pool_free(ca_thread_pool_t thread_pool)
     OICFree(thread_pool->details);
     OICFree(thread_pool);
 
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    OIC_LOG_THREADS_V(DEBUG, TAG, "%s EXIT", __func__);
 }
