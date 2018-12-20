@@ -175,6 +175,7 @@ genrule(
          #                                 exclude=["external/mbedtls/include/mbedtls/config.h"])],
     cmd  = "\n".join([
         "cp -LR external/mbedtls/ patched",
+        "rm patched/include/mbedtls/config.h",
         "patch -dpatched -p1 -l -f < $(location @//src/sec/mbedtls:ocf.patch)",
         "cp -R patched $(@D)",
         ])

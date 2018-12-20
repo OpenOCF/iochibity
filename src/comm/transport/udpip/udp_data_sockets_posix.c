@@ -93,3 +93,7 @@ bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq, i
     (void)ret;
     return EADDRINUSE != errno;
 }
+void CAUnregisterForAddressChanges(void)
+{
+}
+

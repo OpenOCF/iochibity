@@ -70,7 +70,7 @@ CASocket_t udp_m4s = { .fd = OC_INVALID_SOCKET, .port = CA_SECURE_COAP }; /**< m
 //FIXME: status and shutdown monitoring are platform-specific
 
 void *udp_threadpool;           /**< threadpool between Initialize and Start */
-int   udp_selectTimeout;          /**< in seconds */
+int   udp_selectTimeout = -1;          /**< in seconds */
 
 bool  udp_is_started;               /**< the IP adapter has started */
 bool  udp_is_terminating;             /**< the IP adapter needs to stop */
@@ -390,7 +390,7 @@ LOCAL void udp_close_data_sockets()
     CLOSE_SOCKET(udp_m6s);
     CLOSE_SOCKET(udp_m4);
     CLOSE_SOCKET(udp_m4s);
-    /* CAUnregisterForAddressChanges(); */
+    CAUnregisterForAddressChanges();
 }
 
 void applyMulticastToInterface4(uint32_t ifindex)

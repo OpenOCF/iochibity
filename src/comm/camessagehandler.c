@@ -23,7 +23,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
 
 #if INTERFACE
 #include <stddef.h>
@@ -118,44 +120,6 @@ typedef CAResult_t (*CADataSendMethod_t)(const CAEndpoint_t *endpoint,
 typedef void (*CATimeoutCallback_t)(const CAEndpoint_t *endpoint,
                                     const void *pdu,
                                     uint32_t size);
-
-typedef struct
-{
-    /** retransmission support transport type. **/
-    CATransportAdapter_t supportType;
-
-    /** retransmission trying count. **/
-    uint8_t tryingCount;
-
-} CARetransmissionConfig_t;
-
-typedef struct
-{
-    /** Thread pool of the thread started. **/
-    ca_thread_pool_t threadPool;
-
-    /** mutex for synchronization. **/
-    oc_mutex threadMutex;
-
-    /** conditional mutex for synchronization. **/
-    oc_cond threadCond;
-
-    /** send method for retransmission data. **/
-    CADataSendMethod_t dataSendMethod;
-
-    /** callback function for retransmit timeout. **/
-    CATimeoutCallback_t timeoutCallback;
-
-    /** retransmission configure data. **/
-    CARetransmissionConfig_t config;
-
-    /** Variable to inform the thread to stop. **/
-    bool isStop;
-
-    /** array list on which the thread is operating. **/
-    u_arraylist_t *dataList;
-
-} CARetransmission_t;
 
 typedef enum
 {
@@ -779,9 +743,9 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
             {
                 data->remoteEndpoint->adapter = data->remoteEndpoint->adapter ^ CA_ADAPTER_IP;
             }
-            CAProcessMulticastData(data);
+            CAProcessMulticastData(data); /* send to all except IP (UDP?) */
             data->remoteEndpoint->adapter = CA_ADAPTER_IP;
-            CAProcessMulticastData(data); /* why twice? */
+            CAProcessMulticastData(data); /* send to IP (UDP?) */
         }
         else
         {
@@ -1420,9 +1384,9 @@ void CATerminateMessageHandler(void)
     // delete thread data
     if (NULL != g_receiveThread.threadMutex)
     {
-#ifndef SINGLE_HANDLE // This will be enabled when RI supports multi threading
+      //#ifndef SINGLE_HANDLE // This will be enabled when RI supports multi threading
         CAQueueingThreadStop(&g_receiveThread);
-#endif
+	//#endif
     }
 
     // destroy thread pool

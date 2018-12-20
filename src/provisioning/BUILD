@@ -8,8 +8,10 @@ cc_library(
              "-Iexternal/tinycbor/src",
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
-             "-Iexternal/sqlite3"
-    ] + CSTD + OS_COPTS
+             "-Iexternal/sqlite3"]
+    + select({"//config:mingw": ["-DNOGDI", "-DNOSERVICE"], # avoid warnings about redefined macros
+              "//conditions:default": []})                    
+    + CSTD + OS_COPTS
     + select({"//config:multi_own": ["-DMULTIPLE_OWNER"],
               "//conditions:default": []}),
 

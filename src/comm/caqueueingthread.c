@@ -357,6 +357,10 @@ CAResult_t CAQueueingThreadStop(CAQueueingThread_t *thread)
         // mutex unlock
         oc_mutex_unlock(thread->threadMutex);
     }
-
+#ifdef DEBUG_THREADS
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT: %s", __func__, thread->name);
+#else
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+#endif
     return CA_STATUS_OK;
 }

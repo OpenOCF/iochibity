@@ -200,7 +200,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage
                                 CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
                                 if (ifitem)
                                 {
-                                    CAProcessNewInterface(ifitem);
+                                    udp_add_if_to_multicast_groups(ifitem); // @was CAProcessNewInterface
                                 }
                             }
                             u_arraylist_destroy(iflist);
@@ -257,7 +257,8 @@ void CAIPStopServer(void)
 
     if (!udp_is_started)
     { // Close fd's since receive handler was not started
-	CADeInitializeIPGlobals();
+	// CADeInitializeIPGlobals();
+	udp_cleanup();  // @rewrite @was CACloseFDs();
     }
     udp_is_started = false;
 }

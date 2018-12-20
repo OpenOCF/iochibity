@@ -142,36 +142,36 @@ static CAInterface_t *AllocateCAInterface(int index, const char *name, uint16_t 
 /**
  * Destroy the network monitoring list.
  */
-void CAIPDestroyNetworkInterfaceList(void)
-{
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
-    // Free any new addresses waiting to be indicated up.
-    while (g_CAIPNetworkMonitorNewAddressQueue)
-    {
-        CANewAddress_t *change = g_CAIPNetworkMonitorNewAddressQueue;
-        DL_DELETE(g_CAIPNetworkMonitorNewAddressQueue, change);
-        OICFree(change->ipAddressInfo);
-        OICFree(change);
-    }
+/* void CAIPDestroyNetworkInterfaceList() */
+/* { */
+/*     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__); */
+/*     // Free any new addresses waiting to be indicated up. */
+/*     while (g_CAIPNetworkMonitorNewAddressQueue) */
+/*     { */
+/*         CANewAddress_t *change = g_CAIPNetworkMonitorNewAddressQueue; */
+/*         DL_DELETE(g_CAIPNetworkMonitorNewAddressQueue, change); */
+/*         OICFree(change->ipAddressInfo); */
+/*         OICFree(change); */
+/*     } */
 
-    // Free our cache of operational addresses.
-    if (g_CAIPNetworkMonitorAddressList)
-    {
-        u_arraylist_destroy(g_CAIPNetworkMonitorAddressList);
-        g_CAIPNetworkMonitorAddressList = NULL;
-    }
+/*     // Free our cache of operational addresses. */
+/*     if (g_CAIPNetworkMonitorAddressList) */
+/*     { */
+/*         u_arraylist_destroy(g_CAIPNetworkMonitorAddressList); */
+/*         g_CAIPNetworkMonitorAddressList = NULL; */
+/*     } */
 
-    /* if (g_CAIPNetworkMonitorMutex)
-     * {
-     *     oc_mutex_free(g_CAIPNetworkMonitorMutex);
-     *     g_CAIPNetworkMonitorMutex = NULL;
-     * } */
-    if (g_networkMonitorContextMutex)
-    {
-        oc_mutex_free(g_networkMonitorContextMutex);
-        g_networkMonitorContextMutex = NULL;
-    }
-}
+/*     /\* if (g_CAIPNetworkMonitorMutex) */
+/*      * { */
+/*      *     oc_mutex_free(g_CAIPNetworkMonitorMutex); */
+/*      *     g_CAIPNetworkMonitorMutex = NULL; */
+/*      * } *\/ */
+/*     if (g_networkMonitorContextMutex) */
+/*     { */
+/*         oc_mutex_free(g_networkMonitorContextMutex); */
+/*         g_networkMonitorContextMutex = NULL; */
+/*     } */
+/* } */
 
 void CADeInitializeMonitorGlobals(void)
 {
@@ -485,17 +485,17 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
     /*     return res; */
     /* } */
 
-    CAResult_t res = CAIPSetNetworkMonitorCallback(callback, adapter);
-    if (res != CA_STATUS_OK)
-    {
-        CAIPDestroyNetworkAddressList();
-        return res;
-    }
+    /* CAResult_t res = CAIPSetNetworkMonitorCallback(callback, adapter); */
+    /* if (res != CA_STATUS_OK) */
+    /* { */
+    /*     CAIPDestroyNetworkAddressList(); */
+    /*     return res; */
+    /* } */
 
 #ifdef USE_SOCKET_ADDRESS_CHANGE_EVENT
     if (!RegisterForIpAddressChange())
     {
-        CAIPDestroyNetworkAddressList();
+        /* CAIPDestroyNetworkAddressList(); */
         //CAIPUnSetNetworkMonitorCallback(adapter);
         return CA_STATUS_FAILED;
     }
@@ -505,7 +505,7 @@ CAResult_t CAIPStartNetworkMonitor(void (*callback)(CATransportAdapter_t adapter
                                            &g_CAIPNetworkMonitorNotificationHandle);
     if (err != NO_ERROR)
     {
-        CAIPDestroyNetworkAddressList();
+        /* CAIPDestroyNetworkAddressList(); */
         //CAIPUnSetNetworkMonitorCallback(adapter);
         return CA_STATUS_FAILED;
     }
@@ -533,7 +533,7 @@ CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 #endif
     }
 
-    CAIPDestroyNetworkAddressList();
+    /* CAIPDestroyNetworkAddressList(); */
     return CA_STATUS_OK; // CAIPUnSetNetworkMonitorCallback(adapter);
 }
 
@@ -690,13 +690,26 @@ u_arraylist_t  *CAFindInterfaceChange(void)
 
     if (someAddressWentAway)
     {
-        CAIPPassNetworkChangesToTransports(CA_INTERFACE_DOWN);
-        /* CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN); */
+        // CAIPPassNetworkChangesToTransports(CA_INTERFACE_DOWN);
+	//udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports
+#ifdef IP_ADAPTER
+	udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
+#endif
+#ifdef TCP_ADAPTER
+	tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); //@was CATCPAdapterHandler
+#endif
     }
     if (newAddress)
     {
-        CAIPPassNetworkChangesToTransports(CA_INTERFACE_UP);
+        // CAIPPassNetworkChangesToTransports(CA_INTERFACE_UP);
 	/* CAIPPassNetworkChangesToAdapter(CA_INTERFACE_UP); */
+#ifdef IP_ADAPTER
+	udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler
+#endif
+#ifdef TCP_ADAPTER
+	tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); //@was CATCPAdapterHandler
+#endif
+
     }
 
     return iflist;
@@ -770,6 +783,15 @@ void CARegisterForAddressChanges(void)
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
 }
 
+void CAUnregisterForAddressChanges(void)
+{
+    if (udp_addressChangeEvent != WSA_INVALID_EVENT)
+    {
+        OC_VERIFY(WSACloseEvent(udp_addressChangeEvent));
+        udp_addressChangeEvent = WSA_INVALID_EVENT;
+    }
+}
+
 bool IsValidAddress(PIP_ADAPTER_UNICAST_ADDRESS pAddress)
 {
     if (pAddress->Address.lpSockaddr->sa_family != AF_INET6)
@@ -778,17 +800,29 @@ bool IsValidAddress(PIP_ADAPTER_UNICAST_ADDRESS pAddress)
         return true;
     }
 
-    PSOCKADDR_IN6 sockAddr = (PSOCKADDR_IN6)pAddress->Address.lpSockaddr;
-    if (Ipv6UnicastAddressScope(sockAddr->sin6_addr.s6_addr) == ScopeLevelLink)
-    {
-        // IPv6 link local addresses are valid.
-        return true;
-    }
+    /* PSOCKADDR_IN6 sockAddr = (PSOCKADDR_IN6)pAddress->Address.lpSockaddr; */
+    /* if (Ipv6UnicastAddressScope(sockAddr->sin6_addr.s6_addr) == ScopeLevelLink) */
+    /* { */
+    /*     // IPv6 link local addresses are valid. */
+    /*     return true; */
+    /* } */
 
     // Other IPv6 addresses are valid if they are DNS eligible.
     // That is, ignore temporary addresses.
     return ((pAddress->Flags & IP_ADAPTER_ADDRESS_DNS_ELIGIBLE) != 0);
 }
+
+/* mingw version of mstcpip.h lacks this function */
+#if defined(__MINGW32__) || defined(__MINGW64__)
+INLINE_API PUCHAR INETADDR_ADDRESS(const SOCKADDR* a)
+{
+	if (a->sa_family == AF_INET6) {
+		return (PUCHAR)&((PSOCKADDR_IN6)a)->sin6_addr;
+	} else {
+		return (PUCHAR)&((PSOCKADDR_IN)a)->sin_addr;
+	}
+}
+#endif
 
 bool AddAddresses(PIP_ADAPTER_ADDRESSES pAdapterAddr, u_arraylist_t *iflist, int desiredIndex)
 {

@@ -61,6 +61,46 @@
 
 #define TAG "OIC_CA_RETRANS"
 
+#if INTERFACE
+typedef struct
+{
+    /** retransmission support transport type. **/
+    CATransportAdapter_t supportType;
+
+    /** retransmission trying count. **/
+    uint8_t tryingCount;
+
+} CARetransmissionConfig_t;
+
+typedef struct
+{
+    /** Thread pool of the thread started. **/
+    ca_thread_pool_t threadPool;
+
+    /** mutex for synchronization. **/
+    oc_mutex threadMutex;
+
+    /** conditional mutex for synchronization. **/
+    oc_cond threadCond;
+
+    /** send method for retransmission data. **/
+    CADataSendMethod_t dataSendMethod;
+
+    /** callback function for retransmit timeout. **/
+    CATimeoutCallback_t timeoutCallback;
+
+    /** retransmission configure data. **/
+    CARetransmissionConfig_t config;
+
+    /** Variable to inform the thread to stop. **/
+    bool isStop;
+
+    /** array list on which the thread is operating. **/
+    u_arraylist_t *dataList;
+
+} CARetransmission_t;
+#endif
+
 typedef struct
 {
     uint64_t timeStamp;                 /**< last sent time. microseconds */
@@ -106,7 +146,7 @@ CAResult_t CARetransmissionStart(CARetransmission_t *context)
         return CA_STATUS_INVALID_PARAM;
     }
 
-    OIC_LOG_THREADS_V(DEBUG, TAG, "Adding CARetransmissionBaseRoutine to thread pool");
+    OIC_LOG_THREADS_V(DEBUG, TAG, "Adding task CARetransmissionBaseRoutine to thread pool");
     CAResult_t res = ca_thread_pool_add_task(context->threadPool, CARetransmissionBaseRoutine, context);
 
     if (CA_STATUS_OK != res)
@@ -546,13 +586,12 @@ CAResult_t CARetransmissionReceivedData(CARetransmission_t *context,
 
 CAResult_t CARetransmissionStop(CARetransmission_t *context)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (NULL == context)
     {
         OIC_LOG(ERROR, TAG, "context is empty..");
         return CA_STATUS_INVALID_PARAM;
     }
-
-    OIC_LOG(DEBUG, TAG, "retransmission stop request!!");
 
     // mutex lock
     oc_mutex_lock(context->threadMutex);
@@ -568,6 +607,7 @@ CAResult_t CARetransmissionStop(CARetransmission_t *context)
     // mutex unlock
     oc_mutex_unlock(context->threadMutex);
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 

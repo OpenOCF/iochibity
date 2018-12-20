@@ -228,8 +228,9 @@ typedef LogLevel LogLevel;
 #define DEBUG 0
 #define INFO 1
 #define WARNING 2
-//#ifdef _WIN32
+#ifdef _WIN32
 #undef ERROR
+#endif
 #define ERROR 3
 #define FATAL 4
 #define DEBUG_LITE 5
@@ -613,3 +614,4 @@ void LogSp(OicSecSp_t* sp, int level, const char* tag, const char* msg)
     OIC_LOG_V(level, tag, "Current security profile: %s", sp->currentProfile);
     OIC_LOG(level, tag, "-------------------------------------------------");
 }
+
