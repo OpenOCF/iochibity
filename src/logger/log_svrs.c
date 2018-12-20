@@ -1,3 +1,4 @@
+
 #include "log_svrs.h"
 
 #include "utlist.h"
@@ -388,5 +389,7 @@ void printCRL(LogLevel level, const OicSecCrl_t *crl)
     OIC_LOG_V(level, CRL_TAG, "data (length = %" PRIuPTR "):", crl->CrlData.len);
     OIC_LOG_BUFFER(level, CRL_TAG, crl->CrlData.data, crl->CrlData.len);
 }
-#define OIC_LOG_CRL(level, crl) printCRL((level),(crl))
 
+#if INTERFACE
+#define OIC_LOG_CRL(level, crl) printCRL((level),(crl))
+#endif
