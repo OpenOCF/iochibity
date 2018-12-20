@@ -50,6 +50,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage + CASelectReturned
     static int ready_count;
     ready_count = 0;
 
+    udp_selectTimeout = -1;
     timeout.tv_sec = udp_selectTimeout;
     timeout.tv_usec = 0;
     struct timeval *tv = udp_selectTimeout == -1 ? NULL : &timeout;
