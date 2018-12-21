@@ -61,9 +61,8 @@
 
 #if INTERFACE
 #include <inttypes.h>
-#endif
-
 #define USE_IP_MREQN
+#endif
 
 /*
  * Logging tag for module name
