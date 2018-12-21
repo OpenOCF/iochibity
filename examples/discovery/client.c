@@ -32,7 +32,13 @@
 #include <windows.h>
 #endif
 
+#define CLOG_MAIN
+#include "clog.h"
+
 #define TAG "client"
+
+
+const int MY_LOGGER = 0; /* Unique identifier for logger */
 
 /* static oc_thread ocf_thread; */
 
@@ -74,7 +80,8 @@ void print_json(OCDiscoveryPayload *payload)
     cJSON_AddFalseToObject (fmt, "interlace");
     cJSON_AddNumberToObject(fmt, "frame rate", 24);
     rendered = cJSON_Print(root);
-    OIC_LOG_V(INFO, TAG, "JSON:\n%s", rendered);
+    //clog_info(CLOG(MY_LOGGER), "JSON:\n%s", rendered);
+    clog_info(CLOG(MY_LOGGER), "JSON:\n%s", rendered);
 }
 
 cJSON* links_to_json(OCClientResponse *msg) /* FIXME: split header logging from payload logging */
@@ -223,7 +230,7 @@ void log_header_options (OCClientResponse *clientResponse)
     uint16_t option_id  = 0;
     uint16_t option_len = 0;
     for (int i=0; i < clientResponse->numRcvdVendorSpecificHeaderOptions; i++) {
-	OIC_LOG_V(INFO, TAG, "\tOption %d:", i);
+	clog_info(CLOG(MY_LOGGER), "\tOption %d:", i);
 
 	/* With OCF 1.0, the version of the content (payload) format must also be negotiated.
 	 * OCF 1.0 section 12.2.5 says messages must always indicate format version etc..
@@ -234,7 +241,7 @@ void log_header_options (OCClientResponse *clientResponse)
 	/* So we expect two headers, one to indicate the payload format, and
 	   another to indicate format version */
 
-	OIC_LOG_V(INFO, TAG, "\t\t protocol id FIXME: %d",
+	clog_info(CLOG(MY_LOGGER), "\t\t protocol id FIXME: %d",
 		  clientResponse->rcvdVendorSpecificHeaderOptions[i].protocolID);
 
 	option_id = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionID;
@@ -247,12 +254,12 @@ void log_header_options (OCClientResponse *clientResponse)
 	     * application/vnd.ocf+cbor 10000 = 0x2710
 	     * application/json 50 = 0x32
 	     * see: https://www.iana.org/assignments/core-parameters/core-parameters.xhtml */
-	    OIC_LOG_V(INFO, TAG, "\t\t Accept (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Accept (code %d)",
 		      option_id);
 	    /* uint */
 	    break;
 	case OCF_ACCEPT_CONTENT_FORMAT_VERSION:
-	    OIC_LOG_V(INFO, TAG, "\t\t OCF-Accept-Content-Version-Format (code %d), len %d",
+	    clog_info(CLOG(MY_LOGGER), "\t\t OCF-Accept-Content-Version-Format (code %d), len %d",
 		      option_id, option_len);
 	    /* 2 byte uint */
 	    break;
@@ -261,7 +268,7 @@ void log_header_options (OCClientResponse *clientResponse)
 	    content_format =
 		(clientResponse->rcvdVendorSpecificHeaderOptions[i].optionData[0] * 0x0100
 		 + clientResponse->rcvdVendorSpecificHeaderOptions[i].optionData[1]);
-	    OIC_LOG_V(INFO, TAG, "\t\t Content-Format (%d) = %s (%d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Content-Format (%d) = %s (%d)",
 		      option_id,
 		      /* option_len, */
 		      (COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR
@@ -280,7 +287,7 @@ void log_header_options (OCClientResponse *clientResponse)
 	    content_format_version =
 		(clientResponse->rcvdVendorSpecificHeaderOptions[i].optionData[0] * 0x0100
 		 + clientResponse->rcvdVendorSpecificHeaderOptions[i].optionData[1]);
-	    OIC_LOG_V(INFO, TAG, "\t\t OCF-Content-Version-Format (%d) = %s (%d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t OCF-Content-Version-Format (%d) = %s (%d)",
 		      option_id,
 		      /* option_len, */
 		      (OCF_VERSION_1_0_0 == content_format_version)? "OCF 1.0.0"
@@ -290,165 +297,165 @@ void log_header_options (OCClientResponse *clientResponse)
 	    break;
 	case  COAP_OPTION_IF_MATCH:
 	    /* opaque */
-	    OIC_LOG_V(INFO, TAG, "\t\t If-Match (code %d)", option_id);
+	    clog_info(CLOG(MY_LOGGER), "\t\t If-Match (code %d)", option_id);
 	    break;
 	case  COAP_OPTION_URI_HOST:
 	    /* string */
-	    OIC_LOG_V(INFO, TAG, "\t\t Uri-Host (code %d)", option_id);
+	    clog_info(CLOG(MY_LOGGER), "\t\t Uri-Host (code %d)", option_id);
 	    break;
 	case  COAP_OPTION_ETAG:
-	    OIC_LOG_V(INFO, TAG, "\t\t ETag (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t ETag (code %d)",
 		      option_id);
 	    /* empty */
 	    break;
 	case  COAP_OPTION_IF_NONE_MATCH:
-	    OIC_LOG_V(INFO, TAG, "\t\t If-None-Match (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t If-None-Match (code %d)",
 		      option_id);
 	    /* empty */
 	    break;
 	case  COAP_OPTION_URI_PORT:
-	    OIC_LOG_V(INFO, TAG, "\t\t Uri-Port (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Uri-Port (code %d)",
 		      option_id);
 	    /* uint */
 	    break;
 	case  COAP_OPTION_LOCATION_PATH:
-	    OIC_LOG_V(INFO, TAG, "\t\t Location-Path (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Location-Path (code %d)",
 		      option_id);
 	    /* string */
 	    break;
 	case  COAP_OPTION_URI_PATH:
-	    OIC_LOG_V(INFO, TAG, "\t\t Uri-Path (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Uri-Path (code %d)",
 		      option_id);
 	    /* string */
 	    break;
 
 	case  COAP_OPTION_MAXAGE:
-	    OIC_LOG_V(INFO, TAG, "\t\t Max-Age (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Max-Age (code %d)",
 		      option_id);
 	    /* uint */
 	    break;
 	case  COAP_OPTION_URI_QUERY:
-	    OIC_LOG_V(INFO, TAG, "\t\t Uri-Query (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Uri-Query (code %d)",
 		      option_id);
 	    /* string */
 	    break;
 	case  COAP_OPTION_LOCATION_QUERY:
-	    OIC_LOG_V(INFO, TAG, "\t\t Location-Query (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Location-Query (code %d)",
 		      option_id);
 	    /* string */
 	    break;
 	case  COAP_OPTION_PROXY_URI:
-	    OIC_LOG_V(INFO, TAG, "\t\t Proxy-Uri (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Proxy-Uri (code %d)",
 		      option_id);
 	    /* string */
 	case  COAP_OPTION_PROXY_SCHEME:
-	    OIC_LOG_V(INFO, TAG, "\t\t Proxy-Scheme (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Proxy-Scheme (code %d)",
 		      option_id);
 	    /* string */
 	    break;
 	case  COAP_OPTION_SIZE1:
-	    OIC_LOG_V(INFO, TAG, "\t\t Size1 (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Size1 (code %d)",
 		      option_id);
 	    /* uint */
 	    break;
 	case  COAP_OPTION_SIZE2:
-	    OIC_LOG_V(INFO, TAG, "\t\t Size2 (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Size2 (code %d)",
 		      option_id);
 	    /* uint */
 	    break;
 	case  COAP_OPTION_OBSERVE:
-	    OIC_LOG_V(INFO, TAG, "\t\t Observe (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Observe (code %d)",
 		      option_id);
 	    /* empty/uint */
 	    break;
 	    /* duplicate of COAP_OPTON_OBSERVE */
 	    /* case  COAP_OPTION_SUBSCRIPTION:
-	     *     OIC_LOG_V(INFO, TAG, "\t\t Observe (code %d)",
+	     *     clog_info(CLOG(MY_LOGGER), "\t\t Observe (code %d)",
 	     * 	  option_id);
 	     *     /\* empty/uint *\/
 	     *     break; */
 	case  COAP_OPTION_BLOCK2:
-	    OIC_LOG_V(INFO, TAG, "\t\t Block2 (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Block2 (code %d)",
 		      option_id);
 	    /* uint */
 	    break;
 	case  COAP_OPTION_BLOCK1:
-	    OIC_LOG_V(INFO, TAG, "\t\t Block1 (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Block1 (code %d)",
 		      option_id);
 	    /* uint */
 	    break;
 	case  COAP_MAX_OPT:
-	    OIC_LOG_V(INFO, TAG, "\t\t Max-Opt (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t Max-Opt (code %d)",
 		      option_id);
 	    break;
 	default:
-	    OIC_LOG_V(INFO, TAG, "\t\t UNKOWN (code %d)",
+	    clog_info(CLOG(MY_LOGGER), "\t\t UNKOWN (code %d)",
 		      option_id);
 	}
 	/* for (int k = 0; k < clientResponse->rcvdVendorSpecificHeaderOptions[i].optionLength; k++) {
-	 *     OIC_LOG_V(INFO, TAG, "\t\t datum[%d]: 0x%X", k,
+	 *     clog_info(CLOG(MY_LOGGER), "\t\t datum[%d]: 0x%X", k,
 	 * 	      clientResponse->rcvdVendorSpecificHeaderOptions[i].optionData[k]); */
     }
 }
 
 void log_endpoint_info(OCClientResponse *clientResponse)
 {
-    OIC_LOG_V(INFO, TAG, "Origin addr: %s:%d", clientResponse->devAddr.addr, clientResponse->devAddr.port);
-    OIC_LOG_V(INFO, TAG, "Origin ifindex: %d", clientResponse->devAddr.ifindex);
-    OIC_LOG_V(INFO, TAG, "Origin route data: %s", clientResponse->devAddr.routeData);
-    OIC_LOG_V(INFO, TAG, "Origin device ID: %s", clientResponse->devAddr.remoteId);
+    clog_info(CLOG(MY_LOGGER), "Origin addr: %s:%d", clientResponse->devAddr.addr, clientResponse->devAddr.port);
+    clog_info(CLOG(MY_LOGGER), "Origin ifindex: %d", clientResponse->devAddr.ifindex);
+    clog_info(CLOG(MY_LOGGER), "Origin route data: %s", clientResponse->devAddr.routeData);
+    clog_info(CLOG(MY_LOGGER), "Origin device ID: %s", clientResponse->devAddr.remoteId);
 
     switch ( clientResponse->devAddr.adapter) {
     case OC_DEFAULT_ADAPTER: /** value zero indicates discovery.*/
-	OIC_LOG_V(INFO, TAG, "Transport adapter: DEFAULT (%d)", clientResponse->devAddr.adapter);
+	clog_info(CLOG(MY_LOGGER), "Transport adapter: DEFAULT (%d)", clientResponse->devAddr.adapter);
 	break;
     case OC_ADAPTER_IP:	/* (1 << 0) IPv4 and IPv6, including 6LoWPAN.*/
-	OIC_LOG_V(INFO, TAG, "Transport adapter: UDP/IP (%d)", clientResponse->devAddr.adapter);
+	clog_info(CLOG(MY_LOGGER), "Transport adapter: UDP/IP (%d)", clientResponse->devAddr.adapter);
 	break;
     case OC_ADAPTER_GATT_BTLE: /* (1 << 1) GATT over Bluetooth LE.*/
-	OIC_LOG_V(INFO, TAG, "Transport adapter: GATT/BTLE (%d)", clientResponse->devAddr.adapter);
+	clog_info(CLOG(MY_LOGGER), "Transport adapter: GATT/BTLE (%d)", clientResponse->devAddr.adapter);
 	break;
     case OC_ADAPTER_RFCOMM_BTEDR: /* (1 << 2) RFCOMM over Bluetooth EDR.*/
-	OIC_LOG_V(INFO, TAG, "Transport adapter: RFCOMM/BLEDR (%d)", clientResponse->devAddr.adapter);
+	clog_info(CLOG(MY_LOGGER), "Transport adapter: RFCOMM/BLEDR (%d)", clientResponse->devAddr.adapter);
 	break;
 #ifdef RA_ADAPTER
     case OC_ADAPTER_REMOTE_ACCESS: /* (1 << 3) Remote Access over XMPP.*/
-	OIC_LOG_V(INFO, TAG, "Transport adapter: XMPP (%d)", clientResponse->devAddr.adapter);
+	clog_info(CLOG(MY_LOGGER), "Transport adapter: XMPP (%d)", clientResponse->devAddr.adapter);
 	break;
 #endif
     case OC_ADAPTER_TCP:    /* (1 << 4) CoAP over TCP.*/
-	OIC_LOG_V(INFO, TAG, "Transport adapter: TCP (%d)", clientResponse->devAddr.adapter);
+	clog_info(CLOG(MY_LOGGER), "Transport adapter: TCP (%d)", clientResponse->devAddr.adapter);
 	break;
     case OC_ADAPTER_NFC:    /* (1 << 5) NFC Transport for Messaging.*/
-	OIC_LOG_V(INFO, TAG, "Transport adapter: NFC (%d)", clientResponse->devAddr.adapter);
+	clog_info(CLOG(MY_LOGGER), "Transport adapter: NFC (%d)", clientResponse->devAddr.adapter);
 	break;
     case OC_ALL_ADAPTERS: /* 0xffffffff CA_ALL_ADAPTERS */
-	OIC_LOG_V(INFO, TAG, "Transport adapter: ALL (%d)", clientResponse->devAddr.adapter);
+	clog_info(CLOG(MY_LOGGER), "Transport adapter: ALL (%d)", clientResponse->devAddr.adapter);
 	break;
     default:
 	break;
     }
 
     if ( OC_DEFAULT_FLAGS == clientResponse->devAddr.flags)
-	OIC_LOG_V(INFO, TAG, "DEFAULT FLAGS (%d)", clientResponse->devAddr.flags);
+	clog_info(CLOG(MY_LOGGER), "DEFAULT FLAGS (%d)", clientResponse->devAddr.flags);
 
     /** Insecure transport is the default (subject to change).*/
     /** secure the transport path*/
     if (OC_FLAG_SECURE & clientResponse->devAddr.flags) /* (1 << 4) */
-	OIC_LOG_V(INFO, TAG, "Transport security: TRUE");
-    else OIC_LOG_V(INFO, TAG, "Transport security: FALSE");
+	clog_info(CLOG(MY_LOGGER), "Transport security: TRUE");
+    else clog_info(CLOG(MY_LOGGER), "Transport security: FALSE");
 
     /** IPv4 & IPv6 auto-selection is the default.*/
     /** if adapter = IP (UDP) or TCP*/
-    OIC_LOG_V(INFO, TAG, "Network protocols: %s %s",
+    clog_info(CLOG(MY_LOGGER), "Network protocols: %s %s",
 	      ( (OC_IP_USE_V4 & clientResponse->devAddr.flags) > 0)? /* (1 << 6) */
 	      "IPv4" : "",
 	      ( (OC_IP_USE_V6 & clientResponse->devAddr.flags) > 0)? /* (1 << 5) */
 	      "IPv6" : "");
 
-    OIC_LOG_V(INFO, TAG, "Transport flags: 0x%08X", clientResponse->devAddr.flags);
+    clog_info(CLOG(MY_LOGGER), "Transport flags: 0x%08X", clientResponse->devAddr.flags);
 
-    /* OIC_LOG_V(INFO, TAG, "IPv6 Scopes: %s%s%s%s%s%s%s",
+    /* clog_info(CLOG(MY_LOGGER), "IPv6 Scopes: %s%s%s%s%s%s%s",
      * 	      ((OC_SCOPE_INTERFACE & clientResponse->devAddr.flags) > 0)? /\* 0x1 *\/
      * 	      "Interface-Local" : "",
      * 	      ((OC_SCOPE_LINK & clientResponse->devAddr.flags) > 0)? /\* 0x2 *\/
@@ -466,78 +473,78 @@ void log_endpoint_info(OCClientResponse *clientResponse)
 
     /* /\** if adapter = IP (UDP) or TCP*\/
      * if (OC_IP_USE_V4 & clientResponse->devAddr.flags) /\* (1 << 6) *\/
-     * 	OIC_LOG_V(INFO, TAG, "Network protocol: IPv4"); */
+     * 	clog_info(CLOG(MY_LOGGER), "Network protocol: IPv4"); */
 
     /** Multicast only.*/
     if (OC_MULTICAST & clientResponse->devAddr.flags) /* (1 << 7) */
-	OIC_LOG_V(INFO, TAG, "Multicast? TRUE");
-    else OIC_LOG_V(INFO, TAG, "Multicast? FALSE");
+	clog_info(CLOG(MY_LOGGER), "Multicast? TRUE");
+    else clog_info(CLOG(MY_LOGGER), "Multicast? FALSE");
 
-    OIC_LOG_V(INFO, TAG, "IPv6 Scopes:");
+    clog_info(CLOG(MY_LOGGER), "IPv6 Scopes:");
     /** Link-Local multicast is the default multicast scope for IPv6.
      *  These are placed here to correspond to the IPv6 multicast address bits.*/
 
     /** IPv6 Interface-Local scope (loopback).*/
     if (OC_SCOPE_INTERFACE & clientResponse->devAddr.flags) /* 0x1 */
-    	OIC_LOG_V(INFO, TAG, "\tInterface-Local");
+    	clog_info(CLOG(MY_LOGGER), "\tInterface-Local");
 
     /** IPv6 Link-Local scope (default).*/
     if (OC_SCOPE_LINK & clientResponse->devAddr.flags) /* 0x2 */
-    	OIC_LOG_V(INFO, TAG, "\tLink-Local");
+    	clog_info(CLOG(MY_LOGGER), "\tLink-Local");
 
     /** IPv6 Realm-Local scope. */
     if (OC_SCOPE_REALM & clientResponse->devAddr.flags) /* 0x3 */
-    	OIC_LOG_V(INFO, TAG, "\tRealm-Local");
+    	clog_info(CLOG(MY_LOGGER), "\tRealm-Local");
 
     /** IPv6 Admin-Local scope. */
     if (OC_SCOPE_ADMIN & clientResponse->devAddr.flags) /* 0x4 */
-    	OIC_LOG_V(INFO, TAG, "\tAdmin-Local");
+    	clog_info(CLOG(MY_LOGGER), "\tAdmin-Local");
 
     /** IPv6 Site-Local scope. */
     if (OC_SCOPE_SITE & clientResponse->devAddr.flags) /* 0x5 */
-    	OIC_LOG_V(INFO, TAG, "\tSite-Local");
+    	clog_info(CLOG(MY_LOGGER), "\tSite-Local");
 
     /** IPv6 Organization-Local scope. */
     if (OC_SCOPE_ORG & clientResponse->devAddr.flags) /* 0x8 */
-    	OIC_LOG_V(INFO, TAG, "\tOrganization-Local");
+    	clog_info(CLOG(MY_LOGGER), "\tOrganization-Local");
 
     /**IPv6 Global scope. */
     if (OC_SCOPE_GLOBAL & clientResponse->devAddr.flags) /* 0x# */
-    	OIC_LOG_V(INFO, TAG, "\tGlobal");
+    	clog_info(CLOG(MY_LOGGER), "\tGlobal");
 }
 
 void log_payload_type(OCPayload *payload)
 {
     switch (payload->type) {
     case PAYLOAD_TYPE_INVALID:
-	OIC_LOG_V(INFO, TAG, "Message payload type: INVALID");
+	clog_info(CLOG(MY_LOGGER), "Message payload type: INVALID");
 	break;
     case PAYLOAD_TYPE_DISCOVERY:
-	OIC_LOG_V(INFO, TAG, "Message payload type: DISCOVERY");
+	clog_info(CLOG(MY_LOGGER), "Message payload type: DISCOVERY");
 	break;
     case PAYLOAD_TYPE_DEVICE:
-	OIC_LOG_V(INFO, TAG, "Message payload type: DEVICE");
+	clog_info(CLOG(MY_LOGGER), "Message payload type: DEVICE");
 	break;
     case PAYLOAD_TYPE_PLATFORM:
-	OIC_LOG_V(INFO, TAG, "Message payload type: PLATFORM");
+	clog_info(CLOG(MY_LOGGER), "Message payload type: PLATFORM");
 	break;
     case PAYLOAD_TYPE_REPRESENTATION:
-	OIC_LOG_V(INFO, TAG, "Message payload type: REPRESENTATION");
+	clog_info(CLOG(MY_LOGGER), "Message payload type: REPRESENTATION");
 	break;
     case PAYLOAD_TYPE_SECURITY:
-	OIC_LOG_V(INFO, TAG, "Message payload type: SECURITY");
+	clog_info(CLOG(MY_LOGGER), "Message payload type: SECURITY");
 	break;
     /* case PAYLOAD_TYPE_PRESENCE: */
-    /*     OIC_LOG_V(INFO, TAG, "Message payload type: PRESENCE"); */
+    /*     clog_info(CLOG(MY_LOGGER), "Message payload type: PRESENCE"); */
     /*     break; */
     case PAYLOAD_TYPE_DIAGNOSTIC:
-	OIC_LOG_V(INFO, TAG, "Message payload type: DIAGNOSTIC");
+	clog_info(CLOG(MY_LOGGER), "Message payload type: DIAGNOSTIC");
 	break;
     case PAYLOAD_TYPE_INTROSPECTION:
-	OIC_LOG_V(INFO, TAG, "Message payload type: INTROSPECTION");
+	clog_info(CLOG(MY_LOGGER), "Message payload type: INTROSPECTION");
 	break;
     default:
-	OIC_LOG_V(INFO, TAG, "Message payload type: UNKNOWN");
+	clog_info(CLOG(MY_LOGGER), "Message payload type: UNKNOWN");
 	break;
     }
 }
@@ -547,21 +554,22 @@ void log_discovery_message(OCClientResponse *clientResponse)
     OIC_LOG(INFO, TAG, "================ Response Message ================");
     /* payload type should be 1 */
     log_payload_type(clientResponse->payload);
-    OIC_LOG_V(INFO, TAG, "Message seq nbr: %d", clientResponse->sequenceNumber);
-    OIC_LOG_V(INFO, TAG, "Origin uri: %s", clientResponse->resourceUri);
-    OIC_LOG_V(INFO, TAG, "Origin Identity: %d %s", clientResponse->identity.id_length, clientResponse->identity.id);
-    OIC_LOG_V(INFO, TAG, "Origin result: %d", clientResponse->result);
+    clog_info(CLOG(MY_LOGGER), "Message seq nbr: %d", clientResponse->sequenceNumber);
+    clog_info(CLOG(MY_LOGGER), "Origin uri: %s", clientResponse->resourceUri);
+    clog_info(CLOG(MY_LOGGER), "Origin Identity: %d %s", clientResponse->identity.id_length, clientResponse->identity.id);
+    clog_info(CLOG(MY_LOGGER), "Origin result: %d", clientResponse->result);
 
     log_endpoint_info(clientResponse);
 
-    OIC_LOG_V(INFO, TAG, "Header Options (%d):", clientResponse->numRcvdVendorSpecificHeaderOptions);
+    clog_info(CLOG(MY_LOGGER), "Header Options (%d):", clientResponse->numRcvdVendorSpecificHeaderOptions);
     log_header_options(clientResponse);
 
     cJSON *discovery_json = discovery_to_json(clientResponse);
     char* rendered = cJSON_Print(discovery_json);
     /* OIC_LOG(INFO, TAG, "Discovery payload:\n"); */
-    OIC_LOG_STR(DEBUG, TAG, "Discovery payload:", "%s\n", rendered);
-    /* log_msg("%s\n", rendered); */
+    //    OIC_LOG_STR(DEBUG, TAG, "
+    clog_info(CLOG(MY_LOGGER), "Discovery payload: %s\n", rendered);
+
     free(rendered);
 }
 
@@ -598,7 +606,7 @@ void discover_resources ()
 
     /* FIXME: coap header options */
 
-    OIC_LOG_V(INFO, TAG, "Starting Resource Discovery >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    clog_info(CLOG(MY_LOGGER), "Starting Resource Discovery >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     /* OCDoResource is deprecated, use OCDoRequest */
     if (OCDoRequest(&handle,	      /* OCDoHandle */
 		    OC_REST_DISCOVER, /* method */
@@ -630,7 +638,7 @@ void list_resource_uris ()
 }
 
 void* ocf_routine(void *arg) {
-    OIC_LOG_V(INFO, TAG, "Starting client");
+    clog_info(CLOG(MY_LOGGER), "Starting client");
 
     // Break from loop with Ctrl+C
     OIC_LOG(INFO, TAG, "Entering client main loop...");
@@ -638,7 +646,7 @@ void* ocf_routine(void *arg) {
     int i = 0;
 
     while (!gQuitFlag) {
-	OIC_LOG_V(INFO, TAG, "process loop %d, tid %d", i++, pthread_self());
+	clog_info(CLOG(MY_LOGGER), "process loop %d, tid %d", i++, pthread_self());
         if (OCProcess() != OC_STACK_OK) {
             OIC_LOG(ERROR, TAG, "OCStack process error");
             return 0;
@@ -658,10 +666,23 @@ void* ocf_routine(void *arg) {
 
 int main ()
 {
-    OCLogInit(NULL);
-    /* logfd = fopen("./logs/client.log", "w"); */
-    /* OCLogHookFd(logfd); */
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self());
+    /* Initialize the logger */
+    int r;
+    r = clog_init_path(MY_LOGGER, "logs/client.txt");
+    if (r != 0) {
+        fprintf(stderr, "Logger initialization failed.\n");
+        return 1;
+    }
+
+    /* Set minimum log level to info (default: debug) */
+    clog_set_level(MY_LOGGER, CLOG_INFO);
+
+    clog_info(CLOG(MY_LOGGER), "HELLO, %s!", "world");
+
+    /* OCLogInit(NULL); */
+    /* /\* logfd = fopen("./logs/client.log", "w"); *\/ */
+    /* /\* OCLogHookFd(logfd); *\/ */
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self()); */
 
     /* Initialize OCStack. Do this here rather than in the work
        thread, to ensure initialization is complete before sending any
@@ -682,7 +703,8 @@ int main ()
     signal(SIGINT, handleSigInt); /* Control-C to exit */
     while (!gQuitFlag) {
 	static int i = 0;
-	OIC_LOG_V(INFO, TAG, "process loop %d, tid %d", i++, pthread_self());
+        printf(".");
+	clog_info(CLOG(MY_LOGGER), "process loop %d, tid %d", i++, pthread_self());
 	/* "OCProcess" means "receive incoming messages and dispatch
 	   to application handers - in this case,
 	   resource_discovery_cb. Each incoming message is dispatched
@@ -694,7 +716,7 @@ int main ()
 	fflush(logfd);		/* FIXME */
         sleep(1);
     }
-
+    printf("\n");
     OIC_LOG(INFO, TAG, "Exiting client main loop...");
 
     if (OCStop() != OC_STACK_OK) {
@@ -712,4 +734,7 @@ int main ()
     /* pthread_exit(NULL); */
 
     /* fclose(logfd); */
+
+    /* Clean up */
+    clog_free(MY_LOGGER);
 }
