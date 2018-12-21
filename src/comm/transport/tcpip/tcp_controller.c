@@ -300,7 +300,7 @@ CAResult_t CAStartTCP()
     // cbs. those are now statically initialized, so all we need do is
     // create the "nw monitor" (i.e. interface) list
     // FIXME: the if chg handler can be statically initialized, no need to pass it!
-    ip_create_network_interface_list(tcp_interface_change_handler, CA_ADAPTER_TCP);
+    // ip_create_network_interface_list(tcp_interface_change_handler, CA_ADAPTER_TCP);
 
     if (CA_STATUS_OK != CATCPInitializeQueueHandles())
     {

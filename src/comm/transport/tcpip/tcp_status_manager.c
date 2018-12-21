@@ -39,27 +39,27 @@ static CAResult_t CATCPInitializeNetworkMonitorList(void)
         }
     }
 
-    if (!g_netInterfaceList)
-    {
-        g_netInterfaceList = u_arraylist_create();
-        if (!g_netInterfaceList)
-        {
-            OIC_LOG(ERROR, TAG, "u_arraylist_create has failed");
-            CAIPDestroyNetworkInterfaceList();
-            return CA_STATUS_FAILED;
-        }
-    }
+    /* if (!g_netInterfaceList) */
+    /* { */
+    /*     g_netInterfaceList = u_arraylist_create(); */
+    /*     if (!g_netInterfaceList) */
+    /*     { */
+    /*         OIC_LOG(ERROR, TAG, "u_arraylist_create has failed"); */
+    /*         CAIPDestroyNetworkInterfaceList(); */
+    /*         return CA_STATUS_FAILED; */
+    /*     } */
+    /* } */
     return CA_STATUS_OK;
 }
 
 // @rewrite CAIPDestroyNetworkAddressList @was CAIPDestroyNetworkMonitorList
 void CAIPDestroyNetworkAddressList()
 {
-    if (g_netInterfaceList)
-    {
-        u_arraylist_destroy(g_netInterfaceList);
-        g_netInterfaceList = NULL;
-    }
+    /* if (g_netInterfaceList) */
+    /* { */
+    /*     u_arraylist_destroy(g_netInterfaceList); */
+    /*     g_netInterfaceList = NULL; */
+    /* } */
 
     if (g_networkMonitorContextMutex)
     {

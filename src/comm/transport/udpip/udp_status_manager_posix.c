@@ -151,7 +151,7 @@
 CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
-    CAIPDestroyNetworkInterfaceList();
+    /* CAIPDestroyNetworkInterfaceList(); */
     return CA_STATUS_OK; // CAIPUnSetNetworkMonitorCallback(adapter);
 }
 
@@ -245,7 +245,7 @@ static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family
  * matter how many addresses.
  */
 u_arraylist_t			/**< @result list of CAInterface_t */
-*udp_get_ifs_for_rtm_newaddr(int desiredIndex) // @was CAIPGetInterfaceInformation
+*udp_get_nifs_for_rtm_newaddr(int desiredIndex) // @was CAIPGetInterfaceInformation
 {
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
     OIC_LOG_V(DEBUG, TAG, "%s: ENTRY; desiredIndex = %d", __func__, desiredIndex);
@@ -427,7 +427,7 @@ u_arraylist_t			/**< @result list of CAInterface_t */
             /* } */
 	    //udp_if_change_handler(CA_INTERFACE_UP); // @was CAIPPassNetworkChangesToAdapter
 #ifdef IP_ADAPTER
-	    udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler
+	    udp_nif_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler
 #endif
 #ifdef TCP_ADAPTER
 	    tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CATCPAdapterHandler

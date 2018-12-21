@@ -323,10 +323,11 @@ u_arraylist_t *udp_nif_change_handler_linux() // @was CAFindInterfaceChange
             struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
             if (ifa)
             {
-                int ifiIndex = ifa->ifa_index;
-                bool isFound = InterfaceListContains(ifiIndex);
-                if (isFound) {
-		    CARemoveFromInterfaceList(ifiIndex);
+                // interface list not used for anything
+                /* int ifiIndex = ifa->ifa_index; */
+                /* bool isFound = InterfaceListContains(ifiIndex); */
+                /* if (isFound) { */
+		/*     CARemoveFromInterfaceList(ifiIndex); */
                     //udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports
 #ifdef IP_ADAPTER
                 udp_nif_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
@@ -335,7 +336,7 @@ u_arraylist_t *udp_nif_change_handler_linux() // @was CAFindInterfaceChange
 		    tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); //@was CATCPAdapterHandler
 #endif
 		    // @was CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
-                }
+                /* } */
             }
             continue;
         }
