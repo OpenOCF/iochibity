@@ -142,7 +142,7 @@ CAResult_t udp_start_services(const ca_thread_pool_t threadPool) // @was CAIPSta
 
     CAInitializeFastShutdownMechanism();
 
-    CARegisterForAddressChanges();
+    CARegisterForNIFChanges();
 
     //udp_selectTimeout = CAGetPollingInterval(udp_selectTimeout);
 

@@ -198,8 +198,7 @@ void CADeInitializeMonitorGlobals()
     }
 }
 
-// GAR: rename: CARegisterForIfaceChanges
-void CARegisterForAddressChanges(void)
+void CARegisterForNIFChanges(void)
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
     udp_netlinkFd = OC_INVALID_SOCKET;

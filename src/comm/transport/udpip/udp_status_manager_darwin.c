@@ -136,7 +136,7 @@ LOCAL void launch_nif_watcher_thread(void)
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
-void CARegisterForAddressChanges(void)
+void CARegisterForNIFChanges(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     launch_nif_watcher_thread();
