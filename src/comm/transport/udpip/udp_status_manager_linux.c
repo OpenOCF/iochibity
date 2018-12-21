@@ -269,7 +269,8 @@ void CARegisterForAddressChanges(void)
 
 // FIXME: move to ip package, this is transport independent?
 // @was: called by caipserver_linux::CASelectReturned when netlinkFd ready
-u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
+// u_arraylist_t *
+void udp_if_change_handler_linux() // @was CAFindInterfaceChange
 {
     u_arraylist_t *iflist = NULL;
 #if defined(__linux__) || defined (__ANDROID__) /* GAR:  Darwin support */
@@ -286,8 +287,7 @@ u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
     ssize_t len = recvmsg(udp_netlinkFd, &msg, 0);
     /* OIC_LOG_V(DEBUG, TAG, "Rtnetlink recvmsg len: %d", len); */
 
-    for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len))
-    {
+    for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len)) {
 	/* NOTE: netlink stuff is transport-independent? e.g. newaddr for either udp or tcp? */
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
 	if (nh != NULL) {
@@ -317,11 +317,11 @@ u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
             struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
             if (ifa)
             {
-                int ifiIndex = ifa->ifa_index;
-                bool isFound = InterfaceListContains(ifiIndex);
-                if (isFound) {
-		    CARemoveFromInterfaceList(ifiIndex);
-                    //udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports
+                /* int ifiIndex = ifa->ifa_index; */
+                /* bool isFound = InterfaceListContains(ifiIndex); */
+                /* if (isFound) { */
+		/*     CARemoveFromInterfaceList(ifiIndex); */
+                /*     //udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports */
 #ifdef IP_ADAPTER
 		    udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
 #endif
@@ -329,7 +329,7 @@ u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
 		    tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); //@was CATCPAdapterHandler
 #endif
 		    // @was CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
-                }
+                /* } */
             }
             continue;
         }
@@ -337,19 +337,28 @@ u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
         if (RTM_NEWADDR == nh->nlmsg_type) {
 	    struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
 	    if (ifa) {
-		int ifiIndex = ifa->ifa_index;
-		/* FIXME: BUG. what if > 1 new addrs? only last will be in iflist */
-		// GAR: udp_get_ifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter
-		iflist = udp_get_ifs_for_rtm_newaddr(ifiIndex);
-		if (!iflist)
-		    {
-			OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
-			return NULL;
-		    }
+		/* int ifiIndex = ifa->ifa_index; */
+		/* /\* FIXME: BUG. what if > 1 new addrs? only last will be in iflist *\/ */
+		/* // GAR: udp_get_ifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter */
+		/* iflist = udp_get_ifs_for_rtm_newaddr(ifiIndex); */
+		/* if (!iflist) */
+		/*     { */
+		/* 	OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno)); */
+		/* 	return NULL; */
+		/*     } */
 		/* GAR: CAProcessNewInterfaceItem? (android) */
+                // udp_add_if_to_multicast_groups(ifitem); // @was CAProcessNewInterface(ifitem);
+                if (ifa->ifa_family == AF_INET6)
+                    {
+                        applyMulticastToInterface6(ifa->ifa_index);
+                    }
+                if (ifa->ifa_family == AF_INET)
+                    {
+                        applyMulticastToInterface4(ifa->ifa_index);
+                    }
 	    }
 	}
     }
 #endif
-    return iflist;
+    return; // iflist;
 }
