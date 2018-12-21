@@ -276,10 +276,9 @@ void CARegisterForAddressChanges(void)
 
 // FIXME: move to ip package, this is transport independent?
 // @was: called by caipserver_linux::CASelectReturned when netlinkFd ready
-u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
+u_arraylist_t *udp_nif_change_handler_linux() // @was CAFindInterfaceChange
 {
     u_arraylist_t *iflist = NULL;
-#if defined(__linux__) || defined (__ANDROID__) /* GAR:  Darwin support */
     char buf[4096] = { 0 };
     struct nlmsghdr *nh = NULL;
     struct sockaddr_nl sa = { .nl_family = 0 };
@@ -330,7 +329,7 @@ u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
 		    CARemoveFromInterfaceList(ifiIndex);
                     //udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports
 #ifdef IP_ADAPTER
-		    udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
+                udp_nif_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
 #endif
 #ifdef TCP_ADAPTER
 		    tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); //@was CATCPAdapterHandler
@@ -346,8 +345,8 @@ u_arraylist_t *udp_if_change_handler_linux() // @was CAFindInterfaceChange
 	    if (ifa) {
 		int ifiIndex = ifa->ifa_index;
 		/* FIXME: BUG. what if > 1 new addrs? only last will be in iflist */
-		// GAR: udp_get_ifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter
-		iflist = udp_get_ifs_for_rtm_newaddr(ifiIndex);
+		// GAR: udp_get_nifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter
+		iflist = udp_get_nifs_for_rtm_newaddr(ifiIndex);
 		if (!iflist)
 		    {
 			OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));

@@ -85,7 +85,7 @@ void CADeInitializeMonitorGlobals(void)
     /* } */
 }
 
-void *ip_watcher(void *data)
+void *nif_watcher(void *data)
 {
     SCDynamicStoreRef storeRef = NULL;
     CFRunLoopSourceRef sourceRef = NULL;
@@ -111,7 +111,7 @@ void *ip_watcher(void *data)
     CFRelease(sourceRef);
 }
 
-void launch_ip_watcher(void)
+LOCAL void launch_nif_watcher_thread(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
@@ -125,7 +125,7 @@ void launch_ip_watcher(void)
     returnVal = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     assert(!returnVal);
 
-    int     threadError = pthread_create(&posixThreadID, &attr, &ip_watcher, NULL);
+    int     threadError = pthread_create(&posixThreadID, &attr, &nif_watcher, NULL);
 
     returnVal = pthread_attr_destroy(&attr);
     assert(!returnVal);
@@ -139,7 +139,7 @@ void launch_ip_watcher(void)
 void CARegisterForAddressChanges(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    launch_ip_watcher();
+    launch_nif_watcher_thread();
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
@@ -190,7 +190,7 @@ void CARegisterForAddressChanges(void)
 
 // @rewrite udp_if_change_handler_darwin @was CAFindInterfaceChange
 // FIXME: this routine is transport independent? rename to ip_if_ch...
-void udp_if_change_handler_darwin(SCDynamicStoreRef store, CFArrayRef changedKeys, void *info)
+void udp_nif_change_handler_darwin(SCDynamicStoreRef store, CFArrayRef changedKeys, void *info)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     CFIndex nameCount = CFArrayGetCount( changedKeys );
@@ -214,7 +214,7 @@ void udp_if_change_handler_darwin(SCDynamicStoreRef store, CFArrayRef changedKey
     // CAIPPassNetworkChangesToTransports for deletions,
     // udp_get_ifs_for_rtm_newaddr(ifiIndex) for additions
 
-    u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0);
+    u_arraylist_t *iflist = udp_get_nifs_for_rtm_newaddr(0);
     if (iflist) {
 	size_t listLength = u_arraylist_length(iflist);
 	for (size_t i = 0; i < listLength; i++)
@@ -230,9 +230,10 @@ void udp_if_change_handler_darwin(SCDynamicStoreRef store, CFArrayRef changedKey
 	OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
     }
 
-    // udp_if_change_handler(CA_INTERFACE_UP); // @was CAIPPassNetworkChangesToTransports
+    // FIXME: what about NIF going down?
+    // udp_nif_change_handler(CA_INTERFACE_UP); // @was CAIPPassNetworkChangesToTransports
 #ifndef DISABLE_UDP
-    udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler
+    udp_nif_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler
 #endif
 #ifdef ENABLE_TCP
     tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CATCPAdapterHandler
@@ -349,7 +350,7 @@ LOCAL OSStatus CreateIPAddressListChangeCallbackSCF(
     context.info = contextPtr;
     ref = SCDynamicStoreCreate( NULL,
                                 CFSTR("AddIPAddressListChangeCallbackSCF"),
-                                udp_if_change_handler_darwin,
+                                udp_nif_change_handler_darwin,
                                 &context);
     err = MoreSCError(ref);
 

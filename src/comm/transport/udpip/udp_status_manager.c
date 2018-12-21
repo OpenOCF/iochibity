@@ -142,11 +142,12 @@ oc_mutex g_networkMonitorContextMutex = NULL;
 
 /**
  * FIXME: naming: this is for interface changes, regardless of transport.
+ * platform independent
  * maybe interface_status_change_handler?
- * but iface changes entail transport-layer reactions, which we statically configure here
- * udp_status_change_handler @was CAIPAdapterHandler
+ * but nif changes entail transport-layer reactions, which we statically configure here
+ * udp_nif_change_handler @was CAIPAdapterHandler
  */
-void udp_status_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapterHandler
+void udp_nif_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapterHandler
 			       CANetworkStatus_t status)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);

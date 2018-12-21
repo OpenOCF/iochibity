@@ -188,7 +188,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage + CASelectReturned
             OIC_LOG_V(DEBUG, TAG, "UDP Netlink event detected");
 #endif
 	    // get list of RTM_NEWADDR interfaces (not addresses)
-            u_arraylist_t *iflist = udp_if_change_handler_linux(); // @was CAFindInterfaceChange();
+            u_arraylist_t *iflist = udp_nif_change_handler_linux(); // @was CAFindInterfaceChange();
             if (iflist)
             {
                 size_t listLength = u_arraylist_length(iflist);

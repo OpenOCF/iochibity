@@ -487,7 +487,7 @@ CAResult_t udp_add_ifs_to_multicast_groups()
 
     // GAR: get all if/addresses; list is on heap, it is NOT g_network_interfaces
     errno = 0;
-    u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0);
+    u_arraylist_t *iflist = udp_get_nifs_for_rtm_newaddr(0);
     if (!iflist)
     {
         OIC_LOG_V(ERROR, TAG, "udp_get_ifs_for_rtm_newaddr() failed: %s", strerror(errno));
@@ -553,7 +553,7 @@ CAResult_t udp_close_sockets()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
-    u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0);
+    u_arraylist_t *iflist = udp_get_nifs_for_rtm_newaddr(0);
     if (!iflist)
     {
         OIC_LOG_V(ERROR, TAG, "Get interface info failed: %s", strerror(errno));

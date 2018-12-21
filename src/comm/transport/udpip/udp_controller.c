@@ -272,7 +272,7 @@ CAResult_t CAStartUDP()		// @rewrite @was CAStartIP (?)
     // call the cb directly for each transport rather than go thru
     // g_adapterCallbackList
 
-    /* addresses will be added by udp_get_ifs_for_rtm_newaddr, from CAFindInterfaceChange etc. */
+    /* addresses will be added by udp_get_nifs_for_rtm_newaddr, from CAFindInterfaceChange etc. */
     // @rewrite: the created list is never used, so why bother?
     // ip_create_network_interface_list();  // @was CAIPInitializeNetworkMonitorList, called by CAIPStartNetworkMonitor
 
@@ -373,7 +373,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
     VERIFY_NON_NULL_MSG(size, TAG, "size is NULL");
 
     // GAR: get live list of CAInterface_t, each represents a unique (IF, family) pair
-    u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0);
+    u_arraylist_t *iflist = udp_get_nifs_for_rtm_newaddr(0);
     if (!iflist) {
         OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
         return CA_STATUS_FAILED;

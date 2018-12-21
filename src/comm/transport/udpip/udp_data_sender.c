@@ -125,7 +125,7 @@ void CAIPSendData(CAEndpoint_t *endpoint, const void *data, size_t datalen,
 
         endpoint->port = isSecure ? CA_SECURE_COAP : CA_COAP;
 
-        u_arraylist_t *iflist = udp_get_ifs_for_rtm_newaddr(0);
+        u_arraylist_t *iflist = udp_get_nifs_for_rtm_newaddr(0);
         if (!iflist)
         {
             OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
