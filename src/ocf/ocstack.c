@@ -3088,7 +3088,7 @@ void OCDefaultConnectionStateChangedHandler(const CAEndpoint_t *info, bool isCon
      */
     if (!isConnected)
     {
-        OCDevAddr devAddr = { OC_DEFAULT_ADAPTER };
+        OCDevAddr devAddr = { OC_DEFAULT_ADAPTER }; /* FIXME: do proper initialization of struct */
         CopyEndpointToDevAddr(info, &devAddr);
 
         // remove observer list with remote device address.
@@ -3136,7 +3136,7 @@ OCStackResult OC_CALL OCGetIpv6AddrScope(const char *addr, OCTransportFlags *sco
 
     if (CA_STATUS_OK == caResult)
     {
-        assert(((*scope) & ~ALL_OC_SCOPES) == 0);
+        assert(((*scope) & ~ALL_OC_SCOPES) == 0); /* FIXME: how could this be wrong? */
         return OC_STACK_OK;
     }
 

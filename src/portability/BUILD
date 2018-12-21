@@ -32,7 +32,7 @@ cc_library(
               "//conditions:default": ["BROKEN"]}),
     linkopts = select({"//config:msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 bcrypt.lib"],
                        "//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lbcrypt"],
-                       "//config:mingw": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 bcrypt.lib"],
+                       "//config:mingw": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lbcrypt"],
                        "//conditions:default": []}),
     srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//visibility:public"]

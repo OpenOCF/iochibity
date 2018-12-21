@@ -1874,11 +1874,11 @@ static OCStackResult CheckDeviceID(void)
  * @return the default value of doxm, @ref OicSecDoxm_t.
  */
 /* GAR FIXME: this does nothing useful and is internal; delete it */
-static OicSecDoxm_t* GetDoxmDefault()
-{
-    OIC_LOG(DEBUG, TAG, "%s: returning gDefaultDoxm");
-    return &gDefaultDoxm;
-}
+/* static OicSecDoxm_t* GetDoxmDefault() */
+/* { */
+/*     OIC_LOG(DEBUG, TAG, "%s: returning gDefaultDoxm", __func__); */
+/*     return &gDefaultDoxm; */
+/* } */
 
 const OicSecDoxm_t* GetDoxmResourceData(void)
 {
@@ -1964,7 +1964,7 @@ OCStackResult InitDoxmResource(void)
     /* GAR: we do not need this if we compile the SVRs */
      if ((OC_STACK_OK != ret) || !data || !gDoxm)
     {
-        gDoxm = GetDoxmDefault();
+        gDoxm = &gDefaultDoxm; // GetDoxmDefault();
     }
 
      /* GAR_EXPERIMENTAL */

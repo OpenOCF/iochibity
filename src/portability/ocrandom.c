@@ -18,154 +18,36 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-/*
- * Expose POSIX.1-2008 base specification,
- * Refer http://pubs.opengroup.org/onlinepubs/9699919799/
- * For this specific file, see use of clock_gettime,
- * Refer to http://pubs.opengroup.org/stage7tc1/functions/clock_gettime.html
- * and to http://man7.org/linux/man-pages/man2/clock_gettime.2.html
- */
-#define _POSIX_C_SOURCE 200809L
-
-/* #include "iotivity_config.h" */
-/* #include "logger.h" */
 #include "ocrandom.h"
 
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#elif defined(HAVE_STRINGS_H)
-#include <strings.h>
-#endif
-#if defined(__ANDROID__)
-#include <ctype.h>
-#endif
-#ifdef HAVE_WINDOWS_H
-#if EXPORT_INTERFACE
-#include <winsock2.h>
-#include <windows.h>
-#include <Bcrypt.h>
-/* #endif */
-
-/* /\* http://kirkshoop.blogspot.com/2011/09/ntstatus.html *\/ */
-/* #define WIN32_NO_STATUS */
-/* #include <windows.h> */
-/* #undef WIN32_NO_STATUS */
-/* #include <winternl.h> */
-/* #include <ntstatus.h> */
-#endif	/* HAVE_WINDOWS_H */
-#endif	/* EXPORT_INTERFACE */
-
-#include <stdio.h>
-#include <stdbool.h>
 #include <assert.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
-#define OC_MIN(A,B) ((A)<(B)?(A):(B))
-
-
-#if EXPORT_INTERFACE
+#if INTERFACE
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
- /* Number of bytes in a UUID. */
-#define UUID_SIZE (16)
+#define UUID_SIZE (16)		/* in bytes */
 
 /*
- * Size of a UUID string.
  * IoTivity formats UUIDs as strings following RFC 4122, Section 3.
  * For example, "f81d4fae-7dec-11d0-a765-00a0c91e6bf6".
  * This requires 36 characters, plus one for the null terminator.
  */
 #define UUID_STRING_SIZE (37)
-#endif
 
 #define OC_UUID_HYPHEN_1 9
 #define OC_UUID_HYPHEN_2 14
 #define OC_UUID_HYPHEN_3 19
 #define OC_UUID_HYPHEN_4 24
 #define OC_UUID_HYPHEN_COUNT 4
-
-/**
-* @def OCRANDOM_TAG
-* @brief Logging tag for module name
-*/
-#define OCRANDOM_TAG "OIC_OCRANDOM"
-
-
-bool OCGetRandomBytes(uint8_t * output, size_t len)
-{
-    if ( (output == NULL) || (len == 0) )
-    {
-        return false;
-    }
-
-#if defined(__unix__) || defined(__APPLE__)
-    FILE* urandom = fopen("/dev/urandom", "r");
-    if (urandom == NULL)
-    {
-        OIC_LOG(FATAL, OCRANDOM_TAG, "Failed open /dev/urandom!");
-        assert(false);
-        return false;
-    }
-
-    if (fread(output, sizeof(uint8_t), len, urandom) != len)
-    {
-        OIC_LOG(FATAL, OCRANDOM_TAG, "Failed while reading /dev/urandom!");
-        assert(false);
-        fclose(urandom);
-        return false;
-    }
-    fclose(urandom);
-
-#elif defined(_WIN32)
-    /*
-     * size_t may be 64 bits, but ULONG is always 32.
-     * If len is larger than the maximum for ULONG, just fail.
-     * It's unlikely anything ever will want to ask for this much randomness.
-     */
-    if (len > 0xFFFFFFFFULL)
-    {
-        OIC_LOG(FATAL, OCRANDOM_TAG, "Requested number of bytes too large for ULONG");
-        assert(false);
-        return false;
-    }
-
-    NTSTATUS status = BCryptGenRandom(NULL, output, (ULONG)len, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        OIC_LOG_V(FATAL, OCRANDOM_TAG, "BCryptGenRandom failed (%X)!", status);
-        assert(false);
-        return false;
-    }
-
-/* #elif defined(ARDUINO) */
-/*     if (!g_isSeeded) */
-/*     { */
-/*         OCSeedRandom(); */
-/*     } */
-
-/*     size_t i; */
-/*     for (i = 0; i < len; i++) */
-/*     { */
-/*         output[i] = OC_arduino_random_function() & 0x00ff; */
-/*     } */
-
-#else
-    #error Unrecognized platform
 #endif
 
-    return true;
-}
+#define OC_MIN(A,B) ((A)<(B)?(A):(B))
 
 uint32_t OCGetRandom()
 {
@@ -243,7 +125,7 @@ bool OCGenerateUuid(uint8_t uuid[UUID_SIZE])
 }
 
 bool OCConvertUuidToString(const uint8_t uuid[UUID_SIZE],
-                                         char uuidString[UUID_STRING_SIZE])
+			   char uuidString[UUID_STRING_SIZE])
 {
     if (uuid == NULL || uuidString == NULL)
     {

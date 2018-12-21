@@ -586,7 +586,7 @@ static void log_endpoint_info(OCClientResponse *clientResponse)
     OIC_LOG_V(INFO, TAG, "Origin device ID: %s", clientResponse->devAddr.remoteId);
 
     switch ( clientResponse->devAddr.adapter) {
-    case OC_DEFAULT_ADAPTER: /** value zero indicates discovery.*/
+    case OC_DEFAULT_ADAPTER: /** value zero indicates discovery.  FIXME:  huh? */
 	OIC_LOG_V(INFO, TAG, "Transport adapter: DEFAULT (%d)", clientResponse->devAddr.adapter);
 	break;
     case OC_ADAPTER_IP:	/* (1 << 0) IPv4 and IPv6, including 6LoWPAN.*/

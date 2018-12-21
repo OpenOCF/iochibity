@@ -96,6 +96,26 @@ caprotocolmessage.c:
 
 g_chproxyUri[CA_MAX_URI_LENGTH] - char array
 
+catcpadapter.c:
+
+g_sendQueueHandle
+g_networkPacketCallback
+g_networkChangeCallback
+g_connectionChangeCallback
+g_errorCallback
+g_connKeepAliveCallback
+
+catcpserver.c:
+
+g_mutexObjectList
+g_condObjectList
+g_packetReceivedCallback
+g_tcpErrorHandler
+g_connectionCallback
+s_sessionList
+
+
+
 the CALLBACKS that do the work:
 
 CAReceivedPacketCallback (camessagehandler.c)

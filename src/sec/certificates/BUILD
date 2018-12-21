@@ -10,8 +10,6 @@ cc_library(
              "-Isrc/portability",
              "-Isrc/sec",
              "-Isrc/util",
-             "-Iconfig/darwin",
-             "-Iconfig/darwin/coap",
              "-Iexternal/libcoap/include",
              "-Iexternal/libcoap/include/coap",
              "-Iexternal/tinycbor/src",

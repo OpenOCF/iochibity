@@ -17,6 +17,7 @@ cc_library(
               "//config:msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src/logger",
+            "@uthash//:uthash",
             "@tinycbor//:tinycbor"],
     linkopts = select({"//config:android_arm7": ["-llog"],
                        "//config:android_arm8": ["-llog"],
@@ -33,7 +34,7 @@ cc_library(
             "configuration.h",
             "uarraylist.c",
             "uarraylist.h",
-            "ulinklist.c",
+            "ulinklist.c",  # FIXME: used only by routingmanager.c, obsolete
             "ulinklist.h",
             "uqueue.c",
             "uqueue.h"],

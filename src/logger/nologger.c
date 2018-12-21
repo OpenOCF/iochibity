@@ -54,9 +54,21 @@
 #define OIC_TRACE_MARK(MSG, ...)
 #define OIC_TRACE_BUFFER(MSG, BUF, SIZ)
 
+#define OIC_LOG_ACL(level, acl)
+#define OIC_LOG_ACE(level, ace)
+
+#define OIC_LOG_CRL(level, crl)
+
 #include <stdio.h>
 #endif	/* EXPORT_INTERFACE */
 
 void OCLogInit(FILE *fd) EXPORT {}
 
 // void LogSp(OicSecSp_t* sp, int level, const char* tag, const char* msg) {}
+
+/* log_svrs.c nulls */
+void logCredMetadata(void) {}
+void LogCert(uint8_t *data, size_t len, OicEncodingType_t encoding, const char* tag) {}
+void LogCred(OicSecCred_t *cred, const char* tag) {}
+void LogCredResource(OicSecCred_t *cred, const char* tag, const char* label) {}
+void LogCurrrentCredResource(void) {}

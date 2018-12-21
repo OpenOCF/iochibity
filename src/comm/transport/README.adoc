@@ -2,7 +2,41 @@
 
 == monitoring
 
-The routines that do the work:
+Interface monitoring: each Transport must react appropriately when a
+NetworkInterFace (NWIF) status change is detected:
+
+UDP: Updates the local EP cache.  Takes no other action in response to NWIF up/down events.
+
+TCP: In addition to the UDP reaction, does some stuff regarding cloud?
+not implemented? (OCAdapterStateChangedHandler)
+
+Connection monitoring: for stateful transports only, first do
+OCDefaultConnectionStateChangedHandler (updates the observer list)
+then OCConnectionStateChangedHandler. TCP only?
+
+(Note the distinction between TCP, CoAP+TCP, and OCF Cloud processing)
+
+Note that both the default and TCP handlers are added to the list, and
+will react to any NWIF event.
+
+The naming convention seems roughly to be that CA*Callback is for
+dispatching routines that get called when a network event is detected,
+and OC*Handler is for the routines that actually process the data.
+
+OCDefaultAdapterStateChangedHandler - NOP (ocstack.c)
+OCDefaultConnectionStateChangedHandler - NOP for UDP, fixup observers for TCP chg (ocstack.c)
+CAIPAdapterHandler (caipadapter.c) - updates local ep cache, then calls CAAdapterChangedCallback
+CAAdapterChangedCallback (cainterfacecontroller.c) adds g_networkChangeCallbackList cbs to dispatch queue
+OCAdapterStateChangedHandler - TCP nif changes (occonnectionmanager.c)
+CAIPErrorHandler (caipadapter.c)
+OCConnectionStateChangedHandler - TCP connection changes (occonnectionmanager.c)
+CAConnectionChangedCallback (cainterfacecontroller.c) - iterates over g_networkChangeCallbackList
+
+
+
+CANetworkChangeCallbackThreadProcess (cainterfacecontroller.c) is the
+task run on g_networkChangeCallbackThread (the dispatch queue). It
+receives a CB package as arg and invokes its CBs. The CB "packages" are the following pairs:
 
 OCDefaultAdapterStateChangedHandler - NOP (ocstack.c)
 OCDefaultConnectionStateChangedHandler - NOP for UDP, fixup observers for TCP chg (ocstack.c)
@@ -17,18 +51,42 @@ These callbacks get packaged in pairs in a CANetworkCallback_t struct,
 
 We also have:
 
-CAAdapterChangedCallback (cainterfacecontroller.c) iteratees over
-g_networkChangeCallbackList. For each it creates a
-CANetworkCallbackThreadInfo_t and adds it to the
+CAAdapterChangedCallback (cainterfacecontroller.c) iterates over
+g_networkChangeCallbackList. For each Transport it creates a
+CANetworkCallbackThreadInfo_t using the adapter chg handler member of
+the CANetworkCallback_t var and adds it to the
 g_networkChangeCallbackThread dispatch queue.
 
+CAConnectionChangedCallback also iterates over
+g_networkChangeCallbackList, using the connection change handler
+member of the CANetworkCallback_t to create the work pkg. These are
+OCDefaultConnectionStateChangedHandler and
+OCConnectionStateChangedHandler.
+
+CAConnectionChangedCallback is enabled only for stateful connections
+(TCP, BTEDR, BLE).  It gets assigned to g_connectionChangeCallback,
+which is called by CATCPConnectionHandler (tcpadapter.c).
+
+g_networkChangeCallback is static in caipadapter.c; it is set to CAAdapterChangedCallback.
+
+g_connectionChangeCallback is static in catcpadapter.c; it is set to CAConnectionChangedCallback.
+
+g_connKeepAliveCallback is static in catcpadapter.c; it is set to HandleKeepAliveConnCB (oickeepalive.c)
+
+g_connectionCallback is static in tcpserver.c; it is set to CATCPConnectionHandler.
+
+g_connectionCallback (== CATCPConnectionHandler) calls g_connKeepAliveCallback then g_connectionChangeCallback
+g_connectionCallback gets called when connections are accepted, etc.
+
+At startup (via CAStart<transport> -> CAIPStartNetworkMonitor -> CAIPSetNetworkMonitorCallback) g_adapterCallbackList is initialized to CAIPAdapterHandler (and CATCPAdapterHandler if TCP enabled). Both AdapterHandlers call g_networkChangeCallback, which has been set to CAAdapterChangedCallback, which iterates over g_networkChangeCallbackList, creating for each item a work package which it adds to the dispatch queue.  g_networkChangeCallbackList has been initialized to contain entries for (OCDefaultAdapterStateChangedHandler, OCDefaultConnectionStateChangedHandler) and (OCAdapterStateChangedHandler, OCConnectionStateChangedHandler).
+
 CAAdapterChangedCallback gets put in g_networkChangeCallback, which
-gets called by CA<transport>AdapterHandler, which is added to
+gets called by CAIPAdapterHandler (CATCPAdapterHandler), which is added to
 g_adapterCallbackList (via CAStart<transport> ->
 CAIPStartNetworkMonitor -> CAIPSetNetworkMonitorCallback).
 
 This happens once per transport, so g_adapterCallbackList will have an
-entry for each transport.
+entry for each transport - which calls g_networkChangeCallback
 
 When a NWIF change is detected CAFindInterfaceChange is called, with
 call CAIPPassNetworkChangesToAdapter, which iterates over

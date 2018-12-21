@@ -37,6 +37,8 @@
 #include <string.h>
 #endif
 
+#include <stdio.h>
+
 #include "utlist.h"
 
 #define TAG ("OIC_PM_UTILITY")
