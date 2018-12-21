@@ -37,6 +37,7 @@ cc_library(
     deps = ["//src:config",
     	    "//src/comm/transport/util",
             "//src/comm/transport:sockets",
+            "//src/concurrency",
             "//src/logger",
             "//src/portability",
             "//src/util",
