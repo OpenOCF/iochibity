@@ -231,12 +231,12 @@ AS_IF([test "x$enable_coap_debugging" = "xyes"], [
 ])
 
 dnl logging is OFF by default
-AC_ARG_ENABLE([logging],
-    AS_HELP_STRING([--enable-logging], [Enable logging]))
+dnl AC_ARG_ENABLE([logging],
+dnl     AS_HELP_STRING([--enable-logging], [Enable logging]))
 
-AS_IF([test "x$enable_logging" = "xyes"], [
-  AC_DEFINE([TB_LOG], [], [Logging])
-])
+dnl AS_IF([test "x$enable_logging" = "xyes"], [
+dnl   AC_DEFINE([TB_LOG], [], [Logging])
+dnl ])
 
 dnl nw change event logging is on by default
 AC_ARG_ENABLE([nwchg-logging],

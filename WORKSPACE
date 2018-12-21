@@ -1,6 +1,8 @@
-# bind(name = "android/crosstool", actual = "@android_ndk//:toolchain-libcpp")
-
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+# bind(name = "android/crosstool", actual = "@android_ndk//:toolchain-libcpp")
 
 git_repository(
     name = "build_bazel_rules_apple",
@@ -16,7 +18,6 @@ load(
 apple_rules_dependencies()
 
 # for ios_unit_test and ios_ui_test:
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 http_file(
     name = "xctestrunner",
     executable = 1,

@@ -22,6 +22,8 @@ cc_library(
                 "//config:linux": ["-D_DEFAULT_SOURCE","-std=c11"],
                 "//config:linux64": ["-D_DEFAULT_SOURCE", "-std=c11"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
+    + select({"//config:enable_gcd": ["-DENABLE_GCD"],
+              "//conditions:default": []})
     + CSTD,
 
     # + select({#"//config::rpi_arm8": [],
@@ -37,12 +39,15 @@ cc_library(
     deps = ["//src:config",
     	    "//src/comm/transport/util",
             "//src/comm/transport:sockets",
+            "//src/concurrency",
             "//src/logger",
             "//src/portability",
             "//src/util",
 	    "@libcoap//:libcoap",
 	    "@uthash//:uthash"],
-    linkopts = select({"//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-liphlpapi", "-lws2_32"],
+    linkopts = select({"//config:enable_gcd": ["-ldispatch"],
+                       "//conditions:default": []})
+    + select({"//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-liphlpapi", "-lws2_32"],
                        "//config:msvc": ["-LIBPATH:/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64 iphlpapi.lib ws2_32.lib"],
                        "//config:mingw": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-liphlpapi", "-lws2_32"],
                        "//config:darwin": ["-framework SystemConfiguration"], # for network monitory

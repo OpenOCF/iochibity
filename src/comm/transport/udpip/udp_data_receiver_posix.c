@@ -61,9 +61,8 @@
 
 #if INTERFACE
 #include <inttypes.h>
-#endif
-
 #define USE_IP_MREQN
+#endif
 
 /*
  * Logging tag for module name
@@ -137,7 +136,7 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
         namelen = sizeof (struct sockaddr_in);
         level = IPPROTO_IP;
         type = IP_PKTINFO;
-        len = sizeof (struct in6_pktinfo);
+        len = sizeof (struct in_pktinfo);
     }
 
     struct msghdr msg = { .msg_name = &srcAddr,
@@ -147,7 +146,7 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
                           .msg_control = &cmsg,
                           .msg_controllen = CMSG_SPACE(len) };
 
-    ssize_t recvLen = recvmsg(fd, &msg, flags);
+    ssize_t recvLen = recvmsg(fd, &msg, 0); // flags);
     if (OC_SOCKET_ERROR == recvLen)
     {
         OIC_LOG_V(ERROR, TAG, "Recvfrom failed %s", strerror(errno));

@@ -56,18 +56,11 @@
 #include <net/if.h>
 #endif
 #include <errno.h>
-/* #ifdef __linux__ */
+#include <inttypes.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
-/* #endif */
+#include <string.h>
 
-#include <inttypes.h>
-
-#define USE_IP_MREQN
-
-/*
- * Logging tag for module name
- */
 #define TAG "OIC_LINUX_CA_IP_SERVER"
 
 /* This routine is misnamed. It monitors network FDs and processes
@@ -275,7 +268,8 @@ void CARegisterForNIFChanges(void)
 
 // FIXME: move to ip package, this is transport independent?
 // @was: called by caipserver_linux::CASelectReturned when netlinkFd ready
-u_arraylist_t *udp_nif_change_handler_linux() // @was CAFindInterfaceChange
+// u_arraylist_t *
+void udp_nif_change_handler_linux() // @was CAFindInterfaceChange
 {
     u_arraylist_t *iflist = NULL;
     char buf[4096] = { 0 };
@@ -291,8 +285,7 @@ u_arraylist_t *udp_nif_change_handler_linux() // @was CAFindInterfaceChange
     ssize_t len = recvmsg(udp_netlinkFd, &msg, 0);
     /* OIC_LOG_V(DEBUG, TAG, "Rtnetlink recvmsg len: %d", len); */
 
-    for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len))
-    {
+    for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len)) {
 	/* NOTE: netlink stuff is transport-independent? e.g. newaddr for either udp or tcp? */
 #ifdef NETWORK_INTERFACE_CHANGED_LOGGING
 	if (nh != NULL) {
@@ -322,12 +315,19 @@ u_arraylist_t *udp_nif_change_handler_linux() // @was CAFindInterfaceChange
             struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
             if (ifa)
             {
+<<<<<<< HEAD
                 // interface list not used for anything
+=======
+>>>>>>> 5944b001069d42ace94eb10148f0d3d204199203
                 /* int ifiIndex = ifa->ifa_index; */
                 /* bool isFound = InterfaceListContains(ifiIndex); */
                 /* if (isFound) { */
 		/*     CARemoveFromInterfaceList(ifiIndex); */
+<<<<<<< HEAD
                     //udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports
+=======
+                /*     //udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports */
+>>>>>>> 5944b001069d42ace94eb10148f0d3d204199203
 #ifdef IP_ADAPTER
                 udp_nif_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
 #endif
@@ -343,6 +343,7 @@ u_arraylist_t *udp_nif_change_handler_linux() // @was CAFindInterfaceChange
         if (RTM_NEWADDR == nh->nlmsg_type) {
 	    struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
 	    if (ifa) {
+<<<<<<< HEAD
 		int ifiIndex = ifa->ifa_index;
 		/* FIXME: BUG. what if > 1 new addrs? only last will be in iflist */
 		// GAR: udp_get_nifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter
@@ -352,10 +353,30 @@ u_arraylist_t *udp_nif_change_handler_linux() // @was CAFindInterfaceChange
 			OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
 			return NULL;
 		    }
+=======
+		/* int ifiIndex = ifa->ifa_index; */
+		/* /\* FIXME: BUG. what if > 1 new addrs? only last will be in iflist *\/ */
+		/* // GAR: udp_get_ifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter */
+		/* iflist = udp_get_ifs_for_rtm_newaddr(ifiIndex); */
+		/* if (!iflist) */
+		/*     { */
+		/* 	OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno)); */
+		/* 	return NULL; */
+		/*     } */
+>>>>>>> 5944b001069d42ace94eb10148f0d3d204199203
 		/* GAR: CAProcessNewInterfaceItem? (android) */
+                // udp_add_if_to_multicast_groups(ifitem); // @was CAProcessNewInterface(ifitem);
+                if (ifa->ifa_family == AF_INET6)
+                    {
+                        applyMulticastToInterface6(ifa->ifa_index);
+                    }
+                if (ifa->ifa_family == AF_INET)
+                    {
+                        applyMulticastToInterface4(ifa->ifa_index);
+                    }
 	    }
 	}
     }
 #endif
-    return iflist;
+    return; // iflist;
 }

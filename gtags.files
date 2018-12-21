@@ -1,3 +1,4 @@
+
 extensions/resource_directory/oicresourcedirectory.c
 src/tmp/cacommon.h
 src/tmp/cainterface.h
@@ -11,10 +12,8 @@ src/comm/caadapterinterface.c
 src/comm/cainterfacecontroller.c
 src/comm/caconnectivitymanager.c
 src/comm/camessagehandler.c
-src/comm/caqueueingthread.c
 src/comm/caremotehandler.c
 src/comm/caretransmission.c
-src/comm/cathreadpool_pthreads.c
 src/comm/transport/ble/android/caleclient.c
 src/comm/transport/ble/android/calenwmonitor.c
 src/comm/transport/ble/android/caleserver.c
@@ -99,6 +98,8 @@ src/comm/util/ble_manager/tizen/caleconnectionmanager_tizen.c
 src/comm/util/btpairing/android/cabtpairing.c
 src/comm/util/cautilinterface.c
 src/comm/util/bt/cautilinterface_android.c
+src/concurrency/caqueueingthread.c
+src/concurrency/cathreadpool_pthreads.c
 src/logger/logger.c
 src/logger/logger_android.c
 src/logger/payload_logging.c
@@ -139,7 +140,7 @@ src/portability/oic_platform.c
 src/portability/oic_string.c
 src/portability/posix/ocatomic_posix.c
 src/portability/posix/ocevent_posix.c
-src/portability/posix/ocrandom.c
+src/portability/posix/ocrandom_posix.c
 src/portability/posix/octhread_posix.c
 src/portability/posix/oic_platform_posix.c
 src/portability/posix/oic_time_posix.c
@@ -148,7 +149,7 @@ src/portability/windows/getopt.c
 src/portability/windows/memmem.c
 src/portability/windows/ocatomic_windows.c
 src/portability/windows/ocevent_windows.c
-src/portability/windows/ocrandom.c
+src/portability/windows/ocrandom_windows.c
 src/portability/windows/octhread_windows.c
 src/portability/windows/oic_time_windows.c
 src/portability/windows/pthread_create.c

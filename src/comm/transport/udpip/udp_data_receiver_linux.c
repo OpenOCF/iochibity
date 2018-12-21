@@ -50,7 +50,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage + CASelectReturned
     static int ready_count;
     ready_count = 0;
 
-    udp_selectTimeout = -1;
+    // udp_selectTimeout = -1;
     timeout.tv_sec = udp_selectTimeout;
     timeout.tv_usec = 0;
     struct timeval *tv = udp_selectTimeout == -1 ? NULL : &timeout;
@@ -76,7 +76,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage + CASelectReturned
         FD_SET(udp_netlinkFd, &readFds);
     }
 
-    /* ready_count = select(udp_maxfd + 1, &readFds, NULL, NULL, tv); */
+    // FIXME: use pselect with no timeout
     while ((ready_count = select(udp_maxfd + 1, &readFds, NULL, NULL, tv)) == -1
 	   && errno == EINTR)	/* a signal interrupt */
          continue;                       /* Restart if interrupted by signal */
@@ -188,20 +188,21 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage + CASelectReturned
             OIC_LOG_V(DEBUG, TAG, "UDP Netlink event detected");
 #endif
 	    // get list of RTM_NEWADDR interfaces (not addresses)
-            u_arraylist_t *iflist = udp_nif_change_handler_linux(); // @was CAFindInterfaceChange();
-            if (iflist)
-            {
-                size_t listLength = u_arraylist_length(iflist);
-                for (size_t i = 0; i < listLength; i++)
-                {
-                    CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
-                    if (ifitem)
-                    {
-			udp_add_if_to_multicast_groups(ifitem); // @was CAProcessNewInterface(ifitem);
-                    }
-                }
-                u_arraylist_destroy(iflist);
-            }
+            // u_arraylist_t *iflist =
+            udp_if_change_handler_linux(); // @was CAFindInterfaceChange();
+            /* if (iflist) */
+            /* { */
+            /*     size_t listLength = u_arraylist_length(iflist); */
+            /*     for (size_t i = 0; i < listLength; i++) */
+            /*     { */
+            /*         CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i); */
+            /*         if (ifitem) */
+            /*         { */
+	    /*     	udp_add_if_to_multicast_groups(ifitem); // @was CAProcessNewInterface(ifitem); */
+            /*         } */
+            /*     } */
+            /*     u_arraylist_destroy(iflist); */
+            /* } */
         }
 
 	if (FD_ISSET(udp_shutdownFds[0], &readFds)) {

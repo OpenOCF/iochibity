@@ -151,7 +151,7 @@
 CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
-    /* CAIPDestroyNetworkInterfaceList(); */
+    // CAIPDestroyNetworkInterfaceList();
     return CA_STATUS_OK; // CAIPUnSetNetworkMonitorCallback(adapter);
 }
 
@@ -426,6 +426,7 @@ u_arraylist_t			/**< @result list of CAInterface_t */
             /*     goto exit; */
             /* } */
 	    //udp_if_change_handler(CA_INTERFACE_UP); // @was CAIPPassNetworkChangesToAdapter
+<<<<<<< HEAD
 #ifdef IP_ADAPTER
 	    udp_nif_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler
 #endif
@@ -435,6 +436,17 @@ u_arraylist_t			/**< @result list of CAInterface_t */
             OIC_LOG_V(DEBUG, TAG, "Processed IF/family %s/%d (%s)",
 		      ifitem->name, ifitem->family,
 		      (family == AF_INET? "AF_INET" : family == AF_INET6? "AF_INET6" : "OTHER"));
+=======
+/* #ifdef IP_ADAPTER */
+/* 	    udp_status_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CAIPAdapterHandler */
+/* #endif */
+/* #ifdef TCP_ADAPTER */
+/* 	    tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_UP); // @was CATCPAdapterHandler */
+/* #endif */
+/*             OIC_LOG_V(DEBUG, TAG, "Processed IF/family %s/%d (%s)", */
+/* 		      ifitem->name, ifitem->family, */
+/* 		      (family == AF_INET? "AF_INET" : family == AF_INET6? "AF_INET6" : "OTHER")); */
+>>>>>>> 5944b001069d42ace94eb10148f0d3d204199203
         }
     }
     freeifaddrs(ifp);

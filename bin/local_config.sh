@@ -7,8 +7,9 @@ set -x
 # third_party/coap requires --disable-examples
 
 ./configure --disable-examples \
-	    --enable-logging \
 	    $@ \
             CPPFLAGS="-P"
+
+#	    --enable-logging \
 
 ./bin/local_mkhdrs.sh

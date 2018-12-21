@@ -11,7 +11,7 @@ cc_binary(
              "-DTB_LOG"
     ]+ CSTD + OS_COPTS,
     deps = ["//:openocf"],
-    srcs = ["client.c"]
+    srcs = ["client.c", "clog.h"]
 )
 
 cc_binary(

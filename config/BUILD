@@ -30,6 +30,15 @@ config_setting(
     visibility = ["//visibility:public"]
 )
 
+# experimental: Grand Central Dispatch
+config_setting(
+    name = "enable_gcd",
+    define_values = {
+        "enable_gcd": "true",
+    },
+    visibility = ["//visibility:public"]
+)
+
 config_setting(
     name = "enable_logging",
     define_values = {
