@@ -56,18 +56,11 @@
 #include <net/if.h>
 #endif
 #include <errno.h>
-/* #ifdef __linux__ */
+#include <inttypes.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
-/* #endif */
+#include <string.h>
 
-#include <inttypes.h>
-
-#define USE_IP_MREQN
-
-/*
- * Logging tag for module name
- */
 #define TAG "OIC_LINUX_CA_IP_SERVER"
 
 /* This routine is misnamed. It monitors network FDs and processes
