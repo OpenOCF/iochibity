@@ -315,26 +315,25 @@ void udp_nif_change_handler_linux() // @was CAFindInterfaceChange
             struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
             if (ifa)
             {
-<<<<<<< HEAD
                 // interface list not used for anything
-=======
->>>>>>> 5944b001069d42ace94eb10148f0d3d204199203
                 /* int ifiIndex = ifa->ifa_index; */
                 /* bool isFound = InterfaceListContains(ifiIndex); */
                 /* if (isFound) { */
 		/*     CARemoveFromInterfaceList(ifiIndex); */
-<<<<<<< HEAD
                     //udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports
-=======
                 /*     //udp_if_change_handler(CA_INTERFACE_DOWN); // @was CAIPPassNetworkChangesToTransports */
->>>>>>> 5944b001069d42ace94eb10148f0d3d204199203
+
+
+                // FIXME: remove ep from local_enpoints_cache
+
 #ifdef IP_ADAPTER
+                // updates local ep cache, enqueues nif chg work pkg
                 udp_nif_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
 #endif
 #ifdef TCP_ADAPTER
-		    tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); //@was CATCPAdapterHandler
+                tcp_interface_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); //@was CATCPAdapterHandler
 #endif
-		    // @was CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
+                // @was CAIPPassNetworkChangesToAdapter(CA_INTERFACE_DOWN);
                 /* } */
             }
             continue;
@@ -343,40 +342,34 @@ void udp_nif_change_handler_linux() // @was CAFindInterfaceChange
         if (RTM_NEWADDR == nh->nlmsg_type) {
 	    struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA (nh);
 	    if (ifa) {
-<<<<<<< HEAD
-		int ifiIndex = ifa->ifa_index;
+		/* int ifiIndex = ifa->ifa_index; */
 		/* FIXME: BUG. what if > 1 new addrs? only last will be in iflist */
 		// GAR: udp_get_nifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter
-		iflist = udp_get_nifs_for_rtm_newaddr(ifiIndex);
-		if (!iflist)
-		    {
-			OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
-			return NULL;
-		    }
-=======
-		/* int ifiIndex = ifa->ifa_index; */
-		/* /\* FIXME: BUG. what if > 1 new addrs? only last will be in iflist *\/ */
-		/* // GAR: udp_get_ifs_for_rtm_newaddr will call CAIPPassNetworkChangesToAdapter */
-		/* iflist = udp_get_ifs_for_rtm_newaddr(ifiIndex); */
+		/* iflist = udp_get_nifs_for_rtm_newaddr(ifiIndex); */
 		/* if (!iflist) */
 		/*     { */
 		/* 	OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno)); */
 		/* 	return NULL; */
 		/*     } */
->>>>>>> 5944b001069d42ace94eb10148f0d3d204199203
 		/* GAR: CAProcessNewInterfaceItem? (android) */
                 // udp_add_if_to_multicast_groups(ifitem); // @was CAProcessNewInterface(ifitem);
-                if (ifa->ifa_family == AF_INET6)
-                    {
-                        applyMulticastToInterface6(ifa->ifa_index);
-                    }
-                if (ifa->ifa_family == AF_INET)
-                    {
-                        applyMulticastToInterface4(ifa->ifa_index);
-                    }
+
+                if (ifa->ifa_family == AF_INET6) {
+                    applyMulticastToInterface6(ifa->ifa_index);
+                }
+                if (ifa->ifa_family == AF_INET) {
+                    applyMulticastToInterface4(ifa->ifa_index);
+                }
+
+                // FIXME: add ep to local ep cache
+
+#ifdef IP_ADAPTER
+                // updates local ep cache, enqueues nif chg work pkg
+                udp_nif_change_handler(CA_ADAPTER_IP, CA_INTERFACE_DOWN); // @was CAIPAdapterHandler
+#endif
+
 	    }
 	}
     }
-#endif
     return; // iflist;
 }
