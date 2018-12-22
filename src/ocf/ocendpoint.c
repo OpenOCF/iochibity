@@ -20,6 +20,7 @@
 
 #include "ocendpoint.h"
 
+#include <errno.h>
 #include <string.h>
 
 #define TAG  "OIC_RI_ENDPOINT"
@@ -656,4 +657,237 @@ OCTpsSchemeFlags OCGetSupportedTpsFlags(void)
     /* } */
 #endif
     return ret;
+}
+
+/*
+ * Get realtime list of one address per unique (IF, family) pair
+ */
+CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CAGetIPInterfaceInformation
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    VERIFY_NON_NULL_MSG(info, TAG, "info is NULL");
+    VERIFY_NON_NULL_MSG(size, TAG, "size is NULL");
+
+    // GAR: get live list of CAInterface_t, each represents a unique (IF, family) pair
+    u_arraylist_t *iflist = udp_get_all_nifs();
+    if (!iflist) {
+        OIC_LOG_V(ERROR, TAG, "udp_get_all_nifs failed: %s", strerror(errno));
+        return CA_STATUS_FAILED;
+    }
+
+#ifdef __WITH_DTLS__
+    const size_t endpointsPerInterface = 2;
+#else
+    const size_t endpointsPerInterface = 1;
+#endif
+
+    /* get a count of enabled IPv4/IPv6 IFs */
+    size_t iface_count = u_arraylist_length(iflist);
+    for (size_t i = 0; i < u_arraylist_length(iflist); i++)
+    {
+        CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
+        if (!ifitem)
+        {
+            continue;
+        }
+
+        if ((ifitem->family == AF_INET6 && !udp_ipv6_is_enabled) ||
+            (ifitem->family == AF_INET && !udp_ipv4_is_enabled))
+        {
+            iface_count--;
+        }
+    }
+
+    if (!iface_count)
+    {
+        OIC_LOG(DEBUG, TAG, "No enabled IPv4/IPv6 interfaces found");
+        return CA_STATUS_OK;
+    }
+
+    size_t totalEndpoints = iface_count * endpointsPerInterface;
+    CAEndpoint_t *eps = (CAEndpoint_t *)OICCalloc(totalEndpoints, sizeof (CAEndpoint_t));
+    if (!eps)
+    {
+        OIC_LOG(ERROR, TAG, "Malloc Failed");
+        u_arraylist_destroy(iflist);
+        return CA_MEMORY_ALLOC_FAILED;
+    }
+
+    OIC_LOG_V(INFO, TAG, "%s constructing %d eps for %d interfaces", __func__, totalEndpoints, iface_count);
+
+    /* create one CAEndpoint_t per (IF, family) */
+    for (size_t i = 0,		/* index into iflist to control iteration */
+	     j = 0;		/* index into eps array */
+	 i < u_arraylist_length(iflist); i++)
+    {
+        CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
+        if (!ifitem)
+        {
+            continue;
+        }
+	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d, ifindex %d", __func__, i*2, ifitem->index);
+
+	/* skip disabled IFs */
+        if ((ifitem->family == AF_INET6 && !udp_ipv6_is_enabled) ||
+            (ifitem->family == AF_INET && !udp_ipv4_is_enabled))
+        {
+            continue;
+        }
+
+        eps[j].adapter = CA_ADAPTER_IP; /* meaning CA_ADAPTER_UDP */
+        eps[j].ifindex = ifitem->index;
+
+        if (ifitem->family == AF_INET6)
+        {
+            eps[j].flags = CA_IPV6;
+            eps[j].port = udp_u6.port;
+        }
+        else
+        {
+            eps[j].flags = CA_IPV4;
+            eps[j].port = udp_u4.port;
+        }
+        OICStrcpy(eps[j].addr, sizeof(eps[j].addr), ifitem->addr);
+
+#ifdef __WITH_DTLS__
+	/* add secured endpoint */
+        j++;
+	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d (secure), ifindex %d", __func__, i*2+1, ifitem->index);
+
+        eps[j].adapter = CA_ADAPTER_IP;
+        eps[j].ifindex = ifitem->index;
+
+        if (ifitem->family == AF_INET6)
+        {
+            eps[j].flags = CA_IPV6 | CA_SECURE;
+            eps[j].port = udp_u6s.port;
+        }
+        else
+        {
+            eps[j].flags = CA_IPV4 | CA_SECURE;
+            eps[j].port = udp_u4s.port;
+        }
+        OICStrcpy(eps[j].addr, sizeof(eps[j].addr), ifitem->addr);
+#endif
+        j++;
+    }
+
+    *info = eps;
+    *size = totalEndpoints;
+
+    u_arraylist_destroy(iflist);
+
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return CA_STATUS_OK;
+}
+
+u_arraylist_t *local_endpoints = NULL;
+
+u_arraylist_t *oocf_get_local_endpoints(void) EXPORT
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
+    /* size_t len = u_arraylist_length(g_local_endpoint_cache); */
+    /* for (size_t i = 0; i < len; i++) */
+    /* { */
+    /*     CAEndpoint_t *ownIpEp = u_arraylist_get(g_local_endpoint_cache, i); */
+    /* 	OIC_LOG_V(DEBUG, TAG, "local ptr: %p", ownIpEp); */
+    /* } */
+
+    local_endpoints = u_arraylist_create();
+
+    if (!local_endpoints)
+    {
+        OIC_LOG(ERROR, TAG, "Memory allocation failed! (local_endpoints)");
+        return NULL;
+    }
+
+        CAEndpoint_t *eps = NULL;
+        size_t numOfEps = 0;
+
+        CAResult_t res = udp_get_local_endpoints(&eps, &numOfEps); /* @was CAGetIPInterfaceInformation */
+        if (CA_STATUS_OK != res)
+        {
+            OIC_LOG(ERROR, TAG, "CAGetIPInterfaceInformation failed");
+            return NULL;
+        }
+	OIC_LOG_V(DEBUG, TAG, "Found %d local endpoints", numOfEps);
+
+        for (size_t i = 0; i < numOfEps; i++)
+        {
+	    OIC_LOG_V(DEBUG, TAG, "Caching %d: %s [%d]", i, eps[i].addr, eps[i].ifindex);
+            u_arraylist_add(local_endpoints, (void *)&eps[i]);
+        }
+	return local_endpoints;
+	//return g_local_endpoint_cache;
+}
+
+// FIXMME: move this to udp_status_manager?
+// @rewrite udp_update_local_endpoint_cache @was CAUpdateStoredIPAddressInfo
+// called by udp_if_change_handler (@was CAIPPassNetworkChangesToAdapter)
+void udp_refresh_local_endpoint_cache(CANetworkStatus_t status) // @was CAUpdateStoredIPAddressInfo
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    if (CA_INTERFACE_UP == status)
+    {
+        OIC_LOG(DEBUG, TAG, "UDP status is UP. Caching local endpoints");
+
+        CAEndpoint_t *eps = NULL;
+        size_t numOfEps = 0;
+
+        CAResult_t res = udp_get_local_endpoints(&eps, &numOfEps); /* @was CAGetIPInterfaceInformation */
+        if (CA_STATUS_OK != res)
+        {
+            OIC_LOG(ERROR, TAG, "CAGetIPInterfaceInformation failed");
+            return;
+        }
+	OIC_LOG_V(DEBUG, TAG, "Found %d local endpoints", numOfEps);
+
+        for (size_t i = 0; i < numOfEps; i++)
+        {
+	    // FIXME: what about duplicates?
+	    OIC_LOG_V(DEBUG, TAG, "Caching %d: %s [%d]", i, eps[i].addr, eps[i].ifindex);
+            u_arraylist_add(g_local_endpoint_cache, (void *)&eps[i]);
+        }
+    }
+    else // CA_INTERFACE_DOWN
+    {
+        OIC_LOG(DEBUG, TAG, "UDP status is off. Clearing the local endpoint cache");
+
+        CAEndpoint_t *headEp = u_arraylist_get(g_local_endpoint_cache, 0);
+        OICFree(headEp);
+        headEp = NULL;
+
+        size_t len = u_arraylist_length(g_local_endpoint_cache);
+        for (size_t i = len; i > 0; i--)
+        {
+            u_arraylist_remove(g_local_endpoint_cache, i - 1);
+        }
+    }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+}
+
+bool CAIPIsLocalEndpoint(const CAEndpoint_t *ep)
+{
+    char addr[MAX_ADDR_STR_SIZE_CA];
+    OICStrcpy(addr, MAX_ADDR_STR_SIZE_CA, ep->addr);
+
+    // drop the zone ID if the address of endpoint is IPv6. ifindex will be checked instead.
+    if ((ep->flags & CA_IPV6) && strchr(addr, '%'))
+    {
+        strtok(addr, "%");
+    }
+
+    size_t len = u_arraylist_length(g_local_endpoint_cache);
+    for (size_t i = 0; i < len; i++)
+    {
+        CAEndpoint_t *ownIpEp = u_arraylist_get(g_local_endpoint_cache, i);
+        if (!strcmp(addr, ownIpEp->addr) && ep->port == ownIpEp->port
+                                         && ep->ifindex == ownIpEp->ifindex)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
