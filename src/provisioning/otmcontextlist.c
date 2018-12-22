@@ -22,6 +22,9 @@
 
 #include "utlist.h"
 
+#include <string.h>
+
+
 #define TAG "OIC_OTM_CTX"
 
 typedef struct OTMContextItem {
