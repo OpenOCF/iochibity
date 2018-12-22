@@ -148,11 +148,11 @@ oc_mutex g_networkMonitorContextMutex = NULL;
  * udp_nif_change_handler @was CAIPAdapterHandler
  */
 void udp_nif_change_handler(CATransportAdapter_t adapter,  //@was CAIPAdapterHandler
-			       CANetworkStatus_t status)
+                            CANetworkStatus_t status)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
-    udp_update_local_endpoint_cache(status); // @was CAUpdateStoredIPAddressInfo (g_ownIpEndpointList)
+    udp_refresh_local_endpoint_cache(status); // @was CAUpdateStoredIPAddressInfo (g_ownIpEndpointList)
 
     // original code called g_networkChangeCallback, which is ptr to CAAdapterChangedCallback
     // we do not need to go through g_networkChangeCallbackList, we can just call directly
