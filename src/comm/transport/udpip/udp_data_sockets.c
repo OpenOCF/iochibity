@@ -35,10 +35,10 @@
 
 #include <errno.h>
 
-#define USE_IP_MREQN
-#if defined(_WIN32)
+/* #define USE_IP_MREQN */
+/* #if defined(_WIN32) */
 #undef USE_IP_MREQN
-#endif
+/* #endif */
 
 /* udp globals */
 // from CAGlobals_t in _globals.h
@@ -399,18 +399,17 @@ LOCAL void udp_close_data_sockets()
 
 void applyMulticastToInterface4(uint32_t ifindex)
 {
-#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-    OIC_LOG_V(DEBUG, TAG, "Adding IF %d to IPv4 multicast group", ifindex);
-#endif
+    OIC_LOG_V (INFO, TAG, "%s ENTRY; nif index: %d", __func__, ifindex);
     if (!udp_ipv4_is_enabled)
     {
         return;
     }
 
 #if defined(USE_IP_MREQN)
-    struct ip_mreqn mreq = { .imr_multiaddr = IPv4MulticastAddress,
-                             .imr_address.s_addr = htonl(INADDR_ANY),
-                             .imr_ifindex = ifindex };
+    struct ip_mreqn mreq = {0};
+    memcpy(&mreq.imr_multiaddr.s_addr, (void*)&IPv4MulticastAddress, sizeof(struct in_addr));
+    mreq.imr_address.s_addr = htonl(INADDR_ANY);
+    mreq.imr_ifindex = ifindex;
 #else
     struct ip_mreq mreq  = { .imr_multiaddr.s_addr = IPv4MulticastAddress.s_addr,
                              .imr_interface.s_addr = htonl(ifindex) };
