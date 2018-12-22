@@ -330,6 +330,12 @@ u_arraylist_t			/**< @result list of CAInterface_t */
 #endif
 	    continue;
 	}
+        if ((ifa->ifa_flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS) {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping disabled nif %d, family %d", ifindex, family);
+#endif
+	    continue;
+        }
 
 	/* GAR: hidden semantics: if desiredIndex == 0, then every nif will be added to list */
 /*         if ( (desiredIndex > 0) && (ifindex != desiredIndex)) */
