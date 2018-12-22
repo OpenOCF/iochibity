@@ -544,7 +544,12 @@ u_arraylist_t			/**< @result list of CAInterface_t */
 #endif
 	    continue;
 	}
-
+	if (AF_INET6 == family && !udp_ipv6_is_enabled) {
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping IPv6 IF %d, family %d", ifindex, family);
+#endif
+	    continue;
+	}
 	/* GAR: hidden semantics: if desiredIndex == 0, then every nif will be added to list */
         if ( (desiredIndex > 0) && (ifindex != desiredIndex))
         {
