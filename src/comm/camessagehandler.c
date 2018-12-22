@@ -873,9 +873,11 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep, // @was CAReceiv
 
     if (CA_GET == code || CA_POST == code || CA_PUT == code || CA_DELETE == code)
     {				/*  SERVER mode */
+        OIC_LOG_V(DEBUG, TAG, "%s msg is inbound request", __func__);
         cadata = CAGenerateHandlerData(&(sep->endpoint), &(sep->identity), pdu, CA_REQUEST_DATA);
         if (!cadata)
         {
+            // FIXME: use errno to indicate dropped duplicat msg
             OIC_LOG(ERROR, TAG, "mh_CAReceivedPacketCallback, CAGenerateHandlerData failed!");
             coap_delete_pdu(pdu);
             goto exit;
@@ -925,7 +927,7 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep, // @was CAReceiv
             return;
         }
 #endif
-
+        OIC_LOG_V(DEBUG, TAG, "%s msg is inbound response", __func__);
         cadata = CAGenerateHandlerData(&(sep->endpoint), &(sep->identity), pdu, CA_RESPONSE_DATA);
         if (!cadata)
         {
@@ -1000,7 +1002,7 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep, // @was CAReceiv
 
 exit:
     OIC_LOG(DEBUG, TAG, "received pdu data :");
-    OIC_LOG_BUFFER(DEBUG, TAG,  data, dataLen);
+    OIC_LOG_PAYLOAD_BUFFER(DEBUG, TAG,  data, dataLen);
 
     OIC_TRACE_END();
     OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
@@ -1013,6 +1015,8 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
     // #1 parse the data
     // #2 get endpoint
 
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+
     oc_mutex_lock(g_receiveThread.threadMutex);
 
     u_queue_message_t *item = u_queue_get_element(g_receiveThread.dataQueue);
@@ -1023,7 +1027,7 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
     {
         return;
     }
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(INFO, TAG, "%s pulled msg from g_receiveThread queue", __func__);
 
     // get endpoint
     CAData_t *td = (CAData_t *) item->msg;
@@ -1682,7 +1686,7 @@ LOCAL void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu)
 
     OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload Size = [%lu]", payloadLen);
     OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload:");
-    OIC_LOG_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, payloadLen);
+    OIC_LOG_PAYLOAD_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, payloadLen);
     OIC_TRACE_END();
     OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", __func__);
 }

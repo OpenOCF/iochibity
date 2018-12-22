@@ -429,7 +429,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
         {
             continue;
         }
-	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d, index %d", __func__, i, ifitem->index);
+	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d, ifindex %d", __func__, i*2, ifitem->index);
 
 	/* skip disabled IFs */
         if ((ifitem->family == AF_INET6 && !udp_ipv6_is_enabled) ||
@@ -456,7 +456,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
 #ifdef __WITH_DTLS__
 	/* add secured endpoint */
         j++;
-	OIC_LOG_V(DEBUG, TAG, "%s creating secure ep %d, index %d", __func__, j, ifitem->index);
+	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d (secure), ifindex %d", __func__, i*2+1, ifitem->index);
 
         eps[j].adapter = CA_ADAPTER_IP;
         eps[j].ifindex = ifitem->index;

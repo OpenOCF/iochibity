@@ -97,6 +97,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage
 	// udp_process_ready_sockets(&readFds, ready_count);
 #define UDPSET(SOCK) ( SOCK.fd != OC_INVALID_SOCKET && FD_ISSET(SOCK.fd, &readFds))
 
+	/* ISSET(udp_m6,  readFds, CA_MULTICAST | CA_IPV6) */
 	OIC_LOG(DEBUG, TAG, "checking udp_m6...");
 	if ( UDPSET(udp_m6) ) {
 	    OIC_LOG(DEBUG, TAG, "udp_m6 socket ready");
@@ -130,6 +131,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage
 	if (udp_is_terminating) return;
 
 	/* else ISSET(udp_u4,  readFds, CA_IPV4) */
+	OIC_LOG(DEBUG, TAG, "checking udp_u4...");
 	if ( UDPSET(udp_u4) ) {
 	    (void)udp_recvmsg_on_socket(udp_u4.fd, CA_IPV4);
 	    FD_CLR(udp_u4.fd, &readFds);
@@ -139,6 +141,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage
 	if (udp_is_terminating) return;
 
 	/* else ISSET(udp_u4s, readFds, CA_IPV4 | CA_SECURE) */
+	OIC_LOG(DEBUG, TAG, "checking udp_u4s...");
 	if ( UDPSET(udp_u4s) ) {
 	    (void)udp_recvmsg_on_socket(udp_u4s.fd, CA_IPV4 | CA_SECURE);
 	    FD_CLR(udp_u4s.fd, &readFds);
@@ -146,9 +149,9 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage
 	}
 	if (ready_count < 1) return;
 	if (udp_is_terminating) return;
-	/* else ISSET(udp_m6,  readFds, CA_MULTICAST | CA_IPV6) */
 
 	/* else ISSET(udp_m6s, readFds, CA_MULTICAST | CA_IPV6 | CA_SECURE) */
+	OIC_LOG(DEBUG, TAG, "checking udp_m6s...");
 	if ( UDPSET(udp_m6s) ) {
 	    (void)udp_recvmsg_on_socket(udp_m6s.fd, CA_MULTICAST | CA_IPV6 | CA_SECURE);
 	    FD_CLR(udp_m6s.fd, &readFds);
@@ -158,6 +161,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage
 	if (udp_is_terminating) return;
 
 	/* else ISSET(udp_m4,  readFds, CA_MULTICAST | CA_IPV4) */
+	OIC_LOG(DEBUG, TAG, "checking udp_m4...");
 	if ( UDPSET(udp_m4) ) {
 	    (void)udp_recvmsg_on_socket(udp_m4.fd, CA_MULTICAST | CA_IPV4);
 	    FD_CLR(udp_m4.fd, &readFds);
@@ -167,6 +171,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage
 	if (udp_is_terminating) return;
 
 	/* else ISSET(udp_m4s, readFds, CA_MULTICAST | CA_IPV4 | CA_SECURE) */
+	OIC_LOG(DEBUG, TAG, "checking udp_m4s...");
 	if ( UDPSET(udp_m4s) ) {
 	    (void)udp_recvmsg_on_socket(udp_m4s.fd, CA_MULTICAST | CA_IPV4 | CA_SECURE);
 	    FD_CLR(udp_m4s.fd, &readFds);

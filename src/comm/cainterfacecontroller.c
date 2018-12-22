@@ -458,13 +458,14 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
 #endif
 
 #ifdef ENABLE_TCP
+    /* FIXME: nifs are transport independent? */
     size_t tcp_ep_count;
     CAEndpoint_t *tcp_ep; /* array */
     res = CA_STATUS_FAILED;
     res = tcp_get_local_endpoints(&tcp_ep, &tcp_ep_count); // @was CAGetTCPInterfaceInformation
     if (res == CA_STATUS_OK) {
 	ep_count += tcp_ep_count;
-	OIC_LOG_V(INFO, TAG, "%s got %d local udp eps", __func__, tcp_ep_count);
+	OIC_LOG_V(INFO, TAG, "%s got %d local tcp eps", __func__, tcp_ep_count);
 	OIC_LOG_V(INFO, TAG, "%s 1st addr: %s", __func__, tcp_ep[0].addr);
 	OIC_LOG_V(INFO, TAG, "%s 1st port: %d", __func__, tcp_ep[0].port);
 	OIC_LOG_V(INFO, TAG, "%s 1st ifindex: %d", __func__, tcp_ep[0].ifindex);
@@ -477,7 +478,7 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
     /* 	      "%" PRIuPTR " adapter network info size is %" PRIuPTR " res:%u", */
     /* 	      0, sz, udp_res); */
 
-    OIC_LOG_V(DEBUG, TAG, "network ip count total is %" PRIuPTR "!", ep_count);
+    OIC_LOG_V(DEBUG, TAG, "nif count total is %" PRIuPTR "!", ep_count);
 
     /* if (ep_count == 0) */
     /* { */

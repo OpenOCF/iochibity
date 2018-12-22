@@ -393,6 +393,7 @@ coap_pdu_t *CAParsePDU(const char *data, size_t length, uint32_t *outCode,
 {
     VERIFY_NON_NULL_RET(data, TAG, "data", NULL);
     VERIFY_NON_NULL_RET(endpoint, TAG, "endpoint", NULL);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     coap_transport_t transport = COAP_UDP;
 #ifdef WITH_TCP
@@ -448,6 +449,7 @@ coap_pdu_t *CAParsePDU(const char *data, size_t length, uint32_t *outCode,
         (*outCode) = (uint32_t) CA_RESPONSE_CODE(coap_get_code(outpdu, transport));
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return outpdu;
 
 exit:
