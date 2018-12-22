@@ -287,14 +287,18 @@ CAResult_t udp_config_data_sockets()
     CAResult_t res = CA_STATUS_OK;
     if (!IPv4MulticastAddress.s_addr)
     {
-        (void)inet_pton(AF_INET, IPv4_MULTICAST, &IPv4MulticastAddress);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_INT, &IPv6MulticastAddressInt);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_LNK, &IPv6MulticastAddressLnk);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_RLM, &IPv6MulticastAddressRlm);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_ADM, &IPv6MulticastAddressAdm);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_SIT, &IPv6MulticastAddressSit);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_ORG, &IPv6MulticastAddressOrg);
-        (void)inet_pton(AF_INET6, IPv6_MULTICAST_GLB, &IPv6MulticastAddressGlb);
+        int res;
+        res = inet_pton(AF_INET, IPv4_MULTICAST, &IPv4MulticastAddress);
+        if (res != 1) {
+            OIC_LOG_V(DEBUG, TAG, "inet_pton failed for IPv4MulticastAddress", __func__);
+        }
+        res = inet_pton(AF_INET6, IPv6_MULTICAST_INT, &IPv6MulticastAddressInt);
+        res = inet_pton(AF_INET6, IPv6_MULTICAST_LNK, &IPv6MulticastAddressLnk);
+        res = inet_pton(AF_INET6, IPv6_MULTICAST_RLM, &IPv6MulticastAddressRlm);
+        res = inet_pton(AF_INET6, IPv6_MULTICAST_ADM, &IPv6MulticastAddressAdm);
+        res = inet_pton(AF_INET6, IPv6_MULTICAST_SIT, &IPv6MulticastAddressSit);
+        res = inet_pton(AF_INET6, IPv6_MULTICAST_ORG, &IPv6MulticastAddressOrg);
+        res = inet_pton(AF_INET6, IPv6_MULTICAST_GLB, &IPv6MulticastAddressGlb);
     }
 
     //    if (udp_ipv6_is_enabled) {
