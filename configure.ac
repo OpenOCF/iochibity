@@ -49,7 +49,7 @@ dnl if platform != windows and HAVE_LIBPTHREAD:
 AC_CHECK_HEADERS([pthread.h])
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h assert.h fcntl.h errno.h float.h inttypes.h limits.h malloc.h memory.h net/if.h netdb.h netinet/in.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/select.h sys/socket.h sys/statvfs.h sys/time.h sys/timeb.h syslog.h termios.h, time.h unistd.h utime.h windows.h winsock2.h ws2tcpip.h])
+AC_CHECK_HEADERS([arpa/inet.h assert.h bsd/string.h fcntl.h errno.h float.h inttypes.h limits.h malloc.h memory.h net/if.h netdb.h netinet/in.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/select.h sys/socket.h sys/statvfs.h sys/time.h sys/timeb.h syslog.h termios.h, time.h unistd.h utime.h windows.h winsock2.h ws2tcpip.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -83,7 +83,7 @@ AC_FUNC_STRERROR_R
 AC_FUNC_STRNLEN
 AC_FUNC_STRTOD
 
-AC_CHECK_FUNCS([bzero clock_gettime fdatasync floor flockfile getcwd getpagesize gettimeofday localtime_r malloc memmove memset pipe2 pow realloc select socket strcasecmp strchr strerror strncasecmp strnlen _strnicmp strndup strptime strrchr strstr strtok_r strtok_s strtol strtoul time tzset utime])
+AC_CHECK_FUNCS([bzero clock_gettime fdatasync floor flockfile getcwd getpagesize gettimeofday localtime_r malloc memmove memset pipe2 pow realloc select socket strcasecmp strchr strerror strlcpy strncasecmp strnlen _strnicmp strndup strptime strrchr strstr strtok_r strtok_s strtol strtoul time tzset utime])
 
 dnl /**
 dnl  * \def MBEDTLS_HAVE_TIME
