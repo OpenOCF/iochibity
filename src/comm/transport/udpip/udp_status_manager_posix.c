@@ -172,30 +172,30 @@ CAResult_t CAIPStopNetworkMonitor(CATransportAdapter_t adapter)
  *     return CA_STATUS_OK;
  * } */
 
-static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family,
-                                         const char *addr, int flags)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+/* static CAInterface_t *CANewInterfaceItem(int index, const char *name, int family, */
+/*                                          const char *addr, int flags) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
 
-    OIC_LOG_V(DEBUG, TAG, "\tindex = %d, name = \"%s\", family = %d, addr = \"%s\", flags = %d",
-	      index, name, family, addr, flags);
+/*     OIC_LOG_V(DEBUG, TAG, "\tindex = %d, name = \"%s\", family = %d, addr = \"%s\", flags = %d", */
+/* 	      index, name, family, addr, flags); */
 
-    CAInterface_t *ifitem = (CAInterface_t *)OICCalloc(1, sizeof (CAInterface_t));
-    if (!ifitem)
-    {
-        OIC_LOG(ERROR, TAG, "Malloc failed");
-        return NULL;
-    }
+/*     CAInterface_t *ifitem = (CAInterface_t *)OICCalloc(1, sizeof (CAInterface_t)); */
+/*     if (!ifitem) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "Malloc failed"); */
+/*         return NULL; */
+/*     } */
 
-    OICStrcpy(ifitem->name, sizeof (ifitem->name), name);
-    ifitem->index = index;
-    ifitem->family = family;
-    OICStrcpy(ifitem->addr, sizeof (ifitem->addr), addr);
-    ifitem->flags = flags;
+/*     OICStrcpy(ifitem->name, sizeof (ifitem->name), name); */
+/*     ifitem->index = index; */
+/*     ifitem->family = family; */
+/*     OICStrcpy(ifitem->addr, sizeof (ifitem->addr), addr); */
+/*     ifitem->flags = flags; */
 
-    OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
-    return ifitem;
-}
+/*     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__); */
+/*     return ifitem; */
+/* } */
 
 /* DELEGATE: u_arraylist_t *CAFindInterfaceChange() */
 
