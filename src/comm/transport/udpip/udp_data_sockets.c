@@ -488,7 +488,94 @@ void applyMulticastToInterface6(uint32_t ifindex)
 }
 
 // @rewrite udp_add_ifs_to_multicast_groups @was CAIPStartListenServer
-CAResult_t udp_add_ifs_to_multicast_groups()
+CAResult_t udp_add_nifs_to_multicast_groups()
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    if (udp_is_started)
+    {
+        OIC_LOG(DEBUG, TAG, "Adapter is started already, exiting");
+        return CA_STATUS_OK;
+    }
+    struct ifaddrs *ifp = NULL;
+    errno = 0;
+    int r = 0;
+
+    r = getifaddrs(&ifp);
+    if (-1 == r)
+    {
+        OIC_LOG_V(ERROR, TAG, "Failed to getifaddrs: %s", strerror(errno));
+        return CA_STATUS_FAILED;
+    }
+    struct ifaddrs *ifa = NULL;
+    unsigned int ifindex = 0;
+    int i = 1;  // debugging
+    char addr_str[256] = {0}; // debugging
+    in_port_t port;
+    uint32_t flowinfo;
+    uint32_t scope;
+
+    for (ifa = ifp; ifa; ifa = ifa->ifa_next) {
+
+	if (ifa->ifa_name)
+            ifindex = if_nametoindex(ifa->ifa_name);
+        else
+            ifindex = 0;
+
+#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+        if (ifa->ifa_addr->sa_family == AF_INET) {
+	    inet_ntop(ifa->ifa_addr->sa_family,
+		      &(((struct sockaddr_in*)ifa->ifa_addr)->sin_addr),
+		      addr_str, sizeof(addr_str));
+            port = ((struct sockaddr_in*)ifa->ifa_addr)->sin_port;
+        }
+        if (ifa->ifa_addr->sa_family == AF_INET6) {
+	    inet_ntop(ifa->ifa_addr->sa_family,
+		      &(((struct sockaddr_in6*)ifa->ifa_addr)->sin6_addr),
+		      addr_str, sizeof(addr_str));
+            port = ((struct sockaddr_in6*)ifa->ifa_addr)->sin6_port;
+            flowinfo = ((struct sockaddr_in6*)ifa->ifa_addr)->sin6_flowinfo;
+            scope = ((struct sockaddr_in6*)ifa->ifa_addr)->sin6_scope_id;
+        }
+        OIC_LOG_V(DEBUG, TAG, "Item %d: %s (%d): [%s]:%"PRIu32, i++,
+                  ifa->ifa_name, ifindex, addr_str, port);
+        OIC_LOG_V(DEBUG, TAG, "\tflowinfo: %"PRIu32 ", scope id: %"PRIu32, flowinfo, scope);
+#endif
+        int family = ifa->ifa_addr->sa_family;
+
+        if (!ifa->ifa_addr) {
+            //#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping IF %d - no address", ifindex);
+            //#endif
+            continue;
+        }
+        if (ifa->ifa_flags & IFF_LOOPBACK) {
+            //#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping loopback IF %d, family %d", ifindex, family);
+            //#endif
+	    continue;
+	}
+        if ((ifa->ifa_flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS) {
+	    OIC_LOG_V (INFO, TAG, "\tSkiping NIF %d (not up and running)", ifindex);
+            continue;
+        }
+
+	if (ifa->ifa_name) {
+            if (ifa->ifa_addr->sa_family == AF_INET) {
+                applyMulticastToInterface4(ifindex);
+            } else {
+                if (ifa->ifa_addr->sa_family == AF_INET6) {
+                    applyMulticastToInterface6(ifindex);
+                } else {
+                    OIC_LOG_V(DEBUG, TAG, "\tSkipping non-IPv4/6 IF %d, family %d", ifindex, family);
+                }
+            }
+        } else {
+            OIC_LOG_V(ERROR, TAG, "no ifa_name");
+        }
+    }
+}
+
+CAResult_t Xudp_add_nifs_to_multicast_groups()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (udp_is_started)
