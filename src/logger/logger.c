@@ -443,7 +443,7 @@ void OCLogConfig(oc_log_ctx_t *ctx)
     logCtx = ctx;
 }
 
-void OCLogInit() // FILE *fd)
+void OCLogInit(void) // FILE *fd)
 {
     int fd = -1;
 

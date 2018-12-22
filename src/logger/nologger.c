@@ -64,7 +64,7 @@
 #include <stdio.h>
 #endif	/* EXPORT_INTERFACE */
 
-void OCLogInit(FILE *fd) {}
+void OCLogInit(void) {}
 
 // void LogSp(OicSecSp_t* sp, int level, const char* tag, const char* msg) {}
 
@@ -74,3 +74,5 @@ void LogCert(uint8_t *data, size_t len, OicEncodingType_t encoding, const char* 
 void LogCred(OicSecCred_t *cred, const char* tag) {}
 void LogCredResource(OicSecCred_t *cred, const char* tag, const char* label) {}
 void LogCurrrentCredResource(void) {}
+char *oocf_get_logfile_name() EXPORT { return "OpenOCF logging disabled";}
+
