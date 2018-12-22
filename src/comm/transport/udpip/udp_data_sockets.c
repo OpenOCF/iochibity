@@ -316,7 +316,6 @@ CAResult_t udp_config_data_sockets()
     NEWSOCKET(AF_INET6, udp_u6s, false);
     NEWSOCKET(AF_INET6, udp_m6, true);
     NEWSOCKET(AF_INET6, udp_m6s, true);
-    OIC_LOG_V(INFO, TAG, "IPv6 unicast port: %u", udp_u6.port);
 #else
 #pragma message ("WARNING: IPv6 SUPPORT IS DISABLED")
 #endif
@@ -330,19 +329,18 @@ CAResult_t udp_config_data_sockets()
     NEWSOCKET(AF_INET, udp_u4s, false);
     NEWSOCKET(AF_INET, udp_m4, true);
     NEWSOCKET(AF_INET, udp_m4s, true);
-    OIC_LOG_V(INFO, TAG, "IPv4 unicast port: %u", udp_u4.port);
 #else
 #pragma message ("WARNING: IPv4 SUPPORT IS DISABLED")
 #endif
 	//    }
 
     OIC_LOG_V(DEBUG, TAG,
-              "socket summary: u6=%d, u6s=%d, u4=%d, u4s=%d, m6=%d, m6s=%d, m4=%d, m4s=%d",
+              "socket fd summary: u6=%d, u6s=%d, u4=%d, u4s=%d, m6=%d, m6s=%d, m4=%d, m4s=%d",
               udp_u6.fd, udp_u6s.fd, udp_u4.fd, udp_u4s.fd,
               udp_m6.fd, udp_m6s.fd, udp_m4.fd, udp_m4s.fd);
 
     OIC_LOG_V(DEBUG, TAG,
-              "port summary: u6 port=%d, u6s port=%d, u4 port=%d, u4s port=%d, m6 port=%d,"
+              "socket port summary: u6 port=%d, u6s port=%d, u4 port=%d, u4s port=%d, m6 port=%d,"
               "m6s port=%d, m4 port=%d, m4s port=%d",
               udp_u6.port, udp_u6s.port, udp_u4.port,
               udp_u4s.port, udp_m6.port, udp_m6s.port,
@@ -429,8 +427,10 @@ void applyMulticastToInterface4(uint32_t ifindex)
     {
 	if (PORTABLE_check_setsockopt_err())
         {
-            OIC_LOG_V(ERROR, TAG, "       IPv4 IP_ADD_MEMBERSHIP failed: %s", CAIPS_GET_ERROR);
+            OIC_LOG_V(ERROR, TAG, "       IPv4 IP_ADD_MEMBERSHIP failed: %s", strerror(errno));
         }
+    } else {
+        OIC_LOG_V(ERROR, TAG, "nif %u added to ipv4 multicast group", ifindex);
     }
     ret = setsockopt(udp_m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
@@ -439,6 +439,8 @@ void applyMulticastToInterface4(uint32_t ifindex)
         {
             OIC_LOG_V(ERROR, TAG, "SECURE IPv4 IP_ADD_MEMBERSHIP failed: %s", CAIPS_GET_ERROR);
         }
+    } else {
+        OIC_LOG_V(ERROR, TAG, "nif %u added to ipv4 secure multicast group", ifindex);
     }
 }
 
@@ -456,15 +458,14 @@ LOCAL void applyMulticast6(CASocketFd_t fd, struct in6_addr *addr, uint32_t ifin
         {
             OIC_LOG_V(ERROR, TAG, "IPv6 IPV6_JOIN_GROUP failed: %s", CAIPS_GET_ERROR);
         }
+    } else {
+        OIC_LOG_V(ERROR, TAG, "nif %u added to ipv6 multicast group", ifindex);
     }
 }
 
 void applyMulticastToInterface6(uint32_t ifindex)
 {
-    OIC_LOG_V (INFO, TAG, "%s ENTRY", __func__);
-#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-    OIC_LOG_V(DEBUG, TAG, "Adding IF %d to IPv6 multicast group", ifindex);
-#endif
+    OIC_LOG_V (INFO, TAG, "%s ENTRY; nif index %u", __func__, ifindex);
     if (!udp_ipv6_is_enabled)
     {
         return;
@@ -501,7 +502,7 @@ CAResult_t udp_add_ifs_to_multicast_groups()
     u_arraylist_t *iflist = udp_get_all_nifs();
     if (!iflist)
     {
-        OIC_LOG_V(ERROR, TAG, "udp_get_ifs_for_rtm_newaddr() failed: %s", strerror(errno));
+        OIC_LOG_V(ERROR, TAG, "udp_get_all_nifs failed: %s", strerror(errno));
         return CA_STATUS_FAILED;
     }
 
