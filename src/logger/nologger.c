@@ -59,10 +59,12 @@
 
 #define OIC_LOG_CRL(level, crl)
 
+#define OIC_LOG_PAYLOAD_BUFFER(level, tag, buffer, bufferSize)
+
 #include <stdio.h>
 #endif	/* EXPORT_INTERFACE */
 
-void OCLogInit(FILE *fd) EXPORT {}
+void OCLogInit(FILE *fd) {}
 
 // void LogSp(OicSecSp_t* sp, int level, const char* tag, const char* msg) {}
 

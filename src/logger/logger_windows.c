@@ -148,9 +148,9 @@ void OCLog(int level, const char * tag, const char * logStr)
 	    /* printf("%s %s %s\n", LEVEL[level], tag, logStr); */
 	    /* write_log("%s %s %s\n", LEVEL[level], tag, logStr); */
 	    /* fflush(stdout); */
-	       /* flockfile(logfd);  not on mingw */
-	       fprintf(logfd, "%s %s %s\n", LEVEL[level], tag, logStr);
-	       fflush(logfd);
+	       /* flockfile(logfile);  not on mingw */
+	       fprintf(logfile, "%s %s %s\n", LEVEL[level], tag, logStr);
+	       fflush(logfile);
 	       /* funlockfile(logfd); */
 	}
 }

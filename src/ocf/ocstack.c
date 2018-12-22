@@ -1022,9 +1022,10 @@ OCStackResult OC_CALL OCSetRAInfo(const OCRAInfo_t *raInfo)
 
 OCStackResult OC_CALL OCInit(const char *ipAddr, uint16_t port, OCMode mode) EXPORT
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     (void) ipAddr;
     (void) port;
+    OCLogInit();
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCStackResult r = OCInit1(mode, OC_DEFAULT_FLAGS, OC_DEFAULT_FLAGS);
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return r;

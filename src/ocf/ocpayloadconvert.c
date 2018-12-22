@@ -133,7 +133,7 @@ OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
         *size = curSize;
         *outPayload = out;
         OIC_LOG_V(DEBUG, TAG, "Payload Size: %zd Payload : ", *size);
-        OIC_LOG_BUFFER(DEBUG, TAG, *outPayload, *size);
+        OIC_LOG_PAYLOAD_BUFFER(DEBUG, TAG, *outPayload, *size);
 	OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
         return OC_STACK_OK;
     }

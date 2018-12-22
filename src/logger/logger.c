@@ -43,6 +43,10 @@
 #include <unistd.h>
 #endif
 
+#include <errno.h>
+#include <limits.h>             /* PATH_MAX */
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #ifdef HAVE_SYS_TIME_H
@@ -252,16 +256,17 @@ typedef enum
     OC_LOG_LEVEL_INFO,                // debug level is disabled.
 } OCLogLevel;
 
-FILE *logfd = NULL;
+FILE *logfile = NULL;
+static char logfile_name[PATH_MAX] = "";
 
 /* void oocf_log_hook_stdout(log_writer_t hook) */
-void OCLogHookFd(FILE *fd)
-EXPORT
-{
-    logfd = fd;
-    printf("hooking logger\n");
-    /* hook("Hello %s\n", "world"); */
-}
+/* void OCLogHookFd(FILE *fd) */
+/* EXPORT */
+/* { */
+/*     logfile = fd; */
+/*     printf("hooking logger\n"); */
+/*     /\* hook("Hello %s\n", "world"); *\/ */
+/* } */
 
 // log level
 static int g_level = DEBUG;
@@ -375,7 +380,7 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
 #ifdef _WIN32
     /* oc_mutex_lock(log_mutex); */
 #else
-    /* flockfile(logfd); */
+    /* flockfile(logfile); */
 #endif
 
     if (!AdjustAndVerifyLogLevel(&level))
@@ -409,11 +414,11 @@ void OCLogBuffer(int level, const char* tag, int line_number, const uint8_t* buf
     {
         OCLogHexBuffer(level, "\t", line_index * 16, "%s", lineBuffer);
     }
-    fflush(logfd);
+    fflush(logfile);
 #ifdef _WIN32
     /* oc_mutex_unlock(log_mutex); */
 #else
-    /* funlockfile(logfd); */
+    /* funlockfile(logfile); */
 #endif
     oc_mutex_unlock(log_mutex);
 }
@@ -430,19 +435,39 @@ void OCLogConfig(oc_log_ctx_t *ctx)
     logCtx = ctx;
 }
 
-void OCLogInit(FILE *fd)
-EXPORT
+void OCLogInit() // FILE *fd)
 {
-    if (fd)
-	logfd = fd;
-    else
-	logfd = stdout;
+    int fd = -1;
+
+    strlcpy(logfile_name, "/tmp/openocf.XXXXXX", sizeof logfile_name);
+    fd = mkstemp(logfile_name);
+    if (fd == -1) {
+        unlink(logfile_name);
+        close(fd);
+        fprintf(stderr, "Unable to create logfile %s: %s\n", logfile_name, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    logfile = fdopen(fd, "w+");
+    if (logfile == NULL) {
+        fprintf(stderr, "Unable to open logfile %s: %s\n", logfile_name, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    /* if (fd) */
+    /*     logfile = fd; */
+    /* else */
+    /*     logfile = stdout; */
     if (NULL == log_mutex)
     {
 	/* FIXME: oc_mutex_new uses oicmalloc, which uses OIC_LOG_V,
 	   which uses log_mutex, which crashes if ENABLE_MALLOC_DEBUG */
         log_mutex = oc_mutex_new();
     }
+}
+
+char *oocf_get_logfile_name() EXPORT
+{
+    return logfile_name;
 }
 
 void OCLogShutdown(void)
@@ -520,7 +545,7 @@ void OCLogStr(int level, const char * tag, int line_nbr, const char * header, co
     /* static char buffer[MAX_LOG_V_BUFFER_SIZE] = {0}; */
     va_list args;
     va_start(args, format);
-    vfprintf(logfd, format, args);
+    vfprintf(logfile, format, args);
     va_end(args);
     oc_mutex_unlock(log_mutex);
 }
@@ -563,6 +588,12 @@ void OCLogStr(int level, const char * tag, int line_nbr, const char * header, co
 	    OCLogStr((level), __FILE__, __LINE__, __VA_ARGS__); \
     } while(0)
 #endif // TB_LOG
+
+#ifdef DEBUG_PAYLOAD
+#define OIC_LOG_PAYLOAD_BUFFER OIC_LOG_BUFFER
+#else
+#define OIC_LOG_PAYLOAD_BUFFER(level, tag, buffer, bufferSize)
+#endif
 
 #ifdef DEBUG_THREADS
 #define OIC_LOG_THREADS OIC_LOG

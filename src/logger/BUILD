@@ -36,7 +36,7 @@ cc_library(
              "-Iexternal/mbedtls"
     ]
     + select({"//config:msvc": [],
-                     "//config:darwin": ["-U DEBUG", "-std=c11"],
+                     "//config:darwin": ["-U DEBUG", "-std=c11", "-D_DARWIN_C_SOURCE"],
                      "//conditions:default": ["-std=c11"]})
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
               "//conditions:default": []})

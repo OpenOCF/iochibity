@@ -32,12 +32,10 @@
 #include <windows.h>
 #endif
 
-#define CLOG_MAIN
-#include "clog.h"
-
 #define TAG "client"
 
-
+#define CLOG_MAIN
+#include "clog.h"
 const int MY_LOGGER = 0; /* Unique identifier for logger */
 
 /* static oc_thread ocf_thread; */
@@ -668,7 +666,7 @@ int main ()
 {
     /* Initialize the logger */
     int r;
-    r = clog_init_path(MY_LOGGER, "logs/client.txt");
+    r = clog_init_path(MY_LOGGER, "logs/client.log");
     if (r != 0) {
         fprintf(stderr, "Logger initialization failed.\n");
         return 1;
@@ -688,9 +686,14 @@ int main ()
        thread, to ensure initialization is complete before sending any
        request. */
     if (OCInit(NULL, 0, OC_CLIENT) != OC_STACK_OK) {
-        OIC_LOG(ERROR, TAG, "OCStack init error");
+        clog_info(CLOG(MY_LOGGER), "OCStack init error");
+        // OIC_LOG(ERROR, TAG, "OCStack init error");
+        clog_free(MY_LOGGER);
         return 0;
     }
+    fprintf(stdout, "OpenOCF logfile: %s\n", oocf_get_logfile_name());
+    fflush(stdout);
+    clog_info(CLOG(MY_LOGGER), "logfile: %s", oocf_get_logfile_name());
 
     /* We send a discovery request before we start processing incoming
        messages. */
@@ -711,6 +714,7 @@ int main ()
 	   on its own thread. */
         if (OCProcess() != OC_STACK_OK) {
             OIC_LOG(ERROR, TAG, "OCStack process error");
+            clog_free(MY_LOGGER);
             return 0;
         }
 	fflush(logfd);		/* FIXME */

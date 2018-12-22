@@ -40,6 +40,10 @@
 
 #define TAG ("ocserver")
 
+#define CLOG_MAIN
+#include "clog.h"
+const int MY_LOGGER = 0; /* Unique identifier for logger */
+
 int gQuitFlag = 0;
 OCStackResult createLightResource();
 
@@ -58,15 +62,31 @@ void handleSigInt(int signum) {
 }
 
 int main() {
-    OCLogInit(NULL);    /* log to stdout */
+    // OCLogInit(NULL);    /* log to stdout */
     /* logfd = fopen("./logs/server.log", "w"); */
     /* OCLogHookFd(logfd); */
+    /* Initialize the logger */
+    int r;
+    r = clog_init_path(MY_LOGGER, "logs/server.log");
+    if (r != 0) {
+        fprintf(stderr, "clog initialization failed.\n");
+        return 1;
+    }
 
-    OIC_LOG_V(INFO, TAG, "Starting ocserver");
+    /* Set minimum log level to info (default: debug) */
+    clog_set_level(MY_LOGGER, CLOG_INFO);
+
+    clog_info(CLOG(MY_LOGGER), "HELLO, %s!", "world");
+
     if (OCInit(NULL, 0, OC_SERVER) != OC_STACK_OK) {
-        OIC_LOG(ERROR, TAG, "OCStack init error");
+        clog_info(CLOG(MY_LOGGER), "OCStack init error");
+        clog_free(MY_LOGGER);
         return 0;
     }
+    fprintf(stdout, "OpenOCF logfile: %s\n", oocf_get_logfile_name());
+    fflush(stdout);
+    clog_info(CLOG(MY_LOGGER), "logfile: %s", oocf_get_logfile_name());
+
     OIC_LOG(INFO, TAG, "OCStack initialized");
 
     /*
@@ -84,6 +104,7 @@ int main() {
 
         if (OCProcess() != OC_STACK_OK) {
             OIC_LOG(ERROR, TAG, "OCStack process error");
+            clog_free(MY_LOGGER);
             return 0;
         }
 
@@ -96,6 +117,7 @@ int main() {
         OIC_LOG(ERROR, TAG, "OCStack process error");
     }
 
+    clog_free(MY_LOGGER);
     return 0;
 }
 
