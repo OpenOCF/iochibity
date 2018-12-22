@@ -27,16 +27,16 @@ typedef struct
     uint32_t flags;
     uint16_t family;
     char addr[MAX_ADDR_STR_SIZE_CA];
-} CAInterface_t;		// @rewrite to CAIfAddress_t */
+} CAInterface_t;		// @rewrite to ocf_nif_address */
 
-typedef struct CAIPCBData_t
-{
-    struct CAIPCBData_t *next;
-    CATransportAdapter_t adapter; /* will always be either CA_ADAPTER_IP (UDP) or CA_ADAPTER_TCP */
-    void (*ip_status_change_event_handler)(CATransportAdapter_t transport_type,
-					   CANetworkStatus_t status);
-    // @rewrite CAIPAdapterStateChangeCallback callback;
-} CAIPCBData_t;
+/* typedef struct CAIPCBData_t */
+/* { */
+/*     struct CAIPCBData_t *next; */
+/*     CATransportAdapter_t adapter; /\* will always be either CA_ADAPTER_IP (UDP) or CA_ADAPTER_TCP *\/ */
+/*     void (*ip_status_change_event_handler)(CATransportAdapter_t transport_type, */
+/* 					   CANetworkStatus_t status); */
+/*     // @rewrite CAIPAdapterStateChangeCallback callback; */
+/* } CAIPCBData_t; */
 #endif
 
 /**
