@@ -373,9 +373,9 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
     VERIFY_NON_NULL_MSG(size, TAG, "size is NULL");
 
     // GAR: get live list of CAInterface_t, each represents a unique (IF, family) pair
-    u_arraylist_t *iflist = udp_get_nifs_for_rtm_newaddr(0);
+    u_arraylist_t *iflist = udp_get_all_nifs();
     if (!iflist) {
-        OIC_LOG_V(ERROR, TAG, "get interface info failed: %s", strerror(errno));
+        OIC_LOG_V(ERROR, TAG, "udp_get_all_nifs failed: %s", strerror(errno));
         return CA_STATUS_FAILED;
     }
 
