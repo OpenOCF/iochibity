@@ -73,6 +73,14 @@
 
 #include <stdarg.h>
 
+#ifdef HAVE_STRLCPY
+#include <string.h>
+#endif
+
+#ifdef HAVE_BSD_STRING
+#include <bsd/string.h>
+#endif
+
 /* FIXME: flockfile on mingw? */
 /* #ifdef __MINGW64__ */
 /* #define _POSIX_THREAD_SAFE_FUNCTIONS */

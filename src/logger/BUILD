@@ -19,6 +19,7 @@ cc_library(
     defines = DEFINES,
 
     linkopts = select({"//config:android": ["-llog"],
+                       "//config:linux": ["-lbsd"],
                        "//conditions:default": []}),
     alwayslink = True,
     linkstatic = 1,
