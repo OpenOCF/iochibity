@@ -78,8 +78,8 @@ void PORTABLE_sendto(CASocketFd_t fd,
 		     //struct sockaddr_storage * sockaddrptr,
 		     struct sockaddr * sockaddrptr,
 		     socklen_t socklen,
-		     const CAEndpoint_t *endpoint,
-		     const char *cast, const char *fam)
+		     const CAEndpoint_t *endpoint)
+		     /* const char *cast, const char *fam) */
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
 #ifdef TB_LOG

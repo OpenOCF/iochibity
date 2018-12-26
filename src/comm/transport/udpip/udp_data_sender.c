@@ -288,21 +288,64 @@ void XsendMulticastData6(const u_arraylist_t *iflist,
 		}
 
 	    int index = ifitem->index;
-	    if (setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, OPTVAL_T(&index), sizeof (index)))
+	    if (setsockopt(udp_u6.fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, OPTVAL_T(&index), sizeof (index)))
 		{
 		    OIC_LOG_V(ERROR, TAG, "setsockopt6 failed: %s", CAIPS_GET_ERROR);
 		    return;
 		}
-	    udp_send_data(fd, endpoint, data, datalen, "multicast", "ipv6");
+	    udp_send_data(udp_u6.fd, dest_ep, data, datalen); // , "multicast", "ipv6");
 	}
 }
 
-void sendMulticastData4(const u_arraylist_t *iflist,
-			CAEndpoint_t *endpoint,
+void sendMulticastData4(CAEndpoint_t *dest_ep,
 			const void *data, size_t datalen)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    VERIFY_NON_NULL_VOID(endpoint, TAG, "endpoint is NULL");
+    VERIFY_NON_NULL_VOID(dest_ep, TAG, "dest_ep is NULL");
+
+#if defined(USE_IP_MREQN)
+    struct ip_mreqn mreq = { .imr_multiaddr = IPv4MulticastAddress,
+                             .imr_address.s_addr = htonl(INADDR_ANY),
+                             .imr_ifindex = 0};
+#else
+    struct ip_mreq mreq  = { .imr_multiaddr.s_addr = IPv4MulticastAddress.s_addr,
+                             .imr_interface = {{0}}};
+#endif
+
+    OICStrcpy(dest_ep->addr, sizeof(dest_ep->addr), IPv4_MULTICAST);
+    CASocketFd_t fd = udp_u4.fd;
+
+    // size_t len = u_arraylist_length(iflist);
+    for (size_t i = 0; i < _oocf_nif_count; i++)
+    {
+        // CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
+#if defined(USE_IP_MREQN)
+        mreq.imr_ifindex = _oocf_nifs[i];
+#else
+        mreq.imr_interface.s_addr = htonl(_oocf_nifs[i]);
+#endif
+        /* enable outbound multicast. this is sticky for the socket;
+           once it is set, all multicasts to that socket will go the
+           nif specified, or the system-determined default. If we have
+           multiple nifs (NICS), e.g. wifi0 and eth3, we need to
+           re-enable each interface before sending. */
+        /* FIXME: if we can live with the default, no need to do this. */
+        if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, OPTVAL_T(&mreq), sizeof (mreq)))
+        {
+            OIC_LOG_V(ERROR, TAG, "send IP_MULTICAST_IF failed: %s (using default)",
+		      CAIPS_GET_ERROR);
+        }
+        udp_send_data(fd, dest_ep, data, datalen); //, "multicast", "ipv4");
+    }
+}
+
+/* for each nif, set mode to IP_MULTICAST_IF, then sendto */
+void XsendMulticastData4(const u_arraylist_t *iflist,
+			CAEndpoint_t *dest_ep,
+			const void *data, size_t datalen)
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    VERIFY_NON_NULL_VOID(dest_ep, TAG, "dest_ep is NULL");
 
 #if defined(USE_IP_MREQN)
     struct ip_mreqn mreq = { .imr_multiaddr = IPv4MulticastAddress,

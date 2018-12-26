@@ -43,33 +43,24 @@
 
 #include <errno.h>
 
-/* #define USE_IP_MREQN */
-/* #if defined(_WIN32) */
+#define USE_IP_MREQN
+#if defined(_WIN32)
 #undef USE_IP_MREQN
-/* #endif */
+#endif
 
-/* udp globals */
+/* list of nifs with IFF_RUNNING, IFF_UP, IFF_MULTICAST */
+uint8_t  _oocf_nif_count;
+uint32_t _oocf_nifs[32] = { 0 };
+uint32_t _oocf_nif_flags[32] = { 0 };
+
+
 // from CAGlobals_t in _globals.h
-#ifndef PORT_U6
-#define PORT_U6 0
-#endif
-CASocket_t udp_u6  = { .fd = OC_INVALID_SOCKET, .port = PORT_U6 };   /**< unicast   IPv6 */
-
-#ifndef PORT_U6S
-#define PORT_U6S 0
-#endif
-CASocket_t udp_u6s = { .fd = OC_INVALID_SOCKET, .port = PORT_U6S }; /**< unicast   IPv6 secure */
-
-#ifndef PORT_U4
-#define PORT_U4 0
-#endif
-CASocket_t udp_u4  = { .fd = OC_INVALID_SOCKET, .port = PORT_U4 };   /**< unicast   IPv4 */
-
-#ifndef PORT_U4S
-#define PORT_U4S 0
-#endif
-CASocket_t udp_u4s = { .fd = OC_INVALID_SOCKET, .port = PORT_U4S };  /**< unicast   IPv4 secure */
-
+/* unicast sockets use system-assigned ports */
+CASocket_t udp_u6  = { .fd = OC_INVALID_SOCKET, .port = 0 };   /**< unicast   IPv6 */
+CASocket_t udp_u6s = { .fd = OC_INVALID_SOCKET, .port = 0 }; /**< unicast   IPv6 secure */
+CASocket_t udp_u4  = { .fd = OC_INVALID_SOCKET, .port = 0 };   /**< unicast   IPv4 */
+CASocket_t udp_u4s = { .fd = OC_INVALID_SOCKET, .port = 0 };  /**< unicast   IPv4 secure */
+/* multicast listen sockets use OCF-defined ports */
 CASocket_t udp_m6  = { .fd = OC_INVALID_SOCKET, .port = CA_COAP };        /**< multicast IPv6 */
 CASocket_t udp_m6s = { .fd = OC_INVALID_SOCKET, .port = CA_SECURE_COAP }; /**< multicast IPv6 secure */
 CASocket_t udp_m4  = { .fd = OC_INVALID_SOCKET, .port = CA_COAP };        /**< multicast IPv4 */
@@ -135,6 +126,7 @@ CASocketFd_t udp_create_socket(int family, uint16_t *port, bool isMulticast)
         return OC_INVALID_SOCKET;
     }
 #endif
+
     struct sockaddr_storage sa = { .ss_family = (short)family };
     socklen_t socklen = 0;
 
@@ -147,6 +139,7 @@ CASocketFd_t udp_create_socket(int family, uint16_t *port, bool isMulticast)
             OIC_LOG_V(ERROR, TAG, "IPV6_V6ONLY failed: %s", CAIPS_GET_ERROR);
         }
 
+        /* enable ipv6 ancillary (control) info */
 #if defined(IPV6_RECVPKTINFO)
         if (OC_SOCKET_ERROR == setsockopt(fd, IPPROTO_IPV6, IPV6_RECVPKTINFO, &on, sizeof (on)))
 #else
@@ -156,24 +149,28 @@ CASocketFd_t udp_create_socket(int family, uint16_t *port, bool isMulticast)
             OIC_LOG_V(ERROR, TAG, "IPV6_RECVPKTINFO failed: %s",CAIPS_GET_ERROR);
         }
 
+        ((struct sockaddr_in6 *)&sa)->sin6_addr = in6addr_any; /* let's be explicit */
         ((struct sockaddr_in6 *)&sa)->sin6_port = htons(*port);
         socklen = sizeof (struct sockaddr_in6);
     }
-    else
+    else                        /* family == AF_INET */
     {
         int on = 1;
+        /* enable ipv6 ancillary (control) info */
         if (OC_SOCKET_ERROR == setsockopt(fd, IPPROTO_IP, IP_PKTINFO, OPTVAL_T(&on), sizeof (on)))
         {
             OIC_LOG_V(ERROR, TAG, "IP_PKTINFO failed: %s", CAIPS_GET_ERROR);
         }
 
+        ((struct sockaddr_in *)&sa)->sin_addr.s_addr = INADDR_ANY; /* let's be explicit */
         ((struct sockaddr_in *)&sa)->sin_port = htons(*port);
         socklen = sizeof (struct sockaddr_in);
     }
 
-    if (isMulticast && *port) // use the given port
+    if (isMulticast && *port)   /* port required for multicast */
     {
         int on = 1;
+        /* enable udp port sharing across processes  */
         if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, OPTVAL_T(&on), sizeof (on)))
         {
             OIC_LOG_V(ERROR, TAG, "SO_REUSEADDR failed: %s", CAIPS_GET_ERROR);
@@ -201,6 +198,7 @@ CASocketFd_t udp_create_socket(int family, uint16_t *port, bool isMulticast)
                       ((struct sockaddr_in6 *)&sa)->sin6_port :
                       ((struct sockaddr_in *)&sa)->sin_port);
     }
+    // FIXME: also save addr in the CASocket_t structtat
 
     return fd;
 }
@@ -403,7 +401,7 @@ LOCAL void udp_close_data_sockets()
     CAUnregisterForAddressChanges();
 }
 
-void applyMulticastToInterface4(uint32_t ifindex)
+void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
 {
     OIC_LOG_V (INFO, TAG, "%s ENTRY; nif index: %d", __func__, ifindex);
     if (!udp_ipv4_is_enabled)
@@ -415,7 +413,7 @@ void applyMulticastToInterface4(uint32_t ifindex)
     struct ip_mreqn mreq = {0};
     memcpy(&mreq.imr_multiaddr.s_addr, (void*)&IPv4MulticastAddress, sizeof(struct in_addr));
     mreq.imr_address.s_addr = htonl(INADDR_ANY);
-    mreq.imr_ifindex = ifindex;
+    mreq.imr_ifindex = 0;  // htonl(ifindex);
 #else
     struct ip_mreq mreq  = { .imr_multiaddr.s_addr = IPv4MulticastAddress.s_addr,
                              .imr_interface.s_addr = htonl(ifindex) };
@@ -488,7 +486,8 @@ void applyMulticastToInterface6(uint32_t ifindex)
 }
 
 // @rewrite udp_add_ifs_to_multicast_groups @was CAIPStartListenServer
-CAResult_t udp_add_nifs_to_multicast_groups()
+// cache up and running multicast nif indices, create local ep list
+CAResult_t udp_configure_multicast_listening() // udp_add_nifs_to_multicast_groups()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (udp_is_started)
@@ -538,7 +537,6 @@ CAResult_t udp_add_nifs_to_multicast_groups()
         }
         OIC_LOG_V(DEBUG, TAG, "Item %d: %s (%d): [%s]:%"PRIu32, i++,
                   ifa->ifa_name, ifindex, addr_str, port);
-        OIC_LOG_V(DEBUG, TAG, "\tflowinfo: %"PRIu32 ", scope id: %"PRIu32, flowinfo, scope);
 #endif
         int family = ifa->ifa_addr->sa_family;
 
@@ -572,122 +570,135 @@ CAResult_t udp_add_nifs_to_multicast_groups()
         } else {
             OIC_LOG_V(ERROR, TAG, "no ifa_name");
         }
+        /* SIOCGIFFLAGS (manpage NETDEVICE(7)) */
+        OIC_LOG_V(DEBUG, TAG, "\tflowinfo: %"PRIu32 ", scope id: %"PRIu32, flowinfo, scope);
+        OIC_LOG_V(DEBUG, TAG, "\tIFF_UP? %s", ((ifa->ifa_flags & IFF_UP)? "Y":"N"));
+        OIC_LOG_V(DEBUG, TAG, "\tIFF_RUNNING? %s", ((ifa->ifa_flags & IFF_RUNNING)? "Y":"N"));
+        OIC_LOG_V(DEBUG, TAG, "\tIFF_ALLMULTI? %s", ((ifa->ifa_flags & IFF_ALLMULTI)? "Y":"N"));
+        OIC_LOG_V(DEBUG, TAG, "\tIFF_MULTICAST? %s", ((ifa->ifa_flags & IFF_MULTICAST)? "Y":"N"));
+        OIC_LOG_V(DEBUG, TAG, "\tIFF_DYNAMIC? %s", ((ifa->ifa_flags & IFF_DYNAMIC)? "Y":"N"));
+        OIC_LOG_V(DEBUG, TAG, "\tIFF_NOARP? %s", ((ifa->ifa_flags & IFF_NOARP)? "Y":"N"));
+        OIC_LOG_V(DEBUG, TAG, "\tIFF_POINTOPOINT? %s", ((ifa->ifa_flags & IFF_POINTOPOINT)? "Y":"N"));
     }
 }
 
-CAResult_t Xudp_add_nifs_to_multicast_groups()
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    if (udp_is_started)
-    {
-        OIC_LOG(DEBUG, TAG, "Adapter is started already, exiting");
-        return CA_STATUS_OK;
-    }
+/* CAResult_t Xudp_add_nifs_to_multicast_groups() */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
+/*     if (udp_is_started) */
+/*     { */
+/*         OIC_LOG(DEBUG, TAG, "Adapter is started already, exiting"); */
+/*         return CA_STATUS_OK; */
+/*     } */
 
-    // GAR: get all if/addresses; list is on heap, it is NOT g_network_interfaces
-    errno = 0;
-    u_arraylist_t *iflist = udp_get_all_nifs();
-    if (!iflist)
-    {
-        OIC_LOG_V(ERROR, TAG, "udp_get_all_nifs failed: %s", strerror(errno));
-        return CA_STATUS_FAILED;
-    }
+/*     // GAR: get all if/addresses; list is on heap, it is NOT g_network_interfaces */
+/*     errno = 0; */
+/*     u_arraylist_t *iflist = udp_get_all_nifs(); */
+/*     if (!iflist) */
+/*     { */
+/*         OIC_LOG_V(ERROR, TAG, "udp_get_all_nifs failed: %s", strerror(errno)); */
+/*         return CA_STATUS_FAILED; */
+/*     } */
 
-    size_t len = u_arraylist_length(iflist);
-    OIC_LOG_V(DEBUG, TAG, "IP network interfaces found: %" PRIuPTR, len);
+/*     size_t len = u_arraylist_length(iflist); */
+/*     OIC_LOG_V(DEBUG, TAG, "IP network interfaces found: %" PRIuPTR, len); */
 
-    for (size_t i = 0; i < len; i++)
-    {
-        CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
+/*     for (size_t i = 0; i < len; i++) */
+/*     { */
+/*         CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i); */
 
-        if (!ifitem)
-        {
-            continue;
-        }
-        if ((ifitem->flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS)
-        {
-	    OIC_LOG_V (INFO, TAG, "%s IF %d: %s not up and running ",
-		   __func__, ifitem->index, ifitem->name);
-            continue;
-        }
-	OIC_LOG_V (INFO, TAG, "%s adding IF %d: %s to multicast groups ",
-		   __func__, ifitem->index, ifitem->name);
+/*         if (!ifitem) */
+/*         { */
+/*             continue; */
+/*         } */
+/*         if ((ifitem->flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS) */
+/*         { */
+/* 	    OIC_LOG_V (INFO, TAG, "%s IF %d: %s not up and running ", */
+/* 		   __func__, ifitem->index, ifitem->name); */
+/*             continue; */
+/*         } */
+/* 	OIC_LOG_V (INFO, TAG, "%s adding IF %d: %s to multicast groups ", */
+/* 		   __func__, ifitem->index, ifitem->name); */
 
-        if (ifitem->family == AF_INET)
-        {
-            applyMulticastToInterface4(ifitem->index);
-        }
-        if (ifitem->family == AF_INET6)
-        {
-            applyMulticastToInterface6(ifitem->index);
-        }
-    }
+/*         if (ifitem->family == AF_INET) */
+/*         { */
+/*             applyMulticastToInterface4(ifitem->index); */
+/*         } */
+/*         if (ifitem->family == AF_INET6) */
+/*         { */
+/*             applyMulticastToInterface6(ifitem->index); */
+/*         } */
+/*     } */
 
-    u_arraylist_destroy(iflist);
+/*     u_arraylist_destroy(iflist); */
 
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-    return CA_STATUS_OK;
-}
+/*     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
+/*     return CA_STATUS_OK; */
+/* } */
 
-void udp_add_if_to_multicast_groups(CAInterface_t *ifitem) // @was CAProcessNewInterface
-{
-    if (!ifitem)
-    {
-        OIC_LOG(DEBUG, TAG, "ifitem is null");
-        return;
-    }
+/* void udp_add_nif_to_multicast_groups(CAInterface_t *ifitem) // @was CAProcessNewInterface */
+/* { */
+/*     if (!ifitem) */
+/*     { */
+/*         OIC_LOG(DEBUG, TAG, "ifitem is null"); */
+/*         return; */
+/*     } */
 
-    if (ifitem->family == AF_INET6)
-    {
-        applyMulticastToInterface6(ifitem->index);
-    }
-    if (ifitem->family == AF_INET)
-    {
-        applyMulticastToInterface4(ifitem->index);
-    }
-}
+/*     if (ifitem->family == AF_INET6) */
+/*     { */
+/*         applyMulticastToInterface6(ifitem->index); */
+/*     } */
+/*     if (ifitem->family == AF_INET) */
+/*     { */
+/*         applyMulticastToInterface4(ifitem->index); */
+/*     } */
+/* } */
 
 // @rewrite @was CAIPStopListenServer
 CAResult_t udp_close_sockets()
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
-    u_arraylist_t *iflist = udp_get_nifs_for_rtm_newaddr(0);
-    if (!iflist)
-    {
-        OIC_LOG_V(ERROR, TAG, "Get interface info failed: %s", strerror(errno));
-        return CA_STATUS_FAILED;
-    }
+    /* u_arraylist_t *iflist = udp_get_nifs_for_rtm_newaddr(0); */
+    /* if (!iflist) */
+    /* { */
+    /*     OIC_LOG_V(ERROR, TAG, "Get interface info failed: %s", strerror(errno)); */
+    /*     return CA_STATUS_FAILED; */
+    /* } */
 
-    size_t len = u_arraylist_length(iflist);
-    OIC_LOG_V(DEBUG, TAG, "IP network interfaces found: %" PRIuPTR, len);
+    /* size_t len = u_arraylist_length(iflist); */
+    /* OIC_LOG_V(DEBUG, TAG, "IP network interfaces found: %" PRIuPTR, len); */
 
-    for (size_t i = 0; i < len; i++)
-    {
-        CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
+    /* for (size_t i = 0; i < len; i++) */
+    /* { */
+    /*     CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i); */
 
-        if (!ifitem)
-        {
-            continue;
-        }
-        if ((ifitem->flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS)
-        {
-            continue;
-        }
-        if (ifitem->family == AF_INET)
-        {
+    /*     if (!ifitem) */
+    /*     { */
+    /*         continue; */
+    /*     } */
+    /*     if ((ifitem->flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS) */
+    /*     { */
+    /*         continue; */
+    /*     } */
+    /*     if (ifitem->family == AF_INET) */
+    /*     { */
+    //#ifdef ENABLE_IPV4
             CLOSE_SOCKET(udp_m4);
             CLOSE_SOCKET(udp_m4s);
-            OIC_LOG_V(DEBUG, TAG, "IPv4 network interface: %s cloed", ifitem->name);
-        }
-        if (ifitem->family == AF_INET6)
-        {
+            OIC_LOG_V(DEBUG, TAG, "udp_m4, udp_m4s sockets closed"); // , ifitem->name);
+            //#endif
+        /* } */
+        /* if (ifitem->family == AF_INET6) */
+        /* { */
+#ifndef DISABLE_IPV6
             CLOSE_SOCKET(udp_m6);
             CLOSE_SOCKET(udp_m6s);
-            OIC_LOG_V(DEBUG, TAG, "IPv6 network interface: %s", ifitem->name);
-        }
-    }
-    u_arraylist_destroy(iflist);
+            OIC_LOG_V(DEBUG, TAG, "udp_m6, udp_m6s sockets closed");
+#endif
+    /*     } */
+    /* } */
+    /* u_arraylist_destroy(iflist); */
     return CA_STATUS_OK;
 }
 
