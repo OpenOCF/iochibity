@@ -2111,6 +2111,146 @@ exit:
     return result;
 }
 
+OCStackResult _oocf_response_to_request(OCServerRequest *request,
+                                        OCPayload **thePayload,
+                                        char *interfaceQuery,
+                                        char *resourceTypeQuery,
+                                        OCResource *resource)
+{
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    OCStackResult discoveryResult = OC_STACK_ERROR;
+    /* char *interfaceQuery = NULL; */
+    /* char *resourceTypeQuery = NULL; */
+
+    OCPayload* payload = NULL;
+
+    OCVirtualResources virtualUriInRequest = GetTypeOfVirtualURI (request->resourceUrl);
+
+    /* if (g_multicastServerStopped && !isUnicast(request)) */
+    /*     { */
+    /*         // Ignore the discovery request */
+    /*         DeleteServerRequest(request); */
+    /*         discoveryResult = OC_STACK_CONTINUE; */
+    /*         goto exit; */
+    /*     } */
+
+    CAEndpoint_t *local_eps = NULL;
+    size_t local_eps_count = 0;
+
+    CAResult_t caResult = CAGetNetworkInformation(&local_eps, &local_eps_count);
+    if (CA_STATUS_FAILED == caResult)
+        {
+            OIC_LOG(ERROR, TAG, "CAGetNetworkInformation has error on parsing network infomation");
+            return OC_STACK_ERROR;
+        }
+    OIC_LOG_V(DEBUG, TAG, "local EP count = %d", (int) local_eps_count);
+    /* if (local_eps_count > 0) { */
+    /*     OIC_LOG_V(INFO, TAG, "%s 1st addr: %s", __func__, local_eps[0].addr); */
+    /*     OIC_LOG_V(INFO, TAG, "%s 1st port: %d", __func__, local_eps[0].port); */
+    /*     OIC_LOG_V(INFO, TAG, "%s 1st ifindex: %d", __func__, local_eps[0].ifindex); */
+    /* } */
+
+    /* request->query: extract from requestInfo.info->resourceUri */
+    discoveryResult = getQueryParamsForFiltering (virtualUriInRequest, request->query,
+                                                  &interfaceQuery, &resourceTypeQuery);
+    VERIFY_SUCCESS_1(discoveryResult);
+
+    if (!interfaceQuery && !resourceTypeQuery)
+        {
+            // If no query is sent, default interface is used i.e. oic.if.ll.
+            interfaceQuery = OICStrdup(OC_RSRVD_INTERFACE_LL);
+        }
+
+    OIC_LOG_V(INFO, TAG, "Interface Query: %s", interfaceQuery);
+    OIC_LOG_V(INFO, TAG, "ResourceType Query: %s", resourceTypeQuery);
+
+    discoveryResult = discoveryPayloadCreateAndAddDeviceId(&payload);
+    VERIFY_PARAM_NON_NULL(TAG, payload, "Failed creating Discovery Payload.");
+    VERIFY_SUCCESS_1(discoveryResult);
+
+    OCDiscoveryPayload *discPayload = (OCDiscoveryPayload *)payload;
+    if (interfaceQuery && 0 == strcmp(interfaceQuery, OC_RSRVD_INTERFACE_DEFAULT))
+        {
+            discoveryResult = addDiscoveryBaselineCommonProperties(discPayload);
+            VERIFY_SUCCESS_1(discoveryResult);
+        }
+    OCResourceProperty prop = OC_DISCOVERABLE;
+#ifdef MQ_BROKER
+    prop = (OC_MQ_BROKER_URI == virtualUriInRequest) ? OC_MQ_BROKER : prop;
+#endif
+    for (; resource && discoveryResult == OC_STACK_OK; resource = resource->next)
+        {
+            // This case will handle when no resource type and it is oic.if.ll.
+            // Do not assume check if the query is ll
+            if (!resourceTypeQuery &&
+                (interfaceQuery && 0 == strcmp(interfaceQuery, OC_RSRVD_INTERFACE_LL)))
+                {
+                    OIC_LOG_V(INFO, TAG, "processing IF query %s", interfaceQuery);
+
+                    // Only include discoverable type
+                    if (resource->resourceProperties & prop)
+                        {
+                            discoveryResult = BuildVirtualResourceResponse(resource,
+                                                                           (OCDiscoveryPayload*) payload,
+                                                                           /* discPayload, */
+                                                                           &request->devAddr,
+                                                                           // requestInfo.origin_ep
+                                                                           local_eps,
+                                                                           local_eps_count);
+                        }
+                }
+            else if (includeThisResourceInResponse(resource, interfaceQuery, resourceTypeQuery))
+                {
+                    discoveryResult = BuildVirtualResourceResponse(resource,
+                                                                   discPayload,
+                                                                   &request->devAddr,
+                                                                   // requestInfo.origin_ep
+                                                                   local_eps,
+                                                                   local_eps_count);
+                }
+            else
+                {
+                    discoveryResult = OC_STACK_OK;
+                }
+        }
+    if (discPayload->resources == NULL)
+        {
+            OIC_LOG_V(INFO, TAG, "NO RESOURCES");
+            discoveryResult = OC_STACK_NO_RESOURCE;
+            OCPayloadDestroy(payload);
+            payload = NULL;
+        }
+
+    if (local_eps)
+        {
+            OICFree(local_eps);
+        }
+#ifdef RD_SERVER
+    discoveryResult = findResourcesAtRD(interfaceQuery, resourceTypeQuery, &request->devAddr,
+                                        (OCDiscoveryPayload **)&payload);
+#endif
+
+exit:
+    if (interfaceQuery)
+    {
+        OICFree(interfaceQuery);
+    }
+
+    if (resourceTypeQuery)
+    {
+        OICFree(resourceTypeQuery);
+    }
+
+    OIC_LOG_V(INFO, TAG, "%s EXIT, payload: %p", __func__, payload);
+    *thePayload = payload;
+    OIC_LOG_V(INFO, TAG, "%s EXIT, *thePayload: %p", __func__, *thePayload);
+
+    // To ignore the message, OC_STACK_CONTINUE is sent
+    OIC_LOG_V(INFO, TAG, "%s EXIT, discoveryResult %u", __func__, discoveryResult);
+    return discoveryResult;
+}
+
+//OCStackResult HandleVirtualResource (OCRequestInfo_t *requestInfo, OCResource* resource)
 OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resource)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
@@ -2161,12 +2301,9 @@ OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resou
     }
 
     // Step 1: Generate the response to discovery request
-    if (virtualUriInRequest == OC_WELL_KNOWN_URI
-#ifdef MQ_BROKER
-            || virtualUriInRequest == OC_MQ_BROKER_URI
-#endif
-            )
-    {
+    switch(virtualUriInRequest) {
+    case OC_WELL_KNOWN_URI:
+        OIC_LOG_V(INFO, TAG, "Request is for OC_WELL_KNOWN_URI");
         if (g_multicastServerStopped && !isUnicast(request))
         {
             // Ignore the discovery request
@@ -2174,94 +2311,42 @@ OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resou
             discoveryResult = OC_STACK_CONTINUE;
             goto exit;
         }
-
-        CAEndpoint_t *networkInfo = NULL;
-        size_t infoSize = 0;
-
-        CAResult_t caResult = CAGetNetworkInformation(&networkInfo, &infoSize);
-        if (CA_STATUS_FAILED == caResult)
-        {
-            OIC_LOG(ERROR, TAG, "CAGetNetworkInformation has error on parsing network infomation");
-            return OC_STACK_ERROR;
-        }
-	OIC_LOG_V(DEBUG, TAG, "EP count = %d", (int) infoSize);
-	/* if (infoSize > 0) { */
-	/*     OIC_LOG_V(INFO, TAG, "%s 1st addr: %s", __func__, networkInfo[0].addr); */
-	/*     OIC_LOG_V(INFO, TAG, "%s 1st port: %d", __func__, networkInfo[0].port); */
-	/*     OIC_LOG_V(INFO, TAG, "%s 1st ifindex: %d", __func__, networkInfo[0].ifindex); */
-	/* } */
-
-        discoveryResult = getQueryParamsForFiltering (virtualUriInRequest, request->query,
-                &interfaceQuery, &resourceTypeQuery);
-        VERIFY_SUCCESS_1(discoveryResult);
-
-        if (!interfaceQuery && !resourceTypeQuery)
-        {
-            // If no query is sent, default interface is used i.e. oic.if.ll.
-            interfaceQuery = OICStrdup(OC_RSRVD_INTERFACE_LL);
-        }
-
-        discoveryResult = discoveryPayloadCreateAndAddDeviceId(&payload);
-        VERIFY_PARAM_NON_NULL(TAG, payload, "Failed creating Discovery Payload.");
-        VERIFY_SUCCESS_1(discoveryResult);
-
-        OCDiscoveryPayload *discPayload = (OCDiscoveryPayload *)payload;
-        if (interfaceQuery && 0 == strcmp(interfaceQuery, OC_RSRVD_INTERFACE_DEFAULT))
-        {
-            discoveryResult = addDiscoveryBaselineCommonProperties(discPayload);
-            VERIFY_SUCCESS_1(discoveryResult);
-        }
-        OCResourceProperty prop = OC_DISCOVERABLE;
+        OIC_LOG_V(INFO, TAG, "Payload: %p", payload);
+        discoveryResult = _oocf_response_to_request(request,
+                                                    &payload,
+                                                    interfaceQuery,
+                                                    resourceTypeQuery,
+                                                    resource
+                                                    );
+        OIC_LOG_V(INFO, TAG, "Payload: %p", payload);
+        break;
 #ifdef MQ_BROKER
-        prop = (OC_MQ_BROKER_URI == virtualUriInRequest) ? OC_MQ_BROKER : prop;
+    case OC_MQ_BROKER_URI:
+        OIC_LOG_V(ERROR, TAG, "Request is for OC_MQ_BROKER_URI");
+        break;
 #endif
-        for (; resource && discoveryResult == OC_STACK_OK; resource = resource->next)
-        {
-            // This case will handle when no resource type and it is oic.if.ll.
-            // Do not assume check if the query is ll
-            if (!resourceTypeQuery &&
-                (interfaceQuery && 0 == strcmp(interfaceQuery, OC_RSRVD_INTERFACE_LL)))
-            {
-                // Only include discoverable type
-                if (resource->resourceProperties & prop)
-                {
-                    discoveryResult = BuildVirtualResourceResponse(resource,
-                                                                   discPayload,
-                                                                   &request->devAddr,
-                                                                   networkInfo,
-                                                                   infoSize);
-                }
-            }
-            else if (includeThisResourceInResponse(resource, interfaceQuery, resourceTypeQuery))
-            {
-                discoveryResult = BuildVirtualResourceResponse(resource,
-                                                               discPayload,
-                                                               &request->devAddr,
-                                                               networkInfo,
-                                                               infoSize);
-            }
-            else
-            {
-                discoveryResult = OC_STACK_OK;
-            }
-        }
-        if (discPayload->resources == NULL)
-        {
-            discoveryResult = OC_STACK_NO_RESOURCE;
-            OCPayloadDestroy(payload);
-            payload = NULL;
-        }
-
-        if (networkInfo)
-        {
-            OICFree(networkInfo);
-        }
-#ifdef RD_SERVER
-        discoveryResult = findResourcesAtRD(interfaceQuery, resourceTypeQuery, &request->devAddr,
-                (OCDiscoveryPayload **)&payload);
+    case OC_DEVICE_URI:
+        OIC_LOG_V(ERROR, TAG, "Request is for OC_DEVICE_URI");
+        break;
+    case OC_PLATFORM_URI:
+        OIC_LOG_V(ERROR, TAG, "Request is for OC_PLATFORM_URI");
+        break;
+#ifdef ROUTING_GATEWAY
+    case OC_GATEWAY_URI:
+        OIC_LOG_V(ERROR, TAG, "Request is for OC_GATEWAY_URI");
+        break;
+    case OC_INTROSPECTION_URI:
 #endif
+        OIC_LOG_V(ERROR, TAG, "Request is for OC_INTROSPECTION_URI");
+        break;
+    case OC_INTROSPECTION_PAYLOAD_URI:
+        OIC_LOG_V(ERROR, TAG, "Request is for OC_INTROSPECTION_PAYLOAD_URI");
+        break;
+    default:
+        OIC_LOG_V(ERROR, TAG, "Request is for UNKNOWN");
     }
-    else if (virtualUriInRequest == OC_DEVICE_URI)
+
+    if (virtualUriInRequest == OC_DEVICE_URI)
     {
         OCResource *resourcePtr = FindResourceByUri(OC_RSRVD_DEVICE_URI);
         VERIFY_PARAM_NON_NULL(TAG, resourcePtr, "Device URI not found.");
