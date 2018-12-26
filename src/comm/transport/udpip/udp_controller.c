@@ -146,7 +146,7 @@ CAResult_t udp_start_services(const ca_thread_pool_t threadPool) // @was CAIPSta
 
     //udp_selectTimeout = CAGetPollingInterval(udp_selectTimeout);
 
-    res = udp_add_nifs_to_multicast_groups();  /* @was CAIPStartListenServer */
+    res = udp_configure_multicast_listening(); // udp_add_nifs_to_multicast_groups();  /* @was CAIPStartListenServer */
     if (CA_STATUS_OK != res)
     {
         OIC_LOG_V(ERROR, TAG, "udp_add_ifs_to_multicast_groups failed with rc [%d]", res);
