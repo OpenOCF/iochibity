@@ -181,7 +181,7 @@ OCStackResult OC_CALL OCAssertRoles(void *ctx, const OCDevAddr *devAddr, OCAsser
     OIC_LOG_V(DEBUG, TAG, "%s:     flags: %d", __func__, endpoint.flags);
     OIC_LOG_V(DEBUG, TAG, "%s:     port: %d", __func__, endpoint.port);
     OIC_LOG_V(DEBUG, TAG, "%s:     addr: %s", __func__, endpoint.addr);
-    OIC_LOG_V(DEBUG, TAG, "%s:     index: %d", __func__, endpoint.ifindex);
+    /* OIC_LOG_V(DEBUG, TAG, "%s:     index: %d", __func__, endpoint.ifindex); */
     OIC_LOG_V(DEBUG, TAG, "%s:     remoteid: %s", __func__, endpoint.remoteId);
 
     /* 1. Retrieve all our stored role certificates */

@@ -734,13 +734,13 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
             continue;
         }
 
-        eps[j].adapter = CA_ADAPTER_IP; /* meaning CA_ADAPTER_UDP */
-        eps[j].ifindex = ifitem->index;
+        eps[j].adapter = CA_ADAPTER_IP; /* meaning UDP transport, NOT ipv4/v6 */
+        // eps[j].ifindex = ifitem->index;
 
         if (ifitem->family == AF_INET6)
         {
             eps[j].flags = CA_IPV6;
-            eps[j].port = udp_u6.port;
+            eps[j].port = udp_u6.port; /* why not take port from iflist item? */
         }
         else
         {
@@ -752,10 +752,11 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
 #ifdef __WITH_DTLS__
 	/* add secured endpoint */
         j++;
-	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d (secure), ifindex %d", __func__, i*2+1, ifitem->index);
+	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d (secure), ifindex %d, addr %s",
+                  __func__, i*2+1, ifitem->index, ifitem->addr);
 
         eps[j].adapter = CA_ADAPTER_IP;
-        eps[j].ifindex = ifitem->index;
+        // oeps[j].ifindex = ifitem->index;
 
         if (ifitem->family == AF_INET6)
         {
@@ -815,7 +816,7 @@ u_arraylist_t *oocf_get_local_endpoints(void) EXPORT
 
         for (size_t i = 0; i < numOfEps; i++)
         {
-	    OIC_LOG_V(DEBUG, TAG, "Caching %d: %s [%d]", i, eps[i].addr, eps[i].ifindex);
+	    OIC_LOG_V(DEBUG, TAG, "Caching %d: %s [%d]", i, eps[i].addr); //, eps[i].ifindex);
             u_arraylist_add(local_endpoints, (void *)&eps[i]);
         }
 	return local_endpoints;
@@ -846,7 +847,7 @@ void udp_refresh_local_endpoint_cache(CANetworkStatus_t status) // @was CAUpdate
         for (size_t i = 0; i < numOfEps; i++)
         {
 	    // FIXME: what about duplicates?
-	    OIC_LOG_V(DEBUG, TAG, "Caching %d: %s [%d]", i, eps[i].addr, eps[i].ifindex);
+	    OIC_LOG_V(DEBUG, TAG, "Caching %d: %s [%d]", i, eps[i].addr); // , eps[i].ifindex);
             u_arraylist_add(g_local_endpoint_cache, (void *)&eps[i]);
         }
     }
@@ -882,8 +883,8 @@ bool CAIPIsLocalEndpoint(const CAEndpoint_t *ep)
     for (size_t i = 0; i < len; i++)
     {
         CAEndpoint_t *ownIpEp = u_arraylist_get(g_local_endpoint_cache, i);
-        if (!strcmp(addr, ownIpEp->addr) && ep->port == ownIpEp->port
-                                         && ep->ifindex == ownIpEp->ifindex)
+        if (!strcmp(addr, ownIpEp->addr) && ep->port == ownIpEp->port)
+            // && ep->ifindex == ownIpEp->ifindex)
         {
             return true;
         }

@@ -431,7 +431,7 @@ void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out)
     OICStrcpy(out->addr, sizeof(out->addr), in->addr);
     OICStrcpy(out->remoteId, sizeof(out->remoteId), in->remoteId);
     out->port = in->port;
-    out->ifindex = in->ifindex;
+    /* out->ifindex = in->ifindex; */
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     /* This assert is to prevent accidental mismatch between address size macros defined in
      * RI and CA and cause crash here. */
@@ -458,7 +458,7 @@ void CopyDevAddrToEndpoint(const OCDevAddr *in, CAEndpoint_t *out)
     memcpy(out->routeData, in->routeData, sizeof(in->routeData));
 #endif
     out->port = in->port;
-    out->ifindex = in->ifindex;
+    /* out->ifindex = in->ifindex; */
 }
 
 void FixUpClientResponse(OCClientResponse *cr)
