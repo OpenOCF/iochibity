@@ -800,7 +800,8 @@ LOCAL bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *ep, uin
     {
         CAHistoryItem_t *item = &(history->items[i]);
         if (id == item->messageId && tokenLength == item->tokenLength
-            && ep->ifindex == item->ifindex && memcmp(item->token, token, tokenLength) == 0)
+            /* && ep->ifindex == item->ifindex */
+            && memcmp(item->token, token, tokenLength) == 0)
         {
             OIC_LOG_V(INFO, TAG, "IPv%c duplicate message ignored",
                       familyFlags & CA_IPV6 ? '6' : '4');
@@ -811,7 +812,7 @@ LOCAL bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *ep, uin
 
     history->items[history->nextIndex].flags = familyFlags;
     history->items[history->nextIndex].messageId = id;
-    history->items[history->nextIndex].ifindex = ep->ifindex;
+    /* history->items[history->nextIndex].ifindex = ep->ifindex; */
     if (token && tokenLength)
     {
         memcpy(history->items[history->nextIndex].token, token, tokenLength);

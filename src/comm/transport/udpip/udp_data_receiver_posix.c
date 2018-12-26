@@ -170,7 +170,7 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
 
     if (flags & CA_IPV6)
     {
-        sep.endpoint.ifindex = ((struct in6_pktinfo *)pktinfo)->ipi6_ifindex;
+        // sep.endpoint.ifindex = ((struct in6_pktinfo *)pktinfo)->ipi6_ifindex;
 
         if (flags & CA_MULTICAST)
         {
@@ -184,7 +184,7 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
     }
     else
     {
-        sep.endpoint.ifindex = ((struct in_pktinfo *)pktinfo)->ipi_ifindex;
+        /* sep.endpoint.ifindex = ((struct in_pktinfo *)pktinfo)->ipi_ifindex; */
 
         if (flags & CA_MULTICAST)
         {
@@ -225,71 +225,19 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
     return CA_STATUS_OK;
 }
 
-void CAIPStopServer(void)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+/* void CAWakeUpForChange(void) */
+/* { */
+/*     if (udp_shutdownFds[1] != -1) */
+/*     { */
+/*         ssize_t len = 0; */
+/*         do */
+/*         { */
+/*             len = write(udp_shutdownFds[1], "w", 1); */
+/*         } while ((len == -1) && (errno == EINTR)); */
+/*         if ((len == -1) && (errno != EINTR) && (errno != EPIPE)) */
+/*         { */
+/*             OIC_LOG_V(DEBUG, TAG, "write failed: %s", strerror(errno)); */
+/*         } */
+/*     } */
+/* } */
 
-    udp_is_terminating = true;
-
-    if (udp_shutdownFds[1] != -1)
-    {
-	OIC_LOG_V(DEBUG, TAG, "%s closing shutdown fd", __func__);
-        close(udp_shutdownFds[1]);
-        udp_shutdownFds[1] = -1;
-        // receive thread will stop immediately
-    }
-    else
-    {
-        // receive thread will stop in SELECT_TIMEOUT seconds.
-	OIC_LOG_V(DEBUG, TAG, "%s shutdownFds[1]", __func__);
-    }
-
-    if (!udp_is_started)
-    { // Close fd's since receive handler was not started
-	udp_cleanup();  // @rewrite @was CACloseFDs();
-    }
-    udp_is_started = false;
-}
-
-void CAWakeUpForChange(void)
-{
-    if (udp_shutdownFds[1] != -1)
-    {
-        ssize_t len = 0;
-        do
-        {
-            len = write(udp_shutdownFds[1], "w", 1);
-        } while ((len == -1) && (errno == EINTR));
-        if ((len == -1) && (errno != EINTR) && (errno != EPIPE))
-        {
-            OIC_LOG_V(DEBUG, TAG, "write failed: %s", strerror(errno));
-        }
-    }
-}
-
-CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
-EXPORT
-{
-    if (!zoneId || (*zoneId != NULL))
-    {
-        return CA_STATUS_INVALID_PARAM;
-    }
-
-    *zoneId = (char *)OICCalloc(IF_NAMESIZE, sizeof(char));
-    if (!(*zoneId))
-    {
-        OIC_LOG(ERROR, TAG, "OICCalloc failed in CAGetLinkLocalZoneIdInternal");
-        return CA_MEMORY_ALLOC_FAILED;
-    }
-
-    if (!if_indextoname(ifindex, *zoneId))
-    {
-        OIC_LOG(ERROR, TAG, "if_indextoname failed in CAGetLinkLocalZoneIdInternal");
-        OICFree(*zoneId);
-        *zoneId = NULL;
-        return CA_STATUS_FAILED;
-    }
-
-    OIC_LOG_V(DEBUG, TAG, "Given ifindex is %d parsed zoneId is %s", ifindex, *zoneId);
-    return CA_STATUS_OK;
-}
