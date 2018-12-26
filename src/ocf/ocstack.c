@@ -758,7 +758,8 @@ LOCAL CATransportFlags_t OCToCATransportFlags(OCTransportFlags ocFlags)
     // supply default behavior.
     if ((caFlags & (CA_IPV6|CA_IPV4)) == 0)
     {
-        caFlags = (CATransportFlags_t)(caFlags|CA_IPV6|CA_IPV4);
+        // FIXME: An endpoint can only have one address, so only one address family. Default is ipv6
+        caFlags |= CA_IPV6; // (CATransportFlags_t)(caFlags|CA_IPV6); // |CA_IPV4
     }
     if ((caFlags & OC_MASK_SCOPE) == 0)
     {
