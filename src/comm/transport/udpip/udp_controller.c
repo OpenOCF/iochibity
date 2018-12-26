@@ -363,12 +363,6 @@ void CATerminateIP()
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
-#include <stdint.h>
-CAResult_t CAGetLinkLocalZoneId(uint32_t ifindex, char **zoneId)
-{
-    return CAGetLinkLocalZoneIdInternal(ifindex, zoneId);
-}
-
 void CAIPErrorHandler(const CAEndpoint_t *endpoint, const void *data,
                       size_t dataLength, CAResult_t result)
 {
