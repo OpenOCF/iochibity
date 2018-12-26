@@ -1522,8 +1522,8 @@ exit:
 OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
                                            OCDiscoveryPayload *payload,
                                            OCDevAddr *devAddr,
-                                           CAEndpoint_t *networkInfo,
-                                           size_t infoSize)
+                                           CAEndpoint_t *local_eps,
+                                           size_t local_eps_count)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (!resourcePtr || !payload)
@@ -1544,10 +1544,10 @@ OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
     GetTCPPortInfo(devAddr, &tcpPort, (resourcePtr->resourceProperties & OC_SECURE));
 
     OCDiscoveryPayloadAddResourceWithEps(payload, resourcePtr, securePort,
-                                         networkInfo, infoSize, devAddr, tcpPort);
+                                         local_eps, local_eps_count, devAddr, tcpPort);
 #else
     OCDiscoveryPayloadAddResourceWithEps(payload, resourcePtr, securePort,
-                                         networkInfo, infoSize, devAddr);
+                                         local_eps, local_eps_count, devAddr);
 #endif
 
     return OC_STACK_OK;
@@ -1874,9 +1874,11 @@ static bool includeThisResourceInResponse(OCResource *resource,
 }
 
 static OCStackResult SendNonPersistantDiscoveryResponse(OCServerRequest *request,
-                                OCPayload *discoveryPayload, OCEntityHandlerResult ehResult)
+                                                        OCPayload *discoveryPayload,
+                                                        OCEntityHandlerResult ehResult)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(INFO, TAG, "Payload: %p", discoveryPayload);
     OCEntityHandlerResponse *response = NULL;
     OCStackResult result = OC_STACK_ERROR;
 
