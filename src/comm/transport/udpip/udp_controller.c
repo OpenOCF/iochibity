@@ -380,3 +380,29 @@ void CAIPErrorHandler(const CAEndpoint_t *endpoint, const void *data,
         udp_errorCB(endpoint, data, dataLength, result);
     }
 }
+
+void CAIPStopServer(void)
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
+    udp_is_terminating = true;
+
+    if (udp_shutdownFds[1] != -1)
+    {
+	OIC_LOG_V(DEBUG, TAG, "%s closing shutdown fd", __func__);
+        close(udp_shutdownFds[1]);
+        udp_shutdownFds[1] = -1;
+        // receive thread will stop immediately
+    }
+    else
+    {
+        // receive thread will stop in SELECT_TIMEOUT seconds.
+	OIC_LOG_V(DEBUG, TAG, "%s shutdownFds[1]", __func__);
+    }
+
+    if (!udp_is_started)
+    { // Close fd's since receive handler was not started
+	udp_cleanup();  // @rewrite @was CACloseFDs();
+    }
+    udp_is_started = false;
+}
