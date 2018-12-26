@@ -604,15 +604,22 @@ OCStackResult OC_CALL OCDoResource(OCDoHandle *handle,
  * @return ::OC_STACK_OK on success, some other value upon failure.
  * src: ocstack.c
  */
-OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *requestInfo)
+OCStackResult OCSendRequest(const CAEndpoint_t *dest_ep, CARequestInfo_t *requestInfo)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    VERIFY_NON_NULL(object, FATAL, OC_STACK_INVALID_PARAM);
+    VERIFY_NON_NULL(dest_ep, FATAL, OC_STACK_INVALID_PARAM);
     VERIFY_NON_NULL(requestInfo, FATAL, OC_STACK_INVALID_PARAM);
     OIC_TRACE_BEGIN(%s:OCSendRequest, TAG);
 
+    OIC_LOG_V(DEBUG, TAG,
+              "%s sending %s %s %s %s", __func__,
+              (dest_ep->flags & CA_IPV6) ? "IPV6" : "",
+              (dest_ep->flags & CA_IPV4) ? "IPV4" : "",
+              (dest_ep->flags & CA_SECURE) ? "secure " : "insecure ",
+              (dest_ep->flags & CA_MULTICAST) ? "multicast" : "unicast");
+
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
-    OCStackResult rmResult = RMAddInfo(object->routeData, requestInfo, true, NULL);
+    OCStackResult rmResult = RMAddInfo(dest_ep->routeData, requestInfo, true, NULL);
     if (OC_STACK_OK != rmResult)
     {
         OIC_LOG(ERROR, TAG, "Add destination option failed");
@@ -668,7 +675,7 @@ OCStackResult OCSendRequest(const CAEndpoint_t *object, CARequestInfo_t *request
     }
     requestInfo->info.acceptVersion = acceptVersion;
 
-    CAResult_t result = CASendRequest(object, requestInfo);
+    CAResult_t result = CASendRequest(dest_ep, requestInfo);
     if (CA_STATUS_OK != result)
     {
 	/* 13 = uninitialized */

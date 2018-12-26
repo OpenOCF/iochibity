@@ -1152,10 +1152,11 @@ exit:
     return NULL;
 }
 
-CAResult_t CADetachSendMessage(const CAEndpoint_t *endpoint, const void *sendMsg,
+CAResult_t CADetachSendMessage(const CAEndpoint_t *dest_ep, const void *sendMsg,
                                CADataType_t dataType)
 {
-    VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    VERIFY_NON_NULL_MSG(dest_ep, TAG, "dest_ep");
     VERIFY_NON_NULL_MSG(sendMsg, TAG, "sendMsg");
 
     // we always have at least one transport available!
@@ -1166,15 +1167,15 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *endpoint, const void *sendMsg
 
     CAData_t *data = NULL;
 #ifdef TCP_ADAPTER
-    if (CA_ADAPTER_TCP == endpoint->adapter)
+    if (CA_ADAPTER_TCP == dest_ep->adapter)
     {
         // #1. Try to find session info from tcp_adapter.
-        CACSMExchangeState_t CSMstate = CAGetCSMState(endpoint);
+        CACSMExchangeState_t CSMstate = CAGetCSMState(dest_ep);
         if (CSMstate != SENT && CSMstate != SENT_RECEIVED)
         {
             // #2. Generate CSM message
             OIC_LOG_V(DEBUG, TAG, "Generate CSM message for [%s:%d]",
-                      endpoint->addr, endpoint->port);
+                      dest_ep->addr, dest_ep->port);
 
             // TODO: We need to decide what options needs to be sent Initially?
             //       Right now we're sending CA_OPTION_MAX_MESSAGE_SIZE as 1152,
@@ -1187,7 +1188,7 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *endpoint, const void *sendMsg
             CAAddHeaderOption(&csmOpts, &numOptions, CA_OPTION_MAX_MESSAGE_SIZE,
                               optionData, optionDataLength);
 
-            data = CAGenerateSignalingMessage(endpoint, CA_CSM, csmOpts, numOptions);
+            data = CAGenerateSignalingMessage(dest_ep, CA_CSM, csmOpts, numOptions);
             if (!data)
             {
                 OIC_LOG(ERROR, TAG, "GenerateSignalingMessage failed");
@@ -1201,14 +1202,14 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *endpoint, const void *sendMsg
     }
 #endif
 
-    data = CAPrepareSendData(endpoint, sendMsg, dataType);
+    data = CAPrepareSendData(dest_ep, sendMsg, dataType);
     if(!data)
     {
         OIC_LOG(ERROR, TAG, "CAPrepareSendData failed");
         return CA_MEMORY_ALLOC_FAILED;
     }
 
-    OIC_LOG_V(DEBUG, TAG, "device ID of endpoint of this message is: \"%s\"", endpoint->remoteId);
+    OIC_LOG_V(DEBUG, TAG, "device ID of dest_ep of this message is: \"%s\"", dest_ep->remoteId);
 
 #if defined(TCP_ADAPTER) && defined(WITH_CLOUD)
     CAResult_t ret = CACMGetMessageData(data);
@@ -1226,7 +1227,7 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *endpoint, const void *sendMsg
         return CA_STATUS_OK;
     }
 #ifdef WITH_BWT
-    if (CAIsSupportedBlockwiseTransfer(endpoint->adapter))
+    if (CAIsSupportedBlockwiseTransfer(dest_ep->adapter))
     {
         // send block data
         CAResult_t res = CASendBlockWiseData(data);

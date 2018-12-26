@@ -312,7 +312,7 @@ CAResult_t CAGetNetworkInformation(CAEndpoint_t **info, size_t *size)
     // return CAGetNetworkInformationInternal(info, size);
 }
 
-static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *object, const void *sendMsg,
+static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *dest_ep, const void *sendMsg,
                                             CADataType_t dataType)
 {
     OIC_LOG(DEBUG, TAG, "CASendMessageMultipleAdapter");
@@ -336,7 +336,7 @@ static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *object, const vo
 #endif
         };
 
-    CAEndpoint_t *cloneEp = CACloneEndpoint(object);
+    CAEndpoint_t *cloneEp = CACloneEndpoint(dest_ep);
     if (!cloneEp)
     {
         OIC_LOG(ERROR, TAG, "Failed to clone CAEndpoint");
@@ -355,7 +355,7 @@ static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *object, const vo
     return ret;
 }
 
-CAResult_t CASendRequest(const CAEndpoint_t *object, const CARequestInfo_t *requestInfo)
+CAResult_t CASendRequest(const CAEndpoint_t *dest_ep, const CARequestInfo_t *requestInfo)
 {
     OIC_LOG(DEBUG, TAG, "CASendRequest");
 
@@ -365,17 +365,17 @@ CAResult_t CASendRequest(const CAEndpoint_t *object, const CARequestInfo_t *requ
     }
 
     if (requestInfo && requestInfo->isMulticast &&
-            (object->adapter == CA_DEFAULT_ADAPTER || object->adapter == CA_ALL_ADAPTERS))
+            (dest_ep->adapter == CA_DEFAULT_ADAPTER || dest_ep->adapter == CA_ALL_ADAPTERS))
     {
-        return CASendMessageMultiAdapter(object, requestInfo, CA_REQUEST_DATA);
+        return CASendMessageMultiAdapter(dest_ep, requestInfo, CA_REQUEST_DATA);
     }
     else
     {
-        return CADetachSendMessage(object, requestInfo, CA_REQUEST_DATA);
+        return CADetachSendMessage(dest_ep, requestInfo, CA_REQUEST_DATA);
     }
 }
 
-CAResult_t CASendResponse(const CAEndpoint_t *object, const CAResponseInfo_t *responseInfo)
+CAResult_t CASendResponse(const CAEndpoint_t *dest_ep, const CAResponseInfo_t *responseInfo)
 {
     OIC_LOG(DEBUG, TAG, "CASendResponse");
 
@@ -384,19 +384,19 @@ CAResult_t CASendResponse(const CAEndpoint_t *object, const CAResponseInfo_t *re
         return CA_STATUS_NOT_INITIALIZED;
     }
 
-    if (!responseInfo || !object)
+    if (!responseInfo || !dest_ep)
     {
         return CA_STATUS_INVALID_PARAM;
     }
 
     if (responseInfo->isMulticast &&
-            (object->adapter == CA_DEFAULT_ADAPTER || object->adapter == CA_ALL_ADAPTERS))
+            (dest_ep->adapter == CA_DEFAULT_ADAPTER || dest_ep->adapter == CA_ALL_ADAPTERS))
     {
-        return CASendMessageMultiAdapter(object, responseInfo, responseInfo->info.dataType);
+        return CASendMessageMultiAdapter(dest_ep, responseInfo, responseInfo->info.dataType);
     }
     else
     {
-        return CADetachSendMessage(object, responseInfo, responseInfo->info.dataType);
+        return CADetachSendMessage(dest_ep, responseInfo, responseInfo->info.dataType);
     }
 }
 

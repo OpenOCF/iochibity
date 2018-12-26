@@ -48,15 +48,15 @@ EXPORT
         /* } */
 	// FIXME: short-circuit to CAAdapterErrorHandleCallback
 	//CAIPErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
-	CAErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
+        OIC_LOG_V(ERROR, TAG, "sendto failed: %s", strerror(errno));
 
-        OIC_LOG_V(ERROR, TAG, "%s%s %s sendTo failed: %s", secure, cast, fam, strerror(errno));
+	CAErrorHandler(endpoint, data, dlen, CA_STATUS_INVALID_PARAM);
         CALogSendStateInfo(endpoint->adapter, endpoint->addr, endpoint->port,
                            len, false, strerror(errno));
     }
     else
     {
-        OIC_LOG_V(INFO, TAG, "%s%s %s sendTo is successful: %zd bytes", secure, cast, fam, len);
+        OIC_LOG_V(INFO, TAG, "sendto successful: %zd bytes", len);
         CALogSendStateInfo(endpoint->adapter, endpoint->addr, endpoint->port,
                            len, true, NULL);
     }

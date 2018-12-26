@@ -2086,8 +2086,8 @@ void OC_CALL OCResourcePayloadAddNewEndpoint(OCResourcePayload* payload, OCEndpo
  *
  * @param[in] resource the resource
  * @param[in] devAddr devAddr Structure pointing to the address.
- * @param[in] networkInfo array of CAEndpoint_t
- * @param[in] infoSize size of array
+ * @param[in] local_eps array of CAEndpoint_t
+ * @param[in] local_eps_count size of array
  * @param[out] listHead pointer to HeadNode pointer
  * @param[out] epSize size of array(set NULL not to use it)
  * @param[out] selfEp endpoint that matches devAddr for use in anchor(set NULL not to use it)
@@ -2096,8 +2096,8 @@ void OC_CALL OCResourcePayloadAddNewEndpoint(OCResourcePayload* payload, OCEndpo
  */
 OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
 					     const OCDevAddr *devAddr,
-					     CAEndpoint_t *networkInfo,
-					     size_t infoSize,
+					     CAEndpoint_t *local_eps,
+					     size_t local_eps_count,
 					     OCEndpointPayload **listHead,
 					     size_t* epSize,
 					     OCEndpointPayload** selfEp)
@@ -2108,7 +2108,7 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
 
     VERIFY_PARAM_NON_NULL(TAG, resource, "Invalid resource parameter");
     VERIFY_PARAM_NON_NULL(TAG, devAddr, "Invalid devAddr parameter");
-    VERIFY_PARAM_NON_NULL(TAG, networkInfo, "Invalid networkInfo parameter");
+    VERIFY_PARAM_NON_NULL(TAG, local_eps, "Invalid local_eps parameter");
     VERIFY_PARAM_NON_NULL(TAG, listHead, "Invalid listHead parameter");
     if (epSize != NULL) *epSize = 0;
 
@@ -2117,15 +2117,15 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
 
     if ((OC_ADAPTER_IP | OC_ADAPTER_TCP) & (devAddr->adapter))
     {
-        for (size_t i = 0; i < infoSize; i++)
+        for (size_t i = 0; i < local_eps_count; i++)
         {
 	    OIC_LOG_V(DEBUG, TAG, "%s endpoint %d", __func__, i);
 
 	    // FIXME: use indexing?
-            CAEndpoint_t *info = networkInfo + i;
+            CAEndpoint_t *info = local_eps + i;
 	    OIC_LOG_V(DEBUG, TAG, "%s adapter: 0x%X", __func__, info->adapter);
 	    OIC_LOG_V(DEBUG, TAG, "%s addr: %s", __func__, info->addr);
-	    OIC_LOG_V(DEBUG, TAG, "%s ifindex %d", __func__, info->ifindex);
+	    /* OIC_LOG_V(DEBUG, TAG, "%s ifindex %d", __func__, info->ifindex); */
 	    OIC_LOG_V(DEBUG, TAG, "%s dev index %d", __func__, devAddr->ifindex);
 
             if ((CA_ADAPTER_IP | CA_ADAPTER_TCP) & info->adapter)
@@ -2212,7 +2212,7 @@ exit:
 }
 
 static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t securePort,
-                                         CAEndpoint_t *networkInfo, size_t infoSize,
+                                         CAEndpoint_t *local_eps, size_t local_eps_count,
                                          const OCDevAddr *devAddr
 #ifndef TCP_ADAPTER
                                                                                     )
@@ -2228,9 +2228,9 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
     }
 
     OCEndpointPayload *selfEp = NULL;
-    if (networkInfo && infoSize && devAddr)
+    if (local_eps && local_eps_count && devAddr)
     {
-        CreateEndpointPayloadList(res, devAddr, networkInfo, infoSize,
+        CreateEndpointPayloadList(res, devAddr, local_eps, local_eps_count,
                                       &(pl->eps), NULL, &selfEp);
     }
 
@@ -2377,28 +2377,28 @@ void OC_CALL OCDiscoveryPayloadAddResource(OCDiscoveryPayload* payload, const OC
  * @param payload       Pointer to discovery payload.
  * @param res           Pointer to OCresource structure.
  * @param securePort    Secure port number.
- * @param networkInfo   List of CAEndpoint_t.
- * @param infoSize      Size of CAEndpoint_t list.
+ * @param local_eps   List of CAEndpoint_t.
+ * @param local_eps_count      Size of CAEndpoint_t list.
  * @param devAddr       Pointer to OCDevAddr structure.
  */
 #ifndef TCP_ADAPTER
 void OCDiscoveryPayloadAddResourceWithEps(OCDiscoveryPayload* payload, const OCResource* res,
-                                                  uint16_t securePort, void *networkInfo, size_t infoSize,
-                                                  const OCDevAddr *devAddr)
+                                          uint16_t securePort, void *local_eps, size_t local_eps_count,
+                                          const OCDevAddr *devAddr)
 {
     OCDiscoveryPayloadAddNewResource(payload,
-                                     OCCopyResource(res, securePort, (CAEndpoint_t *)networkInfo,
-                                                    infoSize, devAddr));
+                                     OCCopyResource(res, securePort, (CAEndpoint_t *)local_eps,
+                                                    local_eps_count, devAddr));
 }
 #else
 void OCDiscoveryPayloadAddResourceWithEps(OCDiscoveryPayload* payload, const OCResource* res,
-                                                  uint16_t securePort, void *networkInfo, size_t infoSize,
+                                                  uint16_t securePort, void *local_eps, size_t local_eps_count,
                                                   const OCDevAddr *devAddr, uint16_t tcpPort)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OCDiscoveryPayloadAddNewResource(payload,
-                                     OCCopyResource(res, securePort, (CAEndpoint_t *)networkInfo,
-                                                    infoSize, devAddr, tcpPort));
+                                     OCCopyResource(res, securePort, (CAEndpoint_t *)local_eps,
+                                                    local_eps_count, devAddr, tcpPort));
 }
 #endif
 
