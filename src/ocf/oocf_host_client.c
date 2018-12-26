@@ -2,32 +2,6 @@
 
 #include <errno.h>
 
-/**
- * Request Information to be sent.
- *
- * This structure is used to hold outbound request information.
- */
-#if INTERFACE
-typedef struct
-{
-    CAMethod_t method;  /**< Name of the Method Allowed */
-    CAInfo_t info;      /**< Unpacked CoAP msg. */
-    bool isMulticast;   /**< is multicast request */
-} CARequestInfo_t;
-
-/**
- * Response information received.
- *
- * This structure is used to hold inbound response information.
- */
-typedef struct
-{
-    CAResponseResult_t result;  /**< Result for response by resource model */
-    CAInfo_t info;              /**< CoAP msg, unpacked */
-    bool isMulticast;
-} CAResponseInfo_t;
-#endif
-
 OCStackResult OC_CALL oocf_send_request(OCDoHandle *handle,
 					OCMethod method,
 					const char *requestUri,
