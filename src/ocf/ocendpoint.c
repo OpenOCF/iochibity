@@ -21,7 +21,9 @@
 #include "ocendpoint.h"
 
 #include <errno.h>
+#include <net/if.h>
 #include <string.h>
+
 
 #define TAG  "OIC_RI_ENDPOINT"
 
