@@ -196,10 +196,15 @@ void CARegisterForNIFChanges(void)
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
     udp_netlinkFd = OC_INVALID_SOCKET;
     // create NETLINK fd for interface change notifications
-    struct sockaddr_nl sa = { AF_NETLINK, 0, 0,
-                              RTMGRP_LINK /* nw interface create/delete/up/down events */
+    struct sockaddr_nl sa = { .nl_family = AF_NETLINK,
+                              .nl_pad = 0,
+                              .nl_pid = 0,
+                              .nl_groups = RTMGRP_LINK /* link layer nif create/remove */
 			      | RTMGRP_IPV4_IFADDR /* ipv4 address add/delete */
+                              | RTMGRP_IPV4_MROUTE /* ipv4 routing table updates */
 			      | RTMGRP_IPV6_IFADDR /* ipv6 address add/delete */
+                              | RTMGRP_IPV6_MROUTE /* ipv6 routing table */
+                              | RTMGRP_NOTIFY
     };
 
     udp_netlinkFd = socket(AF_NETLINK, SOCK_RAW|SOCK_CLOEXEC, NETLINK_ROUTE);
@@ -271,6 +276,7 @@ void CARegisterForNIFChanges(void)
 // u_arraylist_t *
 void udp_nif_change_handler_linux() // @was CAFindInterfaceChange
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     u_arraylist_t *iflist = NULL;
     char buf[4096] = { 0 };
     struct nlmsghdr *nh = NULL;
@@ -370,6 +376,13 @@ void udp_nif_change_handler_linux() // @was CAFindInterfaceChange
 
 	    }
 	}
+
+        if (RTM_NEWROUTE == nh->nlmsg_type) {
+            OIC_LOG_V(DEBUG, TAG, "Rtnetlink event type RTM_NEWROUTE");
+        }
+        if (RTM_DELROUTE == nh->nlmsg_type) {
+		OIC_LOG_V(DEBUG, TAG, "Rtnetlink event type RTM_DELROUTE");
+        }
     }
     return; // iflist;
 }
