@@ -645,7 +645,7 @@ OCVirtualResources GetTypeOfVirtualURI(const char *uriInRequest)
 #endif //MQ_BROKER
 
 #ifdef TCP_ADAPTER
-    else if (strcmp(uriInRequest, OC_RSRVD_KEEPALIVE_URI) == 0)
+    else if (strcmp(uriInRequest, OC_RSRVD_KEEPALIVE_URI) == 0) /* /oic/ping */
     {
         return OC_KEEPALIVE_RESOURCE_URI;
     }
@@ -782,7 +782,7 @@ static OCStackResult BuildDevicePlatformPayload(const OCResource *resourcePtr, O
 }
 
 OCStackResult BuildResponseRepresentation(const OCResource *resourcePtr,
-                    OCRepPayload** payload, OCDevAddr *devAddr) EXPORT
+                                          OCRepPayload** payload, OCDevAddr *devAddr) EXPORT
 {
     OCRepPayload *tempPayload = OCRepPayloadCreate();
 
@@ -1942,6 +1942,7 @@ static OCStackResult findResourcesAtRD(const char *interfaceQuery,
  */
 static OCStackResult discoveryPayloadCreateAndAddDeviceId(OCPayload **payload)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (*payload)
     {
         OIC_LOG(DEBUG, TAG, "Payload is already allocated");
@@ -1963,8 +1964,10 @@ static OCStackResult discoveryPayloadCreateAndAddDeviceId(OCPayload **payload)
         }
 
     }
+    OIC_LOG_V(INFO, TAG, "%s EXIT OK", __func__);
     return OC_STACK_OK;
 exit:
+    OIC_LOG_V(INFO, TAG, "%s EXIT NOMEM", __func__);
     OCPayloadDestroy(*payload);
     return OC_STACK_NO_MEMORY;
 }
@@ -1979,6 +1982,7 @@ exit:
  */
 static OCStackResult addDiscoveryBaselineCommonProperties(OCDiscoveryPayload *discPayload)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (!discPayload)
     {
         OIC_LOG(ERROR, TAG, "Payload is not allocated");
@@ -1996,9 +2000,11 @@ static OCStackResult addDiscoveryBaselineCommonProperties(OCDiscoveryPayload *di
     OCResourcePayloadAddStringLL(&discPayload->iface, OC_RSRVD_INTERFACE_DEFAULT);
     VERIFY_PARAM_NON_NULL(TAG, discPayload->iface, "Failed adding if to discovery payload.");
 
+    OIC_LOG_V(INFO, TAG, "%s EXIT OK", __func__);
     return OC_STACK_OK;
 
 exit:
+    OIC_LOG_V(INFO, TAG, "%s EXIT NOMEM", __func__);
     return OC_STACK_NO_MEMORY;
 }
 
@@ -2266,6 +2272,7 @@ OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resou
     char *resourceTypeQuery = NULL;
 
     OCVirtualResources virtualUriInRequest = GetTypeOfVirtualURI (request->resourceUrl);
+    /* requestInfo.info->resourceUri */
 
 #ifdef TCP_ADAPTER
     if (OC_KEEPALIVE_RESOURCE_URI == virtualUriInRequest)
@@ -2277,6 +2284,7 @@ OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resou
 #endif
 
     OCStackResult discoveryResult = OC_STACK_ERROR;
+    /** requestInfo.method (CA_ constants) */
     if (request->method == OC_REST_PUT || request->method == OC_REST_POST ||
         request->method == OC_REST_DELETE)
     {
