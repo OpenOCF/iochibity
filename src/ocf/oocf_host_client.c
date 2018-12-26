@@ -153,14 +153,16 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
         if (destination || devAddr)
         {
             requestInfo.isMulticast = false;
+            endpoint.flags &= ~CA_MULTICAST;
 	    OIC_LOG_V(DEBUG, TAG, "Request is UNICAST");
         }
         else
         {
             tmpDevAddr.adapter = adapter;
-            tmpDevAddr.flags = flags;
+            tmpDevAddr.flags |= CA_MULTICAST;
             destination = &tmpDevAddr;
             requestInfo.isMulticast = true;
+            endpoint.flags |= CA_MULTICAST;
             qos = OC_LOW_QOS;
 	    OIC_LOG_V(DEBUG, TAG, "Request is MULTICAST");
         }
