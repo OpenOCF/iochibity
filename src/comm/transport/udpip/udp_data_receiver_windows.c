@@ -200,7 +200,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage
                                 CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
                                 if (ifitem)
                                 {
-                                    udp_add_if_to_multicast_groups(ifitem); // @was CAProcessNewInterface
+                                    udp_add_nif_to_multicast_groups(ifitem); // @was CAProcessNewInterface
                                 }
                             }
                             u_arraylist_destroy(iflist);
