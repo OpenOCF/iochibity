@@ -134,7 +134,7 @@ typedef enum
  */
 typedef struct
 {
-    CAToken_t token;            /**< Token for CA */
+    uint8_t *token;            /**< Token for CA */
     uint8_t tokenLength;        /**< token length */
     char *resourceUri;        /**< Resource URI information **/
 } CABlockMulticastData_t;
@@ -552,7 +552,7 @@ CAResult_t CAReceiveBlockWiseData(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
         if (CA_REQUEST_ENTITY_INCOMPLETE == code)
         {
             CABlockDataID_t* blockDataID = CACreateBlockDatablockId(
-                                                        (CAToken_t)pdu->transport_hdr->udp.token,
+                                                        (uint8_t*)pdu->transport_hdr->udp.token,
                                                         (uint8_t)pdu->transport_hdr->udp.token_length,
                                                         endpoint->addr, endpoint->port);
             if (NULL == blockDataID || blockDataID->idLength < 1)
@@ -610,7 +610,7 @@ CAResult_t CAReceiveBlockWiseData(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
             // and sent data remain in block data list, remove block data
             if (receivedData->responseInfo)
             {
-                CARemoveBlockDataFromListWithSeed((CAToken_t)pdu->transport_hdr->udp.token,
+                CARemoveBlockDataFromListWithSeed((uint8_t*)pdu->transport_hdr->udp.token,
                                                   (uint8_t)pdu->transport_hdr->udp.token_length,
                                                   endpoint->addr, endpoint->port);
             }
@@ -885,7 +885,7 @@ CAResult_t CASendErrorMessage(const coap_pdu_t *pdu, uint8_t status,
     else
     {
         CAInfo_t responseData = { .tokenLength = (uint8_t)pdu->transport_hdr->udp.token_length };
-        responseData.token = (CAToken_t) OICMalloc(responseData.tokenLength);
+        responseData.token = (uint8_t*) OICMalloc(responseData.tokenLength);
         if (!responseData.token)
         {
             OIC_LOG(ERROR, TAG, "out of memory");
@@ -1004,7 +1004,7 @@ static CABlockData_t* CACheckTheExistOfBlockData(const CABlockDataID_t* blockDat
         {
             assert(blockDataID->idLength <= UINT8_MAX);
             CABlockMulticastData_t *currData = CAGetBlockMulticastDataFromListWithSeed(
-                (CAToken_t) blockDataID->id, (uint8_t) blockDataID->idLength);
+                (uint8_t*) blockDataID->id, (uint8_t) blockDataID->idLength);
             if (currData)
             {
                 cadata->requestInfo->info.resourceUri = OICStrdup(currData->resourceUri);
@@ -1054,7 +1054,7 @@ CAResult_t CASetNextBlockOption1(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
     OIC_LOG_V(INFO, TAG, "num:%d, M:%d, sze:%d", block.num, block.m, block.szx);
 
     CABlockDataID_t* blockDataID = CACreateBlockDatablockId(
-            (CAToken_t)pdu->transport_hdr->udp.token,
+            (uint8_t*)pdu->transport_hdr->udp.token,
             (uint8_t)pdu->transport_hdr->udp.token_length,
             endpoint->addr, endpoint->port);
     if ((NULL == blockDataID) || (blockDataID->idLength < 1) ||
@@ -1200,7 +1200,7 @@ CAResult_t CASetNextBlockOption2(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                 "pdu->transport_hdr->udp.token_length");
 
     CABlockDataID_t* blockDataID = CACreateBlockDatablockId(
-            (CAToken_t)pdu->transport_hdr->udp.token,
+            (uint8_t*)pdu->transport_hdr->udp.token,
             (uint8_t)pdu->transport_hdr->udp.token_length,
             endpoint->addr, endpoint->port);
     if ((NULL == blockDataID) || (blockDataID->idLength < 1) ||
@@ -1834,7 +1834,7 @@ CAData_t* CACreateNewDataSet(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint
     if (CA_GET == code || CA_POST == code || CA_PUT == code || CA_DELETE == code)
     {
         CAInfo_t responseData = { .tokenLength = (uint8_t)pdu->transport_hdr->udp.token_length };
-        responseData.token = (CAToken_t) OICMalloc(responseData.tokenLength);
+        responseData.token = (uint8_t*) OICMalloc(responseData.tokenLength);
         if (!responseData.token)
         {
             OIC_LOG(ERROR, TAG, "out of memory");
@@ -1854,7 +1854,7 @@ CAData_t* CACreateNewDataSet(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint
     else
     {
         CAInfo_t requestData = { .tokenLength = (uint8_t)pdu->transport_hdr->udp.token_length };
-        requestData.token = (CAToken_t) OICMalloc(requestData.tokenLength);
+        requestData.token = (uint8_t*) OICMalloc(requestData.tokenLength);
         if (!requestData.token)
         {
             OIC_LOG(ERROR, TAG, "out of memory");
@@ -2213,7 +2213,7 @@ CAResult_t CACheckBlockDataValidation(const CAData_t *sendData, CABlockData_t **
     if (sendData->responseInfo && sendData->remoteEndpoint)
     {
         CABlockDataID_t* blockDataID = CACreateBlockDatablockId(
-                (CAToken_t)sendData->responseInfo->info.token,
+                (uint8_t*)sendData->responseInfo->info.token,
                 sendData->responseInfo->info.tokenLength,
                 sendData->remoteEndpoint->addr, sendData->remoteEndpoint->port);
         if (NULL == blockDataID || blockDataID->idLength < 1)
@@ -2339,7 +2339,7 @@ CABlockData_t *CACreateNewBlockData(const CAData_t *sendData)
         return NULL;
     }
 
-    CAToken_t token = NULL;
+    uint8_t *token = NULL;
     uint8_t tokenLength = 0;
     if (data->sentData->requestInfo)
     {
@@ -2476,7 +2476,7 @@ void CADestroyDataSet(CAData_t* data)
     OICFree(data);
 }
 
-CABlockDataID_t* CACreateBlockDatablockId(const CAToken_t token, uint8_t tokenLength,
+CABlockDataID_t* CACreateBlockDatablockId(const uint8_t *token, uint8_t tokenLength,
                                           const char* addr, uint16_t portNumber)
 {
     size_t addrLength = strlen(addr);
@@ -2549,7 +2549,7 @@ void CALogBlockInfo(coap_block_t *block)
     OIC_LOG_V(DEBUG, TAG, "block option-szx : %d", block->szx);
 }
 
-CAResult_t CARemoveBlockDataFromListWithSeed(const CAToken_t token, uint8_t tokenLength,
+CAResult_t CARemoveBlockDataFromListWithSeed(const uint8_t *token, uint8_t tokenLength,
                                              const char* addr, uint16_t portNumber)
 {
     CABlockDataID_t* blockDataID = CACreateBlockDatablockId(token, tokenLength, addr, portNumber);
@@ -2589,7 +2589,7 @@ CABlockMulticastData_t *CACreateNewBlockMulticastData(const CAData_t *sendData)
     }
 
     uint8_t tokenLength = sendData->requestInfo->info.tokenLength;
-    CAToken_t token = (char *) OICMalloc(tokenLength * sizeof(char));
+    uint8_t *token = (char *) OICMalloc(tokenLength * sizeof(char));
     if (!token)
     {
         OIC_LOG(ERROR, TAG, "memory alloc has failed");
@@ -2630,7 +2630,7 @@ CABlockMulticastData_t *CACreateNewBlockMulticastData(const CAData_t *sendData)
     return data;
 }
 
-CABlockMulticastData_t *CAGetBlockMulticastDataFromListWithSeed(const CAToken_t token,
+CABlockMulticastData_t *CAGetBlockMulticastDataFromListWithSeed(const uint8_t *token,
         uint8_t tokenLength)
 {
     VERIFY_NON_NULL_RET(token, TAG, "token", NULL);
@@ -2678,7 +2678,7 @@ CAResult_t CARemoveAllBlockMulticastDataFromList(void)
     return CA_STATUS_OK;
 }
 
-CAResult_t CARemoveBlockMulticastDataFromListWithSeed(const CAToken_t token, uint8_t tokenLength)
+CAResult_t CARemoveBlockMulticastDataFromListWithSeed(const uint8_t *token, uint8_t tokenLength)
 {
     oc_mutex_lock(g_context.multicastDataListMutex);
 

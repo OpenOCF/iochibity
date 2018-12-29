@@ -203,7 +203,7 @@ CAData_t *CAGenerateSignalingMessage(const CAEndpoint_t *endpoint, CASignalingCo
     OIC_LOG(DEBUG, TAG, "GenerateSignalingMessage - IN");
 
     // create token for signaling message.
-    CAToken_t token = NULL;
+    uint8_t *token = NULL;
     uint8_t tokenLength = CA_MAX_TOKEN_LEN;
     if (CA_STATUS_OK != CAGenerateTokenInternal(&token, tokenLength))
     {
@@ -225,12 +225,12 @@ CAData_t *CAGenerateSignalingMessage(const CAEndpoint_t *endpoint, CASignalingCo
 
 CAData_t *CAGenerateSignalingMessageUsingToken(const CAEndpoint_t *endpoint, CASignalingCode_t code,
                                                CAHeaderOption_t *headerOpt, uint8_t numOptions,
-                                               const CAToken_t pingToken, uint8_t pingTokenLength)
+                                               const uint8_t *pingToken, uint8_t pingTokenLength)
 {
     OIC_LOG(DEBUG, TAG, "GenerateSignalingMessage - IN");
 
     // create token for signaling message.
-    CAToken_t token = (char *)OICCalloc(pingTokenLength, sizeof(char));
+    uint8_t *token = (char *)OICCalloc(pingTokenLength, sizeof(char));
     memcpy(token, pingToken, pingTokenLength);
 
     CAInfo_t signalingData = { .type = CA_MSG_NONCONFIRM,

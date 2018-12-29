@@ -462,7 +462,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
 
     char rspToken[CA_MAX_TOKEN_LEN + 1] = {0};
     responseInfo.info.messageId = serverRequest->coapID;
-    responseInfo.info.token = (CAToken_t)rspToken;
+    responseInfo.info.token = (uint8_t*)rspToken;
 
     memcpy(responseInfo.info.token, serverRequest->requestToken, serverRequest->tokenLength);
     responseInfo.info.tokenLength = serverRequest->tokenLength;

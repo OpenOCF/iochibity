@@ -62,7 +62,7 @@ typedef struct PingInfo_t
 {
     CAEndpoint_t        endpoint;       // remote endpoint that was pinged
     bool                withCustody;    // true if ping was sent with custody option
-    CAToken_t           token;          // token used in the ping message
+    uint8_t *          token;          // token used in the ping message
     uint8_t             tokenLength;    // length of the token
     uint64_t            timeStamp;      // time stamp at which the ping was sent
     CAPongCallbackData  cbData;         // Callback data associated with this ping/pong exchange
@@ -202,7 +202,7 @@ CAResult_t CASendPingMessage(const CAEndpoint_t *endpoint, bool withCustody, CAP
 }
 
 CAResult_t CASendPongMessage(const CAEndpoint_t *endpoint, bool withCustody,
-                             const CAToken_t token, uint8_t tokenLength)
+                             const uint8_t *token, uint8_t tokenLength)
 {
     (void) withCustody;
     OIC_LOG(DEBUG, TAG, "CASendPongMessage IN");
@@ -268,7 +268,7 @@ void CAProcessPing()
     oc_mutex_unlock(g_pingInfoListMutex);
 }
 
-void CAPongReceivedCallback(const CAEndpoint_t *endpoint, const CAToken_t token, uint8_t tokenLength)
+void CAPongReceivedCallback(const CAEndpoint_t *endpoint, const uint8_t *token, uint8_t tokenLength)
 {
     OIC_LOG(DEBUG, TAG, "CAPongReceivedCallback IN");
 

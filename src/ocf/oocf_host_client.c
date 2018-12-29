@@ -86,7 +86,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
 
     OCStackResult result = OC_STACK_ERROR;
     CAResult_t caResult;
-    CAToken_t token = NULL;
+    uint8_t *token = NULL;
     uint8_t tokenLength = CA_MAX_TOKEN_LEN;
     ClientCB *clientCB = NULL;
     OCDoHandle resHandle = NULL;
@@ -768,7 +768,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
 
                 CAInfo_t requestData = {.type = cbNode->type};
                 requestData.tokenLength = cbNode->tokenLength;
-                requestData.token = (CAToken_t) OICMalloc(requestData.tokenLength);
+                requestData.token = (uint8_t*) OICMalloc(requestData.tokenLength);
                 if (!requestData.token)
                 {
                     OIC_LOG(ERROR, TAG, "Out of memory");

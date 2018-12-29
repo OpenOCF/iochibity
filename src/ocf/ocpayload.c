@@ -1734,7 +1734,7 @@ OCStringLL* OC_CALL CloneOCStringLL (OCStringLL* ll)
 
 OCStringLL* OC_CALL OCCreateOCStringLL(const char* text)
 {
-    char *token = NULL;
+    uint8_t *token = NULL;
     char *head = NULL;
     char *tail = NULL;
     char *backup  = NULL;

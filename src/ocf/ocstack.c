@@ -492,7 +492,7 @@ void FixUpClientResponse(OCClientResponse *cr)
  *     ::OCStackResult
  */
 /* => oocf_server.c */
-OCStackResult OCStackFeedBack(CAToken_t token, uint8_t tokenLength, uint8_t status)
+OCStackResult OCStackFeedBack(uint8_t *token, uint8_t tokenLength, uint8_t status)
 {
     OCStackResult result = OC_STACK_ERROR;
     OCEntityHandlerRequest ehRequest = {0};

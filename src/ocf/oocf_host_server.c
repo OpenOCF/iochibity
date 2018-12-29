@@ -163,7 +163,7 @@ typedef struct OCServerRequest  /* FIXME: essentially same as OCServerProtocolRe
     uint32_t requestId;
 
     /** Token for the request.*/
-    CAToken_t requestToken;
+    char *requestToken;
 
     /** token length the request.*/
     uint8_t tokenLength;
@@ -963,7 +963,7 @@ OCStackResult FormOCEntityHandlerRequest(OCEntityHandlerRequest * entityHandlerR
 OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16_t coapID,
         const CAResponseResult_t responseResult, const CAMessageType_t type,
         const uint8_t numOptions, const CAHeaderOption_t *options,
-        CAToken_t token, uint8_t tokenLength, const char *resourceUri,
+        uint8_t *token, uint8_t tokenLength, const char *resourceUri,
         CADataType_t dataType)
 {
     OIC_LOG(DEBUG, TAG, "Entering SendDirectStackResponse");

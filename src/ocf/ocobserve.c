@@ -133,7 +133,7 @@ typedef struct ResourceObserver
     char *query;
 
     /** token for the observe request.*/
-    CAToken_t token;
+    uint8_t *token;
 
     /** token length for the observe request.*/
     uint8_t tokenLength;
@@ -265,7 +265,7 @@ OCStackResult SendObserveNotification(ResourceObserver *observer,
     request->info.acceptFormat = observer->acceptFormat;
     request->info.acceptVersion = observer->acceptVersion;
     if (observer->tokenLength) {
-        request->info.token = (CAToken_t)OICMalloc(observer->tokenLength);
+        request->info.token = (uint8_t*)OICMalloc(observer->tokenLength);
         VERIFY_NON_NULL_1(request->info.token);
         memcpy(request->info.token, observer->token, observer->tokenLength);
     }
@@ -290,7 +290,7 @@ OCStackResult SendObserveNotification(ResourceObserver *observer,
 /*                                 OCHeaderOption * rcvdVendorSpecificHeaderOptions, */
 /*                                 OCPayloadFormat payloadFormat, */
 /*                                 uint8_t * payload, */
-/*                                 CAToken_t requestToken, */
+/*                                 uint8_t *requestToken, */
 /*                                 uint8_t tokenLength, */
 /*                                 char * resourceUrl, */
 /*                                 size_t payloadSize, */
@@ -466,7 +466,7 @@ OCStackResult SendListObserverNotification (OCResource * resource,
             request->info.acceptFormat = observer->acceptFormat;
             request->info.acceptVersion = observer->acceptVersion;
             if (observer->tokenLength) {
-                request->info.token = (CAToken_t)OICMalloc(observer->tokenLength);
+                request->info.token = (uint8_t*)OICMalloc(observer->tokenLength);
                 // VERIFY_NON_NULL_1(request->info.token);
                 if ( request->info.token == NULL ) {
                     OICFree(request);
@@ -569,11 +569,10 @@ exit:
 
 OCStackResult AddObserver (const char         *resUri,
                            const char         *query,
-                           OCObservationId    obsId,
-                           CAToken_t          token,
-                           uint8_t            tokenLength,
+                           OCObservationId     obsId,
+                           uint8_t            *token,
+                           uint8_t             tokenLength,
                            OCResource         *resHandle,
-                           OCQualityOfService qos,
                            OCPayloadFormat    acceptFormat,
                            uint16_t           acceptVersion,
                            const OCDevAddr    *devAddr)
@@ -613,7 +612,7 @@ OCStackResult AddObserver (const char         *resUri,
         // particular library implementation (it may or may not be a null pointer).
         if (tokenLength)
         {
-            obsNode->token = (CAToken_t)OICMalloc(tokenLength);
+            obsNode->token = (uint8_t*)OICMalloc(tokenLength);
             VERIFY_NON_NULL_1(obsNode->token);
             memcpy(obsNode->token, token, tokenLength);
         }
@@ -692,7 +691,7 @@ ResourceObserver* GetObserverUsingId(OCResource *resource,
 }
 
 ResourceObserver* GetObserverUsingToken(OCResource *resource,
-                                        const CAToken_t token, uint8_t tokenLength)
+                                        const uint8_t *token, uint8_t tokenLength)
 {
     if (token)
     {
@@ -722,7 +721,7 @@ ResourceObserver* GetObserverUsingToken(OCResource *resource,
 }
 
 OCStackResult DeleteObserverUsingToken (OCResource *resource,
-                                        CAToken_t token, uint8_t tokenLength)
+                                        uint8_t *token, uint8_t tokenLength)
 {
     if (!token)
     {

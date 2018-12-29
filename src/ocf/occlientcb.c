@@ -104,7 +104,7 @@ typedef struct ClientCB {
     CAMessageType_t type;
 
     /**  when a response is recvd with this token, above callback will be invoked. */
-    CAToken_t token;
+    uint8_t *token;
 
     /** a response is recvd with this token length.*/
     uint8_t tokenLength;
@@ -284,7 +284,7 @@ static OCStackResult InsertResourceTypeFilter(ClientCB * cbNode,
 //-------------------------------------------------------------------------------------------------
 OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
                           CAMessageType_t type,
-                          CAToken_t token, uint8_t tokenLength,
+                          uint8_t *token, uint8_t tokenLength,
                           CAHeaderOption_t *options, uint8_t numOptions,
                           CAPayload_t payload, size_t payloadSize,
                           CAPayloadFormat_t payloadFormat,
@@ -472,7 +472,7 @@ void DeleteClientCBList(void)
     g_cbList = NULL;
 }
 
-ClientCB* GetClientCBUsingToken(const CAToken_t token,
+ClientCB* GetClientCBUsingToken(const uint8_t *token,
                                 const uint8_t tokenLength)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);

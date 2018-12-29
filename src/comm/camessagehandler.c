@@ -773,7 +773,7 @@ static void CASendThreadProcess(void *threadData)
  * family, drop it.  Typically, IPv6 beats IPv4, so the IPv4 message is dropped.
  */
 LOCAL bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *ep, uint16_t id,
-                                CAToken_t token, uint8_t tokenLength)
+                               uint8_t *token, uint8_t tokenLength)
 {
     if (!ep)
     {
@@ -2066,7 +2066,7 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
     }
 
     CABlockDataID_t* blockDataID = CACreateBlockDatablockId(
-            (CAToken_t)(*pdu)->transport_hdr->udp.token,
+            (uint8_t*)(*pdu)->transport_hdr->udp.token,
             (uint8_t)(*pdu)->transport_hdr->udp.token_length,
             endpoint->addr, endpoint->port);
     if (NULL == blockDataID || blockDataID->idLength < 1)

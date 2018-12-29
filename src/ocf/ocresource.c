@@ -2952,7 +2952,7 @@ bool IsObservationIdExisting(const OCObservationId observationId)
 }
 
 bool GetObserverFromResourceList(OCResource **outResource, ResourceObserver **outObserver,
-                                 const CAToken_t token, uint8_t tokenLength)
+                                 const uint8_t *token, uint8_t tokenLength)
 {
     OCResource *resPtr = NULL;
     ResourceObserver* obsPtr = NULL;

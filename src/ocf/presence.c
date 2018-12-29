@@ -277,7 +277,7 @@ OCStackResult OC_CALL OCStartPresence(const uint32_t ttl)
 
         OCDevAddr devAddr = { OC_DEFAULT_ADAPTER };
 
-        CAToken_t caToken = NULL;
+        uint8_t *caToken = NULL;
         CAResult_t caResult = CAGenerateToken(&caToken, tokenLength);
         if (caResult != CA_STATUS_OK)
         {
@@ -1333,7 +1333,7 @@ OCStackResult OC_CALL OCStartPresence(const uint32_t ttl)
 
         OCDevAddr devAddr = { OC_DEFAULT_ADAPTER };
 
-        CAToken_t caToken = NULL;
+        uint8_t *caToken = NULL;
         CAResult_t caResult = CAGenerateToken(&caToken, tokenLength);
         if (caResult != CA_STATUS_OK)
         {

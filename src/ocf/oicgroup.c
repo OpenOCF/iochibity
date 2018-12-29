@@ -574,7 +574,7 @@ exit:
 OCStackResult ExtractActionSetNameAndDelaytime(char *pChar, char **setName,
         long int *pa)
 {
-    char *token = NULL, *tokenPtr = NULL;
+    uint8_t *token = NULL, *tokenPtr = NULL;
     OCStackResult result = OC_STACK_OK;
 
     token = (char*) strtok_r(pChar, ACTION_DELIMITER, &tokenPtr);
