@@ -49,7 +49,7 @@ dnl if platform != windows and HAVE_LIBPTHREAD:
 AC_CHECK_HEADERS([pthread.h])
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h assert.h bsd/string.h fcntl.h errno.h float.h inttypes.h limits.h malloc.h memory.h net/if.h netdb.h netinet/in.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/select.h sys/socket.h sys/statvfs.h sys/time.h sys/timeb.h syslog.h termios.h, time.h unistd.h utime.h windows.h winsock2.h ws2tcpip.h])
+AC_CHECK_HEADERS([arpa/inet.h assert.h bsd/string.h fcntl.h errno.h float.h inttypes.h limits.h malloc.h memory.h net/if.h netdb.h netinet/in.h netinet/ip.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/mount.h sys/param.h sys/select.h sys/socket.h sys/statvfs.h sys/time.h sys/timeb.h syslog.h termios.h, time.h unistd.h utime.h windows.h winsock2.h ws2tcpip.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -65,6 +65,9 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_CHECK_MEMBERS([struct stat.st_blksize])
+AC_CHECK_MEMBER([struct ip_mreqn.imr_ifindex],
+                        AC_DEFINE([HAVE_MREQN], [], [Have struct ip_mreqn]),[],
+                        [#include <netinet/ip.h>])
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
