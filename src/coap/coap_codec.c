@@ -83,7 +83,8 @@ typedef struct                  /* src: camessagehandler.c */
     CAPayloadFormat_t acceptFormat;     /**< accept format for the response payload */
     uint16_t payloadVersion;    /**< version of the payload */
     uint16_t acceptVersion;     /**< expected version for the response payload */
-    CAURI_t resourceUri;        /**< Resource URI information **/
+    // FIXME: this URI is always a URL, never a URN?
+    char *resourceUri;          /**< Resource URL, path + query **/
     CARemoteId_t identity;      /**< endpoint identity */
     CADataType_t dataType;      /**< data type */
 } CAInfo_t; /* @rename: ocf_coap_msg_unpacked */

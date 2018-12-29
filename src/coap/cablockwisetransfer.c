@@ -136,7 +136,7 @@ typedef struct
 {
     CAToken_t token;            /**< Token for CA */
     uint8_t tokenLength;        /**< token length */
-    CAURI_t resourceUri;        /**< Resource URI information **/
+    char *resourceUri;        /**< Resource URI information **/
 } CABlockMulticastData_t;
 #endif	/* INTERFACE */
 

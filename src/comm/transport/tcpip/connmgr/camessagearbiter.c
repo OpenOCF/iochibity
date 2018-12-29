@@ -182,7 +182,7 @@ CAResult_t CAMsgArbiterGetMessageData(CAData_t *data)
 
                 if (strlen(data->requestInfo->info.resourceUri) > CA_MSG_ARBITER_DI_URI_LENGTH)
                 {
-                    CAURI_t resourceUri = OICStrdup(data->requestInfo->info.resourceUri
+                    char *resourceUri = OICStrdup(data->requestInfo->info.resourceUri
                                                     + CA_MSG_ARBITER_DI_URI_LENGTH);
                     OICFree(data->requestInfo->info.resourceUri);
                     data->requestInfo->info.resourceUri = resourceUri;

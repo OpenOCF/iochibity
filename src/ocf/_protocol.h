@@ -1,11 +1,6 @@
 /* from connectivity/api/cacommon.h etc. */
 
 /**
- * URI for the OIC base.CA considers relative URI as the URI.
- */
-typedef char *CAURI_t;          /* FIXME: where does this belong? */
-
-/**
  * Max URI length.
  */
 #define CA_MAX_URI_LENGTH 512 /* maximum size of URI for other platforms*/
