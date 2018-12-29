@@ -96,7 +96,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
     OCTransportAdapter adapter;
     OCTransportFlags flags;
     // the request contents are put here
-    CARequestInfo_t requestInfo = {.method = CA_GET};
+    struct CARequestInfo requestInfo = {.method = CA_GET};
     // requestUri  will be parsed into the following three variables
     OCDevAddr *devAddr = NULL;
     char *resourceUri = NULL;
@@ -580,7 +580,7 @@ OCStackResult OC_CALL OCDoResource(OCDoHandle *handle,
  * @return ::OC_STACK_OK on success, some other value upon failure.
  * src: ocstack.c
  */
-OCStackResult OCSendRequest(const CAEndpoint_t *dest_ep, CARequestInfo_t *requestInfo)
+OCStackResult OCSendRequest(const CAEndpoint_t *dest_ep, struct CARequestInfo *requestInfo)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL(dest_ep, FATAL, OC_STACK_INVALID_PARAM);
@@ -734,7 +734,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* endPoint, const CAResponseInfo
                 CA_FORMAT_UNDEFINED == responseInfo->info.payloadFormat)
             {
 		OIC_LOG(DEBUG, TAG, "Response result NOT_ACCEPTABLE, format UNDEFINED");
-                CARequestInfo_t requestInfo = { .method = CA_GET };
+                struct CARequestInfo requestInfo = { .method = CA_GET };
 
                 switch (cbNode->method)
                 {

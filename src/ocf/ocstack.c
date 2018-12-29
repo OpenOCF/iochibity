@@ -1415,7 +1415,7 @@ OCStackResult OC_CALL OCCancel(OCDoHandle handle, OCQualityOfService qos, OCHead
      */
     OCStackResult ret = OC_STACK_OK;
     CAEndpoint_t endpoint = {.adapter = CA_DEFAULT_ADAPTER};
-    CARequestInfo_t requestInfo = {.method = CA_GET};
+    struct CARequestInfo requestInfo = {.method = CA_GET};
 
     if(!handle)
     {
@@ -2166,7 +2166,8 @@ OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse) EXPORT
 {
     OIC_TRACE_BEGIN(%s:OCDoResponse, TAG);
     OCStackResult result = OC_STACK_ERROR;
-    OCServerRequest *serverRequest = NULL;
+    // OCServerRequest *serverRequest = NULL;
+    struct CARequestInfo *request = NULL;
 
     OIC_LOG(INFO, TAG, "Entering OCDoResponse");
 
@@ -2176,11 +2177,13 @@ OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse) EXPORT
 
     // Normal response
     // Get pointer to request info
-    serverRequest = (OCServerRequest *)ehResponse->requestHandle;
-    if(serverRequest)
+    // serverRequest = (OCServerRequest *)ehResponse->requestHandle;
+    request = (struct CARequestInfo *)ehResponse->requestHandle;
+    VERIFY_NON_NULL(request->ehResponseHandler, ERROR, OC_STACK_INVALID_PARAM);
+    if(request)
     {
         // response handler in ocserverrequest.c. Usually HandleSingleResponse.
-        result = serverRequest->ehResponseHandler(ehResponse);
+        result = request->ehResponseHandler(ehResponse);
     }
 
     OIC_TRACE_END();

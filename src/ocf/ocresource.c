@@ -1605,7 +1605,7 @@ OCStackResult CheckRequestsEndpoint(const OCDevAddr *reqDevAddr,
     }
 }
 
-OCStackResult DetermineResourceHandling (const OCServerRequest *request,
+OCStackResult DetermineResourceHandling (const struct CARequestInfo *request,
                                          ResourceHandling *handling,
                                          OCResource **resource)
 {
@@ -1614,17 +1614,19 @@ OCStackResult DetermineResourceHandling (const OCServerRequest *request,
         return OC_STACK_INVALID_PARAM;
     }
 
-    OIC_LOG_V(INFO, TAG, "DetermineResourceHandling for %s", request->resourceUrl);
+    char *url_path = getPathFromRequestURL(request->info.resourceUri);
+
+    OIC_LOG_V(INFO, TAG, "DetermineResourceHandling for %s", url_path);
 
     // Check if virtual resource
-    if (GetTypeOfVirtualURI(request->resourceUrl) != OC_UNKNOWN_URI)
+    if (GetTypeOfVirtualURI(url_path) != OC_UNKNOWN_URI)
     {
-        OIC_LOG_V (INFO, TAG, "%s is virtual", request->resourceUrl);
+        OIC_LOG_V (INFO, TAG, "%s is virtual", url_path);
         *handling = OC_RESOURCE_VIRTUAL;
         *resource = headResource;
         return OC_STACK_OK;
     }
-    if (strlen((const char*)(request->resourceUrl)) == 0)
+    if (strlen((const char*)(url_path)) == 0)
     {
         // Resource URL not specified
         *handling = OC_RESOURCE_NOT_SPECIFIED;
@@ -1632,7 +1634,7 @@ OCStackResult DetermineResourceHandling (const OCServerRequest *request,
     }
     else
     {
-        OCResource *resourcePtr = FindResourceByUri((const char*)request->resourceUrl);
+        OCResource *resourcePtr = FindResourceByUri((const char*)url_path);
         *resource = resourcePtr;
 
         // Checking resource TPS flags if resource exist in stack.
@@ -1873,7 +1875,7 @@ static bool includeThisResourceInResponse(OCResource *resource,
            resourceMatchesRTFilter(resource, resourceTypeFilter);
 }
 
-static OCStackResult SendNonPersistantDiscoveryResponse(OCServerRequest *request,
+static OCStackResult SendNonPersistantDiscoveryResponse(struct CARequestInfo *request,
                                                         OCPayload *discoveryPayload,
                                                         OCEntityHandlerResult ehResult)
 {
@@ -2008,9 +2010,8 @@ exit:
     return OC_STACK_NO_MEMORY;
 }
 
-static bool isUnicast(OCServerRequest *request)
+static bool isUnicast(struct CARequestInfo *request) // (OCServerRequest *request)
 {
-    bool isMulticast = request->devAddr.flags & OC_MULTICAST;
     return (isMulticast == false &&
            (request->devAddr.adapter != OC_ADAPTER_RFCOMM_BTEDR) &&
            (request->devAddr.adapter != OC_ADAPTER_GATT_BTLE));
@@ -2132,7 +2133,7 @@ OCStackResult _oocf_response_to_request(OCServerRequest *request,
 
     OCPayload* payload = NULL;
 
-    OCVirtualResources virtualUriInRequest = GetTypeOfVirtualURI (request->resourceUrl);
+    OCVirtualResources virtualUriInRequest = GetTypeOfVirtualURI(getPathFromRequestURL(request->info.resourceUri));
 
     /* if (g_multicastServerStopped && !isUnicast(request)) */
     /*     { */
@@ -2159,7 +2160,8 @@ OCStackResult _oocf_response_to_request(OCServerRequest *request,
     /* } */
 
     /* request->query: extract from requestInfo.info->resourceUri */
-    discoveryResult = getQueryParamsForFiltering (virtualUriInRequest, request->query,
+    discoveryResult = getQueryParamsForFiltering (virtualUriInRequest,
+                                                  getQueryFromRequestURL(request->info.resourceUri),
                                                   &interfaceQuery, &resourceTypeQuery);
     VERIFY_SUCCESS_1(discoveryResult);
 
@@ -2258,8 +2260,8 @@ exit:
     return discoveryResult;
 }
 
-//OCStackResult HandleVirtualResource (OCRequestInfo_t *requestInfo, OCResource* resource)
-OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resource)
+OCStackResult HandleVirtualResource (struct CARequestInfo *request, OCResource* resource)
+// OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resource)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (!request || !resource)
@@ -2271,7 +2273,9 @@ OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resou
     char *interfaceQuery = NULL;
     char *resourceTypeQuery = NULL;
 
-    OCVirtualResources virtualUriInRequest = GetTypeOfVirtualURI (request->resourceUrl);
+    char *url_path = getPathFromRequestURL(request->info.resourceUri);
+
+        OCVirtualResources virtualUriInRequest = GetTypeOfVirtualURI(url_path); // ->resourceUrl);
     /* requestInfo.info->resourceUri */
 
 #ifdef TCP_ADAPTER
@@ -2285,12 +2289,15 @@ OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resou
 
     OCStackResult discoveryResult = OC_STACK_ERROR;
     /** requestInfo.method (CA_ constants) */
-    if (request->method == OC_REST_PUT || request->method == OC_REST_POST ||
-        request->method == OC_REST_DELETE)
+    /* if (request->method == OC_REST_PUT || request->method == OC_REST_POST || */
+    /*     request->method == OC_REST_DELETE) */
+    if (request->method == CA_PUT || request->method == CA_POST ||
+        request->method == CA_DELETE)
     {
         OIC_LOG_V(ERROR, TAG, "Resource : %s not permitted for method: %d",
-            request->resourceUrl, request->method);
-        DeleteServerRequest (request);
+                  url_path, // request->resourceUrl,
+                  request->method);
+        // DeleteServerRequest (request);
         return OC_STACK_UNAUTHORIZED_REQ;
     }
 
@@ -2379,7 +2386,9 @@ OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resou
     else if (OC_INTROSPECTION_URI == virtualUriInRequest)
     {
         // Received request for introspection
-        discoveryResult = getQueryParamsForFiltering(virtualUriInRequest, request->query,
+        discoveryResult = getQueryParamsForFiltering(virtualUriInRequest,
+                                                     // request->query,
+                                                     getQueryFromRequestURL(request->info.resourceUri),
                                                      &interfaceQuery, &resourceTypeQuery);
         VERIFY_SUCCESS_1 (discoveryResult);
 
@@ -2483,7 +2492,7 @@ exit:
 }
 
 OCStackResult
-HandleDefaultDeviceEntityHandler(OCServerRequest *request)
+HandleDefaultDeviceEntityHandler(struct CARequestInfo *request)
 {
     if (!request)
     {
@@ -2498,7 +2507,9 @@ HandleDefaultDeviceEntityHandler(OCServerRequest *request)
 
     // At this point we know for sure that defaultDeviceHandler exists
     ehResult = defaultDeviceHandler(OC_REQUEST_FLAG, &ehRequest,
-                                  (char*) request->resourceUrl, defaultDeviceHandlerCallbackParameter);
+                                    getPathFromRequestURL(request->info.resourceUri),
+                                    // (char*) request->resourceUrl,
+                                    defaultDeviceHandlerCallbackParameter);
     if(ehResult == OC_EH_SLOW)
     {
         OIC_LOG(INFO, TAG, "This is a slow resource");

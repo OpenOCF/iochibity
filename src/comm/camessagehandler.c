@@ -49,7 +49,7 @@ CAHistory_t requestHistory;  /**< filter IP family in requests */
  * @param[out]   requestInfo  Info for resource model to understand about the request.
  */
 typedef void (*CARequestCallback)(const CAEndpoint_t *object,
-                                  const CARequestInfo_t *requestInfo);
+                                  const struct CARequestInfo *requestInfo);
 
 /**
  * Callback function type for response delivery.
@@ -131,7 +131,7 @@ typedef struct
 {
     CASendDataType_t type;            /**< data type */
     CAEndpoint_t *remoteEndpoint;     /**< remote endpoint */
-    CARequestInfo_t *requestInfo;     /**< request information */
+    struct CARequestInfo *requestInfo;     /**< request information */
     CAResponseInfo_t *responseInfo;   /**< response information */
     CAErrorInfo_t *errorInfo;         /**< error information */
 #ifdef WITH_TCP
@@ -257,7 +257,7 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
     else if (CA_REQUEST_DATA == dataType) /* SERVER mode */
     {
 	OIC_LOG_V(DEBUG, TAG, "data type is CA_REQUEST_DATA (inbound)");
-        CARequestInfo_t* inbound_request = (CARequestInfo_t*)OICCalloc(1, sizeof(CARequestInfo_t));
+        struct CARequestInfo *inbound_request = (struct CARequestInfo*)OICCalloc(1, sizeof(struct CARequestInfo));
         if (!inbound_request)
         {
             OIC_LOG(ERROR, TAG, "memory allocation failed");
@@ -466,7 +466,7 @@ static void CADestroyData(void *data, uint32_t size)
 
     if (NULL != cadata->requestInfo)
     {
-        CADestroyRequestInfoInternal((CARequestInfo_t *) cadata->requestInfo);
+        CADestroyRequestInfoInternal((struct CARequestInfo *) cadata->requestInfo);
     }
 
     if (NULL != cadata->responseInfo)
@@ -1097,7 +1097,7 @@ CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
     if (CA_REQUEST_DATA == dataType)
     {
         // clone request info
-        CARequestInfo_t *request = CACloneRequestInfo((CARequestInfo_t *)sendData);
+        struct CARequestInfo *request = CACloneRequestInfo((struct CARequestInfo *)sendData);
         if (!request)
         {
             OIC_LOG(ERROR, TAG, "CACloneRequestInfo failed");

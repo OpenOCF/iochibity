@@ -355,7 +355,7 @@ static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *dest_ep, const v
     return ret;
 }
 
-CAResult_t CASendRequest(const CAEndpoint_t *dest_ep, const CARequestInfo_t *requestInfo)
+CAResult_t CASendRequest(const CAEndpoint_t *dest_ep, const struct CARequestInfo *requestInfo)
 {
     OIC_LOG(DEBUG, TAG, "CASendRequest");
 

@@ -87,7 +87,7 @@ typedef struct SRMRequestContext
     CAResponseInfo_t        responseInfo;                       // The response for this request
     bool                    responseSent;                       // Is servicing this request complete?
     SRMAccessResponse_t     responseVal;                        // The SRM internal response code
-    const CARequestInfo_t   *requestInfo;                       // ptr to info for this request
+    /* const */ struct CARequestInfo   *requestInfo;                       // ptr to info for this request
     bool                    resourceIsOcSecure;                 // Was Resource created w OC_SECURE bit set?
     bool                    resourceIsOcNonsecure;              // Was Resource created w OC_NONSECURE bit set?
     bool                    secureChannel;                      // Was request recv'd over secure channel?
@@ -372,7 +372,7 @@ bool IsRequestOverSecureChannel(SRMRequestContext_t *context)
  * @param endPoint object from which the response is received.
  * @param requestInfo contains information for the request.
  */
-void SRMRequestHandler(const CAEndpoint_t *endPoint, const CARequestInfo_t *requestInfo)
+void SRMRequestHandler(const CAEndpoint_t *endPoint, struct CARequestInfo *requestInfo)
 {
     OIC_LOG(DEBUG, TAG, "Received request from remote device");
 

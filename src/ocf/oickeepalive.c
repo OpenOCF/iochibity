@@ -547,7 +547,7 @@ LOCAL OCStackResult SendDisconnectMessage(const KeepAliveEntry_t *entry)
         return result;
     }
 
-    CARequestInfo_t requestInfo = { .method = CA_POST };
+    struct CARequestInfo requestInfo = { .method = CA_POST };
     result = CASendRequest(&entry->remoteAddr, &requestInfo);
     return CAResultToOCResult(result);
 }

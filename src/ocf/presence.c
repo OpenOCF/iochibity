@@ -181,7 +181,7 @@ OCStackResult OCProcessPresence()
 
         CAEndpoint_t endpoint = {.adapter = CA_DEFAULT_ADAPTER};
         CAInfo_t requestData = {.type = CA_MSG_CONFIRM};
-        CARequestInfo_t requestInfo = {.method = CA_GET};
+        struct CARequestInfo requestInfo = {.method = CA_GET};
 
         OIC_LOG(DEBUG, __FILE__, "time to test server presence");
 
@@ -1264,7 +1264,7 @@ OCStackResult OCProcessPresence(void)
 
         CAEndpoint_t endpoint = {.adapter = CA_DEFAULT_ADAPTER};
         CAInfo_t requestData = {.type = CA_MSG_CONFIRM};
-        CARequestInfo_t requestInfo = {.method = CA_GET};
+        struct CARequestInfo requestInfo = {.method = CA_GET};
 
         OIC_LOG(DEBUG, TAG, "time to test server presence");
 

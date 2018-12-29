@@ -14,17 +14,39 @@ typedef enum
 #endif
 
 /**
+
  * Request Information. Used for both outbound and inbound request messages.
  */
 #if INTERFACE
-typedef struct
+struct CARequestInfo
 {
     CAMethod_t method;  /**< Name of the Method Allowed */
+
+    // FIXME: rename info -> coap_msg
     CAInfo_t info;      /**< Unpacked CoAP msg. */
     bool isMulticast;   /**< is multicast request */
-    // FIXME: add endpoint info
-} CARequestInfo_t;
 
+    CAEndpoint_t dest_ep;       /* sb origin_ep? this is the ep of requestor? */
+
+    // from OCServerProtocolRequest, OCServerRequest
+    uint8_t delayedResNeeded;   /* For delayed Response.*/
+    /* uint8_t reqMorePacket; */ // OCServerProtocolRequest
+    uint8_t requestComplete;      /* pdu is not a complete msg? */
+
+    // from OCServerRequest
+    uint8_t numResponses;
+    OCEHResponseHandler ehResponseHandler;
+    uint8_t slowFlag;           /* Flag indicating slow response.*/
+    uint8_t notificationFlag;   /* Flag indicating notification.*/
+    uint32_t observationOption;
+    OCStackResult observeResult;
+
+/** Node entry in red-black tree of linked lists.*/
+    RBL_ENTRY(CARequestInfo) entry; /*  */
+};
+#endif
+
+#if INTERFACE
 /**
  * Response information. Used for both inbound and outbound response messages.
  */

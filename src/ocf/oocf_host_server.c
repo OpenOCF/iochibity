@@ -7,7 +7,7 @@
  * OCServerRequest.
  *
  * HandleCARequests
- * => OCHandleRequests (convert CARequestInfo_t to OCServerProtocolRequest)
+ * => OCHandleRequests (convert struct CARequestInfo to OCServerProtocolRequest)
  * ==> HandleStackRequests (convert OCServerProtocolRequest to OCServerRequest)
  * ===> ProcessRequest
  * ====> handler, depending on resource type.
@@ -314,7 +314,7 @@ typedef uint8_t ServerID[16]; /* src: ocstackinternal.h */
  * @param endPoint CA remote endpoint.
  * @param requestInfo CA request info.
  */
-void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
+void HandleCARequests(const CAEndpoint_t* endPoint, struct CARequestInfo* requestInfo)
 {
     OIC_LOG(INFO, TAG, "Enter HandleCARequests");
     OIC_TRACE_BEGIN(%s:HandleCARequests, TAG);
@@ -343,7 +343,7 @@ void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
      * destination. It can also remove "RM" coap header option before passing request / response to
      * RI as this option will make no sense to either RI or application.
      */
-    OCStackResult ret = RMHandleRequest((CARequestInfo_t *)requestInfo, (CAEndpoint_t *)endPoint,
+    OCStackResult ret = RMHandleRequest((struct CARequestInfo *)requestInfo, (CAEndpoint_t *)endPoint,
                                         &needRIHandling, &isEmptyMsg);
     if (OC_STACK_OK != ret || !needRIHandling)
     {
@@ -389,7 +389,7 @@ void HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* reque
 
 /** convert inbound request msg from CA structs to OC structs, then pass to handler  */
 // FIXME: eliminate this routine! unify CA and OC layers
-void OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
+void OCHandleRequests(const CAEndpoint_t* endPoint, struct CARequestInfo* requestInfo)
 {
     OIC_TRACE_MARK(%s:OCHandleRequests:%s, TAG, requestInfo->info.resourceUri);
     OIC_LOG(DEBUG, TAG, "Enter OCHandleRequests");
@@ -679,7 +679,8 @@ OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolRequest)
     return result;
 }
 
-OCStackResult ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerRequest *request)
+OCStackResult ProcessRequest(ResourceHandling resHandling, OCResource *resource, struct CARequestInfo *request)
+// OCStackResult ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerRequest *request)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OCStackResult ret = OC_STACK_OK;
@@ -732,7 +733,7 @@ OCStackResult ProcessRequest(ResourceHandling resHandling, OCResource *resource,
 }
 
 /* src: ocresource.c */
-OCStackResult HandleResourceWithEntityHandler(OCServerRequest *request,
+OCStackResult HandleResourceWithEntityHandler(struct CARequestInfo *request,
                                               OCResource *resource)
 {
     if(!request || ! resource)
@@ -751,7 +752,7 @@ OCStackResult HandleResourceWithEntityHandler(OCServerRequest *request,
     OCPayloadType type = PAYLOAD_TYPE_REPRESENTATION;
     // check the security resource
     if (request /* GAR: this is always true: && request->resourceUrl */
-	&& SRMIsSecurityResourceURI(request->resourceUrl))
+	&& SRMIsSecurityResourceURI(getPathFromRequestURL(request->info.resourceUri)))
     {
         type = PAYLOAD_TYPE_SECURITY;
     }
@@ -769,7 +770,8 @@ OCStackResult HandleResourceWithEntityHandler(OCServerRequest *request,
         OIC_LOG(INFO, TAG, "Observation registration requested");
 
         ResourceObserver *obs = GetObserverUsingToken(resource,
-                                                      request->requestToken, request->tokenLength);
+                                                      request->info.token,
+                                                      request->info.tokenLength);
 
         if (obs)
         {
@@ -824,7 +826,8 @@ OCStackResult HandleResourceWithEntityHandler(OCServerRequest *request,
         OIC_LOG(INFO, TAG, "Deregistering observation requested");
 
         resObs = GetObserverUsingToken (resource,
-                                        request->requestToken, request->tokenLength);
+                                        request->info.token,
+                                        request->info.tokenLength);
 
         if (NULL == resObs)
         {
@@ -837,7 +840,8 @@ OCStackResult HandleResourceWithEntityHandler(OCServerRequest *request,
         ehFlag = (OCEntityHandlerFlag)(ehFlag | OC_OBSERVE_FLAG);
 
         result = DeleteObserverUsingToken (resource,
-                                           request->requestToken, request->tokenLength);
+                                           request->info.token,
+                                           request->info.tokenLength);
 
         if(result == OC_STACK_OK)
         {
@@ -1005,7 +1009,7 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
     if (doPost)
     {
         OIC_LOG(DEBUG, TAG, "Sending a POST message for EMPTY ACK in Client Mode");
-        CARequestInfo_t reqInfo = {.method = CA_POST };
+        struct CARequestInfo reqInfo = {.method = CA_POST };
         /* The following initialization is not done in a single initializer block as in
          * arduino, .c file is compiled as .cpp and moves it from C99 to C++11.  The latter
          * does not have designated initalizers. This is a work-around for now.

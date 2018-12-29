@@ -81,7 +81,7 @@ CAEndpoint_t *CACloneEndpoint(const CAEndpoint_t *rep)
     return clone;
 }
 
-CARequestInfo_t *CACloneRequestInfo(const CARequestInfo_t *rep)
+struct CARequestInfo *CACloneRequestInfo(const struct CARequestInfo *rep)
 {
     if (NULL == rep)
     {
@@ -104,7 +104,7 @@ CARequestInfo_t *CACloneRequestInfo(const CARequestInfo_t *rep)
     }
 
     // allocate the request info structure.
-    CARequestInfo_t *clone = (CARequestInfo_t *) OICMalloc(sizeof(CARequestInfo_t));
+    struct CARequestInfo *clone = (struct CARequestInfo *) OICMalloc(sizeof(struct CARequestInfo));
     if (!clone)
     {
         OIC_LOG(ERROR, TAG, "CACloneRequestInfo Out of memory");
@@ -236,7 +236,7 @@ void CADestroyInfoInternal(CAInfo_t *info)
     info->resourceUri = NULL;
 }
 
-void CADestroyRequestInfoInternal(CARequestInfo_t *rep)
+void CADestroyRequestInfoInternal(struct CARequestInfo *rep)
 {
     if (NULL == rep)
     {

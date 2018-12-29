@@ -236,19 +236,67 @@ OCQualityOfService DetermineObserverQoS(OCMethod method,
  * @return ::OC_STACK_OK on success, some other value upon failure.
  */
 OCStackResult SendObserveNotification(ResourceObserver *observer,
-                                             uint32_t sequenceNum,
-                                             OCQualityOfService qos)
+                                      uint32_t sequenceNum,
+                                      OCQualityOfService qos)
 {
     OIC_LOG_V(INFO, __FILE__, "%s: ENTRY", __func__);
     OCStackResult result = OC_STACK_ERROR;
-    OCServerRequest * request = NULL;
+    /* OCServerRequest * request = NULL; */
 
-    result = AddServerRequest(&request, 0, 0, 1, OC_REST_GET,
-                              0, sequenceNum, qos,
-                              observer->query, NULL, OC_FORMAT_UNDEFINED, NULL,
-                              observer->token, observer->tokenLength,
-                              observer->resUri, 0, observer->acceptFormat,
-                              observer->acceptVersion, &observer->devAddr);
+    /* result = AddServerRequest(&request, 0, 0, 1, OC_REST_GET, */
+    /*                           0, sequenceNum, qos, */
+    /*                           observer->query, NULL, OC_FORMAT_UNDEFINED, NULL, */
+    /*                           observer->token, observer->tokenLength, */
+    /*                           observer->resUri, 0, observer->acceptFormat, */
+    /*                           observer->acceptVersion, &observer->devAddr); */
+
+    struct CARequestInfo *request = (struct CARequestInfo*)OICMalloc(sizeof(struct CARequestInfo));
+    request->delayedResNeeded = 0;
+    request->notificationFlag = 1;
+    request->method = CA_GET;
+    request->observationOption = sequenceNum;
+    request->info.messageId = 0;
+    request->info.type = qos;
+    request->info.numOptions = 0;
+    request->info.options = NULL;
+    request->info.payloadFormat = OC_FORMAT_UNDEFINED;
+    request->info.payload = NULL;
+    request->info.payloadSize = 0;
+    request->info.acceptFormat = observer->acceptFormat;
+    request->info.acceptVersion = observer->acceptVersion;
+    if (observer->tokenLength) {
+        request->info.token = (CAToken_t)OICMalloc(observer->tokenLength);
+        VERIFY_NON_NULL_1(request->info.token);
+        memcpy(request->info.token, observer->token, observer->tokenLength);
+    }
+    request->info.tokenLength = observer->tokenLength;
+
+    request->info.resourceUri = (char *)OICMalloc(MAX_URI_LENGTH);
+    OICStrcpy(request->info.resourceUri, MAX_URI_LENGTH, observer->resUri);
+    OICStrcat(request->info.resourceUri, MAX_URI_LENGTH, observer->query);
+
+    memcpy(&request->dest_ep, &observer->devAddr, sizeof(CAEndpoint_t));
+    request = _oocf_request_cache_put(request);
+
+/* OCStackResult AddServerRequest (OCServerRequest ** request, */
+/*                                 uint16_t coapMessageID, */
+/*                                 uint8_t delayedResNeeded, */
+/*                                 uint8_t notificationFlag, */
+/*                                 OCMethod method, */
+/*                                 uint8_t numRcvdVendorSpecificHeaderOptions, */
+/*                                 uint32_t observationOption, */
+/*                                 OCQualityOfService qos, */
+/*                                 char * query, */
+/*                                 OCHeaderOption * rcvdVendorSpecificHeaderOptions, */
+/*                                 OCPayloadFormat payloadFormat, */
+/*                                 uint8_t * payload, */
+/*                                 CAToken_t requestToken, */
+/*                                 uint8_t tokenLength, */
+/*                                 char * resourceUrl, */
+/*                                 size_t payloadSize, */
+/*                                 OCPayloadFormat acceptFormat, */
+/*                                 uint16_t acceptVersion, */
+/*                                 const OCDevAddr *devAddr) */
 
     if (request)
     {
@@ -384,7 +432,7 @@ OCStackResult SendListObserverNotification (OCResource * resource,
     uint8_t numIds = numberOfIds;
     ResourceObserver *observer = NULL;
     uint8_t numSentNotification = 0;
-    OCServerRequest * request = NULL;
+    /* OCServerRequest * request = NULL; */
     OCStackResult result = OC_STACK_ERROR;
     bool observeErrorFlag = false;
 
@@ -396,11 +444,45 @@ OCStackResult SendListObserverNotification (OCResource * resource,
         {
             qos = DetermineObserverQoS(OC_REST_GET, observer, qos);
 
-            result = AddServerRequest(&request, 0, 0, 1, OC_REST_GET,
-                    0, resource->sequenceNum, qos, observer->query,
-                    NULL, OC_FORMAT_UNDEFINED, NULL, observer->token, observer->tokenLength,
-                    observer->resUri, 0, observer->acceptFormat,
-                    observer->acceptVersion, &observer->devAddr);
+            /* result = AddServerRequest(&request, 0, 0, 1, OC_REST_GET, */
+            /*                           0, resource->sequenceNum, qos, observer->query, */
+            /*                           NULL, OC_FORMAT_UNDEFINED, NULL, observer->token, observer->tokenLength, */
+            /*                           observer->resUri, 0, observer->acceptFormat, */
+            /*                           observer->acceptVersion, */
+            /*                           &observer->devAddr); */
+
+            struct CARequestInfo *request = (struct CARequestInfo*)OICMalloc(sizeof(struct CARequestInfo));
+            request->delayedResNeeded = 0;
+            request->notificationFlag = 1;
+            request->method = CA_GET;
+            request->observationOption = resource->sequenceNum;
+            request->info.messageId = 0;
+            request->info.type = qos;
+            request->info.numOptions = 0;
+            request->info.options = NULL;
+            request->info.payloadFormat = OC_FORMAT_UNDEFINED;
+            request->info.payload = NULL;
+            request->info.payloadSize = 0;
+            request->info.acceptFormat = observer->acceptFormat;
+            request->info.acceptVersion = observer->acceptVersion;
+            if (observer->tokenLength) {
+                request->info.token = (CAToken_t)OICMalloc(observer->tokenLength);
+                // VERIFY_NON_NULL_1(request->info.token);
+                if ( request->info.token == NULL ) {
+                    OICFree(request);
+                    return OC_STACK_ERROR;
+                }
+                memcpy(request->info.token, observer->token, observer->tokenLength);
+            }
+            request->info.tokenLength = observer->tokenLength;
+
+            request->info.resourceUri = (char *)OICMalloc(MAX_URI_LENGTH);
+            OICStrcpy(request->info.resourceUri, MAX_URI_LENGTH, observer->resUri);
+            OICStrcat(request->info.resourceUri, MAX_URI_LENGTH, observer->query);
+
+            memcpy(&request->dest_ep, &observer->devAddr, sizeof(CAEndpoint_t));
+            request = _oocf_request_cache_put(request);
+
 
             if (request)
             {
@@ -761,7 +843,7 @@ GetObserveHeaderOption (uint32_t * observationOption,
 }
 
  /* FIXME: dup name, also in ocresource.c */
-static OCStackResult HandleVirtualObserveRequest(OCServerRequest *request)
+OCStackResult HandleVirtualObserveRequest(struct CARequestInfo *request)
 {
     OCStackResult result = OC_STACK_OK;
     if (request->notificationFlag)
@@ -770,7 +852,7 @@ static OCStackResult HandleVirtualObserveRequest(OCServerRequest *request)
         goto exit;
     }
     OCVirtualResources virtualUriInRequest = OC_UNKNOWN_URI;
-    virtualUriInRequest = GetTypeOfVirtualURI(request->resourceUrl);
+    virtualUriInRequest = GetTypeOfVirtualURI(getPathFromRequestURL(request->info.resourceUri));
     if (virtualUriInRequest != OC_WELL_KNOWN_URI)
     {
         // OC_WELL_KNOWN_URI is currently the only virtual resource that may be observed
@@ -788,8 +870,8 @@ static OCStackResult HandleVirtualObserveRequest(OCServerRequest *request)
     {
         OIC_LOG(INFO, TAG, "Observation registration requested");
         ResourceObserver *obs = GetObserverUsingToken (resourcePtr,
-                                                       request->requestToken,
-                                                       request->tokenLength);
+                                                       request->info.token,
+                                                       request->info.tokenLength);
         if (obs)
         {
             OIC_LOG (INFO, TAG, "Observer with this token already present");
@@ -803,11 +885,12 @@ static OCStackResult HandleVirtualObserveRequest(OCServerRequest *request)
         result = GenerateObserverId(&obsId);
         if (result == OC_STACK_OK)
         {
-            result = AddObserver ((const char*)(request->resourceUrl),
-                                  (const char *)(request->query),
-                                  obsId, request->requestToken, request->tokenLength,
-                                  resourcePtr, request->qos, request->acceptFormat,
-                                  request->acceptVersion, &request->devAddr);
+            result = AddObserver ((const char*)(getPathFromRequestURL(request->info.resourceUri)),
+                                  (const char *)(getQueryFromRequestURL(request->info.resourceUri)),
+                                  obsId, request->info.token, request->info.tokenLength,
+                                  resourcePtr, request->info.type /* qos */, request->info.acceptFormat,
+                                  request->info.acceptVersion,
+                                  &request->dest_ep); // devAddr);
         }
         if (result == OC_STACK_OK)
         {
@@ -831,8 +914,8 @@ static OCStackResult HandleVirtualObserveRequest(OCServerRequest *request)
     {
         OIC_LOG(INFO, TAG, "Deregistering observation requested");
         result = DeleteObserverUsingToken (resourcePtr,
-                                           request->requestToken,
-                                           request->tokenLength);
+                                           request->info.token,
+                                           request->info.tokenLength);
         if (result == OC_STACK_OK)
         {
             OIC_LOG(INFO, TAG, "Removed observer successfully");
