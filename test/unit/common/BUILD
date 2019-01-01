@@ -2,7 +2,7 @@ load("//test:variables.bzl", "DEFINES", "INCLUDES")
 
 cc_binary(name = "oic_time_tests", visibility = ["//visibility:public"],
           copts = INCLUDES + ["-Isrc/portability"],
-          defines = DEFINES,
+          #defines = DEFINES,
           srcs = ["oic_time_tests.cpp", "oic_time_tests.hpp"],
           # srcs = select({"//config:darwin": ["oic_time_tests.cpp", "oic_time_tests.hpp"],
           #                "//config:linux": ["oic_time_tests.cpp"],

@@ -41,7 +41,7 @@
 // #include <oic_malloc.h>
 
 const char SENTINEL_VALUE = 127;
-static TEST(StringTests, StrdupNormalDup)
+TEST(StringTests, StrdupNormalDup)
 {
     char param[] = "This is a normal parameter";
 
@@ -58,7 +58,7 @@ static TEST(StringTests, StrdupNormalDup)
 }
 
 // Tests a normal copy where the buffer is exactly long enough
-static TEST(StringTests, StrcpyExactSize)
+TEST(StringTests, StrcpyExactSize)
 {
     char target[10];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -74,7 +74,7 @@ static TEST(StringTests, StrcpyExactSize)
 // Tests a normal copy where the buffer is exactly long enough
 // Tests with what is in reality an oversized buffer to ensure that
 // the buffer isn't over-written
-static TEST(StringTests, StrcpyExactSizeSentinel)
+TEST(StringTests, StrcpyExactSizeSentinel)
 {
     char target[10 + 5];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -98,7 +98,7 @@ static TEST(StringTests, StrcpyExactSizeSentinel)
 }
 
 // tests a copy where the source is smaller than the target
-static TEST(StringTests, StrcpyShorterSource)
+TEST(StringTests, StrcpyShorterSource)
 {
     char target[10];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -122,7 +122,7 @@ static TEST(StringTests, StrcpyShorterSource)
 }
 
 // tests a copy where the destination is larger than the target
-static TEST(StringTests, StrcpyShorterDestination)
+TEST(StringTests, StrcpyShorterDestination)
 {
     char target[10];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -143,7 +143,7 @@ static TEST(StringTests, StrcpyShorterDestination)
 // tests a copy where the destination is larger than the target
 // Tests with what is in reality an oversized buffer to ensure that
 // the buffer isn't over-written
-static TEST(StringTests, StrcpyShorterDestinationSentinel)
+TEST(StringTests, StrcpyShorterDestinationSentinel)
 {
     char target[10 + 5];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -167,7 +167,7 @@ static TEST(StringTests, StrcpyShorterDestinationSentinel)
 }
 
 // tests a copy where the source is of length 0
-static TEST(StringTests, StrcpyZeroSource)
+TEST(StringTests, StrcpyZeroSource)
 {
     char target[10];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -191,7 +191,7 @@ static TEST(StringTests, StrcpyZeroSource)
 }
 
 // tests a copy where the destination is of length 0
-static TEST(StringTests, StrcpyZeroDestination)
+TEST(StringTests, StrcpyZeroDestination)
 {
     char target[0];
     char source[] = "123456789";
@@ -204,7 +204,7 @@ static TEST(StringTests, StrcpyZeroDestination)
 // tests a copy where the destination is of length 0
 // Tests with what is in reality an oversized buffer to ensure that
 // the buffer isn't over-written
-static TEST(StringTests, StrcpyZeroDestinationSentinel)
+TEST(StringTests, StrcpyZeroDestinationSentinel)
 {
     char target[0 + 5];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -226,7 +226,7 @@ static TEST(StringTests, StrcpyZeroDestinationSentinel)
 }
 
 // Tests a normal cat where the target has exactly enough room
-static TEST(StringTests, StrcatExactSize)
+TEST(StringTests, StrcatExactSize)
 {
     char target[10] = "Orig";
     memset(target + sizeof("Orig"), SENTINEL_VALUE, sizeof(target) - sizeof("Orig"));
@@ -241,7 +241,7 @@ static TEST(StringTests, StrcatExactSize)
 // Tests a normal cat where the target has exactly enough room
 // Tests with what is in reality an oversized buffer to ensure that
 // the buffer isn't over-written
-static TEST(StringTests, StrcatExactSizeSentinel)
+TEST(StringTests, StrcatExactSizeSentinel)
 {
     char target[10 + 5] = "Orig";
     memset(target + sizeof("Orig"), SENTINEL_VALUE, sizeof(target) - sizeof("Orig"));
@@ -260,7 +260,7 @@ static TEST(StringTests, StrcatExactSizeSentinel)
 
 // tests a normal cat where the target has exactly enough room,
 // except it is of strlen 0
-static TEST(StringTests, StrcatExactSizeEmptySourceString)
+TEST(StringTests, StrcatExactSizeEmptySourceString)
 {
     char target[10];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -276,7 +276,7 @@ static TEST(StringTests, StrcatExactSizeEmptySourceString)
 // except it is of strlen 0
 // Tests with what is in reality an oversized buffer to ensure that
 // the buffer isn't over-written
-static TEST(StringTests, StrcatExactSizeEmptySourceStringSentinel)
+TEST(StringTests, StrcatExactSizeEmptySourceStringSentinel)
 {
     char target[10 + 5];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -295,7 +295,7 @@ static TEST(StringTests, StrcatExactSizeEmptySourceStringSentinel)
 }
 
 // tests a normal cat where the target has extra room
-static TEST(StringTests, StrcatExtraRoom)
+TEST(StringTests, StrcatExtraRoom)
 {
     char target[10] = "Orig";
     memset(target + sizeof("Orig"), SENTINEL_VALUE, sizeof(target) - sizeof("Orig"));
@@ -313,7 +313,7 @@ static TEST(StringTests, StrcatExtraRoom)
 }
 
 // Tests a normal cat where the target has insufficient room
-static TEST(StringTests, StrcatInsufficientRoom)
+TEST(StringTests, StrcatInsufficientRoom)
 {
     char target[10];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -329,7 +329,7 @@ static TEST(StringTests, StrcatInsufficientRoom)
 // Tests a normal cat where the target has insufficient room
 // Tests with what is in reality an oversized buffer to ensure that
 // the buffer isn't over-written
-static TEST(StringTests, StrcatInsufficientRoomSentinel)
+TEST(StringTests, StrcatInsufficientRoomSentinel)
 {
     char target[10 + 5];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -348,7 +348,7 @@ static TEST(StringTests, StrcatInsufficientRoomSentinel)
 }
 
 // Tests a normal cat where the target has zero room
-static TEST(StringTests, StrcatZeroRoom)
+TEST(StringTests, StrcatZeroRoom)
 {
     char target[10] = "Original1";
     char source[] = "12345";
@@ -362,7 +362,7 @@ static TEST(StringTests, StrcatZeroRoom)
 // Tests a normal cat where the target has zero room
 // Tests with what is in reality an oversized buffer to ensure that
 // the buffer isn't over-written
-static TEST(StringTests, StrcatZeroRoomSentinel)
+TEST(StringTests, StrcatZeroRoomSentinel)
 {
     char target[10 + 5] = "Original1";
     memset(target + sizeof("Original1"), SENTINEL_VALUE, sizeof(target) - sizeof("Original1"));
@@ -380,7 +380,7 @@ static TEST(StringTests, StrcatZeroRoomSentinel)
 }
 
 // Tests a cat where the source is zero length
-static TEST(StringTests, StrcatZeroSource)
+TEST(StringTests, StrcatZeroSource)
 {
     char target[10] = "Orig";
     memset(target + sizeof("Orig"), SENTINEL_VALUE, sizeof(target) - sizeof("Orig"));
@@ -398,7 +398,7 @@ static TEST(StringTests, StrcatZeroSource)
 }
 
 // Tests a cat where the Destination is zero length
-static TEST(StringTests, StrcatZeroDestination)
+TEST(StringTests, StrcatZeroDestination)
 {
     char target[0];
     char source[] = "12345";
@@ -410,7 +410,7 @@ static TEST(StringTests, StrcatZeroDestination)
 // Tests a cat where the Destination is zero length
 // Tests with what is in reality an oversized buffer to ensure that
 // the buffer isn't over-written
-static TEST(StringTests, StrcatZeroDestinationSentinel)
+TEST(StringTests, StrcatZeroDestinationSentinel)
 {
     char target[0 + 5];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -428,7 +428,7 @@ static TEST(StringTests, StrcatZeroDestinationSentinel)
 
 // Tests a partial copy where the source length parameter is shorter
 // than the string length
-static TEST(StringTests, StrcpyPartialShorterSourceLen)
+TEST(StringTests, StrcpyPartialShorterSourceLen)
 {
     char target[10];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -448,7 +448,7 @@ static TEST(StringTests, StrcpyPartialShorterSourceLen)
 
 // Tests a partial copy where the source length parameter is equal
 // to the string length
-static TEST(StringTests, StrcpyPartialEqualSourceLen)
+TEST(StringTests, StrcpyPartialEqualSourceLen)
 {
     char target[10];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -463,7 +463,7 @@ static TEST(StringTests, StrcpyPartialEqualSourceLen)
 
 // Tests a partial copy where the source length parameter is longer
 // than the string length
-static TEST(StringTests, StrcpyPartialLongerSourceLen)
+TEST(StringTests, StrcpyPartialLongerSourceLen)
 {
     char target[10];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -477,7 +477,7 @@ static TEST(StringTests, StrcpyPartialLongerSourceLen)
 }
 
 // Tests a partial copy where the source length is zero
-static TEST(StringTests, StrcpyPartialZeroSourceLen)
+TEST(StringTests, StrcpyPartialZeroSourceLen)
 {
     char target[10];
     memset(target, SENTINEL_VALUE, sizeof(target));
@@ -495,7 +495,7 @@ static TEST(StringTests, StrcpyPartialZeroSourceLen)
 
 // Tests a partial cat where the source length parameter is shorter
 // than the string length
-static TEST(StringTests, StrcatPartialShorterSourceLen)
+TEST(StringTests, StrcatPartialShorterSourceLen)
 {
     char target[10] = "Orig";
     memset(target + sizeof("Orig"), SENTINEL_VALUE, sizeof(target) - sizeof("Orig"));
@@ -515,7 +515,7 @@ static TEST(StringTests, StrcatPartialShorterSourceLen)
 
 // Tests a partial cat where the source length parameter is equal
 // to the string length
-static TEST(StringTests, StrcatPartialEqualSourceLen)
+TEST(StringTests, StrcatPartialEqualSourceLen)
 {
     char target[10] = "Orig";
     memset(target + sizeof("Orig"), SENTINEL_VALUE, sizeof(target) - sizeof("Orig"));
@@ -535,7 +535,7 @@ static TEST(StringTests, StrcatPartialEqualSourceLen)
 
 // Tests a partial cat where the source length parameter is longer
 // than the string length
-static TEST(StringTests, StrcatPartialLongerSourceLen)
+TEST(StringTests, StrcatPartialLongerSourceLen)
 {
     char target[10] = "Orig";
     memset(target + sizeof("Orig"), SENTINEL_VALUE, sizeof(target) - sizeof("Orig"));
@@ -554,7 +554,7 @@ static TEST(StringTests, StrcatPartialLongerSourceLen)
 }
 
 // Tests a partial cat where the source length is zero
-static TEST(StringTests, StrcatPartialZeroSourceLen)
+TEST(StringTests, StrcatPartialZeroSourceLen)
 {
     char target[10] = "Orig";
     memset(target + sizeof("Orig"), SENTINEL_VALUE, sizeof(target) - sizeof("Orig"));

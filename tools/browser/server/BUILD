@@ -68,6 +68,7 @@ cc_binary(
 #                      "cp -p /tmp/server_config.cbor \"$@\"",])
 # )
 
+# https://www.npmjs.com/package/edn-to-json
 genrule(
     name = "json",
     srcs = ["server_config.edn"],
