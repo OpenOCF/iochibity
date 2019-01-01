@@ -2027,9 +2027,11 @@ exit:
  *     true successfully done and valid ower psk information
  *     false Invalid owner psk information or failed to owner psk generation
  */
-static bool FillPrivateDataOfOwnerPSK(OicSecCred_t* receviedCred, const CAEndpoint_t* ownerAddr,
-                           const OicSecDoxm_t* doxm)
+static bool FillPrivateDataOfOwnerPSK(OicSecCred_t* receivedCred,
+                                      const CAEndpoint_t* ownerAddr,
+                                      const OicSecDoxm_t* doxm)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     //Derive OwnerPSK locally
     const char* oxmLabel = GetOxmString(doxm->oxmSel);
     unsigned char* b64Buf = NULL;
@@ -2050,14 +2052,14 @@ static bool FillPrivateDataOfOwnerPSK(OicSecCred_t* receviedCred, const CAEndpoi
     //Generate owner credential based on recevied credential information
 
     // TODO: Added as workaround, will be replaced soon.
-    if(OIC_ENCODING_RAW == receviedCred->privateData.encoding)
+    if(OIC_ENCODING_RAW == receivedCred->privateData.encoding)
     {
-        receviedCred->privateData.data = (uint8_t *)OICCalloc(1, OWNER_PSK_LENGTH_128);
-        VERIFY_NOT_NULL(TAG, receviedCred->privateData.data, ERROR);
-        receviedCred->privateData.len = OWNER_PSK_LENGTH_128;
-        memcpy(receviedCred->privateData.data, ownerPSK, OWNER_PSK_LENGTH_128);
+        receivedCred->privateData.data = (uint8_t *)OICCalloc(1, OWNER_PSK_LENGTH_128);
+        VERIFY_NOT_NULL(TAG, receivedCred->privateData.data, ERROR);
+        receivedCred->privateData.len = OWNER_PSK_LENGTH_128;
+        memcpy(receivedCred->privateData.data, ownerPSK, OWNER_PSK_LENGTH_128);
     }
-    else if(OIC_ENCODING_BASE64 == receviedCred->privateData.encoding)
+    else if(OIC_ENCODING_BASE64 == receivedCred->privateData.encoding)
     {
         int b64res = MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL;
         size_t b64OutSize = 0;
@@ -2070,18 +2072,18 @@ static bool FillPrivateDataOfOwnerPSK(OicSecCred_t* receviedCred, const CAEndpoi
         b64res = mbedtls_base64_encode(b64Buf, b64BufSize, &b64OutSize, ownerPSK, OWNER_PSK_LENGTH_128);
         VERIFY_SUCCESS(TAG, 0 == b64res, ERROR);
 
-        receviedCred->privateData.data = (uint8_t *)OICCalloc(1, b64OutSize + 1);
-        VERIFY_NOT_NULL(TAG, receviedCred->privateData.data, ERROR);
-        receviedCred->privateData.len = b64OutSize;
-        strncpy((char*)receviedCred->privateData.data, (char*)b64Buf, b64OutSize);
-        receviedCred->privateData.data[b64OutSize] = '\0';
+        receivedCred->privateData.data = (uint8_t *)OICCalloc(1, b64OutSize + 1);
+        VERIFY_NOT_NULL(TAG, receivedCred->privateData.data, ERROR);
+        receivedCred->privateData.len = b64OutSize;
+        strncpy((char*)receivedCred->privateData.data, (char*)b64Buf, b64OutSize);
+        receivedCred->privateData.data[b64OutSize] = '\0';
         OICClearMemory(b64Buf, b64BufSize);
         OICFree(b64Buf);
         b64Buf = NULL;
     }
     else
     {
-        OIC_LOG_V(ERROR, TAG, "Unknown credential encoding type: %u.", receviedCred->privateData.encoding);
+        OIC_LOG_V(ERROR, TAG, "Unknown credential encoding type: %u.", receivedCred->privateData.encoding);
         goto exit;
     }
 
@@ -2090,10 +2092,10 @@ static bool FillPrivateDataOfOwnerPSK(OicSecCred_t* receviedCred, const CAEndpoi
     OICClearMemory(ownerPSK, sizeof(ownerPSK));
 
     //Verify OwnerPSK information
-    return (memcmp(&(receviedCred->subject), &(doxm->owner), sizeof(OicUuid_t)) == 0 &&
-            receviedCred->credType == SYMMETRIC_PAIR_WISE_KEY);
+    return (memcmp(&(receivedCred->subject), &(doxm->owner), sizeof(OicUuid_t)) == 0 &&
+            receivedCred->credType == SYMMETRIC_PAIR_WISE_KEY);
 exit:
-    //receviedCred->privateData.data will be deallocated when deleting credential.
+    //receivedCred->privateData.data will be deallocated when deleting credential.
     OICClearMemory(ownerPSK, sizeof(ownerPSK));
     OICClearMemory(b64Buf, b64BufSize);
     OICFree(b64Buf);
@@ -2105,7 +2107,7 @@ exit:
 /**
  * Internal function to fill private data of SubOwner PSK.
  *
- * @param receviedCred recevied owner credential from SubOwner
+ * @param receivedCred received owner credential from SubOwner
  * @param ownerAdd address of SubOwner
  * @param doxm current device's doxm resource
  *
