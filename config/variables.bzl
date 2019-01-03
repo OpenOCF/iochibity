@@ -69,8 +69,11 @@ DBG_MSGS = select({"//config:debug_msgs": ["DEBUG_MSGS"],
 	           "//conditions:default": []})
 
 MULTIOWNER = select({"//config:multi_own": ["MULTIPLE_OWNER"],
-	           "//conditions:default": []})
+	             "//conditions:default": []})
 
+# libcoap hdrs etc. require WITH_POSIX on Linux
+POSIX = select({"//config:linux": ["WITH_POSIX"],
+                "//conditions:default": []})
 
-DEFINES = DEFDTLS + DEFTCP + DEFTLS + DEFLOG + DBG_THREADS + DBG_TLS + DBG_MSGS + MULTIOWNER
+DEFINES = DEFDTLS + DEFTCP + DEFTLS + DEFLOG + DBG_THREADS + DBG_TLS + DBG_MSGS + MULTIOWNER + POSIX
 
