@@ -23,6 +23,7 @@
 static int32_t CAQueueIPData(bool isMulticast, const CAEndpoint_t *endpoint,
                              const void *data, uint32_t dataLength)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_RET(endpoint, TAG, "remoteEndpoint", -1);
     VERIFY_NON_NULL_RET(data, TAG, "data", -1);
 
@@ -93,12 +94,13 @@ LOCAL void udp_send_data(CASocketFd_t fd, /*  @was sendData */
     }
 
     OIC_LOG_V(DEBUG, TAG,
-              "%s sending %s %s %s", __func__,
+              "\tsending %s %s %s %s",
               (dest_ep->flags & CA_IPV4) ? "IPV4" : "",
               (dest_ep->flags & CA_IPV6)? "IPV6" : "",
               (dest_ep->flags & CA_SECURE) ? "secure " : "insecure ",
               (dest_ep->flags & CA_MULTICAST) ? "multicast" : "unicast");
-
+    OIC_LOG_V(DEBUG, TAG,
+              "\tdest addr: %s port: %u", dest_ep->addr, dest_ep->port);
 
     /* (void)routing;  // eliminates release warning */
     /* (void)fam; */
@@ -409,6 +411,11 @@ void CAIPSendDataThread(void *threadData)
     {
         //Processing for sending multicast
         OIC_LOG(DEBUG, TAG, "Sending Multicast");
+        OIC_LOG_V(DEBUG, TAG,
+                  "%s sending %s %s %s", __func__,
+              (ipData->remoteEndpoint->flags & CA_IPV4) ? "IPV4" : (ipData->remoteEndpoint->flags & CA_IPV6)? "IPV6" : "ERR",
+              (ipData->remoteEndpoint->flags & CA_SECURE) ? "secure " : "insecure ",
+              (ipData->remoteEndpoint->flags & CA_MULTICAST) ? "multicast" : "unicast");
         CAIPSendData(ipData->remoteEndpoint, ipData->data, ipData->dataLen, true);
     }
     else
@@ -418,6 +425,8 @@ void CAIPSendDataThread(void *threadData)
 #ifdef __WITH_DTLS__
         if (ipData->remoteEndpoint && ipData->remoteEndpoint->flags & CA_SECURE)
         {
+            OIC_LOG(DEBUG, TAG, "Logging remote ep:");
+            LogEndpoint(ipData->remoteEndpoint);
             OIC_LOG(DEBUG, TAG, "Sending encrypted");
             CAResult_t result = CAencryptSsl(ipData->remoteEndpoint, ipData->data, ipData->dataLen);
             if (CA_STATUS_OK != result)

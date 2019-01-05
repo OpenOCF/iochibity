@@ -197,7 +197,7 @@ void CALogSendStateInfo(CATransportAdapter_t adapter,
     }
 
     CALogAdapterTypeInfo(adapter);
-    OIC_LOG_V(DEBUG, ANALYZER_TAG, "Address = [%s]:[%d]", addr, port);
+    OIC_LOG_V(DEBUG, ANALYZER_TAG, "dest address = [%s]:[%d]", addr, port);
     OIC_LOG_V(DEBUG, CA_ADAPTER_UTILS_TAG, "%s EXIT", __func__);
 }
 

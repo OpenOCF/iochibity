@@ -181,7 +181,7 @@ OCStackResult OCGetMatchedTpsFlags(const CATransportAdapter_t adapter,
                                    const CATransportFlags_t flags,
                                    OCTpsSchemeFlags* out)
 {
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    // OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     // return matched TPS Flags with given CA flags.
     if (!out)
     {
@@ -315,7 +315,7 @@ exit:
 
 char* OCCreateEndpointString(const OCEndpointPayload* endpoint)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     if (!endpoint)
     {
 	OIC_LOG_V(DEBUG, TAG, "%s ep is null", __func__);
@@ -364,7 +364,7 @@ char* OCCreateEndpointString(const OCEndpointPayload* endpoint)
         OIC_LOG_V(ERROR, TAG, "Payload has invalid TPS!!! %s", endpoint->tps);
         goto exit;
     }
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT: %s", __func__, buf);
+    /* OIC_LOG_V(DEBUG, TAG, "%s EXIT: %s", __func__, buf); */
     return buf;
 
 exit:
@@ -374,6 +374,7 @@ exit:
 
 char* OC_CALL OCCreateEndpointStringFromCA(const CAEndpoint_t* endpoint)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (!endpoint || 0 == strlen(endpoint->addr))
     {
         return NULL;
@@ -727,7 +728,8 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
         {
             continue;
         }
-	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d, ifindex %d", __func__, i*2, ifitem->index);
+	OIC_LOG_V(DEBUG, TAG, "%s creating ep %d, ifindex %d, addr %s", __func__,
+                  i*2, ifitem->index, ifitem->addr);
 
 	/* skip disabled IFs */
         if ((ifitem->family == AF_INET6 && !udp_ipv6_is_enabled) ||
@@ -904,6 +906,7 @@ bool CAIPIsLocalEndpoint(const CAEndpoint_t *ep)
  */
 OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload, uint32_t ifindex)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, ifindex %u", __func__, ifindex);
     if (!payload)
     {
         OIC_LOG(ERROR, TAG, "Given argument payload is NULL!!");

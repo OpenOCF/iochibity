@@ -291,6 +291,7 @@ OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
                           OCDevAddr *devAddr, char *requestUri,
                           char *resourceTypeName, uint32_t ttl)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (!clientCB || !cbData || !handle || tokenLength > CA_MAX_TOKEN_LEN)
     {
         return OC_STACK_INVALID_PARAM;
@@ -316,7 +317,7 @@ OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
             goto exit;
         }
 
-        OIC_LOG(INFO, TAG, "Adding client callback with token");
+        OIC_LOG(INFO, TAG, "Adding client callback with token:");
         OIC_LOG_BUFFER(INFO, TAG, (const uint8_t *)token, tokenLength);
         OIC_TRACE_BUFFER("OIC_RI_CLIENTCB:AddClientCB:token:",
                          (const uint8_t *)token, tokenLength);
@@ -394,7 +395,20 @@ OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
         }
         cbNode->requestUri = requestUri;    // I own it now
         cbNode->devAddr = devAddr;          // I own it now
-        OIC_LOG_V(INFO, TAG, "Added Callback for uri : %s", requestUri);
+        OIC_LOG_V(INFO, TAG, "Added Callback for %s %s",
+                  (method == OC_REST_GET)? "GET"
+                  :(method == OC_REST_PUT)? "PUT"
+                  :(method == OC_REST_POST)? "POST"
+                  :(method == OC_REST_DELETE)? "DELETE"
+                  :(method == OC_REST_OBSERVE)? "OBSERVE"
+                  :(method == OC_REST_OBSERVE_ALL)? "OBSERVER_ALL"
+#ifdef WITH_PRESENCE
+                  :(method == OC_REST_PRESENCE)? "PRESENCE"
+#endif
+                  :(method == OC_REST_DISCOVER)? "DISCOVERY"
+                  : "UNKNOWN",
+                  requestUri);
+        OIC_LOG_V(INFO, TAG, "Callback TTL: %u", cbNode->TTL);
         OIC_TRACE_MARK(%s:AddClientCB:uri:%s, TAG, requestUri);
         LL_APPEND(g_cbList, cbNode);
         *clientCB = cbNode;
@@ -434,10 +448,12 @@ OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
 #endif
 
     OIC_TRACE_END();
+    OIC_LOG_V(INFO, TAG, "%s EXIT OK", __func__);
     return OC_STACK_OK;
 
 exit:
     OIC_TRACE_END();
+    OIC_LOG_V(INFO, TAG, "%s EXIT BAD", __func__);
     return OC_STACK_NO_MEMORY;
 }
 
@@ -482,7 +498,7 @@ ClientCB* GetClientCBUsingToken(const uint8_t *token,
         return NULL;
     }
 
-    OIC_LOG (INFO, TAG, "Looking for token");
+    OIC_LOG (INFO, TAG, "Looking for token:");
     OIC_LOG_BUFFER(INFO, TAG, (const uint8_t *)token, tokenLength);
 
     ClientCB* out = NULL;

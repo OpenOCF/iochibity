@@ -428,7 +428,8 @@ void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
             OIC_LOG_V(ERROR, TAG, "       IPv4 IP_ADD_MEMBERSHIP failed: %s", strerror(errno));
         }
     } else {
-        OIC_LOG_V(ERROR, TAG, "nif %u added to ipv4 multicast group", ifindex);
+        OIC_LOG_V(DEBUG, TAG, "nif %u added to ipv4 mcast grp %s:%d", ifindex, addr_str, udp_m4.port);
+
     }
     ret = setsockopt(udp_m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)

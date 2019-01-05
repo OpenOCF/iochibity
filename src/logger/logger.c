@@ -654,3 +654,147 @@ void LogSp(OicSecSp_t* sp, int level, const char* tag, const char* msg)
     OIC_LOG(level, tag, "-------------------------------------------------");
 }
 
+void LogDevAddr(OCDevAddr *devaddr)
+{
+    OIC_LOG_V(DEBUG, "DEVADDR", "devaddr.addr: %s", devaddr->addr);
+    OIC_LOG_V(DEBUG, "DEVADDR", "devaddr.port: %d", devaddr->port);
+    OIC_LOG_V(DEBUG, "DEVADDR", "devaddr.adapter: %x", devaddr->adapter);
+    OIC_LOG_V(DEBUG, "DEVADDR", "devaddr.flags: %x", devaddr->flags);
+    OIC_LOG_V(DEBUG, "DEVADDR", "devaddr.remoteId: %s", devaddr->remoteId);
+}
+
+void LogEndpoint(const CAEndpoint_t *ep)
+{
+    OIC_LOG_V(DEBUG, "Endpoint", "endpoint.addr: %s", ep->addr);
+    OIC_LOG_V(DEBUG, "Endpoint", "endpoint.port: %d", ep->port);
+    OIC_LOG_V(DEBUG, "Endpoint", "endpoint.adapter: %x", ep->adapter);
+    OIC_LOG_V(DEBUG, "Endpoint", "endpoint.flags: %x", ep->flags);
+    OIC_LOG_V(DEBUG, "Endpoint", "endpoint.ifindex: %d", ep->ifindex);
+    OIC_LOG_V(DEBUG, "Endpoint", "endpoint.remoteId: %s", ep->remoteId);
+}
+
+void LogSecureEndpoint(const CASecureEndpoint_t *sep)
+{
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.identity: %s", sep->identity.id);
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.userId: %s", sep->userId.id);
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.addr: %s", sep->endpoint.addr);
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.port: %d", sep->endpoint.port);
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.ifindex: %d", sep->endpoint.ifindex);
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.adapter: %x", sep->endpoint.adapter);
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.flags: 0x%04x", sep->endpoint.flags);
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.ipv6? %s", (sep->endpoint.flags & CA_IPV6)? "t":"f");
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.ipv4?: %s", (sep->endpoint.flags & CA_IPV4)? "t":"f");
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.mcast?: %s", (sep->endpoint.flags & CA_MULTICAST)? "t":"f");
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.secure?: %s", (sep->endpoint.flags & CA_SECURE)? "t":"f");
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.scope if?: %s", (sep->endpoint.flags & CA_SCOPE_INTERFACE)? "t":"f");
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.scope link?: %s",
+              ((sep->endpoint.flags & CA_SCOPE_MASK) == CA_SCOPE_LINK)? "t":"f");
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.scope realm?: %s",
+              ((sep->endpoint.flags & CA_SCOPE_MASK) == CA_SCOPE_REALM)? "t":"f");
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.scope site?: %s",
+              ((sep->endpoint.flags & CA_SCOPE_MASK) == CA_SCOPE_SITE)? "t":"f");
+    OIC_LOG_V(DEBUG, "SEndpoint", "sep.remoteId: %s", sep->endpoint.remoteId);
+}
+
+void log_coap_msg_code(const coap_pdu_t *pdu, CATransportAdapter_t transport)
+// const CASecureEndpoint_t *origin_sep)
+{
+    if (transport & CA_ADAPTER_IP) {
+        /* NOTE: libcoap incorrectly uses RESPONSE class, should be MSG CLASS (covers both requests and responses */
+        uint8_t code = pdu->transport_hdr->udp.code & 0x2F;
+        if ((0 == COAP_RESPONSE_CLASS(pdu->transport_hdr->udp.code))
+                   &&
+            (0 == (pdu->transport_hdr->udp.code & 0x2F))) {
+            OIC_LOG_V(DEBUG, TAG, "COAP MSG CODE CLASS = %d %s",
+                      COAP_RESPONSE_CLASS(pdu->transport_hdr->udp.code), "EMPTY MSG");
+        }
+        if ((0 == COAP_RESPONSE_CLASS(pdu->transport_hdr->udp.code))
+            &&
+            (0 < (pdu->transport_hdr->udp.code & 0x2F))) {
+            OIC_LOG_V(DEBUG, TAG, "COAP MSG CODE CLASS = 0 %s", "REQUEST");
+            OIC_LOG_V(DEBUG, TAG, "COAP MSG CODE DETAIL = %d %s",
+                      code,
+                      (code == 1)? "GET"
+                      :(code == 2)? "POST"
+                      :(code == 3)? "PUT"
+                      :(code == 2)? "DELETE"
+                      :"UNKNOWN");
+        }
+        if (2 == COAP_RESPONSE_CLASS(pdu->transport_hdr->udp.code)) {
+            OIC_LOG_V(DEBUG, TAG, "COAP MSG CODE CLASS = 2 %s", "SUCCESS");
+            OIC_LOG_V(DEBUG, TAG, "COAP MSG CODE DETAIL = %d %s",
+                      code,
+                      (code == 1)? "CREATED"
+                      :(code == 2)? "DELETED"
+                      :(code == 3)? "VALID"
+                      :(code == 4)? "CHANGED"
+                      :(code == 5)? "CONTENT"
+                      :"UNKNOWN");
+        }
+        if (4 == COAP_RESPONSE_CLASS(pdu->transport_hdr->udp.code)) {
+            OIC_LOG_V(DEBUG, TAG, "COAP MSG CODE CLASS = 4 %s", "CLIENT ERROR");
+            OIC_LOG_V(DEBUG, TAG, "COAP MSG CODE DETAIL = %d %s",
+                      code,
+                      (code == 0)? "BAD REQUEST"
+                      :(code == 1)? "AUTHORIZED"
+                      :(code == 2)? "BAD OPTIONS"
+                      :(code == 3)? "FORBIDDEN"
+                      :(code == 4)? "NOT FOUND"
+                      :(code == 5)? "METHOD NOT ALLOWED"
+                      :(code == 6)? "NOT ACCEPTABLE"
+                      :(code == 12)? "PRECONDITION FAILED"
+                      :(code == 13)? "REQUEST ENTITY TOO LARGE"
+                      :(code == 16)? "UNSUPPORTED CONTENT_FORMAT"
+                      :"UNKNOWN");
+        }
+        if (5 == COAP_RESPONSE_CLASS(pdu->transport_hdr->udp.code)) {
+            OIC_LOG_V(DEBUG, TAG, "COAP MSG CODE CLASS = 5 %s", "SERVER ERROR");
+            OIC_LOG_V(DEBUG, TAG, "COAP MSG CODE DETAIL = %d %s",
+                      code,
+                      (code == 0)? "INTERNAL SERVER ERROR"
+                      :(code == 1)? "NOT IMPLEMENTED"
+                      :(code == 2)? "BAD GATEWAY"
+                      :(code == 3)? "SERVICE UNAVAILABLE"
+                      :(code == 4)? "GATEWAY TIMEOUT"
+                      :(code == 5)? "PROXYING NOT SUPPORTED"
+                      :"UNKNOWN");
+        }
+    }
+}
+
+#if INTERFACE
+#include <coap/pdu.h>
+#endif
+void log_coap_pdu_hdr(const coap_pdu_t *pdu, CATransportAdapter_t transport)
+{
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+
+    //coap_transport_t transport = COAP_UDP;
+#ifdef WITH_TCP
+    if (CAIsSupportedCoAPOverTCP(transport))
+    {
+        transport = coap_get_tcp_header_type_from_initbyte(((unsigned char *)pdu->transport_hdr)[0] >> 4);
+    }
+#endif
+
+    OIC_LOG_V(DEBUG, TAG, "transport: %s",
+              (transport == CA_ADAPTER_IP)? "UDP"
+              :(transport == CA_ADAPTER_IP)? "TCP"
+              :"OTHER");
+    if (transport == CA_ADAPTER_IP) { // COAP_UDP) {
+        OIC_LOG_V(DEBUG, TAG, "coap msg type: %u %s",
+                  pdu->transport_hdr->udp.type,
+                  (pdu->transport_hdr->udp.type == COAP_MESSAGE_CON)? "CONfirmable"
+                  :(pdu->transport_hdr->udp.type == COAP_MESSAGE_NON)? "NON-confirmable"
+                  :(pdu->transport_hdr->udp.type == COAP_MESSAGE_ACK)? "ACK"
+                  :(pdu->transport_hdr->udp.type == COAP_MESSAGE_RST)? "RESET"
+                  :"UNKNOWN");
+
+        OIC_LOG_V(DEBUG, TAG, "coap msg id: %u", pdu->transport_hdr->udp.id);
+        OIC_LOG_V(DEBUG, TAG, "coap msg token:");
+        OIC_LOG_BUFFER(DEBUG, TAG, (const uint8_t *)pdu->transport_hdr->udp.token,
+                       pdu->transport_hdr->udp.token_length);
+    }
+
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
+}

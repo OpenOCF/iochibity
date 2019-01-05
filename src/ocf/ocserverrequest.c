@@ -146,6 +146,9 @@ static void DeleteServerResponse (OCServerResponse * serverResponse)
  */
 static OCStackResult OCSendResponse (const CAEndpoint_t *object, CAResponseInfo_t *responseInfo)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(ERROR, TAG, "payload size: %u", responseInfo->info.payloadSize);
+
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     // Add route info in RM option.
     OCStackResult rmResult = RMAddInfo(object->routeData, responseInfo, false, NULL);
@@ -164,6 +167,7 @@ static OCStackResult OCSendResponse (const CAEndpoint_t *object, CAResponseInfo_
         OIC_LOG_V(ERROR, TAG, "CASendResponse failed with CA error %u", result);
         return CAResultToOCResult(result);
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return OC_STACK_OK;
 }
 
@@ -531,6 +535,8 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
         {
             responseInfo.info.numOptions++;
         }
+    } else {
+        OIC_LOG_V(INFO, TAG, "%s no payload!", __func__);
     }
 
     if (responseInfo.info.numOptions > 0)
@@ -702,6 +708,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
                 responseInfo.result = CA_NOT_ACCEPTABLE;
         }
     }
+    OIC_LOG_V(ERROR, TAG, "payload size: %u", responseInfo.info.payloadSize);
 
 #ifdef WITH_PRESENCE
     CATransportAdapter_t CAConnTypes[] = {

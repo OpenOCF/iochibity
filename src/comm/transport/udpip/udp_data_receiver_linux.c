@@ -43,7 +43,7 @@
 /* called by udp_data_receiver_runloop */
 void udp_handle_inbound_data(void) // @was CAFindReadyMessage + CASelectReturned
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY (sockets runloop iteration)", __func__);
     fd_set readFds;
     struct timeval timeout;
 

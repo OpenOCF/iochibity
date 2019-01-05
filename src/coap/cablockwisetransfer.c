@@ -308,6 +308,7 @@ void CATerminateBlockWiseMutexVariables(void)
 
 CAResult_t CASendBlockWiseData(const CAData_t *sendData)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(sendData, TAG, "sendData");
 
     // check if message type is CA_MSG_RESET
@@ -402,7 +403,7 @@ CAResult_t CASendBlockWiseData(const CAData_t *sendData)
             return res;
         }
     }
-
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return res;
 }
 
@@ -410,6 +411,8 @@ CAResult_t CAAddSendThreadQueue(const CAData_t *sendData, const CABlockDataID_t 
 {
     VERIFY_NON_NULL_MSG(sendData, TAG, "sendData");
     VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
 
     CAData_t *cloneData = CACloneCAData(sendData);
     if (!cloneData)
@@ -2318,7 +2321,7 @@ CAPayload_t CAGetPayloadFromBlockDataList(const CABlockDataID_t *blockID,
 
 CABlockData_t *CACreateNewBlockData(const CAData_t *sendData)
 {
-    OIC_LOG(DEBUG, TAG, "IN-CACreateNewBlockData");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_RET(sendData, TAG, "sendData", NULL);
 
     // create block data
@@ -2388,7 +2391,7 @@ CABlockData_t *CACreateNewBlockData(const CAData_t *sendData)
     }
     oc_mutex_unlock(g_context.blockDataListMutex);
 
-    OIC_LOG(DEBUG, TAG, "OUT-CreateBlockData");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return data;
 }
 
@@ -2479,6 +2482,7 @@ void CADestroyDataSet(CAData_t* data)
 CABlockDataID_t* CACreateBlockDatablockId(const uint8_t *token, uint8_t tokenLength,
                                           const char* addr, uint16_t portNumber)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     size_t addrLength = strlen(addr);
     char port[PORT_LENGTH] = { 0, };
     port[0] = (char) ((portNumber >> 8) & 0xFF);
@@ -2510,6 +2514,7 @@ CABlockDataID_t* CACreateBlockDatablockId(const uint8_t *token, uint8_t tokenLen
     OIC_LOG(DEBUG, TAG, "BlockID is ");
     OIC_LOG_BUFFER(DEBUG, TAG, (const uint8_t *)blockDataID->id, blockDataID->idLength);
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return blockDataID;
 }
 

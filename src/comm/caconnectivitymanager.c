@@ -315,7 +315,8 @@ CAResult_t CAGetNetworkInformation(CAEndpoint_t **info, size_t *size)
 static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *dest_ep, const void *sendMsg,
                                             CADataType_t dataType)
 {
-    OIC_LOG(DEBUG, TAG, "CASendMessageMultipleAdapter");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(ERROR, TAG, "payload size: %u", ((struct CARequestInfo *)sendMsg)->info.payloadSize);
 
     CATransportAdapter_t connTypes[] = {
             CA_ADAPTER_IP
@@ -377,7 +378,8 @@ CAResult_t CASendRequest(const CAEndpoint_t *dest_ep, const struct CARequestInfo
 
 CAResult_t CASendResponse(const CAEndpoint_t *dest_ep, const CAResponseInfo_t *responseInfo)
 {
-    OIC_LOG(DEBUG, TAG, "CASendResponse");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(ERROR, TAG, "payload size: %u", ((CARequestInfo *)responseInfo)->info.payloadSize);
 
     if (!g_isInitialized)
     {

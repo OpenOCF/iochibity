@@ -220,7 +220,7 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
         goto exit;
     }
 
-    OIC_LOG_V(DEBUG, TAG, "address : %s", ep->addr);
+    OIC_LOG_V(DEBUG, TAG, "origin address : %s", ep->addr);
 
     if (CA_RESPONSE_DATA == dataType) /* CLIENT mode */
     {
@@ -613,7 +613,7 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
 
         if (NULL != data->requestInfo)
         {
-            OIC_LOG(DEBUG, TAG, "requestInfo is available..");
+            OIC_LOG(DEBUG, TAG, "msg is OUTBOUND REQUEST");
 
             info = &data->requestInfo->info;
 #ifdef ROUTING_GATEWAY
@@ -624,7 +624,8 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
         }
         else if (NULL != data->responseInfo)
         {
-            OIC_LOG(DEBUG, TAG, "responseInfo is available..");
+            OIC_LOG(DEBUG, TAG, "msg is OUTBOUND RESPONSE");
+            OIC_LOG_V(DEBUG, TAG, "response result: 0x%04x", data->responseInfo->result);
 
             info = &data->responseInfo->info;
 #ifdef ROUTING_GATEWAY
@@ -761,7 +762,7 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
 
 static void CASendThreadProcess(void *threadData)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY (g_sendThread)", __func__);
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY (g_sendThread task)", __func__);
     CAData_t *data = (CAData_t *) threadData;
     OIC_TRACE_BEGIN(%s:CAProcessSendData, TAG);
     CAProcessSendData(data);
@@ -1002,8 +1003,8 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep, // @was CAReceiv
     coap_delete_pdu(pdu);
 
 exit:
-    OIC_LOG(DEBUG, TAG, "received pdu data :");
-    OIC_LOG_PAYLOAD_BUFFER(DEBUG, TAG,  data, dataLen);
+    // OIC_LOG(DEBUG, TAG, "received pdu dgram_payload :");
+    OIC_LOG_PAYLOAD_BUFFER(DEBUG, TAG,  dgram_payload, dataLen);
 
     OIC_TRACE_END();
     OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
@@ -1016,7 +1017,7 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
     // #1 parse the data
     // #2 get endpoint
 
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(INFO, TAG, "%s ENTRY (main runloop iteration)", __func__);
 
     oc_mutex_lock(g_receiveThread.threadMutex);
 
@@ -1096,6 +1097,7 @@ CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
 
     if (CA_REQUEST_DATA == dataType)
     {
+        OIC_LOG_V(DEBUG, TAG, "%s type == REQUEST", __func__);
         // clone request info
         struct CARequestInfo *request = CACloneRequestInfo((struct CARequestInfo *)sendData);
         if (!request)
@@ -1108,6 +1110,8 @@ CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
     }
     else if (CA_RESPONSE_DATA == dataType || CA_RESPONSE_FOR_RES == dataType)
     {
+        OIC_LOG_V(DEBUG, TAG, "%s type == RESPONSE", __func__);
+
         // clone response info
         CAResponseInfo_t *response = CACloneResponseInfo((CAResponseInfo_t *)sendData);
         if(!response)
@@ -1146,9 +1150,11 @@ CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
     }
     cadata->remoteEndpoint = ep;
     cadata->dataType = dataType;
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT OK", __func__);
     return cadata;
 
 exit:
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT ERR", __func__);
     CADestroyData(cadata, sizeof(CAData_t));
     return NULL;
 }
@@ -1159,6 +1165,9 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *dest_ep, const void *sendMsg,
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(dest_ep, TAG, "dest_ep");
     VERIFY_NON_NULL_MSG(sendMsg, TAG, "sendMsg");
+
+    OIC_LOG_V(INFO, TAG, "%s logging dest_ep:");
+    LogEndpoint(dest_ep);
 
     // we always have at least one transport available!
     /* if (false == CAIsSelectedNetworkAvailable()) */
@@ -1250,6 +1259,7 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *dest_ep, const void *sendMsg,
         CAQueueingThreadAddData(&g_sendThread, data, sizeof(CAData_t));
     }
 
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 

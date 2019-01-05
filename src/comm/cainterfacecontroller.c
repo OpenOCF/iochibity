@@ -443,7 +443,7 @@ CAResult_t CAGetNetworkInfo(CAEndpoint_t **ep_list_ptr, size_t *ep_count_ptr)
     VERIFY_NON_NULL_MSG(ep_list_ptr, TAG, "ep_list_ptr is null");
     VERIFY_NON_NULL_MSG(ep_count_ptr, TAG, "ep_count_ptr is null");
 
-    OIC_LOG_V(DEBUG, TAG, "%s number of adapters: %d", __func__, g_numberOfAdapters);
+    OIC_LOG_V(DEBUG, TAG, "%s number of transports: %d", __func__, g_numberOfAdapters);
 
     CAResult_t res = CA_STATUS_FAILED;
     size_t ep_count = 0;
@@ -528,6 +528,7 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
                              CADataType_t dataType)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(DEBUG, TAG, "enpoint adapter: %x", endpoint->adapter);
 
     // @rewrite
     int32_t sentDataLen = 0;
@@ -545,7 +546,7 @@ CAResult_t CASendUnicastData(const CAEndpoint_t *endpoint, const void *data, uin
 #endif
 
     if ((0 > sentDataLen) || ((uint32_t)sentDataLen != length)) {
-	OIC_LOG(ERROR, TAG, "Error sending data. The error will be reported in adapter.");
+	OIC_LOG_V(ERROR, TAG, "Error sending data: data len: %d, sent len: %d", length, sentDataLen);
     }
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;

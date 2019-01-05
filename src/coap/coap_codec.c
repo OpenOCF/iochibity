@@ -258,7 +258,7 @@ coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_
             return NULL;
         }
 
-        OIC_LOG(DEBUG, TAG, "code is empty");
+        OIC_LOG(DEBUG, TAG, "code is 0.00 (Empty msg)");
         if (!(pdu = CAGeneratePDUImpl((code_t) code, info, endpoint, NULL, transport)))
         {
             OIC_LOG(ERROR, TAG, "pdu NULL");
@@ -314,6 +314,7 @@ coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_
     }
 
     // pdu print method : coap_show_pdu(pdu);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return pdu;
 }
 
@@ -341,13 +342,13 @@ coap_pdu_t *CAParsePDU(const char *data, size_t length, uint32_t *outCode,
         return NULL;
     }
 
-    OIC_LOG_V(DEBUG, TAG, "pdu parse-transport type : %d", transport);
+    /* OIC_LOG_V(DEBUG, TAG, "pdu parse-transport type : %d", transport); */
 
-    int ret = coap_pdu_parse2((unsigned char *) data, length, outpdu, transport);
-    OIC_LOG_V(DEBUG, TAG, "pdu parse ret: %d", ret);
+    int ret = coap_pdu_parse2((unsigned char *) dgram_payload, length, outpdu, transport);
+    /* OIC_LOG_V(DEBUG, TAG, "pdu parse ret: %d", ret); */
     if (0 >= ret)
     {
-        OIC_LOG(ERROR, TAG, "pdu parse failed");
+        OIC_LOG_V(ERROR, TAG, "pdu parse failed, rc: %u", ret);
         goto exit;
     }
 
@@ -367,7 +368,7 @@ coap_pdu_t *CAParsePDU(const char *data, size_t length, uint32_t *outCode,
         }
         if (outpdu->transport_hdr->udp.token_length > CA_MAX_TOKEN_LEN)
         {
-            OIC_LOG_V(ERROR, TAG, "token length has been exceed : %d",
+            OIC_LOG_V(ERROR, TAG, "token is too long: %d",
                       outpdu->transport_hdr->udp.token_length);
             goto exit;
         }
@@ -1342,6 +1343,7 @@ CAResult_t CAGenerateTokenInternal(uint8_t **token, uint8_t tokenLength)
 
     OIC_LOG_V(DEBUG, TAG, "token len:%d, token:", tokenLength);
     OIC_LOG_BUFFER(DEBUG, TAG, (const uint8_t *)(*token), tokenLength);
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 
     return CA_STATUS_OK;
 }
@@ -1350,7 +1352,7 @@ void CADestroyTokenInternal(uint8_t *token)
 {
     if (token)
     {
-        char *temp = token - 1;
+        uint8_t *temp = token - 1;
 #ifdef WITH_BWT
         CARemoveBlockMulticastDataFromListWithSeed(token, *temp);
 #endif

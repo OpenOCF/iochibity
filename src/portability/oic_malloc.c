@@ -75,12 +75,14 @@ EXPORT
     }
 
 #ifdef ENABLE_MALLOC_DEBUG
+    OIC_LOG_V(INFO, TAG, "malloc: size=%u", size);
     void *ptr = malloc(size);
     if (ptr)
     {
         count++;
+        total += size;
     }
-    OIC_LOG_V(INFO, TAG, "malloc: ptr=%p, size=%u, count=%u", ptr, size, count);
+    OIC_LOG_V(INFO, TAG, "malloc: ptr=%p, size=%u, count=%u, total=%u", ptr, size, count, total);
     return ptr;
 #else
     return malloc(size);
@@ -101,7 +103,7 @@ EXPORT
     {
         count++;
     }
-    OIC_LOG_V(INFO, TAG, "calloc: ptr=%p, num=%u, size=%u, count=%u", ptr, num, size, count);
+    OIC_LOG_V(INFO, TAG, "calloc: ptr=%p, num=%u, size=%u, count=%u, total=%u", ptr, num, size, count, total);
     return ptr;
 #else
     return calloc(num, size);

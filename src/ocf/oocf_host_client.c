@@ -47,6 +47,8 @@ CAMessageType_t qualityOfServiceToCoAPMessageType(OCQualityOfService qos)
  */
 LOCAL OCDoHandle GenerateInvocationHandle(void)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+
     OCDoHandle handle = NULL;
     // Generate token here, it will be deleted when the transaction is deleted
     handle = (OCDoHandle) OICMalloc(sizeof(uint8_t[CA_MAX_TOKEN_LEN]));
@@ -61,6 +63,7 @@ LOCAL OCDoHandle GenerateInvocationHandle(void)
 	OIC_LOG_V(ERROR, TAG, "%s: OICMalloc error", __func__);
     }
 
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return handle;
 }
 
@@ -115,7 +118,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
      */
     adapter = (OCTransportAdapter)(connectivityType >> CT_ADAPTER_SHIFT);
     flags = (OCTransportFlags)(connectivityType & CT_MASK_FLAGS);
-    OIC_LOG_V(DEBUG, TAG, "%s: adapter = %d, flags = %d", __func__, adapter, flags);
+    OIC_LOG_V(DEBUG, TAG, "adapter = %d, ctflags = 0x%04x", adapter, flags);
 
     if (requestUri)
     {
@@ -125,9 +128,14 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
             OIC_LOG_V(DEBUG, TAG, "Unable to parse uri: %s", requestUri);
             goto exit;
         }
+        if (devAddr) {
+            OIC_LOG_V(DEBUG, TAG, "dest devaddr derived from requestUri:");
+        } else {
+            OIC_LOG_V(DEBUG, TAG, "dest devaddr not derived from requestUri:");
+        }
     }
     else
-    {
+    {                           /* ProxyUri option */
         isProxyRequest = checkProxyUri(options, numOptions);
         if (!isProxyRequest)
         {
@@ -157,21 +165,22 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
 #ifdef WITH_PRESENCE
     case OC_REST_PRESENCE:
 #endif
-        if (destination || devAddr)
+        if (dest_ep || devAddr)
         {
             requestInfo.isMulticast = false;
             endpoint.flags &= ~CA_MULTICAST;
-	    OIC_LOG_V(DEBUG, TAG, "Request is UNICAST");
+	    OIC_LOG_V(DEBUG, TAG, "Discovery request is UNICAST");
         }
         else
         {
             tmpDevAddr.adapter = adapter;
             tmpDevAddr.flags |= CA_MULTICAST;
-            destination = &tmpDevAddr;
+            dest_ep = &tmpDevAddr;
             requestInfo.isMulticast = true;
             endpoint.flags |= CA_MULTICAST;
             qos = OC_LOW_QOS;
-	    OIC_LOG_V(DEBUG, TAG, "Request is MULTICAST");
+	    OIC_LOG_V(DEBUG, TAG, "Request is MULTICAST DISCOVERY");
+	    OIC_LOG_V(DEBUG, TAG, "setting dest_ep to default transport (adapter)");
         }
         // OC_REST_DISCOVER: CA_DISCOVER will become GET and isMulticast.
         // OC_REST_PRESENCE: Since "presence" is a stack layer only implementation.
@@ -345,8 +354,30 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
         }
     }
 
+    /* OIC_LOG_V(DEBUG, TAG, */
+    /*           "%s sending %s %s %s %s", __func__, */
+    /*           (endpoint.flags & CA_IPV6) ? "IPV6" : "", */
+    /*           (endpoint.flags & CA_IPV4) ? "IPV4" : "", */
+    /*           (endpoint.flags & CA_SECURE) ? "secure " : "insecure ", */
+    /*           (endpoint.flags & CA_MULTICAST) ? "multicast" : "unicast"); */
+
+    /* OIC_LOG_V(DEBUG, TAG, "logging devaddr"); */
+    /* LogDevAddr(devAddr); */
+    /* OIC_LOG_V(DEBUG, TAG, "devAddr flags: %s %s ", */
+    /*           (devAddr->flags & OC_IP_USE_V6)? "OC_IP_USE_V6" : "", */
+    /*           (devAddr->flags & OC_IP_USE_V4)? "OC_IP_USE_V4" : ""); */
+
     CopyDevAddrToEndpoint(devAddr, &endpoint);
 
+    /* OIC_LOG_V(DEBUG, TAG, */
+    /*           "%s sending %s %s %s %s", __func__, */
+    /*           (endpoint.flags & CA_IPV6) ? "IPV6" : "", */
+    /*           (endpoint.flags & CA_IPV4) ? "IPV4" : "", */
+    /*           (endpoint.flags & CA_SECURE) ? "secure " : "insecure ", */
+    /*           (endpoint.flags & CA_MULTICAST) ? "multicast" : "unicast"); */
+
+    OIC_LOG_V(INFO, TAG, "%s process payload", __func__);
+    /* inbound request may or may not have a payload. */
     if (payload)
     {
         uint16_t payloadVersion = OCF_VERSION_1_0_0;
@@ -400,11 +431,13 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
     }
     else
     {
+        OIC_LOG_V(INFO, TAG, "%s no payload", __func__);
         requestInfo.info.payload = NULL;
         requestInfo.info.payloadSize = 0;
         requestInfo.info.payloadFormat = CA_FORMAT_UNDEFINED;
     }
 
+    OIC_LOG_V(INFO, TAG, "%s prep response", __func__);
     // prepare for response
 #ifdef WITH_PRESENCE
     if (method == OC_REST_PRESENCE)
@@ -464,6 +497,8 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
 #endif
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+    OIC_LOG_V(INFO, TAG, "%s deal with tls", __func__);
+
     /* Check whether we should assert role certificates before making this request. */
     bool isEndpointSecure = ((endpoint.flags & CA_SECURE) != 0);
     bool requestContainsRolesUri = (strcmp(requestInfo.info.resourceUri, OIC_RSRC_ROLES_URI) == 0);
@@ -599,7 +634,7 @@ OCStackResult OCSendRequest(const CAEndpoint_t *dest_ep, struct CARequestInfo *r
     OIC_TRACE_BEGIN(%s:OCSendRequest, TAG);
 
     OIC_LOG_V(DEBUG, TAG,
-              "%s sending %s %s %s %s", __func__,
+              "\tsending %s %s %s %s",
               (dest_ep->flags & CA_IPV6) ? "IPV6" : "",
               (dest_ep->flags & CA_IPV4) ? "IPV4" : "",
               (dest_ep->flags & CA_SECURE) ? "secure " : "insecure ",

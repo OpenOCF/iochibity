@@ -596,6 +596,7 @@ OCStackResult OCStackFeedBack(uint8_t *token, uint8_t tokenLength, uint8_t statu
 /* DELETE */
 OCStackResult CAResponseToOCStackResult(CAResponseResult_t caCode)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, resp: %u", __func__, caCode);
     OCStackResult ret = OC_STACK_ERROR;
     switch(caCode)
     {
@@ -645,6 +646,7 @@ OCStackResult CAResponseToOCStackResult(CAResponseResult_t caCode)
         default:
             break;
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT, resp: %u", __func__, ret);
     return ret;
 }
 
@@ -1251,7 +1253,7 @@ exit:
         CATerminate();
         stackState = OC_STACK_UNINITIALIZED;
     }
-    OIC_LOG_V(DEBUG, TAG, "%d EXIT, rc: %d", __func__, result);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT, rc: %u", __func__, result);
     return result;
 }
 
@@ -2160,14 +2162,16 @@ OC_CALL OCNotifyListOfObservers (OCResourceHandle handle,
             payload, maxAge, qos));
 }
 
+/* send outbound response */
 OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse) EXPORT
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OIC_TRACE_BEGIN(%s:OCDoResponse, TAG);
     OCStackResult result = OC_STACK_ERROR;
     // OCServerRequest *serverRequest = NULL;
     struct CARequestInfo *request = NULL;
 
-    OIC_LOG(INFO, TAG, "Entering OCDoResponse");
+    OIC_LOG_V(DEBUG, TAG, "%s result: 0x%04x", __func__, ehResponse->ehResult);
 
     // Validate input parameters
     VERIFY_NON_NULL(ehResponse, ERROR, OC_STACK_INVALID_PARAM);
@@ -2181,10 +2185,12 @@ OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse) EXPORT
     if(request)
     {
         // response handler in ocserverrequest.c. Usually HandleSingleResponse.
+        // ehResponseHandler will be either HandleSingleResponse or HandleAggregateResponse
         result = request->ehResponseHandler(ehResponse);
     }
 
     OIC_TRACE_END();
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return result;
 }
 

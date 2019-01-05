@@ -1711,6 +1711,7 @@ static bool IsNewPreconfigPinCredential(OicSecCred_t * oldCred, OicSecCred_t * n
 
 OCStackResult AddCredential(OicSecCred_t * newCred)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s: ENTRY", __func__);
     OCStackResult result = OC_STACK_ERROR;
 
     OicSecCred_t* cred = NULL;
@@ -1783,6 +1784,7 @@ saveToDB:
         result = OC_STACK_OK;
     }
 exit:
+    OIC_LOG_V(DEBUG, TAG, "%s: EXIT", __func__);
     return result;
 }
 
@@ -1911,6 +1913,7 @@ static OCStackResult RemoveCredentialByCredIds(CredIdList_t *credIdList)
  */
 static bool GetCredIdsFromQueryString(const char *query, CredIdList_t **credid)
 {
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     bool found = false;
     OicParseQueryIter_t parseIter = { .attrPos = NULL };
 
@@ -1958,6 +1961,7 @@ static bool GetCredIdsFromQueryString(const char *query, CredIdList_t **credid)
     }
 
 exit:
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return found;
 }
 
@@ -2091,10 +2095,12 @@ static bool FillPrivateDataOfOwnerPSK(OicSecCred_t* receivedCred,
 
     OICClearMemory(ownerPSK, sizeof(ownerPSK));
 
+    OIC_LOG_V(INFO, TAG, "%s EXIT OK", __func__);
     //Verify OwnerPSK information
     return (memcmp(&(receivedCred->subject), &(doxm->owner), sizeof(OicUuid_t)) == 0 &&
             receivedCred->credType == SYMMETRIC_PAIR_WISE_KEY);
 exit:
+    OIC_LOG_V(INFO, TAG, "%s EXIT ERROR", __func__);
     //receivedCred->privateData.data will be deallocated when deleting credential.
     OICClearMemory(ownerPSK, sizeof(ownerPSK));
     OICClearMemory(b64Buf, b64BufSize);
@@ -3901,6 +3907,8 @@ void InitCipherSuiteListInternal(bool * list, const char * usage, const char *de
         OIC_LOG_V(DEBUG, TAG, "Out %s", __func__);
         return;
     }
+    OIC_LOG_V(DEBUG, TAG, "gCred: %p", gCred);
+
     OicSecCred_t * temp = NULL;
     LL_FOREACH(gCred, temp)
     {

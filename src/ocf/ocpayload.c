@@ -2199,7 +2199,7 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
             }
             else
             {
-                OIC_LOG_V(DEBUG, TAG, "CATransportAdapter_t value = %d", info->adapter);
+                OIC_LOG_V(DEBUG, TAG, "CATransportAdapter_t value = %d", lep->adapter);
             }
         }
     }

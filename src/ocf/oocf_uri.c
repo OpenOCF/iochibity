@@ -152,6 +152,8 @@ OCStackResult ParseRequestUri(const char *fullUri,
         {
             return OC_STACK_INVALID_URI;
         }
+        OIC_LOG_V(INFO, TAG, "\taddr len: %d", len);
+
 
         da = (OCDevAddr *)OICCalloc(sizeof (OCDevAddr), 1);
         if (!da)
@@ -215,7 +217,10 @@ OCStackResult ParseRequestUri(const char *fullUri,
             OICStrcpy(*resourceType, (tlen + 1), type);
         }
     }
+    OIC_LOG_V(INFO, TAG, "\tresourceUri: %s", *resourceUri);
+    OIC_LOG_V(INFO, TAG, "\tresourceType: %s", *resourceType);
 
+    OIC_LOG_V(INFO, TAG, "%s EXIT OK", __func__);
     return OC_STACK_OK;
 
 error:
@@ -232,7 +237,7 @@ error:
     {
         OICFree(*resourceType);
     }
-    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
+    OIC_LOG_V(INFO, TAG, "%s EXIT error: %d", __func__, result);
     return result;
 }
 

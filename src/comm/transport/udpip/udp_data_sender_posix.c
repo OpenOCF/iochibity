@@ -36,6 +36,7 @@ EXPORT
     (void)flags;
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OIC_LOG_V(DEBUG, TAG, "%s dest socket: %d", __func__, fd);
+    LogEndpoint(endpoint);
     OIC_LOG_V(DEBUG, TAG,
               "sending %s %s %s",
               (endpoint->flags & CA_IPV4) ? "IPV4" : (endpoint->flags & CA_IPV6)? "IPV6" : "ERR",

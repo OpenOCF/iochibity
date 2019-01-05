@@ -108,7 +108,8 @@ do \
 
 CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @was CAReceiveMessage
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* pktinfo - see RFC 3542 */
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY flags: 0x%04x", __func__, flags);
     char recvBuffer[RECV_MSG_BUF_LEN] = {0};
     int level = 0;
     int type = 0;

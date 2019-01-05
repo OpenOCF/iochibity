@@ -763,7 +763,7 @@ void CAInitializeFastShutdownMechanism(void)
     udp_shutdownFds[1] = -1;
     /* if (-1 == ret) */
     /* { */
-        /* OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR); */
+    OIC_LOG_V(ERROR, TAG, "fast shutdown mechanism init failed: %s", CAIPS_GET_ERROR);
     udp_selectTimeout = SELECT_TIMEOUT; //poll needed for shutdown
     /* } */
     OIC_LOG_V(DEBUG, TAG, "%s ERROR EXIT", __func__);

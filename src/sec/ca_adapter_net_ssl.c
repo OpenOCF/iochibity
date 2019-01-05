@@ -889,7 +889,8 @@ static SslEndPoint_t *GetSslPeer(const CAEndpoint_t *peer)
 {
     size_t listIndex = 0;
     size_t listLength = 0;
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
+    OIC_LOG_V(DEBUG, NET_SSL_TAG, "%s ENTRY; logging ep:", __func__);
+    LogEndpoint(peer);
 
     oc_mutex_assert_owner(g_sslContextMutex, true);
 
@@ -1631,7 +1632,7 @@ static SslEndPoint_t * InitiateTlsHandshake(const CAEndpoint_t *endpoint)
     tep = NewSslEndPoint(endpoint, config);
     if (NULL == tep)
     {
-        OIC_LOG(ERROR, NET_SSL_TAG, "Malloc failed!");
+        OIC_LOG(ERROR, NET_SSL_TAG, "NewSslEndPoint failed!");
         return NULL;
     }
 
@@ -1740,7 +1741,7 @@ void CAdeinitSslAdapter(void)
 
 static int InitConfig(mbedtls_ssl_config * conf, int transport, int mode)
 {
-    OIC_LOG_V(DEBUG, NET_SSL_TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(DEBUG, NET_SSL_TAG, "%s ENTRY, mode: %d", __func__, mode);
     VERIFY_NON_NULL_RET(conf, NET_SSL_TAG, "Param conf is NULL" , -1);
     VERIFY_NON_NULL_RET(g_caSslContext, NET_SSL_TAG, "SSL Context is NULL", -1);
     mbedtls_ssl_config_init(conf);
