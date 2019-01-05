@@ -5,8 +5,7 @@ cc_library(
     visibility = ["//visibility:public"],
     linkstatic = 1,
     copts = ["-Iexternal/libcoap/include",
-             "-Iexternal/uthash/src",
-             "-DWITH_POSIX"]    # needed by coap/prng.h, to enable inlined fn
+             "-Iexternal/uthash/src"]
     + CSTD + OS_COPTS
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
               "//conditions:default": []})

@@ -74,10 +74,6 @@
 # define __bool_true_false_are_defined 1
 #endif
 
-/* for libcoap-4.1.1 (protocol/coap): WITH_POSIX == HAVE_LIBPTHREAD? */
-
-#define WITH_POSIX
-
 #ifdef _WIN32
 //GAR: mingw has both strtok_r and strtok_s
 //GAR: strtok_s is c11, strtok_r is posix

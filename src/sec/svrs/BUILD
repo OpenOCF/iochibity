@@ -22,9 +22,9 @@ cc_library(
              "-Iexternal/tinycbor/src",
     ] + select({"//config:msvc": [],
                 "//config:mingw": ["-DNOGDI", "-DNOSERVICE"], # avoid warnings about redefined macros
-                "//config:darwin": ["-std=c11", "-UDEBUG", "-DWITH_POSIX"],
+                "//config:darwin": ["-std=c11", "-UDEBUG"],
                 "//config:darwin64": ["-std=c11", "UDEBUG"],
-                "//conditions:default": ["-std=c11", "-DWITH_POSIX"]}),
+                "//conditions:default": ["-std=c11"]}),
 
     defines = DEFINES,
 

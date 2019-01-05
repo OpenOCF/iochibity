@@ -23,12 +23,11 @@
 #include "coap_config.h"
 #ifdef _MSC_VER
 #define HAVE_WS2TCPIP_H
-#else
-#define WITH_POSIX
+#endif
+
 #include <time.h>
 #include "coap_config.h"
 #include "coap/coap_time.h"
-#endif
 
 #include "utlist.h"
 
