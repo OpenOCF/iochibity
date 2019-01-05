@@ -23,7 +23,9 @@ cc_library(
     srcs = ["cablockwisetransfer.c",
             "cablockwisetransfer.h",
             "coap_codec.c",
-            "coap_codec.h"
+            "coap_codec.h",
+            "oocf_coap_options.c",
+            "oocf_coap_options.h"
     ] + select({"//config:enable_tcp": ["caping.c",
                                         "caping.h",
                                         "coap_tcp_signaling.c",

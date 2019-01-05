@@ -64,6 +64,13 @@ LOCAL OCDoHandle GenerateInvocationHandle(void)
     return handle;
 }
 
+void process_options(struct CARequestInfo requestInfo, uint8_t numOptions, OCHeaderOption *options)
+{
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
+}
+
+
 /**
  * Discover or Perform requests on a specified resource
  */
@@ -246,6 +253,10 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
     }
     else
     {
+        OIC_LOG_V(DEBUG, TAG, "%s: process options", __func__);
+        process_options(requestInfo, numOptions, options);
+        // FIXME: put in a fn
+
         // Check if accept format and accept version have been set.
         uint16_t acceptVersion = OCF_VERSION_1_0_0;
         uint16_t acceptFormat = COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR;

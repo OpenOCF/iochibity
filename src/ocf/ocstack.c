@@ -2943,49 +2943,6 @@ OCStackResult OC_CALL OCSetHeaderOption(OCHeaderOption* ocHdrOpt, size_t* numOpt
     return OC_STACK_OK;
 }
 
-OCStackResult OC_CALL OCGetHeaderOption(OCHeaderOption* ocHdrOpt, size_t numOptions,
-                                        uint16_t optionID, void* optionData, size_t optionDataLength,
-                                        uint16_t* receivedDataLength)
-EXPORT
-{
-    if (!ocHdrOpt || !numOptions)
-    {
-        OIC_LOG (INFO, TAG, "No options present");
-        return OC_STACK_OK;
-    }
-
-    if (!optionData)
-    {
-        OIC_LOG (INFO, TAG, "optionData are NULL");
-        return OC_STACK_INVALID_PARAM;
-    }
-
-    if (!receivedDataLength)
-    {
-        OIC_LOG (INFO, TAG, "receivedDataLength is NULL");
-        return OC_STACK_INVALID_PARAM;
-    }
-
-    for (size_t i = 0; i < numOptions; i++)
-    {
-        if (ocHdrOpt[i].optionID == optionID)
-        {
-            if (optionDataLength >= ocHdrOpt->optionLength)
-            {
-                memcpy(optionData, ocHdrOpt[i].optionData, ocHdrOpt[i].optionLength);
-                *receivedDataLength = ocHdrOpt[i].optionLength;
-                return OC_STACK_OK;
-            }
-            else
-            {
-                OIC_LOG (ERROR, TAG, "optionDataLength is less than the length of received data");
-                return OC_STACK_ERROR;
-            }
-        }
-    }
-    return OC_STACK_OK;
-}
-
 /**
  * default adapter state change callback method
  *
