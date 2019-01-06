@@ -61,7 +61,7 @@
 #include <SystemConfiguration/SystemConfiguration.h>
 #endif
 
-#define USE_IP_MREQN
+/* #define USE_IP_MREQN */
 
 /*
  * Logging tag for module name

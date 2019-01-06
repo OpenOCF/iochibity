@@ -66,11 +66,6 @@
 #include <Ws2tcpip.h>
 #endif
 
-/* #define USE_IP_MREQN
- * #if defined(_WIN32)
- * #undef USE_IP_MREQN
- * #endif */
-
 /*
  * Logging tag for module name
  */
@@ -78,11 +73,6 @@
 
 /* WSAEVENT udp_addressChangeEvent;/\**< Event used to signal address changes *\/ */
 /* WSAEVENT udp_shutdownEvent;     /\**< Event used to signal threads to stop *\/ */
-
-#define USE_IP_MREQN
-#if defined(_WIN32)
-#undef USE_IP_MREQN
-#endif
 
 /* #if EXPORT_INTERFACE */
 /* #define IFF_UP_RUNNING_FLAGS  (IFF_UP) */

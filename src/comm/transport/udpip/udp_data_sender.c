@@ -311,7 +311,7 @@ void sendMulticastData4(CAEndpoint_t *dest_ep,
                              .imr_ifindex = 0};
 #else
     struct ip_mreq mreq  = { .imr_multiaddr.s_addr = IPv4MulticastAddress.s_addr,
-                             .imr_interface = {{0}}};
+                             .imr_interface = { .s_addr = 0 }};
 #endif
 
     OICStrcpy(dest_ep->addr, sizeof(dest_ep->addr), IPv4_MULTICAST);
@@ -355,7 +355,7 @@ void XsendMulticastData4(const u_arraylist_t *iflist,
                              .imr_ifindex = 0};
 #else
     struct ip_mreq mreq  = { .imr_multiaddr.s_addr = IPv4MulticastAddress.s_addr,
-                             .imr_interface = {{0}}};
+                             .imr_interface = { .s_addr = 0}};
 #endif
 
     OICStrcpy(dest_ep->addr, sizeof(dest_ep->addr), IPv4_MULTICAST);

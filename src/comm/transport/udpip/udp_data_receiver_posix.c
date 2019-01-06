@@ -61,7 +61,6 @@
 
 #if INTERFACE
 #include <inttypes.h>
-#define USE_IP_MREQN
 #endif
 
 /*

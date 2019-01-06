@@ -43,11 +43,6 @@
 
 #include <errno.h>
 
-#define USE_IP_MREQN
-#if defined(_WIN32)
-#undef USE_IP_MREQN
-#endif
-
 /* list of nifs with IFF_RUNNING, IFF_UP, IFF_MULTICAST */
 uint8_t  _oocf_nif_count;
 uint32_t _oocf_nifs[32] = { 0 };
