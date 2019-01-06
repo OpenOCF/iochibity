@@ -1,6 +1,56 @@
 #include "oocf_host_client.h"
 
 #include <errno.h>
+#include "coap_config.h"
+#include "coap/coap_time.h"
+
+/**
+ * Inbound Response from queries to remote servers. Queries are made by calling the OCDoResource API.
+ */
+#if EXPORT_INTERFACE
+/* FIXME: add the CoAP c.dd response code from the CoAP header.
+   Result code contains additional Iotivity-specific info */
+struct oocf_inbound_response
+{
+    /** Address of remote server.*/
+    OCDevAddr devAddr;
+
+    /** backward compatibility (points to devAddr).*/
+    OCDevAddr *addr;
+
+    /** backward compatibility.*/
+    OCConnectivityType connType; /* corresponds to OCTransportAdapter, OCTransportFlags: adapter type, sec flag, IP ver., IPv6 scope */
+
+    /** the security identity of the remote server.*/
+    OCIdentity identity;	/* GAR: not used for discovery responses? */
+
+    /** the is the result of our stack, OCStackResult should contain coap/other error codes.*/
+    /* GAR: result of server-side processing? */
+    OCStackResult result;
+
+    /** If associated with observe, this will represent the sequence of notifications from server.*/
+    uint32_t sequenceNumber;
+
+    /** resourceURI.*/
+    const char * resourceUri;
+
+    /** the payload for the response PDU.*/
+    OCPayload *payload;
+
+    /** Number of the received vendor specific header options.*/
+    uint8_t numRcvdVendorSpecificHeaderOptions;
+
+    /** An array of the received vendor specific header options.*/
+    struct oocf_coap_options /* OCHeaderOption */ rcvdVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
+
+    uint8_t coap_response;      /* CoAP defined; sections 3 and 12.1.2 of RFC 7252 */
+
+};
+#endif	/* EXPORT_INTERFACE */
+
+#if INTERFACE
+typedef struct oocf_inbound_response OCClientResponse;
+#endif
 
 OCStackResult OC_CALL oocf_send_request(OCDoHandle *handle,
 					OCMethod method,
