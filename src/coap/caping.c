@@ -201,6 +201,30 @@ CAResult_t CASendPingMessage(const CAEndpoint_t *endpoint, bool withCustody, CAP
     return CA_STATUS_OK;
 }
 
+/* OCStackResult OC_CALL OCSendPingMessage(const OCDevAddr *devAddr, bool withCustody, OCCallbackData *cbData) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "Sending ping message to [%s]", devAddr->addr); */
+
+/*     CAPongCallbackData pongCbData; */
+/*     OCCallbackData *cbDataCopy = (OCCallbackData *)OICMalloc(sizeof(OCCallbackData)); */
+
+/*     if (NULL == cbDataCopy) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "Failed to allocate memory for callback data"); */
+/*         return OC_STACK_NO_MEMORY; */
+/*     } */
+
+/*     *cbDataCopy = *cbData; */
+/*     pongCbData.context = cbDataCopy; */
+/*     pongCbData.cb = OCPongHandler; */
+/*     pongCbData.cd = OCPongDeleter; */
+
+/*     CAEndpoint_t endpoint; */
+/*     CopyDevAddrToEndpoint(devAddr, &endpoint); */
+
+/*     return CAResultToOCResult(CASendPingMessage(&endpoint, withCustody, &pongCbData)); */
+/* } */
+
 CAResult_t CASendPongMessage(const CAEndpoint_t *endpoint, bool withCustody,
                              const uint8_t *token, uint8_t tokenLength)
 {
@@ -233,6 +257,27 @@ CAResult_t CASendPongMessage(const CAEndpoint_t *endpoint, bool withCustody,
 
     OIC_LOG(DEBUG, TAG, "CASendPongMessage OUT");
     return CA_STATUS_OK;
+}
+
+static void OCPongHandler(void *context, CAEndpoint_t endpoint, bool withCustody)
+{
+    OIC_LOG_V(DEBUG, TAG, "Received pong from [%s]", endpoint.addr);
+    (void) withCustody;
+    OCCallbackData *cbData = (OCCallbackData *)context;
+    OCClientResponse clientResponse;
+    memset(&clientResponse, 0, sizeof(OCClientResponse));
+    CopyEndpointToDevAddr(&endpoint, &clientResponse.devAddr);
+    clientResponse.connType = CT_ADAPTER_TCP;
+    clientResponse.result = OC_STACK_OK;
+    FixUpClientResponse(&clientResponse);
+    cbData->cb(cbData->context, NULL, &clientResponse);
+}
+
+static void OCPongDeleter(void *context)
+{
+    OCCallbackData *cbData = (OCCallbackData *)context;
+    cbData->cd(cbData->context);
+    OICFree(cbData);
 }
 
 void CASetPingTimeout(uint64_t timeout)
