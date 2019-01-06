@@ -122,6 +122,28 @@ typedef enum // FIXME: move this to src/ocf? not really coap
 } CAMessageType_t;
 
 /**
+ * Quality of Service attempts to abstract the guarantees provided by the underlying transport
+ * protocol. The precise definitions of each quality of service level depend on the
+ * implementation. In descriptions below are for the current implementation and may changed
+ * over time.
+ */
+// src: ocstack.c
+typedef enum
+{
+    /** Packet delivery is best effort.*/
+    OC_LOW_QOS = 0,
+
+    /** Packet delivery is best effort.*/
+    OC_MEDIUM_QOS,
+
+    /** Acknowledgments are used to confirm delivery.*/
+    OC_HIGH_QOS,
+
+    /** No Quality is defined, let the stack decide.*/
+    OC_NA_QOS
+} OCQualityOfService;           /* src: octypes.h */
+
+/**
  * Allowed method to be used by resource model.
  */
 typedef enum // FIXME: doesn't belong in coap_codec
