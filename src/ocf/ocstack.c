@@ -375,29 +375,6 @@ bool checkProxyUri(OCHeaderOption *options, uint8_t numOptions)
 }
 
 
-/**
- * Get the CoAP ticks after the specified number of milli-seconds.
- *
- * @param milliSeconds Milli-seconds.
- * @return CoAP ticks
- */
-uint32_t GetTicks(uint32_t milliSeconds)
-{
-    coap_tick_t now;
-    coap_ticks(&now);
-
-    // Guard against overflow of uint32_t
-    if (milliSeconds <= ((UINT32_MAX - (uint32_t)now) * MILLISECONDS_PER_SECOND) /
-                             COAP_TICKS_PER_SECOND)
-    {
-        return now + (milliSeconds * COAP_TICKS_PER_SECOND)/MILLISECONDS_PER_SECOND;
-    }
-    else
-    {
-        return UINT32_MAX;
-    }
-}
-
 // FIXME: get rid of OCDevAddr?
 void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out)
 {

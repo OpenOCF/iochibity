@@ -1517,3 +1517,30 @@ bool CAIsSupportedCoAPOverTCP(CATransportAdapter_t adapter)
     return false;
 }
 #endif
+
+
+/**
+ * Get the CoAP ticks after the specified number of milli-seconds.
+ *
+ * @param milliSeconds Milli-seconds.
+ * @return CoAP ticks
+ */
+//uint32_t GetTicks(uint32_t milliSeconds)
+coap_tick_t GetTicks(coap_tick_t milliSeconds)
+{
+    coap_tick_t now = 0;
+    coap_ticks(&now);
+
+    /* OIC_LOG_V(INFO, TAG, "%s ENTRY, now: %" PRIu32, __func__, now); */
+
+    // Guard against overflow of uint32_t
+    if (milliSeconds <= ((UINT32_MAX - (uint32_t)now) * MILLISECONDS_PER_SECOND) /
+                             COAP_TICKS_PER_SECOND)
+    {
+        return now + (milliSeconds * COAP_TICKS_PER_SECOND)/MILLISECONDS_PER_SECOND;
+    }
+    else
+    {
+        return UINT32_MAX;
+    }
+}
