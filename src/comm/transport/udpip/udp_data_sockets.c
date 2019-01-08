@@ -72,6 +72,9 @@ bool  udp_ipv6_is_enabled = true;    /**< IPv6 enabled by OCInit flags */
 bool  udp_ipv4_is_enabled = true;    /**< IPv4 enabled by OCInit flags */
 bool  udp_is_dualstack   = true;    /**< IPv6 and IPv4 enabled */
 
+int nif_count = 0;
+unsigned int nifs[8];
+
 /* DELEGATED: #define UDP_CHECKFD(FD) */
 
 /* bool PORTABLE_check_setsockopt_err(void) EXPORT */
@@ -451,7 +454,7 @@ void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
             OIC_LOG_V(ERROR, TAG, "SECURE IPv4 IP_ADD_MEMBERSHIP failed: %s", CAIPS_GET_ERROR);
         }
     } else {
-        OIC_LOG_V(ERROR, TAG, "nif %u added to ipv4 secure multicast group", ifindex);
+        OIC_LOG_V(DEBUG, TAG, "nif %u added to ipv4 secure mcast grp %s:%d", ifindex, addr_str, udp_m4s.port);
     }
 }
 
@@ -505,9 +508,8 @@ void applyMulticastToInterface6(uint32_t ifindex)
     applyMulticast6(&IPv6MulticastAddressSit, ifindex);
 }
 
-// @rewrite udp_add_ifs_to_multicast_groups @was CAIPStartListenServer
-// cache up and running multicast nif indices, create local ep list
-CAResult_t udp_configure_multicast_listening() // udp_add_nifs_to_multicast_groups()
+// cache unique nifs, join mcast groups, create local ep list
+CAResult_t udp_configure_eps() /* @was CAIPStartListenServer */
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (udp_is_started)
@@ -560,35 +562,58 @@ CAResult_t udp_configure_multicast_listening() // udp_add_nifs_to_multicast_grou
 #endif
         int family = ifa->ifa_addr->sa_family;
 
-        if (!ifa->ifa_addr) {
+        if (ifa->ifa_flags & IFF_DEBUG) {
             //#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-	    OIC_LOG_V(DEBUG, TAG, "\tSkipping IF %d - no address", ifindex);
-            //#endif
-            continue;
-        }
-        if (ifa->ifa_flags & IFF_LOOPBACK) {
-            //#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
-	    OIC_LOG_V(DEBUG, TAG, "\tSkipping loopback IF %d, family %d", ifindex, family);
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping debug NIF %d, family %d", ifindex, family);
             //#endif
 	    continue;
 	}
+        if (ifa->ifa_flags & IFF_LOOPBACK) {
+            //#ifdef NETWORK_INTERFACE_CHANGED_LOGGING
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping loopback NIF %d, family %d", ifindex, family);
+            //#endif
+	    continue;
+	}
+        if (ifa->ifa_addr->sa_family == AF_INET6) {
+            if ( 0 == strlen((char*)((struct sockaddr_in6*)ifa->ifa_addr)->sin6_addr.s6_addr) ) {
+                OIC_LOG_V(DEBUG, TAG, "\tSkipping NIF %d - no ipv6 address", ifindex);
+                continue;
+            }
+        } else if (ifa->ifa_addr->sa_family == AF_INET) {
+            if ( 0 == (((struct sockaddr_in*)ifa->ifa_addr)->sin_addr.s_addr) ) {
+                OIC_LOG_V(DEBUG, TAG, "\tSkipping NIF %d - no ipv4 address", ifindex);
+                continue;
+            }
+        } else {
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping NIF %d, (not ipv4/ipv6)", ifindex);
+            OIC_LOG_V(DEBUG, TAG, "\tFamily: %d", family);
+            continue;
+        }
         if ((ifa->ifa_flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS) {
-	    OIC_LOG_V (INFO, TAG, "\tSkiping NIF %d (not up and running)", ifindex);
+	    OIC_LOG_V (INFO, TAG, "\tSkipping NIF %d (not up and running)", ifindex);
             continue;
         }
 
 	if (ifa->ifa_name) {
-            if (ifa->ifa_addr->sa_family == AF_INET) {
-                applyMulticastToInterface4(ifindex);
-            } else {
-                if (ifa->ifa_addr->sa_family == AF_INET6) {
-                    applyMulticastToInterface6(ifindex);
-                } else {
-                    OIC_LOG_V(DEBUG, TAG, "\tSkipping non-IPv4/6 IF %d, family %d", ifindex, family);
+            /* 1. save to nif index array */
+            bool dup = false;
+            for (int i=0; i<nif_count; i++) {
+                if (nifs[i] == ifindex) {
+                    dup = true;
+                    break;
                 }
             }
+            if (!dup) nifs[nif_count++] = ifindex;
+            /* 2. create endpoint */
+            //g_local_endpoint_cache
+            CAEndpoint_t *ep  = udp_create_endpoint(ifa, ifindex, false);
+            OIC_LOG_V(DEBUG, TAG, "Created ep: %s port %d", ep->addr, ep->port);
+            u_arraylist_add(g_local_endpoint_cache, (void *)ep);
+            CAEndpoint_t *sep = udp_create_endpoint(ifa, ifindex, true);
+            OIC_LOG_V(DEBUG, TAG, "Created secure ep: %s port %d", sep->addr, sep->port);
+            u_arraylist_add(g_local_endpoint_cache, (void *)sep);
         } else {
-            OIC_LOG_V(ERROR, TAG, "no ifa_name");
+            OIC_LOG_V(DEBUG, TAG, "Skipping, no nif name");
         }
         /* SIOCGIFFLAGS (manpage NETDEVICE(7)) */
         OIC_LOG_V(DEBUG, TAG, "\tflowinfo: %"PRIu32 ", scope id: %"PRIu32, flowinfo, scope);
