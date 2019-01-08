@@ -1,3 +1,4 @@
+
 //******************************************************************
 //
 // Copyright 2015 Intel Mobile Communications GmbH All Rights Reserved.
@@ -21,7 +22,11 @@
 #include "pstatresource.h"
 
 #include <stdlib.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#elif defined(HAVE_STRING_H)
 #include <string.h>
+#endif
 #include <inttypes.h>
 
 #include "cbor.h"
@@ -820,18 +825,19 @@ static bool ValidateQuery(const char * query)
 /**
  * The entity handler determines how to process a GET request.
  */
-static OCEntityHandlerResult HandlePstatGetRequest (const OCEntityHandlerRequest * ehRequest)
+static OCEntityHandlerResult HandlePstatGetRequest (const struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest)
 {
     OCEntityHandlerResult ehRet = OC_EH_OK;
 
     OIC_LOG(INFO, TAG, "HandlePstatGetRequest  processing GET request");
 
     //Checking if Get request is a query.
-    if (ehRequest->query)
+    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    if (query)
     {
-        OIC_LOG_V(DEBUG,TAG,"query:%s",ehRequest->query);
+        OIC_LOG_V(DEBUG,TAG,"query:%s", query);
         OIC_LOG(DEBUG, TAG, "HandlePstatGetRequest processing query");
-        if (!ValidateQuery(ehRequest->query))
+        if (!ValidateQuery(query))
         {
             ehRet = OC_EH_ERROR;
         }
@@ -866,16 +872,24 @@ static OCEntityHandlerResult HandlePstatGetRequest (const OCEntityHandlerRequest
  * resource or create a new resource.
  * For pstat, it updates only dos, tm, om, and rowneruuid.
  */
-static OCEntityHandlerResult HandlePstatPostRequest(OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandlePstatPostRequest(struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
     OicSecPstat_t *pstat = NULL;
 
-    if (ehRequest->payload && NULL != gPstat)
+    if (//ehRequest->payload
+        ((OCSecurityPayload *)
+         ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)
+        && NULL != gPstat)
+
     {
-        uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData;
-        size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize;
+        uint8_t *payload = ((OCSecurityPayload *)
+                            ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+        /* uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData; */
+        size_t size = ((OCSecurityPayload *)
+                       ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+        /* size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize; */
         VERIFY_NOT_NULL(TAG, payload, ERROR);
 
         bool roParsed = false;
@@ -992,7 +1006,7 @@ exit:
  * This internal method is the entity handler for pstat resources.
  */
  OCEntityHandlerResult PstatEntityHandler(OCEntityHandlerFlag flag,
-                                          OCEntityHandlerRequest * ehRequest,
+                                          struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest,
                                           void *callbackParam)
 {
     (void)callbackParam;
@@ -1001,12 +1015,12 @@ exit:
     if (flag & OC_REQUEST_FLAG)
     {
         OIC_LOG(INFO, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (ehRequest->method)
+        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
         {
-            case OC_REST_GET:
+            case CA_GET:
                 ehRet = HandlePstatGetRequest(ehRequest);
                 break;
-            case OC_REST_POST:
+            case CA_POST:
                 ehRet = HandlePstatPostRequest(ehRequest);
                 break;
             default:

@@ -351,7 +351,7 @@ exit:
 
 }
 
-static OCEntityHandlerResult HandleCsrGetRequest(OCEntityHandlerRequest * ehRequest)
+static OCEntityHandlerResult HandleCsrGetRequest(struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest)
 {
     OCStackResult res = OC_STACK_OK;
     OCEntityHandlerResult ehRet = OC_EH_OK;
@@ -433,7 +433,7 @@ exit:
 }
 
 static OCEntityHandlerResult CredCsrEntityHandler(OCEntityHandlerFlag flag,
-                                                  OCEntityHandlerRequest * ehRequest,
+                                                  struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest,
                                                   void* callbackParameter)
 {
     OC_UNUSED(callbackParameter);
@@ -447,7 +447,8 @@ static OCEntityHandlerResult CredCsrEntityHandler(OCEntityHandlerFlag flag,
     if (flag & OC_REQUEST_FLAG)
     {
         OIC_LOG(DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
-        if (ehRequest->method == OC_REST_GET)
+        if (((struct CARequestInfo*)ehRequest->requestHandle)->method == CA_GET)
+            //ehRequest->method == OC_REST_GET)
         {
             ret = HandleCsrGetRequest(ehRequest);
         }

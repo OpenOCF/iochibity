@@ -18,12 +18,14 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+#define _POSIX_C_SOURCE 200809L /* strtok_r */
+
 #include "aclresource.h"
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#elif defined(HAVE_STRINGS_H)
+#ifdef HAVE_STRINGS_H
 #include <strings.h>
+#elif defined(HAVE_STRING_H)
+#include <string.h>
 #endif
 #include <stdlib.h>
 #include <inttypes.h>
@@ -2903,7 +2905,7 @@ static OCStackResult RemoveAllAce(const char *resource) /* FIXME: correct the na
     return (OC_STACK_OK == ret ? OC_STACK_RESOURCE_DELETED : ret);
 }
 
-static OCEntityHandlerResult HandleACLGetRequest(const OCEntityHandlerRequest *ehRequest, OicSecAclVersion_t aclVersion)
+static OCEntityHandlerResult HandleACLGetRequest(const struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest, OicSecAclVersion_t aclVersion)
 {
     OIC_LOG(INFO, TAG, "HandleACLGetRequest processing the request");
 
@@ -2913,9 +2915,10 @@ static OCEntityHandlerResult HandleACLGetRequest(const OCEntityHandlerRequest *e
 
     OicUuid_t subject = {.id= { 0 } };
 
+    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
 
     // In case, 'subject' field is included in REST request.
-    if (ehRequest->query && GetSubjectFromQueryString(ehRequest->query, &subject))
+    if (query && GetSubjectFromQueryString(query, &subject))
     {
         OIC_LOG(DEBUG,TAG,"'subject' field is inculded in REST request.");
         OIC_LOG(DEBUG, TAG, "HandleACLGetRequest processing query");
@@ -2938,7 +2941,7 @@ static OCEntityHandlerResult HandleACLGetRequest(const OCEntityHandlerRequest *e
         targetAcl.aces = NULL;
 
         // 'Subject' field is MUST for processing a querystring in REST request.
-        GetResourceFromQueryString(ehRequest->query, resource, sizeof(resource));
+        GetResourceFromQueryString(query, resource, sizeof(resource));
 
         /*
          * TODO : Currently, this code only provides one ACE for a Subject.
@@ -3009,14 +3012,18 @@ exit:
     return ehRet;
 }
 
-static OCEntityHandlerResult HandleACLPostRequest(const OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleACLPostRequest(const struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG(INFO, TAG, "HandleACLPostRequest processing the request");
     OCEntityHandlerResult ehRet = OC_EH_INTERNAL_SERVER_ERROR;
 
     // Convert CBOR into ACL data and update to SVR buffers. This will also validate the ACL data received.
-    uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData;
-    size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize;
+    uint8_t *payload = ((OCSecurityPayload *)
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+    //ehRequest->payload)->securityData;
+    size_t size = ((OCSecurityPayload *)
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+    //ehRequest->payload)->payloadSize;
 
     OicSecDostype_t dos;
     VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDos(&dos), ERROR);
@@ -3120,14 +3127,19 @@ exit:
     return ehRet;
 }
 
-static OCEntityHandlerResult HandleACL2PostRequest(const OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleACL2PostRequest(const struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG(INFO, TAG, "HandleACLPostRequest processing the request");
     OCEntityHandlerResult ehRet = OC_EH_INTERNAL_SERVER_ERROR;
 
     // Convert CBOR into ACL data and update to SVR buffers. This will also validate the ACL data received.
-    uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData;
-    size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize;
+    uint8_t *payload = ((OCSecurityPayload *)
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+    //ehRequest->payload)->securityData;
+    size_t size = ((OCSecurityPayload *)
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+    //ehRequest->payload)->payloadSize;
+
 
     OicSecDostype_t dos;
     VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDos(&dos), ERROR);
@@ -3240,7 +3252,7 @@ exit:
     return ehRet;
 }
 
-static OCEntityHandlerResult HandleACLDeleteRequest(const OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleACLDeleteRequest(const struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG(DEBUG, TAG, "Processing ACLDeleteRequest");
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
@@ -3248,7 +3260,8 @@ static OCEntityHandlerResult HandleACLDeleteRequest(const OCEntityHandlerRequest
     AceIdList_t *aceIdList = NULL;
     char resource[MAX_URI_LENGTH] = { 0 };
 
-    VERIFY_NOT_NULL(TAG, ehRequest->query, ERROR);
+    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    VERIFY_NOT_NULL(TAG, query, ERROR);
 
     OicSecDostype_t dos;
     VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDos(&dos), ERROR);
@@ -3261,7 +3274,7 @@ static OCEntityHandlerResult HandleACLDeleteRequest(const OCEntityHandlerRequest
         goto exit;
     }
 
-    if (GetAceIdsFromQueryString(ehRequest->query, &aceIdList))
+    if (GetAceIdsFromQueryString(query, &aceIdList))
     {
         if (OC_STACK_RESOURCE_DELETED == RemoveAceByAceIds(aceIdList))
         {
@@ -3270,9 +3283,9 @@ static OCEntityHandlerResult HandleACLDeleteRequest(const OCEntityHandlerRequest
         DeleteAceIdList(&aceIdList);
     }
     // If 'Subject' field exist, processing a querystring in REST request.
-    else if (GetSubjectFromQueryString(ehRequest->query, &subject))
+    else if (GetSubjectFromQueryString(query, &subject))
     {
-        GetResourceFromQueryString(ehRequest->query, resource, sizeof(resource));
+        GetResourceFromQueryString(query, resource, sizeof(resource));
 
         if (OC_STACK_RESOURCE_DELETED == RemoveACE(&subject, resource))
         {
@@ -3298,7 +3311,7 @@ exit:
     return ehRet;
 }
 
-OCEntityHandlerResult ACLEntityHandler(OCEntityHandlerFlag flag, OCEntityHandlerRequest * ehRequest,
+OCEntityHandlerResult ACLEntityHandler(OCEntityHandlerFlag flag, struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest,
         void* callbackParameter)
 {
     OIC_LOG(DEBUG, TAG, "Received request ACLEntityHandler");
@@ -3314,17 +3327,17 @@ OCEntityHandlerResult ACLEntityHandler(OCEntityHandlerFlag flag, OCEntityHandler
     {
         // TODO :  Handle PUT method
         OIC_LOG(DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (ehRequest->method)
+        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
         {
-            case OC_REST_GET:
+            case CA_GET:
                 ehRet = HandleACLGetRequest(ehRequest, OIC_SEC_ACL_V2);
                 break;
 
-            case OC_REST_POST:
+            case CA_POST:
                 ehRet = HandleACLPostRequest(ehRequest);
                 break;
 
-            case OC_REST_DELETE:
+            case CA_DELETE:
                 ehRet = HandleACLDeleteRequest(ehRequest);
                 break;
 
@@ -3337,7 +3350,7 @@ OCEntityHandlerResult ACLEntityHandler(OCEntityHandlerFlag flag, OCEntityHandler
     return ehRet;
 }
 
-OCEntityHandlerResult ACL2EntityHandler(OCEntityHandlerFlag flag, OCEntityHandlerRequest * ehRequest,
+OCEntityHandlerResult ACL2EntityHandler(OCEntityHandlerFlag flag, struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest,
         void* callbackParameter)
 {
     OIC_LOG(DEBUG, TAG, "Received request ACL2EntityHandler");
@@ -3353,17 +3366,17 @@ OCEntityHandlerResult ACL2EntityHandler(OCEntityHandlerFlag flag, OCEntityHandle
     {
         // TODO :  Handle PUT method
         OIC_LOG(DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (ehRequest->method)
+        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
         {
-            case OC_REST_GET:
+            case CA_GET:
                 ehRet = HandleACLGetRequest(ehRequest, OIC_SEC_ACL_V2);
                 break;
 
-            case OC_REST_POST:
+            case CA_POST:
                 ehRet = HandleACL2PostRequest(ehRequest);
                 break;
 
-            case OC_REST_DELETE:
+            case CA_DELETE:
                 ehRet = HandleACLDeleteRequest(ehRequest);
                 break;
 

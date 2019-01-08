@@ -18,18 +18,26 @@
 
 ******************************************************************/
 
+#define _POSIX_C_SOURCE 200809L /* gmtime_r */
+
 #include "rolesresource.h"
 
 //#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
+//#if INTERFACE
 #include <stdlib.h>
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
+#elif defined(HAVE_STRING_H)
+#include <string.h>
 #endif
+
 #include <stdint.h>
 #include <stdbool.h>
+
+#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
+
 #include <inttypes.h>
 
 //#if INTERFACE
@@ -153,12 +161,14 @@ static OCStackResult GetPeerPublicKeyFromEndpoint(const CAEndpoint_t *endpoint,
 }
 
 /* Caller must call OICFree on publicKey when finished. */
-static OCStackResult GetPeerPublicKey(const OCDevAddr *peer, uint8_t **publicKey, size_t *publicKeyLength)
+static OCStackResult GetPeerPublicKey(const CAEndpoint_t /* OCDevAddr */ *peer,
+                                      uint8_t **publicKey,
+                                      size_t *publicKeyLength)
 {
-    CAEndpoint_t endpoint;
-    CopyDevAddrToEndpoint(peer, &endpoint);
+    /* CAEndpoint_t endpoint; */
+    /* CopyDevAddrToEndpoint(peer, &endpoint); */
 
-    return GetPeerPublicKeyFromEndpoint(&endpoint, publicKey, publicKeyLength);
+    return GetPeerPublicKeyFromEndpoint(peer, /* &endpoint, */ publicKey, publicKeyLength);
 }
 
 static void FreeRoleCertChain(struct RoleCertChain *roleCert)
@@ -777,7 +787,7 @@ exit:
     }
 }
 
-static OCEntityHandlerResult HandleGetRequest(OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleGetRequest(struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG(DEBUG, TAG, "Roles HandleGetRequest IN");
 
@@ -789,7 +799,9 @@ static OCEntityHandlerResult HandleGetRequest(OCEntityHandlerRequest *ehRequest)
     uint8_t *publicKey = NULL;
     size_t publicKeyLength = 0;
 
-    res = GetPeerPublicKey(&ehRequest->devAddr, &publicKey, &publicKeyLength);
+    res = GetPeerPublicKey(&
+                           (((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep),
+                           &publicKey, &publicKeyLength);
     // OC_STACK_NO_RESOURCE means that the Peer doesn't have a Public Key.
     if ((OC_STACK_OK != res) && (OC_STACK_NO_RESOURCE != res))
     {
@@ -826,7 +838,7 @@ exit:
     return ehRet;
 }
 
-static OCEntityHandlerResult HandlePostRequest(OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandlePostRequest(struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
     uint8_t *pubKey = NULL;
@@ -837,10 +849,15 @@ static OCEntityHandlerResult HandlePostRequest(OCEntityHandlerRequest *ehRequest
     OIC_LOG(DEBUG, TAG, "Roles HandlePostRequest IN");
 
     struct RoleCertChain *chains = NULL;
-    uint8_t *payload = (((OCSecurityPayload*)ehRequest->payload)->securityData);
-    size_t size = (((OCSecurityPayload*)ehRequest->payload)->payloadSize);
+    uint8_t *payload = ((OCSecurityPayload*)
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+    // ehRequest->payload)->securityData);
+    size_t size = ((OCSecurityPayload*)
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+    // ehRequest->payload)->payloadSize);
 
-    OCStackResult res = GetPeerPublicKey(&ehRequest->devAddr, &peerPubKey, &peerPubKeyLen);
+    OCStackResult res = GetPeerPublicKey(&(((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep),
+                                         &peerPubKey, &peerPubKeyLen);
     if (OC_STACK_OK != res)
     {
         OIC_LOG_V(ERROR, TAG, "Could not get peer's public key: %d", res);
@@ -939,7 +956,7 @@ exit:
     return ehRet;
 }
 
-static OCEntityHandlerResult HandleDeleteRequest(OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleDeleteRequest(struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG(DEBUG, TAG, "Roles HandleDeleteRequest IN");
 
@@ -949,13 +966,14 @@ static OCEntityHandlerResult HandleDeleteRequest(OCEntityHandlerRequest *ehReque
     OicParseQueryIter_t parseIter = { .attrPos = NULL };
     uint32_t credId = 0;
 
-    if (NULL == ehRequest->query)
+    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    if (NULL == query)
     {
         return ehRet;
     }
 
     // Parsing REST query to get the credId
-    ParseQueryIterInit((unsigned char *)ehRequest->query, &parseIter);
+    ParseQueryIterInit((unsigned char *)query, &parseIter);
     while (GetNextQuery(&parseIter))
     {
         if (strncasecmp((const char *)parseIter.attrPos, OIC_JSON_CREDID_NAME,
@@ -975,7 +993,9 @@ static OCEntityHandlerResult HandleDeleteRequest(OCEntityHandlerRequest *ehReque
         }
     }
 
-    OCStackResult res = GetPeerPublicKey(&ehRequest->devAddr, &peerPubKey, &peerPubKeyLen);
+    OCStackResult res = GetPeerPublicKey(&(((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep),
+                                         //ehRequest->devAddr,
+                                         &peerPubKey, &peerPubKeyLen);
     if (OC_STACK_OK != res)
     {
         OIC_LOG_V(ERROR, TAG, "Could not get peer's public key: %d", res);
@@ -1044,7 +1064,7 @@ exit:
 }
 
 static OCEntityHandlerResult RolesEntityHandler(OCEntityHandlerFlag flag,
-                                                OCEntityHandlerRequest * ehRequest,
+                                                struct oocf_inbound_request /* OCEntityHandlerRequest */ * ehRequest,
                                                 void* callbackParameter)
 {
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
@@ -1059,16 +1079,16 @@ static OCEntityHandlerResult RolesEntityHandler(OCEntityHandlerFlag flag,
     if (flag & OC_REQUEST_FLAG)
     {
         OIC_LOG(DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (ehRequest->method)
+        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
         {
-        case OC_REST_GET:
+        case CA_GET:
             ehRet = HandleGetRequest(ehRequest);
             break;
-        case OC_REST_PUT:
-        case OC_REST_POST:
+        case CA_PUT:
+        case CA_POST:
             ehRet = HandlePostRequest(ehRequest);
             break;
-        case OC_REST_DELETE:
+        case CA_DELETE:
             ehRet = HandleDeleteRequest(ehRequest);
             break;
         default:
@@ -1085,13 +1105,13 @@ OCStackResult InitRolesResource(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
     OCStackResult res = OCCreateResource(&gRolesHandle,
-        OIC_RSRC_TYPE_SEC_ROLES,
-        OC_RSRVD_INTERFACE_DEFAULT,
-        OIC_RSRC_ROLES_URI,
-        RolesEntityHandler,
-        NULL,
-        OC_SECURE |
-        OC_DISCOVERABLE);
+                                         OIC_RSRC_TYPE_SEC_ROLES,
+                                         OC_RSRVD_INTERFACE_DEFAULT,
+                                         OIC_RSRC_ROLES_URI,
+                                         RolesEntityHandler,
+                                         NULL,
+                                         OC_SECURE |
+                                         OC_DISCOVERABLE);
 
     if (OC_STACK_OK != res)
     {

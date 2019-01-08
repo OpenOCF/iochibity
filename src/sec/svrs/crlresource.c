@@ -1,3 +1,4 @@
+
 //******************************************************************
 //
 // Copyright 2015 Samsung Electronics All Rights Reserved.
@@ -20,11 +21,17 @@
 
 #include "crlresource.h"
 
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#elif defined(HAVE_STRING_H)
+#include <string.h>
+#endif
+#include <time.h>
+
+
 #include "cbor.h"
 #include "mbedtls/base64.h"
 #include "utlist.h"
-
-#include <time.h>
 
 #define TAG  "OIC_SRM_CRL"
 
@@ -490,17 +497,18 @@ static bool ValidateQuery(const char * query)
     return true;
 }
 
-static OCEntityHandlerResult HandleCRLGetRequest(const OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleCRLGetRequest(const struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OCEntityHandlerResult ehRet = OC_EH_OK;
     uint8_t* payload = NULL;
     size_t size = 0;
 
-    if (ehRequest->query)
+    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    if (query)
     {
-        OIC_LOG_V(DEBUG,TAG,"query:%s",ehRequest->query);
+        OIC_LOG_V(DEBUG,TAG,"query:%s", query);
         OIC_LOG(DEBUG, TAG, "HandleCRLGetRequest processing query");
-        if (!ValidateQuery(ehRequest->query))
+        if (!ValidateQuery(query))
         {
             ehRet = OC_EH_ERROR;
         }
@@ -535,12 +543,14 @@ static OCEntityHandlerResult HandleCRLGetRequest(const OCEntityHandlerRequest *e
     return ehRet;
 }
 
-static OCEntityHandlerResult HandleCRLPostRequest(const OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleCRLPostRequest(const struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
     OicSecCrl_t *crl = NULL;
-    uint8_t *payload = ((OCSecurityPayload *)ehRequest->payload)->securityData;
-    size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize;
+    uint8_t *payload = ((OCSecurityPayload *)
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+    size_t size = ((OCSecurityPayload *)
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
     bool create = (NULL == gCrl);
 
     if (payload)
@@ -575,7 +585,7 @@ exit:
  * will handle REST request (GET/PUT/POST/DEL) for them.
  */
 static OCEntityHandlerResult CRLEntityHandler(OCEntityHandlerFlag flag,
-                                              OCEntityHandlerRequest *ehRequest,
+                                              struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest,
                                               void *callbackParameter)
 {
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
@@ -592,13 +602,13 @@ static OCEntityHandlerResult CRLEntityHandler(OCEntityHandlerFlag flag,
     {
         // TODO :  Handle PUT and DEL methods
         OIC_LOG (INFO, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (ehRequest->method)
+        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
         {
-            case OC_REST_GET:
+            case CA_GET:
                 ehRet = HandleCRLGetRequest(ehRequest);
                 break;
 
-            case OC_REST_POST:
+            case CA_POST:
                 ehRet = HandleCRLPostRequest(ehRequest);
                 break;
 

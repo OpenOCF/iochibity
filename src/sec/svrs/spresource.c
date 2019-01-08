@@ -25,7 +25,11 @@
 #include <stddef.h>
 #endif
 #include <stdlib.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#elif defined(HAVE_STRING_H)
 #include <string.h>
+#endif
 #include <inttypes.h>
 
 #define TAG  "OIC_SRM_SP"
@@ -555,18 +559,19 @@ static bool ValidateQuery(const char * query)
 /**
  * The entity handler determines how to process a GET request.
  */
-static OCEntityHandlerResult HandleSpGetRequest (const OCEntityHandlerRequest * ehRequest)
+static OCEntityHandlerResult HandleSpGetRequest (const struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest)
 {
     OCEntityHandlerResult ehRet = OC_EH_OK;
 
     OIC_LOG(INFO, TAG, "HandleSpGetRequest  processing GET request");
 
     //Checking if Get request is a query.
-    if (ehRequest->query)
-    {
-        OIC_LOG_V(DEBUG,TAG,"query:%s",ehRequest->query);
+    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    if (query) {
+        //if (ehRequest->query)
+        OIC_LOG_V(DEBUG,TAG,"query:%s", query);
         OIC_LOG(DEBUG, TAG, "HandlePstatGetRequest processing query");
-        if (!ValidateQuery(ehRequest->query))
+        if (!ValidateQuery(query))
         {
             ehRet = OC_EH_ERROR;
         }
@@ -719,7 +724,7 @@ exit:
  * Per the REST paradigm, POST can also be used to update representation of existing
  * resource or create a new resource.
  */
-static OCEntityHandlerResult HandleSpPostRequest(OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleSpPostRequest(struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
 
@@ -752,11 +757,18 @@ static OCEntityHandlerResult HandleSpPostRequest(OCEntityHandlerRequest *ehReque
         goto exit;
     }
 
-    VERIFY_OR_LOG_AND_EXIT(TAG, (NULL != ehRequest->payload), "sp POST : no payload supplied ", ERROR);
+    VERIFY_OR_LOG_AND_EXIT(TAG, (NULL != ((OCSecurityPayload *)
+                                          ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)),
+                                 "sp POST : no payload supplied ", ERROR);
     VERIFY_OR_LOG_AND_EXIT(TAG, (NULL != gSp), "sp POST : corrupt internal SP resource ", ERROR);
 
-    payload = ((OCSecurityPayload *) ehRequest->payload)->securityData;
-    size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize;
+    /* payload = ((OCSecurityPayload *) ehRequest->payload)->securityData; */
+    payload = ((OCSecurityPayload *)
+               ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+    /* size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize; */
+    size = ((OCSecurityPayload *)
+            ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+
     VERIFY_NOT_NULL(TAG, payload, ERROR);
 
     bool decodedProperties[SP_PROPERTY_COUNT];
@@ -867,7 +879,7 @@ int ProfileIdx( size_t supportedLen, char **supportedProfiles, char *profileName
 }
 
 OCEntityHandlerResult SpEntityHandler(OCEntityHandlerFlag flag,
-                                      OCEntityHandlerRequest * ehRequest,
+                                      struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest,
                                       void* callbackParameter)
 {
     OC_UNUSED(callbackParameter);
@@ -877,12 +889,12 @@ OCEntityHandlerResult SpEntityHandler(OCEntityHandlerFlag flag,
     if (flag & OC_REQUEST_FLAG)
     {
         OIC_LOG(INFO, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (ehRequest->method)
+        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
         {
-            case OC_REST_GET:
+            case CA_GET:
                 ehRet = HandleSpGetRequest(ehRequest);
                 break;
-            case OC_REST_POST:
+            case CA_POST:
                 ehRet = HandleSpPostRequest(ehRequest);
                 break;
             default:

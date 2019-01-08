@@ -25,6 +25,8 @@
 
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
+#else
+#include <string.h>
 #endif
 
 #include "cbor.h"
@@ -982,18 +984,20 @@ static bool ValidateQuery(const char * query)
             (bDeviceIDQry ? bDeviceIDMatch : true));
 }
 
-static OCEntityHandlerResult HandleDoxmGetRequest (const OCEntityHandlerRequest * ehRequest)
+static OCEntityHandlerResult HandleDoxmGetRequest (const struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest)
 {
     OCEntityHandlerResult ehRet = OC_EH_OK;
 
     OIC_LOG(DEBUG, TAG, "Doxm EntityHandle processing GET request");
 
     //Checking if Get request is a query.
-    if (ehRequest->query)
+    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+
+    if (query)
     {
-        OIC_LOG_V(DEBUG,TAG,"query:%s",ehRequest->query);
+        OIC_LOG_V(DEBUG,TAG,"query:%s", query);
         OIC_LOG(DEBUG, TAG, "HandleDoxmGetRequest processing query");
-        if (!ValidateQuery(ehRequest->query))
+        if (!ValidateQuery(query))
         {
             ehRet = OC_EH_ERROR;
         }
@@ -1303,7 +1307,8 @@ static void RegisterOTMSslHandshakeCallback(CAHandshakeErrorCallback callback)
 
 #ifdef MULTIPLE_OWNER
 /* GAR FIXME: should this be ...Mot instead of ...Mom? */
-void HandleDoxmPostRequestMom(OicSecDoxm_t *newDoxm, OCEntityHandlerRequest *ehRequest)
+void HandleDoxmPostRequestMom(OicSecDoxm_t *newDoxm,
+                              struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
     //handle mom
@@ -1401,7 +1406,7 @@ OCEntityHandlerResult HandleDoxmPostRequestUpdatePS(bool fACE)
     }
 }
 
-OCEntityHandlerResult StartOTMJustWorks(OCEntityHandlerRequest *ehRequest)
+OCEntityHandlerResult StartOTMJustWorks(struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
     OCEntityHandlerResult ehRet = OC_EH_OK;
@@ -1433,7 +1438,7 @@ OCEntityHandlerResult StartOTMJustWorks(OCEntityHandlerRequest *ehRequest)
             OicUuid_t deviceID = {.id = {0}};
 
             //Generate mutualVerifNum
-            OCServerRequest * request = (OCServerRequest *)ehRequest->requestHandle;
+            struct CARequestInfo /* OCServerRequest */ *request = (struct CARequestInfo *)ehRequest->requestHandle;
 
             char label[LABEL_LEN] = {0};
             snprintf(label, LABEL_LEN, "%s%s", MUTUAL_VERIF_NUM, OXM_MV_JUST_WORKS);
@@ -1445,7 +1450,7 @@ OCEntityHandlerResult StartOTMJustWorks(OCEntityHandlerRequest *ehRequest)
 
             }
 
-            CAResult_t pskRet = CAGenerateOwnerPSK((CAEndpoint_t *)&request->devAddr,
+            CAResult_t pskRet = CAGenerateOwnerPSK((CAEndpoint_t *)&request->dest_ep,
                                                    (uint8_t *)label,
                                                    strlen(label),
                                                    gDoxm->owner.id, sizeof(gDoxm->owner.id),
@@ -1480,7 +1485,7 @@ exit:
 }
 
 OCEntityHandlerResult HandleDoxmPostRequestRandomPin(OicSecDoxm_t *newDoxm,
-        OCEntityHandlerRequest *ehRequest)
+        struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
     OCEntityHandlerResult ehRet = OC_EH_OK;
@@ -1504,7 +1509,10 @@ OCEntityHandlerResult HandleDoxmPostRequestRandomPin(OicSecDoxm_t *newDoxm,
 
         RegisterOTMSslHandshakeCallback(DoxmDTLSHandshakeCB);
         caRes = CASelectCipherSuite(MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
-                                    (CATransportAdapter_t)ehRequest->devAddr.adapter);
+                                    (CATransportAdapter_t)
+                                    ((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep.adapter);
+                                    /* ehRequest->devAddr.adapter); */
+
         VERIFY_SUCCESS(TAG, caRes == CA_STATUS_OK, ERROR);
 
         char ranPin[OXM_RANDOM_PIN_MAX_SIZE + 1] = {0};
@@ -1548,7 +1556,7 @@ exit:
 
 #if defined(__WITH_DTLS__) || defined (__WITH_TLS__)
 OCEntityHandlerResult HandleDoxmPostRequestMfg(OicSecDoxm_t *newDoxm,
-        OCEntityHandlerRequest *ehRequest)
+        struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
     OCEntityHandlerResult ehRet = OC_EH_OK;
@@ -1578,7 +1586,10 @@ OCEntityHandlerResult HandleDoxmPostRequestMfg(OicSecDoxm_t *newDoxm,
         OIC_LOG_V(INFO, TAG, "%s: ECDH_ANON CipherSuite is DISABLED", __func__);
 
         //Unset pre-selected ciphersuite, if any
-        caRes = CASelectCipherSuite(0,(CATransportAdapter_t)ehRequest->devAddr.adapter);
+        caRes = CASelectCipherSuite(0,
+                                    (CATransportAdapter_t)
+                                    ((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep.adapter);
+                                    /* ehRequest->devAddr.adapter); */
         VERIFY_SUCCESS(TAG, caRes == CA_STATUS_OK, ERROR);
         OIC_LOG(DEBUG, TAG, "No ciphersuite preferred");
 
@@ -1595,7 +1606,7 @@ exit:
 // Do OTM specific initiation steps
 /* FIXME:  StartOwnershipTransfer also defined in ownershiptransfermanager.c */
 LOCAL OCEntityHandlerResult StartOwnershipTransfer(OicSecDoxm_t *newDoxm,
-        OCEntityHandlerRequest *ehRequest)
+        struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
     OCEntityHandlerResult ehRet = OC_EH_OK;
@@ -1624,7 +1635,7 @@ LOCAL OCEntityHandlerResult StartOwnershipTransfer(OicSecDoxm_t *newDoxm,
 }
 
 
-static OCEntityHandlerResult HandleDoxmPostRequest(OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleDoxmPostRequest(struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OIC_LOG_V(DEBUG, TAG, "%s: IN", __func__);
     OCEntityHandlerResult ehRet = OC_EH_INTERNAL_SERVER_ERROR;
@@ -1635,7 +1646,7 @@ static OCEntityHandlerResult HandleDoxmPostRequest(OCEntityHandlerRequest *ehReq
     OicSecDostype_t dos;
 
     VERIFY_NOT_NULL(TAG, ehRequest, ERROR);
-    VERIFY_NOT_NULL(TAG, ehRequest->payload, ERROR);
+    // VERIFY_NOT_NULL(TAG, ehRequest->payload, ERROR);
     VERIFY_NOT_NULL(TAG, gDoxm, ERROR);
 
     VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDos(&dos), ERROR);
@@ -1720,7 +1731,7 @@ exit:
 }
 
 OCEntityHandlerResult DoxmEntityHandler(OCEntityHandlerFlag flag,
-                                        OCEntityHandlerRequest * ehRequest,
+                                        struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest,
                                         void* callbackParam)
 {
     (void)callbackParam;
@@ -1735,13 +1746,13 @@ OCEntityHandlerResult DoxmEntityHandler(OCEntityHandlerFlag flag,
     {
         OIC_LOG(DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
 
-        switch (ehRequest->method)
+        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
         {
-            case OC_REST_GET:
+            case CA_GET:
                 ehRet = HandleDoxmGetRequest(ehRequest);
                 break;
 
-            case OC_REST_POST:
+            case CA_POST:
                 ehRet = HandleDoxmPostRequest(ehRequest);
                 break;
 

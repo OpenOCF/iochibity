@@ -20,20 +20,21 @@
 
 #define __STDC_LIMIT_MACROS
 
+#define _POSIX_C_SOURCE 200809L /* strtok_r */
+
 #include "credresource.h"
 
 #include <stdlib.h>
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
+
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
+#elif defined(HAVE_STRING_H)
+#include <string.h>
 #endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
-
-#include "utlist.h"
 
 #ifdef __unix__			/* FIXME: feature test */
 #include <sys/types.h>
@@ -50,6 +51,8 @@
 #include <mbedtls/base64.h>
 #include <mbedtls/x509_crt.h>
 #include <mbedtls/pem.h>
+
+#include "utlist.h"
 
 static const char PEM_BEGIN_CRT[] = "-----BEGIN CERTIFICATE-----";
 static const char PEM_END_CRT[] = "-----END CERTIFICATE-----";
@@ -2184,7 +2187,7 @@ exit:
 #endif // __WITH_DTLS__ or __WITH_TLS__
 
 
-static OCEntityHandlerResult HandleNewCredential(OCEntityHandlerRequest *ehRequest, OicSecCred_t *cred)
+static OCEntityHandlerResult HandleNewCredential(struct oocf_inbound_request *ehRequest, OicSecCred_t *cred)
 {
     OCEntityHandlerResult ret = OC_EH_INTERNAL_SERVER_ERROR;
 
@@ -2202,8 +2205,8 @@ static OCEntityHandlerResult HandleNewCredential(OCEntityHandlerRequest *ehReque
         {
             case SYMMETRIC_PAIR_WISE_KEY:
             {
-                OCServerRequest *request = (OCServerRequest *)ehRequest->requestHandle;
-                if(FillPrivateDataOfOwnerPSK(cred, (CAEndpoint_t *)&request->devAddr, doxm))
+                struct CARequestInfo *request = (CARequestInfo *)ehRequest->requestHandle;
+                if (FillPrivateDataOfOwnerPSK(cred, (CAEndpoint_t *)&request->dest_ep, doxm))
                 {
                     if(OC_STACK_RESOURCE_DELETED == RemoveCredential(&cred->subject))
                     {
@@ -2318,8 +2321,8 @@ static OCEntityHandlerResult HandleNewCredential(OCEntityHandlerRequest *ehReque
         {
             case SYMMETRIC_PAIR_WISE_KEY:
             {
-                OCServerRequest *request = (OCServerRequest *)ehRequest->requestHandle;
-                if(FillPrivateDataOfSubOwnerPSK(cred, (CAEndpoint_t *)&request->devAddr, doxm, &cred->subject))
+                struct CARequestInfo OCServerRequest; *request = (struct CARequestInfo *)ehRequest->requestHandle;
+                if (FillPrivateDataOfSubOwnerPSK(cred, (CAEndpoint_t *)&request->devAddr, doxm, &cred->subject))
                 {
                     if(OC_STACK_RESOURCE_DELETED == RemoveCredential(&cred->subject))
                     {
@@ -2402,15 +2405,17 @@ static OCEntityHandlerResult HandleNewCredential(OCEntityHandlerRequest *ehReque
     return ret;
 }
 
-static OCEntityHandlerResult HandlePostRequest(OCEntityHandlerRequest* ehRequest)
+static OCEntityHandlerResult HandlePostRequest(struct oocf_inbound_request *ehRequest)
 {
     OCEntityHandlerResult ret = OC_EH_INTERNAL_SERVER_ERROR;
     OIC_LOG(DEBUG, TAG, "HandleCREDPostRequest IN");
 
     OicSecCred_t *cred = NULL;
     OicUuid_t     *rownerId = NULL;
-    uint8_t *payload = (((OCSecurityPayload*)ehRequest->payload)->securityData);
-    size_t size = (((OCSecurityPayload*)ehRequest->payload)->payloadSize);
+    uint8_t *payload = ((OCSecurityPayload *)
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+    size_t size = ((OCSecurityPayload *)
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
 
     OicSecDostype_t dos;
     VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDos(&dos), ERROR);
@@ -2488,7 +2493,7 @@ exit:
 /**
  * The entity handler determines how to process a GET request.
  */
-static OCEntityHandlerResult HandleGetRequest (const OCEntityHandlerRequest * ehRequest)
+static OCEntityHandlerResult HandleGetRequest (const struct oocf_inbound_request *ehRequest)
 {
     OIC_LOG(INFO, TAG, "HandleGetRequest  processing GET request");
 
@@ -2515,15 +2520,16 @@ static OCEntityHandlerResult HandleGetRequest (const OCEntityHandlerRequest * eh
     return ehRet;
 }
 
-static OCEntityHandlerResult HandleDeleteRequest(const OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleDeleteRequest(const struct oocf_inbound_request *ehRequest)
 {
     OIC_LOG(DEBUG, TAG, "Processing CredDeleteRequest");
 
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
     CredIdList_t *credIdList = NULL;
     OicUuid_t subject = { .id= { 0 } };
+    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
 
-    if (NULL == ehRequest->query)
+    if (NULL == query)    //ehRequest->query)
     {
         return ehRet;
     }
@@ -2538,7 +2544,7 @@ static OCEntityHandlerResult HandleDeleteRequest(const OCEntityHandlerRequest *e
         goto exit;
     }
 
-    if (GetCredIdsFromQueryString(ehRequest->query, &credIdList))
+    if (GetCredIdsFromQueryString(query, &credIdList))
     {
         if (OC_STACK_RESOURCE_DELETED == RemoveCredentialByCredIds(credIdList))
         {
@@ -2546,7 +2552,7 @@ static OCEntityHandlerResult HandleDeleteRequest(const OCEntityHandlerRequest *e
         }
         DeleteCredIdList(&credIdList);
     }
-    else if (GetSubjectFromQueryString(ehRequest->query, &subject))
+    else if (GetSubjectFromQueryString(query, &subject))
     {
         if (OC_STACK_RESOURCE_DELETED == RemoveCredential(&subject))
         {
@@ -2568,7 +2574,7 @@ exit:
 }
 
 OCEntityHandlerResult CredEntityHandler(OCEntityHandlerFlag flag,
-                                        OCEntityHandlerRequest * ehRequest,
+                                        struct oocf_inbound_request *ehRequest,
                                         void* callbackParameter)
 {
     (void)callbackParameter;
@@ -2582,16 +2588,17 @@ OCEntityHandlerResult CredEntityHandler(OCEntityHandlerFlag flag,
     {
         OIC_LOG (DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
         //TODO :  Remove Handle PUT methods once CTT have changed to POST on OTM
-        switch (ehRequest->method)
+        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
+        //ehRequest->method)
         {
-            case OC_REST_GET:
+            case CA_GET:
                 ret = HandleGetRequest(ehRequest);
                 break;
-            case OC_REST_PUT:
-            case OC_REST_POST:
+            case CA_PUT:
+            case CA_POST:
                 ret = HandlePostRequest(ehRequest);
                 break;
-            case OC_REST_DELETE:
+            case CA_DELETE:
                 ret = HandleDeleteRequest(ehRequest);
                 break;
             default:

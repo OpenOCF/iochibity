@@ -26,7 +26,7 @@
 
 #define TAG "OIC_SRM_RM"
 
-OCStackResult SendSRMResponse(const OCEntityHandlerRequest *ehRequest,
+OCStackResult SendSRMResponse(const struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest,
         OCEntityHandlerResult ehRet, uint8_t *cborPayload, size_t size)
 {
     OIC_LOG(DEBUG, TAG, "SRM sending SRM response");

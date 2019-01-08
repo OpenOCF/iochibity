@@ -508,28 +508,28 @@ exit:
 /*     } */
 /* } */
 
-OCStackResult SRMRegisterHandler(CARequestCallback reqHandler,
-    CAResponseCallback respHandler, CAErrorCallback errHandler)
-{
-    OIC_LOG(DEBUG, TAG, "SRMRegisterHandler !!");
-    if (!reqHandler || !respHandler || !errHandler)
-    {
-        OIC_LOG(ERROR, TAG, "Callback handlers are invalid");
-        return OC_STACK_INVALID_PARAM;
-    }
-    // WARNING: note gRequestHandler (secureresourcemanager) etc. != g_requestHandler (camessagehandler)
-    //gRequestHandler = reqHandler;
-    //gResponseHandler = respHandler;
-    //gErrorHandler = errHandler;
+/* OCStackResult SRMRegisterHandler(CARequestCallback reqHandler, */
+/*     CAResponseCallback respHandler, CAErrorCallback errHandler) */
+/* { */
+/*     OIC_LOG(DEBUG, TAG, "SRMRegisterHandler !!"); */
+/*     if (!reqHandler || !respHandler || !errHandler) */
+/*     { */
+/*         OIC_LOG(ERROR, TAG, "Callback handlers are invalid"); */
+/*         return OC_STACK_INVALID_PARAM; */
+/*     } */
+/*     // WARNING: note gRequestHandler (secureresourcemanager) etc. != g_requestHandler (camessagehandler) */
+/*     //gRequestHandler = reqHandler; */
+/*     //gResponseHandler = respHandler; */
+/*     //gErrorHandler = errHandler; */
 
-#if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
-    //CARegisterHandler(SRMRequestHandler, SRMResponseHandler, SRMErrorHandler);
-    //CARegisterHandler(SRMRequestHandler, HandleCAResponses, HandleCAErrorResponse);
-#else
-    CARegisterHandler(reqHandler, respHandler, errHandler);
-#endif /* __WITH_DTLS__ */
-    return OC_STACK_OK;
-}
+/* #if defined(__WITH_DTLS__) || defined(__WITH_TLS__) */
+/*     //CARegisterHandler(SRMRequestHandler, SRMResponseHandler, SRMErrorHandler); */
+/*     //CARegisterHandler(SRMRequestHandler, HandleCAResponses, HandleCAErrorResponse); */
+/* #else */
+/*     // CARegisterHandler(reqHandler, respHandler, errHandler); */
+/* #endif /\* __WITH_DTLS__ *\/ */
+/*     return OC_STACK_OK; */
+/* } */
 
 OCStackResult SRMRegisterPersistentStorageHandler(OCPersistentStorage* persistentStorageHandler)
 {

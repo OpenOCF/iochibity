@@ -375,7 +375,7 @@ exit:
     return ret;
 }
 
-static OCEntityHandlerResult HandleAmaclGetRequest (const OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleAmaclGetRequest (const struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     // Convert Amacl data into JSON for transmission
     size_t size = 0;
@@ -394,13 +394,18 @@ static OCEntityHandlerResult HandleAmaclGetRequest (const OCEntityHandlerRequest
     return ehRet;
 }
 
-static OCEntityHandlerResult HandleAmaclPostRequest (const OCEntityHandlerRequest *ehRequest)
+static OCEntityHandlerResult HandleAmaclPostRequest (const struct oocf_inbound_request /*OCEntityHandlerRequest*/ *ehRequest)
 {
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
 
     // Convert CBOR Amacl data into binary. This will also validate the Amacl data received.
-    uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData;
-    size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize;
+    uint8_t *payload = ((OCSecurityPayload *)
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+    /* uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData; */
+    size_t size = ((OCSecurityPayload *)
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+    /* size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize; */
+
     if (payload)
     {
         OicSecAmacl_t *newAmacl = NULL;
@@ -439,7 +444,7 @@ static OCEntityHandlerResult HandleAmaclPostRequest (const OCEntityHandlerReques
  * will handle REST request (GET/PUT/POST/DEL) for them.
  */
 static OCEntityHandlerResult AmaclEntityHandler (OCEntityHandlerFlag flag,
-                                                 OCEntityHandlerRequest * ehRequest,
+                                                 struct oocf_inbound_request /*OCEntityHandlerRequest*/ * ehRequest,
                                                  void* callbackParameter)
 {
     (void) callbackParameter;
@@ -453,13 +458,13 @@ static OCEntityHandlerResult AmaclEntityHandler (OCEntityHandlerFlag flag,
     if (flag & OC_REQUEST_FLAG)
     {
         OIC_LOG (DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (ehRequest->method)
+        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
         {
-            case OC_REST_GET:
+            case CA_GET:
                 ehRet = HandleAmaclGetRequest(ehRequest);
                 break;
 
-            case OC_REST_POST:
+            case CA_POST:
                 ehRet = HandleAmaclPostRequest(ehRequest);
                 break;
 
