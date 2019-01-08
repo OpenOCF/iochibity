@@ -418,7 +418,9 @@ void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
         return;
     }
 
-#if defined(USE_IP_MREQN)
+    char addr_str[INET_ADDRSTRLEN + 1] = {0}; // debugging
+
+#if defined(HAVE_MREQN)
     struct ip_mreqn mreq = {0};
     memcpy(&mreq.imr_multiaddr.s_addr, (void*)&IPv4MulticastAddress, sizeof(struct in_addr));
     mreq.imr_address.s_addr = htonl(INADDR_ANY);
@@ -427,6 +429,7 @@ void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
     struct ip_mreq mreq  = { .imr_multiaddr.s_addr = IPv4MulticastAddress.s_addr,
                              .imr_interface.s_addr = htonl(ifindex) };
 #endif
+    inet_ntop(AF_INET, &mreq.imr_multiaddr.s_addr, addr_str, sizeof(addr_str));
 
     int ret;
     ret = setsockopt(udp_m4.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
