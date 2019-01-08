@@ -26,33 +26,3 @@ typedef enum // FIXME: where does this belong?
     CA_STATUS_FAILED =255           /**< 255 Failure */
     /* Result code - END HERE */
 } CAResult_t;
-
-/**
- * Enums for CA Response values.
- */
-typedef enum
-{
-    /* Response status code - START HERE */
-    CA_EMPTY = 0,                           /**< Empty */
-    CA_CREATED = 201,                       /**< Created */
-    CA_DELETED = 202,                       /**< Deleted */
-    CA_VALID = 203,                         /**< Valid */
-    CA_CHANGED = 204,                       /**< Changed */
-    CA_CONTENT = 205,                       /**< Content */
-    CA_CONTINUE = 231,                      /**< Continue */
-    CA_BAD_REQ = 400,                       /**< Bad Request */
-    CA_UNAUTHORIZED_REQ = 401,              /**< Unauthorized Request */
-    CA_BAD_OPT = 402,                       /**< Bad Option */
-    CA_FORBIDDEN_REQ = 403,                 /**< Forbidden Request */
-    CA_NOT_FOUND = 404,                     /**< Not found */
-    CA_METHOD_NOT_ALLOWED = 405,            /**< Method Not Allowed */
-    CA_NOT_ACCEPTABLE = 406,                /**< Not Acceptable */
-    CA_REQUEST_ENTITY_INCOMPLETE = 408,     /**< Request Entity Incomplete */
-    CA_REQUEST_ENTITY_TOO_LARGE = 413,      /**< Request Entity Too Large */
-    CA_INTERNAL_SERVER_ERROR = 500,         /**< Internal Server Error */
-    CA_BAD_GATEWAY = 502,
-    CA_SERVICE_UNAVAILABLE = 503,           /**< Server Unavailable */
-    CA_RETRANSMIT_TIMEOUT = 504,            /**< Retransmit timeout */
-    CA_PROXY_NOT_SUPPORTED = 505            /**< Proxy not enabled to service a request */
-    /* Response status code - END HERE */
-} CAResponseResult_t;

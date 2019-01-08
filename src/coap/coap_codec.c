@@ -102,6 +102,36 @@ typedef struct                  /* src: camessagehandler.c */
                              helpful to identify the error */
 } CAErrorInfo_t;
 
+typedef enum                    /* FIXME: @rename oocf_coap_response_codes section 12.1.2, RFC 7252 */
+{
+    /* Response status code - START HERE */
+    CA_EMPTY = 0,                           /**< Empty Message, 0.00 */
+    /* Success Responses (2.xx) */
+    CA_CREATED = 201,                       /**< Created */
+    CA_DELETED = 202,                       /**< Deleted */
+    CA_VALID = 203,                         /**< Valid; HTTP 304 not modified (caching) */
+    CA_CHANGED = 204,                       /**< Changed */
+    CA_CONTENT = 205,                       /**< Content; HTTP 200 OK, only for GET rqsts */
+    CA_CONTINUE = 231,                      /**< Continue */
+    /* Client Error Responses (4.xx) */
+    CA_BAD_REQ = 400,                       /**< Bad Request */
+    CA_UNAUTHORIZED_REQ = 401,              /**< Unauthorized Request */
+    CA_BAD_OPT = 402,                       /**< Bad Option */
+    CA_FORBIDDEN_REQ = 403,                 /**< Forbidden Request */
+    CA_NOT_FOUND = 404,                     /**< Not found */
+    CA_METHOD_NOT_ALLOWED = 405,            /**< Method Not Allowed */
+    CA_NOT_ACCEPTABLE = 406,                /**< Not Acceptable */
+    CA_REQUEST_ENTITY_INCOMPLETE = 408,     /**< Request Entity Incomplete */
+    CA_REQUEST_ENTITY_TOO_LARGE = 413,      /**< Request Entity Too Large */
+    /* Server Error Responses (5.xx) */
+    CA_INTERNAL_SERVER_ERROR = 500,         /**< Internal Server Error */
+    CA_BAD_GATEWAY = 502,
+    CA_SERVICE_UNAVAILABLE = 503,           /**< Server Unavailable */
+    CA_RETRANSMIT_TIMEOUT = 504,            /**< Retransmit timeout */
+    CA_PROXY_NOT_SUPPORTED = 505            /**< Proxy not enabled to service a request */
+    /* Response status code - END HERE */
+} CAResponseResult_t;
+
 /* src: caipinterface.c */
 #define CA_COAP        5683
 #define CA_SECURE_COAP 5684
@@ -146,12 +176,30 @@ typedef enum
 /**
  * Allowed method to be used by resource model.
  */
-typedef enum // FIXME: doesn't belong in coap_codec
+ typedef enum // FIXME: @rename to oocf_coap_method_codes (section 12.1.1 of RFC 7252)
 {
-    CA_GET = 1, /**< GET Method  */
-    CA_POST,    /**< POST Method */
-    CA_PUT,     /**< PUT Method */
-    CA_DELETE   /**< DELETE Method */
+    //OC_REST_NOMETHOD       = 0,
+    CA_GET = 1,                 /* 0.01 */
+    //OC_REST_GET            = (1 << 0),
+    CA_PUT,                     /* 0.03 */
+    //OC_REST_PUT            = (1 << 1),
+    CA_POST,                    /* 0.02 */
+    //OC_REST_POST           = (1 << 2),
+    CA_DELETE,                  /* 0.04 */
+    //OC_REST_DELETE         = (1 << 3),
+    CA_OBSERVE,
+    //OC_REST_OBSERVE, //        = (1 << 4),
+    CA_OBSERVE_ALL,
+    /** Register observe request for all notifications, including stale notifications.*/
+    //OC_REST_OBSERVE_ALL, //    = (1 << 5),
+#ifdef WITH_PRESENCE
+    /** Subscribe for all presence notifications of a particular resource.*/
+    CA_PRESENSE,
+    //OC_REST_PRESENCE, //       = (1 << 7),
+#endif
+    CA_DISCOVER
+    /** Allows OCDoResource caller to do discovery.*/
+    //OC_REST_DISCOVER //       = (1 << 8)
 } CAMethod_t;
 
 /**
