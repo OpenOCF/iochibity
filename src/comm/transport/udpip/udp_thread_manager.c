@@ -74,7 +74,6 @@ void udp_stop_send_msg_queue() // @was CAIPDeinitializeQueueHandles()
     // Since the items in g_local_endpoint_cache are allocated once in a big chunk, we only need to
     // free the first item. Another location this is done is in the CA_INTERFACE_DOWN handler
     // in CAUpdateStoredIPAddressInfo().
-    OICFree(u_arraylist_get(g_local_endpoint_cache, 0));
     u_arraylist_free(&g_local_endpoint_cache);
     g_local_endpoint_cache = NULL;
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);

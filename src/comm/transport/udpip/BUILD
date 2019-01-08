@@ -19,7 +19,7 @@ cc_library(
     ] + select({"//config:mingw": [],
                 "//config:msvc": [],
                 "//config:msys": [],
-                "//config:linux": ["-D_DEFAULT_SOURCE","-std=c11"],
+                "//config:linux": ["-D_DEFAULT_SOURCE", "-std=c11"],
                 "//config:linux64": ["-D_DEFAULT_SOURCE", "-std=c11"],
                 "//conditions:default": ["-std=c11", "-Wextra"]})
     + select({"//config:enable_gcd": ["-DENABLE_GCD"],

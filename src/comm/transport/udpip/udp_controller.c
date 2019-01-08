@@ -92,16 +92,11 @@ typedef struct
     void *data;
     uint32_t dataLen;
     bool isMulticast;
-} CAIPData_t;
+} CAIPData_t;                   /* FIXME: @rename struct OCF_DATAGRAM */
 #endif	/* EXPORT_INTERFACE */
 
 // to signal shutdown
 oc_cond udp_data_receiver_runloop_cond;
-
-/**
- * List of the CAEndpoint_t* that has a stack-owned IP address.
- */
-u_arraylist_t *g_local_endpoint_cache = NULL; /* FIXME: @rewrite udp_local_ep_cache */
 
 /**
  * Network Packet Received Callback to CA.
@@ -146,7 +141,7 @@ CAResult_t udp_start_services(const ca_thread_pool_t threadPool) // @was CAIPSta
 
     //udp_selectTimeout = CAGetPollingInterval(udp_selectTimeout);
 
-    res = udp_configure_multicast_listening(); // udp_add_nifs_to_multicast_groups();  /* @was CAIPStartListenServer */
+    res = udp_configure_eps(); /* @was CAIPStartListenServer */
     if (CA_STATUS_OK != res)
     {
         OIC_LOG_V(ERROR, TAG, "udp_add_ifs_to_multicast_groups failed with rc [%d]", res);

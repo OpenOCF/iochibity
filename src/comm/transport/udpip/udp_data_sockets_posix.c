@@ -46,7 +46,10 @@
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#ifdef HAVE_NETINET_IP_H
+#include <netinet/ip.h>
 #endif
+#endif  /* INTERFACE */
 #ifdef HAVE_NET_IF_H
 #include <net/if.h>
 #endif
@@ -66,18 +69,17 @@ int udp_netlinkFd;              /**< netlink */
 int udp_shutdownFds[2]; // = { 80, 81 }; /**< pipe used to signal threads to stop */
 CASocketFd_t udp_maxfd = 0;         /**< highest fd (for select) */
 
-#if EXPORT_INTERFACE
+#if INTERFACE
 #include <inttypes.h>
 #define IFF_UP_RUNNING_FLAGS  (IFF_UP|IFF_RUNNING)
-
 #endif
 
-bool PORTABLE_check_setsockopt_err(void) EXPORT
+bool PORTABLE_check_setsockopt_err(void)
 {
     return EADDRINUSE != errno;
 }
 
-bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn *mreq, int ret) EXPORT
+bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn *mreq, int ret)
 {
     /* args not used in posix, used in windows */
     (void)mreq;
@@ -85,7 +87,7 @@ bool PORTABLE_check_setsockopt_m4s_err(struct ip_mreqn *mreq, int ret) EXPORT
     return EADDRINUSE != errno;
 }
 
-bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq, int ret) EXPORT
+bool PORTABLE_check_setsockopt_m6_err(CASocketFd_t fd, struct ipv6_mreq *mreq, int ret)
 {
     /* args not used in posix, used in windows */
     (void)fd;

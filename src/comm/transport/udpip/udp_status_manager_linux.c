@@ -277,7 +277,7 @@ void CARegisterForNIFChanges(void)
 void udp_nif_change_handler_linux() // @was CAFindInterfaceChange
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    u_arraylist_t *iflist = NULL;
+    /* u_arraylist_t *iflist = NULL; */
     char buf[4096] = { 0 };
     struct nlmsghdr *nh = NULL;
     struct sockaddr_nl sa = { .nl_family = 0 };

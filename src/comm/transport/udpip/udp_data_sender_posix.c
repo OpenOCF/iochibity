@@ -27,7 +27,7 @@ void PORTABLE_sendto(CASocketFd_t fd,
                      const void *data,
 		     size_t dlen,
 		     int flags,
-		     struct sockaddr_storage * sockaddrptr,
+		     struct sockaddr_storage * dest_sockaddr,
 		     socklen_t socklen,
 		     const CAEndpoint_t *endpoint)
 		     /* const char *routing, const char *fam) */
@@ -43,7 +43,23 @@ EXPORT
               (endpoint->flags & CA_SECURE) ? "secure " : "insecure ",
               (endpoint->flags & CA_MULTICAST) ? "multicast" : "unicast");
 
-    ssize_t len = sendto(fd, data, dlen, 0, (struct sockaddr *)sockaddrptr, socklen);
+    char dest_addr[INET6_ADDRSTRLEN + 1] = {0};
+    if (dest_sockaddr->ss_family == AF_INET6) {
+        inet_ntop(AF_INET6,
+                  &(((struct sockaddr_in6*)dest_sockaddr)->sin6_addr),
+                  dest_addr, sizeof(dest_addr));
+        OIC_LOG_V(DEBUG, TAG, "\tdest addr: [%s]:%u", dest_addr,
+                  ntohs(((struct sockaddr_in6*)dest_sockaddr)->sin6_port));
+    }
+    if (dest_sockaddr->ss_family == AF_INET) {
+        inet_ntop(AF_INET,
+                  &(((struct sockaddr_in*)dest_sockaddr)->sin_addr),
+                  dest_addr, sizeof(dest_addr));
+        OIC_LOG_V(DEBUG, TAG, "\tdest addr: [%s]:%u", dest_addr,
+                  &(((struct sockaddr_in*)dest_sockaddr)->sin_port));
+    }
+
+    ssize_t len = sendto(fd, data, dlen, 0, (struct sockaddr *)dest_sockaddr, socklen);
 
     if (OC_SOCKET_ERROR == len)
     {

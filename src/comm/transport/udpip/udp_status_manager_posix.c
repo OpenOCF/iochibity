@@ -692,8 +692,8 @@ void CAInitializeFastShutdownMechanism(void)
     UDP_CHECKFD(udp_shutdownFds[0]);
     UDP_CHECKFD(udp_shutdownFds[1]);
 #else
-    // ret = pipe(udp_shutdownFds);
-    if (pipe(udp_shutdownFds) == -1) {
+    ret = pipe(udp_shutdownFds);
+    if (ret) == -1) {
 	OIC_LOG_V(ERROR, TAG, "pipe(udp_shutdownFds) fail: %s", CAIPS_GET_ERROR);
 	goto errexit2;
     }

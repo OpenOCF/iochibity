@@ -113,10 +113,10 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
     int level = 0;
     int type = 0;
     int namelen = 0;
-    struct sockaddr_storage srcAddr = { .ss_family = 0 };
+    struct sockaddr_storage origin_addr = { .ss_family = 0 };
     unsigned char *pktinfo = NULL;
     size_t len = 0;
-    struct cmsghdr *cmp = NULL;
+    struct cmsghdr *cmsg_hdr = NULL;
     struct iovec iov = { .iov_base = recvBuffer, .iov_len = sizeof (recvBuffer) };
     union control
     {
@@ -139,7 +139,7 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
         len = sizeof (struct in_pktinfo);
     }
 
-    struct msghdr msg = { .msg_name = &srcAddr,
+    struct msghdr msg = { .msg_name = &origin_addr,
                           .msg_namelen = namelen,
                           .msg_iov = &iov,
                           .msg_iovlen = 1,
@@ -153,11 +153,12 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
         return CA_STATUS_FAILED;
     }
 
-    for (cmp = CMSG_FIRSTHDR(&msg); cmp != NULL; cmp = CMSG_NXTHDR(&msg, cmp))
+    for (cmsg_hdr = CMSG_FIRSTHDR(&msg); cmsg_hdr != NULL; cmsg_hdr = CMSG_NXTHDR(&msg, cmsg_hdr))
     {
-        if (cmp->cmsg_level == level && cmp->cmsg_type == type)
+        if (cmsg_hdr->cmsg_level == level && cmsg_hdr->cmsg_type == type)
         {
-            pktinfo = CMSG_DATA(cmp);
+            pktinfo = CMSG_DATA(cmsg_hdr);
+            break;
         }
     }
     if (!pktinfo)
@@ -166,39 +167,97 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
         return CA_STATUS_FAILED;
     }
 
-    CASecureEndpoint_t sep = {.endpoint = {.adapter = CA_ADAPTER_IP, .flags = flags}};
+    //#ifdef DEBUG_DGRAM
+    // MSG_MCAST BSD only?
+    /* OIC_LOG_V(DEBUG, TAG, "msghdr.msg_flags MSG_MCAST? %x", msg.msg_flags & MSG_MCAST); */
 
-    if (flags & CA_IPV6)
-    {
-        // sep.endpoint.ifindex = ((struct in6_pktinfo *)pktinfo)->ipi6_ifindex;
-
-        if (flags & CA_MULTICAST)
-        {
-            struct in6_addr *addr = &(((struct in6_pktinfo *)pktinfo)->ipi6_addr);
-            unsigned char topbits = ((unsigned char *)addr)[0];
-            if (topbits != 0xff)
-            {
-                sep.endpoint.flags &= ~CA_MULTICAST;
-            }
-        }
+    char addr_str[256] = {0}; // debugging
+    if (cmsg_hdr->cmsg_level == IPPROTO_IPV6) {
+        OIC_LOG(DEBUG, TAG, "cmsg_level == IPPROTO_IPV6");
+        OIC_LOG_V(DEBUG, TAG, "cmsg_type == IPV6_PKTINFO");
+        inet_ntop(AF_INET6,
+                  &(((struct in6_pktinfo*)pktinfo)->ipi6_addr),
+                  addr_str, sizeof(addr_str));
+        OIC_LOG_V(DEBUG, TAG, "dest addr: %s", addr_str);
+        OIC_LOG_V(DEBUG, TAG, "dest ifindex: %u", ((struct in6_pktinfo*)pktinfo)->ipi6_ifindex);
     }
-    else
-    {
-        /* sep.endpoint.ifindex = ((struct in_pktinfo *)pktinfo)->ipi_ifindex; */
+    //#endif
+    CASecureEndpoint_t origin_sep = {.endpoint = {.adapter = CA_ADAPTER_IP, .flags = flags}};
+    //LogSecureEndpoint(&origin_sep);
 
-        if (flags & CA_MULTICAST)
-        {
-            struct in_addr *addr = &((struct in_pktinfo *)pktinfo)->ipi_addr;
-            uint32_t host = ntohl(addr->s_addr);
-            unsigned char topbits = ((unsigned char *)&host)[3];
-            if (topbits < 224 || topbits > 239)
-            {
-                sep.endpoint.flags &= ~CA_MULTICAST;
-            }
+    // CA_IPV6 flag was set if socket was ipv6
+    // we don't need the, the message tells us the protocol family
+    /* if (flags & CA_IPV6)        /\* FIXME: use family from origin_addr? *\/ */
+    if (cmsg_hdr->cmsg_level == IPPROTO_IPV6) {
+        origin_sep.endpoint.flags |= CA_IPV6;
+        origin_sep.endpoint.ifindex = ((struct in6_pktinfo *)pktinfo)->ipi6_ifindex;
+
+        // if msg was received on mcast socket, flag was set CA_IPV6
+        // we dont't qneed that, we can test the address
+        /* if (flags & CA_MULTICAST) { /\* FIXME: use MSG_MCAST flag? *\/ */
+        //struct in6_addr *addr = &(((struct in6_pktinfo *)pktinfo)->ipi6_addr);
+        /* unsigned char topbits = ((unsigned char *)addr)[0]; */
+        if (IN6_IS_ADDR_MULTICAST(&(((struct in6_pktinfo *)pktinfo)->ipi6_addr.s6_addr))) {
+            OIC_LOG_V(DEBUG, TAG, "msg was multicast");
+            /* NOTE: this flag indicates that the msg rcd from
+               origin_ep was mcast, not that the origin_ep is an mcast
+               ep */
+            origin_sep.endpoint.flags |= CA_MULTICAST;
+        } else {
+            OIC_LOG_V(DEBUG, TAG, "msg was unicast");
+            origin_sep.endpoint.flags &= ~CA_MULTICAST;
         }
+        /* if (topbits == 0xff) { */
+        /*     OIC_LOG_V(DEBUG, TAG, "msg was multicast"); */
+        /*     origin_sep.endpoint.flags |= CA_MULTICAST; */
+        /* } else { */
+        /*     OIC_LOG_V(DEBUG, TAG, "msg was unicast"); */
+        /*     origin_sep.endpoint.flags |= ~CA_MULTICAST; */
+        /* } */
+
+        /* origin_addr is origin_ep */
+        struct sockaddr_in6 *origin_addr6 = (struct sockaddr_in6*)&origin_addr;
+
+        if (IN6_IS_ADDR_LINKLOCAL(&origin_addr6->sin6_addr.s6_addr)) {
+                                  //&(((struct in6_pktinfo *)pktinfo)->ipi6_addr.s6_addr))) {
+            //OIC_LOG_V(DEBUG, TAG, "ipv6 scope linklocal");
+            origin_sep.endpoint.flags |= CA_SCOPE_LINK;
+        } else if (IN6_IS_ADDR_SITELOCAL(&origin_addr6->sin6_addr.s6_addr)) {
+                    // &(((struct in6_pktinfo *)pktinfo)->ipi6_addr))) {
+            //OIC_LOG_V(DEBUG, TAG, "ipv6 scope sitelocal");
+            origin_sep.endpoint.flags |= CA_SCOPE_SITE;
+        } else if (IN6_IS_ADDR_UNSPECIFIED(&origin_addr6->sin6_addr.s6_addr)) {
+                    // &(((struct in6_pktinfo *)pktinfo)->ipi6_addr))) {
+            //OIC_LOG_V(DEBUG, TAG, "ipv6 scope unspecified");
+        }
+
+        /* NOTE: multicast scope testing: IN6_IS_ADDR_MC_LINKLOCAL(a) */
+
+        inet_ntop(AF_INET6, &(origin_addr6->sin6_addr),
+                  origin_sep.endpoint.addr, sizeof(origin_sep.endpoint.addr));
+        origin_sep.endpoint.port = ntohs(((struct sockaddr_in6 *)&origin_addr)->sin6_port);
+        /* } */
+    } else if (cmsg_hdr->cmsg_level == IPPROTO_IP) {
+        origin_sep.endpoint.ifindex = ((struct in_pktinfo *)pktinfo)->ipi_ifindex;
+        origin_sep.endpoint.flags |= CA_IPV4;
+
+        struct in_addr *addr = &((struct in_pktinfo *)pktinfo)->ipi_addr;
+        uint32_t host = ntohl(addr->s_addr);
+        unsigned char topbits = ((unsigned char *)&host)[3];
+        if (topbits < 224 || topbits > 239) {
+                origin_sep.endpoint.flags |= ~CA_MULTICAST;
+        } else {
+                origin_sep.endpoint.flags |= CA_MULTICAST;
+        }
+        inet_ntop(AF_INET,
+                  &(((struct sockaddr_in*)&origin_addr)->sin_addr),
+                  origin_sep.endpoint.addr, sizeof(origin_sep.endpoint.addr));
+        origin_sep.endpoint.port = ntohs(((struct sockaddr_in *)&origin_addr)->sin_port);
     }
 
-    CAConvertAddrToName(&srcAddr, namelen, sep.endpoint.addr, &sep.endpoint.port);
+    //CAConvertAddrToName(&origin_addr, namelen, origin_sep.endpoint.addr, &origin_sep.endpoint.port);
+
+    LogSecureEndpoint(&origin_sep);
 
     if (flags & CA_SECURE) {
 #ifdef __WITH_DTLS__
@@ -206,7 +265,7 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
         int decryptResult =
 #endif
 	    /*  */
-        CAdecryptSsl(&sep, (uint8_t *)recvBuffer, recvLen);
+        CAdecryptSsl(&origin_sep, (uint8_t *)recvBuffer, recvLen);
         OIC_LOG_TLS_V(DEBUG, TAG, "CAdecryptSsl returns [%d]", decryptResult);
 #else
         OIC_LOG(ERROR, TAG, "Encrypted message but DTLS disabled");
@@ -216,9 +275,9 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
     {
         /* if (g_packetReceivedCallback) */
         /* { */
-        /*     g_packetReceivedCallback(&sep, recvBuffer, recvLen); */
+        /*     g_packetReceivedCallback(&origin_sep, recvBuffer, recvLen); */
         /* } */
-	mh_CAReceivedPacketCallback(&sep, recvBuffer, recvLen);
+	mh_CAReceivedPacketCallback(&origin_sep, recvBuffer, recvLen);
     }
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);

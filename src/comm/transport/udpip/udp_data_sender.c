@@ -83,13 +83,7 @@ LOCAL void udp_send_data(CASocketFd_t fd, /*  @was sendData */
     if (!dest_ep)
     {
         OIC_LOG(DEBUG, TAG, "dest_ep is null");
-	// @rewrite: no need to use g_ipErrorHandler, we just call CAIPErrorHandler directly
-        /* if (g_ipErrorHandler) */
-        /* { */
-        /*     g_ipErrorHandler(dest_ep, data, dlen, CA_STATUS_INVALID_PARAM); */
-        /* } */
-	CAErrorHandler(dest_ep, data, dlen, CA_STATUS_INVALID_PARAM);
-	//CAIPErrorHandler(dest_ep, data, dlen, CA_STATUS_INVALID_PARAM);
+	CAErrorHandler(dest_ep, data, dlen, CA_STATUS_INVALID_PARAM); // CAIPErrorHandler
         return;
     }
 
@@ -111,23 +105,46 @@ LOCAL void udp_send_data(CASocketFd_t fd, /*  @was sendData */
     // FIXME: CAConvertNameToAddr uses getaddrinfo to find which ip
     // version. but the dest_ep struct already has that info, so we
     // can initialize the sockaddr here:
-    //CAConvertNameToAddr(dest_ep->addr, dest_ep->port, &sock);
+    CAConvertNameToAddr(dest_ep->addr, dest_ep->port, &sock);
     socklen_t socklen = 0;
-
-    if (dest_ep->flags & CA_IPV6) {
-        sock.ss_family = AF_INET6;
+    if (sock.ss_family == AF_INET6)
+    {
         socklen = sizeof(struct sockaddr_in6);
-        inet_pton(AF_INET6, dest_ep->addr, &((struct sockaddr_in6 *)&sock)->sin6_addr);
-        ((struct sockaddr_in6 *)&sock)->sin6_port = htons(dest_ep->port);
-    } else {
-        if (dest_ep->flags & CA_IPV4) {
-            memset(&sock, 0, sizeof(struct sockaddr_storage));
-            sock.ss_family = AF_INET;
-            socklen = sizeof(struct sockaddr_in);
-            inet_pton(AF_INET, dest_ep->addr, &((struct sockaddr_in *)&sock)->sin_addr);
-            ((struct sockaddr_in *)&sock)->sin_port = htons(dest_ep->port);
-        }
     }
+    else
+    {
+        socklen = sizeof(struct sockaddr_in);
+    }
+
+    /* socklen_t socklen = 0; */
+
+    /* int r; */
+    /* if (dest_ep->flags & CA_IPV6) { */
+    /*     sock.ss_family = AF_INET6; */
+    /*     socklen = sizeof(struct sockaddr_in6); */
+    /*     r = inet_pton(AF_INET6, dest_ep->addr, &((struct sockaddr_in6 *)&sock)->sin6_addr); */
+    /*     if (r != 1) { */
+    /*         OIC_LOG_V(ERROR, TAG, "\tinet_pton failed for %s; canceling send", dest_ep->addr); */
+    /*         return; */
+    /*     } */
+    /*     ((struct sockaddr_in6 *)&sock)->sin6_port = htons(dest_ep->port); */
+    /* } else if (dest_ep->flags & CA_IPV4) { */
+    /*     memset(&sock, 0, sizeof(struct sockaddr_storage)); */
+    /*     sock.ss_family = AF_INET; */
+    /*     socklen = sizeof(struct sockaddr_in); */
+    /*     r = inet_pton(AF_INET, dest_ep->addr, &((struct sockaddr_in *)&sock)->sin_addr); */
+    /*     ((struct sockaddr_in *)&sock)->sin_port = htons(dest_ep->port); */
+    /* } */
+
+    char dest_addr[INET6_ADDRSTRLEN + 1] = {0};
+    if (sock.ss_family == AF_INET6) {
+        inet_ntop(AF_INET6,
+                  &(((struct sockaddr_in6*)&sock)->sin6_addr),
+                  dest_addr, sizeof(dest_addr));
+        OIC_LOG_V(DEBUG, TAG, "\tdest addr: [%s]", dest_addr);
+    }
+
+
     PORTABLE_sendto(fd, data, dlen, 0, &sock, socklen, dest_ep); // , cast, fam);
 }
 
@@ -159,8 +176,9 @@ void CAIPSendData(CAEndpoint_t *dest_ep, const void *data, size_t datalen,
         if ((dest_ep->flags & CA_IPV6) && udp_ipv6_is_enabled)
         {
             OIC_LOG_V(ERROR, TAG, "first send ipv6");
-	    udp_send_data(udp_u6.fd, dest_ep, data, datalen); // , "multicast", "ipv6");
+	    //udp_send_data(udp_u6.fd, dest_ep, data, datalen); // , "multicast", "ipv6");
             //sendMulticastData6(iflist, dest_ep, data, datalen);
+            sendMulticastData6(dest_ep, data, datalen);
         }
         if ((dest_ep->flags & CA_IPV4) && udp_ipv4_is_enabled)
         {
@@ -199,9 +217,7 @@ void CAIPSendData(CAEndpoint_t *dest_ep, const void *data, size_t datalen,
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 }
 
-void sendMulticastData6(const u_arraylist_t *iflist,
-			CAEndpoint_t *dest_ep,
-			const void *data, size_t datalen)
+void sendMulticastData6(CAEndpoint_t *dest_ep, const void *data, size_t datalen)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (!dest_ep)
@@ -219,30 +235,15 @@ void sendMulticastData6(const u_arraylist_t *iflist,
 	}
     OICStrcpy(dest_ep->addr, sizeof(dest_ep->addr), ipv6mcname);
 
-    size_t len = u_arraylist_length(iflist);
-    for (size_t i = 0; i < len; i++)
+    /* to support multiple nifs (e.g. wifi0 and eth1), we need
+       to explicitly enable outbound mcast for each nif, since
+       it is sticky on the socket. */
+    for (size_t i = 0; i < nif_count; i++)
 	{
-	    CAInterface_t *ifitem = (CAInterface_t *)u_arraylist_get(iflist, i);
-	    if (!ifitem)
-		{
-		    continue;
-		}
-	    if ((ifitem->flags & IFF_UP_RUNNING_FLAGS) != IFF_UP_RUNNING_FLAGS)
-		{
-		    continue;
-		}
-	    if (ifitem->family != AF_INET6)
-		{
-		    continue;
-		}
-
-            /* to support multiple nifs (e.g. wifi0 and eth1), we need
-               to explicitly enable outbound mcast for each nif, since
-               it is sticky on the socket. */
-	    int index = ifitem->index;
-	    if (setsockopt(udp_u6.fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, OPTVAL_T(&index), sizeof (index)))
+            OIC_LOG_V(ERROR, TAG, "enabling MULTICAST_IF on NIF %u", nifs[i]);
+	    if (setsockopt(udp_u6.fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, OPTVAL_T(&nifs[i]), sizeof(unsigned int)))
 	        {
-	            OIC_LOG_V(ERROR, TAG, "setsockopt6 failed: %s", CAIPS_GET_ERROR);
+	            OIC_LOG_V(ERROR, TAG, "setsockopt6 MULTICAST_IF failed: %s", CAIPS_GET_ERROR);
 	            return;
 	        }
 
@@ -447,6 +448,7 @@ void CAIPSendDataThread(void *threadData)
 }
 
 // create IP packet for sending
+// @rename: udp_create_ocf_datagram
 CAIPData_t *CACreateIPData(const CAEndpoint_t *remoteEndpoint, const void *data,
                            uint32_t dataLength, bool isMulticast)
 {

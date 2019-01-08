@@ -116,7 +116,7 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage + CASelectReturned
 	OIC_LOG(DEBUG, TAG, "checking udp_u6...");
 	if ( UDPSET(udp_u6) ) {
 	    OIC_LOG(DEBUG, TAG, "udp_u6 socket ready");
-	    (void)udp_recvmsg_on_socket(udp_u6.fd, CA_IPV6);
+	    (void)udp_recvmsg_on_socket(udp_u6.fd, (CATransportFlags_t)CA_IPV6);
 	    FD_CLR(udp_u6.fd, &readFds);
 	    ready_count--;
 	}
@@ -208,7 +208,8 @@ void udp_handle_inbound_data(void) // @was CAFindReadyMessage + CASelectReturned
 	if (FD_ISSET(udp_shutdownFds[0], &readFds)) {
 	    OIC_LOG(DEBUG, TAG, "udp_shutdownFds[0] socket ready");
 	    char buf[10] = {0};
-	    ssize_t len = read(udp_shutdownFds[0], buf, sizeof (buf));
+	    /* ssize_t len =  */
+            read(udp_shutdownFds[0], buf, sizeof (buf));
 	    /* if (len >= 0) */
 	    /* 	return; */
 	}
