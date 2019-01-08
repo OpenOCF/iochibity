@@ -151,48 +151,11 @@ typedef enum
 
 } OCTransportFlags;             /* ==  CATransportFlags_t */
 
-  /* CA_ prefix: from //src/comm/api/cacommon.h: */
-typedef enum
-{
-    CA_DEFAULT_ADAPTER = 0,
+#define CA_IPFAMILY_MASK (CA_IPV6|CA_IPV4)
+#define CA_SCOPE_MASK 0xf     // mask scope bits above
 
-    // value zero indicates discovery
-    CA_ADAPTER_IP            = (1 << 0),   // UDP IPv4 and IPv6, including 6LoWPAN
-    CA_ADAPTER_GATT_BTLE     = (1 << 1),   // GATT over Bluetooth LE
-    CA_ADAPTER_RFCOMM_BTEDR  = (1 << 2),   // RFCOMM over Bluetooth EDR
-
-#ifdef RA_ADAPTER
-    CA_ADAPTER_REMOTE_ACCESS = (1 << 3),   // Remote Access over XMPP.
-#endif
-
-    CA_ADAPTER_TCP           = (1 << 4),   // CoAP over TCP
-    CA_ADAPTER_NFC           = (1 << 5),   // NFC Adapter
-
-    CA_ALL_ADAPTERS          = 0xffffffff
-} CATransportAdapter_t;
-
-/* from cacommon.h */
-typedef enum
-{
-    CA_DEFAULT_FLAGS = 0,	/* FIXME: meaning what? */
-
-    // Insecure transport is the default (subject to change)
-    CA_SECURE          = (1 << 4),   // secure the transport path
-    // IPv4 & IPv6 autoselection is the default
-    CA_IPV6            = (1 << 5),   // IP adapter only
-    CA_IPV4            = (1 << 6),   // IP adapter only
-    // Indication that a message was received by multicast.
-    CA_MULTICAST       = (1 << 7),
-    // Link-Local multicast is the default multicast scope for IPv6.
-    // These correspond in both value and position to the IPv6 address bits.
-    CA_SCOPE_INTERFACE = 0x1, // IPv6 Interface-Local scope
-    CA_SCOPE_LINK      = 0x2, // IPv6 Link-Local scope (default)
-    CA_SCOPE_REALM     = 0x3, // IPv6 Realm-Local scope
-    CA_SCOPE_ADMIN     = 0x4, // IPv6 Admin-Local scope
-    CA_SCOPE_SITE      = 0x5, // IPv6 Site-Local scope
-    CA_SCOPE_ORG       = 0x8, // IPv6 Organization-Local scope
-    CA_SCOPE_GLOBAL    = 0xE, // IPv6 Global scope
-} CATransportFlags_t;         /* == OCTransportFlags */
+/** Bit mask for scope.*/
+#define OC_MASK_SCOPE    (0x000F)
 #endif                        /* EXPORT_INTERFACE */
 
 /* from cacommon.h */

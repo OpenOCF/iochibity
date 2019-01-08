@@ -5,12 +5,6 @@
  */
 #define CA_MAX_URI_LENGTH 512 /* maximum size of URI for other platforms*/
 
-#define CA_IPFAMILY_MASK (CA_IPV6|CA_IPV4)
-#define CA_SCOPE_MASK 0xf     // mask scope bits above
-
-/** Bit mask for scope.*/
-#define OC_MASK_SCOPE    (0x000F)
-
 /** Bit mask for Mods.*/
 #define OC_MASK_MODS     (0x0FF0)
 #define OC_MASK_FAMS     (OC_IP_USE_V6|OC_IP_USE_V4)
