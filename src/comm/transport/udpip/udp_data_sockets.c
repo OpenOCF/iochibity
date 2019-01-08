@@ -247,19 +247,24 @@ do \
 
 struct in_addr IPv4MulticastAddress = { 0 };
 
-// Can we statically initialize these addresses?
 #define IPv6_MULTICAST_INT "ff01::158"
 static struct in6_addr IPv6MulticastAddressInt;
+
 #define IPv6_MULTICAST_LNK "ff02::158"
 static struct in6_addr IPv6MulticastAddressLnk;
+
 #define IPv6_MULTICAST_RLM "ff03::158"
 static struct in6_addr IPv6MulticastAddressRlm;
+
 #define IPv6_MULTICAST_ADM "ff04::158"
 static struct in6_addr IPv6MulticastAddressAdm;
+
 #define IPv6_MULTICAST_SIT "ff05::158"
 static struct in6_addr IPv6MulticastAddressSit;
+
 #define IPv6_MULTICAST_ORG "ff08::158"
 static struct in6_addr IPv6MulticastAddressOrg;
+
 #define IPv6_MULTICAST_GLB "ff0e::158"
 static struct in6_addr IPv6MulticastAddressGlb;
 
@@ -295,6 +300,15 @@ CAResult_t udp_config_data_sockets()
         }
         res = inet_pton(AF_INET6, IPv6_MULTICAST_INT, &IPv6MulticastAddressInt);
         res = inet_pton(AF_INET6, IPv6_MULTICAST_LNK, &IPv6MulticastAddressLnk);
+        if (res != 1) {
+            OIC_LOG_V(DEBUG, TAG, "inet_pton failed for IPv6MulticastAddressLnk", __func__);
+        }
+        char addr_str[256] = {0}; // debugging
+        inet_ntop(AF_INET6,
+                  &IPv6MulticastAddressLnk.s6_addr,
+                  addr_str, sizeof(addr_str));
+        OIC_LOG_V(DEBUG, TAG, "IPv6MulticastAddressLnk: %s", addr_str);
+
         res = inet_pton(AF_INET6, IPv6_MULTICAST_RLM, &IPv6MulticastAddressRlm);
         res = inet_pton(AF_INET6, IPv6_MULTICAST_ADM, &IPv6MulticastAddressAdm);
         res = inet_pton(AF_INET6, IPv6_MULTICAST_SIT, &IPv6MulticastAddressSit);
@@ -438,22 +452,41 @@ void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
     }
 }
 
-LOCAL void applyMulticast6(CASocketFd_t fd, struct in6_addr *addr, uint32_t ifindex)
+LOCAL void applyMulticast6(struct in6_addr *addr, uint32_t ifindex)
 {
-    struct ipv6_mreq mreq = { .ipv6mr_interface = ifindex };
+    struct ipv6_mreq mreq = { .ipv6mr_interface = ifindex,
+                              .ipv6mr_multiaddr = { .s6_addr = {0} }};
 
     // VS2013 has problems with struct copies inside struct initializers, so copy separately.
     mreq.ipv6mr_multiaddr = *addr;
 
-    int ret = setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, OPTVAL_T(&mreq), sizeof (mreq));
+    memcpy(&mreq.ipv6mr_multiaddr, addr, sizeof(struct in6_addr));
+
+    /* int res = inet_pton(AF_INET6, IPv6_MULTICAST_LNK, &mreq.ipv6mr_multiaddr); */
+
+    char addr_str[INET6_ADDRSTRLEN + 1] = {0}; // debugging
+    inet_ntop(AF_INET6, addr->s6_addr, addr_str, sizeof(addr_str));
+
+    int ret;
+    ret = setsockopt(udp_m6.fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
-	if (PORTABLE_check_setsockopt_m6_err(fd, &mreq, ret))
+	if (PORTABLE_check_setsockopt_m6_err(udp_m6.fd, &mreq, ret))
         {
-            OIC_LOG_V(ERROR, TAG, "IPv6 IPV6_JOIN_GROUP failed: %s", CAIPS_GET_ERROR);
+            OIC_LOG_V(ERROR, TAG, "IPV6_JOIN_GROUP failed for [%s]:%d: %s", addr_str, udp_m6.port, CAIPS_GET_ERROR);
         }
     } else {
-        OIC_LOG_V(ERROR, TAG, "nif %u added to ipv6 multicast group", ifindex);
+        OIC_LOG_V(ERROR, TAG, "nif %u joined ipv6 mcast grp [%s]:%u", ifindex, addr_str, udp_m6.port);
+    }
+    ret = setsockopt(udp_m6s.fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+    if (OC_SOCKET_ERROR == ret)
+    {
+	if (PORTABLE_check_setsockopt_m6_err(udp_m6s.fd, &mreq, ret))
+        {
+            OIC_LOG_V(ERROR, TAG, "IPV6_JOIN_GROUP failed for [%s]:%d: %s", addr_str, udp_m6s.port, CAIPS_GET_ERROR);
+        }
+    } else {
+        OIC_LOG_V(ERROR, TAG, "nif %u joined secure ipv6 mcast grp [%s]:%u", ifindex, addr_str, udp_m6s.port);
     }
 }
 
@@ -464,21 +497,9 @@ void applyMulticastToInterface6(uint32_t ifindex)
     {
         return;
     }
-    //applyMulticast6(udp_m6.fd, &IPv6MulticastAddressInt, ifindex);
-    applyMulticast6(udp_m6.fd, &IPv6MulticastAddressLnk, ifindex);
-    applyMulticast6(udp_m6.fd, &IPv6MulticastAddressRlm, ifindex);
-    //applyMulticast6(udp_m6.fd, &IPv6MulticastAddressAdm, ifindex);
-    applyMulticast6(udp_m6.fd, &IPv6MulticastAddressSit, ifindex);
-    //applyMulticast6(udp_m6.fd, &IPv6MulticastAddressOrg, ifindex);
-    //applyMulticast6(udp_m6.fd, &IPv6MulticastAddressGlb, ifindex);
-
-    //applyMulticast6(udp_m6s.fd, &IPv6MulticastAddressInt, ifindex);
-    applyMulticast6(udp_m6s.fd, &IPv6MulticastAddressLnk, ifindex);
-    applyMulticast6(udp_m6s.fd, &IPv6MulticastAddressRlm, ifindex);
-    //applyMulticast6(udp_m6s.fd, &IPv6MulticastAddressAdm, ifindex);
-    applyMulticast6(udp_m6s.fd, &IPv6MulticastAddressSit, ifindex);
-    //applyMulticast6(udp_m6s.fd, &IPv6MulticastAddressOrg, ifindex);
-    //applyMulticast6(udp_m6s.fd, &IPv6MulticastAddressGlb, ifindex);
+    applyMulticast6(&IPv6MulticastAddressLnk, ifindex);
+    applyMulticast6(&IPv6MulticastAddressRlm, ifindex);
+    applyMulticast6(&IPv6MulticastAddressSit, ifindex);
 }
 
 // @rewrite udp_add_ifs_to_multicast_groups @was CAIPStartListenServer
@@ -576,6 +597,16 @@ CAResult_t udp_configure_multicast_listening() // udp_add_nifs_to_multicast_grou
         OIC_LOG_V(DEBUG, TAG, "\tIFF_NOARP? %s", ((ifa->ifa_flags & IFF_NOARP)? "Y":"N"));
         OIC_LOG_V(DEBUG, TAG, "\tIFF_POINTOPOINT? %s", ((ifa->ifa_flags & IFF_POINTOPOINT)? "Y":"N"));
     }
+
+    OIC_LOG_V(DEBUG, TAG, "NIF count: %d", nif_count);
+    OIC_LOG_V(DEBUG, TAG, "g_local_endpoint_cache count: %d", u_arraylist_length(g_local_endpoint_cache));
+
+    for (int i=0; i < nif_count; i++) {
+        applyMulticastToInterface4(nifs[i]);
+        applyMulticastToInterface6(nifs[i]);
+    }
+
+    return CA_STATUS_OK;
 }
 
 /* CAResult_t Xudp_add_nifs_to_multicast_groups() */
