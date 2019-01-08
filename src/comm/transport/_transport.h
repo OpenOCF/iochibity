@@ -44,6 +44,29 @@
 /* } */
 
 #if EXPORT_INTERFACE
+  /* CA_ prefix: from //src/comm/api/cacommon.h: */
+typedef enum
+{
+    CA_DEFAULT_ADAPTER = 0,
+
+    // value zero indicates discovery
+    CA_ADAPTER_IP            = (1 << 0),   // UDP IPv4 and IPv6, including 6LoWPAN
+    CA_ADAPTER_GATT_BTLE     = (1 << 1),   // GATT over Bluetooth LE
+    CA_ADAPTER_RFCOMM_BTEDR  = (1 << 2),   // RFCOMM over Bluetooth EDR
+
+#ifdef RA_ADAPTER
+    CA_ADAPTER_REMOTE_ACCESS = (1 << 3),   // Remote Access over XMPP.
+#endif
+
+    CA_ADAPTER_TCP           = (1 << 4),   // CoAP over TCP
+    CA_ADAPTER_NFC           = (1 << 5),   // NFC Adapter
+
+    CA_ALL_ADAPTERS          = 0xffffffff
+} CATransportAdapter_t;
+
+#define OOCF_UDP CA_ADAPTER_IP
+#define OOCF_TCP CA_ADAPTER_TCP
+
   /* OC_ prefix: from //src/ocf/octypes.h: */
 typedef enum
 {
@@ -87,6 +110,116 @@ typedef enum
     /* CA_ALL_ADAPTERS          = 0xffffffff */
 } OCTransportAdapter;
 /* } CATransportAdapter_t; */
+
+/**
+ * This enum type includes elements of both ::OCTransportAdapter and ::OCTransportFlags.
+ * It is defined conditionally because the smaller definition limits expandability on 32/64 bit
+ * integer machines, and the larger definition won't fit into an enum on 16-bit integer machines
+ * like Arduino.
+ *
+ * This structure must directly correspond to ::OCTransportAdapter and ::OCTransportFlags.
+ */
+typedef enum
+{
+    /** use when defaults are ok. */
+    CT_DEFAULT = 0,
+
+    /** IPv4 and IPv6, including 6LoWPAN.*/
+    CT_ADAPTER_IP           = (1 << 16),
+
+    /** GATT over Bluetooth LE.*/
+    CT_ADAPTER_GATT_BTLE    = (1 << 17),
+
+    /** RFCOMM over Bluetooth EDR.*/
+    CT_ADAPTER_RFCOMM_BTEDR = (1 << 18),
+
+#ifdef RA_ADAPTER
+    /** Remote Access over XMPP.*/
+    CT_ADAPTER_REMOTE_ACCESS = (1 << 19),
+#endif
+    /** CoAP over TCP.*/
+    CT_ADAPTER_TCP     = (1 << 20),
+
+    /** NFC Transport.*/
+    CT_ADAPTER_NFC     = (1 << 21),
+
+    /** Insecure transport is the default (subject to change).*/
+
+    /** secure the transport path.*/
+    CT_FLAG_SECURE     = (1 << 4),
+
+    /** IPv4 & IPv6 autoselection is the default.*/
+
+    /** IP adapter only.*/
+    CT_IP_USE_V6       = (1 << 5),
+
+    /** IP adapter only.*/
+    CT_IP_USE_V4       = (1 << 6),
+
+    /** Link-Local multicast is the default multicast scope for IPv6.
+     * These are placed here to correspond to the IPv6 address bits.*/
+
+    /** IPv6 Interface-Local scope(loopback).*/
+    CT_SCOPE_INTERFACE = 0x1,
+
+    /** IPv6 Link-Local scope (default).*/
+    CT_SCOPE_LINK      = 0x2,
+
+    /** IPv6 Realm-Local scope.*/
+    CT_SCOPE_REALM     = 0x3,
+
+    /** IPv6 Admin-Local scope.*/
+    CT_SCOPE_ADMIN     = 0x4,
+
+    /** IPv6 Site-Local scope.*/
+    CT_SCOPE_SITE      = 0x5,
+
+    /** IPv6 Organization-Local scope.*/
+    CT_SCOPE_ORG       = 0x8,
+
+    /** IPv6 Global scope.*/
+    CT_SCOPE_GLOBAL    = 0xE,
+} OCConnectivityType;
+
+/* from cacommon.h */
+typedef enum
+{
+    CA_DEFAULT_FLAGS = 0,	/* FIXME: meaning what? */
+    //OC_DEFAULT_FLAGS = 0,
+
+    // Insecure transport is the default (subject to change)
+    CA_SECURE          = (1 << 4),   // secure the transport path
+    // OC_FLAG_SECURE     = (1 << 4),
+
+    // IPv4 & IPv6 both is the default (OCToCATransportFlags)
+    /** IP & TCP adapter only.*/
+    CA_IPV6            = (1 << 5),   // IP adapter only
+    //OC_IP_USE_V6       = (1 << 5), /* 0x20 */
+
+    CA_IPV4            = (1 << 6),   // IP adapter only
+    //OC_IP_USE_V4       = (1 << 6), /* 0x40 */
+    // Indication that a message was received by multicast.
+
+    CA_MULTICAST       = (1 << 7),
+    //OC_MULTICAST       = (1 << 7),
+
+    // Link-Local multicast is the default multicast scope for IPv6.
+    // These correspond in both value and position to the IPv6 address bits.
+    CA_SCOPE_INTERFACE = 0x1, // IPv6 Interface-Local scope (loopback)
+    //OC_SCOPE_INTERFACE = 0x1,
+    CA_SCOPE_LINK      = 0x2, // IPv6 Link-Local scope (default)
+    //OC_SCOPE_LINK      = 0x2,
+    CA_SCOPE_REALM     = 0x3, // IPv6 Realm-Local scope
+    //OC_SCOPE_REALM     = 0x3,
+    CA_SCOPE_ADMIN     = 0x4, // IPv6 Admin-Local scope
+    //OC_SCOPE_ADMIN     = 0x4,
+    CA_SCOPE_SITE      = 0x5, // IPv6 Site-Local scope
+    //OC_SCOPE_SITE      = 0x5,
+    CA_SCOPE_ORG       = 0x8, // IPv6 Organization-Local scope
+    //OC_SCOPE_ORG       = 0x8,
+    CA_SCOPE_GLOBAL    = 0xE, // IPv6 Global scope
+    //OC_SCOPE_GLOBAL    = 0xE,
+} CATransportFlags_t;         /* == OCTransportFlags */
 
 /**
  *  Enum layout assumes some targets have 16-bit integer (e.g., Arduino).
