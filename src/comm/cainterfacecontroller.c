@@ -588,7 +588,7 @@ CAResult_t CAStartListeningServerAdapters(void)
 {
     CAResult_t result = CA_STATUS_FAILED;
 #ifndef DISABLE_UDP
-    result = udp_configure_multicast_listening(); // udp_add_nifs_to_multicast_groups(); // @was CAIPStartListenServer();
+    result = udp_configure_eps(); //  @was CAIPStartListenServer();
 #endif
 #ifdef ENABLE_TCP
     result = CAStartTCPListeningServer();
@@ -615,7 +615,7 @@ CAResult_t CAStartDiscoveryServerAdapters(void)
        which adds ifs to multicast groups */
     CAResult_t result = CA_STATUS_FAILED;
 #ifndef DISABLE_UDP
-    result = udp_configure_multicast_listening(); // udp_add_nifs_to_multicast_groups(); // @was CAIPStartListenServer;
+    result = udp_configure_eps(); // @was CAIPStartListenServer;
 #endif
 #ifdef ENABLE_TCP
     result = CAStartTCPDiscoveryServer();
