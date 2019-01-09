@@ -1545,7 +1545,7 @@ FILE                   *logfd;
 int main(int argc, char *argv[])
 {
     /* OCLogInit(NULL); */
-    logfd = fopen("logs/json2cbor.log", "w");
+    logfd = fopen("json2cbor.log", "w");
     if (logfd)
     	OCLogInit(logfd);
     else {
