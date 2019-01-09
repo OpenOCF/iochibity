@@ -18,13 +18,15 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+#define _XOPEN_SOURCE  //Needed by strptime
+//#define __USE_XOPEN  //Needed by strptime (linux)
+
 #include "iotvticalendar.h"
 
-#define _XOPEN_SOURCE  //Needed by strptime
 
+#include <assert.h>
 #include <string.h>
 #include <stdint.h>
-#include <assert.h>
 
 #define FREQ_DAILY (1)
 #define MAX_BYDAY_SIZE (7)     //7 days of week
@@ -33,7 +35,7 @@
 #define TM_DST_OFFSET (1)      //c-lang tm struct Daylight Saving Time offset.
 #define TOTAL_HOURS (24)       //Total hours in a day.
 
-#if EXPORT_INTERFACE
+#if INTERFACE
 #include <time.h>
 typedef struct IotvtICalRecur IotvtICalRecur_t;
 typedef struct IotvtICalPeriod IotvtICalPeriod_t;
