@@ -6,7 +6,7 @@ cc_library(
     linkstatic = 1,
     copts = ["-Isrc",
              # "-Iexternal/openocf/src/util",
-             # "-Iexternal/libcoap/include",
+             "-Iexternal/libcoap/include",
              # "-Iexternal/libcoap/include/coap",
     ]+ CSTD + OS_COPTS
     + select({"//config:debug_threads": ["-DDEBUG_THREADS"],
@@ -17,18 +17,7 @@ cc_library(
               "//conditions:default": []}),
     defines = DEFINES,
     deps = ["//src:config",
-    	    # "//src/portability",
-            # "//src/comm/transport/util",
-            # "//src/comm/util",
-            # "//src/coap",
-            # "//src/logger",
-            # FIXME: select for this
-            # "@uthash//:uthash",
-            # "//third_party/mbedtls",
-            # "//third_party/mbedtls:mbedtls-crypto",
-            # "//third_party/mbedtls:mbedtls-x509",
-            # "@mbedtls//:mbedtls",
-            # "@libcoap//:libcoap"
+            "@libcoap//:libcoap"
     ],
     srcs = ["caqueueingthread.c", "caqueueingthread.h",
             "cathreadpool_pthreads.c", "cathreadpool_pthreads.h"],

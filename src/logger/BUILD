@@ -33,6 +33,7 @@ cc_library(
 cc_library(
     name = "logger_impl",
     copts = ["-Iexternal/uthash/src",
+             "-Iexternal/libcoap/include",
              "-Iexternal/tinycbor/src",
              "-Iexternal/mbedtls"
     ]
@@ -50,6 +51,7 @@ cc_library(
     alwayslink = True,
     linkstatic = 1,
     deps = ["@mbedtls//:mbedtls",
+            "@libcoap//:libcoap",
             "@tinycbor//:tinycbor",
             "@uthash//:uthash"],
     hdrs = ["logger.h"],

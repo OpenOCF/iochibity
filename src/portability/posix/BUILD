@@ -3,6 +3,7 @@
 cc_library(
     name = "posix",
     copts = ["-DWITH_POSIX",
+             "-Iexternal/libcoap/include",
              "-Iexternal/mbedtls/patched/include",
     ] + select({"//config:darwin": ["-U DEBUG"],
                 "//config:mingw": [],
@@ -10,6 +11,7 @@ cc_library(
                 "//config:msys": [],
                 "//conditions:default": ["-std=c11"]}),
     deps = ["//src/logger",
+            "@libcoap//:libcoap", # FIXME: logging only
             "@mbedtls//:mbedtls",
             "@uthash//:uthash"],
     linkopts = select({"//config:msvc": [],

@@ -6,6 +6,7 @@ cc_library(
     name = "util",
     alwayslink = True,
     copts = ["-Isrc/portability",
+             "-Iexternal/libcoap/include",
              "-Iexternal/tinycbor/src"]
     + select({"//config:android_arm7": COPTS_ANDROID,
               "//config:android_arm8": COPTS_ANDROID,
@@ -17,6 +18,7 @@ cc_library(
               "//config:msys": [],
               "//conditions:default": ["-std=c11"]}),
     deps = ["//src/logger",
+            "@libcoap//:libcoap", # FIXME: for logging api only
             "@uthash//:uthash",
             "@tinycbor//:tinycbor"],
     linkopts = select({"//config:android_arm7": ["-llog"],

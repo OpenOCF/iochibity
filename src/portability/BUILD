@@ -4,6 +4,7 @@ cc_library(
     linkstatic = 1,
     copts = ["-D_GNU_SOURCE",
 	     "-DWITH_POSIX",
+             "-Iexternal/libcoap/include", # FIXME: for logging only
     ] + select({"//config:mingw": [],
                 "//config:msvc": [],
                 "//config:msys": [],
@@ -13,6 +14,7 @@ cc_library(
                 "//config:darwin64": ["-std=c11", "-UDEBUG"],
                 "//conditions:default": ["-std=c11"]}),
     deps = ["//src/logger",
+            "@libcoap//:libcoap", # FIXME: only for logging
             "@mbedtls//:mbedtls"]
     + select({"//config:android_arm7": ["//src/portability/android"],
               "//config:darwin": ["//src/portability/posix",
