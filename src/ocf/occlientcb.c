@@ -45,6 +45,13 @@
 /**
  * Client applications implement this callback to consume responses received from Servers.
  */
+typedef OCStackResult (* OCStackResponseHandler)(void *context,
+                                                 OCDoHandle handle, /* GAR: misnamed, s/b txn_id */
+                                                 OCClientResponse * clientResponse);
+
+/**
+ * Client applications implement this callback to consume responses received from Servers.
+ */
 typedef OCStackApplicationResult (* OCClientResponseHandler)(void *context,
 							     OCDoHandle handle, /* GAR: misnamed, s/b txn_id */
 							     OCClientResponse * clientResponse);
@@ -229,6 +236,7 @@ static void DeleteClientCBInternal(ClientCB * cbNode)
  * their own mechanisms for timeouts. A null argument will cause the function to
  * silently return.
  */
+// FIXME: notify userapp when cb deleted?
 static void CheckAndDeleteTimedOutCB(ClientCB * cbNode)
 {
     assert(cbNode);
