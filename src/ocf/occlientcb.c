@@ -112,7 +112,7 @@ typedef struct ClientCB {
 
     uint8_t numOptions;
 
-    CAPayload_t payload;
+    struct OCPayload /* CAPayload_t */ *payload;
 
     size_t payloadSize;
 
@@ -285,7 +285,8 @@ OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
                           CAMessageType_t type,
                           uint8_t *token, uint8_t tokenLength,
                           CAHeaderOption_t *options, uint8_t numOptions,
-                          CAPayload_t payload, size_t payloadSize,
+                          struct OCPayload /* CAPayload_t */ *payload,
+                          size_t payloadSize,
                           CAPayloadFormat_t payloadFormat,
                           OCDoHandle *handle, OCMethod method,
                           OCDevAddr *devAddr, char *requestUri,
@@ -352,7 +353,7 @@ OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
         }
         else
         {
-            cbNode->payload = (CAPayload_t) OICCalloc(1, payloadSize);
+            cbNode->payload = (struct OCPayload* /* CAPayload_t */) OICCalloc(1, payloadSize);
             if (!cbNode->payload)
             {
                 OIC_LOG(ERROR, TAG, "Out of memory");

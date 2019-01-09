@@ -42,8 +42,11 @@
  */
 #define UINT64_MAX_STRLEN 20
 
-OCStackResult OCParsePayload(OCPayload **outPayload, OCPayloadFormat payloadFormat,
-        OCPayloadType payloadType, const uint8_t *payload, size_t payloadSize)
+OCStackResult OCParsePayload(OCPayload **outPayload,
+                             OCPayloadFormat payloadFormat,
+                             OCPayloadType payloadType,
+                             const struct OCPayload /* uint8_t */ *payload,
+                             size_t payloadSize)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCStackResult result = OC_STACK_MALFORMED_RESPONSE;

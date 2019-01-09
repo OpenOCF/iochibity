@@ -77,7 +77,7 @@ typedef struct                  /* src: camessagehandler.c */
     uint8_t tokenLength;        /**< token length */
     CAHeaderOption_t *options;  /** Header Options for the request */
     uint8_t numOptions;         /**< Number of Header options */
-    CAPayload_t payload;        /**< payload of the request  */
+    struct OCPayload /* CAPayload_t */ *payload;        /**< payload of the request  */
     size_t payloadSize;         /**< size in bytes of the payload */
     CAPayloadFormat_t payloadFormat;    /**< encoding format of the request payload */
     CAPayloadFormat_t acceptFormat;     /**< accept format for the response payload */

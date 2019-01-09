@@ -205,7 +205,8 @@ CAData_t *CAGenerateSignalingMessage(const CAEndpoint_t *endpoint, CASignalingCo
     // create token for signaling message.
     uint8_t *token = NULL;
     uint8_t tokenLength = CA_MAX_TOKEN_LEN;
-    if (CA_STATUS_OK != CAGenerateTokenInternal(&token, tokenLength))
+    //if (CA_STATUS_OK != CAGenerateTokenInternal(&token, tokenLength))
+    if (CA_STATUS_OK != CAGenerateToken(&token, tokenLength))
     {
         OIC_LOG(ERROR, TAG, "CAGenerateTokenInternal failed");
         return NULL;

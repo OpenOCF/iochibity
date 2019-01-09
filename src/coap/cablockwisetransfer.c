@@ -106,7 +106,7 @@ typedef struct
     uint16_t type;                      /**< block option type. */
     CABlockDataID_t* blockDataId;        /**< ID set of CABlockData. */
     CAData_t *sentData;                 /**< sent request or response data information. */
-    CAPayload_t payload;                /**< payload buffer. */
+    struct OCPayload /* CAPayload_t */ *payload; /**< payload buffer. */
     size_t payloadLength;               /**< the total payload length to be received. */
     size_t receivedPayloadLen;          /**< currently received payload length. */
 } CABlockData_t;
@@ -972,7 +972,7 @@ CAResult_t CAReceiveLastBlock(const CABlockDataID_t *blockID, const CAData_t *re
 
     // update payload
     size_t fullPayloadLen = 0;
-    CAPayload_t fullPayload = CAGetPayloadFromBlockDataList(blockID, &fullPayloadLen);
+    struct OCPayload /* CAPayload_t */ *fullPayload = CAGetPayloadFromBlockDataList(blockID, &fullPayloadLen);
     if (fullPayload)
     {
         CAResult_t res = CAUpdatePayloadToCAData(cloneData, fullPayload, fullPayloadLen);
@@ -1741,7 +1741,7 @@ CAResult_t CAUpdatePayloadData(CABlockData_t *currData, const CAData_t *received
     }
 
     size_t blockPayloadLen = 0;
-    CAPayload_t blockPayload = CAGetPayloadInfo(receivedData, &blockPayloadLen);
+    struct OCPayload /* CAPayload_t */ *blockPayload = CAGetPayloadInfo(receivedData, &blockPayloadLen);
 
     if (CA_BLOCK_TOO_LARGE == status)
     {
@@ -1759,10 +1759,10 @@ CAResult_t CAUpdatePayloadData(CABlockData_t *currData, const CAData_t *received
             // allocate the memory for the total payload
             if (isSizeOption)
             {
-                CAPayload_t prePayload = currData->payload;
+                struct OCPayload /* CAPayload_t */ *prePayload = currData->payload;
 
                 OIC_LOG(DEBUG, TAG, "allocate memory for the total payload");
-                currData->payload = (CAPayload_t) OICCalloc(1, currData->payloadLength);
+                currData->payload = (struct OCPayload* /* CAPayload_t */) OICCalloc(1, currData->payloadLength);
                 if (NULL == currData->payload)
                 {
                     OIC_LOG(ERROR, TAG, "out of memory");
@@ -1780,7 +1780,7 @@ CAResult_t CAUpdatePayloadData(CABlockData_t *currData, const CAData_t *received
             OIC_LOG(DEBUG, TAG, "allocate memory for the received block payload");
 
             size_t totalPayloadLen = prePayloadLen + blockPayloadLen;
-            CAPayload_t newPayload = OICRealloc(currData->payload, totalPayloadLen);
+            struct OCPayload /* CAPayload_t */ *newPayload = OICRealloc(currData->payload, totalPayloadLen);
             if (NULL == newPayload)
             {
                 OIC_LOG(ERROR, TAG, "out of memory");
@@ -1932,7 +1932,8 @@ CAData_t *CACloneCAData(const CAData_t *data)
     return clone;
 }
 
-CAResult_t CAUpdatePayloadToCAData(CAData_t *data, const CAPayload_t payload,
+CAResult_t CAUpdatePayloadToCAData(CAData_t *data,
+                                   const struct OCPayload /* CAPayload_t */ *payload,
                                    size_t payloadLen)
 {
     OIC_LOG(DEBUG, TAG, "IN-UpdatePayload");
@@ -1940,7 +1941,7 @@ CAResult_t CAUpdatePayloadToCAData(CAData_t *data, const CAPayload_t payload,
     VERIFY_NON_NULL_MSG(data, TAG, "data is NULL");
     VERIFY_NON_NULL_MSG(payload, TAG, "payload is NULL");
 
-    CAPayload_t newPayload = NULL;
+    struct OCPayload /* CAPayload_t */ *newPayload = NULL;
     switch (data->dataType)
     {
         case CA_REQUEST_DATA:
@@ -1990,7 +1991,7 @@ CAResult_t CAUpdatePayloadToCAData(CAData_t *data, const CAPayload_t payload,
     return CA_STATUS_OK;
 }
 
-CAPayload_t CAGetPayloadInfo(const CAData_t *data, size_t *payloadLen)
+struct OCPayload /* CAPayload_t */ *CAGetPayloadInfo(const CAData_t *data, size_t *payloadLen)
 {
     VERIFY_NON_NULL_RET(data, TAG, "data", NULL);
     VERIFY_NON_NULL_RET(payloadLen, TAG, "payloadLen", NULL);
@@ -2274,7 +2275,7 @@ coap_block_t *CAGetBlockOption(const CABlockDataID_t *blockID, uint16_t blockTyp
     return NULL;
 }
 
-CAPayload_t CAGetPayloadFromBlockDataList(const CABlockDataID_t *blockID,
+struct OCPayload /* CAPayload_t */ *CAGetPayloadFromBlockDataList(const CABlockDataID_t *blockID,
                                           size_t *fullPayloadLen)
 {
     OIC_LOG(DEBUG, TAG, "IN-GetFullPayload");
