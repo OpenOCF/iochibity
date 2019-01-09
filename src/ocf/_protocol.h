@@ -81,29 +81,29 @@ typedef enum
     OC_REST_NOMETHOD       = 0,
 
     /** Read.*/
-    OC_REST_GET            = (1 << 0),
+    OC_REST_GET, //            = (1 << 0),
 
     /** Write.*/
-    OC_REST_PUT            = (1 << 1),
+    OC_REST_PUT, //            = (1 << 1),
 
     /** Update.*/
-    OC_REST_POST           = (1 << 2),
+    OC_REST_POST, //           = (1 << 2),
 
     /** Delete.*/
-    OC_REST_DELETE         = (1 << 3),
+    OC_REST_DELETE, //         = (1 << 3),
 
     /** Register observe request for most up date notifications ONLY.*/
-    OC_REST_OBSERVE        = (1 << 4),
+    OC_REST_OBSERVE, //        = (1 << 4),
 
     /** Register observe request for all notifications, including stale notifications.*/
-    OC_REST_OBSERVE_ALL    = (1 << 5),
+    OC_REST_OBSERVE_ALL, //    = (1 << 5),
 
 #ifdef WITH_PRESENCE
     /** Subscribe for all presence notifications of a particular resource.*/
-    OC_REST_PRESENCE       = (1 << 7),
+    OC_REST_PRESENCE, //       = (1 << 7),
 #endif
     /** Allows OCDoResource caller to do discovery.*/
-    OC_REST_DISCOVER       = (1 << 8)
+    OC_REST_DISCOVER //       = (1 << 8)
 } OCMethod;
 
 #define OC_MASK_RESOURCE_SECURE    (OC_NONSECURE | OC_SECURE)
@@ -218,34 +218,5 @@ typedef enum
  * return OC_EH_OK;
  */
 typedef OCEntityHandlerResult (*OCEntityHandler)
-(OCEntityHandlerFlag flag, OCEntityHandlerRequest * entityHandlerRequest, void* callbackParam);
+(OCEntityHandlerFlag flag, oocf_inbound_request /* OCEntityHandlerRequest */ * entityHandlerRequest, void* callbackParam);
 
-/**
- * Device Entity handler need to use this call back instead of OCEntityHandler.
- *
- * When you set specific return value like OC_EH_CHANGED, OC_EH_CONTENT,
- * OC_EH_SLOW and etc in entity handler callback,
- * ocstack will be not send response automatically to client
- * except for error return value like OC_EH_ERROR.
- *
- * If you want to send response to client with specific result,
- * OCDoResponse API should be called with the result value.
- *
- * e.g)
- *
- * OCEntityHandlerResponse response;
- *
- * ..
- *
- * response.ehResult = OC_EH_CHANGED;
- *
- * ..
- *
- * OCDoResponse(&response)
- *
- * ..
- *
- * return OC_EH_OK;
- */
-typedef OCEntityHandlerResult (*OCDeviceEntityHandler)
-(OCEntityHandlerFlag flag, OCEntityHandlerRequest * entityHandlerRequest, char* uri, void* callbackParam);
