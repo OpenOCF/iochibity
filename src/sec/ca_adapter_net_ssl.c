@@ -391,7 +391,7 @@ typedef struct SslContext
     SslCipher_t cipher;
     SslCallbacks_t adapterCallbacks[MAX_SUPPORTED_ADAPTERS];
     mbedtls_x509_crl crl;
-    bool cipherFlag[2];
+    bool cipherFlag[2];         /* [0] true: psk? [1] true: initpkix? */
     int selectedCipher;
 
 #ifdef __WITH_DTLS__
@@ -599,7 +599,7 @@ static void SendCacheMessages(SslEndPoint_t * tep, CAResult_t errorCode);
  *
  * @return  message length or -1 on error.
  */
-static int SendCallBack(void * tep, const unsigned char * data, size_t dataLen)
+static int SendCallBack(void /* SslEndPoint_t */ *tep, const unsigned char * data, size_t dataLen)
 {
     OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
     VERIFY_NON_NULL_RET(tep, NET_SSL_TAG, "secure endpoint is NULL", -1);
@@ -634,6 +634,7 @@ static int SendCallBack(void * tep, const unsigned char * data, size_t dataLen)
     OIC_LOG_V(DEBUG, NET_SSL_TAG, "Out %s", __func__);
     return (int)sentLen;
 }
+
 /**
  * Read callback.
  *
@@ -885,7 +886,7 @@ static int GetPskCredentialsCallback(void * notUsed, mbedtls_ssl_context * ssl,
  *
  * @return  TLS session or NULL
  */
-static SslEndPoint_t *GetSslPeer(const CAEndpoint_t *peer)
+static SslEndPoint_t *GetSslPeer(const CAEndpoint_t *peer) /* GetSslPeerForEp */
 {
     size_t listIndex = 0;
     size_t listLength = 0;
@@ -1518,8 +1519,7 @@ static int InitPskIdentity(mbedtls_ssl_config * config)
  *
  * @return  true on success or false on error
  */
-static bool SetupCipher(mbedtls_ssl_config * config, CATransportAdapter_t adapter,
-                        const char* deviceId)
+static bool SetupCipher(mbedtls_ssl_config * config, CATransportAdapter_t adapter, const char* deviceId)
 {
     int index = 0;
     OIC_LOG_V(DEBUG, NET_SSL_TAG, "In %s", __func__);
@@ -1590,6 +1590,8 @@ static bool SetupCipher(mbedtls_ssl_config * config, CATransportAdapter_t adapte
                 index ++;
             }
         }
+    } else {
+	OIC_LOG_V(DEBUG, NET_SSL_TAG, "g_caSslContext->cipherFlag[1]: %d", g_caSslContext->cipherFlag[1]);
     }
 
     OIC_LOG(DEBUG, NET_SSL_TAG, "Supported ciphersuites:");
@@ -1773,8 +1775,8 @@ static int InitConfig(mbedtls_ssl_config * conf, int transport, int mode)
     mbedtls_ssl_conf_min_version(conf, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3);
 
 #if !defined(NDEBUG) || defined(TB_LOG)
-    mbedtls_ssl_conf_dbg(conf, DebugSsl, NULL);
 #if defined(MBEDTLS_DEBUG_C)
+    mbedtls_ssl_conf_dbg(conf, DebugSsl, NULL);
     mbedtls_debug_set_threshold(MBED_TLS_DEBUG_LEVEL);
 #endif
 #endif
@@ -2199,7 +2201,7 @@ void CAsetSslHandshakeCallback(CAHandshakeErrorCallback tlsHandshakeCallback)
 
 /* Read data from TLS connection
  */
-CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dataLen)
+CAResult_t CAdecryptSsl(CASecureEndpoint_t *sep, uint8_t *data, size_t dataLen)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OIC_LOG_V(INFO, TAG, "%s subject id: %s", __func__, sep->identity.id);
@@ -2215,6 +2217,30 @@ CAResult_t CAdecryptSsl(const CASecureEndpoint_t *sep, uint8_t *data, size_t dat
         oc_mutex_unlock(g_sslContextMutex);
         return CA_STATUS_FAILED;
     }
+
+    OIC_LOG_V(INFO, TAG, "logging secure ep:");
+    LogSecureEndpoint(sep);
+
+    /* for link-scoped ipv6 addrs, add zoneid */
+    if (sep->endpoint.flags & (CA_IPV6 | CA_SCOPE_LINK)) {
+            OIC_LOG_V(INFO, TAG, "adding zone id to link-scope addr");
+            char *zoneId = NULL;
+            if (OC_STACK_OK == OCGetLinkLocalZoneId(sep->endpoint.ifindex, &zoneId))
+                {
+                    assert(zoneId != NULL);
+                    /* this is an ipv6 address literal, use % not %25 */
+                    OICStrcat(sep->endpoint.addr, OC_MAX_ADDR_STR_SIZE, "%");
+                    OICStrcat(sep->endpoint.addr, OC_MAX_ADDR_STR_SIZE, zoneId);
+                    OIC_LOG_V(DEBUG, TAG, "addr with zone: %s; ifindex: %u, %s",
+                              sep->endpoint.addr, sep->endpoint.ifindex, zoneId);
+                    OICFree(zoneId);
+                }
+            else
+                {
+                    OIC_LOG(ERROR, TAG, "failed at parse zone-id for link-local address");
+                    return OC_STACK_ERROR;
+                }
+        }
 
     SslEndPoint_t * peer = GetSslPeer(&sep->endpoint);
     if (NULL == peer)
