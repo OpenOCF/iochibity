@@ -777,7 +777,7 @@ OCStackResult SendAllObserverNotificationWithPresence (OCMethod method,
 
     OCStackResult result = OC_STACK_ERROR;
     ResourceObserver * resourceObserver = resPtr->observersHead;
-    OCServerRequest * request = NULL;
+    struct CARequestInfo * request = NULL;
     bool observeErrorFlag = false;
 
     // Find clients that are observing this resource
