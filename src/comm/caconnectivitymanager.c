@@ -115,21 +115,21 @@ CAResult_t CAStartDiscoveryServer(void)
     return CAStartDiscoveryServerAdapters();
 }
 
-void CARegisterHandler(CARequestCallback ReqHandler, CAResponseCallback RespHandler,
-                       CAErrorCallback ErrorHandler)
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+/* void CARegisterHandler(CARequestCallback ReqHandler, CAResponseCallback RespHandler, */
+/*                        CAErrorCallback ErrorHandler) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
 
-    // GAR: unnecessary
-    /* if (!g_isInitialized) */
-    /* { */
-    /*     OIC_LOG(DEBUG, TAG, "CA is not initialized"); */
-    /*     return; */
-    /* } */
+/*     // GAR: unnecessary */
+/*     /\* if (!g_isInitialized) *\/ */
+/*     /\* { *\/ */
+/*     /\*     OIC_LOG(DEBUG, TAG, "CA is not initialized"); *\/ */
+/*     /\*     return; *\/ */
+/*     /\* } *\/ */
 
-    CASetInterfaceCallbacks(ReqHandler, RespHandler, ErrorHandler);
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-}
+/*     CASetInterfaceCallbacks(ReqHandler, RespHandler, ErrorHandler); */
+/*     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
+/* } */
 
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
 
@@ -277,12 +277,10 @@ void CADestroyEndpoint(CAEndpoint_t *rep)
     CAFreeEndpoint(rep);
 }
 
-CAResult_t CAGenerateToken(uint8_t **token, uint8_t tokenLength)
-{
-    OIC_LOG(DEBUG, TAG, "CAGenerateToken");
-
-    return CAGenerateTokenInternal(token, tokenLength);
-}
+/* CAResult_t CAGenerateToken(uint8_t **token, uint8_t tokenLength) */
+/* { */
+/*     return CAGenerateTokenInternal(token, tokenLength); */
+/* } */
 
 void CADestroyToken(uint8_t *token)
 {
@@ -313,7 +311,8 @@ CAResult_t CAGetNetworkInformation(CAEndpoint_t **info, size_t *size)
     // return CAGetNetworkInformationInternal(info, size);
 }
 
-static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *dest_ep, const void *sendMsg,
+static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *dest_ep,
+                                            const void *sendMsg,
                                             CADataType_t dataType)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
