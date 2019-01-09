@@ -21,7 +21,9 @@
 #include "ocpayloadconvert.h"
 
 #include <stdlib.h>
+#if INTERFACE
 #include "cbor.h"
+#endif
 
 #define TAG "OIC_RI_PAYLOADCONVERT"
 
@@ -35,31 +37,32 @@
 #define EP_MAP_LEN (2)
 
 // Functions all return either a CborError, or a negative version of the OC_STACK return values
-static int64_t OCConvertPayloadHelper(OCPayload *payload, OCPayloadFormat format,
-        uint8_t *outPayload, size_t *size);
-static int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadFormat format,
-        uint8_t *outPayload, size_t *size);
-static int64_t OCConvertRepPayload(OCRepPayload *payload, uint8_t *outPayload, size_t *size);
-static int64_t OCConvertRepMap(CborEncoder *map, const OCRepPayload *payload);
-#ifdef WITH_PRESENCE
-static int64_t OCConvertPresencePayload(OCPresencePayload *payload, uint8_t *outPayload,
-        size_t *size);
-#endif
-static int64_t OCConvertDiagnosticPayload(OCDiagnosticPayload *payload, uint8_t *outPayload,
-        size_t *size);
-static int64_t OCConvertSecurityPayload(OCSecurityPayload *payload, uint8_t *outPayload,
-        size_t *size);
-static int64_t OCConvertIntrospectionPayload(OCIntrospectionPayload *payload, uint8_t *outPayload,
-        size_t *size);
-static int64_t OCConvertSingleRepPayloadValue(CborEncoder *parent, const OCRepPayloadValue *value);
-static int64_t OCConvertSingleRepPayload(CborEncoder *parent, const OCRepPayload *payload);
-static int64_t OCConvertArray(CborEncoder *parent, const OCRepPayloadValueArray *valArray);
+/* static int64_t OCConvertPayloadHelper(OCPayload *payload, OCPayloadFormat format, */
+/*         uint8_t *outPayload, size_t *size); */
+/* static int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadFormat format, */
+/*         uint8_t *outPayload, size_t *size); */
+/* static int64_t OCConvertRepPayload(OCRepPayload *payload, uint8_t *outPayload, size_t *size); */
+/* static int64_t OCConvertRepMap(CborEncoder *map, const OCRepPayload *payload); */
+/* #ifdef WITH_PRESENCE */
+/* static int64_t OCConvertPresencePayload(OCPresencePayload *payload, uint8_t *outPayload, */
+/*         size_t *size); */
+/* #endif */
+/* static int64_t OCConvertDiagnosticPayload(OCDiagnosticPayload *payload, uint8_t *outPayload, */
+/*         size_t *size); */
+/* static int64_t OCConvertSecurityPayload(OCSecurityPayload *payload, uint8_t *outPayload, */
+/*         size_t *size); */
+/* static int64_t OCConvertIntrospectionPayload(OCIntrospectionPayload *payload, uint8_t *outPayload, */
+/*         size_t *size); */
+/* static int64_t OCConvertSingleRepPayloadValue(CborEncoder *parent, const OCRepPayloadValue *value); */
+/* static int64_t OCConvertSingleRepPayload(CborEncoder *parent, const OCRepPayload *payload); */
+/* static int64_t OCConvertArray(CborEncoder *parent, const OCRepPayloadValueArray *valArray); */
 
-static int64_t AddTextStringToMap(CborEncoder *map, const char *key, size_t keylen,
-        const char *value);
-static int64_t ConditionalAddTextStringToMap(CborEncoder *map, const char *key, size_t keylen,
-        const char *value);
+/* static int64_t AddTextStringToMap(CborEncoder *map, const char *key, size_t keylen, */
+/*         const char *value); */
+/* static int64_t ConditionalAddTextStringToMap(CborEncoder *map, const char *key, size_t keylen, */
+/*         const char *value); */
 
+/* FIXME: @rename:  oocf_coap_to_cbor or similar */
 OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
         uint8_t** outPayload, size_t* size)
 {
@@ -147,7 +150,7 @@ exit:
     return ret;
 }
 
-static int64_t OCConvertPayloadHelper(OCPayload* payload, OCPayloadFormat format,
+LOCAL int64_t OCConvertPayloadHelper(OCPayload* payload, OCPayloadFormat format,
         uint8_t* outPayload, size_t* size)
 {
     switch(payload->type)
@@ -193,7 +196,7 @@ static int64_t checkError(int64_t err, CborEncoder* encoder, uint8_t* outPayload
     }
 }
 
-static int64_t OCConvertSecurityPayload(OCSecurityPayload* payload, uint8_t* outPayload,
+LOCAL int64_t OCConvertSecurityPayload(OCSecurityPayload* payload, uint8_t* outPayload,
         size_t* size)
 {
     memcpy(outPayload, payload->securityData, payload->payloadSize);
@@ -202,7 +205,7 @@ static int64_t OCConvertSecurityPayload(OCSecurityPayload* payload, uint8_t* out
     return CborNoError;
 }
 
-static int64_t OCConvertIntrospectionPayload(OCIntrospectionPayload *payload,
+LOCAL int64_t OCConvertIntrospectionPayload(OCIntrospectionPayload *payload,
         uint8_t *outPayload, size_t *size)
 {
     memcpy(outPayload, payload->cborPayload.bytes, payload->cborPayload.len);
@@ -365,7 +368,7 @@ exit:
     return err;
 }
 
-static int64_t OCConvertDiscoveryPayloadCbor(OCDiscoveryPayload *payload,
+LOCAL int64_t OCConvertDiscoveryPayloadCbor(OCDiscoveryPayload *payload,
                                              uint8_t *outPayload, size_t *size)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -376,7 +379,7 @@ static int64_t OCConvertDiscoveryPayloadCbor(OCDiscoveryPayload *payload,
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
 
     /*
-    The format for the payload is "modelled" as JSON.
+    The format for the payload is "modeled" as JSON.
 
     [                                                  // rootArray
         {                                              // rootMap
@@ -702,7 +705,7 @@ exit:
     return checkError(err, &encoder, outPayload, size);
 }
 
-static int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadFormat format,
+LOCAL int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadFormat format,
                                          uint8_t *outPayload, size_t *size)
 {
     /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
@@ -827,7 +830,7 @@ exit:
     return err;
 }
 
-static int64_t OCConvertRepMap(CborEncoder *map, const OCRepPayload *payload)
+LOCAL int64_t OCConvertRepMap(CborEncoder *map, const OCRepPayload *payload)
 {
     int64_t err = CborNoError;
     CborEncoder encoder;
@@ -874,7 +877,7 @@ exit:
     return err;
 }
 
-static int64_t OCConvertSingleRepPayloadValue(CborEncoder *parent, const OCRepPayloadValue *value)
+LOCAL int64_t OCConvertSingleRepPayloadValue(CborEncoder *parent, const OCRepPayloadValue *value)
 {
     int64_t err = CborNoError;
     switch (value->type)
@@ -910,7 +913,7 @@ static int64_t OCConvertSingleRepPayloadValue(CborEncoder *parent, const OCRepPa
     return err;
 }
 
-static int64_t OCConvertSingleRepPayload(CborEncoder *repMap, const OCRepPayload *payload)
+LOCAL int64_t OCConvertSingleRepPayload(CborEncoder *repMap, const OCRepPayload *payload)
 {
     int64_t err = CborNoError;
     VERIFY_PARAM_NON_NULL(TAG, payload, "Input param, payload is NULL");
@@ -951,7 +954,7 @@ exit:
     return err;
 }
 
-static int64_t OCConvertRepPayload(OCRepPayload *payload, uint8_t *outPayload, size_t *size)
+LOCAL int64_t OCConvertRepPayload(OCRepPayload *payload, uint8_t *outPayload, size_t *size)
 {
     CborEncoder encoder;
     int64_t err = CborNoError;
@@ -1049,7 +1052,7 @@ exit:
 }
 #endif
 
-static int64_t OCConvertDiagnosticPayload(OCDiagnosticPayload *payload, uint8_t *outPayload,
+LOCAL int64_t OCConvertDiagnosticPayload(OCDiagnosticPayload *payload, uint8_t *outPayload,
         size_t *size)
 {
     int64_t err = CborNoError;
@@ -1065,7 +1068,7 @@ exit:
     return checkError(err, &encoder, outPayload, size);
 }
 
-static int64_t AddTextStringToMap(CborEncoder* map, const char* key, size_t keylen,
+LOCAL int64_t AddTextStringToMap(CborEncoder* map, const char* key, size_t keylen,
         const char* value)
 {
     if (!key || !value)
@@ -1080,7 +1083,7 @@ static int64_t AddTextStringToMap(CborEncoder* map, const char* key, size_t keyl
     return cbor_encode_text_string(map, value, strlen(value));
 }
 
-static int64_t ConditionalAddTextStringToMap(CborEncoder* map, const char* key, size_t keylen,
+LOCAL int64_t ConditionalAddTextStringToMap(CborEncoder* map, const char* key, size_t keylen,
         const char* value)
 {
     return value ? AddTextStringToMap(map, key, keylen, value) : 0;
