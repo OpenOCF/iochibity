@@ -87,7 +87,7 @@ typedef struct                  /* src: camessagehandler.c */
     char *resourceUri;          /**< Resource URL, path + query **/
     CARemoteId_t identity;      /**< endpoint identity */
     CADataType_t dataType;      /**< data type */
-} CAInfo_t; /* @rename: ocf_coap_msg_unpacked */
+} CAInfo_t; /* @rename: _oocf_coap_msg_unpacked */
 
 /**
  * Error information from CA
@@ -272,7 +272,7 @@ CAResult_t CAGetRequestInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *en
     return ret;
 }
 
-/* inbound responses only */
+/* inbound responses only? */
 CAResult_t CAGetResponseInfoFromPDU(const coap_pdu_t *pdu, CAResponseInfo_t *outResInfo,
                                     const CAEndpoint_t *endpoint)
 {
@@ -313,7 +313,7 @@ coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_
     coap_pdu_t *pdu = NULL;
 
     // RESET have to use only 4byte (empty message)
-    // and ACKNOWLEDGE can use empty message when code is empty.
+    // and ACKNOWLEDGE can use empty message when code is 0.00
     if (CA_MSG_RESET == info->type || (CA_EMPTY == code && CA_MSG_ACKNOWLEDGE == info->type))
     {
         if (CA_EMPTY != code)
@@ -408,7 +408,7 @@ coap_pdu_t *CAParsePDU(const char *data, size_t length, uint32_t *outCode,
     if (NULL == outpdu)
     {
         OIC_LOG(ERROR, TAG, "outpdu is null");
-        OIC_LOG_V(DEBUG, TAG, "data length: %" PRIuPTR, length);
+        OIC_LOG_V(DEBUG, TAG, "dgram_payload length: %" PRIuPTR, length);
         return NULL;
     }
 

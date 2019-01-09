@@ -102,6 +102,7 @@ CAResult_t CAStopListeningServer()
     return CAStopListeningServerAdapters();
 }
 
+// FIXME: rename _oocf_start_udp?
 CAResult_t CAStartDiscoveryServer(void)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
