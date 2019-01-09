@@ -1,4 +1,3 @@
-
 extensions/resource_directory/oicresourcedirectory.c
 src/tmp/cacommon.h
 src/tmp/cainterface.h
@@ -8,6 +7,7 @@ src/coap/cablockwisetransfer.c
 src/coap/caping.c
 src/coap/coap_codec.c
 src/coap/coap_tcp_signaling.c
+src/coap/oocf_coap_options.c
 src/comm/caadapterinterface.c
 src/comm/cainterfacecontroller.c
 src/comm/caconnectivitymanager.c
@@ -118,7 +118,6 @@ src/ocf/ocpayloadparse.c
 src/ocf/ocresource.c
 src/ocf/ocserverrequest.c
 src/ocf/ocstack.c
-src/ocf/oicgroup.c
 src/ocf/oickeepalive.c
 src/ocf/oocf_device.c
 src/ocf/oocf_host.c
@@ -217,7 +216,6 @@ src/ocf/_constants.h
 src/ocf/_device.h
 src/ocf/_platform.h
 src/ocf/_protocol.h
-src/ocf/_response.h
 src/portability/_events.h
 src/portability/_oic_time.h
 src/portability/windows/_events.h
