@@ -89,7 +89,7 @@ typedef enum                    /* => camessagehandler.c */
 #ifdef WITH_TCP
     CA_SIGNALING_DATA                     /**< Signaling data */
 #endif
-} CADataType_t;
+} CADataType_t;                 /* FIXME: CoAP_MSG_KIND? */
 #endif	/* INTERFACE */
 
 /* #define CA_MEMORY_ALLOC_CHECK(arg) { if (NULL == arg) {OIC_LOG(ERROR, TAG, "Out of memory"); \ */
@@ -130,12 +130,15 @@ typedef enum
 typedef struct oocf_ocf_msg_generic
 {
     ROUTING_TYPE /* CASendDataType_t type */ outbound_routing;            /**< routing type (ucast/mcast) */
+    CAEndpoint_t *remoteEndpoint;     /**< remote endpoint; origin for inbound, dest for outbound */
+    //union {
     struct CARequestInfo *requestInfo;     /**< request information */
     CAResponseInfo_t *responseInfo;   /**< response information */
     CAErrorInfo_t *errorInfo;         /**< error information */
 #ifdef WITH_TCP
     CASignalingInfo_t *signalingInfo; /**< signaling information */
 #endif
+        //}
     CADataType_t dataType;            /**< data type */
 } CAData_t;
 #endif
@@ -161,10 +164,13 @@ static CARetransmission_t g_retransmissionContext;
 static CANetworkMonitorCallback g_nwMonitorHandler = NULL;
 
 #ifdef WITH_BWT
-void CAAddDataToSendThread(CAData_t *data)
+void CAAddDataToSendThread(CAData_t *data) /* called by CAAddSendThreadQueue */
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_VOID(data, TAG, "data");
+    size_t payloadLen = 0;
+    CAGetPayloadInfo(data, &payloadLen);
+    OIC_LOG_V(DEBUG, TAG, "payloadLen=%" PRIuPTR, payloadLen);
 
     // add thread
     CAQueueingThreadAddData(&g_sendThread, data, sizeof(CAData_t));
@@ -194,13 +200,15 @@ void CAAddDataToReceiveThread(CAData_t *data)
 /* } */
 
 /* convert incoming PDU to OCF data, handles both requests and
-   responses (inbound only); called by mh_CAReceivedPacketCallback
-   only. result is passed to msg handler
+   responses (inbound only) and error (outbound); called by
+   mh_CAReceivedPacketCallback and CAErrorHandler. result is passed to msg handler
 */
-static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
+/* FIXME: @rename oocf_coap_pdu_to_msg */
+static CAData_t* _oocf_coap_pdu_to_msg(const CAEndpoint_t *endpoint, /* @was CAGenerateHandlerData */
                                        const CARemoteId_t *identity,
-                                       const void *data,
-				       CADataType_t dataType)
+                                       const coap_pdu_t /* void */ *pdu,
+				       CADataType_t dataType /* request, respose, error, etc */
+                                       )
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 #if defined(DEBUG_MSGS)
@@ -231,7 +239,7 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
             goto exit;
         }
 
-        CAResult_t result = CAGetResponseInfoFromPDU(data, inbound_response, endpoint);
+        CAResult_t result = CAGetResponseInfoFromPDU(pdu, inbound_response, endpoint);
         if (CA_STATUS_OK != result)
         {
             OIC_LOG(ERROR, TAG, "CAGetResponseInfoFromPDU Failed");
@@ -263,7 +271,7 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
             goto exit;
         }
 
-        CAResult_t result = CAGetRequestInfoFromPDU(data, endpoint, inbound_request);
+        CAResult_t result = CAGetRequestInfoFromPDU(pdu, endpoint, inbound_request);
         if (CA_STATUS_OK != result)
         {
             OIC_LOG(ERROR, TAG, "CAGetRequestInfoFromPDU failed");
@@ -301,7 +309,7 @@ static CAData_t* CAGenerateHandlerData(const CAEndpoint_t *endpoint,
             goto exit;
         }
 
-        CAResult_t result = CAGetErrorInfoFromPDU(data, endpoint, errorInfo);
+        CAResult_t result = CAGetErrorInfoFromPDU(pdu, endpoint, errorInfo);
         if (CA_STATUS_OK != result)
         {
             OIC_LOG(ERROR, TAG, "CAGetErrorInfoFromPDU failed");
@@ -512,8 +520,8 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
 
     OIC_LOG_V(DEBUG, TAG, "%s remote ep: %s", __func__, data->remoteEndpoint->addr);
 
-    coap_pdu_t *pdu = NULL;
-    CAInfo_t *info = NULL;
+    coap_pdu_t *_outbound_coap_pdu = NULL;
+    CAInfo_t *outbound_ocf_msg = NULL;
     coap_list_t *options = NULL;
     coap_transport_t transport = COAP_UDP;
     CAResult_t res = CA_SEND_FAILED;
@@ -526,24 +534,24 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
 
     if (data->requestInfo)
     {
-        OIC_LOG(DEBUG, TAG, "data contain requestInfo");
+        OIC_LOG(DEBUG, TAG, "msg is outbound requestInfo");
 
-        info = &data->requestInfo->info;
-        pdu = CAGeneratePDU(CA_GET, info, data->remoteEndpoint, &options, &transport);
+        outbound_ocf_msg = &data->requestInfo->info;
+        _outbound_coap_pdu = CAGeneratePDU(CA_GET, outbound_ocf_msg, data->remoteEndpoint, &options, &transport);
     }
     else if (data->responseInfo)
     {
-        OIC_LOG(DEBUG, TAG, "data contain responseInfo");
+        OIC_LOG(DEBUG, TAG, "msg is outbound responseInfo");
 
-        info = &data->responseInfo->info;
-        pdu = CAGeneratePDU(data->responseInfo->result, info, data->remoteEndpoint,
+        outbound_ocf_msg = &data->responseInfo->info;
+        _outbound_coap_pdu = CAGeneratePDU(data->responseInfo->result, outbound_ocf_msg, data->remoteEndpoint,
                             &options, &transport);
     }
 
-    if (!pdu)
+    if (!_outbound_coap_pdu)
     {
         OIC_LOG(ERROR,TAG,"Failed to generate multicast PDU");
-        CASendErrorInfo(data->remoteEndpoint, info, CA_SEND_FAILED);
+        CASendErrorInfo(data->remoteEndpoint, outbound_ocf_msg, CA_SEND_FAILED);
         coap_delete_list(options);
         return res;
     }
@@ -552,7 +560,7 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
     if (CAIsSupportedBlockwiseTransfer(data->remoteEndpoint->adapter))
     {
         // Blockwise transfer
-        res = CAAddBlockOption(&pdu, info, data->remoteEndpoint, &options);
+        res = CAAddBlockOption(&_outbound_coap_pdu, outbound_ocf_msg, data->remoteEndpoint, &options);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(DEBUG, TAG, "CAAddBlockOption has failed");
@@ -561,9 +569,12 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
     }
 #endif // WITH_BWT
 
-    CALogPDUInfo(data, pdu);
+    CALogPDUInfo(data, _outbound_coap_pdu);
 
-    res = CASendMulticastData(data->remoteEndpoint, pdu->transport_hdr, pdu->length, data->dataType);
+    res = CASendMulticastData(data->remoteEndpoint,
+                              _outbound_coap_pdu->transport_hdr,
+                              _outbound_coap_pdu->length,
+                              data->dataType);
     if (CA_STATUS_OK != res)
     {
         OIC_LOG_V(ERROR, TAG, "send failed:%d", res);
@@ -571,13 +582,13 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
     }
 
     coap_delete_list(options);
-    coap_delete_pdu(pdu);
+    coap_delete_pdu(_outbound_coap_pdu);
     return res;
 
 exit:
-    CAErrorHandler(data->remoteEndpoint, pdu->transport_hdr, pdu->length, res);
+    CAErrorHandler(data->remoteEndpoint, _outbound_coap_pdu->transport_hdr, _outbound_coap_pdu->length, res);
     coap_delete_list(options);
-    coap_delete_pdu(pdu);
+    coap_delete_pdu(_outbound_coap_pdu);
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return res;
 }
@@ -588,6 +599,14 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
 
     VERIFY_NON_NULL_MSG(data, TAG, "data");
     VERIFY_NON_NULL_MSG(data->remoteEndpoint, TAG, "remoteEndpoint");
+
+    if ((CAData_t*)data->responseInfo) {
+        size_t payloadLen = 0;
+        CAGetPayloadInfo(data, &payloadLen);
+        OIC_LOG_V(DEBUG, TAG, "payloadLen=%" PRIuPTR, payloadLen);
+        OIC_LOG_V(ERROR, TAG, "payload size: %u", ((CAResponseInfo_t *)data->responseInfo)->info.payloadSize);
+        OIC_LOG_V(ERROR, TAG, "payload: %p", ((CAResponseInfo_t *)data->responseInfo)->info.payload);
+    }
 
     CAResult_t res = CA_STATUS_FAILED;
 
@@ -681,9 +700,13 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
                 }
             }
 #endif // WITH_BWT
+            OIC_LOG_V(INFO, TAG, "%s logging pdu:", __func__);
             CALogPDUInfo(data, pdu);
 
-            OIC_LOG_V(INFO, TAG, "CASendUnicastData type : %d", data->dataType);
+            OIC_LOG_V(INFO, TAG, "CASendUnicastData type : %d",
+                      (data->dataType == CA_REQUEST_DATA)? "REQUEST"
+                      :(data->dataType == CA_RESPONSE_DATA)? "RESPONSE"
+                      : "OTHER");
             res = CASendUnicastData(data->remoteEndpoint, pdu->transport_hdr, pdu->length, data->dataType);
             if (CA_STATUS_OK != res)
             {
@@ -847,14 +870,18 @@ LOCAL bool CADropSecondMessage(CAHistory_t *history, const CAEndpoint_t *ep, uin
 /* called in ca_adapter_net_ssl.c via g_caSslContext->adapterCallbacks[adapterIndex].recvCallback(&peer->sep, decryptBuffer, ret); */
 /* called in udp_data_receiver.c via g_packetReceivedCallback(&sep, recvBuffer, recvLen); */
 /* called in tcp_data_receiver.c via tcp_networkPacketCallback(sep, svritem->data, svritem->totalLen); */
-void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep, // @was CAReceivedPacketCallback
-				 const void *data,
+/* client-sde, lower-level inbound request/response handler */
+void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *origin_sep, // @was CAReceivedPacketCallback
+				 const void *dgram_payload,
 				 size_t dataLen) EXPORT
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY >>>>>>>>>>>>>>>>", __func__);
-    VERIFY_NON_NULL_VOID(sep, TAG, "remoteEndpoint");
-    VERIFY_NON_NULL_VOID(data, TAG, "data");
+    VERIFY_NON_NULL_VOID(origin_sep, TAG, "remoteEndpoint");
+    VERIFY_NON_NULL_VOID(dgram_payload, TAG, "dgram_payload");
     OIC_TRACE_BEGIN(%s:mh_CAReceivedPacketCallback, TAG);
+
+    OIC_LOG_V(DEBUG, TAG, "logging secure ep:");
+    LogSecureEndpoint(origin_sep);
 
     if (0 == dataLen)
     {
@@ -863,139 +890,156 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *sep, // @was CAReceiv
         return;
     }
 
+    /* code is CoAP code field, for Method (request) or Response (response) (c.dd */
+    /* see section 12.1 of RFC 7252 */
+    /* Iotivity uses its own 32-bit fld */
     uint32_t code = CA_NOT_FOUND;
     CAData_t *cadata = NULL;
 
-    coap_pdu_t *pdu = (coap_pdu_t *) CAParsePDU((const char *) data, dataLen, &code,
-                                                &(sep->endpoint));
-    if (NULL == pdu)
-    {
+#ifdef ENABLE_TCP
+    OIC_LOG_V(DEBUG, TAG, "msg length: %d", coap_get_total_message_length((const unsigned char*)dgram_payload, dataLen));
+#endif
+    OIC_LOG(ERROR, TAG, "parse inbound dgram as coap pdu:");
+    coap_pdu_t *pdu = (coap_pdu_t *) _oocf_dgram_payload_to_coap_pdu((const char *) dgram_payload, dataLen, &code, &(origin_sep->endpoint));
+
+    log_coap_msg_code(pdu, origin_sep->endpoint.adapter);
+
+    if (NULL == pdu) {
         OIC_LOG(ERROR, TAG, "Parse PDU failed");
         goto exit;
     }
+    OIC_LOG_V(DEBUG, TAG, "coap msg code = %d", code);
 
-    OIC_LOG_V(DEBUG, TAG, "code = %d", code);
+    if (pdu->transport_hdr->udp.code == 0) {
+        OIC_LOG(ERROR, TAG, "Ignoring EMPTY response msg");
+        goto exit;
+    }
 
 #ifdef TCP_ADAPTER
-    if (CA_ADAPTER_TCP == sep->endpoint.adapter && CA_CSM != code)
+    if (CA_ADAPTER_TCP == origin_sep->endpoint.adapter && CA_CSM != code)
     {
-        CACSMExchangeState_t csmState = CAGetCSMState(&sep->endpoint);
+        CACSMExchangeState_t csmState = CAGetCSMState(&origin_sep->endpoint);
         if (csmState != RECEIVED && csmState != SENT_RECEIVED)
         {
-            CATCPDisconnectSession(&sep->endpoint);
+            CATCPDisconnectSession(&origin_sep->endpoint);
             OIC_LOG(ERROR, TAG, "CAReceivedPacketCallback, first message is not a CSM!!");
         }
     }
 #endif
 
-    if (CA_GET == code || CA_POST == code || CA_PUT == code || CA_DELETE == code)
-    {				/*  SERVER mode */
-        OIC_LOG_V(DEBUG, TAG, "%s msg is inbound request", __func__);
-        cadata = CAGenerateHandlerData(&(sep->endpoint), &(sep->identity), pdu, CA_REQUEST_DATA);
+    log_coap_pdu_hdr(pdu, origin_sep->endpoint.adapter);
+    /* CoAP code field determines which type of msg */
+    //if (CA_GET == code || CA_POST == code || CA_PUT == code || CA_DELETE == code)
+    if (COAP_MESSAGE_IS_REQUEST(&pdu->transport_hdr->udp)) {
+        /*  SERVER mode */
+        OIC_LOG_V(DEBUG, TAG, "msg is INBOUND REQUEST", __func__);
+        cadata = _oocf_coap_pdu_to_msg(&(origin_sep->endpoint), &(origin_sep->identity), pdu, CA_REQUEST_DATA);
         if (!cadata)
-        {
-            // FIXME: use errno to indicate dropped duplicat msg
-            OIC_LOG(ERROR, TAG, "mh_CAReceivedPacketCallback, CAGenerateHandlerData failed!");
-            coap_delete_pdu(pdu);
-            goto exit;
-        }
-    } else {				/* CLIENT mode */
-#ifdef TCP_ADAPTER
-        // This is signaling message.
-        if (CA_ADAPTER_TCP == sep->endpoint.adapter &&
-                (CA_CSM == code || CA_PING == code || CA_PONG == code
-                        || CA_RELEASE == code || CA_ABORT == code))
-        {
-            cadata = CAGenerateHandlerData(&(sep->endpoint), &(sep->identity),
-                                           pdu, CA_SIGNALING_DATA);
-            if (!cadata)
+            {
+                // FIXME: use errno to indicate dropped duplicat msg
+                OIC_LOG(ERROR, TAG, "mh_CAReceivedPacketCallback, CAGenerateHandlerData failed!");
+                coap_delete_pdu(pdu);
+                goto exit;
+            }
+        //} else if (CA_RESPONSE_CLASS(pdu->transport_hdr->udp.code)) {
+    } else if (COAP_MESSAGE_IS_RESPONSE(&pdu->transport_hdr->udp)) {
+        cadata = _oocf_coap_pdu_to_msg(&(origin_sep->endpoint), &(origin_sep->identity), pdu, CA_RESPONSE_DATA);
+        if (!cadata)
             {
                 OIC_LOG(ERROR, TAG, "CAReceivedPacketCallback, CAGenerateHandlerData failed!");
                 coap_delete_pdu(pdu);
-                return;
+                goto exit;
             }
+
+#ifdef WITH_TCP
+        if (CAIsSupportedCoAPOverTCP(origin_sep->endpoint.adapter))
+            {
+                OIC_LOG(INFO, TAG, "CoAP/TCP retransmission is not supported");
+            }
+        else
+#endif
+            {
+                // for retransmission
+                void *retransmissionPdu = NULL;
+                CARetransmissionReceivedData(&g_retransmissionContext, cadata->remoteEndpoint, pdu->transport_hdr,
+                                             pdu->length, &retransmissionPdu);
+
+                // get token from saved data in retransmission list
+                if (retransmissionPdu && CA_EMPTY == code)
+                    {
+                        if (cadata->responseInfo)
+                            {
+                                CAInfo_t *info = &cadata->responseInfo->info;
+                                CAResult_t res = CAGetTokenFromPDU((const coap_hdr_transport_t *)retransmissionPdu,
+                                                                   info, &(origin_sep->endpoint));
+                                if (CA_STATUS_OK != res)
+                                    {
+                                        OIC_LOG(ERROR, TAG, "fail to get Token from retransmission list");
+                                        OICFree(info->token);
+                                        info->tokenLength = 0;
+                                    }
+                            }
+                    }
+                OICFree(retransmissionPdu);
+            }
+    }
+#ifdef TCP_ADAPTER
+    // This is signaling message (inbound?).
+    else if (CA_ADAPTER_TCP == origin_sep->endpoint.adapter &&
+             (CA_CSM == code || CA_PING == code || CA_PONG == code
+              || CA_RELEASE == code || CA_ABORT == code)) {
+
+            OIC_LOG_V(DEBUG, TAG, "%s msg is INBOUND SIGNAL MSG, rc: %s", __func__,
+                      coap_response_phrase(pdu->transport_hdr->udp.code));
+
+            cadata = _oocf_coap_pdu_to_msg(&(origin_sep->endpoint), &(origin_sep->identity),
+                                           pdu, CA_SIGNALING_DATA);
+       if (!cadata)
+                {
+                    OIC_LOG(ERROR, TAG, "CAReceivedPacketCallback, CAGenerateHandlerData failed!");
+                    coap_delete_pdu(pdu);
+                    return;
+                }
 
             // Received signaling message is CSM.
             if (CA_CSM == code)
-            {
-                OIC_LOG_V(DEBUG, TAG, "CAReceivedPacketCallback, CSM received");
-                // update session info of tcp_adapter.
-                // TODO check if it is a valid CSM, if it is not valid message disconnect the session.
-                CACSMExchangeState_t csmState = CAGetCSMState(&sep->endpoint);
-                if (csmState == NONE)
                 {
-                    CAUpdateCSMState(&sep->endpoint,RECEIVED);
+                    OIC_LOG_V(DEBUG, TAG, "CAReceivedPacketCallback, CSM received");
+                    // update session info of tcp_adapter.
+                    // TODO check if it is a valid CSM, if it is not valid message disconnect the session.
+                    CACSMExchangeState_t csmState = CAGetCSMState(&origin_sep->endpoint);
+                    if (csmState == NONE)
+                        {
+                            CAUpdateCSMState(&origin_sep->endpoint,RECEIVED);
+                        }
+                    else if (csmState == SENT)
+                        {
+                            CAUpdateCSMState(&origin_sep->endpoint,SENT_RECEIVED);
+                        }
                 }
-                else if (csmState == SENT)
-                {
-                    CAUpdateCSMState(&sep->endpoint,SENT_RECEIVED);
-                }
-            }
             else if (CA_PING == code)
-            {
-                CASendPongMessage(cadata->remoteEndpoint, false, cadata->signalingInfo->info.token,
-                                  cadata->signalingInfo->info.tokenLength);
-            }
-            else if(CA_PONG == code)
-            {
-                CAPongReceivedCallback(cadata->remoteEndpoint, cadata->signalingInfo->info.token,
-                                       cadata->signalingInfo->info.tokenLength);
-            }
-            return;
-        }
-#endif
-        OIC_LOG_V(DEBUG, TAG, "%s msg is inbound response", __func__);
-        cadata = CAGenerateHandlerData(&(sep->endpoint), &(sep->identity), pdu, CA_RESPONSE_DATA);
-        if (!cadata)
-        {
-            OIC_LOG(ERROR, TAG, "CAReceivedPacketCallback, CAGenerateHandlerData failed!");
-            coap_delete_pdu(pdu);
-            goto exit;
-        }
-
-#ifdef WITH_TCP
-        if (CAIsSupportedCoAPOverTCP(sep->endpoint.adapter))
-        {
-            OIC_LOG(INFO, TAG, "CoAP/TCP retransmission is not supported");
-        }
-        else
-#endif
-        {
-            // for retransmission
-            void *retransmissionPdu = NULL;
-            CARetransmissionReceivedData(&g_retransmissionContext, cadata->remoteEndpoint, pdu->transport_hdr,
-                                         pdu->length, &retransmissionPdu);
-
-            // get token from saved data in retransmission list
-            if (retransmissionPdu && CA_EMPTY == code)
-            {
-                if (cadata->responseInfo)
                 {
-                    CAInfo_t *info = &cadata->responseInfo->info;
-                    CAResult_t res = CAGetTokenFromPDU((const coap_hdr_transport_t *)retransmissionPdu,
-                                                       info, &(sep->endpoint));
-                    if (CA_STATUS_OK != res)
-                    {
-                        OIC_LOG(ERROR, TAG, "fail to get Token from retransmission list");
-                        OICFree(info->token);
-                        info->tokenLength = 0;
-                    }
+                    CASendPongMessage(cadata->remoteEndpoint, false, cadata->signalingInfo->info.token,
+                                      cadata->signalingInfo->info.tokenLength);
                 }
-            }
-            OICFree(retransmissionPdu);
-        }
+            else if(CA_PONG == code)
+                {
+                    CAPongReceivedCallback(cadata->remoteEndpoint, cadata->signalingInfo->info.token,
+                                           cadata->signalingInfo->info.tokenLength);
+                }
+            return;
     }
-
-    cadata->type = SEND_TYPE_UNICAST;
+#endif
+    cadata->outbound_routing = UNICAST;
 
 #if defined(DEBUG_MSGS)
     CALogPDUInfo(cadata, pdu);
 #endif
 
 #ifdef WITH_BWT
-    if (CAIsSupportedBlockwiseTransfer(sep->endpoint.adapter))
+    if (CAIsSupportedBlockwiseTransfer(origin_sep->endpoint.adapter))
     {
-        CAResult_t res = CAReceiveBlockWiseData(pdu, &(sep->endpoint), cadata, dataLen);
+        CAResult_t res = CAReceiveBlockWiseData(pdu, &(origin_sep->endpoint), cadata, dataLen);
         if (CA_NOT_SUPPORTED == res || CA_REQUEST_TIMEOUT == res)
         {
 	    if (CA_NOT_SUPPORTED == res)
@@ -1025,6 +1069,7 @@ exit:
     OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
 }
 
+/* ocf (upper) runloop handler */
 void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
 {
 #ifdef SINGLE_HANDLE
@@ -1042,27 +1087,45 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
 
     if (NULL == item || NULL == item->msg)
     {
+        OIC_LOG_V(INFO, TAG, "%s EXIT (no msg ready)", __func__);
         return;
     }
-    OIC_LOG_V(INFO, TAG, "%s pulled msg from g_receiveThread queue", __func__);
+    OIC_LOG_V(INFO, TAG, "%s pulled inbound msg from g_receiveThread queue", __func__);
 
     // get endpoint
     CAData_t *td = (CAData_t *) item->msg;
-    OIC_LOG_V(DEBUG, TAG, "Message type: %d: %s", td->dataType,
-	      (CA_REQUEST_DATA == td->dataType)? "REQUEST"
-	      :(CA_RESPONSE_DATA == td->dataType)? "RESPONSE"
-	      :(CA_ERROR_DATA == td->dataType)? "ERROR"
-	      :(CA_RESPONSE_FOR_RES == td->dataType)? "RESPONSE_FOR_RES"
+
+    OIC_LOG_V(DEBUG, TAG, "inbound msg CA_DATA type: %d: %s", td->dataType,
+	      (CA_REQUEST_DATA == td->dataType)? "CA REQUEST"
+	      :(CA_RESPONSE_DATA == td->dataType)? "CA RESPONSE"
+	      :(CA_ERROR_DATA == td->dataType)? "CA ERROR"
+	      :(CA_RESPONSE_FOR_RES == td->dataType)? "CA RESPONSE_FOR_RES"
 	      : "UNKNOWN");
 
-    OIC_LOG_V(DEBUG, TAG, "Msg remote EP: [%s]:%d ", td->remoteEndpoint->addr, td->remoteEndpoint->port);
+    if (CA_REQUEST_DATA == td->dataType) {
+        OIC_LOG_V(DEBUG, TAG, "inbound msg origin EP: [%s]:%d ",
+                  td->remoteEndpoint->addr, td->remoteEndpoint->port);
+        OIC_LOG_V(DEBUG, TAG, "inbound msg dest EP: [%s]:%d ",
+                  td->requestInfo->dest_ep.addr, td->requestInfo->dest_ep.port);
+    }
+    if (CA_RESPONSE_DATA == td->dataType) {
+        OIC_LOG_V(DEBUG, TAG, "inbound msg origin EP: [%s]:%d ",
+                  td->remoteEndpoint->addr, td->remoteEndpoint->port);
+        OIC_LOG_V(DEBUG, TAG, "inbound msg dest EP: [%s]",
+                  td->responseInfo->info.resourceUri);
+    }
+    if (CA_ERROR_DATA == td->dataType) {
+        /* outbound? */
+    }
+    if (CA_RESPONSE_FOR_RES == td->dataType) {
+    }
 
     if (td->requestInfo) // && g_requestHandler)
     {			 /* inbound requests: SERVER mode? */
-        OIC_LOG_V(DEBUG, TAG, "REQUEST callback option count: %d", td->requestInfo->info.numOptions);
-	OIC_LOG_V(DEBUG, TAG, "REQUEST method: %d", td->requestInfo->method); // get=1,post,put,delete
-	OIC_LOG_V(DEBUG, TAG, "REQUEST isMcast? %d", td->requestInfo->isMulticast);
-	OIC_LOG_V(DEBUG, TAG, "REQUEST subject id: %s", td->requestInfo->info.identity.id);
+        OIC_LOG_V(DEBUG, TAG, "inbound REQUEST callback option count: %d", td->requestInfo->info.numOptions);
+	OIC_LOG_V(DEBUG, TAG, "inbound REQUEST method: %d", td->requestInfo->method); // get=1,post,put,delete
+	OIC_LOG_V(DEBUG, TAG, "inbound REQUEST isMcast? %d", td->requestInfo->isMulticast);
+	OIC_LOG_V(DEBUG, TAG, "inbound REQUEST subject id: %s", td->requestInfo->info.identity.id);
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
         /* g_requestHandler(td->remoteEndpoint, td->requestInfo); */
 	SRMRequestHandler(td->remoteEndpoint, td->requestInfo);
@@ -1071,9 +1134,12 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
     }
     else if (td->responseInfo) // && g_responseHandler)
     {			       /* inbound response, CLIENT mode */
-        OIC_LOG_V(DEBUG, TAG, "RESPONSE callback option count: %d", td->responseInfo->info.numOptions);
-	OIC_LOG_V(DEBUG, TAG, "RESPONSE result: %d", td->responseInfo->result);
-	OIC_LOG_V(DEBUG, TAG, "RESPONSE isMcast? %d", td->responseInfo->isMulticast);
+        OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE callback option count: %d", td->responseInfo->info.numOptions);
+	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE result: %d", td->responseInfo->result);
+	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE isMcast? %d", td->responseInfo->isMulticast);
+	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE result: %u", td->responseInfo->result);
+	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload len: %u", td->responseInfo->info.payloadSize);
+	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload ptr: %p", td->responseInfo->info.payload);
         //g_responseHandler(td->remoteEndpoint, td->responseInfo);
         HandleCAResponses(td->remoteEndpoint, td->responseInfo);
     }
@@ -1098,10 +1164,12 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
     /* OIC_LOG_V(DEBUG, TAG, "%s <<<<<<<<<<<<<<<< EXIT <<<<<<<<<<<<<<<<", __func__); */
 }
 
-CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
-                                   CADataType_t dataType)
+CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint,
+                            const void *sendData, /* may be requestInfo, responseInfo, signalingInfo */
+                            CADataType_t dataType)
 {
-    OIC_LOG(DEBUG, TAG, "CAPrepareSendData IN");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OIC_LOG_V(ERROR, TAG, "payload size: %u", ((struct CARequestInfo *)sendData)->info.payloadSize);
 
     CAData_t *cadata = (CAData_t *) OICCalloc(1, sizeof(CAData_t));
     if (!cadata)
@@ -1176,7 +1244,8 @@ exit:
     return NULL;
 }
 
-CAResult_t CADetachSendMessage(const CAEndpoint_t *dest_ep, const void *sendMsg,
+CAResult_t CADetachSendMessage(const CAEndpoint_t *dest_ep,
+                               const void *sendMsg, /* either requestInfo or responseInfo */
                                CADataType_t dataType)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
@@ -1440,6 +1509,7 @@ void CATerminateMessageHandler(void)
     CATerminateAdapters();
 }
 
+#if defined(DEBUG_MSGS)
 LOCAL void CALogPayloadInfo(CAInfo_t *info)
 {
     if (info)
@@ -1473,14 +1543,16 @@ LOCAL void CALogPayloadInfo(CAInfo_t *info)
         OIC_LOG(DEBUG, TAG, "info is NULL, cannot output log data");
     }
 }
+#endif
 
 void CAErrorHandler(const CAEndpoint_t *endpoint,
-                    const void *data, size_t dataLen,
+                    const void *dgram_payload,
+                    size_t dataLen,
                     CAResult_t result)
 {
     OIC_LOG(DEBUG, TAG, "CAErrorHandler IN");
     VERIFY_NON_NULL_VOID(endpoint, TAG, "remoteEndpoint");
-    VERIFY_NON_NULL_VOID(data, TAG, "data");
+    VERIFY_NON_NULL_VOID(dgram_payload, TAG, "dgram_payload");
 
     if (0 == dataLen)
     {
@@ -1489,16 +1561,16 @@ void CAErrorHandler(const CAEndpoint_t *endpoint,
     }
 
     uint32_t code = CA_NOT_FOUND;
-    //Do not free remoteEndpoint and data. Currently they will be freed in data thread
-    //Get PDU data
-    coap_pdu_t *pdu = (coap_pdu_t *)CAParsePDU((const char *)data, dataLen, &code, endpoint);
+    //Do not free remoteEndpoint and dgram_payload. Currently they will be freed in data thread
+    //Get PDU from dgram_payload
+    coap_pdu_t *pdu = (coap_pdu_t *)_oocf_dgram_payload_to_coap_pdu((const char *)dgram_payload, dataLen, &code, endpoint);
     if (NULL == pdu)
     {
         OIC_LOG(ERROR, TAG, "Parse PDU failed");
         return;
     }
 
-    CAData_t *cadata = CAGenerateHandlerData(endpoint, NULL, pdu, CA_ERROR_DATA);
+    CAData_t *cadata = _oocf_coap_pdu_to_msg(endpoint, NULL, pdu, CA_ERROR_DATA);
     if (!cadata)
     {
         OIC_LOG(ERROR, TAG, "CAErrorHandler, CAGenerateHandlerData failed!");
@@ -1737,7 +1809,7 @@ CAResult_t CAAddHeaderOption(CAHeaderOption_t **hdrOpt, uint8_t *numOptions,
         return CA_MEMORY_ALLOC_FAILED;
     }
 
-    tmpOpt[*numOptions].protocolID = CA_COAP_ID;
+    //tmpOpt[*numOptions].protocolID = CA_COAP_ID;
     tmpOpt[*numOptions].optionID = optionID;
     tmpOpt[*numOptions].optionLength = (uint16_t)optionDataLength;
 
