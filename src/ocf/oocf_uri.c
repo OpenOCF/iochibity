@@ -1,5 +1,15 @@
 #include "oocf_uri.h"
 
+#include <arpa/inet.h>
+#include <netinet/in.h>
+
+/* NOTE: OCF uses "uri" to refer to the path portion of a resource url */
+#if EXPORT_INTERFACE
+#define MAX_URI_LENGTH (256)    /* src: ocstackconfig.h */
+#define MAX_QUERY_LENGTH (256)  /* src: ocstackconfig.h */
+#define MAX_URI_QUERY MAX_URI_LENGTH + MAX_QUERY_LENGTH
+#endif
+
 static const char COAP_TCP_SCHEME[] = "coap+tcp:";
 static const char COAPS_TCP_SCHEME[] = "coaps+tcp:";
 
@@ -18,16 +28,18 @@ static const char COAPS_TCP_SCHEME[] = "coaps+tcp:";
  *  resource uri                "/oc/core..."
  *
  *  for PRESENCE requests, extract resource type.
+ *
+ * this routine sets the SECURE flag if scheme is coaps
  */
 OCStackResult ParseRequestUri(const char *fullUri,
-                                        OCTransportAdapter adapter,
-                                        OCTransportFlags flags,
-                                        OCDevAddr **devAddr,
-                                        char **resourceUri,
-                                        char **resourceType)
+                              OCTransportAdapter adapter,
+                              OCTransportFlags flags,
+                              OCDevAddr **devAddr,
+                              char **resourceUri,
+                              char **resourceType)
 {
-    VERIFY_NON_NULL(fullUri, FATAL, OC_STACK_INVALID_CALLBACK);
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    VERIFY_NON_NULL(fullUri, FATAL, OC_STACK_INVALID_CALLBACK);
 
     OCStackResult result = OC_STACK_OK;
     OCDevAddr *da = NULL;
@@ -79,8 +91,11 @@ OCStackResult ParseRequestUri(const char *fullUri,
     // port
     uint16_t port = 0;
     size_t len = 0;
-    if (urlLen && devAddr)
+    OIC_LOG_V(INFO, TAG, "\turlLen: %d; devAddr: %p", urlLen, devAddr);
+
+    if (urlLen && devAddr)      /* this will never be true? client always passes NULL devAddr */
     {   // construct OCDevAddr
+        OIC_LOG_V(INFO, TAG, "\tconstructing OCDevAddr");
         if (start[0] == '[')
         {   // ipv6 address
             char *close = strchr(++start, ']');
@@ -177,6 +192,7 @@ OCStackResult ParseRequestUri(const char *fullUri,
             da->flags = (CATransportFlags_t)(da->flags|CA_SECURE);
         }
         *devAddr = da;
+        LogDevAddr(*devAddr);
     }
 
     // process resource uri, if any
@@ -239,5 +255,135 @@ error:
     }
     OIC_LOG_V(INFO, TAG, "%s EXIT error: %d", __func__, result);
     return result;
+}
+
+/*
+ * This function splits the URI using the '?' delimiter.
+ * "uriWithoutQuery" is the block of characters between the beginning
+ * till the delimiter or '\0' which ever comes first.
+ * "query" is whatever is to the right of the delimiter if present.
+ * No delimiter sets the query to NULL.
+ * If either are present, they will be malloc'ed into the params 2, 3.
+ * The first param, *uri is left untouched.
+
+ * NOTE: This function does not account for whitespace at the end of the URI NOR
+ *       malformed URIs with '??'. Whitespace at the end will be assumed to be
+ *       part of the query.
+ */
+/**
+ * Extract query from a URI.
+ *
+ * @param uri Full URI with query.
+ * @param query Pointer to string that will contain query.
+ * @param newURI Pointer to string that will contain URI.
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+/* static OCStackResult getQueryFromUri(const char * uri, char** resourceType, char ** newURI); */
+OCStackResult getQueryFromUri(const char * uri, char** query, char ** uriWithoutQuery)
+{
+    if(!uri)
+    {
+        return OC_STACK_INVALID_URI;
+    }
+    if(!query || !uriWithoutQuery)
+    {
+        return OC_STACK_INVALID_PARAM;
+    }
+
+    *query           = NULL;
+    *uriWithoutQuery = NULL;
+
+    size_t uriWithoutQueryLen = 0;
+    size_t queryLen = 0;
+    size_t uriLen = strlen(uri);
+
+    char *pointerToDelimiter = strstr(uri, "?");
+
+    uriWithoutQueryLen = pointerToDelimiter == NULL ? uriLen : (size_t)(pointerToDelimiter - uri);
+    queryLen = pointerToDelimiter == NULL ? 0 : uriLen - uriWithoutQueryLen - 1;
+
+    if (uriWithoutQueryLen)
+    {
+        *uriWithoutQuery =  (char *) OICCalloc(uriWithoutQueryLen + 1, 1);
+        if (!*uriWithoutQuery)
+        {
+            goto exit;
+        }
+        OICStrcpy(*uriWithoutQuery, uriWithoutQueryLen +1, uri);
+    }
+    if (queryLen)
+    {
+        *query = (char *) OICCalloc(queryLen + 1, 1);
+        if (!*query)
+        {
+            OICFree(*uriWithoutQuery);
+            *uriWithoutQuery = NULL;
+            goto exit;
+        }
+        OICStrcpy(*query, queryLen + 1, pointerToDelimiter + 1);
+    }
+
+    return OC_STACK_OK;
+
+    exit:
+        return OC_STACK_NO_MEMORY;
+}
+
+char  *getPathFromRequestURL(const char * url)
+{
+    if(!url)
+    {
+        return NULL;
+    }
+
+    char *uriWithoutQuery = NULL;
+    char *query = NULL;
+    OCStackResult requestResult = OC_STACK_ERROR;
+
+    requestResult = getQueryFromUri(url, &query, &uriWithoutQuery);
+
+    if (requestResult != OC_STACK_OK || !uriWithoutQuery)
+    {
+        OIC_LOG_V(ERROR, TAG, "getQueryFromUri() failed with OC error code %d\n", requestResult);
+        return NULL;
+    }
+    return uriWithoutQuery;
+}
+
+char  *getQueryFromRequestURL(const char * url) EXPORT
+{
+    if(!url)
+    {
+        return NULL;
+    }
+
+    char *uriWithoutQuery = NULL;
+    char *query = NULL;
+    OCStackResult requestResult = OC_STACK_ERROR;
+
+    requestResult = getQueryFromUri(url, &query, &uriWithoutQuery);
+
+    if (requestResult != OC_STACK_OK || !uriWithoutQuery)
+    {
+        OIC_LOG_V(ERROR, TAG, "getQueryFromUri() failed with OC error code %d\n", requestResult);
+        return NULL;
+    }
+    return query;
+}
+
+bool oocf_addr_is_scoped(char *addr, OCTransportFlags scope) EXPORT
+{
+    char buf[MAX_URI_QUERY + 1];
+    strncpy(buf, addr, strlen(addr));
+    char *addr_literal = strtok(buf, "%"); /* drop the zone suffix */
+
+    struct sockaddr_in6 saddr;
+    inet_pton(AF_INET6, addr_literal, &saddr.sin6_addr);
+    if (scope == CA_SCOPE_LINK) {
+        if (IN6_IS_ADDR_LINKLOCAL(&(saddr.sin6_addr.s6_addr))) {
+            return true;
+        }
+    }
+    return false;
 }
 
