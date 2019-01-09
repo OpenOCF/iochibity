@@ -135,3 +135,127 @@ OCStackResult OC_CALL OCGetHeaderOption(struct oocf_coap_options /* CAHeaderOpti
     return OC_STACK_OK;
 }
 
+#if INTERFACE
+#include "coap/coap_list.h"
+#endif
+CAResult_t CAAddOptionToPDU(coap_pdu_t *pdu, coap_list_t **options)
+{
+    // after adding the block option to option list, add option list to pdu.
+    if (*options)
+    {
+        for (coap_list_t *opt = *options; opt; opt = opt->next)
+        {
+            OIC_LOG_V(DEBUG, TAG, "[%s] opt will be added.",
+                      COAP_OPTION_DATA(*(coap_option *) opt->data));
+
+            OIC_LOG_V(DEBUG, TAG, "[%d] pdu length", pdu->length);
+            size_t ret = coap_add_option(pdu, COAP_OPTION_KEY(*(coap_option *) opt->data),
+                                         COAP_OPTION_LENGTH(*(coap_option *) opt->data),
+                                         COAP_OPTION_DATA(*(coap_option *) opt->data));
+            if (!ret)
+            {
+                return CA_STATUS_FAILED;
+            }
+        }
+    }
+
+    OIC_LOG_V(DEBUG, TAG, "[%d] pdu length after option", pdu->length);
+
+    return CA_STATUS_OK;
+}
+
+/**
+ * Set Header Option.
+ * @param caHdrOpt            Pointer to existing options
+ * @param numOptions          Number of existing options.
+ * @param optionID            COAP option ID.
+ * @param optionData          Option data value.
+ * @param optionDataLength    Size of Option data value.
+
+ * @return ::OC_STACK_OK on success, some other value upon failure.
+ */
+OCStackResult SetHeaderOption(CAHeaderOption_t *caHdrOpt, size_t numOptions,
+                              uint16_t optionID, void* optionData, size_t optionDataLength)
+{
+    if (!caHdrOpt)
+    {
+        return OC_STACK_INVALID_PARAM;
+    }
+
+    if (!optionData)
+    {
+        OIC_LOG (INFO, TAG, "optionData are NULL");
+        return OC_STACK_INVALID_PARAM;
+    }
+
+    //caHdrOpt[numOptions].protocolID = CA_COAP_ID;
+    caHdrOpt[numOptions].optionID = optionID;
+    caHdrOpt[numOptions].optionLength =
+            (optionDataLength < MAX_HEADER_OPTION_DATA_LENGTH) ?
+                    (uint16_t) optionDataLength : MAX_HEADER_OPTION_DATA_LENGTH;
+    memcpy(caHdrOpt[numOptions].optionData, (const void*) optionData,
+            caHdrOpt[numOptions].optionLength);
+
+    return OC_STACK_OK;
+}
+
+OCStackResult OC_CALL OCSetHeaderOption(OCHeaderOption* ocHdrOpt, size_t* numOptions, uint16_t optionID,
+                                        void* optionData, size_t optionDataLength) EXPORT
+{
+    if (!ocHdrOpt)
+    {
+        OIC_LOG (INFO, TAG, "Header options are NULL");
+        return OC_STACK_INVALID_PARAM;
+    }
+
+    if (!optionData)
+    {
+        OIC_LOG (INFO, TAG, "optionData are NULL");
+        return OC_STACK_INVALID_PARAM;
+    }
+
+    if (!numOptions)
+    {
+        OIC_LOG (INFO, TAG, "numOptions is NULL");
+        return OC_STACK_INVALID_PARAM;
+    }
+
+    if (*numOptions >= MAX_HEADER_OPTIONS)
+    {
+        OIC_LOG (INFO, TAG, "Exceeding MAX_HEADER_OPTIONS");
+        return OC_STACK_NO_MEMORY;
+    }
+
+    ocHdrOpt += *numOptions;
+    // ocHdrOpt->protocolID = OC_COAP_ID;
+    ocHdrOpt->optionID = optionID;
+    ocHdrOpt->optionLength =
+            (optionDataLength < MAX_HEADER_OPTION_DATA_LENGTH) ?
+                    (uint16_t)optionDataLength : MAX_HEADER_OPTION_DATA_LENGTH;
+    memcpy(ocHdrOpt->optionData, (const void*) optionData, ocHdrOpt->optionLength);
+    *numOptions += 1;
+
+    return OC_STACK_OK;
+}
+
+bool checkProxyUri(OCHeaderOption *options, uint8_t numOptions)
+{
+    if (!options || 0 == numOptions)
+    {
+        OIC_LOG (INFO, TAG, "No options present");
+        return false;
+    }
+
+    for (uint8_t i = 0; i < numOptions; i++)
+    {
+        if (options[i].optionID == OC_RSRVD_PROXY_OPTION_ID)
+            /* && */
+            /* options[i].protocolID == OC_COAP_ID) */
+        {
+            OIC_LOG(DEBUG, TAG, "Proxy URI is present");
+            return true;
+        }
+    }
+    return false;
+}
+

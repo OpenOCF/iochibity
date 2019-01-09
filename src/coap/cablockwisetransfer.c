@@ -1574,35 +1574,6 @@ CAResult_t CAUpdateMessageId(coap_pdu_t *pdu, const CABlockDataID_t *blockID)
 
 // CAAddBlockOption fns moved to camessagehandler.c
 
-#if INTERFACE
-#include "coap/coap_list.h"
-#endif
-CAResult_t CAAddOptionToPDU(coap_pdu_t *pdu, coap_list_t **options)
-{
-    // after adding the block option to option list, add option list to pdu.
-    if (*options)
-    {
-        for (coap_list_t *opt = *options; opt; opt = opt->next)
-        {
-            OIC_LOG_V(DEBUG, TAG, "[%s] opt will be added.",
-                      COAP_OPTION_DATA(*(coap_option *) opt->data));
-
-            OIC_LOG_V(DEBUG, TAG, "[%d] pdu length", pdu->length);
-            size_t ret = coap_add_option(pdu, COAP_OPTION_KEY(*(coap_option *) opt->data),
-                                         COAP_OPTION_LENGTH(*(coap_option *) opt->data),
-                                         COAP_OPTION_DATA(*(coap_option *) opt->data));
-            if (!ret)
-            {
-                return CA_STATUS_FAILED;
-            }
-        }
-    }
-
-    OIC_LOG_V(DEBUG, TAG, "[%d] pdu length after option", pdu->length);
-
-    return CA_STATUS_OK;
-}
-
 // TODO make pdu const after libcoap is updated to support that.
 bool CAIsPayloadLengthInPduWithBlockSizeOption(coap_pdu_t *pdu,
                                                uint16_t sizeType,
