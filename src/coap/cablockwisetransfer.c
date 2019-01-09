@@ -1887,7 +1887,7 @@ CAData_t* CACreateNewDataSet(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint
     data->requestInfo = requestInfo;
     data->responseInfo = responseInfo;
     data->remoteEndpoint = CACloneEndpoint(endpoint);
-    data->type = SEND_TYPE_UNICAST;
+    data->outbound_routing = UNICAST;
 
     return data;
 }

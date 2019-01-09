@@ -123,14 +123,13 @@ typedef void (*CATimeoutCallback_t)(const CAEndpoint_t *endpoint,
 
 typedef enum
 {
-    SEND_TYPE_MULTICAST = 0,
-    SEND_TYPE_UNICAST
-} CASendDataType_t;
+    MULTICAST = 0, // SEND_TYPE_MULTICAST = 0,
+    UNICAST  // SEND_TYPE_UNICAST
+} ROUTING_TYPE;  // CASendDataType_t;
 
-typedef struct
+typedef struct oocf_ocf_msg_generic
 {
-    CASendDataType_t type;            /**< data type */
-    CAEndpoint_t *remoteEndpoint;     /**< remote endpoint */
+    ROUTING_TYPE /* CASendDataType_t type */ outbound_routing;            /**< routing type (ucast/mcast) */
     struct CARequestInfo *requestInfo;     /**< request information */
     CAResponseInfo_t *responseInfo;   /**< response information */
     CAErrorInfo_t *errorInfo;         /**< error information */
@@ -424,7 +423,7 @@ static void CATimeoutCallback(const CAEndpoint_t *endpoint, const void *pdu, uin
         return;
     }
 
-    cadata->type = SEND_TYPE_UNICAST;
+    cadata->outbound_routing = UNICAST;
     cadata->remoteEndpoint = ep;
     cadata->requestInfo = NULL;
     cadata->responseInfo = resInfo;
@@ -592,14 +591,23 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
 
     CAResult_t res = CA_STATUS_FAILED;
 
-    CASendDataType_t type = data->type;
+    ROUTING_TYPE /* CASendDataType_t */ type = data->outbound_routing;
 
     coap_pdu_t *pdu = NULL;
     CAInfo_t *info = NULL;
     coap_list_t *options = NULL;
     coap_transport_t transport = COAP_UDP;
 
-    if (SEND_TYPE_UNICAST == type)
+    /* OIC_LOG(DEBUG,TAG,"logging remoteEndpoint:"); */
+    /* LogEndpoint((CAEndpoint_t*)&data->remoteEndpoint); */
+
+    /* OIC_LOG_V(DEBUG, TAG, */
+    /*           "%s sending %s %s %s", __func__, */
+    /*           (data->remoteEndpoint->flags & CA_IPV4) ? "IPV4" : (data->remoteEndpoint->flags & CA_IPV6)? "IPV6" : "ERR", */
+    /*           (data->remoteEndpoint->flags & CA_SECURE) ? "secure " : "insecure ", */
+    /*           (data->remoteEndpoint->flags & CA_MULTICAST) ? "multicast" : "unicast"); */
+
+    if (UNICAST == type)
     {
         OIC_LOG(DEBUG,TAG,"Unicast message");
 
@@ -722,9 +730,16 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
             return CA_SEND_FAILED;
         }
     }
-    else if (SEND_TYPE_MULTICAST == type)
+    else if (MULTICAST == type)
     {
         OIC_LOG(DEBUG,TAG,"Multicast message");
+        data->remoteEndpoint->flags = data->remoteEndpoint->flags | CA_MULTICAST;
+        OIC_LOG_V(DEBUG, TAG,
+                  "%s sending %s %s %s", __func__,
+                  (data->remoteEndpoint->flags & CA_IPV4) ? "IPV4" : (data->remoteEndpoint->flags & CA_IPV6)? "IPV6" : "ERR",
+                  (data->remoteEndpoint->flags & CA_SECURE) ? "secure " : "insecure ",
+                  (data->remoteEndpoint->flags & CA_MULTICAST) ? "multicast" : "unicast");
+
 #ifdef WITH_TCP
         /*
          * If CoAP over TCP is enabled, the CoAP pdu wont be same for IP and other adapters.
@@ -1105,7 +1120,7 @@ CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
             OIC_LOG(ERROR, TAG, "CACloneRequestInfo failed");
             goto exit;
         }
-        cadata->type = request->isMulticast ? SEND_TYPE_MULTICAST : SEND_TYPE_UNICAST;
+        cadata->outbound_routing = request->isMulticast ? MULTICAST : UNICAST;
         cadata->requestInfo =  request;
     }
     else if (CA_RESPONSE_DATA == dataType || CA_RESPONSE_FOR_RES == dataType)
@@ -1119,8 +1134,10 @@ CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
             OIC_LOG(ERROR, TAG, "CACloneResponseInfo failed");
             goto exit;
         }
-        cadata->type = response->isMulticast ? SEND_TYPE_MULTICAST : SEND_TYPE_UNICAST;
+        cadata->outbound_routing = response->isMulticast ? MULTICAST : UNICAST;
         cadata->responseInfo = response;
+        OIC_LOG_V(DEBUG, TAG, "result: %u", response->result);
+
     }
 #ifdef TCP_ADAPTER
     else if (CA_SIGNALING_DATA == dataType)
@@ -1132,7 +1149,7 @@ CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint, const void *sendData,
             OIC_LOG(ERROR, TAG, "CACloneSignalingInfo failed");
             goto exit;
         }
-        cadata->type = SEND_TYPE_UNICAST;
+        cadata->outbound_routing = UNICAST;
         cadata->signalingInfo = signaling;
     }
 #endif
@@ -1229,7 +1246,7 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *dest_ep, const void *sendMsg,
     }
 #endif
 
-    if (SEND_TYPE_UNICAST == data->type && CAIsLocalEndpoint(data->remoteEndpoint))
+    if (UNICAST == data->outbound_routing && CAIsLocalEndpoint(data->remoteEndpoint))
     {
         OIC_LOG(DEBUG, TAG,
                 "This is a loopback message. Transfer it to the receive queue directly");
@@ -1593,10 +1610,10 @@ LOCAL void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu)
     OIC_TRACE_BEGIN(%s:CALogPDUInfo, TAG);
 
     OIC_LOG_V(INFO, TAG, "%s type: %s", __func__,
-	      (SEND_TYPE_MULTICAST == data->type)
-	      ? "SEND_TYPE_MULTICAST"
-	      :(SEND_TYPE_UNICAST == data->type)
-	      ? "SEND_TYPE_UNICAST"
+	      (MULTICAST == data->outbound_routing)
+	      ? "MULTICAST"
+	      :(UNICAST == data->outbound_routing)
+	      ? "UNICAST"
 	      : "ERROR-UKNOWN TYPE");
 
     if (NULL != data->remoteEndpoint)
