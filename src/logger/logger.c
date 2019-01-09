@@ -29,6 +29,11 @@
 
 #include "logger.h"
 
+#if INTERFACE
+#include "coap_config.h"
+#include "coap/pdu.h"
+#endif
+
 // Pull in _POSIX_TIMERS feature test macro to check for
 // clock_gettime() support.
 #if EXPORT_INTERFACE
@@ -46,7 +51,13 @@
 #include <errno.h>
 #include <limits.h>             /* PATH_MAX */
 #include <stdlib.h>
+
+#ifdef HAVE_BSD_STRING_H
+#include <bsd/string.h>
+#else
 #include <string.h>
+#endif
+
 #include <time.h>
 
 #ifdef HAVE_SYS_TIME_H
@@ -58,14 +69,6 @@
 #include <windows.h>
 #endif
 /* #endif */
-
-#include <string.h>
-
-#ifdef __ANDROID__
-#include <android/log.h>
-#elif defined(__TIZEN__)
-#include <dlog.h>
-#endif
 
 #if INTERFACE
 #include <stdio.h>
@@ -89,6 +92,7 @@
 /* #endif */
 
 oc_mutex log_mutex = NULL;
+oc_mutex logv_mutex = NULL;
 
 #define TAG  "OCF LOGGER"
 
@@ -470,6 +474,7 @@ void OCLogInit(void) // FILE *fd)
 	/* FIXME: oc_mutex_new uses oicmalloc, which uses OIC_LOG_V,
 	   which uses log_mutex, which crashes if ENABLE_MALLOC_DEBUG */
         log_mutex = oc_mutex_new();
+        logv_mutex = oc_mutex_new();
     }
 }
 
@@ -481,6 +486,7 @@ char *oocf_get_logfile_name() EXPORT
 void OCLogShutdown(void)
 {
     oc_mutex_free(log_mutex);
+    oc_mutex_free(logv_mutex);
 #if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
     if (logCtx && logCtx->destroy)
     {
@@ -499,15 +505,15 @@ void OCLogShutdown(void)
  */
 void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
 {
-    oc_mutex_lock(log_mutex);
+    oc_mutex_lock(logv_mutex);
     if (!format || !tag) {
-	oc_mutex_unlock(log_mutex);
+	oc_mutex_unlock(logv_mutex);
         return;
     }
 
     if (!AdjustAndVerifyLogLevel(&level))
     {
-	oc_mutex_unlock(log_mutex);
+	oc_mutex_unlock(logv_mutex);
         return;
     }
     static char tagbuffer[MAX_LOG_V_BUFFER_SIZE] = {0};
@@ -519,7 +525,7 @@ void OCLogv(int level, const char * tag, int line_nbr, const char * format, ...)
     vsnprintf(buffer, sizeof(buffer) - 1, format, args);
     va_end(args);
     OCLog(level, tagbuffer, buffer);
-    oc_mutex_unlock(log_mutex);
+    oc_mutex_unlock(logv_mutex);
 }
 
 /**
@@ -797,4 +803,112 @@ void log_coap_pdu_hdr(const coap_pdu_t *pdu, CATransportAdapter_t transport)
     }
 
     OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
+}
+
+/* CoAP Options */
+char *log_coap_option_string(struct oocf_coap_options options[], int i) EXPORT
+//uint16_t id) EXPORT
+{
+    /* https://www.iana.org/assignments/core-parameters/core-parameters.xhtml#option-numbers */
+    switch (options[i].optionID) {
+    case COAP_OPTION_IF_MATCH: return "If-Match"; /* 1 */
+        break;
+    case COAP_OPTION_URI_HOST: return "Uri-Host"; /* 3 */
+        break;
+    case COAP_OPTION_ETAG: return "ETag";        /* 4 */
+        break;
+    case COAP_OPTION_IF_NONE_MATCH: return "If-None-Match"; /* 5 */
+        break;
+    case COAP_OPTION_OBSERVE: return "Observe";  /* 6 */
+        break;
+    case COAP_OPTION_URI_PORT: return "Uri-Port"; /* 7 */
+        break;
+    case COAP_OPTION_LOCATION_PATH: return "Location-Path"; /* 8 */
+        break;
+    case COAP_OPTION_URI_PATH: return "Uri-Path"; /* 11 */
+        break;
+    case COAP_OPTION_CONTENT_FORMAT: return "Content-Format"; /* 12 */
+        break;
+    case COAP_OPTION_MAXAGE: return "Max-Age";   /* 14 */
+        break;
+    case COAP_OPTION_URI_QUERY: return "Uri-Query"; /* 15 */
+        break;
+    case COAP_OPTION_ACCEPT: return "Accept";    /* 17 */
+        break;
+    case COAP_OPTION_LOCATION_QUERY: return "Location-Query"; /* 20 */
+        break;
+    case COAP_OPTION_BLOCK2: return "Block2";    /* 23, RFC 7959, 8323 */
+        break;
+    case COAP_OPTION_BLOCK1: return "Block1";    /* 27, RFC 7959, 8323 */
+        break;
+    case COAP_OPTION_SIZE2: return "Size2";      /* 28, RFC 7959 */
+        break;
+    case COAP_OPTION_PROXY_URI: return "Proxy-Uri"; /* 35 */
+        break;
+    case COAP_OPTION_PROXY_SCHEME: return "Proxy-Scheme"; /* 39 */
+        break;
+    case COAP_OPTION_SIZE1: return "Size1";      /* 60 */
+        break;
+    case COAP_OPTION_NORESPONSE: return "No-Response"; /* 258, RFC 7967 */
+        break;
+    case OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION: return "OCF-Accept-Content-Format-Version"; /* 2049 */
+        break;
+    case OCF_OPTION_CONTENT_FORMAT_VERSION: return "OCF-Content-Format-Version"; /* 2053 */
+        break;
+    default: return "DEFAULT";
+        break;
+    }
+}
+
+char *log_coap_option_value_string(struct oocf_coap_options options[], int i) EXPORT
+{
+    /* https://www.iana.org/assignments/core-parameters/core-parameters.xhtml#option-numbers */
+    switch (options[i].optionID) {
+    case COAP_OPTION_IF_MATCH: return "If-Match"; /* 1 */
+        break;
+    case COAP_OPTION_URI_HOST: return "Uri-Host"; /* 3 */
+        break;
+    case COAP_OPTION_ETAG: return "ETag";        /* 4 */
+        break;
+    case COAP_OPTION_IF_NONE_MATCH: return "If-None-Match"; /* 5 */
+        break;
+    case COAP_OPTION_OBSERVE: return "Observe";  /* 6 */
+        break;
+    case COAP_OPTION_URI_PORT: return "Uri-Port"; /* 7 */
+        break;
+    case COAP_OPTION_LOCATION_PATH: return "Location-Path"; /* 8 */
+        break;
+    case COAP_OPTION_URI_PATH: return "Uri-Path"; /* 11 */
+        break;
+    case COAP_OPTION_CONTENT_FORMAT: return "Content-Format"; /* 12 */
+        break;
+    case COAP_OPTION_MAXAGE: return "Max-Age";   /* 14 */
+        break;
+    case COAP_OPTION_URI_QUERY: return "Uri-Query"; /* 15 */
+        break;
+    case COAP_OPTION_ACCEPT: return "Accept";    /* 17 */
+        break;
+    case COAP_OPTION_LOCATION_QUERY: return "Location-Query"; /* 20 */
+        break;
+    case COAP_OPTION_BLOCK2: return "Block2";    /* 23, RFC 7959, 8323 */
+        break;
+    case COAP_OPTION_BLOCK1: return "Block1";    /* 27, RFC 7959, 8323 */
+        break;
+    case COAP_OPTION_SIZE2: return "Size2";      /* 28, RFC 7959 */
+        break;
+    case COAP_OPTION_PROXY_URI: return "Proxy-Uri"; /* 35 */
+        break;
+    case COAP_OPTION_PROXY_SCHEME: return "Proxy-Scheme"; /* 39 */
+        break;
+    case COAP_OPTION_SIZE1: return "Size1";      /* 60 */
+        break;
+    case COAP_OPTION_NORESPONSE: return "No-Response"; /* 258, RFC 7967 */
+        break;
+    case OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION: return "OCF-Accept-Content-Format-Version"; /* 2049 */
+        break;
+    case OCF_OPTION_CONTENT_FORMAT_VERSION: return "OCF-Content-Format-Version"; /* 2053 */
+        break;
+    default: return "DEFAULT";
+        break;
+    }
 }

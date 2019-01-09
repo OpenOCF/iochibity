@@ -8,7 +8,7 @@ load("//config:variables.bzl", "CSTD", "DEFINES", "OS_COPTS")
 
 cc_library(
     name = "logger",
-    copts =  select({"//config:msvc": [],
+    copts = select({"//config:msvc": [],
                      "//config:mingw": ["-DNOGDI", "-DNOSERVICE"], # avoid warnings about redefined macros
                      "//config:darwin": ["-U DEBUG", "-std=c11"],
                      "//conditions:default": ["-std=c11"]})
