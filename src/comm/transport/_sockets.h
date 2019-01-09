@@ -38,7 +38,20 @@
 typedef struct
 {
     CASocketFd_t fd;    /**< socket fd */
+    // FIXME: why not store addr as well?
+    // or better just store the sockaddr struct?
+    // integrating CAEndpoint_t info:
+    //CATransportAdapter_t - derivable from socket FD using getsockopt SO_TYPE
+    //CATransportFlags_t
+    //    IP version: derivable from  sockaddr: ifa->ifa_addr->sa_family
+    //    Multicast:  derivable from ?
+    //    Secure:
+    //    IPv6 scope:
     uint16_t port;      /**< socket port */
+    //    addr: from sockaddr
+
+    //    remoteId:  unused?
+    //    routeData: unused?
 } CASocket_t;
 
 /**
