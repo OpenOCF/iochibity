@@ -219,8 +219,8 @@ OCStackResult DeleteKeepAliveResource(void)
     return result;
 }
 
-OCStackResult HandleKeepAliveRequest(OCServerRequest *request,
-					   const OCResource *resource)
+OCStackResult HandleKeepAliveRequest(struct CARequestInfo *request,
+                                     const OCResource *resource)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
     VERIFY_NON_NULL(resource, FATAL, OC_STACK_INVALID_PARAM);
@@ -228,7 +228,7 @@ OCStackResult HandleKeepAliveRequest(OCServerRequest *request,
     OIC_LOG(DEBUG, TAG, "HandleKeepAliveRequest IN");
 
     OCEntityHandlerResult result = OC_EH_ERROR;
-    if (OC_REST_GET == request->method)
+    if ( CA_GET == request->method)
     {
         switch ((OCObserveAction)request->observationOption)
         {
@@ -243,7 +243,7 @@ OCStackResult HandleKeepAliveRequest(OCServerRequest *request,
                 result = OC_EH_UNAUTHORIZED_REQ;
         }
     }
-    else if (OC_REST_PUT == request->method || OC_REST_POST == request->method)
+    else if (CA_PUT == request->method || CA_POST == request->method)
     {
         OIC_LOG(DEBUG, TAG, "Received PUT/POST request");
         result = HandleKeepAlivePOSTRequest(request, resource);
@@ -270,7 +270,7 @@ OCStackResult HandleKeepAliveRequest(OCServerRequest *request,
  * @param[in]   result      Result to be sent.
  * @return  ::OC_STACK_OK or Appropriate error code.
  */
-LOCAL OCStackResult SendKeepAliveResponse(OCServerRequest *request,
+LOCAL OCStackResult SendKeepAliveResponse(struct CARequestInfo *request,
 					   OCEntityHandlerResult result)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
@@ -279,7 +279,7 @@ LOCAL OCStackResult SendKeepAliveResponse(OCServerRequest *request,
 
     // Convert OCDevAddr to CAEndpoint_t.
     CAEndpoint_t endpoint = {.adapter = CA_DEFAULT_ADAPTER};
-    CopyDevAddrToEndpoint(&request->devAddr, &endpoint);
+    CopyEndpoint(&request->dest_ep, &endpoint);
 
     size_t index = 0;
     KeepAliveEntry_t *entry = GetEntryFromEndpoint(&endpoint, &index);
@@ -289,7 +289,7 @@ LOCAL OCStackResult SendKeepAliveResponse(OCServerRequest *request,
     OCRepPayload *payload = CreateKeepAlivePayload(interval);
 
     // Add resource type/interface name to payload for GET request.
-    if (OC_REST_GET == request->method && OC_EH_OK == result)
+    if (CA_GET == request->method && OC_EH_OK == result)
     {
         AddResourceTypeNameToPayload(payload);
         AddResourceInterfaceNameToPayload(payload);
@@ -311,19 +311,21 @@ LOCAL OCStackResult SendKeepAliveResponse(OCServerRequest *request,
  * @param[in]   resource    Resource handle used for sending the response.
  * @return  ::OC_STACK_OK or Appropriate error code.
  */
-LOCAL OCEntityHandlerResult HandleKeepAliveGETRequest(OCServerRequest *request,
+LOCAL OCEntityHandlerResult HandleKeepAliveGETRequest(struct CARequestInfo *request,
 						       const OCResource *resource)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
     VERIFY_NON_NULL(resource, FATAL, OC_STACK_INVALID_PARAM);
 
-    OIC_LOG_V(DEBUG, TAG, "Find Ping resource [%s]", request->resourceUrl);
+    char *url_path = getPathFromRequestURL(request->info.resourceUri);
 
-    OCResource *resourcePtr = FindResourceByUri(request->resourceUrl);
+    OIC_LOG_V(DEBUG, TAG, "Find Ping resource [%s]", url_path);
+
+    OCResource *resourcePtr = FindResourceByUri(url_path);
     if (!resourcePtr)
     {
         // Resource URL not specified
-        OIC_LOG_V(DEBUG, TAG, "There is no Ping resource [%s]", request->resourceUrl);
+        OIC_LOG_V(DEBUG, TAG, "There is no Ping resource [%s]", url_path);
         return OC_EH_RESOURCE_NOT_FOUND;
     }
 
@@ -336,7 +338,7 @@ LOCAL OCEntityHandlerResult HandleKeepAliveGETRequest(OCServerRequest *request,
  * @param[in]   resource    Resource handle used for sending the response.
  * @return  ::OC_STACK_OK or Appropriate error code.
  */
-LOCAL OCEntityHandlerResult HandleKeepAlivePOSTRequest(OCServerRequest *request,
+LOCAL OCEntityHandlerResult HandleKeepAlivePOSTRequest(struct CARequestInfo *request,
 							const OCResource *resource)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
@@ -344,7 +346,7 @@ LOCAL OCEntityHandlerResult HandleKeepAlivePOSTRequest(OCServerRequest *request,
 
     // Get entry from KeepAlive table.
     CAEndpoint_t endpoint = { .adapter = CA_DEFAULT_ADAPTER };
-    CopyDevAddrToEndpoint(&request->devAddr, &endpoint);
+    CopyEndpoint(&request->dest_ep, &endpoint);
 
     size_t index = 0;
     KeepAliveEntry_t *entry = GetEntryFromEndpoint(&endpoint, &index);
@@ -360,8 +362,8 @@ LOCAL OCEntityHandlerResult HandleKeepAlivePOSTRequest(OCServerRequest *request,
     }
 
     OCPayload *ocPayload = NULL;
-    OCParsePayload(&ocPayload, request->payloadFormat, PAYLOAD_TYPE_REPRESENTATION,
-                   request->payload, request->payloadSize);
+    OCParsePayload(&ocPayload, request->info.payloadFormat, PAYLOAD_TYPE_REPRESENTATION,
+                   request->info.payload, request->info.payloadSize);
     OCRepPayload *repPayload = (OCRepPayload *)ocPayload;
 
     int64_t interval = 0;
