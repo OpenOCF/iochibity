@@ -250,6 +250,17 @@ CAResult_t CAQueueingThreadAddData(CAQueueingThread_t *thread, void *data, uint3
         return CA_STATUS_INVALID_PARAM;
     }
 
+    /* if (NULL != ((CAData_t*)data)->responseInfo) { */
+    /*     /\* OIC_LOG(DEBUG, TAG, "msg is response"); *\/ */
+    /*     size_t payloadLen = 0; */
+    /*     CAGetPayloadInfo(data, &payloadLen); */
+    /*     OIC_LOG_V(DEBUG, TAG, "payloadLen=%" PRIuPTR, payloadLen); */
+    /*     OIC_LOG_V(ERROR, TAG, "payload size: %u", */
+    /*               ((CAResponseInfo_t *)((CAData_t*)data)->responseInfo)->info.payloadSize); */
+    /*     OIC_LOG_V(ERROR, TAG, "payload: %p", */
+    /*               ((CAResponseInfo_t *)((CAData_t*)data)->responseInfo)->info.payload); */
+    /* } */
+
     // create thread data
     u_queue_message_t *message = (u_queue_message_t *) OICMalloc(sizeof(u_queue_message_t));
 
