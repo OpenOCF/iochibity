@@ -91,7 +91,8 @@ static bool AddRTSBaselinePayload(OCRepPayload **linkArray, int size, OCRepPaylo
 }
 
 static OCStackResult SendResponse(const OCRepPayload *payload,
-                        const OCEntityHandlerRequest *ehRequest, OCEntityHandlerResult ehResult)
+                                  const struct oocf_inbound_request /* OCEntityHandlerRequest */ *ehRequest,
+                                  OCEntityHandlerResult ehResult)
 {
     OCEntityHandlerResponse response = {0};
     response.ehResult = ehResult;
@@ -112,7 +113,8 @@ uint8_t GetNumOfResourcesInCollection(const OCResource *collResource)
     return size;
 }
 
-static OCStackResult HandleLinkedListInterface(OCEntityHandlerRequest *ehRequest, char *ifQueryParam)
+static OCStackResult HandleLinkedListInterface(struct oocf_inbound_request /* OCEntityHandlerRequest */ *ehRequest,
+                                               char *ifQueryParam)
 {
     if (!ehRequest)
     {
@@ -201,7 +203,7 @@ exit:
     return ret;
 }
 
-static OCStackResult HandleBatchInterface(OCEntityHandlerRequest *ehRequest)
+static OCStackResult HandleBatchInterface(oocf_inbound_request /* OCEntityHandlerRequest */ *ehRequest)
 {
     if (!ehRequest)
     {
@@ -209,17 +211,19 @@ static OCStackResult HandleBatchInterface(OCEntityHandlerRequest *ehRequest)
     }
 
     OCStackResult stackRet = OC_STACK_OK;
-    char *storeQuery = NULL;
+    char *req_url = ((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri;
+    char *url_path = getPathFromRequestURL(req_url);
+    //char *storeQuery = NULL;
     OCResource *collResource = (OCResource *)ehRequest->resource;
 
-    if (stackRet == OC_STACK_OK)
+    //if (stackRet == OC_STACK_OK)
     {
 
         if (collResource->rsrcChildResourcesHead)
         {
-            storeQuery = ehRequest->query;
-            ehRequest->query = NULL;
-            OIC_LOG_V(DEBUG, TAG, "Query : %s", ehRequest->query);
+            //storeQuery = getQueryFromRequestURL(req_url); //query;
+            ((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri = url_path;
+            //OIC_LOG_V(DEBUG, TAG, "Query : %s", ehRequest->query);
         }
 
         uint8_t numRes = 0;
@@ -233,8 +237,10 @@ static OCStackResult HandleBatchInterface(OCEntityHandlerRequest *ehRequest)
                 // will get the same pointer to ehRequest, the only difference
                 // is ehRequest->resource
                 ehRequest->resource = (OCResourceHandle) tempRsrcResource;
-                OCEntityHandlerResult ehResult = tempRsrcResource->entityHandler(OC_REQUEST_FLAG,
-                                           ehRequest, tempRsrcResource->entityHandlerCallbackParam);
+                OCEntityHandlerResult ehResult
+                    = tempRsrcResource->entityHandler(OC_REQUEST_FLAG,
+                                                      ehRequest,
+                                                      tempRsrcResource->entityHandlerCallbackParam);
 
                 // The default collection handler is returning as OK
                 if (stackRet != OC_STACK_SLOW_RESOURCE)
@@ -246,7 +252,7 @@ static OCStackResult HandleBatchInterface(OCEntityHandlerRequest *ehRequest)
                 if (ehResult == OC_EH_SLOW)
                 {
                     OIC_LOG(INFO, TAG, "This is a slow resource");
-                    ((OCServerRequest *)ehRequest->requestHandle)->slowFlag = 1;
+                    ((struct CARequestInfo *)ehRequest->requestHandle)->slowFlag = 1;
                     stackRet = EntityHandlerCodeToOCStackCode(ehResult);
                 }
             }
@@ -255,28 +261,30 @@ static OCStackResult HandleBatchInterface(OCEntityHandlerRequest *ehRequest)
                 break;
             }
         }
-        ehRequest->resource = (OCResourceHandle) collResource;
+        ehRequest->resource = (OCResourceHandle) collResource; /* FIXME: why? */
     }
-    ehRequest->query = storeQuery;
+    ((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri = req_url;
     return stackRet;
 }
 
-OCStackResult DefaultCollectionEntityHandler(OCEntityHandlerFlag flag, OCEntityHandlerRequest *ehRequest)
+OCStackResult DefaultCollectionEntityHandler(OCEntityHandlerFlag flag,
+                                             oocf_inbound_request /* OCEntityHandlerRequest */ *ehRequest)
 {
-    if (!ehRequest || !ehRequest->query)
+    char *query = getQueryFromRequestURL( ((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    if (!ehRequest || !query)
     {
         return OC_STACK_INVALID_PARAM;
     }
     // Delete is not supported for any interface query method.
-    if (ehRequest->method == OC_REST_DELETE || flag != OC_REQUEST_FLAG)
+    if ( ((struct CARequestInfo*)ehRequest->requestHandle)->method == CA_DELETE || flag != OC_REQUEST_FLAG)
     {
         return OC_STACK_ERROR;
     }
-    OIC_LOG_V(INFO, TAG, "DefaultCollectionEntityHandler with query %s", ehRequest->query);
+    OIC_LOG_V(INFO, TAG, "DefaultCollectionEntityHandler with query %s", query);
 
     char *ifQueryParam = NULL;
     char *rtQueryParam = NULL;
-    OCStackResult result = ExtractFiltersFromQuery(ehRequest->query, &ifQueryParam, &rtQueryParam);
+    OCStackResult result = ExtractFiltersFromQuery(query, &ifQueryParam, &rtQueryParam);
     if (result != OC_STACK_OK)
     {
         result = OC_STACK_NO_RESOURCE;
@@ -291,7 +299,8 @@ OCStackResult DefaultCollectionEntityHandler(OCEntityHandlerFlag flag, OCEntityH
 
     if (0 == strcmp(ifQueryParam, OC_RSRVD_INTERFACE_LL) || 0 == strcmp (ifQueryParam, OC_RSRVD_INTERFACE_DEFAULT))
     {
-        if (ehRequest->method == OC_REST_PUT || ehRequest->method == OC_REST_POST)
+        if (((struct CARequestInfo*)ehRequest->requestHandle)->method == CA_PUT
+            || ((struct CARequestInfo*)ehRequest->requestHandle)->method == CA_POST)
         {
             result =  OC_STACK_ERROR;
         }
@@ -302,7 +311,7 @@ OCStackResult DefaultCollectionEntityHandler(OCEntityHandlerFlag flag, OCEntityH
     }
     else if (0 == strcmp(ifQueryParam, OC_RSRVD_INTERFACE_BATCH))
     {
-        OCServerRequest *request = (OCServerRequest *)ehRequest->requestHandle;
+        struct CARequestInfo *request = (struct CARequestInfo *)ehRequest->requestHandle;
         if (request)
         {
             request->numResponses = GetNumOfResourcesInCollection((OCResource *)ehRequest->resource);
@@ -310,12 +319,13 @@ OCStackResult DefaultCollectionEntityHandler(OCEntityHandlerFlag flag, OCEntityH
             result = HandleBatchInterface(ehRequest);
         }
     }
-    else if (0 == strcmp(ifQueryParam, OC_RSRVD_INTERFACE_GROUP))
-    {
-        OIC_LOG_V(INFO, TAG, "IF_COLLECTION %d with request ::\n", ehRequest->method);
-        OIC_LOG_PAYLOAD(INFO, ehRequest->payload);
-        result = BuildCollectionGroupActionCBORResponse(ehRequest->method, (OCResource *) ehRequest->resource, ehRequest);
-    }
+    // group is obsolete
+    /* else if (0 == strcmp(ifQueryParam, OC_RSRVD_INTERFACE_GROUP)) */
+    /* { */
+    /*     OIC_LOG_V(INFO, TAG, "IF_COLLECTION %d with request ::\n", ehRequest->method); */
+    /*     OIC_LOG_PAYLOAD(INFO, ehRequest->payload); */
+    /*     result = BuildCollectionGroupActionCBORResponse(ehRequest->method, (OCResource *) ehRequest->resource, ehRequest); */
+    /* } */
 exit:
     if (result != OC_STACK_OK)
     {
@@ -326,7 +336,7 @@ exit:
     return result;
 }
 
-static bool addPolicyPayload(OCResourceHandle* resourceHandle, OCDevAddr* devAddr,
+static bool addPolicyPayload(OCResourceHandle* resourceHandle, CAEndpoint_t /* OCDevAddr */ *devAddr,
                              bool isOCFContentFormat, OCRepPayload** outPolicy)
 {
     if (resourceHandle == NULL || devAddr == NULL || outPolicy == NULL)
@@ -348,13 +358,13 @@ static bool addPolicyPayload(OCResourceHandle* resourceHandle, OCDevAddr* devAdd
                 uint16_t securePort = 0;
                 if (devAddr)
                 {
-                    if (devAddr->adapter == OC_ADAPTER_IP)
+                    if (devAddr->adapter == CA_ADAPTER_IP)
                     {
-                        if (devAddr->flags & OC_IP_USE_V6)
+                        if (devAddr->flags & CA_IPV6)
                         {
                             securePort = udp_u6s.port;
                         }
-                        else if (devAddr->flags & OC_IP_USE_V4)
+                        else if (devAddr->flags & CA_IPV4)
                         {
                             securePort = udp_u4s.port;
                         }
@@ -441,7 +451,10 @@ exit:
 }
 
 OCRepPayload** BuildCollectionLinksPayloadArray(const char* resourceUri,
-    bool isOCFContentFormat, OCDevAddr* devAddr, bool insertSelfLink, size_t* createdArraySize)
+                                                bool isOCFContentFormat,
+                                                CAEndpoint_t /* OCDevAddr */ *devAddr,
+                                                bool insertSelfLink,
+                                                size_t* createdArraySize)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     bool result = false;
@@ -500,8 +513,8 @@ OCRepPayload** BuildCollectionLinksPayloadArray(const char* resourceUri,
         OCRepPayload* outPolicy = NULL;
         //Policy Map will have tls and tcp properties for legacy support,
         // in case contents format is cbor instead of vnd.ocf/cbor
-        if (!addPolicyPayload((OCResourceHandle*)iterResource, devAddr, isOCFContentFormat,
-                               &outPolicy) ||
+        if (!addPolicyPayload((OCResourceHandle*)iterResource, devAddr, isOCFContentFormat, &outPolicy)
+            ||
             !OCRepPayloadSetPropObjectAsOwner(arrayPayload[i], OC_RSRVD_POLICY, outPolicy))
         {
             OCRepPayloadDestroy(outPolicy);
@@ -516,16 +529,17 @@ OCRepPayload** BuildCollectionLinksPayloadArray(const char* resourceUri,
         //EP is added in case contents format is vnd.ocf/cbor
         if (isOCFContentFormat)
         {
-            CAEndpoint_t *info = NULL;
-            size_t networkSize = 0;
+            //CAEndpoint_t *local_eps = NULL;
+            /* size_t local_ep_count = 0; */
             size_t epSize = 0;
-            CAGetNetworkInformation(&info, &networkSize);
-            OIC_LOG_V(DEBUG, TAG, "Network Information size = %d", (int) networkSize);
+            /* CAGetNetworkInformation(&local_eps, &local_ep_count); */
+            /* OIC_LOG_V(DEBUG, TAG, "Network Information size = %d", (int) local_ep_count); */
 
             OCEndpointPayload *listHead = NULL;
-            CreateEndpointPayloadList(iterResource,
-                devAddr, info, networkSize, &listHead, &epSize, NULL);
-            OICFree(info);
+            CreateEndpointPayloadList(iterResource, devAddr,
+                                      //local_eps, local_ep_count,
+                                      &listHead, &epSize, NULL);
+            /* OICFree(local_eps); */
             OIC_LOG_V(DEBUG, TAG, "Result of CreateEndpointPayloadList() = %s",
                                   listHead ? "true":"false");
 
