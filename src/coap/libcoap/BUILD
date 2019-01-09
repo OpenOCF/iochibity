@@ -213,6 +213,7 @@ cc_library(
                 "//conditions:default": []})
     + select({"@//config:mingw": ["-DHAVE_WS2TCPIP_H"],
               "//conditions:default": ["-DWITH_POSIX"]}),
+    hdrs = glob(["include/coap/*.h"]) + [":coap_config.h", ":coap.h"],
     srcs = glob(["src/**/*.c"],
                 exclude=["src/**/coap_io_lwip.c",
                          "src/**/coap_io.c"])
