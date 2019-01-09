@@ -70,7 +70,7 @@ CAEndpoint_t *CACloneEndpoint(const CAEndpoint_t *rep)
     }
 
     // allocate the remote end point structure.
-    CAEndpoint_t *clone = (CAEndpoint_t *)OICMalloc(sizeof (CAEndpoint_t));
+    CAEndpoint_t *clone = OICMalloc(sizeof(CAEndpoint_t));
     if (NULL == clone)
     {
         OIC_LOG(ERROR, TAG, "CACloneRemoteEndpoint Out of memory");
@@ -288,7 +288,7 @@ CAResult_t CACloneInfo(const CAInfo_t *info, CAInfo_t *clone)
         // allocate token field
         uint8_t len = info->tokenLength;
 
-        char *temp = (char *) OICMalloc(len * sizeof(char));
+        uint8_t *temp = OICMalloc(len * sizeof(uint8_t));
         if (!temp)
         {
             OIC_LOG(ERROR, TAG, "CACloneInfo Out of memory");
