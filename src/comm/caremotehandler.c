@@ -321,16 +321,16 @@ CAResult_t CACloneInfo(const CAInfo_t *info, CAInfo_t *clone)
     if ((info->payload) && (0 < info->payloadSize))
     {
         // allocate payload field
-        uint8_t *temp = OICMalloc(info->payloadSize);
-        if (!temp)
+        struct OCPayload /* uint8_t */ *_payload = OICMalloc(info->payloadSize);
+        if (!_payload)
         {
             OIC_LOG(ERROR, TAG, "CACloneInfo Out of memory");
             goto exit;
         }
-        memcpy(temp, info->payload, info->payloadSize);
+        memcpy(_payload, info->payload, info->payloadSize);
 
         // save the payload
-        clone->payload = temp;
+        clone->payload = _payload;
         clone->payloadSize = info->payloadSize;
     }
     clone->payloadFormat = info->payloadFormat;
