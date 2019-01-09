@@ -65,7 +65,7 @@ typedef enum
     OC_OBSERVE_DEREGISTER = 1,
 
     /** Others. */
-    OC_OBSERVE_NO_OPTION = 2,
+    OC_OBSERVE_NO_OPTION = 2,   /* wtf? */
 
 } OCObserveAction;
 #endif	/* INTERFACE */
@@ -138,7 +138,7 @@ typedef struct ResourceObserver
     uint8_t tokenLength;
 
     /** Remote Endpoint. */
-    OCDevAddr devAddr;
+    CAEndpoint_t devAddr; // OCDevAddr devAddr;
 
     /** Quality of service of the request.*/
     OCQualityOfService qos;
@@ -315,6 +315,11 @@ OCStackResult SendObserveNotification(ResourceObserver *observer,
     }
 
     return result;
+exit:
+    OICFree(request->info.token);
+    OICFree(request);
+    return OC_STACK_NO_MEMORY;
+
 }
 
 /* #ifdef WITH_PRESENCE
@@ -339,7 +344,7 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
     OCStackResult result = OC_STACK_ERROR;
     ResourceObserver * resourceObserver = resPtr->observersHead;
 /* #ifdef WITH_PRESENCE
- *     OCServerRequest * request = NULL;
+ *     struct CARequestInfo * request = NULL;
  * #endif */
     bool observeErrorFlag = false;
 
@@ -412,10 +417,11 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
 }
 
 OCStackResult SendListObserverNotification (OCResource * resource,
-        OCObservationId  *obsIdList, uint8_t numberOfIds,
-        const OCRepPayload *payload,
-        uint32_t maxAge,
-        OCQualityOfService qos)
+                                            OCObservationId  *obsIdList,
+                                            uint8_t numberOfIds,
+                                            const OCRepPayload *payload,
+                                            uint32_t maxAge,
+                                            OCQualityOfService qos)
 {
     (void)maxAge;
     if (!resource || !obsIdList || !payload)
@@ -493,8 +499,8 @@ OCStackResult SendListObserverNotification (OCResource * resource,
                     ehResponse.payload = (OCPayload*)OCRepPayloadCreate();
                     if (!ehResponse.payload)
                     {
-                        DeleteServerRequest(request);
-                        continue;
+                        //DeleteServerRequest(request);
+                        _oocf_request_cache_delete(request);                        continue;
                     }
                     memcpy(ehResponse.payload, payload, sizeof(*payload));
                     ehResponse.persistentBufferFlag = 0;
@@ -519,7 +525,8 @@ OCStackResult SendListObserverNotification (OCResource * resource,
                 }
                 else
                 {
-                    DeleteServerRequest(request);
+                    //DeleteServerRequest(request);
+                    _oocf_request_cache_delete(request);
                 }
             }
             // Since we are in a loop, set an error flag to indicate
@@ -572,9 +579,11 @@ OCStackResult AddObserver (const char         *resUri,
                            uint8_t            *token,
                            uint8_t             tokenLength,
                            OCResource         *resHandle,
-                           OCPayloadFormat    acceptFormat,
-                           uint16_t           acceptVersion,
-                           const OCDevAddr    *devAddr)
+                           OCQualityOfService  qos,
+                           OCPayloadFormat     acceptFormat,
+                           uint16_t            acceptVersion,
+                           const CAEndpoint_t *devAddr)
+                           /* const OCDevAddr    *devAddr) */
 {
     // Check if resource exists and is observable.
     if (!resHandle)
@@ -786,7 +795,7 @@ CreateObserveHeaderOption (CAHeaderOption_t **caHdrOpt,
     {
         return OC_STACK_NO_MEMORY;
     }
-    tmpHdrOpt[0].protocolID = CA_COAP_ID;
+    //tmpHdrOpt[0].protocolID = CA_COAP_ID;
     tmpHdrOpt[0].optionID = COAP_OPTION_OBSERVE;
     tmpHdrOpt[0].optionLength = sizeof(uint8_t);
     tmpHdrOpt[0].optionData[0] = observeFlag;
@@ -825,8 +834,9 @@ GetObserveHeaderOption (uint32_t * observationOption,
 
     for(uint8_t i = 0; i < *numOptions; i++)
     {
-        if (options[i].protocolID == CA_COAP_ID &&
-                options[i].optionID == COAP_OPTION_OBSERVE)
+        if (options[i].optionID == COAP_OPTION_OBSERVE)
+            /* && */
+            /* options[i].protocolID == CA_COAP_ID) */
         {
             *observationOption = options[i].optionData[0];
             for(uint8_t c = i; c < *numOptions-1; c++)
