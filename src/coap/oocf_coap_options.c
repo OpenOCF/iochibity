@@ -34,8 +34,8 @@ typedef enum
 #if EXPORT_INTERFACE
  /* application/vnd.ocf+cbor */
 #define COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR 10000
-#define OCF_ACCEPT_CONTENT_FORMAT_VERSION       2049  /* CoAP option number */
-#define OCF_CONTENT_FORMAT_VERSION              2053  /* CoAP Option number */
+#define OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION       2049  /* CoAP option number */
+#define OCF_OPTION_CONTENT_FORMAT_VERSION              2053  /* CoAP Option number */
 
 /** Integer value of spec version (OCF v1.0 0 = b0000:1000:0000:0000 = 2048).*/
 /* These are values for the OCF version CoAP Options above */
