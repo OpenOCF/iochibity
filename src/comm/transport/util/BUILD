@@ -2,7 +2,7 @@ cc_library(
     name = "util",
     alwayslink = True,
     copts = ["-D_GNU_SOURCE",
-     "-DWITH_POSIX"
+             "-Iexternal/libcoap/include" # FIXME: for logging only
     ] + select({"//config:mingw": [],
                 "//config:msvc": [],
                 "//config:msys": [],
