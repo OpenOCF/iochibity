@@ -75,21 +75,22 @@ struct oocf_coap_options
     uint16_t optionLength;                                  /**< Option Length **/
     uint8_t /* char */ optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];      /**< Optional data values**/
 };
-typedef oocf_coap_options CAHeaderOption_t;
+typedef struct oocf_coap_options CAHeaderOption_t;
+typedef struct oocf_coap_options OCHeaderOption;
 /**
  * This structure will be used to define the vendor specific header options to be included
  * in communication packets.
  */
-typedef struct OCHeaderOption
-{
-    // protocolID is evidently speculative; CoAP options do not
-    // include a protocol id.  Maybe this is in case some protocol
-    // other than CoAP should be added later?
-    /* OCTransportProtocolID protocolID; */
-    uint16_t optionID;
-    uint16_t optionLength;
-    uint8_t optionData[MAX_HEADER_OPTION_DATA_LENGTH];
-} OCHeaderOption;
+/* typedef struct OCHeaderOption */
+/* { */
+/*     // protocolID is evidently speculative; CoAP options do not */
+/*     // include a protocol id.  Maybe this is in case some protocol */
+/*     // other than CoAP should be added later? */
+/*     /\* OCTransportProtocolID protocolID; *\/ */
+/*     uint16_t optionID; */
+/*     uint16_t optionLength; */
+/*     uint8_t optionData[MAX_HEADER_OPTION_DATA_LENGTH]; */
+/* } OCHeaderOption; */
 #endif
 
 /* OCStackResult OC_CALL OCGetHeaderOption(OCHeaderOption* ocHdrOpt, size_t numOptio
