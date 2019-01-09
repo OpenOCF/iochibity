@@ -69,11 +69,6 @@ typedef struct OCCallbackData
     /** A pointer to a function to delete the context when this callback is removed.*/
     OCClientContextDeleter cd;
 
-#ifdef __cplusplus
-    OCCallbackData() = default;
-    OCCallbackData(void* ctx, OCClientResponseHandler callback, OCClientContextDeleter deleter)
-        :context(ctx), cb(callback), cd(deleter){}
-#endif // __cplusplus
 } OCCallbackData;
 #endif	/* INTERFACE */
 
