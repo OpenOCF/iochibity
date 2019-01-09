@@ -1868,12 +1868,12 @@ CAResult_t CAAddBlockSizeOption(coap_pdu_t *pdu, uint16_t sizeType, size_t dataL
         return CA_STATUS_FAILED;
     }
 
-    unsigned char value[BLOCKWISE_OPTION_BUFFER] = { 0 };
+    uint8_t value[BLOCKWISE_OPTION_BUFFER] = { 0 };
     unsigned int optionLength = coap_encode_var_bytes(value,
                                                       (unsigned int)dataLength);
 
     int ret = coap_insert(options,
-                          CACreateNewOptionNode(sizeType, optionLength, (char *) value),
+                          CACreateNewOptionNode(sizeType, optionLength, value),
                           CAOrderOpts);
     if (ret <= 0)
     {
@@ -1892,14 +1892,14 @@ static CAResult_t CAAddBlockOptionImpl(coap_block_t *block, uint8_t blockType,
     VERIFY_NON_NULL_MSG(block, TAG, "block");
     VERIFY_NON_NULL_MSG(options, TAG, "options");
 
-    unsigned char buf[BLOCKWISE_OPTION_BUFFER] = { 0 };
+    uint8_t buf[BLOCKWISE_OPTION_BUFFER] = { 0 };
     unsigned int optionLength = coap_encode_var_bytes(buf,
                                                       ((block->num << BLOCK_NUMBER_IDX)
                                                        | (block->m << BLOCK_M_BIT_IDX)
                                                        | block->szx));
 
     int ret = coap_insert(options,
-                          CACreateNewOptionNode(blockType, optionLength, (char *) buf),
+                          CACreateNewOptionNode(blockType, optionLength, buf),
                           CAOrderOpts);
     if (ret <= 0)
     {
