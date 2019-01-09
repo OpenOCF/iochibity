@@ -395,6 +395,10 @@ CAResult_t CASendBlockWiseData(const CAData_t *sendData)
     {
         // #4. send block message
         OIC_LOG(DEBUG, TAG, "send first block msg");
+        // debugging:
+        size_t payloadLen = 0;
+        CAGetPayloadInfo(sendData, &payloadLen);
+        OIC_LOG_V(DEBUG, TAG, "payloadLen=%" PRIuPTR, payloadLen);
         res = CAAddSendThreadQueue(currData->sentData,
                                    (const CABlockDataID_t *) &currData->blockDataId);
         if (CA_STATUS_OK != res)
@@ -413,8 +417,15 @@ CAResult_t CAAddSendThreadQueue(const CAData_t *sendData, const CABlockDataID_t 
     VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
+    size_t payloadLen = 0;
+    CAGetPayloadInfo(sendData, &payloadLen);
+    OIC_LOG_V(DEBUG, TAG, "payloadLen=%" PRIuPTR, payloadLen);
 
     CAData_t *cloneData = CACloneCAData(sendData);
+
+    CAGetPayloadInfo(cloneData, &payloadLen);
+    OIC_LOG_V(DEBUG, TAG, "post clone payloadLen=%" PRIuPTR, payloadLen);
+
     if (!cloneData)
     {
         OIC_LOG(ERROR, TAG, "clone has failed");
@@ -425,7 +436,7 @@ CAResult_t CAAddSendThreadQueue(const CAData_t *sendData, const CABlockDataID_t 
     if (g_context.sendThreadFunc)
     {
         oc_mutex_lock(g_context.blockDataSenderMutex);
-        g_context.sendThreadFunc(cloneData);
+        g_context.sendThreadFunc(cloneData); /* CAAddDataToSendThread */
         oc_mutex_unlock(g_context.blockDataSenderMutex);
     }
     else
