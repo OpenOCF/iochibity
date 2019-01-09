@@ -118,11 +118,12 @@ typedef enum
  * for the its type.
  */
 /* src: octypes.h */
-typedef struct OCPayload
+struct OCPayload
 {
     /** The type of message that was received */
     OCPayloadType type;
-} OCPayload;
+};
+typedef struct OCPayload;
 
 /* src: octypes.h */
 typedef enum

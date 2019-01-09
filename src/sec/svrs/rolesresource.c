@@ -850,10 +850,10 @@ static OCEntityHandlerResult HandlePostRequest(struct oocf_inbound_request /*OCE
 
     struct RoleCertChain *chains = NULL;
     uint8_t *payload = ((OCSecurityPayload*)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     // ehRequest->payload)->securityData);
     size_t size = ((OCSecurityPayload*)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     // ehRequest->payload)->payloadSize);
 
     OCStackResult res = GetPeerPublicKey(&(((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep),

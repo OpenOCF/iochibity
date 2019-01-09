@@ -636,7 +636,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
     }
 
     responseInfo.isMulticast = false;
-    responseInfo.info.payload = NULL;
+    responseInfo.info.payload_cbor = NULL;
     responseInfo.info.payloadSize = 0;
     responseInfo.info.payloadFormat = CA_FORMAT_UNDEFINED;
 
@@ -662,7 +662,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
             case OC_FORMAT_VND_OCF_CBOR:
                 /* encode as cbor: */
                 if((result = OCConvertPayload(ehResponse->payload, serverRequest->info.acceptFormat,
-                                &responseInfo.info.payload, &responseInfo.info.payloadSize))
+                                &responseInfo.info.payload_cbor, &responseInfo.info.payloadSize))
                         != OC_STACK_OK)
                 {
                     OIC_LOG(ERROR, TAG, "Error converting payload");
@@ -756,7 +756,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
     result = OCSendResponse(&responseEndpoint, &responseInfo);
 #endif
 
-    OICFree(responseInfo.info.payload);
+    OICFree(responseInfo.info.payload_cbor);
     OICFree(responseInfo.info.options);
     //Delete the request
     _oocf_request_cache_delete(serverRequest);

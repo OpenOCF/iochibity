@@ -605,7 +605,7 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
         CAGetPayloadInfo(data, &payloadLen);
         OIC_LOG_V(DEBUG, TAG, "payloadLen=%" PRIuPTR, payloadLen);
         OIC_LOG_V(ERROR, TAG, "payload size: %u", ((CAResponseInfo_t *)data->responseInfo)->info.payloadSize);
-        OIC_LOG_V(ERROR, TAG, "payload: %p", ((CAResponseInfo_t *)data->responseInfo)->info.payload);
+        OIC_LOG_V(ERROR, TAG, "payload: %p", ((CAResponseInfo_t *)data->responseInfo)->info.payload_cbor);
     }
 
     CAResult_t res = CA_STATUS_FAILED;
@@ -1139,7 +1139,7 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
 	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE isMcast? %d", td->responseInfo->isMulticast);
 	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE result: %u", td->responseInfo->result);
 	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload len: %u", td->responseInfo->info.payloadSize);
-	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload ptr: %p", td->responseInfo->info.payload);
+	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload ptr: %p", td->responseInfo->info.payload_cbor);
         //g_responseHandler(td->remoteEndpoint, td->responseInfo);
         HandleCAResponses(td->remoteEndpoint, td->responseInfo);
     }
@@ -1967,7 +1967,7 @@ static CAResult_t CAAddBlockOption1(coap_pdu_t **pdu, const CAInfo_t *info, size
         // add the payload data as the block size.
         assert(block1->szx <= UINT8_MAX);
         if (!coap_add_block(*pdu, (unsigned int)dataLength,
-                            (const unsigned char *) info->payload, block1->num,
+                            (const unsigned char *) info->payload_cbor, block1->num,
                             (unsigned char)block1->szx))
         {
             OIC_LOG(ERROR, TAG, "Data length is smaller than the start index");
@@ -1996,7 +1996,7 @@ static CAResult_t CAAddBlockOption1(coap_pdu_t **pdu, const CAInfo_t *info, size
 
         // add the payload data as the block size.
         if (!coap_add_data(*pdu, (unsigned int)dataLength,
-                           (const unsigned char*)info->payload))
+                           (const unsigned char*)info->payload_cbor))
         {
             OIC_LOG(ERROR, TAG, "failed to add payload");
             return CA_STATUS_FAILED;
@@ -2101,7 +2101,7 @@ static CAResult_t CAAddBlockOption2(coap_pdu_t **pdu, const CAInfo_t *info, size
 
         assert(block2->szx <= UINT8_MAX);
         if (!coap_add_block(*pdu, (unsigned int)dataLength,
-                            (const unsigned char *) info->payload,
+                            (const unsigned char *) info->payload_cbor,
                             block2->num, (unsigned char)block2->szx))
         {
             OIC_LOG(ERROR, TAG, "Data length is smaller than the start index");
@@ -2158,7 +2158,7 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
 
     CAResult_t res = CA_STATUS_OK;
     unsigned int dataLength = 0;
-    if (info->payload)
+    if (info->payload_cbor)
     {
         dataLength = (unsigned int)info->payloadSize;
         OIC_LOG_V(DEBUG, TAG, "dataLength - %u", dataLength);
@@ -2228,7 +2228,7 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
         OIC_LOG_V(DEBUG, TAG, "[%d] pdu length after option", (*pdu)->length);
 
         // if response data is so large. it have to send as block transfer
-        if (!coap_add_data(*pdu, dataLength, (const unsigned char*)info->payload))
+        if (!coap_add_data(*pdu, dataLength, (const unsigned char*)info->payload_cbor))
         {
             OIC_LOG(INFO, TAG, "it has to use block");
             res = CA_STATUS_FAILED;

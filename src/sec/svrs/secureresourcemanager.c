@@ -442,7 +442,7 @@ void SRMRequestHandler(const CAEndpoint_t *endPoint, struct CARequestInfo *reque
     // Initialize responseInfo.
     memcpy(&(ctx->responseInfo.info), &(requestInfo->info),
         sizeof(ctx->responseInfo.info));
-    ctx->responseInfo.info.payload = NULL;
+    ctx->responseInfo.info.payload_cbor = NULL;
     ctx->responseInfo.result = CA_INTERNAL_SERVER_ERROR;
     ctx->responseInfo.info.dataType = CA_RESPONSE_DATA;
 

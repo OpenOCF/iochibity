@@ -227,8 +227,8 @@ void CADestroyInfoInternal(CAInfo_t *info)
     info->numOptions = 0;
 
     // free payload field
-    OICFree((char *) info->payload);
-    info->payload = NULL;
+    OICFree((char *) info->payload_cbor);
+    info->payload_cbor = NULL;
     info->payloadSize = 0;
 
     // free uri
@@ -318,7 +318,7 @@ CAResult_t CACloneInfo(const CAInfo_t *info, CAInfo_t *clone)
 
     memcpy(&(clone->identity), &(info->identity), sizeof(info->identity));
 
-    if ((info->payload) && (0 < info->payloadSize))
+    if ((info->payload_cbor) && (0 < info->payloadSize))
     {
         // allocate payload field
         struct OCPayload /* uint8_t */ *_payload = OICMalloc(info->payloadSize);
@@ -327,10 +327,10 @@ CAResult_t CACloneInfo(const CAInfo_t *info, CAInfo_t *clone)
             OIC_LOG(ERROR, TAG, "CACloneInfo Out of memory");
             goto exit;
         }
-        memcpy(_payload, info->payload, info->payloadSize);
+        memcpy(_payload, info->payload_cbor, info->payloadSize);
 
         // save the payload
-        clone->payload = _payload;
+        clone->payload_cbor = _payload;
         clone->payloadSize = info->payloadSize;
     }
     clone->payloadFormat = info->payloadFormat;

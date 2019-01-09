@@ -400,10 +400,10 @@ static OCEntityHandlerResult HandleAmaclPostRequest (const struct oocf_inbound_r
 
     // Convert CBOR Amacl data into binary. This will also validate the Amacl data received.
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     /* uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData; */
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     /* size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize; */
 
     if (payload)

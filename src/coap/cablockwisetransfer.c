@@ -1951,14 +1951,14 @@ CAResult_t CAUpdatePayloadToCAData(CAData_t *data,
                 return CA_STATUS_FAILED;
             }
             // allocate payload field
-            newPayload = OICRealloc(data->requestInfo->info.payload, payloadLen);
+            newPayload = OICRealloc(data->requestInfo->info.payload_cbor, payloadLen);
             if (!newPayload)
             {
                 OIC_LOG(ERROR, TAG, "out of memory");
                 return CA_STATUS_FAILED;
             }
-            data->requestInfo->info.payload = newPayload;
-            memcpy(data->requestInfo->info.payload, payload, payloadLen);
+            data->requestInfo->info.payload_cbor = newPayload;
+            memcpy(data->requestInfo->info.payload_cbor, payload, payloadLen);
             data->requestInfo->info.payloadSize = payloadLen;
             break;
 
@@ -1969,14 +1969,14 @@ CAResult_t CAUpdatePayloadToCAData(CAData_t *data,
                 return CA_STATUS_FAILED;
             }
             // allocate payload field
-            newPayload = OICRealloc(data->responseInfo->info.payload, payloadLen);
+            newPayload = OICRealloc(data->responseInfo->info.payload_cbor, payloadLen);
             if (!newPayload)
             {
                 OIC_LOG(ERROR, TAG, "out of memory");
                 return CA_STATUS_FAILED;
             }
-            data->responseInfo->info.payload = newPayload;
-            memcpy(data->responseInfo->info.payload, payload, payloadLen);
+            data->responseInfo->info.payload_cbor = newPayload;
+            memcpy(data->responseInfo->info.payload_cbor, payload, payloadLen);
             data->responseInfo->info.payloadSize = payloadLen;
             break;
 
@@ -1998,18 +1998,18 @@ struct OCPayload /* CAPayload_t */ *CAGetPayloadInfo(const CAData_t *data, size_
 
     if (data->requestInfo)
     {
-        if (data->requestInfo->info.payload)
+        if (data->requestInfo->info.payload_cbor)
         {
             *payloadLen = data->requestInfo->info.payloadSize;
-            return data->requestInfo->info.payload;
+            return data->requestInfo->info.payload_cbor;
         }
     }
     else if (data->responseInfo)
     {
-        if (data->responseInfo->info.payload)
+        if (data->responseInfo->info.payload_cbor)
         {
             *payloadLen = data->responseInfo->info.payloadSize;
-            return data->responseInfo->info.payload;
+            return data->responseInfo->info.payload_cbor;
         }
     }
 

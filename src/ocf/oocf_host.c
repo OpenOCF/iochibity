@@ -57,10 +57,10 @@ typedef struct CARequestInfo *OCRequestHandle;
 /**
  * Response information. Used for both inbound and outbound response messages.
  */
-typedef struct                  /* wrapped CoAP PCU */
+typedef struct oocf_inbound_response_cbor /* wrapped CBOR-encoded CoAP PDU */
 {
     CAResponseResult_t result;  /**< Result for response by resource model */
-    CAInfo_t info;              /**< CoAP msg, unpacked */
+    CAInfo_t info;              /**< CoAP msg, cbor-encoded */
     bool isMulticast;
 } CAResponseInfo_t;
 #endif

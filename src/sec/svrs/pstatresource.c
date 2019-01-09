@@ -880,15 +880,15 @@ static OCEntityHandlerResult HandlePstatPostRequest(struct oocf_inbound_request 
 
     if (//ehRequest->payload
         ((OCSecurityPayload *)
-         ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)
+         ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)
         && NULL != gPstat)
 
     {
         uint8_t *payload = ((OCSecurityPayload *)
-                            ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+                            ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
         /* uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData; */
         size_t size = ((OCSecurityPayload *)
-                       ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+                       ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
         /* size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize; */
         VERIFY_NOT_NULL(TAG, payload, ERROR);
 

@@ -1663,11 +1663,11 @@ static OCEntityHandlerResult HandleDoxmPostRequest(struct oocf_inbound_request /
     // Convert CBOR Doxm data into binary. This will also validate
     // the Doxm data received.
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     /* uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData; */
     VERIFY_NOT_NULL(TAG, payload, ERROR);
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     /* size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize; */
 
     OCStackResult res = CBORPayloadToDoxmBin(payload, size, &newDoxm, &roParsed,

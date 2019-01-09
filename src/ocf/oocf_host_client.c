@@ -10,7 +10,7 @@
 #if EXPORT_INTERFACE
 /* FIXME: add the CoAP c.dd response code from the CoAP header.
    Result code contains additional Iotivity-specific info */
-struct oocf_inbound_response
+struct oocf_inbound_response    /* decoded from cbor? */
 {
     /** Address of remote server.*/
     OCDevAddr devAddr;
@@ -35,7 +35,7 @@ struct oocf_inbound_response
     const char * resourceUri;
 
     /** the payload for the response PDU.*/
-    OCPayload *payload;
+    struct OCPayload *payload;  /* decoded! */
 
     /** Number of the received vendor specific header options.*/
     uint8_t numRcvdVendorSpecificHeaderOptions;
@@ -45,7 +45,7 @@ struct oocf_inbound_response
 
     uint8_t coap_response;      /* CoAP defined; sections 3 and 12.1.2 of RFC 7252 */
 
-};
+};                              /* OCClientResponse */
 #endif	/* EXPORT_INTERFACE */
 
 #if INTERFACE
@@ -132,7 +132,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
                                   OCMethod method,
                                   const char *requestUri,
                                   const OCDevAddr *dest_ep,
-                                  OCPayload* payload,
+                                  struct OCPayload *payload,
                                   OCConnectivityType connectivityType,
                                   OCQualityOfService qos,
                                   OCCallbackData *cbData,
@@ -482,7 +482,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
 
         if ((result =
             OCConvertPayload(payload, CAToOCPayloadFormat(requestInfo.info.payloadFormat),
-                            &requestInfo.info.payload, &requestInfo.info.payloadSize))
+                             &requestInfo.info.payload_cbor, &requestInfo.info.payloadSize))
                 != OC_STACK_OK)
         {
             OIC_LOG(ERROR, TAG, "Failed to create CBOR Payload");
@@ -493,7 +493,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
     else
     {
         OIC_LOG_V(INFO, TAG, "%s no payload", __func__);
-        requestInfo.info.payload = NULL;
+        requestInfo.info.payload_cbor = NULL;
         requestInfo.info.payloadSize = 0;
         requestInfo.info.payloadFormat = CA_FORMAT_UNDEFINED;
     }
@@ -529,7 +529,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
     ttl = GetTicks(MAX_CB_TIMEOUT_SECONDS * MILLISECONDS_PER_SECOND);
     result = AddClientCB(&clientCB, cbData, requestInfo.info.type, token, tokenLength,
                          requestInfo.info.options, requestInfo.info.numOptions,
-                         requestInfo.info.payload, requestInfo.info.payloadSize,
+                         requestInfo.info.payload_cbor, requestInfo.info.payloadSize,
                          requestInfo.info.payloadFormat, &resHandle, method,
                          devAddr, resourceUri, resourceType, ttl);
 
@@ -643,7 +643,7 @@ exit:
         OICFree(resHandle);
     }
 
-    OICFree(requestInfo.info.payload);
+    OICFree(requestInfo.info.payload_cbor);
     OICFree(devAddr);
     OICFree(resourceUri);
     OICFree(resourceType);
@@ -777,7 +777,7 @@ static void _decode_cbor_payload(ClientCB *cbNode, /* @was OCHandleResponse */
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCPayloadType payload_type = PAYLOAD_TYPE_INVALID;
 
-    if(responseInfo->info.payload &&
+    if(responseInfo->info.payload_cbor &&
        responseInfo->info.payloadSize) {   /* infer payload type from uri */
 
             if (SRMIsSecurityResourceURI(cbNode->requestUri))
@@ -886,7 +886,7 @@ static void _decode_cbor_payload(ClientCB *cbNode, /* @was OCHandleResponse */
                     if (OC_STACK_OK != OCParsePayload(&response->payload,
                                                       CAToOCPayloadFormat(responseInfo->info.payloadFormat),
                                                       payload_type,
-                                                      responseInfo->info.payload,
+                                                      responseInfo->info.payload_cbor,
                                                       responseInfo->info.payloadSize))
                         {
                             OIC_LOG(ERROR, TAG, "Error: OCParsePayload");
@@ -923,38 +923,38 @@ static void _decode_cbor_payload(ClientCB *cbNode, /* @was OCHandleResponse */
 
 /* handle inbound response msg */
 void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
-                              const CAResponseInfo_t* responseInfo /**< contains cbor-encoded payload */
+                              const CAResponseInfo_t* inbound_response_cbor /**< contains cbor-encoded payload */
                               )
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY; origin_ep:", __func__);
     LogEndpoint(origin_ep);
-    OIC_TRACE_MARK(%s:OCHandleResponse:%s, TAG, responseInfo->info.resourceUri);
+    OIC_TRACE_MARK(%s:OCHandleResponse:%s, TAG, inbound_response_cbor->info.resourceUri);
 
-    OIC_LOG_V(INFO, TAG, "%s: responseInfo result: %u", __func__, responseInfo->result);
-    OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload len: %u", responseInfo->info.payloadSize);
-    OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload ptr: %p", responseInfo->info.payload);
+    OIC_LOG_V(INFO, TAG, "%s: inbound_response_cbor result: %u", __func__, inbound_response_cbor->result);
+    OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload len: %u", inbound_response_cbor->info.payloadSize);
+    OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload ptr: %p", inbound_response_cbor->info.payload_cbor);
 
     OCStackApplicationResult appFeedback = OC_STACK_DELETE_TRANSACTION;
 
 #ifdef WITH_PRESENCE
-    if(responseInfo->info.resourceUri &&
-       strcmp(responseInfo->info.resourceUri, OC_RSRVD_PRESENCE_URI) == 0)
+    if(inbound_response_cbor->info.resourceUri &&
+       strcmp(inbound_response_cbor->info.resourceUri, OC_RSRVD_PRESENCE_URI) == 0)
         {
-            HandlePresenceResponse(origin_ep, responseInfo);
+            HandlePresenceResponse(origin_ep, inbound_response_cbor);
             return;
         }
 #endif
 
-    ClientCB *cbNode = GetClientCBUsingToken(responseInfo->info.token,
-                                             responseInfo->info.tokenLength);
+    ClientCB *cbNode = GetClientCBUsingToken(inbound_response_cbor->info.token,
+                                             inbound_response_cbor->info.tokenLength);
     if(cbNode)
         {
             OIC_LOG(INFO, TAG, "There is a cbNode associated with the response token");
 
             // check obs header option
             bool obsHeaderOpt = false;
-            CAHeaderOption_t *options = responseInfo->info.options;
-            for (uint8_t i = 0; i < responseInfo->info.numOptions; i++)
+            CAHeaderOption_t *options = inbound_response_cbor->info.options;
+            for (uint8_t i = 0; i < inbound_response_cbor->info.numOptions; i++)
                 {
                     if (options && (options[i].optionID == COAP_OPTION_OBSERVE))
                         {
@@ -963,11 +963,11 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                         }
                 }
 
-            if(responseInfo->result == CA_EMPTY)
+            if(inbound_response_cbor->result == CA_EMPTY)
                 {
                     OIC_LOG(INFO, TAG, "Receiving A ACK/RESET for this token");
                     // We do not have a case for the client to receive a RESET
-                    if(responseInfo->info.type == CA_MSG_ACKNOWLEDGE)
+                    if(inbound_response_cbor->info.type == CA_MSG_ACKNOWLEDGE)
                         {
                             //This is the case of receiving an ACK on a request to a slow resource!
                             OIC_LOG(INFO, TAG, "This is a pure ACK");
@@ -975,15 +975,15 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                             //      app that at least the request was received at the server?
                         }
                 }
-            else if (CA_REQUEST_ENTITY_INCOMPLETE == responseInfo->result)
+            else if (CA_REQUEST_ENTITY_INCOMPLETE == inbound_response_cbor->result)
                 {
                     OIC_LOG(INFO, TAG, "Wait for block transfer finishing.");
                     return;
                 }
-            else if (CA_RETRANSMIT_TIMEOUT == responseInfo->result
-                     || CA_NOT_ACCEPTABLE == responseInfo->result)
+            else if (CA_RETRANSMIT_TIMEOUT == inbound_response_cbor->result
+                     || CA_NOT_ACCEPTABLE == inbound_response_cbor->result)
                 {
-                    if (CA_RETRANSMIT_TIMEOUT == responseInfo->result)
+                    if (CA_RETRANSMIT_TIMEOUT == inbound_response_cbor->result)
                         {
                             OIC_LOG(INFO, TAG, "Receiving A Timeout for this token");
                             OIC_LOG(INFO, TAG, "Calling into application address space");
@@ -996,8 +996,8 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
 
                     // Check if it is the case that a OCF client connects to a OIC server.
                     // If so, reissue request using OIC format
-                    if (CA_NOT_ACCEPTABLE == responseInfo->result &&
-                        CA_FORMAT_UNDEFINED == responseInfo->info.payloadFormat)
+                    if (CA_NOT_ACCEPTABLE == inbound_response_cbor->result &&
+                        CA_FORMAT_UNDEFINED == inbound_response_cbor->info.payloadFormat)
                         {
                             OIC_LOG(DEBUG, TAG, "Response result NOT_ACCEPTABLE, format UNDEFINED");
                             struct CARequestInfo requestInfo = { .method = CA_GET };
@@ -1063,23 +1063,23 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
 
                                     requestData.numOptions = cbNode->numOptions;
                                 }
-                            if (!cbNode->payload || !cbNode->payloadSize)
+                            if (!cbNode->payload_cbor || !cbNode->payloadSize)
                                 {
                                     OIC_LOG (INFO, TAG, "No payload present in cbNode");
-                                    requestData.payload = NULL;
+                                    requestData.payload_cbor = NULL;
                                     requestData.payloadSize = 0;
                                 }
                             else
                                 {
-                                    requestData.payload = (struct OCPayload* /* CAPayload_t */) OICCalloc(1, cbNode->payloadSize);
-                                    if (!requestData.payload)
+                                    requestData.payload_cbor = (uint8_t* /* CAPayload_t */) OICCalloc(1, cbNode->payloadSize);
+                                    if (!requestData.payload_cbor)
                                         {
                                             OIC_LOG(ERROR, TAG, "out of memory");
                                             OICFree(requestData.token);
                                             OICFree(requestData.options);
                                             goto proceed;
                                         }
-                                    memcpy(requestData.payload, cbNode->payload, cbNode->payloadSize);
+                                    memcpy(requestData.payload_cbor, cbNode->payload_cbor, cbNode->payloadSize);
                                     requestData.payloadSize = cbNode->payloadSize;
                                 }
                             requestData.payloadFormat = CA_FORMAT_APPLICATION_CBOR;
@@ -1100,7 +1100,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                                     OIC_LOG(ERROR, TAG, "Re-send request failed");
                                     OICFree(requestData.token);
                                     OICFree(requestData.options);
-                                    OICFree(requestData.payload);
+                                    OICFree(requestData.payload_cbor);
                                 }
                         }
 
@@ -1116,13 +1116,13 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                     response->devAddr.adapter = OC_DEFAULT_ADAPTER;
                     CopyEndpointToDevAddr(origin_ep, &response->devAddr);
                     FixUpClientResponse(response);
-                    response->resourceUri = responseInfo->info.resourceUri;
-                    memcpy(response->identity.id, responseInfo->info.identity.id,
+                    response->resourceUri = inbound_response_cbor->info.resourceUri;
+                    memcpy(response->identity.id, inbound_response_cbor->info.identity.id,
                            sizeof(response->identity.id));
-                    response->identity.id_length = responseInfo->info.identity.id_length;
+                    response->identity.id_length = inbound_response_cbor->info.identity.id_length;
 
                     // FIXME: remove OC result codes
-                    response->result = CAResponseToOCStackResult(responseInfo->result);
+                    response->result = CAResponseToOCStackResult(inbound_response_cbor->result);
                     OIC_LOG_V(INFO, TAG, "%s: response result: %u", __func__, response->result);
 
                     cbNode->callBack(cbNode->context,
@@ -1131,12 +1131,12 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                     OICFree(response);
                 } /* result != EMPTY, ENTITY_INCOMPLETE, RETRANSMIT_TIMEOUT, NOT_ACCEPTABLE */
             else if ((cbNode->method == OC_REST_OBSERVE || cbNode->method == OC_REST_OBSERVE_ALL)
-                     && (responseInfo->result == OC_STACK_OK) && !obsHeaderOpt)
+                     && (inbound_response_cbor->result == OC_STACK_OK) && !obsHeaderOpt)
                 /* response = CONTENT means HTTP 200 "OK" but only used in response to GET requests. */
                 {
-                    OCClientResponse *response = NULL;
+                    struct oocf_inbound_response /* OCClientResponse */ *response = NULL;
 
-                    response = (OCClientResponse *)OICCalloc(1, sizeof(*response));
+                    response = OICCalloc(1, sizeof(*response));
                     if (!response)
                         {
                             OIC_LOG_V(ERROR, TAG, "[%d] %s: Allocating memory for OCClientResponse failed",
@@ -1148,10 +1148,10 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                     response->sequenceNumber = MAX_SEQUENCE_NUMBER + 1;
                     CopyEndpointToDevAddr(origin_ep, &response->devAddr);
                     FixUpClientResponse(response);
-                    response->resourceUri = responseInfo->info.resourceUri;
-                    memcpy(response->identity.id, responseInfo->info.identity.id,
+                    response->resourceUri = inbound_response_cbor->info.resourceUri;
+                    memcpy(response->identity.id, inbound_response_cbor->info.identity.id,
                            sizeof (response->identity.id));
-                    response->identity.id_length = responseInfo->info.identity.id_length;
+                    response->identity.id_length = inbound_response_cbor->info.identity.id_length;
                     response->result = OC_STACK_OK;
 
                     OIC_LOG(DEBUG, TAG, "This is response of observer cancel or observer request fail");
@@ -1180,43 +1180,43 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                     response->sequenceNumber = MAX_SEQUENCE_NUMBER + 1;
                     CopyEndpointToDevAddr(origin_ep, &response->devAddr);
                     FixUpClientResponse(response);
-                    response->resourceUri = OICStrdup(responseInfo->info.resourceUri);
-                    memcpy(response->identity.id, responseInfo->info.identity.id,
+                    response->resourceUri = OICStrdup(inbound_response_cbor->info.resourceUri);
+                    memcpy(response->identity.id, inbound_response_cbor->info.identity.id,
                            sizeof (response->identity.id));
-                    response->identity.id_length = responseInfo->info.identity.id_length;
+                    response->identity.id_length = inbound_response_cbor->info.identity.id_length;
 
                     // FIXME: remove OC result codes
-                    response->result = CAResponseToOCStackResult(responseInfo->result);
+                    response->result = CAResponseToOCStackResult(inbound_response_cbor->result);
 
-                    _decode_cbor_payload(cbNode, responseInfo, response);
+                    _decode_cbor_payload(cbNode, inbound_response_cbor, response);
 
                     OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload ptr: %p", response->payload);
 
                     response->numRcvdVendorSpecificHeaderOptions = 0;
-                    if((responseInfo->info.numOptions > 0) && (responseInfo->info.options != NULL))
+                    if((inbound_response_cbor->info.numOptions > 0) && (inbound_response_cbor->info.options != NULL))
                         {
                             uint8_t start = 0;
                             // FIXME: huh? is this an ocf rule?
                             //First option always with option ID is COAP_OPTION_OBSERVE if it is available.
-                            if(responseInfo->info.options[0].optionID == COAP_OPTION_OBSERVE)
+                            if(inbound_response_cbor->info.options[0].optionID == COAP_OPTION_OBSERVE)
                                 {
                                     size_t i;
                                     uint32_t observationOption;
-                                    uint8_t* optionData = (uint8_t*)responseInfo->info.options[0].optionData;
+                                    uint8_t* optionData = (uint8_t*)inbound_response_cbor->info.options[0].optionData;
                                     for (observationOption=0, i=0;
-                                         i<sizeof(uint32_t) && i<responseInfo->info.options[0].optionLength;
+                                         i<sizeof(uint32_t) && i<inbound_response_cbor->info.options[0].optionLength;
                                          i++)
                                         {
                                             observationOption =
                                                 (observationOption << 8) | optionData[i];
                                         }
                                     response->sequenceNumber = observationOption;
-                                    response->numRcvdVendorSpecificHeaderOptions = responseInfo->info.numOptions - 1;
+                                    response->numRcvdVendorSpecificHeaderOptions = inbound_response_cbor->info.numOptions - 1;
                                     start = 1;
                                 }
                             else
                                 {
-                                    response->numRcvdVendorSpecificHeaderOptions = responseInfo->info.numOptions;
+                                    response->numRcvdVendorSpecificHeaderOptions = inbound_response_cbor->info.numOptions;
                                 }
 
                             if(response->numRcvdVendorSpecificHeaderOptions > MAX_HEADER_OPTIONS)
@@ -1227,10 +1227,10 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                                     return;
                                 }
 
-                            for (uint8_t i = start; i < responseInfo->info.numOptions; i++)
+                            for (uint8_t i = start; i < inbound_response_cbor->info.numOptions; i++)
                                 {
                                     memcpy (&(response->rcvdVendorSpecificHeaderOptions[i - start]),
-                                            &(responseInfo->info.options[i]), sizeof(OCHeaderOption));
+                                            &(inbound_response_cbor->info.options[i]), sizeof(OCHeaderOption));
                                 }
                         }
 
@@ -1308,9 +1308,9 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                     }
 
             //Need to send ACK when the response is CON
-            if(responseInfo->info.type == CA_MSG_CONFIRM)
+            if(inbound_response_cbor->info.type == CA_MSG_CONFIRM)
             {
-                SendDirectStackResponse(origin_ep, responseInfo->info.messageId, CA_EMPTY,
+                SendDirectStackResponse(origin_ep, inbound_response_cbor->info.messageId, CA_EMPTY,
                         CA_MSG_ACKNOWLEDGE, 0, NULL, NULL, 0, NULL, CA_RESPONSE_FOR_RES);
             }
 
@@ -1334,30 +1334,30 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
     OCResource *resource = NULL;
     ResourceObserver *observer = NULL;
     if (true == GetObserverFromResourceList(&resource, &observer,
-                                            responseInfo->info.token,
-                                            responseInfo->info.tokenLength))
+                                            inbound_response_cbor->info.token,
+                                            inbound_response_cbor->info.tokenLength))
 	{
         OIC_LOG(INFO, TAG, "There is an observer associated with the response token");
-        if(responseInfo->result == CA_EMPTY)
+        if(inbound_response_cbor->result == CA_EMPTY)
         {
             OIC_LOG(INFO, TAG, "Receiving A ACK/RESET for this token");
-            if(responseInfo->info.type == CA_MSG_RESET)
+            if(inbound_response_cbor->info.type == CA_MSG_RESET)
             {
                 OIC_LOG(INFO, TAG, "This is a RESET");
-                OCStackFeedBack(responseInfo->info.token, responseInfo->info.tokenLength,
+                OCStackFeedBack(inbound_response_cbor->info.token, inbound_response_cbor->info.tokenLength,
                         OC_OBSERVER_NOT_INTERESTED);
             }
-            else if(responseInfo->info.type == CA_MSG_ACKNOWLEDGE)
+            else if(inbound_response_cbor->info.type == CA_MSG_ACKNOWLEDGE)
             {
                 OIC_LOG(INFO, TAG, "This is a pure ACK");
-                OCStackFeedBack(responseInfo->info.token, responseInfo->info.tokenLength,
+                OCStackFeedBack(inbound_response_cbor->info.token, inbound_response_cbor->info.tokenLength,
                         OC_OBSERVER_STILL_INTERESTED);
             }
         }
-        else if(responseInfo->result == CA_RETRANSMIT_TIMEOUT)
+        else if(inbound_response_cbor->result == CA_RETRANSMIT_TIMEOUT)
         {
             OIC_LOG(INFO, TAG, "Receiving Time Out for an observer");
-            OCStackFeedBack(responseInfo->info.token, responseInfo->info.tokenLength,
+            OCStackFeedBack(inbound_response_cbor->info.token, inbound_response_cbor->info.tokenLength,
                     OC_OBSERVER_FAILED_COMM);
         }
         return;
@@ -1369,14 +1369,14 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
            || myStackMode == OC_GATEWAY)
         {
             OIC_LOG(INFO, TAG, "This is a client, but no cbNode was found for token");
-            if(responseInfo->result == CA_EMPTY)
+            if(inbound_response_cbor->result == CA_EMPTY)
             {
                 OIC_LOG(INFO, TAG, "Receiving CA_EMPTY in the ocstack");
             }
             else
             {
                 OIC_LOG(INFO, TAG, "Received a message without callbacks. Sending RESET");
-                SendDirectStackResponse(origin_ep, responseInfo->info.messageId, CA_EMPTY,
+                SendDirectStackResponse(origin_ep, inbound_response_cbor->info.messageId, CA_EMPTY,
                                         CA_MSG_RESET, 0, NULL, NULL, 0, NULL, CA_RESPONSE_FOR_RES);
             }
         }
@@ -1385,15 +1385,15 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
            || myStackMode == OC_GATEWAY)
         {
             OIC_LOG(INFO, TAG, "This is a server, but no observer was found for token");
-            if (responseInfo->info.type == CA_MSG_ACKNOWLEDGE)
+            if (inbound_response_cbor->info.type == CA_MSG_ACKNOWLEDGE)
             {
                 OIC_LOG_V(INFO, TAG, "Received ACK at server for messageId : %d",
-                                            responseInfo->info.messageId);
+                                            inbound_response_cbor->info.messageId);
             }
-            if (responseInfo->info.type == CA_MSG_RESET)
+            if (inbound_response_cbor->info.type == CA_MSG_RESET)
             {
                 OIC_LOG_V(INFO, TAG, "Received RESET at server for messageId : %d",
-                                            responseInfo->info.messageId);
+                                            inbound_response_cbor->info.messageId);
             }
         }
 
@@ -1406,13 +1406,13 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
  * This function will be called back by CA layer when a response is received.
  *
  * @param origin_ep CA remote endpoint.
- * @param responseInfo CA response info.
+ * @param inbound_response_cbor CA response info.
  */
 /* client-side, upper-level inbound response handler:  */
-void HandleCAResponses(const CAEndpoint_t* origin_ep, const CAResponseInfo_t* responseInfo)
+void HandleCAResponses(const CAEndpoint_t* origin_ep, const CAResponseInfo_t* inbound_response_cbor)
 {
     VERIFY_NON_NULL_NR(origin_ep, FATAL);
-    VERIFY_NON_NULL_NR(responseInfo, FATAL);
+    VERIFY_NON_NULL_NR(inbound_response_cbor, FATAL);
 
     OIC_LOG(INFO, TAG, "Enter HandleCAResponses");
     OIC_TRACE_BEGIN(%s:HandleCAResponses, TAG);
@@ -1421,11 +1421,11 @@ void HandleCAResponses(const CAEndpoint_t* origin_ep, const CAResponseInfo_t* re
     bool needRIHandling = false;
     /*
      * Routing manager is going to update either of endpoint or response or both.
-     * This typecasting is done to avoid unnecessary duplication of Endpoint and responseInfo
+     * This typecasting is done to avoid unnecessary duplication of Endpoint and inbound_response_cbor
      * RM can update "routeData" option in origin_ep so that future RI requests can be sent to proper
      * destination.
      */
-    OCStackResult ret = RMHandleResponse((CAResponseInfo_t *)responseInfo, (CAEndpoint_t *)origin_ep,
+    OCStackResult ret = RMHandleResponse((CAResponseInfo_t *)inbound_response_cbor, (CAEndpoint_t *)origin_ep,
                                          &needRIHandling);
     if(ret != OC_STACK_OK || !needRIHandling)
     {
@@ -1440,12 +1440,12 @@ void HandleCAResponses(const CAEndpoint_t* origin_ep, const CAResponseInfo_t* re
      * proper destination and remove "RM" coap header option before passing request / response to
      * RI as this option will make no sense to either RI or application.
      */
-    RMUpdateInfo((CAHeaderOption_t **) &(responseInfo->info.options),
-        (uint8_t *) &(responseInfo->info.numOptions),
+    RMUpdateInfo((CAHeaderOption_t **) &(inbound_response_cbor->info.options),
+        (uint8_t *) &(inbound_response_cbor->info.numOptions),
         (CAEndpoint_t *)origin_ep);
 #endif
 
-    OCHandleResponse(origin_ep, responseInfo);
+    OCHandleResponse(origin_ep, inbound_response_cbor);
 
     OIC_LOG(INFO, TAG, "Exit HandleCAResponses");
     OIC_TRACE_END();
@@ -1467,9 +1467,9 @@ void HandleCAErrorResponse(const CAEndpoint_t *endPoint, const CAErrorInfo_t *er
                                              errorInfo->info.tokenLength);
     if (cbNode)
     {
-        OCClientResponse *response = NULL;
+        struct oocf_inbound_response /* OCClientResponse */ *response = NULL;
 
-        response = (OCClientResponse *)OICCalloc(1, sizeof(*response));
+        response = OICCalloc(1, sizeof(*response));
         if (!response)
         {
             OIC_LOG(ERROR, TAG, "Allocating memory for response failed");

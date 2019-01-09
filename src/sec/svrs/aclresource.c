@@ -3019,10 +3019,10 @@ static OCEntityHandlerResult HandleACLPostRequest(const struct oocf_inbound_requ
 
     // Convert CBOR into ACL data and update to SVR buffers. This will also validate the ACL data received.
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     //ehRequest->payload)->securityData;
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     //ehRequest->payload)->payloadSize;
 
     OicSecDostype_t dos;
@@ -3134,10 +3134,10 @@ static OCEntityHandlerResult HandleACL2PostRequest(const struct oocf_inbound_req
 
     // Convert CBOR into ACL data and update to SVR buffers. This will also validate the ACL data received.
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     //ehRequest->payload)->securityData;
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     //ehRequest->payload)->payloadSize;
 
 

@@ -114,7 +114,7 @@ typedef struct ClientCB {
 
     uint8_t numOptions;
 
-    struct OCPayload /* CAPayload_t */ *payload;
+    uint8_t /* CAPayload_t */ *payload_cbor;  // cbor-encoded???
 
     size_t payloadSize;
 
@@ -194,9 +194,9 @@ static void DeleteClientCBInternal(ClientCB * cbNode)
     {
         OICFree(cbNode->options);
     }
-    if(cbNode->payload)
+    if(cbNode->payload_cbor)
     {
-        OICFree(cbNode->payload);
+        OICFree(cbNode->payload_cbor);
     }
 #ifdef WITH_PRESENCE
     if (cbNode->presence)
@@ -289,7 +289,7 @@ OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
                           CAMessageType_t type,
                           uint8_t *token, uint8_t tokenLength,
                           CAHeaderOption_t *options, uint8_t numOptions,
-                          struct OCPayload /* CAPayload_t */ *payload,
+                          unsigned char /* CAPayload_t */ *payload,
                           size_t payloadSize,
                           CAPayloadFormat_t payloadFormat,
                           OCDoHandle *handle, OCMethod method,
@@ -352,13 +352,13 @@ OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
         if (!payload || !payloadSize)
         {
             OIC_LOG (INFO, TAG, "No payload present");
-            cbNode->payload = NULL;
+            cbNode->payload_cbor = NULL;
             cbNode->payloadSize = 0;
         }
         else
         {
-            cbNode->payload = (struct OCPayload* /* CAPayload_t */) OICCalloc(1, payloadSize);
-            if (!cbNode->payload)
+            cbNode->payload_cbor = OICCalloc(1, payloadSize);
+            if (!cbNode->payload_cbor)
             {
                 OIC_LOG(ERROR, TAG, "Out of memory");
                 if (cbNode->options)
@@ -368,7 +368,7 @@ OCStackResult AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
                 OICFree(cbNode);
                 return OC_STACK_NO_MEMORY;
             }
-            memcpy(cbNode->payload, payload, payloadSize);
+            memcpy(cbNode->payload_cbor, payload, payloadSize);
             cbNode->payloadSize = payloadSize;
         }
 

@@ -1294,7 +1294,7 @@ OCStackResult EHRequest(struct oocf_inbound_request /* OCEntityHandlerRequest */
                                       getQueryFromRequestURL(request->info.resourceUri), //request->query,
                                       type,
                                       request->info.payloadFormat, // request->payloadFormat,
-                                      request->info.payload, // request->payload,
+                                      request->info.payload_cbor, // request->payload,
                                       request->info.payloadSize, // request->payloadSize,
                                       request->info.numOptions, // request->numRcvdVendorSpecificHeaderOptions,
                                       request->info.options, // request->rcvdVendorSpecificHeaderOptions,
@@ -1459,7 +1459,7 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
 
     }
 
-    respInfo.info.payload = NULL;
+    respInfo.info.payload_cbor = NULL;
     respInfo.info.token = token;
     respInfo.info.tokenLength = tokenLength;
     respInfo.info.type = type;
@@ -1600,7 +1600,7 @@ struct OCPayload *get_payload_from_inbound_request(const struct oocf_inbound_req
     /* { */
     /*     return NULL; */
     /* } */
-    return ((struct CARequestInfo*)request->requestHandle)->info.payload;
+    return ((struct CARequestInfo*)request->requestHandle)->info.payload_cbor;
 }
 
 struct oocf_endpoint *get_origin_ep_from_inbound_request(const struct oocf_inbound_request *request) EXPORT

@@ -78,7 +78,7 @@ typedef struct _oocf_coap_msg_unpacked /* src: camessagehandler.c */
     uint8_t tokenLength;        /**< token length */
     CAHeaderOption_t *options;  /** Header Options for the request */
     uint8_t numOptions;         /**< Number of Header options */
-    struct OCPayload /* CAPayload_t */ *payload;        /**< payload of the request  */
+    unsigned char /* CAPayload_t */ *payload_cbor; /**< cbor-encoded coap payload */
     size_t payloadSize;         /**< size in bytes of the payload */
     CAPayloadFormat_t payloadFormat;    /**< encoding format of the request payload */
     CAPayloadFormat_t acceptFormat;     /**< accept format for the response payload */
@@ -323,7 +323,7 @@ coap_pdu_t *CAGeneratePDU(uint32_t code, const CAInfo_t *info, const CAEndpoint_
             return NULL;
         }
 
-        if (info->payloadSize > 0 || info->payload || info->token || info->tokenLength > 0)
+        if (info->payloadSize > 0 || info->payload_cbor || info->token || info->tokenLength > 0)
         {
             OIC_LOG(ERROR, TAG, "Empty message has unnecessary data after messageID");
             return NULL;
@@ -635,11 +635,11 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
 
     OIC_LOG_V(DEBUG, TAG, "[%d] pdu length after option", pdu->length);
 
-    if ((NULL != info->payload) && (0 < info->payloadSize))
+    if ((NULL != info->payload_cbor) && (0 < info->payloadSize))
     {
         OIC_LOG(DEBUG, TAG, "payload is added");
         coap_add_data(pdu, (unsigned int)info->payloadSize,
-                      (const unsigned char*)info->payload);
+                      (const unsigned char*)info->payload_cbor);
     }
 
     return pdu;
@@ -1294,8 +1294,8 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
     if (coap_get_data(pdu, &dataSize, &data))
     {
         OIC_LOG(DEBUG, TAG, "inside pdu->data");
-        outInfo->payload = (uint8_t *) OICMalloc(dataSize);
-        if (NULL == outInfo->payload)
+        outInfo->payload_cbor = (uint8_t *) OICMalloc(dataSize);
+        if (NULL == outInfo->payload_cbor)
         {
             OIC_LOG(ERROR, TAG, "Out of memory");
             OICFree(outInfo->options);
@@ -1303,7 +1303,7 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
             OICFree(optionResult);
             return CA_MEMORY_ALLOC_FAILED;
         }
-        memcpy(outInfo->payload, pdu->data, dataSize);
+        memcpy(outInfo->payload_cbor, pdu->data, dataSize);
         outInfo->payloadSize = dataSize;
     }
 

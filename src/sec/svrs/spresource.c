@@ -758,16 +758,16 @@ static OCEntityHandlerResult HandleSpPostRequest(struct oocf_inbound_request /*O
     }
 
     VERIFY_OR_LOG_AND_EXIT(TAG, (NULL != ((OCSecurityPayload *)
-                                          ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)),
+                                          ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)),
                                  "sp POST : no payload supplied ", ERROR);
     VERIFY_OR_LOG_AND_EXIT(TAG, (NULL != gSp), "sp POST : corrupt internal SP resource ", ERROR);
 
     /* payload = ((OCSecurityPayload *) ehRequest->payload)->securityData; */
     payload = ((OCSecurityPayload *)
-               ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+               ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     /* size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize; */
     size = ((OCSecurityPayload *)
-            ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+            ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
 
     VERIFY_NOT_NULL(TAG, payload, ERROR);
 

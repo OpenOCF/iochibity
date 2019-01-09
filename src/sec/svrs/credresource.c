@@ -2413,9 +2413,9 @@ static OCEntityHandlerResult HandlePostRequest(struct oocf_inbound_request *ehRe
     OicSecCred_t *cred = NULL;
     OicUuid_t     *rownerId = NULL;
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
 
     OicSecDostype_t dos;
     VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDos(&dos), ERROR);

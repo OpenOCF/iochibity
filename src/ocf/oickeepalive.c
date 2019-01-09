@@ -363,7 +363,7 @@ LOCAL OCEntityHandlerResult HandleKeepAlivePOSTRequest(struct CARequestInfo *req
 
     OCPayload *ocPayload = NULL;
     OCParsePayload(&ocPayload, request->info.payloadFormat, PAYLOAD_TYPE_REPRESENTATION,
-                   request->info.payload, request->info.payloadSize);
+                   request->info.payload_cbor, request->info.payloadSize);
     OCRepPayload *repPayload = (OCRepPayload *)ocPayload;
 
     int64_t interval = 0;

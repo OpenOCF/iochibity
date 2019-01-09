@@ -259,7 +259,7 @@ OCStackResult SendObserveNotification(ResourceObserver *observer,
     request->info.numOptions = 0;
     request->info.options = NULL;
     request->info.payloadFormat = OC_FORMAT_UNDEFINED;
-    request->info.payload = NULL;
+    request->info.payload_cbor = NULL;
     request->info.payloadSize = 0;
     request->info.acceptFormat = observer->acceptFormat;
     request->info.acceptVersion = observer->acceptVersion;
@@ -466,7 +466,7 @@ OCStackResult SendListObserverNotification (OCResource * resource,
             request->info.numOptions = 0;
             request->info.options = NULL;
             request->info.payloadFormat = OC_FORMAT_UNDEFINED;
-            request->info.payload = NULL;
+            request->info.payload_cbor = NULL;
             request->info.payloadSize = 0;
             request->info.acceptFormat = observer->acceptFormat;
             request->info.acceptVersion = observer->acceptVersion;

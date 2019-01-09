@@ -548,9 +548,9 @@ static OCEntityHandlerResult HandleCRLPostRequest(const struct oocf_inbound_requ
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
     OicSecCrl_t *crl = NULL;
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->securityData;
+                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload)->payloadSize;
+                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     bool create = (NULL == gCrl);
 
     if (payload)
