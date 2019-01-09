@@ -144,7 +144,7 @@ typedef struct ClientCB {
      * still be used. TTL is set to 0 when the callback is for presence and observe.
      * Presence has ttl mechanism in the "presence" member of this struct and observes
      * can be explicitly cancelled.*/
-    uint32_t TTL;
+    coap_tick_t TTL;            /* uint32_t */
 
     /** next node in this list.*/
     struct ClientCB    *next;
@@ -237,12 +237,13 @@ static void CheckAndDeleteTimedOutCB(ClientCB * cbNode)
     {
         return;
     }
-    coap_tick_t now;
+    coap_tick_t now = 0;
     coap_ticks(&now);
+    OIC_LOG_V(INFO, TAG, "cbNode->TTL: %" PRIu32 " now: %" PRIu32, cbNode->TTL, now);
 
-    if (cbNode->TTL < now)
+    if ((uint32_t)cbNode->TTL < (uint32_t)now) /* without the cast this breaks */
     {
-        OIC_LOG(INFO, TAG, "Deleting timed-out callback");
+        OIC_LOG_V(INFO, TAG, "Deleting timed-out callback: %" PRIu32 " < %" PRIu32, cbNode->TTL, now);
         DeleteClientCBInternal(cbNode);
     }
 }
