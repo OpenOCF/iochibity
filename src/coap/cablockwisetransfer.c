@@ -2155,7 +2155,7 @@ CAResult_t CAGetTokenFromBlockDataList(const coap_pdu_t *pdu, const CAEndpoint_t
                 {
                     uint8_t length = currData->sentData->requestInfo->info.tokenLength;
                     responseInfo->info.tokenLength = length;
-                    responseInfo->info.token = (char *) OICMalloc(length);
+                    responseInfo->info.token = OICMalloc(length);
                     if (NULL == responseInfo->info.token)
                     {
                         OIC_LOG(ERROR, TAG, "out of memory");
@@ -2565,7 +2565,7 @@ CABlockMulticastData_t *CACreateNewBlockMulticastData(const CAData_t *sendData)
     }
 
     uint8_t tokenLength = sendData->requestInfo->info.tokenLength;
-    uint8_t *token = (char *) OICMalloc(tokenLength * sizeof(char));
+    uint8_t *token = OICMalloc(tokenLength * sizeof(char));
     if (!token)
     {
         OIC_LOG(ERROR, TAG, "memory alloc has failed");
