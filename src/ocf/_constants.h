@@ -608,18 +608,6 @@
 /* From ocstackconfig.h: */
 
 /**
- * Maximum length of the URI supported by client/server while processing
- * REST requests/responses.
- */
-#define MAX_URI_LENGTH (256)    /* src: ocstackconfig.h */
-
-/**
- * Maximum length of the query supported by client/server while processing
- * REST requests/responses.
- */
-#define MAX_QUERY_LENGTH (256)  /* src: ocstackconfig.h */
-
-/**
  * Maximum length of the Manufacturer name supported by the server
  * for manufacturer name.
  * @deprecated use MAX_PLATFORM_NAME_LENGTH instead.
