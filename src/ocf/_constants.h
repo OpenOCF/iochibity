@@ -53,8 +53,6 @@
 
 /** Delimeter for keys and values in query string.*/
 #define OC_KEY_VALUE_DELIMITER                "="
-#endif  /* EXPORT_INTERFACE */
-
 
 /**
  *  OC_DEFAULT_PRESENCE_TTL_SECONDS sets the default time to live (TTL) for presence.
@@ -352,6 +350,10 @@
 #define OC_MULTICAST_PORT               (5683)
 #endif // GOING_AWAY
 
+#endif  /* EXPORT_INTERFACE */
+
+#if EXPORT_INTERFACE
+
 /* /\** Max Device address size. *\/ */
 /* GAR same code occurs in cacommon.h; both refactored to transport_types.h */
 /* #ifdef RA_ADAPTER */
@@ -604,6 +606,9 @@
 
 #define OC_RSRVD_CERTIFICATE              "certificate"
 
+#endif
+
+#if EXPORT_INTERFACE
 
 /* From ocstackconfig.h: */
 
@@ -679,3 +684,5 @@
 #define VALUE(x) VALUE_TO_STRING(x)
 #define VAR_NAME_VALUE(var) #var "="  VALUE(var)
 /* #pragma message VAR_NAME_VALUE(foo) */
+
+#endif
