@@ -124,14 +124,14 @@ typedef enum			/* FIXME: align with CAResult_t */
     OC_STACK_INVALID_IP,
     OC_STACK_INVALID_PORT,
     OC_STACK_INVALID_CALLBACK,
-    OC_STACK_INVALID_METHOD,
+    OC_STACK_INVALID_METHOD,    /* 25 */
 
     /** Invalid parameter.*/
     OC_STACK_INVALID_PARAM,
     OC_STACK_INVALID_OBSERVE_PARAM,
     OC_STACK_NO_MEMORY,
     OC_STACK_COMM_ERROR,            /** 504*/
-    OC_STACK_TIMEOUT,
+    OC_STACK_TIMEOUT,               /* 10 */
     OC_STACK_ADAPTER_NOT_ENABLED,
     OC_STACK_NOTIMPL,
 
@@ -140,14 +140,14 @@ typedef enum			/* FIXME: align with CAResult_t */
 
     /** e.g: not supported method or interface.*/
     OC_STACK_RESOURCE_ERROR,
-    OC_STACK_SLOW_RESOURCE,
+    OC_STACK_SLOW_RESOURCE,     /* 15 */
     OC_STACK_DUPLICATE_REQUEST,
 
     /** Resource has no registered observers.*/
     OC_STACK_NO_OBSERVERS,
     OC_STACK_OBSERVER_NOT_FOUND,
     OC_STACK_VIRTUAL_DO_NOT_HANDLE,
-    OC_STACK_INVALID_OPTION,        /** 402*/
+    OC_STACK_INVALID_OPTION,        /** 20 = 402*/
 
     /** The remote reply contained malformed data.*/
     OC_STACK_MALFORMED_RESPONSE,
@@ -157,7 +157,7 @@ typedef enum			/* FIXME: align with CAResult_t */
     OC_STACK_INVALID_JSON,
 
     /** Request is not authorized by Resource Server. */
-    OC_STACK_UNAUTHORIZED_REQ,      /** 401*/
+    OC_STACK_UNAUTHORIZED_REQ,      /** 26 = 401*/
     OC_STACK_TOO_LARGE_REQ,         /** 413*/
 
     /** Error code from PDM */
@@ -221,12 +221,6 @@ typedef void * OCDoHandle;
  */
 /* src: octypes.h */
 typedef void * OCResourceHandle;
-
-/**
- * Handle to an OCRequest object owned by the OCStack.
- */
-/* src: octypes.h */
-typedef void * OCRequestHandle;
 
 #endif	/* EXPORT_INTERFACE */
 
@@ -355,26 +349,6 @@ static void OCLeaveInitializer(void)
     OC_VERIFY(oc_atomic_decrement(&g_ocStackStartStopThreadCount) >= 0);
 }
 
-bool checkProxyUri(OCHeaderOption *options, uint8_t numOptions)
-{
-    if (!options || 0 == numOptions)
-    {
-        OIC_LOG (INFO, TAG, "No options present");
-        return false;
-    }
-
-    for (uint8_t i = 0; i < numOptions; i++)
-    {
-        if (options[i].protocolID == OC_COAP_ID && options[i].optionID == OC_RSRVD_PROXY_OPTION_ID)
-        {
-            OIC_LOG(DEBUG, TAG, "Proxy URI is present");
-            return true;
-        }
-    }
-    return false;
-}
-
-
 // FIXME: get rid of OCDevAddr?
 void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out)
 {
@@ -386,7 +360,7 @@ void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out)
     OICStrcpy(out->addr, sizeof(out->addr), in->addr);
     OICStrcpy(out->remoteId, sizeof(out->remoteId), in->remoteId);
     out->port = in->port;
-    /* out->ifindex = in->ifindex; */
+    out->ifindex = in->ifindex;
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     /* This assert is to prevent accidental mismatch between address size macros defined in
      * RI and CA and cause crash here. */
@@ -394,26 +368,6 @@ void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out)
                                         "Address size mismatch between RI and CA");
     memcpy(out->routeData, in->routeData, sizeof(in->routeData));
 #endif
-}
-
-void CopyDevAddrToEndpoint(const OCDevAddr *in, CAEndpoint_t *out)
-{
-    VERIFY_NON_NULL_NR(in, FATAL);
-    VERIFY_NON_NULL_NR(out, FATAL);
-
-    out->adapter = (CATransportAdapter_t)in->adapter;
-    out->flags = OCToCATransportFlags(in->flags);
-    OICStrcpy(out->addr, sizeof(out->addr), in->addr);
-    OICStrcpy(out->remoteId, sizeof(out->remoteId), in->remoteId);
-#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
-    /* This assert is to prevent accidental mismatch between address size macros defined in
-     * RI and CA and cause crash here. */
-    OC_STATIC_ASSERT(MAX_ADDR_STR_SIZE_CA == MAX_ADDR_STR_SIZE,
-                                        "Address size mismatch between RI and CA");
-    memcpy(out->routeData, in->routeData, sizeof(in->routeData));
-#endif
-    out->port = in->port;
-    /* out->ifindex = in->ifindex; */
 }
 
 void FixUpClientResponse(OCClientResponse *cr)
@@ -450,7 +404,7 @@ void FixUpClientResponse(OCClientResponse *cr)
 OCStackResult OCStackFeedBack(uint8_t *token, uint8_t tokenLength, uint8_t status)
 {
     OCStackResult result = OC_STACK_ERROR;
-    OCEntityHandlerRequest ehRequest = {0};
+    oocf_inbound_request /* OCEntityHandlerRequest */ ehRequest = {0};
     OCResource *resource = NULL;
     ResourceObserver *observer = NULL;
 
@@ -708,7 +662,7 @@ CAResponseResult_t OCToCAStackResult(OCStackResult ocCode, OCMethod method)
  * @param ocConType OCTransportFlags_t input.
  * @return CATransportFlags
  */
-LOCAL CATransportFlags_t OCToCATransportFlags(OCTransportFlags ocFlags)
+CATransportFlags_t OCToCATransportFlags(OCTransportFlags ocFlags)
 {
     CATransportFlags_t caFlags = (CATransportFlags_t)ocFlags;
 
@@ -916,6 +870,16 @@ OCStackResult OC_CALL OCSetRAInfo(const OCRAInfo_t *raInfo)
 }
 #endif
 
+OCStackResult OC_CALL oocf_init(OCMode mode, OCPersistentStorage *ps) EXPORT
+{
+    OCLogInit();
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    OCRegisterPersistentStorageHandler(ps);
+    OCStackResult r = OCInit1(mode, OC_DEFAULT_FLAGS, OC_DEFAULT_FLAGS);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    return r;
+}
+
 OCStackResult OC_CALL OCInit(const char *ipAddr, uint16_t port, OCMode mode) EXPORT
 {
     (void) ipAddr;
@@ -1101,8 +1065,9 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     VERIFY_SUCCESS_2(result, OC_STACK_OK);
 #endif // UWP_APP
 
-    result = InitializeScheduleResourceList();
-    VERIFY_SUCCESS_2(result, OC_STACK_OK);
+    // GROUP/action stuff is obsolete
+    /* result = InitializeScheduleResourceList(); */
+    /* VERIFY_SUCCESS_2(result, OC_STACK_OK); */
 
     // initialize camessagehandler:
     result = CAResultToOCResult(CAInitialize((CATransportAdapter_t)transportType));
@@ -1131,21 +1096,23 @@ LOCAL OCStackResult OCInitializeInternal(OCMode mode, OCTransportFlags serverFla
     switch (myStackMode)
     {
 	// FIXME: initialize client/server mode statically at build time
+        // FIXME: we do not need two start routines, they do the same thing
         case OC_CLIENT:
-            CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+            // CARegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
             OIC_LOG(INFO, TAG, "Client mode: CAStartDiscoveryServer");
+            // FIXME: for each transport, configure _oocf_configure_udp, _oocf_configure_tcp
             result = CAResultToOCResult(CAStartDiscoveryServer());
             break;
         case OC_SERVER:
 	    // FIXME: SRMRegisterHandler just calls CARegisterHandler with secure handles if DTLS
             // GAR virtual lookups removed, this registration call can be removed?
-            SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+            // SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
             OIC_LOG(INFO, TAG, "Server mode: CAStartListeningServer");
             result = CAResultToOCResult(CAStartListeningServer());
             break;
         case OC_CLIENT_SERVER:
         case OC_GATEWAY:
-            SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
+            // SRMRegisterHandler(HandleCARequests, HandleCAResponses, HandleCAErrorResponse);
 	    OIC_LOG(INFO, TAG, "ClientServer mode: CAStartListeningServer");
             result = CAResultToOCResult(CAStartListeningServer());
             if(result == OC_STACK_OK)
@@ -1205,7 +1172,8 @@ exit:
     if(result != OC_STACK_OK)
     {
         OIC_LOG_V(ERROR, TAG, "Stack initialization error: %d", result);
-        TerminateScheduleResourceList();
+        // from oicgroup.c logic g1253
+        // from oicgroup.c TerminateScheduleResourceList.();
         deleteAllResources();
         CATerminate();
         stackState = OC_STACK_UNINITIALIZED;
@@ -1283,7 +1251,7 @@ LOCAL OCStackResult OCDeInitializeInternal(void)
         OIC_LOG(ERROR, TAG, "CAUnregisterNetworkMonitorHandler has failed");
     }
 
-    TerminateScheduleResourceList();
+    // from oicgroup.c: TerminateScheduleResourceList();
     // Free memory dynamically allocated for resources
     deleteAllResources();
     // Remove all the client callbacks
@@ -1518,6 +1486,7 @@ OCStackResult OC_CALL OCProcess(void) EXPORT
     return OC_STACK_OK;
 }
 
+// purpose? for use by application code?
 OCStackResult OC_CALL OCSetDefaultDeviceEntityHandler(OCDeviceEntityHandler entityHandler,
                                                       void* callbackParameter)
 {
@@ -2119,37 +2088,7 @@ OC_CALL OCNotifyListOfObservers (OCResourceHandle handle,
             payload, maxAge, qos));
 }
 
-/* send outbound response */
-OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse) EXPORT
-{
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    OIC_TRACE_BEGIN(%s:OCDoResponse, TAG);
-    OCStackResult result = OC_STACK_ERROR;
-    // OCServerRequest *serverRequest = NULL;
-    struct CARequestInfo *request = NULL;
-
-    OIC_LOG_V(DEBUG, TAG, "%s result: 0x%04x", __func__, ehResponse->ehResult);
-
-    // Validate input parameters
-    VERIFY_NON_NULL(ehResponse, ERROR, OC_STACK_INVALID_PARAM);
-    VERIFY_NON_NULL(ehResponse->requestHandle, ERROR, OC_STACK_INVALID_PARAM);
-
-    // Normal response
-    // Get pointer to request info
-    // serverRequest = (OCServerRequest *)ehResponse->requestHandle;
-    request = (struct CARequestInfo *)ehResponse->requestHandle;
-    VERIFY_NON_NULL(request->ehResponseHandler, ERROR, OC_STACK_INVALID_PARAM);
-    if(request)
-    {
-        // response handler in ocserverrequest.c. Usually HandleSingleResponse.
-        // ehResponseHandler will be either HandleSingleResponse or HandleAggregateResponse
-        result = request->ehResponseHandler(ehResponse);
-    }
-
-    OIC_TRACE_END();
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-    return result;
-}
+/* OCDoResponse => oocf_host_server.c */
 
 //-----------------------------------------------------------------------------
 // Private internal function definitions
@@ -2414,78 +2353,6 @@ LOCAL OCResourceInterface *findResourceInterfaceAtIndex(OCResourceHandle handle,
     return pointer;
 }
 
-/*
- * This function splits the URI using the '?' delimiter.
- * "uriWithoutQuery" is the block of characters between the beginning
- * till the delimiter or '\0' which ever comes first.
- * "query" is whatever is to the right of the delimiter if present.
- * No delimiter sets the query to NULL.
- * If either are present, they will be malloc'ed into the params 2, 3.
- * The first param, *uri is left untouched.
-
- * NOTE: This function does not account for whitespace at the end of the URI NOR
- *       malformed URIs with '??'. Whitespace at the end will be assumed to be
- *       part of the query.
- */
-/**
- * Extract query from a URI.
- *
- * @param uri Full URI with query.
- * @param query Pointer to string that will contain query.
- * @param newURI Pointer to string that will contain URI.
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-/* static OCStackResult getQueryFromUri(const char * uri, char** resourceType, char ** newURI); */
-OCStackResult getQueryFromUri(const char * uri, char** query, char ** uriWithoutQuery)
-{
-    if(!uri)
-    {
-        return OC_STACK_INVALID_URI;
-    }
-    if(!query || !uriWithoutQuery)
-    {
-        return OC_STACK_INVALID_PARAM;
-    }
-
-    *query           = NULL;
-    *uriWithoutQuery = NULL;
-
-    size_t uriWithoutQueryLen = 0;
-    size_t queryLen = 0;
-    size_t uriLen = strlen(uri);
-
-    char *pointerToDelimiter = strstr(uri, "?");
-
-    uriWithoutQueryLen = pointerToDelimiter == NULL ? uriLen : (size_t)(pointerToDelimiter - uri);
-    queryLen = pointerToDelimiter == NULL ? 0 : uriLen - uriWithoutQueryLen - 1;
-
-    if (uriWithoutQueryLen)
-    {
-        *uriWithoutQuery =  (char *) OICCalloc(uriWithoutQueryLen + 1, 1);
-        if (!*uriWithoutQuery)
-        {
-            goto exit;
-        }
-        OICStrcpy(*uriWithoutQuery, uriWithoutQueryLen +1, uri);
-    }
-    if (queryLen)
-    {
-        *query = (char *) OICCalloc(queryLen + 1, 1);
-        if (!*query)
-        {
-            OICFree(*uriWithoutQuery);
-            *uriWithoutQuery = NULL;
-            goto exit;
-        }
-        OICStrcpy(*query, queryLen + 1, pointerToDelimiter + 1);
-    }
-
-    return OC_STACK_OK;
-
-    exit:
-        return OC_STACK_NO_MEMORY;
-}
-
 static const OicUuid_t* OC_CALL OCGetServerInstanceID(void)
 {
     static OicUuid_t sid;
@@ -2625,7 +2492,8 @@ bool OCResultToSuccess(OCStackResult ocResult)
 {
     switch (ocResult)
     {
-        case OC_STACK_OK:
+        case OC_STACK_OK:       /* ==0, > 2.03, 2.05 */
+            //case CA_CONTENT:        /* 205 */
         case OC_STACK_RESOURCE_CREATED:
         case OC_STACK_RESOURCE_DELETED:
         case OC_STACK_CONTINUE:
@@ -2742,9 +2610,9 @@ OCStackResult OCUpdateResourceInsWithResponse(const char *requestUri,
         }
         else
         {
-            const char *token = "&";
+            const uint8_t *delim = "&";
             char *iterTokenPtr = NULL;
-            char *start = strtok_r(targetUri, token, &iterTokenPtr);
+            char *start = strtok_r(targetUri, delim, &iterTokenPtr);
 
              while (start != NULL)
              {
@@ -2783,7 +2651,7 @@ OCStackResult OCUpdateResourceInsWithResponse(const char *requestUri,
                          }
                      }
                  }
-                 start = strtok_r(NULL, token, &iterTokenPtr);
+                 start = strtok_r(NULL, delim, &iterTokenPtr);
              }
         }
     }
@@ -2830,80 +2698,6 @@ OCResourceHandle OC_CALL OCGetResourceHandleAtUri(const char *uri)
         pointer = pointer->next;
     }
     return NULL;
-}
-
-/**
- * Set Header Option.
- * @param caHdrOpt            Pointer to existing options
- * @param numOptions          Number of existing options.
- * @param optionID            COAP option ID.
- * @param optionData          Option data value.
- * @param optionDataLength    Size of Option data value.
-
- * @return ::OC_STACK_OK on success, some other value upon failure.
- */
-OCStackResult SetHeaderOption(CAHeaderOption_t *caHdrOpt, size_t numOptions,
-                              uint16_t optionID, void* optionData, size_t optionDataLength)
-{
-    if (!caHdrOpt)
-    {
-        return OC_STACK_INVALID_PARAM;
-    }
-
-    if (!optionData)
-    {
-        OIC_LOG (INFO, TAG, "optionData are NULL");
-        return OC_STACK_INVALID_PARAM;
-    }
-
-    caHdrOpt[numOptions].protocolID = CA_COAP_ID;
-    caHdrOpt[numOptions].optionID = optionID;
-    caHdrOpt[numOptions].optionLength =
-            (optionDataLength < MAX_HEADER_OPTION_DATA_LENGTH) ?
-                    (uint16_t) optionDataLength : MAX_HEADER_OPTION_DATA_LENGTH;
-    memcpy(caHdrOpt[numOptions].optionData, (const void*) optionData,
-            caHdrOpt[numOptions].optionLength);
-
-    return OC_STACK_OK;
-}
-
-OCStackResult OC_CALL OCSetHeaderOption(OCHeaderOption* ocHdrOpt, size_t* numOptions, uint16_t optionID,
-                                        void* optionData, size_t optionDataLength) EXPORT
-{
-    if (!ocHdrOpt)
-    {
-        OIC_LOG (INFO, TAG, "Header options are NULL");
-        return OC_STACK_INVALID_PARAM;
-    }
-
-    if (!optionData)
-    {
-        OIC_LOG (INFO, TAG, "optionData are NULL");
-        return OC_STACK_INVALID_PARAM;
-    }
-
-    if (!numOptions)
-    {
-        OIC_LOG (INFO, TAG, "numOptions is NULL");
-        return OC_STACK_INVALID_PARAM;
-    }
-
-    if (*numOptions >= MAX_HEADER_OPTIONS)
-    {
-        OIC_LOG (INFO, TAG, "Exceeding MAX_HEADER_OPTIONS");
-        return OC_STACK_NO_MEMORY;
-    }
-
-    ocHdrOpt += *numOptions;
-    ocHdrOpt->protocolID = OC_COAP_ID;
-    ocHdrOpt->optionID = optionID;
-    ocHdrOpt->optionLength =
-            (optionDataLength < MAX_HEADER_OPTION_DATA_LENGTH) ?
-                    (uint16_t)optionDataLength : MAX_HEADER_OPTION_DATA_LENGTH;
-    memcpy(ocHdrOpt->optionData, (const void*) optionData, ocHdrOpt->optionLength);
-    *numOptions += 1;
-
-    return OC_STACK_OK;
 }
 
 /**
