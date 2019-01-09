@@ -20,6 +20,7 @@
 
 #include "ocendpoint.h"
 
+#include <arpa/inet.h>
 #include <errno.h>
 #include <net/if.h>
 #include <string.h>
@@ -34,23 +35,64 @@
 #if EXPORT_INTERFACE
 #include <stdint.h>
 #include <stdio.h>
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
 /* src: cacommon.h */
-typedef struct /* added: */ CAEndpoint_s
+// FIXME: make this a superset of struct ifaddrs
+struct oocf_endpoint
 {
-    CATransportAdapter_t    adapter;    // adapter type
-    CATransportFlags_t      flags;      // transport modifiers
-    uint16_t                port;       // for IP
-    char                    addr[MAX_ADDR_STR_SIZE_CA]; // address for all
+    // EP transport: one transport per ep, since each ep has one
+    // address.  The CATransportAdapter_t struct allows for multiple
+    // "adapters", e.g. CA_ALL_ADAPTERS. This is not useful for OCF
+    // eps.
+    CATransportAdapter_t    adapter;    // FIXME: means Transport, UPD or TCP
+    // derivable from socket FD using getsockopt SO_TYPE
+
+    CATransportFlags_t      flags; // IP version, secure, multicast, ipv6 scope
+    // IP version derivable from sockaddr: ifa->ifa_addr->sa_family
+
+    // sa_family_t sa_family;
+    // sa_data:
+    in_port_t               port;       // for IP
+    char                    addr[INET6_ADDRSTRLEN + 1]; // address for all
+    //struct in6_addr         addr6;
+
+    /* union { */
+    /*     char                    addr6[INET6_ADDRSTRLEN]; // address for all */
+    /*     char                    addr4[INET_ADDRSTRLEN]; // address for all */
+    /* } */
+    /* we need to keep track of which NIF msg arrived on, to get the ipv6 zone id */
     uint32_t                ifindex;    // usually zero for default interface
     char                    remoteId[CA_MAX_IDENTITY_SIZE]; // device ID of remote device
 #if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
     char                    routeData[MAX_ADDR_STR_SIZE_CA]; /**< GatewayId:ClientId of
                                                                     destination. **/
 #endif
-} CAEndpoint_t; // @rewrite -> OCLocalEndpoint
+};
+typedef struct oocf_endpoint CAEndpoint_t;
 
 #define CA_SECURE_ENDPOINT_PUBLIC_KEY_MAX_LENGTH    (512)
+
+// used inside an OCResourceLinkPayload inside an OCDiscoveryPayload
+// compare CAEndpoint_t for local endpoints
+/* src: octypes.h */
+typedef struct OCEndpointPayload // @rewrite => OCRemoteEndpoint
+{
+    char* tps;
+    char* addr;
+    OCTransportFlags family;
+    uint16_t port;
+    uint16_t pri;
+    struct OCEndpointPayload* next;
+} OCEndpointPayload;
+
 #endif	/* EXPORT_INTERFACE */
+
+/**
+ * List of the CAEndpoint_t* that has a stack-owned IP address.
+ */
+u_arraylist_t *g_local_endpoint_cache = NULL; /* FIXME: @rewrite udp_local_ep_cache */
 
 /**
  * Endpoint information for secure messages.
@@ -189,9 +231,9 @@ OCStackResult OCGetMatchedTpsFlags(const CATransportAdapter_t adapter,
         return OC_STACK_INVALID_PARAM;
     }
 
-    if ((adapter & OC_ADAPTER_IP) && (flags & (OC_IP_USE_V4 | OC_IP_USE_V6)))
+    if ((adapter & CA_ADAPTER_IP) && (flags & (CA_IPV4 | CA_IPV6)))
     {
-        if (flags & OC_FLAG_SECURE)
+        if (flags & CA_SECURE)
         {
             // OC_COAPS
             // typecasting to support C90(arduino)
@@ -313,7 +355,7 @@ exit:
     return OC_STACK_NO_MEMORY;
 }
 
-char* OCCreateEndpointString(const OCEndpointPayload* endpoint)
+char* OCCreateEndpointString(const OCEndpointPayload* endpoint) EXPORT
 {
     /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     if (!endpoint)
@@ -662,6 +704,44 @@ OCTpsSchemeFlags OCGetSupportedTpsFlags(void)
     return ret;
 }
 
+CAEndpoint_t *udp_create_endpoint(struct ifaddrs *ifa, unsigned int ifindex, bool secure)
+{
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
+    //char addr_str[256] = {0}; // debugging
+    // in_port_t port;
+
+    CAEndpoint_t *ep = (CAEndpoint_t *)OICCalloc(1, sizeof(CAEndpoint_t));
+    memset(ep, 0, sizeof(CAEndpoint_t));
+
+    ep->adapter = CA_ADAPTER_IP; /* meaning UDP transport, NOT ipv4/v6 */
+    ep->ifindex = ifindex;
+
+    if (ifa->ifa_addr->sa_family == AF_INET6) {
+        inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr), ep->addr, INET6_ADDRSTRLEN);
+        if (secure) {
+            ep->flags = CA_IPV6 | CA_SECURE ;
+            ep->port = udp_u6s.port;
+        } else {
+            ep->flags = CA_IPV6;
+            ep->port = udp_u6.port;
+        }
+        if (IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr))) {
+            ep->flags |= CA_SCOPE_LINK;
+        }
+    } else {
+        if (secure) {
+            ep->flags = CA_IPV4 | CA_SECURE;
+            ep->port = udp_u4s.port;
+        } else {
+            ep->flags = CA_IPV4;
+            ep->port = udp_u4.port;
+        }
+        inet_ntop(AF_INET, &(((struct sockaddr_in *)ifa->ifa_addr)->sin_addr), ep->addr, INET_ADDRSTRLEN);
+        /* OIC_LOG_V(DEBUG, TAG, "\tep: ipv4, %s port %d ", ep->addr, ep->port); */
+    }
+    return ep;
+}
+
 /*
  * Get realtime list of one address per unique (IF, family) pair
  */
@@ -678,6 +758,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
         return CA_STATUS_FAILED;
     }
 
+    // FIXME: eps per ifaddr, not per nif
 #ifdef __WITH_DTLS__
     const size_t endpointsPerInterface = 2;
 #else
@@ -739,7 +820,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
         }
 
         eps[j].adapter = CA_ADAPTER_IP; /* meaning UDP transport, NOT ipv4/v6 */
-        // eps[j].ifindex = ifitem->index;
+        eps[j].ifindex = ifitem->index;
 
         if (ifitem->family == AF_INET6)
         {
@@ -760,7 +841,7 @@ CAResult_t udp_get_local_endpoints(CAEndpoint_t **info, size_t *size) // @was CA
                   __func__, i*2+1, ifitem->index, ifitem->addr);
 
         eps[j].adapter = CA_ADAPTER_IP;
-        // oeps[j].ifindex = ifitem->index;
+        eps[j].ifindex = ifitem->index;
 
         if (ifitem->family == AF_INET6)
         {
@@ -887,8 +968,9 @@ bool CAIPIsLocalEndpoint(const CAEndpoint_t *ep)
     for (size_t i = 0; i < len; i++)
     {
         CAEndpoint_t *ownIpEp = u_arraylist_get(g_local_endpoint_cache, i);
-        if (!strcmp(addr, ownIpEp->addr) && ep->port == ownIpEp->port)
-            // && ep->ifindex == ownIpEp->ifindex)
+        if ((strcmp(addr, ownIpEp->addr) == 0)
+            && (ep->port == ownIpEp->port)
+            && (ep->ifindex == ownIpEp->ifindex))
         {
             return true;
         }
@@ -933,8 +1015,12 @@ OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload, uint32
                         {
                             assert(zoneId != NULL);
                             // put zoneId to end of addr
+                            /* char z[20]; */
+                            /* sprintf(z, "%u", ifindex); */
                             OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, "%25");
+                            //OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, z);
                             OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, zoneId);
+                            OIC_LOG_V(DEBUG, TAG, "addr with zone: %s; ifindex: %u, %s", eps->addr, ifindex, zoneId);
                             OICFree(zoneId);
                         }
                         else
@@ -988,4 +1074,47 @@ CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
 
     OIC_LOG_V(DEBUG, TAG, "Given ifindex is %d parsed zoneId is %s", ifindex, *zoneId);
     return CA_STATUS_OK;
+}
+
+void CopyDevAddrToEndpoint(const OCDevAddr *in, CAEndpoint_t *out)
+{
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+
+    VERIFY_NON_NULL_NR(in, FATAL);
+    VERIFY_NON_NULL_NR(out, FATAL);
+
+    out->adapter = (CATransportAdapter_t)in->adapter;
+    out->flags = OCToCATransportFlags(in->flags);
+    OICStrcpy(out->addr, sizeof(out->addr), in->addr);
+    OICStrcpy(out->remoteId, sizeof(out->remoteId), in->remoteId);
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+    /* This assert is to prevent accidental mismatch between address size macros defined in
+     * RI and CA and cause crash here. */
+    OC_STATIC_ASSERT(MAX_ADDR_STR_SIZE_CA == MAX_ADDR_STR_SIZE,
+                                        "Address size mismatch between RI and CA");
+    memcpy(out->routeData, in->routeData, sizeof(in->routeData));
+#endif
+    out->port = in->port;
+    /* out->ifindex = in->ifindex; */
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
+}
+
+void CopyEndpoint(const CAEndpoint_t *in, CAEndpoint_t *out)
+{
+    VERIFY_NON_NULL_NR(in, FATAL);
+    VERIFY_NON_NULL_NR(out, FATAL);
+
+    out->adapter = (CATransportAdapter_t)in->adapter;
+    out->flags = in->flags;
+    OICStrcpy(out->addr, sizeof(out->addr), in->addr);
+    OICStrcpy(out->remoteId, sizeof(out->remoteId), in->remoteId);
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+    /* This assert is to prevent accidental mismatch between address size macros defined in
+     * RI and CA and cause crash here. */
+    OC_STATIC_ASSERT(MAX_ADDR_STR_SIZE_CA == MAX_ADDR_STR_SIZE,
+                                        "Address size mismatch between RI and CA");
+    memcpy(out->routeData, in->routeData, sizeof(in->routeData));
+#endif
+    out->port = in->port;
+    /* out->ifindex = in->ifindex; */
 }
