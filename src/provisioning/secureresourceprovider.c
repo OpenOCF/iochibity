@@ -902,10 +902,11 @@ static OCStackApplicationResult SetReadyForNormalOperationCB(void *ctx, OCDoHand
     return OC_STACK_DELETE_TRANSACTION;
 }
 
+/* set Device Onboarding State */
 OCStackResult SetDOS(const Data_t *data,
                      OicSecDeviceOnboardingState_t dos,
                      OCClientResponseHandler resultCallback)
-                     /* OCStackResult(*resultCallback)(void *ctx, OCDoHandle UNUSED, OCClientResponse *clientResponse)) */
+                     //OCStackResult(*resultCallback)(void *ctx, OCDoHandle UNUSED, OCClientResponse *clientResponse))
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
     if (NULL == data || NULL == resultCallback)
@@ -963,7 +964,7 @@ OCStackResult SetDOS(const Data_t *data,
             return OC_STACK_INVALID_PARAM;
         }
     }
-    // Skip posting new DOS state in case of OIC server
+    // Skip posting new DOS state in case of legacy OIC server
     if (IS_OIC(pTargetDev->specVer))
     {
         OCClientResponse clientResponse = {.result = OC_STACK_RESOURCE_CHANGED};
@@ -1078,8 +1079,8 @@ static OCStackApplicationResult ProvisionCB(void *ctx, OCDoHandle handle,
 /**
  * Callback for PSK provisioning.
  */
-LOCAL OCStackResult  ProvisionPskCB(void *ctx, OCDoHandle UNUSED,
-                                                OCClientResponse *clientResponse)
+LOCAL OCStackResult ProvisionPskCB(void *ctx, OCDoHandle UNUSED,
+                                    OCClientResponse *clientResponse)
 {
     VERIFY_NOT_NULL_RETURN(TAG, ctx, ERROR, OC_STACK_INVALID_PARAM);
     (void) UNUSED;
@@ -1181,7 +1182,7 @@ static OCStackApplicationResult provisionCertificateCB(void *ctx, OCDoHandle UNU
  */
 
 static OCStackResult ProvisionTrustChainCB(void *ctx, OCDoHandle UNUSED,
-        OCClientResponse *clientResponse)
+                                           OCClientResponse *clientResponse)
 {
     OIC_LOG_V(INFO, TAG, "IN %s", __func__);
     (void) UNUSED;
@@ -1609,7 +1610,7 @@ OCStackResult SRPSaveOwnRoleCert(OicSecKey_t * cert, uint16_t *credId)
  * Callback for Certificate provisioning.
  */
 static OCStackResult ProvisionCertificateCB(void *ctx, OCDoHandle handle,
-        OCClientResponse *clientResponse)
+                                            OCClientResponse *clientResponse)
 {
     OIC_LOG_V(INFO, TAG, "IN %s", __func__);
 
