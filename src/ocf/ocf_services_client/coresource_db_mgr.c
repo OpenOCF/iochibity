@@ -68,7 +68,6 @@ EXPORT
     u_linklist_add_head(g_responses, (void*) inbound_response);
 
     /* FIXME: should we remove duplicates? */
- exit:
     oc_mutex_unlock(g_responses_mutex);
     OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 }
@@ -83,7 +82,7 @@ EXPORT
     u_linklist_init_iterator(g_responses, &iterTable);
 
     /* FIXME: free msg, not just list node! */
-    u_linklist_remove(g_responses, iterTable);
+    u_linklist_remove(g_responses, &iterTable);
 
     // find response in list, then remove it
     /* struct OOCF_ResponseMsg *curr_p, *prev_p;
@@ -147,7 +146,7 @@ EXPORT
     uint16_t actualDataSize = 0;
     OCGetHeaderOption(msg->rcvdVendorSpecificHeaderOptions,
 		      msg->numRcvdVendorSpecificHeaderOptions,
-		      OCF_CONTENT_FORMAT_VERSION,
+		      OCF_OPTION_CONTENT_FORMAT_VERSION,
 		      vOptionData,
 		      vOptionDataSize,
 		      &actualDataSize);
@@ -227,7 +226,7 @@ EXPORT
         OCClientResponse *msg = (OCClientResponse*)u_linklist_get_data(iterTable);
 	/* OIC_LOG_V(INFO, TAG, "Purging: %p", msg); */
       	OCPayloadDestroy(msg->payload);
-      	OICFree(msg->resourceUri);
+      	OICFree((void*)msg->resourceUri);
 	/* invalidate any pointers to the msg: */
 	memset(msg, '\0', sizeof(OCClientResponse));
       	OICFree(msg);
@@ -256,15 +255,14 @@ EXPORT
     OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
 }
 
-OCClientResponse *oocf_coresource_db_msgs(void)
-EXPORT
-{
-    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
-    return g_responses_mutex;
-}
+/* OCClientResponse *oocf_coresource_db_msgs(void) */
+/* EXPORT */
+/* { */
+/*     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__); */
+/*     return g_responses; */
+/* } */
 
-int oocf_coresource_db_msg_labels(/* out */ char ***label_list)
-EXPORT
+int oocf_coresource_db_msg_labels(/* out */ char ***label_list) EXPORT
 {
     OCClientResponse *msg = NULL;
 
@@ -290,7 +288,6 @@ EXPORT
     u_linklist_iterator_t *iter = NULL;
     u_linklist_init_iterator(g_responses, &iter);
 
-    int i = 0;
     int payload_type;
     while (NULL != iter) {
 	msg = (OCClientResponse*)u_linklist_get_data(iter);
@@ -323,13 +320,13 @@ int oocf_coresource_db_count(void)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     oc_mutex_lock(g_responses_mutex);
-    int count = u_linklist_length(g_responses_mutex);
+    int count = u_linklist_length(g_responses);
     oc_mutex_unlock(g_responses_mutex);
     return count;
 }
 
 /* caller is reponsible for freeing the result */
-int oocf_cosp_mgr_list_coresource_uris(/* out */ const char ***uri_list)
+int oocf_cosp_mgr_list_coresource_uris(/* out */ char ***uri_list)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCClientResponse *msg = NULL;
@@ -386,7 +383,6 @@ int oocf_cosp_mgr_list_coresource_uris(/* out */ const char ***uri_list)
 
     u_linklist_init_iterator(g_responses, &iter);
 
-    int i = 0;
     while (NULL != iter) {
 	msg = (OCClientResponse*)u_linklist_get_data(iter);
 	if (msg != NULL) {
