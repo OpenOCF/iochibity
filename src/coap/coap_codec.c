@@ -76,7 +76,7 @@ typedef struct _oocf_coap_msg_unpacked /* src: camessagehandler.c */
                                  * otherwise, you can use it */
     uint8_t *token;             /**< Token for CA */
     uint8_t tokenLength;        /**< token length */
-    CAHeaderOption_t *options;  /** Header Options for the request */
+    struct oocf_coap_options /* CAHeaderOption_t */ *options;  /** Header Options for the request */
     uint8_t numOptions;         /**< Number of Header options */
     unsigned char /* CAPayload_t */ *payload_cbor; /**< cbor-encoded coap payload */
     size_t payloadSize;         /**< size in bytes of the payload */
