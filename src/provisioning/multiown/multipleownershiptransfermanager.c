@@ -94,7 +94,7 @@ struct OicSecMom{
  * @return  OC_STACK_DELETE_TRANSACTION to delete the transaction
  *          and  OC_STACK_KEEP_TRANSACTION to keep it.
  */
-static OCStackApplicationResult MOTUpdateSecurityResourceCB(void *ctx, OCDoHandle handle,
+static OCStackResult /* OCStackApplicationResult */ MOTUpdateSecurityResourceCB(void *ctx, OCDoHandle handle,
         OCClientResponse *clientResponse)
 {
     OIC_LOG_V(DEBUG, TAG, "IN %s", __func__);
@@ -146,7 +146,7 @@ exit:
         OICFree(motCtx);
     }
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
-    return OC_STACK_DELETE_TRANSACTION;
+    return OC_STACK_OK; //  OC_STACK_DELETE_TRANSACTION;
 }
 
 /**
