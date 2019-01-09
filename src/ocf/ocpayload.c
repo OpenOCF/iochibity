@@ -70,7 +70,7 @@ typedef enum
  */
 #if EXPORT_INTERFACE
 /* src: cacommon.h */
-typedef uint8_t *CAPayload_t;
+//typedef uint8_t *CAPayload_t;
 #endif	/* INTERFACE */
 
 #if EXPORT_INTERFACE

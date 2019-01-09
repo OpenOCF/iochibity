@@ -63,8 +63,8 @@
 /*         const char *value); */
 
 /* FIXME: @rename:  oocf_coap_to_cbor or similar */
-OCStackResult OCConvertPayload(OCPayload* payload, OCPayloadFormat format,
-        uint8_t** outPayload, size_t* size)
+OCStackResult OCConvertPayload(struct OCPayload* payload, OCPayloadFormat format,
+                               uint8_t** outPayload, size_t* size)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     // TinyCbor Version 47a78569c0 or better on master is required for the re-allocation

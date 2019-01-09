@@ -762,7 +762,7 @@ OCStackResult getLastUpdateFromDB(char **lastUpdate)
 {
     OCStackResult result = OC_STACK_OK;
 
-    OCPayload *payload = NULL;
+    struct OCPayload *payload = NULL;
     uint8_t *data = NULL;
     size_t size = 0;
 
@@ -778,7 +778,7 @@ OCStackResult getLastUpdateFromDB(char **lastUpdate)
         goto exit;
     }
 
-    result = OCParsePayload(&payload, OC_FORMAT_CBOR, PAYLOAD_TYPE_REPRESENTATION, data, size);
+    result = OCParsePayload(&payload, OC_FORMAT_CBOR, PAYLOAD_TYPE_REPRESENTATION, (struct OCPayload*)data, size);
     if (result != OC_STACK_OK)
     {
         OIC_LOG(ERROR, TAG, "Can't parse cbor data from DB");
