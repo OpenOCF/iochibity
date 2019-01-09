@@ -1,5 +1,78 @@
 = ocf package
 
+== server processing
+
+Inbound Request Handling
+
+CoAP msg data are passed up the stack and converted to various
+structs, from CAInfo_t to OCServerProtocolRequest to
+OCServerRequest.
+
+oocf_handle_inbound_messages() (both server and client)
+    pulls msg from recv queue
+
+=> SRMRequestHandler(const CAEndpoint_t *endPoint, const CARequestInfo_t *requestInfo)
+==> SRMGenerateResponse(SRMRequestContext_t *context): context contains ep and requestInfo
+===> HandleCARequests(context->endPoint, context->requestInfo)
+===> for errors: SRMRequestHandler(td->remoteEndpoint, td->requestInfo)
+
+HandleCARequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
+        CARequestInfo_t is dgram, payload is coap pdu?
+        HandleCARequests dispatches to RM if enabled, then just passes dgram to OCHandleRequests
+=> OCHandleRequests(const CAEndpoint_t* endPoint, const CARequestInfo_t* requestInfo)
+        converts CARequestInfo_t to OCServerProtocolRequest
+        main purpose seems to be to convert from CA names to OC names?
+        e.g.  CA_GET to  OC_REST_GET
+        even worse: from info.type == CA_MSG_CONFIRM to serverRequest.qos = OC_HIGH_QOS
+        worse worse: CopyEndpointToDevAddr(endPoint, &serverRequest.devAddr);
+==> HandleStackRequests(OCServerProtocolRequest * protocolRequest)
+        converts OCServerProtocolRequest to OCServerRequest
+===> ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerRequest *request)
+====> handler, depending on resource type.
+        for user-defined, convert OCServerRequest to OCEntityHandlerRequest and invoke user CB
+
+TODO: eliminate intermediate structs.
+
+Data structs:
+
+SRMRequestContext_t
+
+CARequestInfo_t
+OCServerProtocolRequest
+OCServerRequest
+OCEntityHandlerRequest
+
+
+== endpoints
+
+An OCF "endpoint" is a TPS (e.g. coaps, coaps+tcp, etc.), and IP
+address, and a port. Note that Address Family is implicity, since it
+can be derived from the address.
+
+OCF endpoints are explicitly at the transport layer (TPS), and
+implicitly at the network layer (IP address). They do not carry
+information about lower layers; in particularly they say nothing about
+NIFs (NICs/adapters).
+
+In the Iotivity implementation the following structs are involved in
+EP management:
+
+* CAEndpoint_t - similar to sockaddr.
+* CASecureEndpoint_t - contains CAEndpoint_t, public key of peer. Always use for remote eps?
+* SslEndPoint_t - contains CASecureEndpoint_t
+* SslContext_t->peerList (arraylist of SslEndpoint_t)
+
+Notes:
+* no need to store ifindex anywhere
+* addr can be stored in binary, not to store it as a string
+
+So on the one hand we open sockets for udp/tcp, secure and unsecure,
+ipv4 and ipv6.  OTOH, we maintain the list of local EPs, and whenever
+talking to a remote host, we represent it as a remote EP.
+
+So our local EP list corresponds to our list of sockets.  So why do we
+need to maintain it separately?
+
 == makeheaders todo
 
 * oickeepalive.c - only compile on --enable-tcp
