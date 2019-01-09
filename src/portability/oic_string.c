@@ -29,7 +29,6 @@
 #define TAG "OIC_STRING"
 
 char *OICStrdup(const char *str)
-EXPORT
 {
     size_t length;
     char *dup;
