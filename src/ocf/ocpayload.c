@@ -46,13 +46,25 @@ typedef enum
     CA_FORMAT_APPLICATION_OCTET_STREAM,
     CA_FORMAT_APPLICATION_RDF_XML,
     CA_FORMAT_APPLICATION_EXI,
-    CA_FORMAT_APPLICATION_JSON,
-    CA_FORMAT_APPLICATION_CBOR,
-    CA_FORMAT_APPLICATION_VND_OCF_CBOR,
-    CA_FORMAT_UNSUPPORTED
+    CA_FORMAT_APPLICATION_JSON = 10,
+    CA_FORMAT_APPLICATION_CBOR = 11,
+    CA_FORMAT_APPLICATION_VND_OCF_CBOR = 12,
+    CA_FORMAT_UNSUPPORTED = 99
 } CAPayloadFormat_t;
-#endif	/* INTERFACE */
 
+/**
+ *  Formats for payload encoding.
+ */
+/* src: octypes.h */
+typedef enum
+{
+    OC_FORMAT_CBOR = 11,
+    OC_FORMAT_VND_OCF_CBOR = 12,
+    OC_FORMAT_JSON = 10,
+    OC_FORMAT_UNDEFINED = 0,
+    OC_FORMAT_UNSUPPORTED = 99,
+} OCPayloadFormat;
+#endif	/* INTERFACE */
 /**
  * Payload information from resource model.
  */
@@ -106,7 +118,7 @@ typedef enum
  * for the its type.
  */
 /* src: octypes.h */
-typedef struct
+typedef struct OCPayload
 {
     /** The type of message that was received */
     OCPayloadType type;
@@ -193,19 +205,6 @@ typedef struct OCRepPayload
     struct OCRepPayload* next;
 } OCRepPayload;
 
-// used inside an OCResourceLinkPayload inside an OCDiscoveryPayload
-// compare CAEndpoint_t for local endpoints
-/* src: octypes.h */
-typedef struct OCEndpointPayload // @rewrite => OCRemoteEndpoint
-{
-    char* tps;
-    char* addr;
-    OCTransportFlags family;
-    uint16_t port;
-    uint16_t pri;
-    struct OCEndpointPayload* next;
-} OCEndpointPayload;
-
 // used inside an OCDiscoveryPayload
 /* GAR: a Link? OCF 1.3.0 section 7.8.2. Compare OCResource in ocresource.h */
 /* src: octypes.h */
@@ -277,21 +276,6 @@ typedef struct
 } OCIntrospectionPayload;
 
 #endif	/* EXPORT_INTERFACE */
-
-#if EXPORT_INTERFACE
-/**
- *  Formats for payload encoding.
- */
-/* src: octypes.h */
-typedef enum
-{
-    OC_FORMAT_CBOR,
-    OC_FORMAT_VND_OCF_CBOR,
-    OC_FORMAT_JSON,
-    OC_FORMAT_UNDEFINED,
-    OC_FORMAT_UNSUPPORTED,
-} OCPayloadFormat;
-#endif	/* INTERFACE */
 
 static void OCFreeRepPayloadValueContents(OCRepPayloadValue* val);
 
@@ -1734,7 +1718,7 @@ OCStringLL* OC_CALL CloneOCStringLL (OCStringLL* ll)
 
 OCStringLL* OC_CALL OCCreateOCStringLL(const char* text)
 {
-    uint8_t *token = NULL;
+    char *token = NULL;
     char *head = NULL;
     char *tail = NULL;
     char *backup  = NULL;
@@ -2095,51 +2079,57 @@ void OC_CALL OCResourcePayloadAddNewEndpoint(OCResourcePayload* payload, OCEndpo
  * @return if success return pointer else NULL
  */
 OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
-					     const OCDevAddr *devAddr,
-					     CAEndpoint_t *local_eps,
-					     size_t local_eps_count,
+					     const CAEndpoint_t /* OCDevAddr */ *devAddr,
+					     /* CAEndpoint_t *local_eps, */
+					     /* size_t local_eps_count, */
 					     OCEndpointPayload **listHead,
 					     size_t* epSize,
 					     OCEndpointPayload** selfEp)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
+    OIC_LOG_V(DEBUG, TAG, "g_local_endpoint_cache count: %d", u_arraylist_length(g_local_endpoint_cache));
+
     OCEndpointPayload *headNode = NULL;
     OCEndpointPayload *lastNode = NULL;
 
     VERIFY_PARAM_NON_NULL(TAG, resource, "Invalid resource parameter");
     VERIFY_PARAM_NON_NULL(TAG, devAddr, "Invalid devAddr parameter");
-    VERIFY_PARAM_NON_NULL(TAG, local_eps, "Invalid local_eps parameter");
+    /* VERIFY_PARAM_NON_NULL(TAG, local_eps, "Invalid local_eps parameter"); */
     VERIFY_PARAM_NON_NULL(TAG, listHead, "Invalid listHead parameter");
     if (epSize != NULL) *epSize = 0;
 
     bool includeSecure = resource->resourceProperties & OC_SECURE;
     bool includeNonsecure = resource->resourceProperties & OC_NONSECURE;
 
-    if ((OC_ADAPTER_IP | OC_ADAPTER_TCP) & (devAddr->adapter))
+    if ((CA_ADAPTER_IP | CA_ADAPTER_TCP) & (devAddr->adapter))
     {
-        for (size_t i = 0; i < local_eps_count; i++)
+        size_t len = u_arraylist_length(g_local_endpoint_cache);
+        for (size_t i = 0; i < len; i++)
+        /* for (size_t i = 0; i < local_eps_count; i++) */
         {
-	    OIC_LOG_V(DEBUG, TAG, "%s endpoint %d", __func__, i);
+	    OIC_LOG_V(DEBUG, TAG, "\tendpoint %d", i);
 
 	    // FIXME: use indexing?
-            CAEndpoint_t *info = local_eps + i;
-	    OIC_LOG_V(DEBUG, TAG, "%s adapter: 0x%X", __func__, info->adapter);
-	    OIC_LOG_V(DEBUG, TAG, "%s addr: %s", __func__, info->addr);
-	    /* OIC_LOG_V(DEBUG, TAG, "%s ifindex %d", __func__, info->ifindex); */
-	    OIC_LOG_V(DEBUG, TAG, "%s dev index %d", __func__, devAddr->ifindex);
+            /* CAEndpoint_t *ep = local_eps + i; */
+            CAEndpoint_t *lep = u_arraylist_get(g_local_endpoint_cache, i);
+	    OIC_LOG_V(DEBUG, TAG, "\ttransport: 0x%X", lep->adapter);
+	    OIC_LOG_V(DEBUG, TAG, "\taddr: %s port: %d", lep->addr, lep->port);
+	    /* OIC_LOG_V(DEBUG, TAG, "%s ifindex %d", __func__, lep->ifindex); */
+	    // OIC_LOG_V(DEBUG, TAG, "%s dev index %d", __func__, devAddr->ifindex);
 
-            if ((CA_ADAPTER_IP | CA_ADAPTER_TCP) & info->adapter)
+            if ((CA_ADAPTER_IP | CA_ADAPTER_TCP) & lep->adapter)
             {
                 OCTpsSchemeFlags matchedTps = OC_NO_TPS;
-                if (OC_STACK_OK != OCGetMatchedTpsFlags(info->adapter,
-                                                        info->flags,
+                if (OC_STACK_OK != OCGetMatchedTpsFlags(lep->adapter,
+                                                        lep->flags,
                                                         &matchedTps))
                 {
                     OIC_LOG_V(ERROR, TAG, "OCGetMatchedTpsFlags err");
                     goto exit;
                 }
 
-                bool isSecure = (info->flags & OC_FLAG_SECURE);
+                bool isSecure = (lep->flags & OC_FLAG_SECURE);
                 if (((resource->endpointType) & matchedTps) &&
                         ((isSecure && includeSecure) || (!isSecure && includeNonsecure)))
                 {
@@ -2168,15 +2158,26 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
                         goto exit;
                     }
 
-                    memcpy(tmpNode->addr, info->addr, sizeof(info->addr));
-                    tmpNode->family = (OCTransportFlags)(info->flags);
-                    tmpNode->port = info->port;
-                    tmpNode->pri  = 1;
+                    memcpy(tmpNode->addr, lep->addr, sizeof(lep->addr));
+                    tmpNode->family = (CATransportFlags_t)(lep->flags);
+                    tmpNode->port = lep->port;
+                    /* ipv6 eps higher priority than ipv4 eps */
+                    if (tmpNode->family & CA_IPV6) {
+                        if ((lep->flags & CA_SCOPE_MASK) == CA_SCOPE_LINK)
+                            tmpNode->pri  = 1;
+                        else if ((lep->flags & CA_SCOPE_MASK) == CA_SCOPE_SITE)
+                            tmpNode->pri  = 2;
+                        else
+                            tmpNode->pri  = 3;
+                    } else if (tmpNode->family & CA_IPV4)
+                        tmpNode->pri  = 20;
+                    // tmpNode->pri = 1;
+
                     tmpNode->next = NULL;
 
                     // remember endpoint that matches devAddr for use in anchor
                     OCTransportFlags infoFlagsSecureFams = (OCTransportFlags)
-                            (info->flags & MASK_SECURE_FAMS);
+                            (lep->flags & MASK_SECURE_FAMS);
                     if ((selfEp != NULL) &&
                             ((infoFlagsSecureFams & devAddr->flags) == infoFlagsSecureFams))
                     {
@@ -2212,8 +2213,8 @@ exit:
 }
 
 static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t securePort,
-                                         CAEndpoint_t *local_eps, size_t local_eps_count,
-                                         const OCDevAddr *devAddr
+                                         //CAEndpoint_t *local_eps, size_t local_eps_count,
+                                         const CAEndpoint_t /* OCDevAddr */ *devAddr
 #ifndef TCP_ADAPTER
                                                                                     )
 #else
@@ -2228,10 +2229,12 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
     }
 
     OCEndpointPayload *selfEp = NULL;
-    if (local_eps && local_eps_count && devAddr)
+    //if (local_eps && local_eps_count && devAddr)
+    if (g_local_endpoint_cache && u_arraylist_length(g_local_endpoint_cache) && devAddr)
     {
-        CreateEndpointPayloadList(res, devAddr, local_eps, local_eps_count,
-                                      &(pl->eps), NULL, &selfEp);
+        CreateEndpointPayloadList(res, devAddr,
+                                  //local_eps, local_eps_count,
+                                  &(pl->eps), NULL, &selfEp);
     }
 
     pl->uri = OICStrdup(res->uri);
@@ -2359,14 +2362,17 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
 void OC_CALL OCDiscoveryPayloadAddResource(OCDiscoveryPayload* payload, const OCResource* res,
                                            uint16_t securePort)
 {
-    OCDiscoveryPayloadAddNewResource(payload, OCCopyResource(res, securePort, NULL, 0, NULL));
+    OCDiscoveryPayloadAddNewResource(payload, OCCopyResource(res, securePort,
+                                                             // NULL, 0,
+                                                             NULL));
 }
 #else
 void OC_CALL OCDiscoveryPayloadAddResource(OCDiscoveryPayload* payload, const OCResource* res,
                                            uint16_t securePort, uint16_t tcpPort)
 {
-    OCDiscoveryPayloadAddNewResource(payload, OCCopyResource(res, securePort, NULL, 0, NULL,
-                                                             tcpPort));
+    OCDiscoveryPayloadAddNewResource(payload, OCCopyResource(res, securePort,
+                                                             // NULL, 0,
+                                                             NULL, tcpPort));
 }
 #endif
 
@@ -2383,22 +2389,27 @@ void OC_CALL OCDiscoveryPayloadAddResource(OCDiscoveryPayload* payload, const OC
  */
 #ifndef TCP_ADAPTER
 void OCDiscoveryPayloadAddResourceWithEps(OCDiscoveryPayload* payload, const OCResource* res,
-                                          uint16_t securePort, void *local_eps, size_t local_eps_count,
-                                          const OCDevAddr *devAddr)
-{
-    OCDiscoveryPayloadAddNewResource(payload,
-                                     OCCopyResource(res, securePort, (CAEndpoint_t *)local_eps,
-                                                    local_eps_count, devAddr));
-}
-#else
-void OCDiscoveryPayloadAddResourceWithEps(OCDiscoveryPayload* payload, const OCResource* res,
-                                                  uint16_t securePort, void *local_eps, size_t local_eps_count,
-                                                  const OCDevAddr *devAddr, uint16_t tcpPort)
+                                          uint16_t securePort,
+                                          // void *local_eps, size_t local_eps_count,
+                                          const CAEndpoint_t /* OCDevAddr */ *devAddr)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OCDiscoveryPayloadAddNewResource(payload,
-                                     OCCopyResource(res, securePort, (CAEndpoint_t *)local_eps,
-                                                    local_eps_count, devAddr, tcpPort));
+                                     OCCopyResource(res, securePort,
+                                                    //(CAEndpoint_t *)local_eps, local_eps_count,
+                                                    devAddr));
+}
+#else
+void OCDiscoveryPayloadAddResourceWithEps(OCDiscoveryPayload* payload, const OCResource* res,
+                                          uint16_t securePort,
+                                          // void *local_eps, size_t local_eps_count,
+                                          const CAEndpoint_t /* OCDevAddr */ *devAddr, uint16_t tcpPort)
+{
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    OCDiscoveryPayloadAddNewResource(payload,
+                                     OCCopyResource(res, securePort,
+                                                    // (CAEndpoint_t *)local_eps, local_eps_count,
+                                                    devAddr, tcpPort));
 }
 #endif
 
@@ -2548,7 +2559,8 @@ void OC_CALL OCEndpointPayloadDestroy(OCEndpointPayload* payload)
 }
 
 OCRepPayload** OC_CALL OCLinksPayloadArrayCreate(const char* resourceUri,
-                       OCEntityHandlerRequest *ehRequest, bool insertSelfLink, size_t* createdArraySize)
+                                                 struct oocf_inbound_request /* OCEntityHandlerRequest */ *ehRequest,
+                                                 bool insertSelfLink, size_t* createdArraySize)
 {
     OIC_LOG(DEBUG, TAG, "OCLinksPayloadValueCreate");
     OCRepPayload** linksRepPayloadArray = NULL;
@@ -2559,8 +2571,10 @@ OCRepPayload** OC_CALL OCLinksPayloadArrayCreate(const char* resourceUri,
             (contentFormat == OC_FORMAT_VND_OCF_CBOR || contentFormat == OC_FORMAT_CBOR))
             return NULL;
 
-        linksRepPayloadArray = BuildCollectionLinksPayloadArray(resourceUri, contentFormat, &ehRequest->devAddr,
-            insertSelfLink, createdArraySize);
+        linksRepPayloadArray = BuildCollectionLinksPayloadArray(resourceUri, contentFormat,
+                                                                &((struct CARequestInfo*)
+                                                                  ehRequest->requestHandle)->dest_ep,
+                                                                insertSelfLink, createdArraySize);
 
         OIC_LOG_V(DEBUG, TAG, "return value of BuildCollectionLinksPayloadArray() = %s",
                  (linksRepPayloadArray != NULL) ? "true" : "false");
@@ -2568,21 +2582,24 @@ OCRepPayload** OC_CALL OCLinksPayloadArrayCreate(const char* resourceUri,
     return linksRepPayloadArray;
 }
 
-OCStackResult OC_CALL OCGetRequestPayloadVersion(OCEntityHandlerRequest *ehRequest,
-                                  OCPayloadFormat* pContentFormat, uint16_t* pAcceptVersion)
+struct RequestInfo *ri;
+
+OCStackResult OC_CALL OCGetRequestPayloadVersion(struct oocf_inbound_request /* OCEntityHandlerRequest */ *ehRequest,
+                                                 OCPayloadFormat* pContentFormat,
+                                                 uint16_t* pAcceptVersion)
 {
     if ((ehRequest == NULL)||(pContentFormat == NULL))
         return OC_STACK_ERROR;
 
-    OCServerRequest* serverRequest = (OCServerRequest*) ehRequest->requestHandle;
-    switch (serverRequest->acceptFormat)
+    struct CARequestInfo *serverRequest = (struct CARequestInfo*) ehRequest->requestHandle;
+    switch (serverRequest->info.acceptFormat)
     {
         case OC_FORMAT_CBOR:
         case OC_FORMAT_VND_OCF_CBOR:
         case OC_FORMAT_JSON:
         case OC_FORMAT_UNDEFINED:
         case OC_FORMAT_UNSUPPORTED:
-            *pContentFormat = serverRequest->acceptFormat;
+            *pContentFormat = serverRequest->info.acceptFormat;
             OIC_LOG_V(INFO, TAG,
                       "Content format is %d, application/cbor = 0, application/vnd.ocf+cbor = 1",
                       (int) *pContentFormat);
@@ -2601,9 +2618,9 @@ OCStackResult OC_CALL OCGetRequestPayloadVersion(OCEntityHandlerRequest *ehReque
     size_t vOptionDataSize = sizeof(vOptionData);
     uint16_t actualDataSize = 0;
 
-    OCGetHeaderOption(ehRequest->rcvdVendorSpecificHeaderOptions,
-                      ehRequest->numRcvdVendorSpecificHeaderOptions,
-                      OCF_ACCEPT_CONTENT_FORMAT_VERSION, vOptionData, vOptionDataSize, &actualDataSize);
+    OCGetHeaderOption(((struct CARequestInfo*)ehRequest->requestHandle)->info.options,
+                      ((struct CARequestInfo*)ehRequest->requestHandle)->info.numOptions,
+                      OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION, vOptionData, vOptionDataSize, &actualDataSize);
 
     // Check if "OCF-Accept-Content-Format-Version" is present,
     // and size of its value is as expected (2 bytes).
