@@ -1,6 +1,10 @@
 
 #include "oocf_coap_options.h"
 
+/* NB!!! "Instead of specifying the Option Number directly, the
+   instances MUST appear in order of their Option Numbers..." RFC 7252
+   section 3.1 */
+
 /**
  * option types - the highest option number 63.
  */
@@ -69,7 +73,7 @@ struct oocf_coap_options
     //CATransportProtocolID_t protocolID;                     /**< Protocol ID:  CoAP or ?? */
     uint16_t optionID;                                      /**< CoAP option number */
     uint16_t optionLength;                                  /**< Option Length **/
-    char optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];      /**< Optional data values**/
+    uint8_t /* char */ optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];      /**< Optional data values**/
 };
 typedef oocf_coap_options CAHeaderOption_t;
 /**
@@ -78,7 +82,10 @@ typedef oocf_coap_options CAHeaderOption_t;
  */
 typedef struct OCHeaderOption
 {
-    OCTransportProtocolID protocolID;
+    // protocolID is evidently speculative; CoAP options do not
+    // include a protocol id.  Maybe this is in case some protocol
+    // other than CoAP should be added later?
+    /* OCTransportProtocolID protocolID; */
     uint16_t optionID;
     uint16_t optionLength;
     uint8_t optionData[MAX_HEADER_OPTION_DATA_LENGTH];
