@@ -245,6 +245,7 @@ OCEntityHandlerResult light_react (OCEntityHandlerFlag flag, /* OC_REQUEST_FLAG,
             outbound_response.persistentBufferFlag = 0;
 
             // Handle vendor specific options
+
             if(inbound_stimulus->rcvdVendorSpecificHeaderOptions &&
                     inbound_stimulus->numRcvdVendorSpecificHeaderOptions)
             {
@@ -254,14 +255,14 @@ OCEntityHandlerResult light_react (OCEntityHandlerFlag flag, /* OC_REQUEST_FLAG,
                         inbound_stimulus->rcvdVendorSpecificHeaderOptions;
                 for( i = 0; i < inbound_stimulus->numRcvdVendorSpecificHeaderOptions; i++)
                 {
-                    if(((OCHeaderOption)rcvdOptions[i]).protocolID == OC_COAP_ID)
-                    {
-                        OIC_LOG_V(INFO, TAG, "Received option with OC_COAP_ID and ID %u with",
+                    /* if(((OCHeaderOption)rcvdOptions[i]).protocolID == OC_COAP_ID) */
+                    /* { */
+                        OIC_LOG_V(INFO, TAG, "Received option with ID %u",
                                 ((OCHeaderOption)rcvdOptions[i]).optionID );
 
                         OIC_LOG_BUFFER(INFO, TAG, ((OCHeaderOption)rcvdOptions[i]).optionData,
                             MAX_HEADER_OPTION_DATA_LENGTH);
-                    }
+                    /* } */
                 }
                 // Check on Accept Version option.
                 uint8_t vOptionData[MAX_HEADER_OPTION_DATA_LENGTH];

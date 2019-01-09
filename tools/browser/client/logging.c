@@ -421,8 +421,8 @@ static void log_header_options (OCClientResponse *clientResponse)
 	/* So we expect two headers, one to indicate the payload format, and
 	   another to indicate format version */
 
-	OIC_LOG_V(INFO, TAG, "\t\t protocol id FIXME: %d",
-		  clientResponse->rcvdVendorSpecificHeaderOptions[i].protocolID);
+	/* OIC_LOG_V(INFO, TAG, "\t\t protocol id FIXME: %d", */
+	/* 	  clientResponse->rcvdVendorSpecificHeaderOptions[i].protocolID); */
 
 	option_id = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionID;
 	option_len = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionLength;
