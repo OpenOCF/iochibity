@@ -61,6 +61,30 @@ void handleSigInt(int signum) {
     }
 }
 
+
+//static char SVR_CONFIG_FILE[] = "tools/browser/server/server_config.cbor";
+static char SVR_CONFIG_FILE[] = "config/server_config.cbor";
+
+/* local fopen for svr database overrides default filename */
+FILE* server_fopen(const char *path, const char *mode)
+{
+    clog_info(CLOG(MY_LOGGER), "%s path %s", __func__, path);
+
+    if (0 == strcmp(path, SVR_DB_DAT_FILE_NAME)) { /* "oic_svr_db.dat" */
+        clog_info(CLOG(MY_LOGGER), "%s opening %s", __func__, SVR_CONFIG_FILE);
+	FILE *f = fopen(SVR_CONFIG_FILE, mode);
+	if (f == NULL) {
+            clog_info(CLOG(MY_LOGGER), "PS file open failed %d %s", errno, strerror(errno));
+	    exit(EXIT_FAILURE);
+	}
+	return f;
+    }
+    else
+    {
+	return fopen(path, mode);
+    }
+}
+
 int main() {
     // OCLogInit(NULL);    /* log to stdout */
     /* logfd = fopen("./logs/server.log", "w"); */
@@ -88,6 +112,9 @@ int main() {
     clog_info(CLOG(MY_LOGGER), "logfile: %s", oocf_get_logfile_name());
 
     OIC_LOG(INFO, TAG, "OCStack initialized");
+
+    OCPersistentStorage ps = { server_fopen, fread, fwrite, fclose, unlink };
+    OCRegisterPersistentStorageHandler(&ps);
 
     /*
      * Declare and create the example resource: Light

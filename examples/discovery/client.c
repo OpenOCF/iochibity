@@ -82,7 +82,7 @@ void print_json(OCDiscoveryPayload *payload)
     clog_info(CLOG(MY_LOGGER), "JSON:\n%s", rendered);
 }
 
-cJSON* links_to_json(OCClientResponse *msg) /* FIXME: split header logging from payload logging */
+cJSON* links_to_json(struct oocf_inbound_response *msg) /* FIXME: split header logging from payload logging */
 {
     cJSON *links;
     links = cJSON_CreateArray();
@@ -160,7 +160,8 @@ cJSON* links_to_json(OCClientResponse *msg) /* FIXME: split header logging from 
 		+ strlen(endpoint->addr)
 		+ 1; 		/* : */
 	    char *epstring = malloc(eplen + 6); /* largest val for port is 5 chars (uint16) */
-	    snprintf(epstring, eplen + 6, "%s://%s:%d", endpoint->tps, endpoint->addr, endpoint->port);
+	    //snprintf(epstring, eplen + 6, "%s://[%s]:%d", endpoint->tps, endpoint->addr, endpoint->port);
+	    snprintf(epstring, eplen + 6, "%s", OCCreateEndpointString(endpoint));
 	    cJSON_AddItemToObject(ep, "ep", cJSON_CreateString(epstring));
 	    free(epstring);
 	    /* cJSON_AddItemToObject(ep, "tps", cJSON_CreateString(endpoint->tps));
@@ -185,7 +186,7 @@ cJSON* links_to_json(OCClientResponse *msg) /* FIXME: split header logging from 
      * OIC_LOG_V(INFO, TAG, "Resource ep port: %d", res->eps->port); */
 }
 
-cJSON* discovery_to_json(OCClientResponse *msg)
+cJSON* discovery_to_json(struct oocf_inbound_response *msg)
 {
     OCDiscoveryPayload *payload = (OCDiscoveryPayload*)msg->payload;
     cJSON *root;
@@ -216,7 +217,7 @@ cJSON* discovery_to_json(OCClientResponse *msg)
     return root;
 }
 
-void log_header_options (OCClientResponse *clientResponse)
+void log_header_options (struct oocf_inbound_response  *clientResponse)
 {
     /* COAP option numbers enumerated in libcoap pdu.h; except for the
        OCF custom ones: OCF-Content-Format-Version (2049) and
@@ -396,7 +397,7 @@ void log_header_options (OCClientResponse *clientResponse)
     }
 }
 
-void log_endpoint_info(OCClientResponse *clientResponse)
+void log_endpoint_info(struct oocf_inbound_response  *clientResponse)
 {
     clog_info(CLOG(MY_LOGGER), "Origin addr: %s:%d", clientResponse->devAddr.addr, clientResponse->devAddr.port);
     clog_info(CLOG(MY_LOGGER), "Origin ifindex: %d", clientResponse->devAddr.ifindex);
@@ -547,7 +548,7 @@ void log_payload_type(OCPayload *payload)
     }
 }
 
-void log_discovery_message(OCClientResponse *clientResponse)
+void log_discovery_message(struct oocf_inbound_response  *clientResponse)
 {
     OIC_LOG(INFO, TAG, "================ Response Message ================");
     /* payload type should be 1 */
@@ -574,12 +575,18 @@ void log_discovery_message(OCClientResponse *clientResponse)
 
 // This is a function called back when resources are discovered
 OCStackApplicationResult resource_discovery_cb(void* ctx,
-						  OCDoHandle h,
-						  OCClientResponse * clientResponse) {
+                                               OCDoHandle h,
+                                               struct oocf_inbound_response  *clientResponse) {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self());
 
     /* 1. update behaviors_observed_log */
     /*  */
+
+    if (clientResponse->result != OC_STACK_OK) {
+        clog_info(CLOG(MY_LOGGER), "Response Error %u", clientResponse->result);
+        exit(EXIT_FAILURE);
+    }
+
 
     log_discovery_message(clientResponse);
 
@@ -662,6 +669,29 @@ void* ocf_routine(void *arg) {
     return 0;
 }
 
+//static char SVR_CONFIG_FILE[] = "tools/browser/server/server_config.cbor";
+static char SVR_CONFIG_FILE[] = "examples/discovery/client_config.cbor";
+
+/* local fopen for svr database overrides default filename */
+FILE* server_fopen(const char *path, const char *mode)
+{
+    clog_info(CLOG(MY_LOGGER), "%s path %s", __func__, path);
+
+    if (0 == strcmp(path, SVR_DB_DAT_FILE_NAME)) { /* "oic_svr_db.dat" */
+        clog_info(CLOG(MY_LOGGER), "%s opening %s", __func__, SVR_CONFIG_FILE);
+	FILE *f = fopen(SVR_CONFIG_FILE, mode);
+	if (f == NULL) {
+            clog_info(CLOG(MY_LOGGER), "PS file open failed %d %s", errno, strerror(errno));
+	    exit(EXIT_FAILURE);
+	}
+	return f;
+    }
+    else
+    {
+	return fopen(path, mode);
+    }
+}
+
 int main ()
 {
     /* Initialize the logger */
@@ -675,17 +705,20 @@ int main ()
     /* Set minimum log level to info (default: debug) */
     clog_set_level(MY_LOGGER, CLOG_INFO);
 
-    clog_info(CLOG(MY_LOGGER), "HELLO, %s!", "world");
+    clog_info(CLOG(MY_LOGGER), "clogger initialized");
 
     /* OCLogInit(NULL); */
     /* /\* logfd = fopen("./logs/client.log", "w"); *\/ */
     /* /\* OCLogHookFd(logfd); *\/ */
     /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY, tid %d", __func__, pthread_self()); */
 
+    OCPersistentStorage ps = { server_fopen, fread, fwrite, fclose, unlink };
+
     /* Initialize OCStack. Do this here rather than in the work
        thread, to ensure initialization is complete before sending any
        request. */
-    if (OCInit(NULL, 0, OC_CLIENT) != OC_STACK_OK) {
+    //if (OCInit(NULL, 0, OC_CLIENT) != OC_STACK_OK) {
+    if (oocf_init(OC_CLIENT, &ps) != OC_STACK_OK) {
         clog_info(CLOG(MY_LOGGER), "OCStack init error");
         // OIC_LOG(ERROR, TAG, "OCStack init error");
         clog_free(MY_LOGGER);
