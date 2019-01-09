@@ -223,9 +223,9 @@ static int CARAGetReqObsOption(coap_pdu_t *pdu, const CAEndpoint_t *endPoint)
     CAHeaderOption_t *options = reqInfo->info.options;
     for (uint8_t i = 0; i < numOpt; i++)
     {
-        if(options[i].protocolID == CA_COAP_ID &&
-                options[i].optionID == COAP_OPTION_OBSERVE)
-        {
+        if(options[i].optionID == COAP_OPTION_OBSERVE)
+            /* && */
+            /* options[i].protocolID == CA_COAP_ID) */
             obsopt = options[i].optionData[0];
             break;
         }
@@ -312,7 +312,7 @@ static int CARARecvCB(xmpp_ibb_session_t *sess, xmppdata_t *xdata)
             return -1;
         }
         uint32_t code = CA_NOT_FOUND;
-        coap_pdu_t *pdu = (coap_pdu_t *) CAParsePDU(xdata->data, xdata->size, &code,
+        coap_pdu_t *pdu = (coap_pdu_t *) _oocf_dgram_payload_to_coap_pdu(xdata->data, xdata->size, &code,
             endPoint);
         char *sid = CARAGetSIDFromPDU(pdu);
         int obsopt = CARAGetReqObsOption(pdu, endPoint);
@@ -562,7 +562,7 @@ int32_t CASendRAUnicastData(const CAEndpoint_t *remoteEndpoint, const void *data
     OIC_LOG_V(DEBUG, RA_ADAPTER_TAG, "Sending unicast data to %s", remoteEndpoint->addr);
 
     uint32_t code = CA_NOT_FOUND;
-    coap_pdu_t *pdu = (coap_pdu_t *) CAParsePDU(data, dataLength, &code, remoteEndpoint);
+    coap_pdu_t *pdu = (coap_pdu_t *) _oocf_dgram_payload_to_coap_pdu(data, dataLength, &code, remoteEndpoint);
     char *sid = CARAGetSIDFromPDU(pdu);
     int obsopt = CARAGetReqObsOption(pdu, remoteEndpoint);
     coap_delete_pdu(pdu);
