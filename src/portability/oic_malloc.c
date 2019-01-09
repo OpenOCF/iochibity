@@ -64,6 +64,7 @@
 //-----------------------------------------------------------------------------
 #ifdef ENABLE_MALLOC_DEBUG
 static uint32_t count;
+static uint32_t total;
 #endif
 
 void *OICMalloc(size_t size)
@@ -102,6 +103,7 @@ EXPORT
     if (ptr)
     {
         count++;
+        total += size;
     }
     OIC_LOG_V(INFO, TAG, "calloc: ptr=%p, num=%u, size=%u, count=%u, total=%u", ptr, num, size, count, total);
     return ptr;
