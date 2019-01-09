@@ -225,11 +225,11 @@ typedef enum
 /**
  * Transport Protocol IDs for additional options.
  */
-typedef enum
-{
-    CA_INVALID_ID = (1 << 0),   /**< Invalid ID */
-    CA_COAP_ID = (1 << 1)       /**< COAP ID */
-} CATransportProtocolID_t;
+/* typedef enum */
+/* { */
+/*     CA_INVALID_ID = (1 << 0),   /\**< Invalid ID *\/ */
+/*     CA_COAP_ID = (1 << 1)       /\**< COAP ID *\/ */
+/* } CATransportProtocolID_t; */
 
 #include <stdint.h>
 typedef uint32_t code_t;

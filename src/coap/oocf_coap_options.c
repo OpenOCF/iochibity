@@ -66,7 +66,7 @@ typedef enum
 #include <stdint.h>
 struct oocf_coap_options
 {
-    CATransportProtocolID_t protocolID;                     /**< Protocol ID of the Option */
+    //CATransportProtocolID_t protocolID;                     /**< Protocol ID:  CoAP or ?? */
     uint16_t optionID;                                      /**< CoAP option number */
     uint16_t optionLength;                                  /**< Option Length **/
     char optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];      /**< Optional data values**/
