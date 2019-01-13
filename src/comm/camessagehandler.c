@@ -2175,8 +2175,8 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
         goto exit;
     }
 
-    uint32_t repCode = CA_RESPONSE_CODE((*pdu)->transport_hdr->udp.code);
-    if (CA_REQUEST_ENTITY_INCOMPLETE == repCode)
+    uint32_t respCode = CA_RESPONSE_CODE((*pdu)->transport_hdr->udp.code);
+    if (CA_REQUEST_ENTITY_INCOMPLETE == respCode) /* 408 */
     {
         OIC_LOG(INFO, TAG, "don't use option");
         res = CA_STATUS_OK;
