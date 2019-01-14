@@ -636,9 +636,10 @@ CAResult_t udp_configure_eps() /* @was CAIPStartListenServer */
         OIC_LOG_V(DEBUG, TAG, "\tIFF_RUNNING? %s", ((ifa->ifa_flags & IFF_RUNNING)? "Y":"N"));
         OIC_LOG_V(DEBUG, TAG, "\tIFF_ALLMULTI? %s", ((ifa->ifa_flags & IFF_ALLMULTI)? "Y":"N"));
         OIC_LOG_V(DEBUG, TAG, "\tIFF_MULTICAST? %s", ((ifa->ifa_flags & IFF_MULTICAST)? "Y":"N"));
-        OIC_LOG_V(DEBUG, TAG, "\tIFF_DYNAMIC? %s", ((ifa->ifa_flags & IFF_DYNAMIC)? "Y":"N"));
         OIC_LOG_V(DEBUG, TAG, "\tIFF_NOARP? %s", ((ifa->ifa_flags & IFF_NOARP)? "Y":"N"));
         OIC_LOG_V(DEBUG, TAG, "\tIFF_POINTOPOINT? %s", ((ifa->ifa_flags & IFF_POINTOPOINT)? "Y":"N"));
+        // not portable:
+        // OIC_LOG_V(DEBUG, TAG, "\tIFF_DYNAMIC? %s", ((ifa->ifa_flags & IFF_DYNAMIC)? "Y":"N"));
     }
 
     OIC_LOG_V(DEBUG, TAG, "NIF count: %d", nif_count);
