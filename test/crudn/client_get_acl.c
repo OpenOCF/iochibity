@@ -611,15 +611,16 @@ OCStackApplicationResult react_to_get_acl2(void* ctx, OCDoHandle handle,
         struct oocf_coap_options *rcvdOptions /* array */ = inbound_response->rcvdVendorSpecificHeaderOptions;
         for( i = 0; i < inbound_response->numRcvdVendorSpecificHeaderOptions; i++) {
             clog_info(CLOG(MY_LOGGER),
-                      "Received CoAP option ID: %u %s",
+                      "Received CoAP option ID: %u == %s",
                       ((CAHeaderOption_t)rcvdOptions[i]).optionID,
                       log_coap_option_string(rcvdOptions, i));
 
             uint16_t val = rcvdOptions[i].optionData[0] * 256
                 + rcvdOptions[i].optionData[1];
-            char *valstr = log_coap_option_value_string(rcvdOptions, i);
+            char *valstr = log_coap_option_value_string(rcvdOptions, i, val);
 
-            clog_info(CLOG(MY_LOGGER), "Received CoAP option value: %u %s", val, valstr);
+            clog_info(CLOG(MY_LOGGER), "Received CoAP option value: %u == %s",
+                      val, valstr);
         }
     }
     gQuitFlag = 1;

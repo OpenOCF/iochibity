@@ -1019,7 +1019,7 @@ char *log_coap_option_string(struct oocf_coap_options options[], int i) EXPORT
     }
 }
 
-char *log_coap_option_value_string(struct oocf_coap_options options[], int i) EXPORT
+char *log_coap_option_value_string(struct oocf_coap_options options[], int i, uint16_t val) EXPORT
 {
     /* https://www.iana.org/assignments/core-parameters/core-parameters.xhtml#option-numbers */
     switch (options[i].optionID) {
@@ -1039,7 +1039,13 @@ char *log_coap_option_value_string(struct oocf_coap_options options[], int i) EX
         break;
     case COAP_OPTION_URI_PATH: return "Uri-Path"; /* 11 */
         break;
-    case COAP_OPTION_CONTENT_FORMAT: return "Content-Format"; /* 12 */
+    case COAP_OPTION_CONTENT_FORMAT: /* 12 */
+        if (val == COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR)
+            return "application/vnd.ocf+cbor";
+        else if (val == COAP_MEDIATYPE_JSON)
+            return "application/json";
+        else
+            return "UKNOWN";
         break;
     case COAP_OPTION_MAXAGE: return "Max-Age";   /* 14 */
         break;
@@ -1065,7 +1071,13 @@ char *log_coap_option_value_string(struct oocf_coap_options options[], int i) EX
         break;
     case OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION: return "OCF-Accept-Content-Format-Version"; /* 2049 */
         break;
-    case OCF_OPTION_CONTENT_FORMAT_VERSION: return "OCF-Content-Format-Version"; /* 2053 */
+    case OCF_OPTION_CONTENT_FORMAT_VERSION: /* 2053 */
+        if (val == OCF_VERSION_1_0_0)
+            return "1.0.0";
+        else if (val == OCF_VERSION_1_0_0)
+            return "1.1.0";
+        else
+            return "UNKNOWN";
         break;
     default: return "DEFAULT";
         break;

@@ -44,6 +44,7 @@ typedef enum
 /* OCF spec 12.2.5 */
 #if EXPORT_INTERFACE
  /* application/vnd.ocf+cbor */
+#define COAP_MEDIATYPE_JSON                     50
 #define COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR 10000
 #define OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION       2049  /* CoAP option number */
 #define OCF_OPTION_CONTENT_FORMAT_VERSION              2053  /* CoAP Option number */
