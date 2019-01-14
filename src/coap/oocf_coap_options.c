@@ -155,15 +155,21 @@ OCStackResult OC_CALL OCGetHeaderOption(struct oocf_coap_options /* CAHeaderOpti
 #endif
 CAResult_t CAAddOptionsToPDU(coap_pdu_t *pdu, coap_list_t **options)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     // after adding the block option to option list, add option list to pdu.
     if (*options)
     {
         for (coap_list_t *opt = *options; opt; opt = opt->next)
         {
-            OIC_LOG_V(DEBUG, TAG, "[%s] opt will be added.",
-                      COAP_OPTION_DATA(*(coap_option *) opt->data));
+            // OIC_LOG_V(DEBUG, TAG, "pdu length: %d", pdu->length);
+            /* OIC_LOG_V(DEBUG, TAG, "adding option %d %s, len %d, val: %s", */
+            /*           COAP_OPTION_KEY(*(coap_option *) opt->data), */
+            /*           get_coap_option_key_string(COAP_OPTION_KEY(*(coap_option *) opt->data)), */
+            /*           COAP_OPTION_LENGTH(*(coap_option *) opt->data), */
+            /*           COAP_OPTION_DATA(*(coap_option *) opt->data)); */
 
-            OIC_LOG_V(DEBUG, TAG, "[%d] pdu length", pdu->length);
+            log_coap_option((coap_option*)opt->data);
+
             size_t ret = coap_add_option(pdu, COAP_OPTION_KEY(*(coap_option *) opt->data),
                                          COAP_OPTION_LENGTH(*(coap_option *) opt->data),
                                          COAP_OPTION_DATA(*(coap_option *) opt->data));
