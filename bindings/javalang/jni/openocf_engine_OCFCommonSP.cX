@@ -1,0 +1,93 @@
+#include <ctype.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+#include <jni.h>
+
+
+#include "openocf.h"
+#include "openocf_engine_OCFCommonSP.h"
+
+/* FIXME: split these out: */
+/* #include "openocf_android_OCFServices.h" */
+
+#include "org_iochibity_Exceptions.h"
+#include "_threads.h"
+
+#include "jni_init.h"
+#include "jni_utils.h"
+
+/* PRIVATE */
+#define TAG  "openocf_engine_OCFCommonSP"
+
+FILE                   *logfd;
+
+/* const char *SVRS_CONFIG_FNAME = "svrs_config.cbor"; */
+/* const char* g_config_fname; */
+
+/* FILE* server_fopen(const char *path, const char *mode) */
+/* { */
+/*     OIC_LOG_V(DEBUG, TAG, "%s ENTRY, path: %s", __func__, path); */
+/*     (void)path; */
+/*     /\* printf("%s path: %s\n", __func__, path); *\/ */
+/*     if (0 == strcmp(path, SVR_DB_DAT_FILE_NAME)) /\* "oic_svr_db.dat" *\/ */
+/*     { */
+/*     	/\* override default file *\/ */
+/* 	OIC_LOG_V(DEBUG, TAG, "Overriding path with: %s", g_config_fname); */
+/*         return fopen(g_config_fname, mode); */
+/*     } */
+/*     else */
+/*     { */
+/*         return fopen(path, mode); */
+/*     } */
+/*     return NULL; */
+/* } */
+
+/* static OCPersistentStorage ps = {server_fopen, fread, fwrite, fclose, unlink}; */
+
+JNIEXPORT jstring JNICALL
+Java_openocf_engine_OCFCommonSP_configuration (JNIEnv * env, jclass klass)
+{
+    const char * str = configuration();
+    int len = strlen(str);
+    jchar *str1;
+    str1 = (jchar *)(malloc(len * sizeof(jchar)));
+
+    for (int i = 0; i < len; i++) {
+	str1[i] = (unsigned char)str[i];
+    }
+    jstring result = (*env)->NewString(env, str1, len);
+    free(str1);
+    return result;
+}
+
+/* /\* Android API *\/ */
+/* JNIEXPORT void JNICALL */
+/* Java_openocf_android_OCFServices_config_1logging (JNIEnv *env, jclass klass, jstring s) */
+/* { */
+/*     OCLogInit(NULL); */
+/* #ifdef TB_LOG */
+/* 	OCSetLogLevel(DEBUG, false); */
+/* #endif */
+/* 	OIC_LOG_V(DEBUG, TAG, "%s OCLogInit done", __func__); */
+/* } */
+
+/* PUBLIC */
+
+/*
+ * Class:     openocf_engine_OCFCommonSP
+ * Method:    OCStartMulticastServer
+ * Signature: ()I
+ */
+/* JNIEXPORT jint JNICALL Java_openocf_engine_OCFCommonSP_OCStartMulticastServer */
+/*   (JNIEnv *, jobject); */
+
+/*
+ * Class:     openocf_engine_OCFCommonSP
+ * Method:    OCStopMulticastServer
+ * Signature: ()I
+ */
+/* JNIEXPORT jint JNICALL Java_openocf_engine_OCFCommonSP_OCStopMulticastServer */
+/*   (JNIEnv *, jobject); */
+

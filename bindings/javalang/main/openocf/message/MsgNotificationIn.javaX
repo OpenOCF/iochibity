@@ -1,0 +1,6 @@
+package openocf.message;
+
+public class MessageNotificationIn extends messageObserved
+{
+    int dummy;
+}

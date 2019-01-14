@@ -1,0 +1,9 @@
+TODO:
+
+rename PropertyMap to indicate is is specific to message payloads (and thus belongs in  openocf.signals)
+
+Note: the properties are properties of a resource but they are in a message so we don't want to confuse them with the properties of a resource on the server.
+
+Or: move to openocf.utils.PropertyMap - doesn't matter where the props came from.
+
+or openocf.data.PropertyMap?

@@ -1,0 +1,185 @@
+= payload
+
+Payloads are (Co)Observation records
+
+== payload types:
+
+=== payload.CoResourceLinks
+
+OCDiscoveryPayload PAYLOAD_TYPE_DISCOVERY:        oic/res discovery result, list of resource links
+
+Implemented as ? openocf.r.
+
+=== payload.CoResourceLink
+
+OCResourcePayload  : only found within OCDiscoveryPayload; contains resource metadata, excluding properties. compare OCResource
+
+This corresponds to json link type (TODO: pull from spec)
+
+typedef struct OCResourcePayload
+{
+    char* uri;			/* property "href" (mandatory) */
+    char* rel;
+    char* anchor; /* NB: for OIC 1.1, a transfer URI; for OCF 1.0, a OCF URI */
+    OCStringLL* types;		/* property "rt" (mandatory) */
+    OCStringLL* interfaces;	/* property "if" (mandatory) */
+    uint8_t bitmap;		/* visibility policy bitmask: discoverable, observable */
+    bool secure;    /* legacy; OCF 1.0 uses eps */
+    uint16_t port;    /* legacy; OCF 1.0 uses eps */
+#ifdef TCP_ADAPTER
+    uint16_t tcpPort;
+#endif
+    struct OCResourcePayload* next;
+    OCEndpointPayload* eps;  /* OCF 1.0 */
+    /* GAR: what about the remaining optional parameters, e.g. di, type (mt?), etc. */
+} OCResourcePayload;
+
+
+
+=== utils.Endpoint
+
+Note that we have several "endpoint" structs:
+
+ocf/ocendpoint.c:
+
+typedef struct CAEndpoint_s
+{
+    CATransportAdapter_t    adapter;    // adapter type
+    CATransportFlags_t      flags;      // transport modifiers
+    uint16_t                port;       // for IP
+    char                    addr[MAX_ADDR_STR_SIZE_CA]; // address for all
+    uint32_t                ifindex;    // usually zero for default interface
+    char                    remoteId[CA_MAX_IDENTITY_SIZE]; // device ID of remote device
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+    char                    routeData[MAX_ADDR_STR_SIZE_CA]; /**< GatewayId:ClientId of
+                                                                    destination. **/
+#endif
+} CAEndpoint_t;
+
+ocf/_protocol.h:
+typedef struct
+{
+    OCTransportAdapter      adapter;
+    OCTransportFlags        flags;
+    uint16_t                port;
+    char                    addr[MAX_ADDR_STR_SIZE];
+    uint32_t                ifindex;
+    char                    routeData[MAX_ADDR_STR_SIZE];
+    char                    remoteId[MAX_IDENTITY_SIZE];
+} OCDevAddr;
+
+NOTE: "OCDevAddr must be the same as CAEndpoint (in CACommon.h)." But
+routeData is not ifdef'ed in OCDevAddr, and the order is reversed.
+
+
+ocf/ocpayload.c:
+
+typedef struct OCEndpointPayload
+{
+    char* tps;
+    char* addr;
+    OCTransportFlags family;
+    uint16_t port;
+    uint16_t pri;
+    struct OCEndpointPayload* next;
+} OCEndpointPayload;
+
+The difference: OCEndpointPayload does not contain an interface index, remote id, route
+
+And we often have e.g. OCDevAddr *endpoint, and things like:
+
+ocstack.c :: CopyDevAddrToEndpoint(const OCDevAddr *in, CAEndpoint_t *out)
+
+
+OCEndpointPayload is used inside OCResourcePayload.
+
+=== payload.CoResourceList
+
+OCRepPayload PAYLOAD_TYPE_REPRESENTATION - resource representation
+including properties. A linked list.
+
+We drop the "representation" nonsense.
+
+Note that a discovery payload is also a "representation" of the
+/oic/res resource; it just has links instead of properties.
+
+Recall: a resource can be anything, including a collection of other
+resources. OCRepPayload is used for all except discovery payloads.
+
+
+typedef struct OCRepPayload
+{
+    OCPayload base;
+    char* uri;
+    OCStringLL* types;
+    OCStringLL* interfaces;
+    OCRepPayloadValue* values;
+    struct OCRepPayload* next;
+} OCRepPayload;
+
+
+
+=== payload.PlatformPayload
+
+OCPlatformPayload PAYLOAD_TYPE_PLATFORM
+
+=== payload.DevicePayload
+
+OCDevicePayload PAYLOAD_TYPE_DEVICE
+
+payload.presence???
+
+OCPresencePayload PAYLOAD_TYPE_PRESENCE
+
+=== payload.SVRPayload
+
+Each security payload contains CBOR-encoded data for one SVR
+(e.g. doxm, pstat, etc.).
+
+OCClientResponse* message
+
+message->payload->type === PAYLOAD_TYPE_SECURITY
+
+If Message payload type is PAYLOAD_TYPE_SECURITY, then message->payload is a
+struct OCSecurityPayload, and message->URI indicates which SVR is encoded
+in the securityData field of the payload. Then use CBOR codec to
+decode the binary into the appropriate SVR struct (e.g. OicSecDoxm_t):
+
+if (starts_with("/oic/sec/doxm", message->resourceUri)) {
+    OicSecDoxm_t *doxm_payload = NULL;
+    OCStackResult r = CBORPayloadToDoxm(payload->securityData, payload->payloadSize, &doxm_payload);
+    /* ... etc. ... */
+}
+
+see openocf/tools/browser/client/svrs_codec.c
+
+NOTE: the SVR struct in an inbound payload is the same as used on the
+server to represent the SVR state, e.g. OicSecDoxm_t. So we do not
+want a payload-specific struct or class.  I.e. instead of
+openocf.payload.DOXM, something like openocf.oic.sec.DOXM; this could
+be used by both server and client.
+
+We can wrap these in SVR classes, e.g. openocf.oic.sec.DOXM or similar,
+instead of glomming everything into one Security class.
+
+=== payload.Diagnostic
+
+OCDiagnosticPayload PAYLOAD_TYPE_DIAGNOSTIC
+
+Contains only a char *message;
+
+=== payload.Introspection
+
+OCIntrospectionPayload PAYLOAD_TYPE_INTROSPECTION
+
+Contains only a OCByteString cborPayload;
+
+=== obsolete
+
+obsolete as of 1.3.1:  (?)
+
+* OCRDDiscoveryPayload - Resource Directory discovery
+* OCRDPayload          - Resource Directory
+* OCResourceCollectionPayload - OCRepPayload is used for thise
+* OCTagsPayload  - substruct used in OCResourceCollectionPayload
+* OCLinksPayload - substruct used in OCResourceCollectionPayload

@@ -1,0 +1,123 @@
+#include <ctype.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+#include <jni.h>
+
+
+#include "openocf.h"
+#include "openocf_engine_OCFCommonSP.h"
+
+/* FIXME: split these out: */
+#include "openocf_android_OpenOCF.h"
+
+#include "org_iochibity_Exceptions.h"
+#include "_threads.h"
+
+#include "jni_init.h"
+#include "jni_utils.h"
+
+/* PRIVATE */
+#define TAG  "openocf_engine_OCFCommonSP"
+
+FILE                   *logfd;
+
+const char *SVRS_CONFIG_FNAME = "svrs_config.cbor";
+const char* g_config_fname;
+
+THREAD_T tid_work;
+bool g_quit_flag = false;
+
+/* thread routine - service client requests */
+THREAD_EXIT_T troutine_work(void *arg)
+{
+    OC_UNUSED(arg);
+    printf("Entering server work thread...\n");
+
+    while (!g_quit_flag) {
+	if (OCProcess() != OC_STACK_OK) {
+	    printf("OCStack process error\n");
+	}
+	sleep(1);
+    }
+    printf("Exiting server work thread...\n");
+    /* we're the only thread left, pthread_exit(NULL) would kill us,
+       but not the process. */
+    /* exit(0); */
+
+    /* FIXME: pthreads return void*, c11 threads return int */
+    return THREAD_EXIT_OK;
+}
+
+FILE* server_fopen(const char *path, const char *mode)
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, path: %s", __func__, path);
+    (void)path;
+    /* printf("%s path: %s\n", __func__, path); */
+    if (0 == strcmp(path, SVR_DB_DAT_FILE_NAME)) /* "oic_svr_db.dat" */
+    {
+    	/* override default file */
+	OIC_LOG_V(DEBUG, TAG, "Overriding path with: %s", g_config_fname);
+        return fopen(g_config_fname, mode);
+    }
+    else
+    {
+        return fopen(path, mode);
+    }
+    return NULL;
+}
+
+static OCPersistentStorage ps = {server_fopen, fread, fwrite, fclose, unlink};
+
+JNIEXPORT jstring JNICALL
+Java_openocf_engine_OCFCommonSP_configuration (JNIEnv * env, jclass klass)
+{
+    const char * str = configuration();
+    int len = strlen(str);
+    jchar *str1;
+    str1 = (jchar *)(malloc(len * sizeof(jchar)));
+
+    for (int i = 0; i < len; i++) {
+	str1[i] = (unsigned char)str[i];
+    }
+    jstring result = (*env)->NewString(env, str1, len);
+    free(str1);
+    return result;
+}
+
+/* Android API */
+JNIEXPORT void JNICALL
+Java_openocf_android_OCFServices_config_1logging (JNIEnv *env, jclass klass, jstring s)
+{
+    OCLogInit(NULL);
+#ifdef TB_LOG
+	OCSetLogLevel(DEBUG, false);
+#endif
+	OIC_LOG_V(DEBUG, TAG, "%s OCLogInit done", __func__);
+}
+
+/*
+ * Class:     openocf_android_OCFServices
+ * Method:    config_svrs
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL
+Java_openocf_android_OCFServices_config_1svrs (JNIEnv *env, jclass klass, jstring j_svrs_config_fname)
+{
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    if (j_svrs_config_fname == NULL) {
+    	OIC_LOG_V(DEBUG, TAG, "svrs config fname is null; defaulting to %s", SVRS_CONFIG_FNAME);
+	g_config_fname = SVRS_CONFIG_FNAME;
+    	/* j_svrs_config_fname = (*env)->NewStringUTF(env, SVRS_CONFIG_FNAME); */
+    } else {
+	g_config_fname = (*env)->GetStringUTFChars(env, j_svrs_config_fname, NULL);
+    	OIC_LOG_V(DEBUG, TAG, "svrs config fname: %s", g_config_fname);
+    }
+    if (g_config_fname == NULL) {
+    	THROW_JNI_EXCEPTION("GetStringUTFChars");
+    }
+    OIC_LOG_V(DEBUG, TAG, "calling OCRegisterPersistentStorageHandler: %s", g_config_fname);
+    OCRegisterPersistentStorageHandler(&ps);
+    printf("called OCRegisterPersistentStorageHandler: %s\n", g_config_fname);
+}

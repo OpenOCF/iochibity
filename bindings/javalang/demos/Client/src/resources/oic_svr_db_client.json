@@ -1,0 +1,111 @@
+{
+    "acl": {
+        "aclist": {
+            "aces": [
+                {
+                    "subjectuuid": "*",
+                    "resources": [
+                        {
+                            "href": "/oic/res",
+                            "rel": "",
+                            "rt": ["oic.wk.res"],
+                            "if": ["oic.if.ll"]
+                        },
+                        {
+                            "href": "/oic/d",
+                            "rel": "",
+                            "rt": ["oic.wk.d"],
+                            "if": ["oic.if.baseline", "oic.if.r"]
+                        },
+                        {
+                            "href": "/oic/p",
+                            "rel": "",
+                            "rt": ["oic.wk.p"],
+                            "if": ["oic.if.baseline", "oic.if.r"]
+                        },
+                        {
+                            "href": "/oic/ad",
+                            "rel": "",
+                            "rt": ["oic.wk.ad"],
+                            "if": ["oic.if.baseline"]
+                        },
+                        {
+                            "href": "/oic/sec/acl",
+                            "rel": "",
+                            "rt": ["oic.r.acl"],
+                            "if": ["oic.if.baseline"]
+                        },
+                        {
+                            "href": "/oic/sec/amacl",
+                            "rel": "",
+                            "rt": ["oic.r.amacl"],
+                            "if": ["oic.if.baseline"]
+                        }
+                    ],
+                    "permission": 2
+                },
+                {
+                    "subjectuuid": "*",
+                    "resources": [
+                        {
+                            "href": "/oic/sec/doxm",
+                            "rel": "",
+                            "rt": ["oic.r.doxm"],
+                            "if": ["oic.if.baseline"]
+                        },
+                        {
+                            "href": "/oic/sec/pstat",
+                            "rel": "",
+                            "rt": ["oic.r.pstat"],
+                            "if": ["oic.if.baseline"]
+                        }
+                    ],
+                    "permission": 2
+                }
+            ]
+        },
+        "rowneruuid" : "AAAAAAAA-BBBB-CCCC-DDDD-010101010101"
+    },
+    "pstat": {
+        "isop": true,
+        "deviceuuid": "AAAAAAAA-BBBB-CCCC-DDDD-010101010101",
+        "rowneruuid": "AAAAAAAA-BBBB-CCCC-DDDD-010101010101",
+        "cm": 0,
+        "tm": 0,
+        "om": 3,
+        "sm": 3
+        },
+    "doxm": {
+        "oxms": [0],
+        "oxmsel": 0,
+        "sct": 1,
+        "owned": true,
+        "deviceuuid": "AAAAAAAA-BBBB-CCCC-DDDD-010101010101",
+        "devowneruuid": "AAAAAAAA-BBBB-CCCC-DDDD-010101010101",
+        "rowneruuid": "AAAAAAAA-BBBB-CCCC-DDDD-010101010101",
+        "x.org.iotivity.dpc": false
+    },
+    "cred": {
+        "creds": [
+            {
+                "credid": 1,
+                "subjectuuid": "AAAAAAAA-BBBB-CCCC-DDDD-010101010101",
+                "credtype": 1,
+                "privatedata": {
+                    "data": "BBBBBBBBBBBBBBBB",
+                    "encoding": "oic.sec.encoding.raw"
+                }
+            },
+            {
+                "credid": 2,
+                "subjectuuid": "FFFFFFFF-1111-2222-3333-444444444444",
+                "credtype": 1,
+                "privatedata": {
+                    "data": "BBBBBBBBBBBBBBBB",
+                    "encoding": "oic.sec.encoding.raw"
+                }
+            }
+        ],
+        "rowneruuid": "AAAAAAAA-BBBB-CCCC-DDDD-010101010101"
+    }
+}

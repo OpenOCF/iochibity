@@ -1,0 +1,6 @@
+package openocf.message;
+
+public class MessageNotificationOut extends messageExhibited
+{
+    int dummy;
+}

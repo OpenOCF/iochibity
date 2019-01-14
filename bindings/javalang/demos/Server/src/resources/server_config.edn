@@ -1,0 +1,124 @@
+;; NOTE: IDs
+;;    this device: 31313131-3131-3131-3131-313131313131
+;;    device that owns this device: 32323232-3232-3232-3232-323232323232
+
+{
+ :doxm {                                ; /oic/doxm = device ownership transfer management/method
+        :oxms [0, 1],                   ; 0 just-works, 1 pin
+        :oxmsel 0,
+        :sct 1,    ; supported credential type:
+        ;; 0b0001 = symmetric pair-wise
+        ;; 0b1000 = asymmetric signing key with cert
+        :owned true,
+        ;; id of this device
+        :deviceuuid "31313131-3131-3131-3131-313131313131",
+        ;; id of device owning this device:
+        :devowneruuid "32323232-3232-3232-3232-323232323232",
+        ;; this /oic/doxm resource is self-owned:
+        :rowneruuid "31313131-3131-3131-3131-313131313131"
+        }
+ :cred {                                ; /oic/cred = credentials resource
+        :creds [
+                {
+                 ;; this is the credential for the device that owns this device:
+                 :credid 1,
+                 :subjectuuid "32323232-3232-3232-3232-323232323232",
+                 :credtype 1,            ; symmetric pair-wise key
+                 :period "20150630T060000/20990920T220000",
+                 :privatedata {
+                               :data "AAAAAAAAAAAAAAAA", ; this is the key (PSK)
+                               :encoding :oic.sec.encoding.raw
+                               }
+                 },
+                {
+                 ;; this credential is for another device, that does not own this device:
+                 :credid 2,
+                 :subjectuuid "31393139-3139-3139-3139-313931393139",
+                 :credtype 1,
+                 :period "20150630T060000/20990920T220000",
+                 :privatedata {
+                               :data "BBBBBBBBBBBBBBBB", ; this is the key (PSK)
+                               :encoding :oic.sec.encoding.raw
+                               }
+                 }
+                ;; NOTE: credential for this device is not listed (why?)
+                ],
+        ;; the /oic/cred resource is owned by the device owning this device:
+        :rowneruuid "32323232-3232-3232-3232-323232323232"
+        }
+ :pstat {                        ; /oic/pstat = provisioning status resource
+         :dos {                          ; device onboarding state (mandatory)
+               :s 3                      ; state, 3 = RFNOP
+               :p false                  ; pending state
+               }
+         :isop true,                     ; is operational (mandatory)
+         :cm 0,                          ; current mode (mandatory), 0 = provisioning complete (rfnop)?
+         :tm 0,                          ; target mode
+         :om 4,                          ; operational mode (mandatory), 4 = client-directed provisioning
+         :sm 4                           ; supported mode, (mandatory),  4 = client-directed provisioning
+         ;; this /oic/pstat resource is self-owned:
+         :rowneruuid "31313131-3131-3131-3131-313131313131", ; resource owner id (mandatory)
+         ;; deprecated: :deviceuuid nil
+         },
+ :acl {                                 ; /oic/acl2?
+       :aclist2 [                       ; /oic/acl2 = list of ACE2s
+                 {;; policy for any unauthenticated device connecting over unsecured channel (coap)
+                  :aceid 1,
+                  :subject {:conntype   ; connection type
+                            :anon-clear ; unauthenticated, non-encrypted
+                            }
+                  :resources [
+                              { :href "/oic/res" },
+                              { :href "/oic/d" },
+                              { :href "/oic/p" },
+                              { :href "/oic/sec/doxm" }
+                              ],
+                  :permission  2        ; oic.sec.crudntype
+                                        ;  0 0b0000,0000 = No permissions
+                                        ;  1 0b0000,0001 = CREATE
+                                        ;  2 0b0000,0010 = RETRIEVE, OBSERVE, DISCOVER
+                                        ;  4 0b0000,0100 = WRITE, UPDATE
+                                        ;  8 0b0000,1000 = DELETE
+                                        ; 16 0b0001,0000 = NOTIFY
+                  },
+                 {;; policy for any authorized device connecting over secure channel (coaps)
+                  :aceid 2,
+                  :subject {:conntype   ; connection type
+                            :auth-crypt ; authorized and encrypted
+                            },
+                  :resources [
+                              { :href "/oic/res" },
+                              { :href "/oic/d" },
+                              { :href "/oic/p" },
+                              { :href "/oic/sec/doxm" }
+                              ],
+                  :permission 2
+                  },
+                 {;; policy for device owning this device:
+                  ;; may do anything with any resource, except delete, notify
+                  :aceid 3,
+                  :subject { :uuid "32323232-3232-3232-3232-323232323232" },
+                  :resources [{:wc "*"  ; wildcard
+                                        ; "*" - match all resources
+                                        ; "+" - match all discoverable resources
+                                        ; "-" - match all non-discoverable resources
+                               }],
+                  :permission 7         ; create, retrieve, observe, discover, write, update
+                  },
+                 {;; policy for some client device that does not own this device:
+                  :aceid 4,
+                  :subject { :uuid "31393139-3139-3139-3139-313931393139" },
+                  :resources [{ :href "/a/led" }],
+                  :permission 7
+                  },
+                 {;; policy for some other client device id:
+                  :aceid 5,
+                  :subject { :uuid "37373737-3737-3737-3737-373737373737" },
+                  :resources [{ :href "/a/led" }],
+                  :permission 6         ; retrieve, observe, discover, write, update
+                  }
+                 ],
+       ;; this /oic/acl2 resource is self-owned:
+       :rowneruuid "31313131-3131-3131-3131-313131313131"
+       }
+ }

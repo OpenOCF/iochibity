@@ -1,0 +1,6 @@
+
+* realistically the language of message/request/response will be easier for
+  programmers than message/stimulus/response.  save the latter just for
+  exposition.
+
+* rename message to messages

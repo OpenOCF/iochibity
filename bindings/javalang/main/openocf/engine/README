@@ -1,0 +1,42 @@
+This layer is the interface between the app and the engine. It
+provides services to apps, and "coservices" to underlying
+layers.
+
+The key services are "exhibit" and "coexhibit". That's all we need; no
+need to reify client/server roles as classes.
+
+Why not put both in one class? Because client apps only need coexhibit
+and server apps only need exhibit. No need to include both except for
+client-server apps.
+
+Registration: server apps need to register resource SPs; client apps
+need to register coresource SPs (callbacks).
+
+Both need to register core resources (platform, device).
+
+On the client side, the engine needs to database inbound
+responses. Client apps can direct the engine to retain messages, and
+can query the engine to inspect retained messages. To support this we
+need a "client services" API. Which is really a messaging db
+management services API: CoResourceDBM? Or MessagingDBM?
+
+Messaging: instead of messages we think in terms of messages. Two
+kinds, exhibitable stimulii and observable responses:
+
+    message (Record)
+        Exhibitable
+	    OutboundRequest - co-exhibited by client (send request message)
+	    OutboundResponse - exhibited by server (send response message)
+        Observable
+	    InboundRequest - observed by server (recv request message)
+	    InboundResponse - co-observed by client (recv response message)
+
+E.g., an inbound response is an observable message record - a record
+of the server's exhibited response message.
+
+BUT: messages have payloads. So e.g. an InboundResponse _contains_ a
+message record as payload.
+
+Clients store observed message records (response messages). Servers
+react to observed message records (request messages) but do not
+retain them (although they could, for logging/traceability).
