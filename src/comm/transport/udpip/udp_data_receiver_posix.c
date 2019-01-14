@@ -197,7 +197,7 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
         /* if (flags & CA_MULTICAST) { /\* FIXME: use MSG_MCAST flag? *\/ */
         //struct in6_addr *addr = &(((struct in6_pktinfo *)pktinfo)->ipi6_addr);
         /* unsigned char topbits = ((unsigned char *)addr)[0]; */
-        if (IN6_IS_ADDR_MULTICAST(&(((struct in6_pktinfo *)pktinfo)->ipi6_addr.s6_addr))) {
+        if (IN6_IS_ADDR_MULTICAST(&(((struct in6_pktinfo *)pktinfo)->ipi6_addr))) {
             OIC_LOG_V(DEBUG, TAG, "msg was multicast");
             /* NOTE: this flag indicates that the msg rcd from
                origin_ep was mcast, not that the origin_ep is an mcast
@@ -218,15 +218,15 @@ CAResult_t udp_recvmsg_on_socket(CASocketFd_t fd, CATransportFlags_t flags) // @
         /* origin_addr is origin_ep */
         struct sockaddr_in6 *origin_addr6 = (struct sockaddr_in6*)&origin_addr;
 
-        if (IN6_IS_ADDR_LINKLOCAL(&origin_addr6->sin6_addr.s6_addr)) {
+        if (IN6_IS_ADDR_LINKLOCAL(&origin_addr6->sin6_addr)) {
                                   //&(((struct in6_pktinfo *)pktinfo)->ipi6_addr.s6_addr))) {
             //OIC_LOG_V(DEBUG, TAG, "ipv6 scope linklocal");
             origin_sep.endpoint.flags |= CA_SCOPE_LINK;
-        } else if (IN6_IS_ADDR_SITELOCAL(&origin_addr6->sin6_addr.s6_addr)) {
+        } else if (IN6_IS_ADDR_SITELOCAL(&origin_addr6->sin6_addr)) {
                     // &(((struct in6_pktinfo *)pktinfo)->ipi6_addr))) {
             //OIC_LOG_V(DEBUG, TAG, "ipv6 scope sitelocal");
             origin_sep.endpoint.flags |= CA_SCOPE_SITE;
-        } else if (IN6_IS_ADDR_UNSPECIFIED(&origin_addr6->sin6_addr.s6_addr)) {
+        } else if (IN6_IS_ADDR_UNSPECIFIED(&origin_addr6->sin6_addr)) {
                     // &(((struct in6_pktinfo *)pktinfo)->ipi6_addr))) {
             //OIC_LOG_V(DEBUG, TAG, "ipv6 scope unspecified");
         }
