@@ -1,6 +1,6 @@
 load("@//config:variables.bzl", "ANDROID_SDK_ROOT", "CROSSTOOL_NG_HOME")
 
-exports_files(["msyspatch.sed", "msyspatch-wsa.sed"])
+exports_files(["iopatch.sed", "msyspatch.sed", "msyspatch-wsa.sed"])
 
 # genrule(
 #     name = "patch",
@@ -14,12 +14,17 @@ exports_files(["msyspatch.sed", "msyspatch-wsa.sed"])
 #   cmd = "find external/ -name configure.ac > $@"
 
 
+    # " sed -f $(location @//src/coap/libcoap:iopatch.sed) external/libcoap/include/coap/coap.h.in > external/libcoap/include/coap/coap.h.in;",
+
 LOCAL_CONFIG  = "".join([
     " (cd external/libcoap;",
     " bash -c ./autogen.sh 2>&1;",
     " ./configure --disable-examples --disable-tests --disable-documentation);",
     " cp external/libcoap/coap_config.h $(@D);",
-    " cp external/libcoap/include/coap/coap.h $(@D);"])
+    " touch coap.h;",
+    " cp coap.h $(@D);"
+    # " cp external/libcoap/include/coap/coap.h $(@D);"
+])
 
 ANDROID_ARM7_CONFIG="".join([
     "(cd external/libcoap;",
@@ -179,6 +184,7 @@ CONFIG_SRCS = ["autogen.sh",
                "libcoap-1.pc.in",
 ] + select({"@//config:mingw": ["@//src/coap/libcoap:msyspatch.sed",
                                 "@//src/coap/libcoap:msyspatch-wsa.sed"],
+            "@//config:linux": ["@//src/coap/libcoap:iopatch.sed"],
             "//conditions:default"   : [],})
 
 genrule(name = "config",
@@ -213,10 +219,53 @@ cc_library(
                 "//conditions:default": []})
     + select({"@//config:mingw": ["-DHAVE_WS2TCPIP_H"],
               "//conditions:default": ["-DWITH_POSIX"]}),
-    hdrs = glob(["include/coap/*.h"]) + [":coap_config.h", ":coap.h"],
-    srcs = glob(["src/**/*.c"],
-                exclude=["src/**/coap_io_lwip.c",
-                         "src/**/coap_io.c"])
-    + glob(["include/**/*.h"]) + [":coap_config.h", ":coap.h"],
+    hdrs = glob(["include/coap/*.h"],
+                exclude=[# "include/coap/coap.h",
+                         # "include/coap/coap_io.h"
+                ])
+    + [":coap_config.h"], # , ":coap.h"],
+    # srcs = glob(["src/**/*.c"],
+    #             exclude=["src/coap/coap_io_lwip.c",
+    #                      "src/coap/coap_io.c"])
+    srcs = ["src/address.c",
+            "include/coap/address.h",
+            "src/async.c",
+            "include/coap/async.h",
+            "include/coap/bits.h",
+            "src/block.c",
+            "include/coap/block.h",
+            "coap.h",
+            "src/coap_io.c",
+            "include/coap/coap_io.h",
+            #"src/coap_io_lwip.c",
+            "src/coap_list.c",
+            "include/coap/coap_list.h",
+            "src/coap_time.c",
+            "include/coap/coap_time.h",
+            "src/debug.c",
+            "include/coap/debug.h",
+            "src/encode.c",
+            "include/coap/encode.h",
+            "src/hashkey.c",
+            "include/coap/hashkey.h",
+            "src/mem.c",
+            "include/coap/mem.h",
+            "src/net.c",
+            "include/coap/net.h",
+            "src/option.c",
+            "include/coap/option.h",
+            "src/pdu.c",
+            "include/coap/pdu.h",
+            "include/coap/prng.h",
+            "src/resource.c",
+            "include/coap/resource.h",
+            "src/str.c",
+            "include/coap/str.h",
+            "src/subscribe.c",
+            "include/coap/subscribe.h",
+            "src/uri.c",
+            "include/coap/uri.h",
+            ":coap_config.h"],
+    # + glob(["include/**/*.h"]) + [":coap_config.h", ":coap.h"],
     visibility = ["//visibility:public"]
 )
