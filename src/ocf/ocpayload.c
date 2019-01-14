@@ -1986,7 +1986,7 @@ void OC_CALL OCIntrospectionPayloadDestroy(OCIntrospectionPayload* payload)
     OICFree(payload);
 }
 
-size_t OC_CALL OCDiscoveryPayloadGetResourceCount(OCDiscoveryPayload* payload)
+size_t OC_CALL OCDiscoveryPayloadGetResourceCount(OCDiscoveryPayload* payload) EXPORT
 {
     size_t i = 0;
     OCResourcePayload* p = payload->resources;
