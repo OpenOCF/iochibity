@@ -383,7 +383,7 @@ int main() {
     /* OCLogHookFd(logfd); */
     /* Initialize the logger */
     int r;
-    r = clog_init_path(MY_LOGGER, "server.log");
+    r = clog_init_path(MY_LOGGER, "logs/server.log");
     if (r != 0) {
         fprintf(stderr, "clog initialization failed.\n");
         return 1;

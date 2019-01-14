@@ -435,7 +435,9 @@ void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
     inet_ntop(AF_INET, &mreq.imr_multiaddr.s_addr, addr_str, sizeof(addr_str));
 
     int ret;
-    ret = setsockopt(udp_m4.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+    ret = setsockopt(udp_m4.fd, IPPROTO_IP,
+                     IP_ADD_MEMBERSHIP,
+                     OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
 	if (PORTABLE_check_setsockopt_err())
@@ -446,7 +448,9 @@ void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
         OIC_LOG_V(DEBUG, TAG, "nif %u added to ipv4 mcast grp %s:%d", ifindex, addr_str, udp_m4.port);
 
     }
-    ret = setsockopt(udp_m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+    ret = setsockopt(udp_m4s.fd, IPPROTO_IP,
+                     IP_ADD_MEMBERSHIP,
+                     OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
  	if ( PORTABLE_check_setsockopt_m4s_err(&mreq, ret) )
@@ -474,7 +478,10 @@ LOCAL void applyMulticast6(struct in6_addr *addr, uint32_t ifindex)
     inet_ntop(AF_INET6, addr->s6_addr, addr_str, sizeof(addr_str));
 
     int ret;
-    ret = setsockopt(udp_m6.fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+    ret = setsockopt(udp_m6.fd, IPPROTO_IPV6,
+                     // IPV6_ADD_MEMBERSHIP, /* linux */
+                     IPV6_JOIN_GROUP, /* BSD */
+                     OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
 	if (PORTABLE_check_setsockopt_m6_err(udp_m6.fd, &mreq, ret))
@@ -484,7 +491,10 @@ LOCAL void applyMulticast6(struct in6_addr *addr, uint32_t ifindex)
     } else {
         OIC_LOG_V(ERROR, TAG, "nif %u joined ipv6 mcast grp [%s]:%u", ifindex, addr_str, udp_m6.port);
     }
-    ret = setsockopt(udp_m6s.fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+    ret = setsockopt(udp_m6s.fd, IPPROTO_IPV6,
+                     // IPV6_ADD_MEMBERSHIP,
+                     IPV6_JOIN_GROUP,
+                     OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
 	if (PORTABLE_check_setsockopt_m6_err(udp_m6s.fd, &mreq, ret))
@@ -574,6 +584,11 @@ CAResult_t udp_configure_eps() /* @was CAIPStartListenServer */
             //#endif
 	    continue;
 	}
+        if (ifa->ifa_flags & IFF_POINTOPOINT) {
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping point-to-point NIF %d, family %d", ifindex, family);
+            //#endif
+	    continue;
+	}
         if (ifa->ifa_addr->sa_family == AF_INET6) {
             if ( 0 == strlen((char*)((struct sockaddr_in6*)ifa->ifa_addr)->sin6_addr.s6_addr) ) {
                 OIC_LOG_V(DEBUG, TAG, "\tSkipping NIF %d - no ipv6 address", ifindex);
@@ -621,9 +636,10 @@ CAResult_t udp_configure_eps() /* @was CAIPStartListenServer */
         OIC_LOG_V(DEBUG, TAG, "\tIFF_RUNNING? %s", ((ifa->ifa_flags & IFF_RUNNING)? "Y":"N"));
         OIC_LOG_V(DEBUG, TAG, "\tIFF_ALLMULTI? %s", ((ifa->ifa_flags & IFF_ALLMULTI)? "Y":"N"));
         OIC_LOG_V(DEBUG, TAG, "\tIFF_MULTICAST? %s", ((ifa->ifa_flags & IFF_MULTICAST)? "Y":"N"));
-        OIC_LOG_V(DEBUG, TAG, "\tIFF_DYNAMIC? %s", ((ifa->ifa_flags & IFF_DYNAMIC)? "Y":"N"));
         OIC_LOG_V(DEBUG, TAG, "\tIFF_NOARP? %s", ((ifa->ifa_flags & IFF_NOARP)? "Y":"N"));
         OIC_LOG_V(DEBUG, TAG, "\tIFF_POINTOPOINT? %s", ((ifa->ifa_flags & IFF_POINTOPOINT)? "Y":"N"));
+        // not portable:
+        // OIC_LOG_V(DEBUG, TAG, "\tIFF_DYNAMIC? %s", ((ifa->ifa_flags & IFF_DYNAMIC)? "Y":"N"));
     }
 
     OIC_LOG_V(DEBUG, TAG, "NIF count: %d", nif_count);

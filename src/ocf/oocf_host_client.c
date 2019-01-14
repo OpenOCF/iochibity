@@ -775,6 +775,12 @@ static void _decode_cbor_payload(ClientCB *cbNode, /* @was OCHandleResponse */
                                  struct oocf_inbound_response * response)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
+    OIC_LOG_V(DEBUG, TAG, "CBOR PAYLOAD BUFFER (sz %d):", responseInfo->info.payloadSize);
+    OIC_LOG_BUFFER(DEBUG, TAG, (const uint8_t *) responseInfo->info.payload_cbor,
+                           responseInfo->info.payloadSize);
+
+
     OCPayloadType payload_type = PAYLOAD_TYPE_INVALID;
 
     if(responseInfo->info.payload_cbor &&

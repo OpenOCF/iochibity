@@ -163,7 +163,7 @@ static CARetransmission_t g_retransmissionContext;
 
 static CANetworkMonitorCallback g_nwMonitorHandler = NULL;
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
 void CAAddDataToSendThread(CAData_t *data) /* called by CAAddSendThreadQueue */
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -214,6 +214,12 @@ static CAData_t* _oocf_coap_pdu_to_msg(const CAEndpoint_t *endpoint, /* @was CAG
 #if defined(DEBUG_MSGS)
     CAInfo_t *info = NULL;
 #endif
+#ifdef DEBUG_PAYLOAD
+    size_t payloadLen = (pdu->data) ? (unsigned char *)pdu->hdr + pdu->length - pdu->data : 0;
+    OIC_LOG_V(DEBUG, ANALYZER_TAG, "%s CoAP Payload (sz %u):", __func__, payloadLen);
+    OIC_LOG_PAYLOAD_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, payloadLen);
+#endif
+
     CAData_t *cadata = (CAData_t *) OICCalloc(1, sizeof(CAData_t));
     if (!cadata)
     {
@@ -436,7 +442,7 @@ static void CATimeoutCallback(const CAEndpoint_t *endpoint, const void *pdu, uin
     cadata->requestInfo = NULL;
     cadata->responseInfo = resInfo;
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     if (CAIsSupportedBlockwiseTransfer(endpoint->adapter))
     {
         res = CARemoveBlockDataFromListWithSeed(resInfo->info.token, resInfo->info.tokenLength,
@@ -446,7 +452,7 @@ static void CATimeoutCallback(const CAEndpoint_t *endpoint, const void *pdu, uin
             OIC_LOG(ERROR, TAG, "CARemoveBlockDataFromListWithSeed failed");
         }
     }
-#endif // WITH_BWT
+#endif // ENABLE_BWT
 
     CAQueueingThreadAddData(&g_receiveThread, cadata, sizeof(CAData_t));
 }
@@ -510,7 +516,7 @@ static void CAReceiveThreadProcess(void *threadData)
 #endif
 }
 
-/* send outbound multicast msg */
+/* FIXME: @rename oocf_multicast_outbound_msg */
 static CAResult_t CAProcessMulticastData(const CAData_t *data)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -534,14 +540,14 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
 
     if (data->requestInfo)
     {
-        OIC_LOG(DEBUG, TAG, "msg is outbound requestInfo");
+        OIC_LOG(DEBUG, TAG, "msg is multicast outbound requestInfo");
 
         outbound_ocf_msg = &data->requestInfo->info;
         _outbound_coap_pdu = CAGeneratePDU(CA_GET, outbound_ocf_msg, data->remoteEndpoint, &options, &transport);
     }
     else if (data->responseInfo)
-    {
-        OIC_LOG(DEBUG, TAG, "msg is outbound responseInfo");
+    { /* FIXME: do we ever multicast a response? */
+        OIC_LOG(DEBUG, TAG, "msg is multicast outbound responseInfo");
 
         outbound_ocf_msg = &data->responseInfo->info;
         _outbound_coap_pdu = CAGeneratePDU(data->responseInfo->result, outbound_ocf_msg, data->remoteEndpoint,
@@ -556,7 +562,7 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
         return res;
     }
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     if (CAIsSupportedBlockwiseTransfer(data->remoteEndpoint->adapter))
     {
         // Blockwise transfer
@@ -567,7 +573,7 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
             goto exit;
         }
     }
-#endif // WITH_BWT
+#endif // ENABLE_BWT
 
     CALogPDUInfo(data, _outbound_coap_pdu);
 
@@ -593,6 +599,10 @@ exit:
     return res;
 }
 
+/* FIXME: @rename oocf_unicast_outbound_msg */
+/* 1. convert ocf msg to coap pdu
+   2. add block options
+ */
 static CAResult_t CAProcessSendData(const CAData_t *data)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -652,7 +662,7 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
         else if (NULL != data->responseInfo)
         {
             OIC_LOG(DEBUG, TAG, "msg is OUTBOUND RESPONSE");
-            OIC_LOG_V(DEBUG, TAG, "response result: 0x%04x", data->responseInfo->result);
+            OIC_LOG_V(DEBUG, TAG, "response result: %u", data->responseInfo->result);
 
             info = &data->responseInfo->info;
 #ifdef ROUTING_GATEWAY
@@ -682,7 +692,7 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
         // interface controller function call.
         if (NULL != pdu)
         {
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
             if (CAIsSupportedBlockwiseTransfer(data->remoteEndpoint->adapter))
             {
                 // Blockwise transfer
@@ -699,14 +709,14 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
                     }
                 }
             }
-#endif // WITH_BWT
+#endif // ENABLE_BWT
             OIC_LOG_V(INFO, TAG, "%s logging pdu:", __func__);
             CALogPDUInfo(data, pdu);
 
-            OIC_LOG_V(INFO, TAG, "CASendUnicastData type : %d",
-                      (data->dataType == CA_REQUEST_DATA)? "REQUEST"
-                      :(data->dataType == CA_RESPONSE_DATA)? "RESPONSE"
-                      : "OTHER");
+            /* OIC_LOG_V(INFO, TAG, "CASendUnicastData type : %d", */
+            /*           (data->dataType == CA_REQUEST_DATA)? "REQUEST" */
+            /*           :(data->dataType == CA_RESPONSE_DATA)? "RESPONSE" */
+            /*           : "OTHER"); */
             res = CASendUnicastData(data->remoteEndpoint, pdu->transport_hdr, pdu->length, data->dataType);
             if (CA_STATUS_OK != res)
             {
@@ -915,6 +925,12 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *origin_sep, // @was C
         goto exit;
     }
 
+#ifdef DEBUG_PAYLOAD
+    size_t payloadLen = (pdu->data) ? (unsigned char *)pdu->hdr + pdu->length - pdu->data : 0;
+    OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload (sz %u):", payloadLen);
+    OIC_LOG_PAYLOAD_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, payloadLen);
+#endif
+
 #ifdef TCP_ADAPTER
     if (CA_ADAPTER_TCP == origin_sep->endpoint.adapter && CA_CSM != code)
     {
@@ -943,7 +959,9 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *origin_sep, // @was C
             }
         //} else if (CA_RESPONSE_CLASS(pdu->transport_hdr->udp.code)) {
     } else if (COAP_MESSAGE_IS_RESPONSE(&pdu->transport_hdr->udp)) {
-        cadata = _oocf_coap_pdu_to_msg(&(origin_sep->endpoint), &(origin_sep->identity), pdu, CA_RESPONSE_DATA);
+        cadata = _oocf_coap_pdu_to_msg(&(origin_sep->endpoint),
+                                       &(origin_sep->identity),
+                                       pdu, CA_RESPONSE_DATA);
         if (!cadata)
             {
                 OIC_LOG(ERROR, TAG, "CAReceivedPacketCallback, CAGenerateHandlerData failed!");
@@ -1036,7 +1054,7 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *origin_sep, // @was C
     CALogPDUInfo(cadata, pdu);
 #endif
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     if (CAIsSupportedBlockwiseTransfer(origin_sep->endpoint.adapter))
     {
         CAResult_t res = CAReceiveBlockWiseData(pdu, &(origin_sep->endpoint), cadata, dataLen);
@@ -1059,11 +1077,15 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *origin_sep, // @was C
         CAQueueingThreadAddData(&g_receiveThread, cadata, sizeof(CAData_t));
     }
 
+#ifdef DEBUG_PAYLOAD
+    size_t plLen = (pdu->data) ? (unsigned char *)pdu->hdr + pdu->length - pdu->data : 0;
+    OIC_LOG_V(DEBUG, ANALYZER_TAG, "%s CoAP Payload (sz %u):", __func__, plLen);
+    OIC_LOG_PAYLOAD_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, plLen);
+#endif
+
     coap_delete_pdu(pdu);
 
 exit:
-    // OIC_LOG(DEBUG, TAG, "received pdu dgram_payload :");
-    OIC_LOG_PAYLOAD_BUFFER(DEBUG, TAG,  dgram_payload, dataLen);
 
     OIC_TRACE_END();
     OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
@@ -1322,7 +1344,7 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *dest_ep,
         CAQueueingThreadAddData(&g_receiveThread, data, sizeof(CAData_t));
         return CA_STATUS_OK;
     }
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     if (CAIsSupportedBlockwiseTransfer(dest_ep->adapter))
     {
         // send block data
@@ -1340,7 +1362,7 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *dest_ep,
         return res;
     }
     else
-#endif // WITH_BWT
+#endif // ENABLE_BWT
     {
         CAQueueingThreadAddData(&g_sendThread, data, sizeof(CAData_t));
     }
@@ -1432,7 +1454,7 @@ CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
         return res;
     }
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     // block-wise transfer initialize
     res = CAInitializeBlockWiseTransfer(CAAddDataToSendThread, CAAddDataToReceiveThread);
     if (CA_STATUS_OK != res)
@@ -1498,7 +1520,7 @@ void CATerminateMessageHandler(void)
         g_threadPoolHandle = NULL;
     }
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     CATerminateBlockWiseTransfer();
 #endif
     CARetransmissionDestroy(&g_retransmissionContext);
@@ -1524,10 +1546,10 @@ LOCAL void CALogPayloadInfo(CAInfo_t *info)
             }
         }
 
-        if (info->payload)
+        if (info->payload_cbor)
         {
-            OIC_LOG_V(DEBUG, TAG, "payload: %p(%" PRIuPTR ")", info->payload,
-                      info->payloadSize);
+            /* OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload:"); */
+            /* OIC_LOG_PAYLOAD_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, payloadLen); */
         }
 
         if (info->token)
@@ -1715,7 +1737,6 @@ LOCAL void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu)
             OIC_LOG_V(DEBUG, ANALYZER_TAG, "Data Type = [%d]", data->dataType);
             break;
     }
-    OIC_LOG(DEBUG, ANALYZER_TAG, "-------------------------------------------------");
 
     const CAInfo_t *info = NULL;
     if (NULL != data->requestInfo)
@@ -1776,14 +1797,12 @@ LOCAL void CALogPDUInfo(const CAData_t *data, const coap_pdu_t *pdu)
         }
     }
 
-#ifdef TB_LOG
     size_t payloadLen = (pdu->data) ? (unsigned char *)pdu->hdr + pdu->length - pdu->data : 0;
-#endif
     OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Message Full Size = [%u]", pdu->length);
+    OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Header size = [%lu]", pdu->length - payloadLen);
     OIC_LOG(DEBUG, ANALYZER_TAG, "CoAP Header (+ 0xFF)");
     OIC_LOG_BUFFER(DEBUG, ANALYZER_TAG,  (const uint8_t *) pdu->transport_hdr,
                    pdu->length - payloadLen);
-    OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Header size = [%lu]", pdu->length - payloadLen);
 
     OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload Size = [%lu]", payloadLen);
     OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload:");
@@ -1857,7 +1876,11 @@ CAResult_t CAGetHeaderOption(CAHeaderOption_t *hdrOpt, size_t numOptions, uint16
 CAResult_t CAAddBlockSizeOption(coap_pdu_t *pdu, uint16_t sizeType, size_t dataLength,
                                 coap_list_t **options)
 {
-    OIC_LOG(DEBUG, TAG, "IN-CAAddBlockSizeOption");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, type %u %s", __func__,
+              sizeType,
+              (sizeType == COAP_OPTION_SIZE1)? "SIZE1"
+              :(sizeType == COAP_OPTION_SIZE1)? "SIZE2"
+              : "UNKNOWN");
     VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
     VERIFY_NON_NULL_MSG(options, TAG, "options");
     VERIFY_TRUE((dataLength <= UINT_MAX), TAG, "dataLength");
@@ -1880,15 +1903,14 @@ CAResult_t CAAddBlockSizeOption(coap_pdu_t *pdu, uint16_t sizeType, size_t dataL
         return CA_STATUS_INVALID_PARAM;
     }
 
-    OIC_LOG(DEBUG, TAG, "OUT-CAAddBlockSizeOption");
-
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 
 static CAResult_t CAAddBlockOptionImpl(coap_block_t *block, uint8_t blockType,
                                 coap_list_t **options)
 {
-    OIC_LOG(DEBUG, TAG, "IN-AddBlockOptionImpl");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(block, TAG, "block");
     VERIFY_NON_NULL_MSG(options, TAG, "options");
 
@@ -1906,7 +1928,7 @@ static CAResult_t CAAddBlockOptionImpl(coap_block_t *block, uint8_t blockType,
         return CA_STATUS_INVALID_PARAM;
     }
 
-    OIC_LOG(DEBUG, TAG, "OUT-AddBlockOptionImpl");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return CA_STATUS_OK;
 }
 
@@ -1957,7 +1979,7 @@ static CAResult_t CAAddBlockOption1(coap_pdu_t **pdu, const CAInfo_t *info, size
         }
 
         // add option list to pdu.
-        res = CAAddOptionToPDU(*pdu, options);
+        res = CAAddOptionsToPDU(*pdu, options);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "add has failed");
@@ -1987,7 +2009,7 @@ static CAResult_t CAAddBlockOption1(coap_pdu_t **pdu, const CAInfo_t *info, size
         }
 
         // add option list to pdu.
-        res = CAAddOptionToPDU(*pdu, options);
+        res = CAAddOptionsToPDU(*pdu, options);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "add has failed");
@@ -2035,9 +2057,9 @@ exit:
 }
 
 static CAResult_t CAAddBlockOption2(coap_pdu_t **pdu, const CAInfo_t *info, size_t dataLength,
-                             const CABlockDataID_t *blockID, coap_list_t **options)
+                                    const CABlockDataID_t *blockID, coap_list_t **options)
 {
-    OIC_LOG(DEBUG, TAG, "IN-AddBlockOption2");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
     VERIFY_NON_NULL_MSG((*pdu), TAG, "(*pdu)");
     VERIFY_NON_NULL_MSG((*pdu)->transport_hdr, TAG, "(*pdu)->transport_hdr");
@@ -2046,7 +2068,8 @@ static CAResult_t CAAddBlockOption2(coap_pdu_t **pdu, const CAInfo_t *info, size
     VERIFY_NON_NULL_MSG(options, TAG, "options");
     VERIFY_TRUE((dataLength <= UINT_MAX), TAG, "dataLength");
 
-    // get set block data from CABlock list-set.
+    /* get set block data from CABlock list-set. */
+    /* coap_block_t == NUM, M, SZX */
     coap_block_t *block1 = CAGetBlockOption(blockID, COAP_OPTION_BLOCK1);
     coap_block_t *block2 = CAGetBlockOption(blockID, COAP_OPTION_BLOCK2);
     if (!block1 || !block2)
@@ -2059,6 +2082,7 @@ static CAResult_t CAAddBlockOption2(coap_pdu_t **pdu, const CAInfo_t *info, size
     uint32_t code = (*pdu)->transport_hdr->udp.code;
     if (CA_GET != code && CA_POST != code && CA_PUT != code && CA_DELETE != code)
     {
+        /* this is a response msg */
         CASetMoreBitFromBlock(dataLength, block2);
 
         // if block number is 0, add size2 option
@@ -2092,7 +2116,7 @@ static CAResult_t CAAddBlockOption2(coap_pdu_t **pdu, const CAInfo_t *info, size
             block1->num = 0;
         }
 
-        res = CAAddOptionToPDU(*pdu, options);
+        res = CAAddOptionsToPDU(*pdu, options);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "add has failed");
@@ -2126,7 +2150,7 @@ static CAResult_t CAAddBlockOption2(coap_pdu_t **pdu, const CAInfo_t *info, size
             goto exit;
         }
 
-        res = CAAddOptionToPDU(*pdu, options);
+        res = CAAddOptionsToPDU(*pdu, options);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "add has failed");
@@ -2134,16 +2158,18 @@ static CAResult_t CAAddBlockOption2(coap_pdu_t **pdu, const CAInfo_t *info, size
         }
         CALogBlockInfo(block2);
     }
-
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT OK", __func__);
     return CA_STATUS_OK;
 
 exit:
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT ERROR", __func__);
     CARemoveBlockDataFromList(blockID);
     return res;
 }
 
+/* outbound msgs only */
 LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
-                            const CAEndpoint_t *endpoint, coap_list_t **options)
+                                  const CAEndpoint_t *endpoint, coap_list_t **options)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
@@ -2157,11 +2183,20 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
     VERIFY_TRUE((info->payloadSize <= UINT_MAX), TAG, "info->payloadSize");
 
     CAResult_t res = CA_STATUS_OK;
+
+    /* do not add block option if this is a msg from server indicating request incomplete (408) */
+    uint32_t respCode = CA_RESPONSE_CODE((*pdu)->transport_hdr->udp.code);
+    if (CA_REQUEST_ENTITY_INCOMPLETE == respCode) {
+        OIC_LOG(INFO, TAG, "Request incomplete");
+        res = CA_STATUS_OK;
+        goto exit2;
+    }
+
     unsigned int dataLength = 0;
     if (info->payload_cbor)
     {
         dataLength = (unsigned int)info->payloadSize;
-        OIC_LOG_V(DEBUG, TAG, "dataLength - %u", dataLength);
+        OIC_LOG_V(DEBUG, TAG, "payload length: %u", dataLength);
     }
 
     CABlockDataID_t* blockDataID = CACreateBlockDatablockId(
@@ -2173,19 +2208,15 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
         OIC_LOG(ERROR, TAG, "blockId is null");
         res = CA_STATUS_FAILED;
         goto exit;
-    }
-
-    uint32_t respCode = CA_RESPONSE_CODE((*pdu)->transport_hdr->udp.code);
-    if (CA_REQUEST_ENTITY_INCOMPLETE == respCode) /* 408 */
-    {
-        OIC_LOG(INFO, TAG, "don't use option");
-        res = CA_STATUS_OK;
-        goto exit;
+    } else {
+        OIC_LOG(DEBUG, TAG, "BlockID:");
+        OIC_LOG_BUFFER(DEBUG, TAG, (const uint8_t *)blockDataID->id, blockDataID->idLength);
     }
 
     uint16_t blockType = CAGetBlockOptionType(blockDataID);
     if (COAP_OPTION_BLOCK2 == blockType) /* response payload */
     {
+        OIC_LOG(ERROR, TAG, "option type is BLOCK2");
         res = CAAddBlockOption2(pdu, info, dataLength, blockDataID, options);
         if (CA_STATUS_OK != res)
         {
@@ -2195,6 +2226,7 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
     }
     else if (COAP_OPTION_BLOCK1 == blockType) /* request payload */
     {
+        OIC_LOG(ERROR, TAG, "option type is BLOCK1");
         res = CAAddBlockOption1(pdu, info, dataLength, blockDataID, options);
         if (CA_STATUS_OK != res)
         {
@@ -2204,7 +2236,7 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
     }
     else
     {
-        OIC_LOG(DEBUG, TAG, "no BLOCK option");
+        OIC_LOG_V(ERROR, TAG, "unknown BLOCK option type: %u", blockType);
 
         // in case it is not large data, add option list to pdu.
         if (*options)
@@ -2240,6 +2272,7 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
         }
     }
 
+    /* if we reach this point...? */
     uint32_t code = (*pdu)->transport_hdr->udp.code;
     if (CA_GET == code || CA_POST == code || CA_PUT == code || CA_DELETE == code)
     {
@@ -2257,8 +2290,9 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
         }
     }
 
-exit:
+ exit:
     CADestroyBlockID(blockDataID);
-    OIC_LOG(DEBUG, TAG, "OUT-AddBlockOption");
+ exit2:
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return res;
 }

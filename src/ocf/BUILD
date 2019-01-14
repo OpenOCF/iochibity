@@ -72,6 +72,7 @@ cc_library(
     defines = DEFINES,
 
     deps = ["//src:config",
+            "//src/cbor",
             "//src/comm",
             "//src/logger",
             "//src/portability",

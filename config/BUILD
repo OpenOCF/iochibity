@@ -382,6 +382,12 @@ config_setting(
 )
 
 config_setting(
+    name = "debug_payload",
+    visibility = ["//visibility:public"],
+    define_values = { "debug_payload": "true"}
+)
+
+config_setting(
     name = "debug_tls",
     visibility = ["//visibility:public"],
     define_values = { "debug_tls": "true"}

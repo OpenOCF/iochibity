@@ -520,7 +520,7 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
     VERIFY_GT((size_t)OC_MAX_TPS_STR_SIZE, tpsCharsToWrite);
     ret = memcpy(tps, origin, tpsCharsToWrite);
     VERIFY_NON_NULL_1(ret);
-    OIC_LOG_V(INFO, TAG, "\ttps: %s", tps);
+    /* OIC_LOG_V(INFO, TAG, "\ttps: %s", tps); */
 
     // check tps type
     if (strcmp(tps, COAP_STR) == 0)
@@ -608,7 +608,7 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
         VERIFY_GT((size_t)OC_MAX_ADDR_STR_SIZE, addrCharsToWrite);
         ret = memcpy(addr, tokPos, addrCharsToWrite);
         VERIFY_NON_NULL_1(ret);
-        OIC_LOG_V(INFO, TAG, "\taddr: %s", addr);
+        /* OIC_LOG_V(INFO, TAG, "\taddr: %s", addr); */
 
         tmp = strrchr(origin, OC_ENDPOINT_ADDR_TOKEN);
         VERIFY_NON_NULL_1(tmp);
@@ -619,7 +619,7 @@ OCStackResult OCParseEndpointString(const char* endpointStr, OCEndpointPayload* 
         long port = strtol(tokPos, &end, 10);
         VERIFY_GT_ZERO(port);
         VERIFY_LT_OR_EQ(port, UINT16_MAX);
-        OIC_LOG_V(INFO, TAG, "\tport: %s", tokPos);
+        /* OIC_LOG_V(INFO, TAG, "\tport: %s", tokPos); */
 
         out->tps = tps;
         out->addr = addr;
@@ -1020,7 +1020,7 @@ OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload, uint32
                             OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, "%25");
                             //OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, z);
                             OICStrcat(eps->addr, OC_MAX_ADDR_STR_SIZE, zoneId);
-                            OIC_LOG_V(DEBUG, TAG, "addr with zone: %s; ifindex: %u, %s", eps->addr, ifindex, zoneId);
+                            /* OIC_LOG_V(DEBUG, TAG, "addr with zone: %s; ifindex: %u, %s", eps->addr, ifindex, zoneId); */
                             OICFree(zoneId);
                         }
                         else
@@ -1072,7 +1072,7 @@ CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
         return CA_STATUS_FAILED;
     }
 
-    OIC_LOG_V(DEBUG, TAG, "Given ifindex is %d parsed zoneId is %s", ifindex, *zoneId);
+    /* OIC_LOG_V(DEBUG, TAG, "Given ifindex is %d parsed zoneId is %s", ifindex, *zoneId); */
     return CA_STATUS_OK;
 }
 

@@ -3,6 +3,8 @@ src/tmp/cacommon.h
 src/tmp/cainterface.h
 src/tmp/caipadapter.c
 src/tmp/casecurityinterface.h
+src/cbor/oocf_cbor_encode.c
+src/cbor/oocf_cbor_decode.c
 src/coap/cablockwisetransfer.c
 src/coap/caping.c
 src/coap/coap_codec.c
@@ -113,8 +115,6 @@ src/ocf/ocf_services_client/coresource_db_mgr.c
 src/ocf/ocf_services_client/coresource_mgr.c
 src/ocf/ocobserve.c
 src/ocf/ocpayload.c
-src/ocf/ocpayloadconvert.c
-src/ocf/ocpayloadparse.c
 src/ocf/ocresource.c
 src/ocf/ocserverrequest.c
 src/ocf/ocstack.c

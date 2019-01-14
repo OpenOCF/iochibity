@@ -62,6 +62,9 @@ DEFLOG = select({"//config:enable_logging": ["TB_LOG"],
 DBG_THREADS = select({"//config:debug_threads": ["DEBUG_THREADS"],
 	              "//conditions:default": []})
 
+DBG_PAYLOAD = select({"//config:debug_payload": ["DEBUG_PAYLOAD"],
+	              "//conditions:default": []})
+
 DBG_TLS = select({"//config:debug_tls": ["DEBUG_TLS"],
 	          "//conditions:default": []})
 
@@ -73,7 +76,8 @@ MULTIOWNER = select({"//config:multi_own": ["MULTIPLE_OWNER"],
 
 # libcoap hdrs etc. require WITH_POSIX on Linux
 POSIX = select({"//config:linux": ["WITH_POSIX"],
+                "//config:darwin": ["WITH_POSIX"],
                 "//conditions:default": []})
 
-DEFINES = DEFDTLS + DEFTCP + DEFTLS + DEFLOG + DBG_THREADS + DBG_TLS + DBG_MSGS + MULTIOWNER + POSIX
+DEFINES = DEFDTLS + DEFTCP + DEFTLS + DEFLOG + DBG_THREADS + DBG_PAYLOAD + DBG_TLS + DBG_MSGS + MULTIOWNER + POSIX
 

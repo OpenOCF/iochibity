@@ -2109,13 +2109,13 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
         for (size_t i = 0; i < len; i++)
         /* for (size_t i = 0; i < local_eps_count; i++) */
         {
-	    OIC_LOG_V(DEBUG, TAG, "\tendpoint %d", i);
+	    // OIC_LOG_V(DEBUG, TAG, "\tendpoint %d", i);
 
 	    // FIXME: use indexing?
             /* CAEndpoint_t *ep = local_eps + i; */
             CAEndpoint_t *lep = u_arraylist_get(g_local_endpoint_cache, i);
-	    OIC_LOG_V(DEBUG, TAG, "\ttransport: 0x%X", lep->adapter);
-	    OIC_LOG_V(DEBUG, TAG, "\taddr: %s port: %d", lep->addr, lep->port);
+	    /* OIC_LOG_V(DEBUG, TAG, "\ttransport: 0x%X", lep->adapter); */
+	    /* OIC_LOG_V(DEBUG, TAG, "\taddr: %s port: %d", lep->addr, lep->port); */
 	    /* OIC_LOG_V(DEBUG, TAG, "%s ifindex %d", __func__, lep->ifindex); */
 	    // OIC_LOG_V(DEBUG, TAG, "%s dev index %d", __func__, devAddr->ifindex);
 
@@ -2207,9 +2207,11 @@ OCEndpointPayload* CreateEndpointPayloadList(const OCResource *resource,
     }
 
     *listHead = headNode;
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT OK", __func__);
     return headNode;
 exit:
     OCDiscoveryEndpointDestroy(headNode);
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT ERROR", __func__);
     return NULL;
 }
 
@@ -2226,6 +2228,7 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
     OCResourcePayload* pl = (OCResourcePayload*)OICCalloc(1, sizeof(OCResourcePayload));
     if (!pl)
     {
+        //OIC_LOG_V(DEBUG, TAG, "%s EXIT 1", __func__);
         return NULL;
     }
 
@@ -2242,6 +2245,7 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
     if (!pl->uri)
     {
         OCDiscoveryResourceDestroy(pl);
+        //OIC_LOG_V(DEBUG, TAG, "%s EXIT 2", __func__);
         return NULL;
     }
 
@@ -2252,6 +2256,7 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
         if (!pl->rel)
         {
             OCDiscoveryResourceDestroy(pl);
+            //OIC_LOG_V(DEBUG, TAG, "%s EXIT 3", __func__);
             return NULL;
         }
     }
@@ -2277,12 +2282,14 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
         if (!pl->types)
         {
             OCDiscoveryResourceDestroy(pl);
+            //OIC_LOG_V(DEBUG, TAG, "%s EXIT 4", __func__);
             return NULL;
         }
         pl->types->value = OICStrdup(typePtr->resourcetypename);
         if (!pl->types->value)
         {
             OCDiscoveryResourceDestroy(pl);
+            //OIC_LOG_V(DEBUG, TAG, "%s EXIT 5", __func__);
             return NULL;
         }
 
@@ -2294,12 +2301,14 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
             if (!cur->next)
             {
                 OCDiscoveryResourceDestroy(pl);
+                //OIC_LOG_V(DEBUG, TAG, "%s EXIT 6", __func__);
                 return NULL;
             }
             cur->next->value = OICStrdup(typePtr->resourcetypename);
             if (!cur->next->value)
             {
                 OCDiscoveryResourceDestroy(pl);
+                //OIC_LOG_V(DEBUG, TAG, "%s EXIT 7", __func__);
                 return NULL;
             }
             cur = cur->next;
@@ -2315,12 +2324,14 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
         if (!pl->interfaces)
         {
             OCDiscoveryResourceDestroy(pl);
+            //OIC_LOG_V(DEBUG, TAG, "%s EXIT 8", __func__);
             return NULL;
         }
         pl->interfaces->value = OICStrdup(ifPtr->name);
         if (!pl->interfaces->value)
         {
             OCDiscoveryResourceDestroy(pl);
+            //OIC_LOG_V(DEBUG, TAG, "%s EXIT 9", __func__);
             return NULL;
         }
 
@@ -2332,12 +2343,14 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
             if (!cur->next)
             {
                 OCDiscoveryResourceDestroy(pl);
+                //OIC_LOG_V(DEBUG, TAG, "%s EXIT 10", __func__);
                 return NULL;
             }
             cur->next->value = OICStrdup(ifPtr->name);
             if (!cur->next->value)
             {
                 OCDiscoveryResourceDestroy(pl);
+                //OIC_LOG_V(DEBUG, TAG, "%s EXIT 10", __func__);
                 return NULL;
             }
             cur = cur->next;
@@ -2356,6 +2369,7 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
     pl->tcpPort = tcpPort;
 #endif
 
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT OK", __func__);
     return pl;
 }
 

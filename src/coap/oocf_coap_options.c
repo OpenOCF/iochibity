@@ -1,5 +1,12 @@
-
 #include "oocf_coap_options.h"
+
+#if INTERFACE
+#include "coap_config.h"
+#include "coap/pdu.h"           /* must come before bits.h */
+#include "coap/bits.h"
+#include "coap/option.h"
+#endif
+
 
 /* NB!!! "Instead of specifying the Option Number directly, the
    instances MUST appear in order of their Option Numbers..." RFC 7252
@@ -37,6 +44,7 @@ typedef enum
 /* OCF spec 12.2.5 */
 #if EXPORT_INTERFACE
  /* application/vnd.ocf+cbor */
+#define COAP_MEDIATYPE_JSON                     50
 #define COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR 10000
 #define OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION       2049  /* CoAP option number */
 #define OCF_OPTION_CONTENT_FORMAT_VERSION              2053  /* CoAP Option number */
@@ -146,17 +154,23 @@ OCStackResult OC_CALL OCGetHeaderOption(struct oocf_coap_options /* CAHeaderOpti
 #if INTERFACE
 #include "coap/coap_list.h"
 #endif
-CAResult_t CAAddOptionToPDU(coap_pdu_t *pdu, coap_list_t **options)
+CAResult_t CAAddOptionsToPDU(coap_pdu_t *pdu, coap_list_t **options)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     // after adding the block option to option list, add option list to pdu.
     if (*options)
     {
         for (coap_list_t *opt = *options; opt; opt = opt->next)
         {
-            OIC_LOG_V(DEBUG, TAG, "[%s] opt will be added.",
-                      COAP_OPTION_DATA(*(coap_option *) opt->data));
+            // OIC_LOG_V(DEBUG, TAG, "pdu length: %d", pdu->length);
+            /* OIC_LOG_V(DEBUG, TAG, "adding option %d %s, len %d, val: %s", */
+            /*           COAP_OPTION_KEY(*(coap_option *) opt->data), */
+            /*           get_coap_option_key_string(COAP_OPTION_KEY(*(coap_option *) opt->data)), */
+            /*           COAP_OPTION_LENGTH(*(coap_option *) opt->data), */
+            /*           COAP_OPTION_DATA(*(coap_option *) opt->data)); */
 
-            OIC_LOG_V(DEBUG, TAG, "[%d] pdu length", pdu->length);
+            log_coap_option((coap_option*)opt->data);
+
             size_t ret = coap_add_option(pdu, COAP_OPTION_KEY(*(coap_option *) opt->data),
                                          COAP_OPTION_LENGTH(*(coap_option *) opt->data),
                                          COAP_OPTION_DATA(*(coap_option *) opt->data));
@@ -267,3 +281,36 @@ bool checkProxyUri(OCHeaderOption *options, uint8_t numOptions)
     return false;
 }
 
+CAResult_t CAGetOptionCount(coap_opt_iterator_t opt_iter, uint8_t *optionCount)
+{
+    CAResult_t result = CA_STATUS_OK;
+    coap_opt_t *option = NULL;
+    *optionCount = 0;
+
+    while ((option = coap_option_next(&opt_iter)))
+    {
+        if (COAP_OPTION_URI_PATH != opt_iter.type && COAP_OPTION_URI_QUERY != opt_iter.type
+            && COAP_OPTION_BLOCK1 != opt_iter.type && COAP_OPTION_BLOCK2 != opt_iter.type
+            && COAP_OPTION_SIZE1 != opt_iter.type && COAP_OPTION_SIZE2 != opt_iter.type
+            && COAP_OPTION_URI_HOST != opt_iter.type && COAP_OPTION_URI_PORT != opt_iter.type
+            && COAP_OPTION_ETAG != opt_iter.type && COAP_OPTION_MAXAGE != opt_iter.type
+            && COAP_OPTION_PROXY_SCHEME != opt_iter.type)
+        {
+            if (*optionCount < UINT8_MAX)
+            {
+                (*optionCount)++;
+            }
+            else
+            {
+                // Overflow. Return an error to the caller.
+                assert(false);
+                OIC_LOG_V(ERROR, TAG, "Overflow detected in %s", __func__);
+                *optionCount = 0;
+                result = CA_STATUS_FAILED;
+                break;
+            }
+        }
+    }
+
+    return result;
+}
