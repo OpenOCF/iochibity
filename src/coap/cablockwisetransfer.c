@@ -98,14 +98,19 @@ typedef struct
 
 /**
  * Block Data Set.
+ *
+ * RFC 7959: "In the following, the term "payload" will be used for
+ * the actual content of a single CoAP message, i.e., a single block
+ * being transferred, while the term "body" will be used for the
+ * entire resource representation that is being transferred in a
+ * block-wise fashion.
  */
 typedef struct
 {
     coap_block_t block1;                /**< block1 option. */
     coap_block_t block2;                /**< block2 option. */
-    uint16_t type;                      /**< block option type. */
+    uint16_t type;                      /**< block option type (1 or 2). */
     CABlockDataID_t* blockDataId;        /**< ID set of CABlockData. */
-    CAData_t *sentData;                 /**< sent request or response data information. */
     CAData_t *sentData;                 /**< sent request or response ("payload"). */
     uint8_t *bwt_body;     /**< cumulative raw cbor-encoded msg BODY (per RFC 7959) */
     size_t bwt_body_length;               /**< the total body length to be received. */
