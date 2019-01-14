@@ -1,6 +1,9 @@
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl",
+     "http_archive",
+     "http_file",
+     "http_jar",
+)
 
 # bind(name = "android/crosstool", actual = "@android_ndk//:toolchain-libcpp")
 
@@ -17,12 +20,14 @@ load(
 
 apple_rules_dependencies()
 
+# apple_support_dependencies()
+
 # for ios_unit_test and ios_ui_test:
-http_file(
-    name = "xctestrunner",
-    executable = 1,
-    urls = ["https://github.com/google/xctestrunner/releases/download/0.2.5/ios_test_runner.par"],
-)
+# http_file(
+#     name = "xctestrunner",
+#     executable = 1,
+#     urls = ["https://github.com/google/xctestrunner/releases/download/0.2.5/ios_test_runner.par"],
+# )
 
 # git_repository(
 #     name = "bazel_skylib",
