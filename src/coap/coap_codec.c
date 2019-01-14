@@ -407,19 +407,24 @@ coap_pdu_t *_oocf_dgram_payload_to_coap_pdu(const char *dgram_payload, /* @was C
     }
 #endif
 
-    coap_pdu_t *outpdu =
+    coap_pdu_t *pdu =
         coap_pdu_init2(0, 0, ntohs((unsigned short)COAP_INVALID_TID), length, transport);
-    if (NULL == outpdu)
+    if (NULL == pdu)
     {
-        OIC_LOG(ERROR, TAG, "outpdu is null");
+        OIC_LOG(ERROR, TAG, "pdu is null");
         OIC_LOG_V(DEBUG, TAG, "dgram_payload length: %" PRIuPTR, length);
         return NULL;
     }
 
     /* OIC_LOG_V(DEBUG, TAG, "pdu parse-transport type : %d", transport); */
 
-    int ret = coap_pdu_parse2((unsigned char *) dgram_payload, length, outpdu, transport);
-    /* OIC_LOG_V(DEBUG, TAG, "pdu parse ret: %d", ret); */
+    int ret = coap_pdu_parse2((unsigned char *) dgram_payload, length, pdu, transport);
+
+#ifdef TB_LOG
+    size_t payloadLen = (pdu->data) ? (unsigned char *)pdu->hdr + pdu->length - pdu->data : 0;
+    OIC_LOG_V(DEBUG, TAG, "dgram pdu payload length: %u", payloadLen);
+#endif
+
     if (0 >= ret)
     {
         OIC_LOG_V(ERROR, TAG, "pdu parse failed, rc: %u", ret);
@@ -434,32 +439,32 @@ coap_pdu_t *_oocf_dgram_payload_to_coap_pdu(const char *dgram_payload, /* @was C
     else
 #endif
     {
-        if (outpdu->transport_hdr->udp.version != COAP_DEFAULT_VERSION)
+        if (pdu->transport_hdr->udp.version != COAP_DEFAULT_VERSION)
         {
             OIC_LOG_V(ERROR, TAG, "coap version is not available : %d",
-                      outpdu->transport_hdr->udp.version);
+                      pdu->transport_hdr->udp.version);
             goto exit;
         }
-        if (outpdu->transport_hdr->udp.token_length > CA_MAX_TOKEN_LEN)
+        if (pdu->transport_hdr->udp.token_length > CA_MAX_TOKEN_LEN)
         {
             OIC_LOG_V(ERROR, TAG, "token is too long: %d",
-                      outpdu->transport_hdr->udp.token_length);
+                      pdu->transport_hdr->udp.token_length);
             goto exit;
         }
     }
 
     if (outCode)
     {
-        (*outCode) = (uint32_t) CA_RESPONSE_CODE(coap_get_code(outpdu, transport));
+        (*outCode) = (uint32_t) CA_RESPONSE_CODE(coap_get_code(pdu, transport));
     }
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
-    return outpdu;
+    return pdu;
 
 exit:
     OIC_LOG(DEBUG, TAG, "dgram_payload :");
     OIC_LOG_BUFFER(DEBUG, TAG,  (const uint8_t *)dgram_payload, length);
-    coap_delete_pdu(outpdu);
+    coap_delete_pdu(pdu);
     return NULL;
 }
 
