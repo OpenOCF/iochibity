@@ -77,7 +77,8 @@ typedef struct _oocf_coap_msg_unpacked /* src: camessagehandler.c */
     uint8_t tokenLength;        /**< token length */
     struct oocf_coap_options /* CAHeaderOption_t */ *options;  /** Header Options for the request */
     uint8_t numOptions;         /**< Number of Header options */
-    unsigned char /* CAPayload_t */ *payload_cbor; /**< cbor-encoded coap payload */
+
+    uint8_t *payload_cbor;      /**< cbor-encoded coap payload */
     size_t payloadSize;         /**< size in bytes of the payload */
     CAPayloadFormat_t payloadFormat;    /**< encoding format of the request payload */
     CAPayloadFormat_t acceptFormat;     /**< accept format for the response payload */
