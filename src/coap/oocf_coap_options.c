@@ -267,3 +267,36 @@ bool checkProxyUri(OCHeaderOption *options, uint8_t numOptions)
     return false;
 }
 
+CAResult_t CAGetOptionCount(coap_opt_iterator_t opt_iter, uint8_t *optionCount)
+{
+    CAResult_t result = CA_STATUS_OK;
+    coap_opt_t *option = NULL;
+    *optionCount = 0;
+
+    while ((option = coap_option_next(&opt_iter)))
+    {
+        if (COAP_OPTION_URI_PATH != opt_iter.type && COAP_OPTION_URI_QUERY != opt_iter.type
+            && COAP_OPTION_BLOCK1 != opt_iter.type && COAP_OPTION_BLOCK2 != opt_iter.type
+            && COAP_OPTION_SIZE1 != opt_iter.type && COAP_OPTION_SIZE2 != opt_iter.type
+            && COAP_OPTION_URI_HOST != opt_iter.type && COAP_OPTION_URI_PORT != opt_iter.type
+            && COAP_OPTION_ETAG != opt_iter.type && COAP_OPTION_MAXAGE != opt_iter.type
+            && COAP_OPTION_PROXY_SCHEME != opt_iter.type)
+        {
+            if (*optionCount < UINT8_MAX)
+            {
+                (*optionCount)++;
+            }
+            else
+            {
+                // Overflow. Return an error to the caller.
+                assert(false);
+                OIC_LOG_V(ERROR, TAG, "Overflow detected in %s", __func__);
+                *optionCount = 0;
+                result = CA_STATUS_FAILED;
+                break;
+            }
+        }
+    }
+
+    return result;
+}

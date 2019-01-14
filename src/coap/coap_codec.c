@@ -955,44 +955,11 @@ int CAOrderOpts(void *a, void *b)
     return COAP_OPTION_KEY(*(coap_option *) a) == COAP_OPTION_KEY(*(coap_option * ) b);
 }
 
-CAResult_t CAGetOptionCount(coap_opt_iterator_t opt_iter, uint8_t *optionCount)
-{
-    CAResult_t result = CA_STATUS_OK;
-    coap_opt_t *option = NULL;
-    *optionCount = 0;
-
-    while ((option = coap_option_next(&opt_iter)))
-    {
-        if (COAP_OPTION_URI_PATH != opt_iter.type && COAP_OPTION_URI_QUERY != opt_iter.type
-            && COAP_OPTION_BLOCK1 != opt_iter.type && COAP_OPTION_BLOCK2 != opt_iter.type
-            && COAP_OPTION_SIZE1 != opt_iter.type && COAP_OPTION_SIZE2 != opt_iter.type
-            && COAP_OPTION_URI_HOST != opt_iter.type && COAP_OPTION_URI_PORT != opt_iter.type
-            && COAP_OPTION_ETAG != opt_iter.type && COAP_OPTION_MAXAGE != opt_iter.type
-            && COAP_OPTION_PROXY_SCHEME != opt_iter.type)
-        {
-            if (*optionCount < UINT8_MAX)
-            {
-                (*optionCount)++;
-            }
-            else
-            {
-                // Overflow. Return an error to the caller.
-                assert(false);
-                OIC_LOG_V(ERROR, TAG, "Overflow detected in %s", __func__);
-                *optionCount = 0;
-                result = CA_STATUS_FAILED;
-                break;
-            }
-        }
-    }
-
-    return result;
-}
-
+/* FIXME: @rename oocf_pdu_to_ocf_msg */
 CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                             uint32_t *outCode, CAInfo_t *outInfo)
 {
-    OIC_LOG(INFO, TAG, "IN - CAGetInfoFromPDU");
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
     VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
     VERIFY_NON_NULL_MSG(outCode, TAG, "outCode");
