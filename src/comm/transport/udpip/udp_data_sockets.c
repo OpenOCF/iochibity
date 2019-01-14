@@ -435,7 +435,9 @@ void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
     inet_ntop(AF_INET, &mreq.imr_multiaddr.s_addr, addr_str, sizeof(addr_str));
 
     int ret;
-    ret = setsockopt(udp_m4.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+    ret = setsockopt(udp_m4.fd, IPPROTO_IP,
+                     IP_ADD_MEMBERSHIP,
+                     OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
 	if (PORTABLE_check_setsockopt_err())
@@ -446,7 +448,9 @@ void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
         OIC_LOG_V(DEBUG, TAG, "nif %u added to ipv4 mcast grp %s:%d", ifindex, addr_str, udp_m4.port);
 
     }
-    ret = setsockopt(udp_m4s.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+    ret = setsockopt(udp_m4s.fd, IPPROTO_IP,
+                     IP_ADD_MEMBERSHIP,
+                     OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
  	if ( PORTABLE_check_setsockopt_m4s_err(&mreq, ret) )
@@ -474,7 +478,10 @@ LOCAL void applyMulticast6(struct in6_addr *addr, uint32_t ifindex)
     inet_ntop(AF_INET6, addr->s6_addr, addr_str, sizeof(addr_str));
 
     int ret;
-    ret = setsockopt(udp_m6.fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+    ret = setsockopt(udp_m6.fd, IPPROTO_IPV6,
+                     // IPV6_ADD_MEMBERSHIP, /* linux */
+                     IPV6_JOIN_GROUP, /* BSD */
+                     OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
 	if (PORTABLE_check_setsockopt_m6_err(udp_m6.fd, &mreq, ret))
@@ -484,7 +491,10 @@ LOCAL void applyMulticast6(struct in6_addr *addr, uint32_t ifindex)
     } else {
         OIC_LOG_V(ERROR, TAG, "nif %u joined ipv6 mcast grp [%s]:%u", ifindex, addr_str, udp_m6.port);
     }
-    ret = setsockopt(udp_m6s.fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, OPTVAL_T(&mreq), sizeof (mreq));
+    ret = setsockopt(udp_m6s.fd, IPPROTO_IPV6,
+                     // IPV6_ADD_MEMBERSHIP,
+                     IPV6_JOIN_GROUP,
+                     OPTVAL_T(&mreq), sizeof (mreq));
     if (OC_SOCKET_ERROR == ret)
     {
 	if (PORTABLE_check_setsockopt_m6_err(udp_m6s.fd, &mreq, ret))
