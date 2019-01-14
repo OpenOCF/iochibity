@@ -92,7 +92,7 @@ cJSON* links_to_json(struct oocf_inbound_response *msg) /* FIXME: split header l
     uint16_t actualDataSize = 0;
     OCGetHeaderOption(msg->rcvdVendorSpecificHeaderOptions,
 		      msg->numRcvdVendorSpecificHeaderOptions,
-		      OCF_CONTENT_FORMAT_VERSION,
+		      OCF_OPTION_CONTENT_FORMAT_VERSION,
 		      vOptionData,
 		      vOptionDataSize,
 		      &actualDataSize);
@@ -159,9 +159,9 @@ cJSON* links_to_json(struct oocf_inbound_response *msg) /* FIXME: split header l
 		+ 3		/* :// */
 		+ strlen(endpoint->addr)
 		+ 1; 		/* : */
-	    char *epstring = malloc(eplen + 6); /* largest val for port is 5 chars (uint16) */
+	    char *epstring = malloc(eplen + 10); /* largest val for port is 5 chars (uint16) */
 	    //snprintf(epstring, eplen + 6, "%s://[%s]:%d", endpoint->tps, endpoint->addr, endpoint->port);
-	    snprintf(epstring, eplen + 6, "%s", OCCreateEndpointString(endpoint));
+	    snprintf(epstring, eplen + 10, "%s", OCCreateEndpointString(endpoint));
 	    cJSON_AddItemToObject(ep, "ep", cJSON_CreateString(epstring));
 	    free(epstring);
 	    /* cJSON_AddItemToObject(ep, "tps", cJSON_CreateString(endpoint->tps));
@@ -240,8 +240,8 @@ void log_header_options (struct oocf_inbound_response  *clientResponse)
 	/* So we expect two headers, one to indicate the payload format, and
 	   another to indicate format version */
 
-	clog_info(CLOG(MY_LOGGER), "\t\t protocol id FIXME: %d",
-		  clientResponse->rcvdVendorSpecificHeaderOptions[i].protocolID);
+	/* clog_info(CLOG(MY_LOGGER), "\t\t protocol id FIXME: %d", */
+	/* 	  clientResponse->rcvdVendorSpecificHeaderOptions[i].protocolID); */
 
 	option_id = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionID;
 	option_len = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionLength;
@@ -257,7 +257,7 @@ void log_header_options (struct oocf_inbound_response  *clientResponse)
 		      option_id);
 	    /* uint */
 	    break;
-	case OCF_ACCEPT_CONTENT_FORMAT_VERSION:
+	case OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION:
 	    clog_info(CLOG(MY_LOGGER), "\t\t OCF-Accept-Content-Version-Format (code %d), len %d",
 		      option_id, option_len);
 	    /* 2 byte uint */
@@ -281,7 +281,7 @@ void log_header_options (struct oocf_inbound_response  *clientResponse)
 	    break;
 	    /* duplicate of COAP_OPTION_CONTENT_FORMAT: COAP_OPTION_CONTENT_TYPE */
 
-	case OCF_CONTENT_FORMAT_VERSION:
+	case OCF_OPTION_CONTENT_FORMAT_VERSION:
 	    /* 2 byte uint */
 	    content_format_version =
 		(clientResponse->rcvdVendorSpecificHeaderOptions[i].optionData[0] * 0x0100
@@ -682,6 +682,8 @@ FILE* server_fopen(const char *path, const char *mode)
 	FILE *f = fopen(SVR_CONFIG_FILE, mode);
 	if (f == NULL) {
             clog_info(CLOG(MY_LOGGER), "PS file open failed %d %s", errno, strerror(errno));
+            printf("FATAL: PS file open %s failed %d %s\n",
+                   SVR_CONFIG_FILE, errno, strerror(errno));
 	    exit(EXIT_FAILURE);
 	}
 	return f;

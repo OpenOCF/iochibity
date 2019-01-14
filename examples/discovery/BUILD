@@ -29,8 +29,10 @@ genrule(
     #output_to_bindir = 1,
     cmd = "\n".join([
         "/usr/local/bin/edn-to-json $(location client_config.edn) > client_config.json;",
-        "/home/gar/bin/json2cbor client_config.json > \"$@\""
+        "json2cbor client_config.json > \"$@\""
     ])
+        # "/usr/local/bin/edn-to-json $(location client_config.edn) > client_config.json;",
+        # "/home/gar/bin/json2cbor client_config.json > \"$@\""
 )
 
 cc_binary(
@@ -59,11 +61,14 @@ genrule(
     #output_to_bindir = 1,
     cmd = "\n".join([
         "/usr/local/bin/edn-to-json $(location server_config.edn) > server_config.json;",
-        "/home/gar/bin/json2cbor server_config.json > \"$@\""
+        "json2cbor server_config.json > \"$@\""
         # "cd examples/discovery;",
         # "ls -l;",
         # "cp server_config.cbor \"$@\";"
     ])
+    #"/home/gar/bin/json2cbor server_config.json > \"$@\""
+
+
                      #"/home/gar/bin/json2cbor server_config2.json > server_config.cbor",
                      # "chmod ug+rw server_config.cbor",
                      # "ls -l",
