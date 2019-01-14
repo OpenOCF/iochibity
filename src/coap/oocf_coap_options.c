@@ -1,5 +1,12 @@
-
 #include "oocf_coap_options.h"
+
+#if INTERFACE
+#include "coap_config.h"
+#include "coap/pdu.h"           /* must come before bits.h */
+#include "coap/bits.h"
+#include "coap/option.h"
+#endif
+
 
 /* NB!!! "Instead of specifying the Option Number directly, the
    instances MUST appear in order of their Option Numbers..." RFC 7252
