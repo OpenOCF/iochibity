@@ -4,7 +4,7 @@ load("//config:variables.bzl", "CSTD", "OS_COPTS")
 # build --define enable_logging=true
 
 cc_binary(
-    name = "discovery_client",
+    name = "client_discovery",
     copts = ["-Iinclude",
              "-Iexternal/libcoap/include",
              "-Iexternal/tinycbor/src",
@@ -12,11 +12,11 @@ cc_binary(
     ]+ CSTD + OS_COPTS,
     data = [":config_client"],
     deps = ["//:openocf"],
-    srcs = ["client.c", "clog.h"]
+    srcs = ["client_discovery.c", "clog.h"]
 )
 
 cc_binary(
-    name = "get_doxm",
+    name = "client_get_doxm",
     copts = ["-Iinclude",
              "-Iexternal/libcoap/include",
              "-Iexternal/tinycbor/src",
@@ -24,11 +24,11 @@ cc_binary(
     ]+ CSTD + OS_COPTS,
     data = [":config_client"],
     deps = ["//:openocf"],
-    srcs = ["get_doxm.c", "clog.h"]
+    srcs = ["client_get_doxm.c", "clog.h"]
 )
 
 cc_binary(
-    name = "get_acl",
+    name = "client_get_acl",
     copts = ["-Iinclude",
              "-Iexternal/libcoap/include",
              "-Iexternal/tinycbor/src",
@@ -36,7 +36,7 @@ cc_binary(
     ]+ CSTD + OS_COPTS,
     data = [":config_client"],
     deps = ["//:openocf"],
-    srcs = ["get_acl.c", "clog.h"]
+    srcs = ["client_get_acl.c", "clog.h"]
 )
 
 genrule(
@@ -53,9 +53,10 @@ genrule(
     output_to_bindir = 1,
     cmd = "\n".join([
         "/usr/local/bin/edn-to-json $(location client_config.edn) > client_config.json;",
-        "/home/gar/bin/json2cbor client_config.json > \"$@\""
+        "json2cbor client_config.json > \"$@\""
     ])
 )
+#        "/home/gar/bin/json2cbor client_config.json > \"$@\""
 
 cc_binary(
     name = "server",
@@ -83,11 +84,13 @@ genrule(
     output_to_bindir = 1,
     cmd = "\n".join([
         "/usr/local/bin/edn-to-json $(location server_config.edn) > server_config.json;",
-        "/home/gar/bin/json2cbor server_config.json > \"$@\""
+        "json2cbor server_config.json > \"$@\""
+    ])
+        #"/home/gar/bin/json2cbor server_config.json > \"$@\""
         # "cd examples/discovery;",
         # "ls -l;",
         # "cp server_config.cbor \"$@\";"
-    ])
+
                      #"/home/gar/bin/json2cbor server_config2.json > server_config.cbor",
                      # "chmod ug+rw server_config.cbor",
                      # "ls -l",

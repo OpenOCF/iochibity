@@ -44,21 +44,23 @@ const int MY_LOGGER = 0; /* Unique identifier for logger */
 
 int context = 1;
 
-int gQuitFlag = 0;
+bool gQuitFlag = 0;
 
-FILE *logfd;
+bool gError = 0;
+
+//FILE *logfd;
 
 
-void log_msg(const char *format, ...)
-{
-    va_list args;
+/* void log_msg(const char *format, ...) */
+/* { */
+/*     va_list args; */
 
-    va_start(args, format);
-    // printf(format, args);
-    /* fprintf(logfd, "goodbye %s\n", "world"); */
-    vfprintf(logfd, format, args);
-    va_end(args);
-}
+/*     va_start(args, format); */
+/*     // printf(format, args); */
+/*     /\* fprintf(logfd, "goodbye %s\n", "world"); *\/ */
+/*     vfprintf(logfd, format, args); */
+/*     va_end(args); */
+/* } */
 
 /* SIGINT handler: set gQuitFlag to 1 for graceful termination */
 void handleSigInt(int signum) {
@@ -604,7 +606,7 @@ OCStackApplicationResult react_to_get_acl2(void* ctx, OCDoHandle handle,
 
     if (inbound_response->numRcvdVendorSpecificHeaderOptions > 0)
     {
-        OIC_LOG (INFO, TAG, "Received CoAP options:");
+        clog_info(CLOG(MY_LOGGER), "Received CoAP options:");
         uint8_t i = 0;
         struct oocf_coap_options *rcvdOptions /* array */ = inbound_response->rcvdVendorSpecificHeaderOptions;
         for( i = 0; i < inbound_response->numRcvdVendorSpecificHeaderOptions; i++) {
@@ -707,6 +709,7 @@ void get_acl(OCDiscoveryPayload* discovery_payload, CATransportAdapter_t transpo
     else
     {
         clog_info(CLOG(MY_LOGGER), "Endpoints infomation not found on given payload!!!");
+        gError = true;
         gQuitFlag = 1;
     }
 }
@@ -770,7 +773,7 @@ void run()
 		    NULL,	      /* header options */
 		    0		      /* nbr hdr options */
 		    ) != OC_STACK_OK) {
-        OIC_LOG(ERROR, TAG, "OCStack resource error");
+        clog_error(CLOG(MY_LOGGER), "OCStack resource error");
     }
 }
 
@@ -799,17 +802,17 @@ void* ocf_runloop(void *arg) {
     while (!gQuitFlag) {
 	clog_info(CLOG(MY_LOGGER), "process loop %d, tid %d", i++, pthread_self());
         if (OCProcess() != OC_STACK_OK) {
-            OIC_LOG(ERROR, TAG, "OCStack process error");
+            clog_error(CLOG(MY_LOGGER), "OCStack process error");
             return 0;
         }
-	fflush(logfd);		/* FIXME */
+	//fflush(logfd);		/* FIXME */
         sleep(1);
     }
 
     clog_info(CLOG(MY_LOGGER), "Exiting client main loop...");
 
     if (OCStop() != OC_STACK_OK) {
-        OIC_LOG(ERROR, TAG, "OCStack stop error");
+        clog_error(CLOG(MY_LOGGER), "OCStack stop error");
     }
     clog_debug(CLOG(MY_LOGGER), "%s EXIT", __func__);
     return 0;
@@ -866,7 +869,7 @@ int main ()
     //if (OCInit(NULL, 0, OC_CLIENT) != OC_STACK_OK) {
     if (oocf_init(OC_CLIENT, &ps) != OC_STACK_OK) {
         clog_info(CLOG(MY_LOGGER), "OCStack init error");
-        // OIC_LOG(ERROR, TAG, "OCStack init error");
+        // clog_error(CLOG(MY_LOGGER), "OCStack init error");
         clog_free(MY_LOGGER);
         return 0;
     }
@@ -883,6 +886,7 @@ int main ()
      * can run this loop on the main thread. If we had a UI, we would
      * need to run it on a worker thread. */
     signal(SIGINT, handleSigInt); /* Control-C to exit */
+
     while (!gQuitFlag) {
 	static int i = 0;
         printf(".");
@@ -892,18 +896,24 @@ int main ()
 	   resource_discovery_cb. Each incoming message is dispatched
 	   on its own thread. */
         if (OCProcess() != OC_STACK_OK) {
-            OIC_LOG(ERROR, TAG, "OCStack process error");
+            printf("ERROR: OCStack\n");
+            clog_error(CLOG(MY_LOGGER), "OCStack process error");
             clog_free(MY_LOGGER);
             return 0;
         }
-	fflush(logfd);		/* FIXME */
-        sleep(1);
+        fflush(stdout);
+	//fflush(logfd);		/* FIXME */
+        usleep(200000);         /* 0.2 seconds */
     }
-    printf("\n");
+    if (gError)
+        printf("ERROR\n");
+    else
+        printf("OK\n");
+
     clog_info(CLOG(MY_LOGGER), "Exiting client main loop...");
 
     if (OCStop() != OC_STACK_OK) {
-        OIC_LOG(ERROR, TAG, "OCStack stop error");
+        clog_error(CLOG(MY_LOGGER), "OCStack stop error");
     }
 
 
