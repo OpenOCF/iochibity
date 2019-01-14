@@ -180,7 +180,7 @@ new_http_archive(
 # tinycbor
 new_http_archive(
     name = "tinycbor",
-    build_file = "src/payload/cbor/BUILD",
+    build_file = "src/cbor/tinycbor/BUILD",
     urls = ["https://github.com/intel/tinycbor/archive/v0.5.1.zip"],
     sha256 = "48e664e10acec590795614ecec1a71be7263a04053acb9ee81f7085fb9116369",
     strip_prefix = "tinycbor-0.5.1",

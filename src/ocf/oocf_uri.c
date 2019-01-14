@@ -380,7 +380,7 @@ bool oocf_addr_is_scoped(char *addr, OCTransportFlags scope) EXPORT
     struct sockaddr_in6 saddr;
     inet_pton(AF_INET6, addr_literal, &saddr.sin6_addr);
     if (scope == CA_SCOPE_LINK) {
-        if (IN6_IS_ADDR_LINKLOCAL(&(saddr.sin6_addr.s6_addr))) {
+        if (IN6_IS_ADDR_LINKLOCAL(&(saddr.sin6_addr))) {
             return true;
         }
     }

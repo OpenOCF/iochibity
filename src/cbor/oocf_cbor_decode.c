@@ -1,3 +1,5 @@
+/* oocf_cbor_decode was: ocpayloadparse.c */
+
 //******************************************************************
 //
 // Copyright 2015 Intel Mobile Communications GmbH All Rights Reserved.
@@ -25,7 +27,7 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "ocpayloadparse.h"
+#include "oocf_cbor_decode.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -46,7 +48,7 @@ OCStackResult OCParsePayload(struct OCPayload **outPayload,
                              OCPayloadFormat payloadFormat,
                              OCPayloadType payloadType,
                              const unsigned char *payload,
-                             size_t payloadSize)
+                             size_t payloadSize) EXPORT
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCStackResult result = OC_STACK_MALFORMED_RESPONSE;
@@ -55,8 +57,17 @@ OCStackResult OCParsePayload(struct OCPayload **outPayload,
     VERIFY_PARAM_NON_NULL(TAG, outPayload, "Conversion of outPayload failed");
     VERIFY_PARAM_NON_NULL(TAG, payload, "Invalid cbor payload value");
 
-    OIC_LOG_V(INFO, TAG, "CBOR Parsing size: %" PRIuPTR " of Payload Type: %d, Payload:",
-            payloadSize, payloadType);
+    OIC_LOG_V(INFO, TAG, "CBOR Parsing Payload Type: %d %s of size: %" PRIuPTR,
+              payloadType,
+              (payloadType == PAYLOAD_TYPE_DISCOVERY)? "DISCOVERY"
+              :(payloadType == PAYLOAD_TYPE_DEVICE)? "DEVICE"
+              :(payloadType == PAYLOAD_TYPE_PLATFORM)? "PLATFORM"
+              :(payloadType == PAYLOAD_TYPE_REPRESENTATION)? "REPRESENTATION"
+              :(payloadType == PAYLOAD_TYPE_SECURITY)? "SECURITY"
+              :(payloadType == PAYLOAD_TYPE_DIAGNOSTIC)? "DIAGNOSTIC"
+              :(payloadType == PAYLOAD_TYPE_INTROSPECTION)? "INTROSPECTION"
+              : "UNKOWN",
+              payloadSize);
 
     CborParser parser;
     CborValue rootValue;
@@ -98,7 +109,7 @@ exit:
 
 LOCAL OCStackResult OCParseSecurityPayload(OCPayload** outPayload, const uint8_t *payload,
         size_t size)
-{
+EXPORT {
     if (size > 0)
     {
         *outPayload = (OCPayload *)OCSecurityPayloadCreate(payload, size);
@@ -633,7 +644,7 @@ static OCStackResult OCParseDiscoveryPayloadVndOcfCbor(OCPayload **outPayload, C
         // Look for Links which will have an array as the value
         CborValue linkVal;
         err = cbor_value_map_find_value(&rootMap, OC_RSRVD_LINKS, &linkVal);
-        VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to find links tag");
+        VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "CBOR find links tag failed");
         if (cbor_value_is_array(&linkVal))
         {
             rootPayload = OCDiscoveryPayloadCreate();
