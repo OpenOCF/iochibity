@@ -665,7 +665,7 @@ CAResult_t CAParseURI(const char *uriInfo, coap_list_t **optlist)
         int ret = coap_insert(optlist,
                               CACreateNewOptionNode(COAP_OPTION_URI_PORT,
                                                     coap_encode_var_bytes(portbuf, uri.port),
-                                                    (char *)portbuf),
+                                                    (const uint8_t *)portbuf),
                               CAOrderOpts);
         if (ret <= 0)
         {
@@ -726,7 +726,7 @@ CAResult_t CAParseUriPartial(const unsigned char *str, size_t length, uint16_t t
             {
                 int ret = coap_insert(optlist,
                                       CACreateNewOptionNode(target, COAP_OPT_LENGTH(pBuf),
-                                                            (char *)COAP_OPT_VALUE(pBuf)),
+                                                            (uint8_t *)COAP_OPT_VALUE(pBuf)),
                                       CAOrderOpts);
                 if (ret <= 0)
                 {
@@ -837,13 +837,13 @@ LOCAL CAResult_t CAParsePayloadFormatHeadOption(uint16_t formatOption, CAPayload
         case CA_FORMAT_APPLICATION_CBOR:
             encodeNode = CACreateNewOptionNode(formatOption,
                     coap_encode_var_bytes(encodeBuf,
-                            (unsigned short) COAP_MEDIATYPE_APPLICATION_CBOR), (char *) encodeBuf);
+                            (unsigned short) COAP_MEDIATYPE_APPLICATION_CBOR), (uint8_t *) encodeBuf);
             break;
         case CA_FORMAT_APPLICATION_VND_OCF_CBOR:
             encodeNode = CACreateNewOptionNode(formatOption,
-                    coap_encode_var_bytes(encodeBuf,
-                            (unsigned short) COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR),
-                    (char *) encodeBuf);
+                                               coap_encode_var_bytes(encodeBuf,
+                                                                     (unsigned short) COAP_MEDIATYPE_APPLICATION_VND_OCF_CBOR),
+                                               (uint8_t *) encodeBuf);
             break;
         default:
             OIC_LOG_V(ERROR, TAG, "Format option:[%d] not supported", format);
@@ -866,7 +866,7 @@ LOCAL CAResult_t CAParsePayloadFormatHeadOption(uint16_t formatOption, CAPayload
         CA_FORMAT_APPLICATION_VND_OCF_CBOR == format)
     {
         versionNode = CACreateNewOptionNode(versionOption,
-                coap_encode_var_bytes(versionBuf, version), (char *) versionBuf);
+                coap_encode_var_bytes(versionBuf, version), (uint8_t *) versionBuf);
 
         if (!versionNode)
         {
