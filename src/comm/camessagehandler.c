@@ -1548,8 +1548,8 @@ LOCAL void CALogPayloadInfo(CAInfo_t *info)
 
         if (info->payload_cbor)
         {
-            OIC_LOG_V(DEBUG, TAG, "payload: %p(%" PRIuPTR ")", info->payload,
-                      info->payloadSize);
+            /* OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload:"); */
+            /* OIC_LOG_PAYLOAD_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, payloadLen); */
         }
 
         if (info->token)
@@ -2196,7 +2196,7 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
     if (info->payload_cbor)
     {
         dataLength = (unsigned int)info->payloadSize;
-        OIC_LOG_V(DEBUG, TAG, "dataLength - %u", dataLength);
+        OIC_LOG_V(DEBUG, TAG, "payload length: %u", dataLength);
     }
 
     CABlockDataID_t* blockDataID = CACreateBlockDatablockId(
@@ -2208,13 +2208,15 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
         OIC_LOG(ERROR, TAG, "blockId is null");
         res = CA_STATUS_FAILED;
         goto exit;
-    }
-
+    } else {
+        OIC_LOG(DEBUG, TAG, "BlockID:");
+        OIC_LOG_BUFFER(DEBUG, TAG, (const uint8_t *)blockDataID->id, blockDataID->idLength);
     }
 
     uint16_t blockType = CAGetBlockOptionType(blockDataID);
     if (COAP_OPTION_BLOCK2 == blockType) /* response payload */
     {
+        OIC_LOG(ERROR, TAG, "option type is BLOCK2");
         res = CAAddBlockOption2(pdu, info, dataLength, blockDataID, options);
         if (CA_STATUS_OK != res)
         {
