@@ -54,7 +54,6 @@
 #include "coap/coap_list.h"
 #include "coap/pdu.h"
 #include "coap/block.h"
-#include "coap_config.h"
 #include "coap/mem.h"
 #include "coap/prng.h"
 
