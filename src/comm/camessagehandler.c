@@ -562,7 +562,7 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
         return res;
     }
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     if (CAIsSupportedBlockwiseTransfer(data->remoteEndpoint->adapter))
     {
         // Blockwise transfer
@@ -573,7 +573,7 @@ static CAResult_t CAProcessMulticastData(const CAData_t *data)
             goto exit;
         }
     }
-#endif // WITH_BWT
+#endif // ENABLE_BWT
 
     CALogPDUInfo(data, _outbound_coap_pdu);
 
