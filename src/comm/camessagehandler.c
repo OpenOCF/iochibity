@@ -1957,7 +1957,7 @@ static CAResult_t CAAddBlockOption1(coap_pdu_t **pdu, const CAInfo_t *info, size
         }
 
         // add option list to pdu.
-        res = CAAddOptionToPDU(*pdu, options);
+        res = CAAddOptionsToPDU(*pdu, options);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "add has failed");
@@ -1987,7 +1987,7 @@ static CAResult_t CAAddBlockOption1(coap_pdu_t **pdu, const CAInfo_t *info, size
         }
 
         // add option list to pdu.
-        res = CAAddOptionToPDU(*pdu, options);
+        res = CAAddOptionsToPDU(*pdu, options);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "add has failed");
@@ -2092,7 +2092,7 @@ static CAResult_t CAAddBlockOption2(coap_pdu_t **pdu, const CAInfo_t *info, size
             block1->num = 0;
         }
 
-        res = CAAddOptionToPDU(*pdu, options);
+        res = CAAddOptionsToPDU(*pdu, options);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "add has failed");
@@ -2126,7 +2126,7 @@ static CAResult_t CAAddBlockOption2(coap_pdu_t **pdu, const CAInfo_t *info, size
             goto exit;
         }
 
-        res = CAAddOptionToPDU(*pdu, options);
+        res = CAAddOptionsToPDU(*pdu, options);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "add has failed");

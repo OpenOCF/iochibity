@@ -146,7 +146,7 @@ OCStackResult OC_CALL OCGetHeaderOption(struct oocf_coap_options /* CAHeaderOpti
 #if INTERFACE
 #include "coap/coap_list.h"
 #endif
-CAResult_t CAAddOptionToPDU(coap_pdu_t *pdu, coap_list_t **options)
+CAResult_t CAAddOptionsToPDU(coap_pdu_t *pdu, coap_list_t **options)
 {
     // after adding the block option to option list, add option list to pdu.
     if (*options)
