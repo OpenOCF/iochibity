@@ -480,7 +480,7 @@ CAResult_t CACheckBlockOptionType(CABlockData_t *currData)
 CAResult_t CAReceiveBlockWiseData(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                                   const CAData_t *receivedData, size_t dataLen)
 {
-    OIC_LOG(DEBUG, TAG, "CAReceiveBlockWiseData");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
     VERIFY_NON_NULL_MSG(pdu->transport_hdr, TAG, "pdu->transport_hdr");
     VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
@@ -539,6 +539,7 @@ CAResult_t CAReceiveBlockWiseData(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
     }
 
     // check if block option is set and get block data
+    /* coap_block_t is option struct, not block: NUM, M, SZX */
     coap_block_t block = { 0, 0, 0 };
 
     // get block1 option (request payload)
@@ -637,12 +638,14 @@ CAResult_t CAReceiveBlockWiseData(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
             return CA_NOT_SUPPORTED;
         }
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT OK", __func__);
     return CA_STATUS_OK;
 }
 
 CAResult_t CAProcessNextStep(const coap_pdu_t *pdu, const CAData_t *receivedData,
                              uint8_t blockWiseStatus, const CABlockDataID_t *blockID)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
     VERIFY_NON_NULL_MSG(pdu->hdr, TAG, "pdu->hdr");
     VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
@@ -761,6 +764,7 @@ CAResult_t CAProcessNextStep(const coap_pdu_t *pdu, const CAData_t *receivedData
         default:
             OIC_LOG_V(ERROR, TAG, "no logic [%d]", blockWiseStatus);
     }
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT OK", __func__);
     return CA_STATUS_OK;
 }
 
@@ -1002,10 +1006,13 @@ CAResult_t CAReceiveLastBlock(const CABlockDataID_t *blockID, const CAData_t *re
     return CA_STATUS_OK;
 }
 
+/* FIXME: @rename: oocf_get_or_create_blockdata */
 static CABlockData_t* CACheckTheExistOfBlockData(const CABlockDataID_t* blockDataID,
                                                  coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                                                  uint16_t blockType)
 {
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+
     // Get BlockData data. If does not exist, create a new data
     CABlockData_t *data = CAGetBlockDataFromBlockDataList(blockDataID);
     if (!data)
@@ -1054,7 +1061,7 @@ static CABlockData_t* CACheckTheExistOfBlockData(const CABlockDataID_t* blockDat
         OIC_LOG(ERROR, TAG, "update has failed");
         return NULL;
     }
-
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return data;
 }
 
@@ -1205,11 +1212,12 @@ exit:
 }
 
 // TODO make pdu const after libcoap is updated to support that.
+/* updates data */
 CAResult_t CASetNextBlockOption2(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                                  const CAData_t *receivedData, coap_block_t block,
                                  size_t dataLen)
 {
-    OIC_LOG(DEBUG, TAG, "CASetNextBlockOption2");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OIC_LOG_V(INFO, TAG, "num:%d, M:%d, sze:%d", block.num, block.m, block.szx);
 
     VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
@@ -1453,12 +1461,12 @@ CAResult_t CASetMoreBitFromBlock(size_t payloadLen, coap_block_t *block)
 
     if ((size_t) ((block->num + 1) << (block->szx + BLOCK_NUMBER_IDX)) < payloadLen)
     {
-        OIC_LOG(DEBUG, TAG, "Set the M-bit(1)");
+        OIC_LOG(DEBUG, TAG, "Setting the M-bit(1)");
         block->m = 1;
     }
     else
     {
-        OIC_LOG(DEBUG, TAG, "Set the M-bit(0)");
+        OIC_LOG(DEBUG, TAG, "Resetting the M-bit(0)");
         block->m = 0;
     }
 
@@ -1599,13 +1607,16 @@ bool CAIsPayloadLengthInPduWithBlockSizeOption(coap_pdu_t *pdu,
                                                uint16_t sizeType,
                                                size_t *totalPayloadLen)
 {
-    OIC_LOG(DEBUG, TAG, "IN-CAIsPayloadLengthInPduWithBlockSizeOption");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, block type %d %s",
+              __func__, sizeType,
+              (sizeType == COAP_OPTION_SIZE1)? "SIZE1"
+              :(sizeType == COAP_OPTION_SIZE2)? "SIZE2" : "UNKNOWN");
     VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
     VERIFY_NON_NULL_MSG(totalPayloadLen, TAG, "totalPayloadLen");
 
     if (sizeType != COAP_OPTION_SIZE1 && sizeType != COAP_OPTION_SIZE2)
     {
-        OIC_LOG(ERROR, TAG, "unknown option type");
+        OIC_LOG(ERROR, TAG, "unknown block option type");
         return CA_STATUS_FAILED;
     }
 
@@ -1621,10 +1632,11 @@ bool CAIsPayloadLengthInPduWithBlockSizeOption(coap_pdu_t *pdu,
                   *totalPayloadLen);
 
         return true;
+    } else {
+        OIC_LOG_V(DEBUG, TAG, "block size option not found");
     }
 
-    OIC_LOG(DEBUG, TAG, "OUT-CAIsPayloadLengthInPduWithBlockSizeOption");
-
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return false;
 }
 
@@ -1734,10 +1746,11 @@ uint8_t CACheckBlockErrorType(CABlockData_t *currData, coap_block_t *receivedBlo
     return CA_BLOCK_UNKNOWN;
 }
 
-CAResult_t CAUpdatePayloadData(CABlockData_t *currData, const CAData_t *receivedData,
+CAResult_t CAUpdatePayloadData(CABlockData_t *currData,
+                               const CAData_t *receivedData,
                                uint8_t status, bool isSizeOption, uint16_t blockType)
 {
-    OIC_LOG(DEBUG, TAG, "IN-UpdatePayloadData");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
     VERIFY_NON_NULL_MSG(currData, TAG, "currData");
     VERIFY_NON_NULL_MSG(receivedData, TAG, "receivedData");
@@ -2484,7 +2497,7 @@ void CADestroyDataSet(CAData_t* data)
 CABlockDataID_t* CACreateBlockDatablockId(const uint8_t *token, uint8_t tokenLength,
                                           const char* addr, uint16_t portNumber)
 {
-    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     size_t addrLength = strlen(addr);
     char port[PORT_LENGTH] = { 0, };
     port[0] = (char) ((portNumber >> 8) & 0xFF);
@@ -2513,10 +2526,7 @@ CABlockDataID_t* CACreateBlockDatablockId(const uint8_t *token, uint8_t tokenLen
     memcpy(blockDataID->id + tokenLength, port, sizeof(port));
     memcpy(blockDataID->id + tokenLength + sizeof(port), addr, addrLength);
 
-    OIC_LOG(DEBUG, TAG, "BlockID is ");
-    OIC_LOG_BUFFER(DEBUG, TAG, (const uint8_t *)blockDataID->id, blockDataID->idLength);
-
-    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+    /* OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
     return blockDataID;
 }
 
