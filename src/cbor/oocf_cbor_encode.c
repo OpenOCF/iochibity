@@ -1,3 +1,5 @@
+/* oocf_cbor_encode.c was ocpayloadconvert.c */
+
 //******************************************************************
 //
 // Copyright 2015 Intel Mobile Communications GmbH All Rights Reserved.
@@ -18,7 +20,7 @@
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-#include "ocpayloadconvert.h"
+#include "oocf_cbor_encode.h"
 
 #include <stdlib.h>
 #if INTERFACE
@@ -36,33 +38,7 @@
 // Endpoint Map length, it contains "ep", "pri".
 #define EP_MAP_LEN (2)
 
-// Functions all return either a CborError, or a negative version of the OC_STACK return values
-/* static int64_t OCConvertPayloadHelper(OCPayload *payload, OCPayloadFormat format, */
-/*         uint8_t *outPayload, size_t *size); */
-/* static int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadFormat format, */
-/*         uint8_t *outPayload, size_t *size); */
-/* static int64_t OCConvertRepPayload(OCRepPayload *payload, uint8_t *outPayload, size_t *size); */
-/* static int64_t OCConvertRepMap(CborEncoder *map, const OCRepPayload *payload); */
-/* #ifdef WITH_PRESENCE */
-/* static int64_t OCConvertPresencePayload(OCPresencePayload *payload, uint8_t *outPayload, */
-/*         size_t *size); */
-/* #endif */
-/* static int64_t OCConvertDiagnosticPayload(OCDiagnosticPayload *payload, uint8_t *outPayload, */
-/*         size_t *size); */
-/* static int64_t OCConvertSecurityPayload(OCSecurityPayload *payload, uint8_t *outPayload, */
-/*         size_t *size); */
-/* static int64_t OCConvertIntrospectionPayload(OCIntrospectionPayload *payload, uint8_t *outPayload, */
-/*         size_t *size); */
-/* static int64_t OCConvertSingleRepPayloadValue(CborEncoder *parent, const OCRepPayloadValue *value); */
-/* static int64_t OCConvertSingleRepPayload(CborEncoder *parent, const OCRepPayload *payload); */
-/* static int64_t OCConvertArray(CborEncoder *parent, const OCRepPayloadValueArray *valArray); */
-
-/* static int64_t AddTextStringToMap(CborEncoder *map, const char *key, size_t keylen, */
-/*         const char *value); */
-/* static int64_t ConditionalAddTextStringToMap(CborEncoder *map, const char *key, size_t keylen, */
-/*         const char *value); */
-
-/* FIXME: @rename:  oocf_coap_to_cbor or similar */
+/* FIXME: @rename:  oocf_coap_to_cbor or similar. oocf_cbor_encode_coap_payload? */
 OCStackResult OCConvertPayload(struct OCPayload* payload, OCPayloadFormat format,
                                uint8_t** outPayload, size_t* size)
 {
@@ -105,10 +81,11 @@ OCStackResult OCConvertPayload(struct OCPayload* payload, OCPayloadFormat format
 
     for (;;)
     {
-	/* OIC_LOG_V(INFO, TAG, "%s LOOP", __func__); */
+	OIC_LOG_V(INFO, TAG, "%s LOOP", __func__);
         out = (uint8_t *)OICCalloc(1, curSize);
         VERIFY_PARAM_NON_NULL(TAG, out, "Failed to allocate payload");
         err = OCConvertPayloadHelper(payload, format, out, &curSize);
+	OIC_LOG_V(INFO, TAG, "%s convert result: %d", __func__, err);
 
         if ((CborErrorOutOfMemory & err) == 0)
         {
@@ -153,27 +130,31 @@ exit:
 LOCAL int64_t OCConvertPayloadHelper(OCPayload* payload, OCPayloadFormat format,
         uint8_t* outPayload, size_t* size)
 {
-    switch(payload->type)
-    {
-        case PAYLOAD_TYPE_DISCOVERY:
-            return OCConvertDiscoveryPayload((OCDiscoveryPayload*)payload, format,
-                    outPayload, size);
-        case PAYLOAD_TYPE_REPRESENTATION:
-            return OCConvertRepPayload((OCRepPayload*)payload, outPayload, size);
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    int64_t r = 0;
+    switch(payload->type) {
+    case PAYLOAD_TYPE_DISCOVERY:
+        r = OCConvertDiscoveryPayload((OCDiscoveryPayload*)payload, format,
+                                              outPayload, size);
+        // debugging:
+        // validatePayload(outPayload);
+        return r;
+    case PAYLOAD_TYPE_REPRESENTATION:
+        return OCConvertRepPayload((OCRepPayload*)payload, outPayload, size);
 #ifdef WITH_PRESENCE
-        case PAYLOAD_TYPE_PRESENCE:
-            return OCConvertPresencePayload((OCPresencePayload*)payload, outPayload, size);
+    case PAYLOAD_TYPE_PRESENCE:
+        return OCConvertPresencePayload((OCPresencePayload*)payload, outPayload, size);
 #endif
-        case PAYLOAD_TYPE_DIAGNOSTIC:
-            return OCConvertDiagnosticPayload((OCDiagnosticPayload*)payload, outPayload, size);
-        case PAYLOAD_TYPE_SECURITY:
-            return OCConvertSecurityPayload((OCSecurityPayload*)payload, outPayload, size);
-        case PAYLOAD_TYPE_INTROSPECTION:
-            return OCConvertIntrospectionPayload((OCIntrospectionPayload*)payload,
-                                                 outPayload, size);
-        default:
-            OIC_LOG_V(INFO, TAG, "ConvertPayload default %d", payload->type);
-            return CborErrorUnknownType;
+    case PAYLOAD_TYPE_DIAGNOSTIC:
+        return OCConvertDiagnosticPayload((OCDiagnosticPayload*)payload, outPayload, size);
+    case PAYLOAD_TYPE_SECURITY:
+        return OCConvertSecurityPayload((OCSecurityPayload*)payload, outPayload, size);
+    case PAYLOAD_TYPE_INTROSPECTION:
+        return OCConvertIntrospectionPayload((OCIntrospectionPayload*)payload,
+                                             outPayload, size);
+    default:
+        OIC_LOG_V(INFO, TAG, "ConvertPayload default %d", payload->type);
+        return CborErrorUnknownType;
     }
 }
 
@@ -527,6 +508,8 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
     bool isBaseline = payload->name || payload->type || payload->iface;
     if (isBaseline)
     {
+        OIC_LOG_V(DEBUG, TAG, "payload is baseline");
+
         // Open the root array
         err |= cbor_encoder_create_array(&encoder, &rootArray, 1);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed creating discovery root array");
@@ -557,6 +540,7 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
     }
     else
     {
+        OIC_LOG_V(DEBUG, TAG, "payload is non-baseline");
         err |= cbor_encoder_create_array(&encoder, &linkArray, CborIndefiniteLength);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed creating discovery root array");
     }
@@ -564,9 +548,12 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
     while (payload && payload->resources)
     {
         size_t resourceCount =  OCDiscoveryPayloadGetResourceCount(payload);
+        OIC_LOG_V(DEBUG, TAG, " Resource count for payload: %d", resourceCount);
         for (size_t i = 0; i < resourceCount; ++i)
         {
             OCResourcePayload *resource = OCDiscoveryPayloadGetResource(payload, i);
+
+            OIC_LOG_V(DEBUG, TAG, "Encoding resource %d: %s", i, resource->uri);
 
             // Open a link map in the root array
             CborEncoder linkMap;
@@ -626,7 +613,8 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
             size_t epsCount = OCEndpointPayloadGetEndpointCount(resource->eps);
 
             // Embed Endpoints in discovery response when any endpoint exist on the resource.
-            OIC_LOG_V(DEBUG, TAG, " Endpoint count: %d", epsCount);
+            OIC_LOG_V(DEBUG, TAG, " Endpoint count for %s: %d", resource->uri, epsCount);
+
             if (epsCount > 0)
             {
                 CborEncoder epsArray;
@@ -644,7 +632,7 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
                     VERIFY_PARAM_NON_NULL(TAG, endpoint, "Failed retrieving endpoint");
 
                     char* endpointStr = OCCreateEndpointString(endpoint);
-                    OIC_LOG_V(DEBUG, TAG, " OCCreateEndpointString endpointStr 2 = %s", endpointStr);
+                    // OIC_LOG_V(DEBUG, TAG, " OCCreateEndpointString endpointStr 2 = %s", endpointStr);
                     VERIFY_PARAM_NON_NULL(TAG, endpointStr, "Failed creating endpoint string");
 
                     err |= cbor_encoder_create_map(&epsArray, &endpointMap, EP_MAP_LEN);
@@ -652,8 +640,8 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
 
                     err |= AddTextStringToMap(&endpointMap, OC_RSRVD_ENDPOINT,
                                               sizeof(OC_RSRVD_ENDPOINT) - 1, endpointStr);
-                    OICFree(endpointStr);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed adding endpoint to endpoint map");
+                    OICFree(endpointStr);
 
                     err |= cbor_encode_text_string(&endpointMap, OC_RSRVD_PRIORITY,
                                                    sizeof(OC_RSRVD_PRIORITY) - 1);
@@ -665,7 +653,7 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
                     err |= cbor_encoder_close_container(&epsArray, &endpointMap);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed closing endpoint map");
                 }
-                OIC_LOG_V(DEBUG, TAG, "done with eps");
+                // OIC_LOG_V(DEBUG, TAG, "done with eps for %s", resource->uri);
 
                 err |= cbor_encoder_close_container(&linkMap, &epsArray);
                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed closing endpoints map");
@@ -676,11 +664,14 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
             VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed closing link map");
         }
 
+        OIC_LOG_V(DEBUG, TAG, "next resource");
         payload = payload->next;
     }
+    OIC_LOG_V(DEBUG, TAG, "Finished encoding payloads");
 
     if (isBaseline)
     {
+        OIC_LOG_V(DEBUG, TAG, "closing baseline");
         // Close the link array instead the root map.
         err |= cbor_encoder_close_container(&rootMap, &linkArray);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed closing root array");
@@ -695,20 +686,21 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
     }
     else
     {
+        OIC_LOG_V(DEBUG, TAG, "closing non-baseline");
         // Close the final root array.
         err |= cbor_encoder_close_container(&encoder, &linkArray);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed closing root array");
     }
 
 exit:
-    /* OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT, err code %u", __func__, err);
     return checkError(err, &encoder, outPayload, size);
 }
 
 LOCAL int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadFormat format,
                                          uint8_t *outPayload, size_t *size)
 {
-    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     if (OC_FORMAT_VND_OCF_CBOR == format)
     {
         return OCConvertDiscoveryPayloadVndOcfCbor(payload, outPayload, size);
