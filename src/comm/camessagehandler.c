@@ -2183,6 +2183,15 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
     VERIFY_TRUE((info->payloadSize <= UINT_MAX), TAG, "info->payloadSize");
 
     CAResult_t res = CA_STATUS_OK;
+
+    /* do not add block option if this is a msg from server indicating request incomplete (408) */
+    uint32_t respCode = CA_RESPONSE_CODE((*pdu)->transport_hdr->udp.code);
+    if (CA_REQUEST_ENTITY_INCOMPLETE == respCode) {
+        OIC_LOG(INFO, TAG, "Request incomplete");
+        res = CA_STATUS_OK;
+        goto exit2;
+    }
+
     unsigned int dataLength = 0;
     if (info->payload_cbor)
     {
@@ -2201,12 +2210,6 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
         goto exit;
     }
 
-    uint32_t respCode = CA_RESPONSE_CODE((*pdu)->transport_hdr->udp.code);
-    if (CA_REQUEST_ENTITY_INCOMPLETE == respCode) /* 408 */
-    {
-        OIC_LOG(INFO, TAG, "don't use option");
-        res = CA_STATUS_OK;
-        goto exit;
     }
 
     uint16_t blockType = CAGetBlockOptionType(blockDataID);
@@ -2285,8 +2288,9 @@ LOCAL CAResult_t CAAddBlockOption(coap_pdu_t **pdu, const CAInfo_t *info,
         }
     }
 
-exit:
+ exit:
     CADestroyBlockID(blockDataID);
-    OIC_LOG(DEBUG, TAG, "OUT-AddBlockOption");
+ exit2:
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return res;
 }
