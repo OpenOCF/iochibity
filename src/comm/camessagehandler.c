@@ -1546,7 +1546,7 @@ LOCAL void CALogPayloadInfo(CAInfo_t *info)
             }
         }
 
-        if (info->payload)
+        if (info->payload_cbor)
         {
             OIC_LOG_V(DEBUG, TAG, "payload: %p(%" PRIuPTR ")", info->payload,
                       info->payloadSize);
