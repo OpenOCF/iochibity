@@ -163,7 +163,7 @@ static CARetransmission_t g_retransmissionContext;
 
 static CANetworkMonitorCallback g_nwMonitorHandler = NULL;
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
 void CAAddDataToSendThread(CAData_t *data) /* called by CAAddSendThreadQueue */
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
@@ -436,7 +436,7 @@ static void CATimeoutCallback(const CAEndpoint_t *endpoint, const void *pdu, uin
     cadata->requestInfo = NULL;
     cadata->responseInfo = resInfo;
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     if (CAIsSupportedBlockwiseTransfer(endpoint->adapter))
     {
         res = CARemoveBlockDataFromListWithSeed(resInfo->info.token, resInfo->info.tokenLength,
@@ -446,7 +446,7 @@ static void CATimeoutCallback(const CAEndpoint_t *endpoint, const void *pdu, uin
             OIC_LOG(ERROR, TAG, "CARemoveBlockDataFromListWithSeed failed");
         }
     }
-#endif // WITH_BWT
+#endif // ENABLE_BWT
 
     CAQueueingThreadAddData(&g_receiveThread, cadata, sizeof(CAData_t));
 }
@@ -682,7 +682,7 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
         // interface controller function call.
         if (NULL != pdu)
         {
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
             if (CAIsSupportedBlockwiseTransfer(data->remoteEndpoint->adapter))
             {
                 // Blockwise transfer
@@ -699,7 +699,7 @@ static CAResult_t CAProcessSendData(const CAData_t *data)
                     }
                 }
             }
-#endif // WITH_BWT
+#endif // ENABLE_BWT
             OIC_LOG_V(INFO, TAG, "%s logging pdu:", __func__);
             CALogPDUInfo(data, pdu);
 
@@ -1036,7 +1036,7 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *origin_sep, // @was C
     CALogPDUInfo(cadata, pdu);
 #endif
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     if (CAIsSupportedBlockwiseTransfer(origin_sep->endpoint.adapter))
     {
         CAResult_t res = CAReceiveBlockWiseData(pdu, &(origin_sep->endpoint), cadata, dataLen);
@@ -1322,7 +1322,7 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *dest_ep,
         CAQueueingThreadAddData(&g_receiveThread, data, sizeof(CAData_t));
         return CA_STATUS_OK;
     }
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     if (CAIsSupportedBlockwiseTransfer(dest_ep->adapter))
     {
         // send block data
@@ -1340,7 +1340,7 @@ CAResult_t CADetachSendMessage(const CAEndpoint_t *dest_ep,
         return res;
     }
     else
-#endif // WITH_BWT
+#endif // ENABLE_BWT
     {
         CAQueueingThreadAddData(&g_sendThread, data, sizeof(CAData_t));
     }
@@ -1432,7 +1432,7 @@ CAResult_t CAInitializeMessageHandler(CATransportAdapter_t transportType)
         return res;
     }
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     // block-wise transfer initialize
     res = CAInitializeBlockWiseTransfer(CAAddDataToSendThread, CAAddDataToReceiveThread);
     if (CA_STATUS_OK != res)
@@ -1498,7 +1498,7 @@ void CATerminateMessageHandler(void)
         g_threadPoolHandle = NULL;
     }
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     CATerminateBlockWiseTransfer();
 #endif
     CARetransmissionDestroy(&g_retransmissionContext);

@@ -607,7 +607,7 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
         }
     }
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
     if (CA_ADAPTER_GATT_BTLE != endpoint->adapter
 #ifdef WITH_TCP
             && !CAIsSupportedCoAPOverTCP(endpoint->adapter)
@@ -1436,7 +1436,7 @@ void CADestroyTokenInternal(uint8_t *token)
     if (token)
     {
         uint8_t *temp = token - 1;
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
         CARemoveBlockMulticastDataFromListWithSeed(token, *temp);
 #endif
         OICFree(temp);
@@ -1551,7 +1551,7 @@ CAPayloadFormat_t CAConvertFormat(uint16_t format)
     }
 }
 
-#ifdef WITH_BWT
+#ifdef ENABLE_BWT
 bool CAIsSupportedBlockwiseTransfer(CATransportAdapter_t adapter)
 {
     if (CA_ADAPTER_IP & adapter || CA_ADAPTER_NFC & adapter

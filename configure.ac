@@ -181,7 +181,7 @@ AC_ARG_ENABLE([bwt],
     AS_HELP_STRING([--disable-bwt], [Disable Block-Wise Transfer]))
 
 AS_IF([test "x$enable_bwt" != "xno"], [
-  AC_DEFINE([WITH_BWT], [], [Block-wise Transfer])
+  AC_DEFINE([ENABLE_BWT], [], [Block-wise Transfer])
 ])
 
 dnl multiple owners is OFF by default
