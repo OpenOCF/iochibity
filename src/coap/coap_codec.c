@@ -1014,9 +1014,10 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
         (*outCode) = (uint32_t) CA_RESPONSE_CODE(coap_get_code(pdu, transport));
     }
 
+    /* **************** BEGIN OPTIONS **************** */
     // init HeaderOption list
-    uint8_t count = 0;
-    CAResult_t countResult = CAGetOptionCount(opt_iter, &count);
+    uint8_t _option_count = 0;
+    CAResult_t countResult = CAGetOptionCount(opt_iter, &_option_count);
     if (CA_STATUS_OK != countResult)
     {
         OIC_LOG_V(ERROR, TAG, "CAGetOptionCount failed with error: %d!", countResult);
@@ -1025,7 +1026,7 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
 
     memset(outInfo, 0, sizeof(*outInfo));
 
-    outInfo->numOptions = count;
+    outInfo->numOptions = _option_count;
 
 #ifdef WITH_TCP
     if (CAIsSupportedCoAPOverTCP(endpoint->adapter))
@@ -1048,9 +1049,9 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
         outInfo->acceptFormat = CA_FORMAT_UNDEFINED;
     }
 
-    if (count > 0)
+    if (_option_count > 0)
     {
-        outInfo->options = (CAHeaderOption_t *) OICCalloc(count, sizeof(CAHeaderOption_t));
+        outInfo->options = (CAHeaderOption_t *) OICCalloc(_option_count, sizeof(CAHeaderOption_t));
         if (NULL == outInfo->options)
         {
             OIC_LOG(ERROR, TAG, "Out of memory");
@@ -1254,7 +1255,7 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                     }
                 }
 
-                if (idx < count)
+                if (idx < _option_count)
                 {
                     if (bufLength <= sizeof(outInfo->options[0].optionData))
                     {
