@@ -106,9 +106,10 @@ typedef struct
     uint16_t type;                      /**< block option type. */
     CABlockDataID_t* blockDataId;        /**< ID set of CABlockData. */
     CAData_t *sentData;                 /**< sent request or response data information. */
-    struct OCPayload /* CAPayload_t */ *payload; /**< payload buffer. */
-    size_t payloadLength;               /**< the total payload length to be received. */
-    size_t receivedPayloadLen;          /**< currently received payload length. */
+    CAData_t *sentData;                 /**< sent request or response ("payload"). */
+    uint8_t *bwt_body;     /**< cumulative raw cbor-encoded msg BODY (per RFC 7959) */
+    size_t bwt_body_length;               /**< the total body length to be received. */
+    size_t bwt_body_partial_length;          /**< length of payload received so far. */
 } CABlockData_t;
 
 /**
@@ -1098,7 +1099,7 @@ CAResult_t CASetNextBlockOption1(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
 
         // check the size option
         bool isSizeOption = CAIsPayloadLengthInPduWithBlockSizeOption(pdu, COAP_OPTION_SIZE1,
-                                                                      &(data->payloadLength));
+                                                                      &(data->bwt_body_length));
 
         blockWiseStatus = CACheckBlockErrorType(data, &block, receivedData,
                                                 COAP_OPTION_BLOCK1, dataLen);
@@ -1636,7 +1637,7 @@ uint8_t CACheckBlockErrorType(CABlockData_t *currData, coap_block_t *receivedBlo
     // #2. check if the block sequence is right
     if (COAP_OPTION_BLOCK1 == blockType)
     {
-        size_t prePayloadLen = currData->receivedPayloadLen;
+        size_t prePayloadLen = currData->bwt_body_partial_length;
         if (prePayloadLen != (size_t) BLOCK_SIZE(receivedBlock->szx) * receivedBlock->num)
         {
             if (receivedBlock->num > currData->block1.num + 1)
@@ -1704,13 +1705,13 @@ uint8_t CACheckBlockErrorType(CABlockData_t *currData, coap_block_t *receivedBlo
             return CA_BLOCK_INCOMPLETE;
         }
     }
-    else if (0 == receivedBlock->m && 0 != currData->payloadLength)
+    else if (0 == receivedBlock->m && 0 != currData->bwt_body_length)
     {
         // if the received block is last block, check the total payload length
-        size_t receivedPayloadLen = currData->receivedPayloadLen;
-        receivedPayloadLen += blockPayloadLen;
+        size_t bwt_body_partial_length = currData->bwt_body_partial_length;
+        bwt_body_partial_length += blockPayloadLen;
 
-        if (receivedPayloadLen != currData->payloadLength)
+        if (bwt_body_partial_length != currData->bwt_body_length)
         {
             OIC_LOG(ERROR, TAG, "error type 4.08");
             OIC_LOG(ERROR, TAG, "total payload length is wrong");
@@ -1749,38 +1750,42 @@ CAResult_t CAUpdatePayloadData(CABlockData_t *currData, const CAData_t *received
                 BLOCK_SIZE(currData->block2.szx) : BLOCK_SIZE(currData->block1.szx);
     }
 
+    OIC_LOG_V(DEBUG, TAG, "%s incoming payload length %u", __func__, blockPayloadLen);
+    OIC_LOG_V(DEBUG, TAG, "%s blockdata bwt_body_length %u", __func__, currData->bwt_body_length);
+    OIC_LOG_V(DEBUG, TAG, "%s blockdata bwt_body_partial_length %u", __func__, currData->bwt_body_partial_length);
+
     // memory allocation for the received block payload
-    size_t prePayloadLen = currData->receivedPayloadLen;
+    size_t prePayloadLen = currData->bwt_body_partial_length;
     if (blockPayload)
     {
-        if (currData->payloadLength)
+        if (currData->bwt_body_length)
         {
             // in case the block message has the size option
             // allocate the memory for the total payload
             if (isSizeOption)
             {
-                struct OCPayload /* CAPayload_t */ *prePayload = currData->payload;
+                uint8_t *prePayload = currData->bwt_body;
 
                 OIC_LOG(DEBUG, TAG, "allocate memory for the total payload");
-                currData->payload = (struct OCPayload* /* CAPayload_t */) OICCalloc(1, currData->payloadLength);
-                if (NULL == currData->payload)
+                currData->bwt_body = OICCalloc(1, currData->bwt_body_length);
+                if (NULL == currData->bwt_body)
                 {
                     OIC_LOG(ERROR, TAG, "out of memory");
                     return CA_MEMORY_ALLOC_FAILED;
                 }
-                memcpy(currData->payload, prePayload, prePayloadLen);
+                memcpy(currData->bwt_body, prePayload, prePayloadLen);
                 OICFree(prePayload);
             }
 
             // update the total payload
-            memcpy(currData->payload + prePayloadLen, blockPayload, blockPayloadLen);
+            memcpy(currData->bwt_body + prePayloadLen, blockPayload, blockPayloadLen);
         }
         else
         {
             OIC_LOG(DEBUG, TAG, "allocate memory for the received block payload");
 
             size_t totalPayloadLen = prePayloadLen + blockPayloadLen;
-            struct OCPayload /* CAPayload_t */ *newPayload = OICRealloc(currData->payload, totalPayloadLen);
+            uint8_t *newPayload = OICRealloc(currData->bwt_body, totalPayloadLen);
             if (NULL == newPayload)
             {
                 OIC_LOG(ERROR, TAG, "out of memory");
@@ -1789,15 +1794,15 @@ CAResult_t CAUpdatePayloadData(CABlockData_t *currData, const CAData_t *received
 
             // update the total payload
             memset(newPayload + prePayloadLen, 0, blockPayloadLen);
-            currData->payload = newPayload;
-            memcpy(currData->payload + prePayloadLen, blockPayload, blockPayloadLen);
+            currData->bwt_body = newPayload;
+            memcpy(currData->bwt_body + prePayloadLen, blockPayload, blockPayloadLen);
         }
 
         // update received payload length
-        currData->receivedPayloadLen += blockPayloadLen;
+        currData->bwt_body_partial_length += blockPayloadLen;
 
-        OIC_LOG_V(DEBUG, TAG, "updated payload: @ %p, len: %" PRIuPTR, currData->payload,
-                  currData->receivedPayloadLen);
+        OIC_LOG_V(DEBUG, TAG, "updated payload: @ %p, len: %" PRIuPTR, currData->bwt_body,
+                  currData->bwt_body_partial_length);
     }
 
     OIC_LOG(DEBUG, TAG, "OUT-UpdatePayloadData");
@@ -2431,11 +2436,11 @@ CAResult_t CARemoveAllBlockDataFromList(void)
                 CADestroyDataSet(removedData->sentData);
             }
             CADestroyBlockID(removedData->blockDataId);
-            OICFree(removedData->payload);
+            OICFree(removedData->bwt_body);
             OICFree(removedData);
         }
     }
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
     return CA_STATUS_OK;
 }
