@@ -858,20 +858,20 @@ CAResult_t CASendErrorMessage(const coap_pdu_t *pdu, uint8_t status,
                 "pdu->transport_hdr->udp.token_length");
 
     // create error responseInfo
-    CABlockData_t *data = CAGetBlockDataFromBlockDataList(blockID);
-    if (!data)
+    CABlockData_t *_block_data = CAGetBlockDataFromBlockDataList(blockID);
+    if (!_block_data)
     {
-        OIC_LOG(ERROR, TAG, "data is unavailable");
+        OIC_LOG(ERROR, TAG, "_block_data is unavailable");
         return CA_STATUS_FAILED;
     }
 
-    if (!data->sentData)
+    if (!_block_data->sentData)
     {
-        OIC_LOG(ERROR, TAG, "data has no sent-data");
+        OIC_LOG(ERROR, TAG, "_block_data has no sent-data");
         return CA_STATUS_FAILED;
     }
 
-    CAData_t *cloneData = CACloneCAData(data->sentData);
+    CAData_t *cloneData = CACloneCAData(_block_data->sentData);
     if (!cloneData)
     {
         OIC_LOG(ERROR, TAG, "clone has failed");
@@ -947,12 +947,12 @@ CAResult_t CASendErrorMessage(const coap_pdu_t *pdu, uint8_t status,
     // if error code is 4.08, remove the stored payload and initialize block number
     if (CA_BLOCK_INCOMPLETE == status)
     {
-        OICFree(data->payload);
-        data->payload = NULL;
-        data->payloadLength = 0;
-        data->receivedPayloadLen = 0;
-        data->block1.num = 0;
-        data->block2.num = 0;
+        OICFree(_block_data->bwt_body);
+        _block_data->bwt_body = NULL;
+        _block_data->bwt_body_length = 0;
+        _block_data->bwt_body_partial_length = 0;
+        _block_data->block1.num = 0;
+        _block_data->block2.num = 0;
     }
 
     return CA_STATUS_OK;
@@ -1227,21 +1227,23 @@ CAResult_t CASetNextBlockOption2(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
     }
 
     CAResult_t res = CA_STATUS_OK;
-    CABlockData_t *data = CACheckTheExistOfBlockData(blockDataID, pdu, endpoint,
+    CABlockData_t *_block_data = CACheckTheExistOfBlockData(blockDataID, pdu, endpoint,
                                                      COAP_OPTION_BLOCK2);
-    if (!data)
+    if (!_block_data)
     {
         OIC_LOG(ERROR, TAG, "Failed to create or get block data");
         res = CA_STATUS_FAILED;
         goto exit;
     }
 
+    log_bwt_block_data(_block_data);
+
     uint8_t blockWiseStatus = CA_BLOCK_UNKNOWN;
     if (0 == block.num && CA_GET == pdu->transport_hdr->udp.code && 0 == block.m)
     {
         OIC_LOG(INFO, TAG, "first block number");
 
-        res = CAUpdateBlockOptionItems(data, pdu, &block, COAP_OPTION_BLOCK2, blockWiseStatus);
+        res = CAUpdateBlockOptionItems(_block_data, pdu, &block, COAP_OPTION_BLOCK2, blockWiseStatus);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "update has failed");
@@ -1249,7 +1251,7 @@ CAResult_t CASetNextBlockOption2(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
         }
 
         // first block data have to notify to Application
-        res = CAUpdateBlockData(data, block, COAP_OPTION_BLOCK2);
+        res = CAUpdateBlockData(_block_data, block, COAP_OPTION_BLOCK2);
         if (CA_STATUS_OK != res)
         {
             OIC_LOG(ERROR, TAG, "update has failed");
@@ -1267,14 +1269,14 @@ CAResult_t CASetNextBlockOption2(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
 
             blockWiseStatus = CA_OPTION2_REQUEST;
 
-            res = CAUpdateBlockOptionItems(data, pdu, &block, COAP_OPTION_BLOCK2, blockWiseStatus);
+            res = CAUpdateBlockOptionItems(_block_data, pdu, &block, COAP_OPTION_BLOCK2, blockWiseStatus);
             if (CA_STATUS_OK != res)
             {
                 OIC_LOG(ERROR, TAG, "update has failed");
                 goto exit;
             }
 
-            res = CAUpdateBlockData(data, block, COAP_OPTION_BLOCK2);
+            res = CAUpdateBlockData(_block_data, block, COAP_OPTION_BLOCK2);
             if (CA_STATUS_OK != res)
             {
                 OIC_LOG(ERROR, TAG, "update has failed");
@@ -1284,25 +1286,26 @@ CAResult_t CASetNextBlockOption2(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
         else
         {
             // received message type is response
-            OIC_LOG(DEBUG, TAG, "received response message with block option2");
+            OIC_LOG(DEBUG, TAG, "message is response");
 
             // check the size option
             bool isSizeOption = CAIsPayloadLengthInPduWithBlockSizeOption(pdu,
                                                                           COAP_OPTION_SIZE2,
-                                                                          &(data->payloadLength));
+                                                                          &(_block_data->bwt_body_length));
+            OIC_LOG_V(DEBUG, TAG, "CAIsPayloadLengthInPduWithBlockSizeOption? %d", isSizeOption);
 
             uint32_t responseCode = CA_RESPONSE_CODE(pdu->transport_hdr->udp.code);
             if (CA_REQUEST_ENTITY_INCOMPLETE != responseCode && CA_REQUEST_ENTITY_TOO_LARGE != responseCode)
             {
                 // check if received payload is exact
-                blockWiseStatus = CACheckBlockErrorType(data, &block, receivedData,
+                blockWiseStatus = CACheckBlockErrorType(_block_data, &block, receivedData,
                                                         COAP_OPTION_BLOCK2, dataLen);
             }
 
             if (CA_BLOCK_RECEIVED_ALREADY != blockWiseStatus)
             {
                 // store the received payload and merge
-                res = CAUpdatePayloadData(data, receivedData, blockWiseStatus,
+                res = CAUpdatePayloadData(_block_data, receivedData, blockWiseStatus,
                                           isSizeOption, COAP_OPTION_BLOCK2);
                 if (CA_STATUS_OK != res)
                 {
@@ -1325,7 +1328,7 @@ CAResult_t CASetNextBlockOption2(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                     blockWiseStatus = CA_OPTION2_RESPONSE;
                 }
 
-                res = CAUpdateBlockOptionItems(data, pdu, &block, COAP_OPTION_BLOCK2,
+                res = CAUpdateBlockOptionItems(_block_data, pdu, &block, COAP_OPTION_BLOCK2,
                                                blockWiseStatus);
                 if (CA_STATUS_OK != res)
                 {
@@ -1333,7 +1336,7 @@ CAResult_t CASetNextBlockOption2(coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                     goto exit;
                 }
 
-                res = CAUpdateBlockData(data, block, COAP_OPTION_BLOCK2);
+                res = CAUpdateBlockData(_block_data, block, COAP_OPTION_BLOCK2);
                 if (CA_STATUS_OK != res)
                 {
                     OIC_LOG(ERROR, TAG, "update has failed");
