@@ -978,7 +978,7 @@ CAResult_t CAReceiveLastBlock(const CABlockDataID_t *blockID, const CAData_t *re
 
     // update payload
     size_t fullPayloadLen = 0;
-    struct OCPayload /* CAPayload_t */ *fullPayload = CAGetPayloadFromBlockDataList(blockID, &fullPayloadLen);
+    uint8_t *fullPayload = CAGetPayloadFromBlockDataList(blockID, &fullPayloadLen);
     if (fullPayload)
     {
         CAResult_t res = CAUpdatePayloadToCAData(cloneData, fullPayload, fullPayloadLen);
@@ -1750,7 +1750,8 @@ CAResult_t CAUpdatePayloadData(CABlockData_t *currData, const CAData_t *received
     }
 
     size_t blockPayloadLen = 0;
-    struct OCPayload /* CAPayload_t */ *blockPayload = CAGetPayloadInfo(receivedData, &blockPayloadLen);
+    /* incoming payload is still raw cbor-encoded (CAInfo_t) */
+    uint8_t *blockPayload = CAGetPayloadInfo(receivedData, &blockPayloadLen);
 
     if (CA_BLOCK_TOO_LARGE == status)
     {
@@ -1946,7 +1947,7 @@ CAData_t *CACloneCAData(const CAData_t *data)
 }
 
 CAResult_t CAUpdatePayloadToCAData(CAData_t *data,
-                                   const struct OCPayload /* CAPayload_t */ *payload,
+                                   const uint8_t *payload,
                                    size_t payloadLen)
 {
     OIC_LOG(DEBUG, TAG, "IN-UpdatePayload");
@@ -1954,7 +1955,7 @@ CAResult_t CAUpdatePayloadToCAData(CAData_t *data,
     VERIFY_NON_NULL_MSG(data, TAG, "data is NULL");
     VERIFY_NON_NULL_MSG(payload, TAG, "payload is NULL");
 
-    struct OCPayload /* CAPayload_t */ *newPayload = NULL;
+    uint8_t *newPayload = NULL;
     switch (data->dataType)
     {
         case CA_REQUEST_DATA:
@@ -2004,7 +2005,7 @@ CAResult_t CAUpdatePayloadToCAData(CAData_t *data,
     return CA_STATUS_OK;
 }
 
-struct OCPayload /* CAPayload_t */ *CAGetPayloadInfo(const CAData_t *data, size_t *payloadLen)
+uint8_t *CAGetPayloadInfo(const CAData_t *data, size_t *payloadLen)
 {
     VERIFY_NON_NULL_RET(data, TAG, "data", NULL);
     VERIFY_NON_NULL_RET(payloadLen, TAG, "payloadLen", NULL);
