@@ -168,10 +168,10 @@ typedef enum                    /* src: cacommon.h */
 #define BLOCK_SIZE(arg) (1 << ((arg) + 4))
 
 // context for block-wise transfer
-static CABlockWiseContext_t g_context = { .sendThreadFunc = NULL,
-                                          .receivedThreadFunc = NULL,
-                                          .dataList = NULL,
-                                          .multicastDataList = NULL };
+static CABlockWiseContext_t _bwt_context = { .sendThreadFunc = NULL,
+                                             .receivedThreadFunc = NULL,
+                                             .dataList = NULL,
+                                             .multicastDataList = NULL };
 
 static bool CACheckPayloadLength(const CAData_t *sendData)
 {
@@ -196,33 +196,33 @@ CAResult_t CAInitializeBlockWiseTransfer(CASendThreadFunc sendThreadFunc,
     OIC_LOG(DEBUG, TAG, "CAInitializeBlockWiseTransfer");
 
     // set block-wise transfer context
-    if (!g_context.sendThreadFunc)
+    if (!_bwt_context.sendThreadFunc)
     {
-        g_context.sendThreadFunc = sendThreadFunc;
+        _bwt_context.sendThreadFunc = sendThreadFunc;
     }
 
-    if (!g_context.receivedThreadFunc)
+    if (!_bwt_context.receivedThreadFunc)
     {
-        g_context.receivedThreadFunc = receivedThreadFunc;
+        _bwt_context.receivedThreadFunc = receivedThreadFunc;
     }
 
-    if (!g_context.dataList)
+    if (!_bwt_context.dataList)
     {
-        g_context.dataList = u_arraylist_create();
+        _bwt_context.dataList = u_arraylist_create();
     }
 
-    if (!g_context.multicastDataList)
+    if (!_bwt_context.multicastDataList)
     {
-        g_context.multicastDataList = u_arraylist_create();
+        _bwt_context.multicastDataList = u_arraylist_create();
     }
 
     CAResult_t res = CAInitBlockWiseMutexVariables();
     if (CA_STATUS_OK != res)
     {
-        u_arraylist_free(&g_context.dataList);
-        g_context.dataList = NULL;
-        u_arraylist_free(&g_context.multicastDataList);
-        g_context.multicastDataList = NULL;
+        u_arraylist_free(&_bwt_context.dataList);
+        _bwt_context.dataList = NULL;
+        u_arraylist_free(&_bwt_context.multicastDataList);
+        _bwt_context.multicastDataList = NULL;
         OIC_LOG(ERROR, TAG, "init has failed");
     }
 
@@ -233,16 +233,16 @@ CAResult_t CATerminateBlockWiseTransfer(void)
 {
     OIC_LOG(DEBUG, TAG, "CATerminateBlockWiseTransfer");
 
-    if (g_context.dataList)
+    if (_bwt_context.dataList)
     {
         CARemoveAllBlockDataFromList();
-        u_arraylist_free(&g_context.dataList);
+        u_arraylist_free(&_bwt_context.dataList);
     }
 
-    if (g_context.multicastDataList)
+    if (_bwt_context.multicastDataList)
     {
         CARemoveAllBlockMulticastDataFromList();
-        u_arraylist_free(&g_context.multicastDataList);
+        u_arraylist_free(&_bwt_context.multicastDataList);
     }
 
     CATerminateBlockWiseMutexVariables();
@@ -252,20 +252,20 @@ CAResult_t CATerminateBlockWiseTransfer(void)
 
 CAResult_t CAInitBlockWiseMutexVariables(void)
 {
-    if (!g_context.blockDataListMutex)
+    if (!_bwt_context.blockDataListMutex)
     {
-        g_context.blockDataListMutex = oc_mutex_new();
-        if (!g_context.blockDataListMutex)
+        _bwt_context.blockDataListMutex = oc_mutex_new();
+        if (!_bwt_context.blockDataListMutex)
         {
             OIC_LOG(ERROR, TAG, "oc_mutex_new has failed");
             return CA_STATUS_FAILED;
         }
     }
 
-    if (!g_context.blockDataSenderMutex)
+    if (!_bwt_context.blockDataSenderMutex)
     {
-        g_context.blockDataSenderMutex = oc_mutex_new();
-        if (!g_context.blockDataSenderMutex)
+        _bwt_context.blockDataSenderMutex = oc_mutex_new();
+        if (!_bwt_context.blockDataSenderMutex)
         {
             OIC_LOG(ERROR, TAG, "oc_mutex_new has failed");
             CATerminateBlockWiseMutexVariables();
@@ -273,10 +273,10 @@ CAResult_t CAInitBlockWiseMutexVariables(void)
         }
     }
 
-    if (!g_context.multicastDataListMutex)
+    if (!_bwt_context.multicastDataListMutex)
     {
-        g_context.multicastDataListMutex = oc_mutex_new();
-        if (!g_context.multicastDataListMutex)
+        _bwt_context.multicastDataListMutex = oc_mutex_new();
+        if (!_bwt_context.multicastDataListMutex)
         {
             OIC_LOG(ERROR, TAG, "oc_mutex_new has failed");
             return CA_STATUS_FAILED;
@@ -288,22 +288,22 @@ CAResult_t CAInitBlockWiseMutexVariables(void)
 
 void CATerminateBlockWiseMutexVariables(void)
 {
-    if (g_context.blockDataListMutex)
+    if (_bwt_context.blockDataListMutex)
     {
-        oc_mutex_free(g_context.blockDataListMutex);
-        g_context.blockDataListMutex = NULL;
+        oc_mutex_free(_bwt_context.blockDataListMutex);
+        _bwt_context.blockDataListMutex = NULL;
     }
 
-    if (g_context.blockDataSenderMutex)
+    if (_bwt_context.blockDataSenderMutex)
     {
-        oc_mutex_free(g_context.blockDataSenderMutex);
-        g_context.blockDataSenderMutex = NULL;
+        oc_mutex_free(_bwt_context.blockDataSenderMutex);
+        _bwt_context.blockDataSenderMutex = NULL;
     }
 
-    if (g_context.multicastDataListMutex)
+    if (_bwt_context.multicastDataListMutex)
     {
-        oc_mutex_free(g_context.multicastDataListMutex);
-        g_context.multicastDataListMutex = NULL;
+        oc_mutex_free(_bwt_context.multicastDataListMutex);
+        _bwt_context.multicastDataListMutex = NULL;
     }
 }
 
@@ -434,11 +434,11 @@ CAResult_t CAAddSendThreadQueue(const CAData_t *sendData, const CABlockDataID_t 
         return CA_STATUS_FAILED;
     }
 
-    if (g_context.sendThreadFunc)
+    if (_bwt_context.sendThreadFunc)
     {
-        oc_mutex_lock(g_context.blockDataSenderMutex);
-        g_context.sendThreadFunc(cloneData); /* CAAddDataToSendThread */
-        oc_mutex_unlock(g_context.blockDataSenderMutex);
+        oc_mutex_lock(_bwt_context.blockDataSenderMutex);
+        _bwt_context.sendThreadFunc(cloneData); /* CAAddDataToSendThread */
+        oc_mutex_unlock(_bwt_context.blockDataSenderMutex);
     }
     else
     {
@@ -933,11 +933,11 @@ CAResult_t CASendErrorMessage(const coap_pdu_t *pdu, uint8_t status,
     }
 
     // add data to send thread
-    if (g_context.sendThreadFunc)
+    if (_bwt_context.sendThreadFunc)
     {
-        oc_mutex_lock(g_context.blockDataSenderMutex);
-        g_context.sendThreadFunc(cloneData);
-        oc_mutex_unlock(g_context.blockDataSenderMutex);
+        oc_mutex_lock(_bwt_context.blockDataSenderMutex);
+        _bwt_context.sendThreadFunc(cloneData);
+        oc_mutex_unlock(_bwt_context.blockDataSenderMutex);
     }
     else
     {
@@ -985,9 +985,9 @@ CAResult_t CAReceiveLastBlock(const CABlockDataID_t *blockID, const CAData_t *re
         }
     }
 
-    if (g_context.receivedThreadFunc)
+    if (_bwt_context.receivedThreadFunc)
     {
-        g_context.receivedThreadFunc(cloneData);
+        _bwt_context.receivedThreadFunc(cloneData);
     }
     else
     {
@@ -2051,50 +2051,50 @@ CAResult_t CAHandleBlockErrorResponse(coap_block_t *block, uint16_t blockType,
 
 CAResult_t CAUpdateBlockOptionType(const CABlockDataID_t *blockID, uint16_t blockType)
 {
-    OIC_LOG(DEBUG, TAG, "IN-UpdateBlockOptionType");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.dataList);
+    size_t len = u_arraylist_length(_bwt_context.dataList);
     for (size_t i = 0; i < len; i++)
     {
-        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(g_context.dataList, i);
+        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(_bwt_context.dataList, i);
         if (CABlockidMatches(currData, blockID))
         {
             currData->type = blockType;
-            oc_mutex_unlock(g_context.blockDataListMutex);
-            OIC_LOG(DEBUG, TAG, "OUT-UpdateBlockOptionType");
+            oc_mutex_unlock(_bwt_context.blockDataListMutex);
+            OIC_LOG_V(DEBUG, TAG, "%s EXIT OK", __func__);
             return CA_STATUS_OK;
         }
     }
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
-    OIC_LOG(DEBUG, TAG, "OUT-UpdateBlockOptionType");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT FAIL", __func__);
     return CA_STATUS_FAILED;
 }
 
 uint16_t CAGetBlockOptionType(const CABlockDataID_t *blockID)
 {
-    OIC_LOG(DEBUG, TAG, "IN-GetBlockOptionType");
+    /* OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__); */
     VERIFY_NON_NULL_RET(blockID, TAG, "blockID", 0);
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.dataList);
+    size_t len = u_arraylist_length(_bwt_context.dataList);
     for (size_t i = 0; i < len; i++)
     {
-        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(g_context.dataList, i);
+        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(_bwt_context.dataList, i);
         if (CABlockidMatches(currData, blockID))
         {
-            oc_mutex_unlock(g_context.blockDataListMutex);
-            OIC_LOG(DEBUG, TAG, "OUT-GetBlockOptionType");
+            oc_mutex_unlock(_bwt_context.blockDataListMutex);
+            /* OIC_LOG_V(DEBUG, TAG, "%s EXIT, block option type: %u", __func__, currData->type); */
             return currData->type;
         }
     }
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
-    OIC_LOG(DEBUG, TAG, "OUT-GetBlockOptionType");
+    /* OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__); */
     return 0;
 }
 
@@ -2102,19 +2102,19 @@ CAData_t *CAGetDataSetFromBlockDataList(const CABlockDataID_t *blockID)
 {
     VERIFY_NON_NULL_RET(blockID, TAG, "blockID", NULL);
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.dataList);
+    size_t len = u_arraylist_length(_bwt_context.dataList);
     for (size_t i = 0; i < len; i++)
     {
-        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(g_context.dataList, i);
+        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(_bwt_context.dataList, i);
         if (CABlockidMatches(currData, blockID))
         {
-            oc_mutex_unlock(g_context.blockDataListMutex);
+            oc_mutex_unlock(_bwt_context.blockDataListMutex);
             return currData->sentData;
         }
     }
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
     return NULL;
 }
@@ -2125,21 +2125,21 @@ CABlockData_t *CAUpdateDataSetFromBlockDataList(const CABlockDataID_t *blockID,
     VERIFY_NON_NULL_RET(blockID, TAG, "blockID", NULL);
     VERIFY_NON_NULL_RET(sendData, TAG, "sendData", NULL);
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.dataList);
+    size_t len = u_arraylist_length(_bwt_context.dataList);
     for (size_t i = 0; i < len; i++)
     {
-        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(g_context.dataList, i);
+        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(_bwt_context.dataList, i);
         if (CABlockidMatches(currData, blockID))
         {
             CADestroyDataSet(currData->sentData);
             currData->sentData = CACloneCAData(sendData);
-            oc_mutex_unlock(g_context.blockDataListMutex);
+            oc_mutex_unlock(_bwt_context.blockDataListMutex);
             return currData;
         }
     }
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
     return NULL;
 }
@@ -2152,12 +2152,12 @@ CAResult_t CAGetTokenFromBlockDataList(const coap_pdu_t *pdu, const CAEndpoint_t
     VERIFY_NON_NULL_MSG(endpoint, TAG, "endpoint");
     VERIFY_NON_NULL_MSG(responseInfo, TAG, "responseInfo");
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.dataList);
+    size_t len = u_arraylist_length(_bwt_context.dataList);
     for (size_t i = 0; i < len; i++)
     {
-        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(g_context.dataList, i);
+        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(_bwt_context.dataList, i);
         if (NULL == currData)
         {
             continue;
@@ -2176,13 +2176,13 @@ CAResult_t CAGetTokenFromBlockDataList(const coap_pdu_t *pdu, const CAEndpoint_t
                     if (NULL == responseInfo->info.token)
                     {
                         OIC_LOG(ERROR, TAG, "out of memory");
-                        oc_mutex_unlock(g_context.blockDataListMutex);
+                        oc_mutex_unlock(_bwt_context.blockDataListMutex);
                         return CA_MEMORY_ALLOC_FAILED;
                     }
                     memcpy(responseInfo->info.token, currData->sentData->requestInfo->info.token,
                            responseInfo->info.tokenLength);
 
-                    oc_mutex_unlock(g_context.blockDataListMutex);
+                    oc_mutex_unlock(_bwt_context.blockDataListMutex);
                     OIC_LOG(DEBUG, TAG, "OUT-CAGetTokenFromBlockDataList");
                     return CA_STATUS_OK;
                 }
@@ -2190,7 +2190,7 @@ CAResult_t CAGetTokenFromBlockDataList(const coap_pdu_t *pdu, const CAEndpoint_t
         }
     }
 
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
     OIC_LOG(DEBUG, TAG, "OUT-CAGetTokenFromBlockDataList");
     return CA_STATUS_FAILED;
@@ -2232,78 +2232,83 @@ CABlockData_t *CAGetBlockDataFromBlockDataList(const CABlockDataID_t *blockID)
 {
     VERIFY_NON_NULL_RET(blockID, TAG, "blockID", NULL);
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.dataList);
+    size_t len = u_arraylist_length(_bwt_context.dataList);
     for (size_t i = 0; i < len; i++)
     {
-        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(g_context.dataList, i);
+        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(_bwt_context.dataList, i);
         if (CABlockidMatches(currData, blockID))
         {
-            oc_mutex_unlock(g_context.blockDataListMutex);
+            oc_mutex_unlock(_bwt_context.blockDataListMutex);
             return currData;
         }
     }
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
     return NULL;
 }
 
 coap_block_t *CAGetBlockOption(const CABlockDataID_t *blockID, uint16_t blockType)
 {
-    OIC_LOG(DEBUG, TAG, "IN-GetBlockOption");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY, block type %u %s", __func__,
+              blockType,
+              (blockType == COAP_OPTION_BLOCK1)? "BLOCK1"
+              :(blockType == COAP_OPTION_BLOCK2)? "BLOCK2"
+              : "UNKNOWN");
     VERIFY_NON_NULL_RET(blockID, TAG, "blockID", NULL);
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.dataList);
+    size_t len = u_arraylist_length(_bwt_context.dataList);
     for (size_t i = 0; i < len; i++)
     {
-        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(g_context.dataList, i);
+        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(_bwt_context.dataList, i);
         if (CABlockidMatches(currData, blockID))
         {
-            oc_mutex_unlock(g_context.blockDataListMutex);
-            OIC_LOG(DEBUG, TAG, "OUT-GetBlockOption");
+            oc_mutex_unlock(_bwt_context.blockDataListMutex);
             if (COAP_OPTION_BLOCK2 == blockType)
             {
+                OIC_LOG_V(DEBUG, TAG, "%s EXIT, BLOCK2", __func__);
                 return &currData->block2;
             }
             else if (COAP_OPTION_BLOCK1 == blockType)
             {
+                OIC_LOG_V(DEBUG, TAG, "%s EXIT, BLOCK1", __func__);
                 return &currData->block1;
             }
         }
     }
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
-    OIC_LOG(DEBUG, TAG, "OUT-GetBlockOption");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return NULL;
 }
 
-struct OCPayload /* CAPayload_t */ *CAGetPayloadFromBlockDataList(const CABlockDataID_t *blockID,
-                                          size_t *fullPayloadLen)
+uint8_t *CAGetPayloadFromBlockDataList(const CABlockDataID_t *blockID,
+                                       size_t *fullPayloadLen)
 {
-    OIC_LOG(DEBUG, TAG, "IN-GetFullPayload");
+    OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL_RET(blockID, TAG, "blockID", NULL);
     VERIFY_NON_NULL_RET(fullPayloadLen, TAG, "fullPayloadLen", NULL);
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.dataList);
+    size_t len = u_arraylist_length(_bwt_context.dataList);
     for (size_t i = 0; i < len; i++)
     {
-        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(g_context.dataList, i);
+        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(_bwt_context.dataList, i);
         if (CABlockidMatches(currData, blockID))
         {
-            oc_mutex_unlock(g_context.blockDataListMutex);
-            *fullPayloadLen = currData->receivedPayloadLen;
-            OIC_LOG(DEBUG, TAG, "OUT-GetFullPayload");
-            return currData->payload;
+            oc_mutex_unlock(_bwt_context.blockDataListMutex);
+            *fullPayloadLen = currData->bwt_body_partial_length;
+            OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
+            return currData->bwt_body;
         }
     }
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
-    OIC_LOG(DEBUG, TAG, "OUT-GetFullPayload");
+    OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return NULL;
 }
 
@@ -2365,19 +2370,19 @@ CABlockData_t *CACreateNewBlockData(const CAData_t *sendData)
     }
     data->blockDataId = blockDataID;
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    bool res = u_arraylist_add(g_context.dataList, (void *) data);
+    bool res = u_arraylist_add(_bwt_context.dataList, (void *) data);
     if (!res)
     {
         OIC_LOG(ERROR, TAG, "add has failed");
         CADestroyBlockID(data->blockDataId);
         CADestroyDataSet(data->sentData);
         OICFree(data);
-        oc_mutex_unlock(g_context.blockDataListMutex);
+        oc_mutex_unlock(_bwt_context.blockDataListMutex);
         return NULL;
     }
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
     OIC_LOG_V(DEBUG, TAG, "%s EXIT", __func__);
     return data;
@@ -2388,32 +2393,32 @@ CAResult_t CARemoveBlockDataFromList(const CABlockDataID_t *blockID)
     OIC_LOG(DEBUG, TAG, "CARemoveBlockData");
     VERIFY_NON_NULL_MSG(blockID, TAG, "blockID");
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.dataList);
+    size_t len = u_arraylist_length(_bwt_context.dataList);
     for (size_t i = 0; i < len; i++)
     {
-        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(g_context.dataList, i);
+        CABlockData_t *currData = (CABlockData_t *) u_arraylist_get(_bwt_context.dataList, i);
         if (CABlockidMatches(currData, blockID))
         {
-            CABlockData_t *removedData = u_arraylist_remove(g_context.dataList, i);
+            CABlockData_t *removedData = u_arraylist_remove(_bwt_context.dataList, i);
             if (!removedData)
             {
                 OIC_LOG(ERROR, TAG, "data is NULL");
-                oc_mutex_unlock(g_context.blockDataListMutex);
+                oc_mutex_unlock(_bwt_context.blockDataListMutex);
                 return CA_STATUS_FAILED;
             }
 
             // destroy memory
             CADestroyDataSet(removedData->sentData);
             CADestroyBlockID(removedData->blockDataId);
-            OICFree(removedData->payload);
+            OICFree(removedData->bwt_body);
             OICFree(removedData);
-            oc_mutex_unlock(g_context.blockDataListMutex);
+            oc_mutex_unlock(_bwt_context.blockDataListMutex);
             return CA_STATUS_OK;
         }
     }
-    oc_mutex_unlock(g_context.blockDataListMutex);
+    oc_mutex_unlock(_bwt_context.blockDataListMutex);
 
     return CA_STATUS_OK;
 }
@@ -2422,12 +2427,12 @@ CAResult_t CARemoveAllBlockDataFromList(void)
 {
     OIC_LOG(DEBUG, TAG, "CARemoveAllBlockDataFromList");
 
-    oc_mutex_lock(g_context.blockDataListMutex);
+    oc_mutex_lock(_bwt_context.blockDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.dataList);
+    size_t len = u_arraylist_length(_bwt_context.dataList);
     for (size_t i = len; i > 0; i--)
     {
-        CABlockData_t *removedData = u_arraylist_remove(g_context.dataList, i - 1);
+        CABlockData_t *removedData = u_arraylist_remove(_bwt_context.dataList, i - 1);
         if (removedData)
         {
             // destroy memory
@@ -2605,19 +2610,19 @@ CABlockMulticastData_t *CACreateNewBlockMulticastData(const CAData_t *sendData)
         data->resourceUri = resourceUri;
     }
 
-    oc_mutex_lock(g_context.multicastDataListMutex);
+    oc_mutex_lock(_bwt_context.multicastDataListMutex);
 
-    bool res = u_arraylist_add(g_context.multicastDataList, (void *) data);
+    bool res = u_arraylist_add(_bwt_context.multicastDataList, (void *) data);
     if (!res)
     {
         OIC_LOG(ERROR, TAG, "add has failed");
         OICFree(data->resourceUri);
         OICFree(data->token);
         OICFree(data);
-        oc_mutex_unlock(g_context.multicastDataListMutex);
+        oc_mutex_unlock(_bwt_context.multicastDataListMutex);
         return NULL;
     }
-    oc_mutex_unlock(g_context.multicastDataListMutex);
+    oc_mutex_unlock(_bwt_context.multicastDataListMutex);
 
     OIC_LOG(DEBUG, TAG, "OUT-CACreateNewBlockMulticastData");
     return data;
@@ -2628,21 +2633,21 @@ CABlockMulticastData_t *CAGetBlockMulticastDataFromListWithSeed(const uint8_t *t
 {
     VERIFY_NON_NULL_RET(token, TAG, "token", NULL);
 
-    oc_mutex_lock(g_context.multicastDataListMutex);
+    oc_mutex_lock(_bwt_context.multicastDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.multicastDataList);
+    size_t len = u_arraylist_length(_bwt_context.multicastDataList);
     for (size_t i = 0; i < len; i++)
     {
         CABlockMulticastData_t *currData =
-                (CABlockMulticastData_t *) u_arraylist_get(g_context.multicastDataList, i);
+                (CABlockMulticastData_t *) u_arraylist_get(_bwt_context.multicastDataList, i);
         if ((tokenLength >= currData->tokenLength)
                 && !memcmp(token, currData->token, currData->tokenLength))
         {
-            oc_mutex_unlock(g_context.multicastDataListMutex);
+            oc_mutex_unlock(_bwt_context.multicastDataListMutex);
             return currData;
         }
     }
-    oc_mutex_unlock(g_context.multicastDataListMutex);
+    oc_mutex_unlock(_bwt_context.multicastDataListMutex);
 
     return NULL;
 }
@@ -2651,13 +2656,13 @@ CAResult_t CARemoveAllBlockMulticastDataFromList(void)
 {
     OIC_LOG(DEBUG, TAG, "CARemoveAllBlockMulticastDataFromList");
 
-    oc_mutex_lock(g_context.multicastDataListMutex);
+    oc_mutex_lock(_bwt_context.multicastDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.multicastDataList);
+    size_t len = u_arraylist_length(_bwt_context.multicastDataList);
     for (size_t i = len; i > 0; i--)
     {
         CABlockMulticastData_t *removedData =
-                u_arraylist_remove(g_context.multicastDataList, i - 1);
+                u_arraylist_remove(_bwt_context.multicastDataList, i - 1);
         if (removedData)
         {
             // destroy memory
@@ -2666,29 +2671,29 @@ CAResult_t CARemoveAllBlockMulticastDataFromList(void)
             OICFree(removedData);
         }
     }
-    oc_mutex_unlock(g_context.multicastDataListMutex);
+    oc_mutex_unlock(_bwt_context.multicastDataListMutex);
 
     return CA_STATUS_OK;
 }
 
 CAResult_t CARemoveBlockMulticastDataFromListWithSeed(const uint8_t *token, uint8_t tokenLength)
 {
-    oc_mutex_lock(g_context.multicastDataListMutex);
+    oc_mutex_lock(_bwt_context.multicastDataListMutex);
 
-    size_t len = u_arraylist_length(g_context.multicastDataList);
+    size_t len = u_arraylist_length(_bwt_context.multicastDataList);
     for (size_t i = 0; i < len; i++)
     {
         CABlockMulticastData_t *currData =
-                (CABlockMulticastData_t *) u_arraylist_get(g_context.multicastDataList, i);
+                (CABlockMulticastData_t *) u_arraylist_get(_bwt_context.multicastDataList, i);
         if ((tokenLength >= currData->tokenLength)
                 && !memcmp(token, currData->token, currData->tokenLength))
         {
             CABlockMulticastData_t *removedData =
-                    u_arraylist_remove(g_context.multicastDataList, i);
+                    u_arraylist_remove(_bwt_context.multicastDataList, i);
             if (!removedData)
             {
                 OIC_LOG(ERROR, TAG, "data is NULL");
-                oc_mutex_unlock(g_context.multicastDataListMutex);
+                oc_mutex_unlock(_bwt_context.multicastDataListMutex);
                 return CA_STATUS_FAILED;
             }
 
@@ -2696,11 +2701,11 @@ CAResult_t CARemoveBlockMulticastDataFromListWithSeed(const uint8_t *token, uint
             OICFree(removedData->resourceUri);
             OICFree(removedData->token);
             OICFree(removedData);
-            oc_mutex_unlock(g_context.multicastDataListMutex);
+            oc_mutex_unlock(_bwt_context.multicastDataListMutex);
             return CA_STATUS_OK;
         }
     }
-    oc_mutex_unlock(g_context.multicastDataListMutex);
+    oc_mutex_unlock(_bwt_context.multicastDataListMutex);
 
     return CA_STATUS_OK;
 }
