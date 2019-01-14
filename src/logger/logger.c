@@ -806,6 +806,165 @@ void log_coap_pdu_hdr(const coap_pdu_t *pdu, CATransportAdapter_t transport)
 }
 
 /* CoAP Options */
+char *get_coap_option_key_string(int i) EXPORT
+//uint16_t id) EXPORT
+{
+    /* https://www.iana.org/assignments/core-parameters/core-parameters.xhtml#option-numbers */
+    switch (i) {
+    case COAP_OPTION_IF_MATCH: return "If-Match"; /* 1 */
+        break;
+    case COAP_OPTION_URI_HOST: return "Uri-Host"; /* 3 */
+        break;
+    case COAP_OPTION_ETAG: return "ETag";        /* 4 */
+        break;
+    case COAP_OPTION_IF_NONE_MATCH: return "If-None-Match"; /* 5 */
+        break;
+    case COAP_OPTION_OBSERVE: return "Observe";  /* 6 */
+        break;
+    case COAP_OPTION_URI_PORT: return "Uri-Port"; /* 7 */
+        break;
+    case COAP_OPTION_LOCATION_PATH: return "Location-Path"; /* 8 */
+        break;
+    case COAP_OPTION_URI_PATH: return "Uri-Path"; /* 11 */
+        break;
+    case COAP_OPTION_CONTENT_FORMAT: return "Content-Format"; /* 12 */
+        break;
+    case COAP_OPTION_MAXAGE: return "Max-Age";   /* 14 */
+        break;
+    case COAP_OPTION_URI_QUERY: return "Uri-Query"; /* 15 */
+        break;
+    case COAP_OPTION_ACCEPT: return "Accept";    /* 17 */
+        break;
+    case COAP_OPTION_LOCATION_QUERY: return "Location-Query"; /* 20 */
+        break;
+    case COAP_OPTION_BLOCK2: return "Block2";    /* 23, RFC 7959, 8323 */
+        break;
+    case COAP_OPTION_BLOCK1: return "Block1";    /* 27, RFC 7959, 8323 */
+        break;
+    case COAP_OPTION_SIZE2: return "Size2";      /* 28, RFC 7959 */
+        break;
+    case COAP_OPTION_PROXY_URI: return "Proxy-Uri"; /* 35 */
+        break;
+    case COAP_OPTION_PROXY_SCHEME: return "Proxy-Scheme"; /* 39 */
+        break;
+    case COAP_OPTION_SIZE1: return "Size1";      /* 60 */
+        break;
+    case COAP_OPTION_NORESPONSE: return "No-Response"; /* 258, RFC 7967 */
+        break;
+    case OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION: return "OCF-Accept-Content-Format-Version"; /* 2049 */
+        break;
+    case OCF_OPTION_CONTENT_FORMAT_VERSION: return "OCF-Content-Format-Version"; /* 2053 */
+        break;
+    default: return "DEFAULT";
+        break;
+    }
+}
+
+char *log_coap_option(coap_option *option) EXPORT
+//uint16_t id) EXPORT
+{
+    /* https://www.iana.org/assignments/core-parameters/core-parameters.xhtml#option-numbers */
+    switch (COAP_OPTION_KEY(*option)) {
+    case COAP_OPTION_IF_MATCH:  /* 1 */
+        OIC_LOG_V(DEBUG, "OPT", "option 1 If-Match, len %d: 0x%02x",
+                  COAP_OPTION_LENGTH(*option), *COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_URI_HOST: /* 3 */
+        OIC_LOG_V(DEBUG, "OPT", "option 3 Uri-Host, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_ETAG: /* 4 */
+        OIC_LOG_V(DEBUG, "OPT", "option 4 ETag, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_IF_NONE_MATCH: /* 5 */
+        OIC_LOG_V(DEBUG, "OPT", "option 5 If-None-Match, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_OBSERVE:   /* 6, uint */
+        OIC_LOG_V(DEBUG, "OPT", "option 6 Observe, len %d: 0x%02x",
+                  COAP_OPTION_LENGTH(*option), *COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_URI_PORT:  /* 7 */
+        OIC_LOG_V(DEBUG, "OPT", "option 7 Uri-Port, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_LOCATION_PATH:  /* 8 */
+        OIC_LOG_V(DEBUG, "OPT", "option 8 Location-Path, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_URI_PATH: /* 11 */
+        OIC_LOG_V(DEBUG, "OPT", "option 11 Uri-Path, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_CONTENT_FORMAT: /* 12 */
+        OIC_LOG_V(DEBUG, "OPT", "option 12 Content-Format, len %d: %u",
+                  COAP_OPTION_LENGTH(*option),
+                  ntohs( *((uint16_t*)COAP_OPTION_DATA(*option)))
+                  );
+        break;
+    case COAP_OPTION_MAXAGE:   /* 14 */
+        OIC_LOG_V(DEBUG, "OPT", "option 14 Max-Age, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_URI_QUERY: /* 15 */
+        OIC_LOG_V(DEBUG, "OPT", "option 15 Uri-Query, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_ACCEPT:    /* 17 */
+        OIC_LOG_V(DEBUG, "OPT", "option 17 Accept, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_LOCATION_QUERY: return "Location-Query"; /* 20 */
+        break;
+    case COAP_OPTION_BLOCK2:     /* 23, RFC 7959, 8323 */
+        OIC_LOG_V(DEBUG, "OPT", "option 23 Block2, len %d: NUM %u, M: %1x, SZX %d",
+                  COAP_OPTION_LENGTH(*option),
+                  (*((uint8_t*)COAP_OPTION_DATA(*option)) >> 4),
+                  (*((uint8_t*)COAP_OPTION_DATA(*option)) >> 3),
+                  (0x7 & *((uint8_t*)COAP_OPTION_DATA(*option))));
+        break;
+    case COAP_OPTION_BLOCK1:    /* 27, RFC 7959, 8323 */
+        OIC_LOG_V(DEBUG, "OPT", "option 27 Block1, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_SIZE2: /* 28, RFC 7959 */
+        OIC_LOG_V(DEBUG, "OPT", "option 28 Size2, len %d: %u",
+                  COAP_OPTION_LENGTH(*option),
+                  ntohs( *((uint16_t*)COAP_OPTION_DATA(*option))));
+        break;
+    case COAP_OPTION_PROXY_URI:  /* 35 */
+        OIC_LOG_V(DEBUG, "OPT", "option 35 Proxy-Uri, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_PROXY_SCHEME:  /* 39 */
+        OIC_LOG_V(DEBUG, "OPT", "option 39 Proxy-Scheme, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_SIZE1: return "Size1";      /* 60 */
+        OIC_LOG_V(DEBUG, "OPT", "option 60 Size1, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case COAP_OPTION_NORESPONSE: /* 258, RFC 7967 */
+        OIC_LOG_V(DEBUG, "OPT", "option 258 No-Response, len %d: %s",
+                  COAP_OPTION_LENGTH(*option), COAP_OPTION_DATA(*option));
+        break;
+    case OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION: /* 2049 */
+        OIC_LOG_V(DEBUG, "OPT", "option 2049 OCF-Accept-Content-Format-Version, len %d: %u",
+                  COAP_OPTION_LENGTH(*option),
+                  ntohs( *((uint16_t*)COAP_OPTION_DATA(*option))));
+        break;
+    case OCF_OPTION_CONTENT_FORMAT_VERSION: /* 2053 */
+        OIC_LOG_V(DEBUG, "OPT", "option 2053 OCF-Accept-Content-Format-Version, len %d: %u",
+                  COAP_OPTION_LENGTH(*option),
+                  ntohs( *((uint16_t*)COAP_OPTION_DATA(*option))));
+        break;
+    default:
+        OIC_LOG_V(DEBUG, "OPT", "default");
+        break;
+    }
+}
+
 char *log_coap_option_string(struct oocf_coap_options options[], int i) EXPORT
 //uint16_t id) EXPORT
 {
@@ -911,4 +1070,18 @@ char *log_coap_option_value_string(struct oocf_coap_options options[], int i) EX
     default: return "DEFAULT";
         break;
     }
+}
+
+void log_bwt_block_data(CABlockData_t *block_data)
+{
+    OIC_LOG_V(DEBUG, "BWT", "%s ENTRY", __func__);
+    OIC_LOG_V(DEBUG, "BWT", "block1.num: %u", block_data->block1.num);
+    OIC_LOG_V(DEBUG, "BWT", "block1.m: %u", block_data->block1.m);
+    OIC_LOG_V(DEBUG, "BWT", "block1.szx: %u", block_data->block1.szx);
+    OIC_LOG_V(DEBUG, "BWT", "block2.num: %u", block_data->block2.num);
+    OIC_LOG_V(DEBUG, "BWT", "block2.m: %u", block_data->block2.m);
+    OIC_LOG_V(DEBUG, "BWT", "block2.szx: %u", block_data->block2.szx);
+    OIC_LOG_V(DEBUG, "BWT", "type: %u", block_data->type);
+    OIC_LOG_V(DEBUG, "BWT", "body len: %u", block_data->bwt_body_length);
+    OIC_LOG_V(DEBUG, "BWT", "body len so far: %u", block_data->bwt_body_partial_length);
 }
