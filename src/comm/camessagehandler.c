@@ -214,6 +214,12 @@ static CAData_t* _oocf_coap_pdu_to_msg(const CAEndpoint_t *endpoint, /* @was CAG
 #if defined(DEBUG_MSGS)
     CAInfo_t *info = NULL;
 #endif
+#ifdef DEBUG_PAYLOAD
+    size_t payloadLen = (pdu->data) ? (unsigned char *)pdu->hdr + pdu->length - pdu->data : 0;
+    OIC_LOG_V(DEBUG, ANALYZER_TAG, "%s CoAP Payload (sz %u):", __func__, payloadLen);
+    OIC_LOG_PAYLOAD_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, payloadLen);
+#endif
+
     CAData_t *cadata = (CAData_t *) OICCalloc(1, sizeof(CAData_t));
     if (!cadata)
     {
@@ -915,6 +921,12 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *origin_sep, // @was C
         goto exit;
     }
 
+#ifdef DEBUG_PAYLOAD
+    size_t payloadLen = (pdu->data) ? (unsigned char *)pdu->hdr + pdu->length - pdu->data : 0;
+    OIC_LOG_V(DEBUG, ANALYZER_TAG, "CoAP Payload (sz %u):", payloadLen);
+    OIC_LOG_PAYLOAD_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, payloadLen);
+#endif
+
 #ifdef TCP_ADAPTER
     if (CA_ADAPTER_TCP == origin_sep->endpoint.adapter && CA_CSM != code)
     {
@@ -1059,11 +1071,15 @@ void mh_CAReceivedPacketCallback(const CASecureEndpoint_t *origin_sep, // @was C
         CAQueueingThreadAddData(&g_receiveThread, cadata, sizeof(CAData_t));
     }
 
+#ifdef DEBUG_PAYLOAD
+    size_t plLen = (pdu->data) ? (unsigned char *)pdu->hdr + pdu->length - pdu->data : 0;
+    OIC_LOG_V(DEBUG, ANALYZER_TAG, "%s CoAP Payload (sz %u):", __func__, plLen);
+    OIC_LOG_PAYLOAD_BUFFER(DEBUG, ANALYZER_TAG, pdu->data, plLen);
+#endif
+
     coap_delete_pdu(pdu);
 
 exit:
-    // OIC_LOG(DEBUG, TAG, "received pdu dgram_payload :");
-    OIC_LOG_PAYLOAD_BUFFER(DEBUG, TAG,  dgram_payload, dataLen);
 
     OIC_TRACE_END();
     OIC_LOG_V(DEBUG, TAG, "%s EXIT <<<<<<<<<<<<<<<<", __func__);
