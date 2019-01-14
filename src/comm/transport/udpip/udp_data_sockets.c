@@ -584,6 +584,11 @@ CAResult_t udp_configure_eps() /* @was CAIPStartListenServer */
             //#endif
 	    continue;
 	}
+        if (ifa->ifa_flags & IFF_POINTOPOINT) {
+	    OIC_LOG_V(DEBUG, TAG, "\tSkipping point-to-point NIF %d, family %d", ifindex, family);
+            //#endif
+	    continue;
+	}
         if (ifa->ifa_addr->sa_family == AF_INET6) {
             if ( 0 == strlen((char*)((struct sockaddr_in6*)ifa->ifa_addr)->sin6_addr.s6_addr) ) {
                 OIC_LOG_V(DEBUG, TAG, "\tSkipping NIF %d - no ipv6 address", ifindex);
