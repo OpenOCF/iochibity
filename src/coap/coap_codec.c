@@ -1133,9 +1133,38 @@ CAResult_t CAGetInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
                     }
                 }
             }
-            else if (COAP_OPTION_BLOCK1 == opt_iter.type || COAP_OPTION_BLOCK2 == opt_iter.type
-                    || COAP_OPTION_SIZE1 == opt_iter.type || COAP_OPTION_SIZE2 == opt_iter.type)
+            else if (COAP_OPTION_BLOCK1 == opt_iter.type || COAP_OPTION_BLOCK2 == opt_iter.type)
             {
+                switch (COAP_OPT_LENGTH(option)) {
+                case 0:
+                    break;
+                case 1:
+                    OIC_LOG_V(DEBUG, TAG, "CoAP option val: 0x%01X", *buf);
+                    break;
+                case 2:
+                    OIC_LOG_V(DEBUG, TAG, "CoAP option val: 0x%02X", *buf);
+                    break;
+                case 3:
+                    OIC_LOG_V(DEBUG, TAG, "CoAP option val: 0x%04X", *buf);
+                    break;
+                }
+                OIC_LOG_V(DEBUG, TAG, "option[%d] will be filtering", opt_iter.type);
+            }
+            else if (COAP_OPTION_SIZE1 == opt_iter.type || COAP_OPTION_SIZE2 == opt_iter.type)
+            {
+                switch (COAP_OPT_LENGTH(option)) {
+                case 0:
+                    break;
+                case 1:
+                    OIC_LOG_V(DEBUG, TAG, "CoAP option val: 0x%01X", *buf);
+                    break;
+                case 2:
+                    OIC_LOG_V(DEBUG, TAG, "CoAP option val: 0x%02X", *buf);
+                    break;
+                case 3:
+                    OIC_LOG_V(DEBUG, TAG, "CoAP option val: 0x%04X", *buf);
+                    break;
+                }
                 OIC_LOG_V(DEBUG, TAG, "option[%d] will be filtering", opt_iter.type);
             }
             else if (COAP_OPTION_URI_PORT == opt_iter.type ||
