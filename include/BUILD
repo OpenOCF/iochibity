@@ -1,5 +1,6 @@
-
 package(default_visibility = ["//visibility:public"])
+
+exports_files(["openocf.h", "openocf_h.h"])
 
 # FIXME: deal with externals, coap
 
