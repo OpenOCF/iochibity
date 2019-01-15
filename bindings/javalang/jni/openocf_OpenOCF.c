@@ -115,6 +115,7 @@ Java_openocf_OpenOCF_config_1logging(JNIEnv *env, jclass klass, jstring j_logfna
 	/*    (j_logfname == NULL)? "NULL" */
 	/*    : (char*) (*env)->GetStringUTFChars(env, j_logfname, NULL)); */
     OCLogInit();
+    printf("Logfile: %s\n", oocf_get_logfile_name());
     return;
 
     if (j_logfname) {

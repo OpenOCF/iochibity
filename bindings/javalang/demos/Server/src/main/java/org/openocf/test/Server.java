@@ -45,6 +45,7 @@ public class Server
 	ConfigJava.config("/tmp/openocf_server.log", // logfile_fname, must be absolute path to work with bazel run
                           "/server_config.cbor"	  // FIXME: constant "svrs.cbor"
 			     );
+        // ConfigJava.getLogfileName();
     }
 
     public static void main(String[] args)

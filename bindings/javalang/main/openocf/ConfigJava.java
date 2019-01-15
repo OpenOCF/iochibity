@@ -21,8 +21,8 @@ public class ConfigJava {
     private static final String JNILIB = "/bindings/javalang/libopenocf_jni.so";
     //private static final String JNILIB = "/libopenocf_jni.dylib";
 
-    public static native void config_logging(String logfile_fname);
-    public static native void config_svrs(String svrs_config_fname);
+    // public static native void config_logging(String logfile_fname);
+    // public static native void config_svrs(String svrs_config_fname);
     // public static native String configuration();
 
     public static void config(String logfile_fname, String svrs_config_fname)
@@ -67,65 +67,66 @@ public class ConfigJava {
 
     // below: from CoServiceManager.
     // FIXME: this does not belong here? move to openocf/ocfresources?
-    public static native void configurePlatformSP(String platform_id, // setPlatformInfo
-						  String manufacturer_name,
-						  String manufacturer_url,
-						  String model_number,
-						  String date_of_manufacture,
-						  String platform_version,
-						  String operating_system_version,
-						  String hardware_version,
-						  String firmware_version,
-						  String support_url,
-						  String system_time);
+    // public static native void configurePlatformSP(String platform_id, // setPlatformInfo
+    //     					  String manufacturer_name,
+    //     					  String manufacturer_url,
+    //     					  String model_number,
+    //     					  String date_of_manufacture,
+    //     					  String platform_version,
+    //     					  String operating_system_version,
+    //     					  String hardware_version,
+    //     					  String firmware_version,
+    //     					  String support_url,
+    //     					  String system_time);
 
-    // FIXME: this does not belong here?
-    public static native void configureDeviceSP(String deviceName, // setDeviceInfo
-						String[] types,
-						String specVersion,
-						String[] dataModelVersions);
 
-    // returns configuration info from engine, e.g. version string
-    public static native String configuration();
+    // // FIXME: this does not belong here?
+    // public static native void configureDeviceSP(String deviceName, // setDeviceInfo
+    //     					String[] types,
+    //     					String specVersion,
+    //     					String[] dataModelVersions);
 
-    public static native void /*OCStackResult*/
-	Init(int /*OCMode*/ mode);
-	     // String securityConfigFileName);
+    // // returns configuration info from engine, e.g. version string
+    // public static native String configuration();
 
     // public static native void /*OCStackResult*/
-    // 	Init(String /*const char* */ ip_addr,
-    // 	     int /*uint16_t*/ port,
-    // 	     int /*OCMode*/ mode,
-    // 	     String securityConfigFileName);
+    //     Init(int /*OCMode*/ mode);
+    //          // String securityConfigFileName);
 
-    public static native void /*OCStackResult*/
-	Init(int /*OCMode*/ mode,
-	     int /*OCTransportFlags*/ server_flags,
-	     int /*OCTransportFlags*/ client_flags);
+    // // public static native void /*OCStackResult*/
+    // // 	Init(String /*const char* */ ip_addr,
+    // // 	     int /*uint16_t*/ port,
+    // // 	     int /*OCMode*/ mode,
+    // // 	     String securityConfigFileName);
 
-    private native int /*OCStackResult*/
+    // public static native void /*OCStackResult*/
+    //     Init(int /*OCMode*/ mode,
+    //          int /*OCTransportFlags*/ server_flags,
+    //          int /*OCTransportFlags*/ client_flags);
+
+    // private native int /*OCStackResult*/
     // OCRegisterPersistentStorageHandler(Object /*OCPersistentStorage* */ persistent_storage_handler);
     // OCPersistentStorage ps = { server_fopen, fread, fwrite, fclose, unlink };
     // OCRegisterPersistentStorageHandler(&ps);
-	XOCRegisterPersistentStorageHandler(Object /*OCPersistentStorage* */ persistent_storage_handler);
+	// XOCRegisterPersistentStorageHandler(Object /*OCPersistentStorage* */ persistent_storage_handler);
     //NB: default ps file is "oic_svr_db.dat"
 
-    public native void /*OCStackResult*/ OCStartMulticastServer();
+    // public native void /*OCStackResult*/ OCStartMulticastServer();
 
-    public native void /*OCStackResult*/ OCStopMulticastServer();
+    // public native void /*OCStackResult*/ OCStopMulticastServer();
 
-    public static native void /*OCStackResult*/	run();
+    // public static native void /*OCStackResult*/	run();
 
-    public static native void /*OCStackResult*/ stop();
+    // public static native void /*OCStackResult*/ stop();
 
-    // setPlatformInfo =>  ServiceManager.registerPlatform
+    // // setPlatformInfo =>  ServiceManager.registerPlatform
 
-    // setDeviceInfo =>  ServiceManager.registerDevice
+    // // setDeviceInfo =>  ServiceManager.registerDevice
 
-    // OCDoResource =>  ServiceManager.sendResource
+    // // OCDoResource =>  ServiceManager.sendResource
 
-    public native void OCCancel(Object /*OCDoHandle*/ handle,
-				int /*OCQualityOfService*/ qos,
-				Object /*OCHeaderOption* */ options,
-				byte /*uint8_t*/ options_count);
+    // public native void OCCancel(Object /*OCDoHandle*/ handle,
+    //     			int /*OCQualityOfService*/ qos,
+    //     			Object /*OCHeaderOption* */ options,
+    //     			byte /*uint8_t*/ options_count);
 }

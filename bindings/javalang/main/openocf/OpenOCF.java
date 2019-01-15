@@ -101,6 +101,8 @@ public class OpenOCF {
     native public static void config_logging(String logfile_fname);
     native public static void config_svrs(String svrs_config_fname);
 
+    public static native String getLogfileName();
+
     // public static void config(String logfile_fname, String svrs_config_fname)
     // {
     // 	System.out.println("openocf.standard.OCFServices::config");
