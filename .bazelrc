@@ -4,6 +4,9 @@
 ## create user.bazelrc and do not put it under version control.
 try-import %workspace%/user.bazelrc
 
+## we need this to get tools in /usr/local/bin, $HOME/bin
+build --action_env=PATH
+
 # build options specified are cumulative.
 
 ################################################################

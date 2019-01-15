@@ -148,9 +148,9 @@ new_local_repository(
 # boost_deps()
 
 # libcoap
-new_http_archive(
+http_archive(
     name = "libcoap",
-    build_file = "src/coap/libcoap/BUILD",
+    build_file = "@//:src/coap/libcoap/BUILD",
     urls = ["https://github.com/dthaler/libcoap/archive/IoTivity-1.4.zip"],
     sha256="d68062be5b8c82309295847b7d1924a78d466bdf32f691470af86184bfa8810d",
     strip_prefix = "libcoap-IoTivity-1.4"
@@ -166,21 +166,21 @@ new_http_archive(
 # 	#build_file_content = "filegroup(name='foo', srcs=['darwin/coap.h','darwin/coap_config.h'])"
 # )
 
-new_http_archive(
+http_archive(
     name = "mbedtls",
     urls = ["https://github.com/ARMmbed/mbedtls/archive/mbedtls-2.4.2.zip"],
     sha256 = "dacb9f5dd438c456b9ef6627637f46e16fd41e86d828217ec9f8547d3d22a338",
     strip_prefix = "mbedtls-mbedtls-2.4.2",
-    build_file = "src/sec/mbedtls/BUILD",
+    build_file = "@//:src/sec/mbedtls/BUILD",
 )
     # urls = ["https://github.com/ARMmbed/mbedtls/archive/mbedtls-2.7.zip"],
     # sha256 = "ab1ea18e7fa721bb4ab08294ab34008c4a934841b037a3cfa5f7ce65648228a2",
     # strip_prefix = "mbedtls-mbedtls-2.7",
 
 # tinycbor
-new_http_archive(
+http_archive(
     name = "tinycbor",
-    build_file = "src/cbor/tinycbor/BUILD",
+    build_file = "@//:src/cbor/tinycbor/BUILD",
     urls = ["https://github.com/intel/tinycbor/archive/v0.5.1.zip"],
     sha256 = "48e664e10acec590795614ecec1a71be7263a04053acb9ee81f7085fb9116369",
     strip_prefix = "tinycbor-0.5.1",
@@ -190,38 +190,38 @@ new_http_archive(
     # strip_prefix = "tinycbor-0.4.1",
 
 # https://troydhanson.github.io/uthash/
-new_http_archive(
+http_archive(
     name = "uthash",
     urls = ["https://github.com/OpenOCF/uthash/archive/v2.0.2.zip"],
     # urls = ["https://github.com/troydhanson/uthash/archive/v2.0.2.zip"],
     sha256 = "1c56f7e75ee42e162fb3f72cede7738118c3e6fb88514d40db6afc952dcd7cae",
     strip_prefix = "uthash-2.0.2",
-    build_file = "src/util/uthash/BUILD"
+    build_file = "@//:src/util/uthash/BUILD"
 )
 
 # gtest
-new_http_archive(
+http_archive(
     name = "gtest",
     urls = ["https://github.com/google/googletest/archive/release-1.7.0.zip"],
     sha256 = "b58cb7547a28b2c718d1e38aee18a3659c9e3ff52440297e965f5edffe34b6d0",
     strip_prefix = "googletest-release-1.7.0",
-    build_file = "config/gtest.BUILD",
+    build_file = "@//:config/gtest.BUILD",
 )
 
 # sqlite3
-new_http_archive(
+http_archive(
     name = "sqlite3",
     urls = ["https://www.sqlite.org/2015/sqlite-amalgamation-3081101.zip"],
     sha256 = "a3b0c07d1398d60ae9d21c2cc7f9be6b1bc5b0168cd94c321ede9a0fce2b3cd7",
     strip_prefix = "sqlite-amalgamation-3081101",
-    build_file = "config/sqlite3.BUILD",
+    build_file = "@//:config/sqlite3.BUILD",
 )
 
 # cJSON
-new_http_archive(
+http_archive(
     name = "cjson",
     urls = ["https://github.com/DaveGamble/cJSON/archive/v1.7.7.zip"],
     sha256 = "9494f0a9b2005f471c846fbdbb40a9de074ad5aee56e3e73518055cd639fa77e",
     strip_prefix = "cJSON-1.7.7",
-    build_file = "config/cjson.BUILD",
+    build_file = "@//:config/cjson.BUILD",
 )
