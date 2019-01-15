@@ -1069,9 +1069,17 @@ char *log_coap_option_value_string(struct oocf_coap_options options[], int i, ui
         break;
     case COAP_OPTION_NORESPONSE: return "No-Response"; /* 258, RFC 7967 */
         break;
-    case OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION: return "OCF-Accept-Content-Format-Version"; /* 2049 */
+    case OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION: /* 2049 */
+        /* OCF-Accept-Content-Format-Version */
+        if (val == OCF_VERSION_1_0_0)
+            return "1.0.0";
+        else if (val == OCF_VERSION_1_0_0)
+            return "1.1.0";
+        else
+            return "UNKNOWN";
         break;
     case OCF_OPTION_CONTENT_FORMAT_VERSION: /* 2053 */
+        /* OCF-Content-Format-Version */
         if (val == OCF_VERSION_1_0_0)
             return "1.0.0";
         else if (val == OCF_VERSION_1_0_0)
