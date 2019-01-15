@@ -39,6 +39,18 @@ cc_binary(
     srcs = ["client_get_acl.c", "clog.h"]
 )
 
+cc_binary(
+    name = "client_get_pstat",
+    copts = ["-Iinclude",
+             "-Iexternal/libcoap/include",
+             "-Iexternal/tinycbor/src",
+             "-DTB_LOG"
+    ]+ CSTD + OS_COPTS,
+    data = [":config_client"],
+    deps = ["//:openocf"],
+    srcs = ["client_get_pstat.c", "clog.h"]
+)
+
 genrule(
     name = "json_client",
     srcs = ["client_config.edn"],
