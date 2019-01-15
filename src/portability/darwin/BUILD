@@ -11,9 +11,9 @@ cc_library(
     deps = ["//src:config",
             "//src/logger",
             "//src/util"],
-    hdrs = ["ocatomic_darwin.h",
+    hdrs = [#"ocatomic_darwin.h",
             "ocevent_darwin.h"],
-    srcs = ["ocatomic_darwin.c",
+    srcs = [#"ocatomic_darwin.c",
             "ocevent_darwin.c"],
     visibility = ["//visibility:public"]
 )

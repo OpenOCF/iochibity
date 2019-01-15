@@ -36,6 +36,7 @@ cc_library(
                        "//config:msys": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lbcrypt"],
                        "//config:mingw": ["-L/c/Program\ Files\ \(x86\)/Windows\ Kits/10/lib/10.0.15063.0/um/x64", "-lbcrypt"],
                        "//conditions:default": []}),
+    hdrs = glob(["*.h"]),
     srcs = glob(["*.c"]) + glob(["*.h"]),
     visibility = ["//visibility:public"]
     # visibility = ["//src:__subpackages__",
