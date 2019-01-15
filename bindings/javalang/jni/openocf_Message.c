@@ -10,6 +10,8 @@
 
 #include "_threads.h"
 
+//#include "openocf_Message.h"
+
 //#include "openocf_MessageRecord.h"
 #include "jni_init.h"
 #include "org_iochibity_Exceptions.h"
