@@ -1099,7 +1099,7 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
     // #1 parse the data
     // #2 get endpoint
 
-    OIC_LOG_V(INFO, TAG, "%s ENTRY (main runloop iteration)", __func__);
+    //OIC_LOG_V(INFO, TAG, "%s ENTRY (main runloop iteration)", __func__);
 
     oc_mutex_lock(g_receiveThread.threadMutex);
 
@@ -1109,7 +1109,7 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
 
     if (NULL == item || NULL == item->msg)
     {
-        OIC_LOG_V(INFO, TAG, "%s EXIT (no msg ready)", __func__);
+        //OIC_LOG_V(INFO, TAG, "%s EXIT (no msg ready)", __func__);
         return;
     }
     OIC_LOG_V(INFO, TAG, "%s pulled inbound msg from g_receiveThread queue", __func__);

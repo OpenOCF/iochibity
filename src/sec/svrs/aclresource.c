@@ -1602,7 +1602,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
             {
                 if (NULL != versionCheck)
                 {
-                    OIC_LOG_V(DEBUG, TAG, "%s Found v2 ACL; assigning 'versionCheck' and returning NULL.", __func__);
+                    //OIC_LOG_V(DEBUG, TAG, "%s Found v2 ACL; assigning 'versionCheck' and returning NULL.", __func__);
                     *versionCheck = OIC_SEC_ACL_V2;
                     OICFree(acl);
                     free(tagName);
@@ -1632,7 +1632,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                 // Enter ACLIST Map
                 cborFindResult = cbor_value_enter_container(&aclMap, &aclistMap);
                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Entering ACLIST Map.");
-                OIC_LOG_V(DEBUG, TAG, "%s entered 'aclist' map.", __func__);
+                //OIC_LOG_V(DEBUG, TAG, "%s entered 'aclist' map.", __func__);
 
                 bool parsedAcesTag = false;
 
@@ -1648,7 +1648,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                     {
                         if (strcmp(acName, OIC_JSON_ACES_NAME)  == 0)
                         {
-                            OIC_LOG_V(DEBUG, TAG, "%s found %s tag.", __func__, acName);
+                            //OIC_LOG_V(DEBUG, TAG, "%s found %s tag.", __func__, acName);
                             parsedAcesTag = true;
                         }
                     }
@@ -1681,19 +1681,19 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                     CborValue acesArray = { .parser = NULL, .ptr = NULL, .remaining = 0, .extra = 0, .type = 0, .flags = 0 };
                     cborFindResult = cbor_value_enter_container(&aclistMap, &acesArray);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Entering ACES Array.");
-                    OIC_LOG_V(DEBUG, TAG, "%s entered ace object array.", __func__);
+                    //OIC_LOG_V(DEBUG, TAG, "%s entered ace object array.", __func__);
 
                     // decode array of ace or ace2 objects
                     int acesCount = 0;
-                    OIC_LOG_V(DEBUG, TAG, "%s begin decoding ace/ace2 array.", __func__);
+                    //OIC_LOG_V(DEBUG, TAG, "%s begin decoding ace/ace2 array.", __func__);
                     while (cbor_value_is_valid(&acesArray))
                     {
                         acesCount++;
                         CborValue aceMap = { .parser = NULL, .ptr = NULL, .remaining = 0, .extra = 0, .type = 0, .flags = 0 };
                         cborFindResult = cbor_value_enter_container(&acesArray, &aceMap);
                         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Entering ACE Map.");
-                        OIC_LOG_V(DEBUG, TAG, "%s entered %s map.", __func__,
-                            (OIC_SEC_ACL_V1 == aclistVersion)?"ace":"ace2");
+                        /* OIC_LOG_V(DEBUG, TAG, "%s entered %s map.", __func__, */
+                        /*     (OIC_SEC_ACL_V1 == aclistVersion)?"ace":"ace2"); */
 
                         OicSecAce_t *ace = NULL;
                         ace = (OicSecAce_t *) OICCalloc(1, sizeof(OicSecAce_t));
@@ -1710,10 +1710,10 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                             {
                                 cborFindResult = cbor_value_dup_text_string(&aceMap, &name, &tempLen, NULL);
                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding Name in ACE Map.");
-                                OIC_LOG_V(DEBUG, TAG, "%s found %s tag.", __func__, name);
+                                //OIC_LOG_V(DEBUG, TAG, "%s found %s tag.", __func__, name);
                                 cborFindResult = cbor_value_advance(&aceMap);
                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Advancing Value in ACE Map.");
-                                OIC_LOG_V(DEBUG, TAG, "%s advanced to next value.", __func__);
+                                //OIC_LOG_V(DEBUG, TAG, "%s advanced to next value.", __func__);
                             }
                             if (name)
                             {
@@ -1723,7 +1723,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                     uint64_t tmp64;
                                     cborFindResult = cbor_value_get_uint64(&aceMap, &tmp64);
                                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding aceid Value.");
-                                    OIC_LOG_V(DEBUG, TAG, "%s read aceid value %d.", __func__, (uint16_t)tmp64);
+                                    //OIC_LOG_V(DEBUG, TAG, "%s read aceid value %d.", __func__, (uint16_t)tmp64);
                                     ace->aceid = (uint16_t)tmp64;
                                 }
                                 // subjectuuid
@@ -1742,7 +1742,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                         {
                                             ace->subjectuuid.id[0] = '*';
                                             ace->subjectType = OicSecAceUuidSubject;
-                                            OIC_LOG_V(DEBUG, TAG, "%s found subjectuuid wildcard = '*'.", __func__);
+                                            //OIC_LOG_V(DEBUG, TAG, "%s found subjectuuid wildcard = '*'.", __func__);
                                         }
                                         else
                                         {
@@ -1753,7 +1753,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                 free(subject);
                                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed converting subject UUID");
                                             }
-                                            OIC_LOG_V(DEBUG, TAG, "%s found subjectuuid = %s.", __func__, subject);
+                                            //OIC_LOG_V(DEBUG, TAG, "%s found subjectuuid = %s.", __func__, subject);
                                             ace->subjectType = OicSecAceUuidSubject;
                                         }
                                         free(subject);
@@ -1775,16 +1775,16 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                         // next container within subject is either didtype, roletype, or conntype
                                         cborFindResult = cbor_value_enter_container(&aceMap, &subjectMap);
                                         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed entering subject map.");
-                                        OIC_LOG_V(DEBUG, TAG, "%s entered acl2 subject map.", __func__);
+                                        //OIC_LOG_V(DEBUG, TAG, "%s entered acl2 subject map.", __func__);
 
                                         while (cbor_value_is_valid(&subjectMap) && cbor_value_is_text_string(&subjectMap))
                                         {
                                             cborFindResult = cbor_value_dup_text_string(&subjectMap, &subjectTag, &unusedLen, NULL);
                                             VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed getting subject type tag name");
-                                            OIC_LOG_V(DEBUG, TAG, "%s found %s tag.", __func__, subjectTag);
+                                            //OIC_LOG_V(DEBUG, TAG, "%s found %s tag.", __func__, subjectTag);
                                             cborFindResult = cbor_value_advance(&subjectMap);
                                             VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed advancing subjectMap");
-                                            OIC_LOG_V(DEBUG, TAG, "%s advanced acl2 subject map.", __func__);
+                                            //OIC_LOG_V(DEBUG, TAG, "%s advanced acl2 subject map.", __func__);
                                             if (NULL != subjectTag)
                                             {
                                                 // didtype
@@ -1795,7 +1795,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                     {
                                                         cborFindResult = cbor_value_dup_text_string(&subjectMap, &subject, &tempLen, NULL);
                                                         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding subject Value.");
-                                                        OIC_LOG_V(DEBUG, TAG, "%s read UUID = %s", __func__, subject);
+                                                        //OIC_LOG_V(DEBUG, TAG, "%s read UUID = %s", __func__, subject);
                                                         ret = ConvertStrToUuid(subject, &ace->subjectuuid);
                                                         if (OC_STACK_OK != ret)
                                                         {
@@ -1850,7 +1850,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                     char *conntype = NULL;
                                                     cborFindResult = cbor_value_dup_text_string(&subjectMap, &conntype, &unusedLen, NULL);
                                                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed getting conntype value");
-                                                    OIC_LOG_V(DEBUG, TAG, "%s read conntype value %s.", __func__, conntype);
+                                                    //OIC_LOG_V(DEBUG, TAG, "%s read conntype value %s.", __func__, conntype);
                                                     if (0 == strcmp(conntype, OIC_JSON_AUTHCRYPT_NAME))
                                                     {
                                                         ace->subjectConn = AUTH_CRYPT;
@@ -1882,7 +1882,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                             {
                                                 cborFindResult = cbor_value_advance(&subjectMap);
                                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed advancing subject map");
-                                                OIC_LOG_V(DEBUG, TAG, "%s advanced ace2 subject map.", __func__);
+                                                //OIC_LOG_V(DEBUG, TAG, "%s advanced ace2 subject map.", __func__);
                                             }
                                         }
 
@@ -1910,7 +1910,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                     CborValue resources = { .parser = NULL };
                                     cborFindResult = cbor_value_enter_container(&aceMap, &resources);
                                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Entering a Resource Array.");
-                                    OIC_LOG_V(DEBUG, TAG, "%s entered resources array.", __func__);
+                                    //OIC_LOG_V(DEBUG, TAG, "%s entered resources array.", __func__);
                                     int resourceCount = 0;
 
                                     while (cbor_value_is_valid(&resources))
@@ -1920,7 +1920,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                         cborFindResult = cbor_value_enter_container(&resources, &rMap);
                                         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Entering Resource Map");
                                         resourceCount++;
-                                        OIC_LOG_V(DEBUG, TAG, "%s entered resource map for resource #%d.", __func__, resourceCount);
+                                        //OIC_LOG_V(DEBUG, TAG, "%s entered resource map for resource #%d.", __func__, resourceCount);
 
                                         OicSecRsrc_t* rsrc = (OicSecRsrc_t*)OICCalloc(1, sizeof(OicSecRsrc_t));
                                         VERIFY_NOT_NULL(TAG, rsrc, ERROR);
@@ -1936,17 +1936,17 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                             size_t rMapNameLen = 0;
                                             cborFindResult = cbor_value_dup_text_string(&rMap, &rMapName, &rMapNameLen, NULL);
                                             VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding RMap Data Name Tag.");
-                                            OIC_LOG_V(DEBUG, TAG, "%s found %s tag in resource #%d map.", __func__, rMapName, resourceCount);
+                                            //OIC_LOG_V(DEBUG, TAG, "%s found %s tag in resource #%d map.", __func__, rMapName, resourceCount);
                                             cborFindResult = cbor_value_advance(&rMap);
                                             VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed advancing RMap Data Value.");
-                                            OIC_LOG_V(DEBUG, TAG, "%s advanced resource map.", __func__);
+                                            //OIC_LOG_V(DEBUG, TAG, "%s advanced resource map.", __func__);
 
                                             // "href"
                                             if (0 == strcmp(OIC_JSON_HREF_NAME, rMapName))
                                             {
                                                 cborFindResult = cbor_value_dup_text_string(&rMap, &rsrc->href, &tempLen, NULL);
                                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding Href Value.");
-                                                OIC_LOG_V(DEBUG, TAG, "%s found href = %s.", __func__, rsrc->href);
+                                                //OIC_LOG_V(DEBUG, TAG, "%s found href = %s.", __func__, rsrc->href);
                                                 // OCF 1.0 shouldn't use "*" href even though it's supported; instead,
                                                 // use "wc" object.
                                                 if (0 == strcmp(WILDCARD_RESOURCE_URI, rsrc->href))
@@ -1954,8 +1954,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                     free(rsrc->href);
                                                     rsrc->href = NULL;
                                                     rsrc->wildcard = ALL_NCRS;
-                                                    OIC_LOG_V(DEBUG, TAG, "%s: replaced \"*\" href with wildcard = ALL_NCRS.",
-                                                        __func__);
+                                                    /* OIC_LOG_V(DEBUG, TAG, "%s: replaced \"*\" href with wildcard = ALL_NCRS.", __func__); */
                                                 }
                                                 else
                                                 {
@@ -1981,7 +1980,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                 {
                                                     cborFindResult = cbor_value_dup_text_string(&resourceTypes, &(rsrc->types[i]), &readLen, NULL);
                                                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding resource type.");
-                                                    OIC_LOG_V(DEBUG, TAG, "%s found rt = %s.", __func__, rsrc->types[i]);
+                                                    //OIC_LOG_V(DEBUG, TAG, "%s found rt = %s.", __func__, rsrc->types[i]);
                                                     cborFindResult = cbor_value_advance(&resourceTypes);
                                                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Advancing resource type.");
                                                 }
@@ -2005,7 +2004,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                 {
                                                     cborFindResult = cbor_value_dup_text_string(&interfaces, &(rsrc->interfaces[i]), &readLen, NULL);
                                                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding IF type.");
-                                                    OIC_LOG_V(DEBUG, TAG, "%s found if = %s.", __func__, rsrc->interfaces[i]);
+                                                    //OIC_LOG_V(DEBUG, TAG, "%s found if = %s.", __func__, rsrc->interfaces[i]);
                                                     cborFindResult = cbor_value_advance(&interfaces);
                                                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Advancing IF type.");
                                                 }
@@ -2016,7 +2015,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                             {
                                                 cborFindResult = cbor_value_dup_text_string(&rMap, &rsrc->rel, &tempLen, NULL);
                                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding REL Value.");
-                                                OIC_LOG_V(DEBUG, TAG, "%s found rel = %s.", __func__, rsrc->rel);
+                                                //OIC_LOG_V(DEBUG, TAG, "%s found rel = %s.", __func__, rsrc->rel);
                                             }
 
                                             // "wc"
@@ -2025,7 +2024,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                                 char *wc = NULL;
                                                 cborFindResult = cbor_value_dup_text_string(&rMap, &wc, &tempLen, NULL);
                                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding wc Value.");
-                                                OIC_LOG_V(DEBUG, TAG, "%s found wc = %s.", __func__, wc);
+                                                //OIC_LOG_V(DEBUG, TAG, "%s found wc = %s.", __func__, wc);
                                                 if (0 == strcmp(OIC_JSON_WC_ASTERISK_NAME, wc))
                                                 {
                                                     rsrc->wildcard = ALL_NCRS;
@@ -2053,17 +2052,17 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                             {
                                                 cborFindResult = cbor_value_advance(&rMap);
                                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Advancing rMap.");
-                                                OIC_LOG_V(DEBUG, TAG, "%s advanced rMap.", __func__);
+                                                //OIC_LOG_V(DEBUG, TAG, "%s advanced rMap.", __func__);
                                             }
                                         }
 
-                                        OIC_LOG_V(DEBUG, TAG, "%s finished decoding resource #%d.", __func__, resourceCount);
+                                        //OIC_LOG_V(DEBUG, TAG, "%s finished decoding resource #%d.", __func__, resourceCount);
 
                                         if (cbor_value_is_valid(&resources))
                                         {
                                             cborFindResult = cbor_value_advance(&resources);
                                             VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Advancing Resource Array.");
-                                            OIC_LOG_V(DEBUG, TAG, "%s advanced resources map.", __func__);
+                                            //OIC_LOG_V(DEBUG, TAG, "%s advanced resources map.", __func__);
                                         }
                                     }
                                 } // end resources decoding
@@ -2075,7 +2074,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                     cborFindResult = cbor_value_get_uint64(&aceMap, &tmp64);
                                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding a PERM Value.");
                                     ace->permission = (uint16_t)tmp64;
-                                    OIC_LOG_V(DEBUG, TAG, "%s found permission = %d.", __func__, ace->permission);
+                                    //OIC_LOG_V(DEBUG, TAG, "%s found permission = %d.", __func__, ace->permission);
                                 }
 
                                 // TODO: Need to verfication for validity
@@ -2147,7 +2146,7 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                                     VERIFY_SUCCESS(TAG, OC_STACK_OK == ret , ERROR);
                                 }
 #endif //MULTIPLE_OWNER
-                                OIC_LOG_V(DEBUG, TAG, "%s finished decoding %s.", __func__, name);
+                                //OIC_LOG_V(DEBUG, TAG, "%s finished decoding %s.", __func__, name);
                                 OICFree(name);
                             }
 
@@ -2155,11 +2154,11 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                             {
                                 cborFindResult = cbor_value_advance(&aceMap);
                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Advancing the Array.");
-                                OIC_LOG_V(DEBUG, TAG, "%s advanced aceMap.", __func__);
+                                //OIC_LOG_V(DEBUG, TAG, "%s advanced aceMap.", __func__);
                             }
                         } // end decoding ACE/ACE2 object
 
-                        OIC_LOG_V(DEBUG, TAG, "%s finished decoding ace #%d.", __func__, acesCount);
+                        //OIC_LOG_V(DEBUG, TAG, "%s finished decoding ace #%d.", __func__, acesCount);
 
                         // advance to next ACE/ACE2 object in acesArray
                         if (cbor_value_is_valid(&acesArray))
@@ -2169,13 +2168,13 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                         }
                     } // end ace array while loop
 
-                    OIC_LOG_V(DEBUG, TAG, "%s finished decoding ace/ace2 array.", __func__);
+                    //OIC_LOG_V(DEBUG, TAG, "%s finished decoding ace/ace2 array.", __func__);
 
                     if (cbor_value_is_valid(&aclistMap))
                     {
                         cborFindResult = cbor_value_advance(&aclistMap);
                         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Advancing ACLIST Map.");
-                        OIC_LOG_V(DEBUG, TAG, "%s advanced aclist map.", __func__);
+                        //OIC_LOG_V(DEBUG, TAG, "%s advanced aclist map.", __func__);
                     }
 
                     if (OIC_SEC_ACL_V2 == aclistVersion)
@@ -2194,14 +2193,14 @@ static OicSecAcl_t* CBORPayloadToAclVersionOpt(const uint8_t *cborPayload, const
                     cborFindResult = cbor_value_dup_text_string(&aclMap, &stRowner, &len, NULL);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding Rownerid Value.");
                     ret = ConvertStrToUuid(stRowner, &acl->rownerID);
-                    OIC_LOG_V(DEBUG, TAG, "%s: rowner uuid: %s", __func__, stRowner);
+                    //OIC_LOG_V(DEBUG, TAG, "%s: rowner uuid: %s", __func__, stRowner);
                     free(stRowner);
                     VERIFY_SUCCESS(TAG, ret == OC_STACK_OK, ERROR);
                 }
                 else if (NULL != gAcl)
                 {
                     memcpy(&(acl->rownerID), &(gAcl->rownerID), sizeof(OicUuid_t));
-                    OIC_LOG_V(DEBUG, TAG, "%s: rowner uuid from gAcl", __func__);
+                    //OIC_LOG_V(DEBUG, TAG, "%s: rowner uuid from gAcl", __func__);
                 }
             }
 
