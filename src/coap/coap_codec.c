@@ -657,9 +657,14 @@ coap_pdu_t *CAGeneratePDUImpl(code_t code, const CAInfo_t *info,
 
     if ((NULL != info->payload_cbor) && (0 < info->payloadSize))
     {
-        OIC_LOG(DEBUG, TAG, "payload is added");
-        coap_add_data(pdu, (unsigned int)info->payloadSize,
-                      (const unsigned char*)info->payload_cbor);
+        if (!coap_add_data(pdu, (unsigned int)info->payloadSize,
+                           (const unsigned char*)info->payload_cbor))
+        {
+            OIC_LOG(ERROR, TAG, "failed to add payload");
+            return CA_STATUS_FAILED;
+        } else {
+            OIC_LOG(DEBUG, TAG, "payload is added");
+        }
     }
 
     return pdu;
