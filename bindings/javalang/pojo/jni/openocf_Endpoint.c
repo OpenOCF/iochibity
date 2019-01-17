@@ -735,7 +735,7 @@ JNIEXPORT jstring JNICALL Java_openocf_Endpoint_getIfName(JNIEnv *env, jobject t
 {
     OCDevAddr *ep_handle = (OCDevAddr*)(*env)->GetLongField(env, this, FID_EP_HANDLE);
     char *ptr;
-    char n[IFNAMSIZ];
+    char n[IF_NAMESIZE];
     ptr = if_indextoname(ep_handle->ifindex, &n);
     return(*env)->NewStringUTF(env, n);
 
