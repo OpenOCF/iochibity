@@ -225,3 +225,39 @@ http_archive(
     strip_prefix = "cJSON-1.7.7",
     build_file = "@//:config/cjson.BUILD",
 )
+
+## For Java demo pgms:
+
+maven_jar(
+    name = "slf4j",
+    artifact = "org.slf4j:slf4j-api:1.7.25",
+    sha1 = "da76ca59f6a57ee3102f8f9bd9cee742973efa8a"
+# sha1_src = "962153db4a9ea71b79d047dfd1b2a0d80d8f4739"
+)
+
+maven_jar(
+    name = "slf4j_jul",
+    artifact = "org.slf4j:slf4j-jdk14:1.7.25",
+    sha1 = "bccda40ebc8067491b32a88f49615a747d20082d",
+# sha1_src = "f62afc0e42c562f3afae648b95e755675102d3f9"
+)
+
+maven_jar(
+    name = "slf4j_log4j",
+    artifact = "org.slf4j:slf4j-log4j12:1.7.25",
+#    sha1 = "110cefe2df103412849d72ef7a67e4e91e4266b4"
+)
+
+maven_jar(
+    name = "log4j",
+    artifact = "log4j:log4j:1.2.17",
+    sha1 = "5af35056b4d257e4b64b9e8069c0746e8b08629f",
+)
+
+maven_jar(
+    name = "slf4j_simple",
+    artifact = "org.slf4j:slf4j-simple:1.7.25",
+    sha1 = "8dacf9514f0c707cbbcdd6fd699e8940d42fb54e",
+# sha1_src = "af3cd3ad1ea4b08b27b54f12529b4bf343bc5ca1"
+)
+
