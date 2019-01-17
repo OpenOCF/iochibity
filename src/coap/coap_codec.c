@@ -185,30 +185,37 @@ typedef enum
 /**
  * Allowed method to be used by resource model.
  */
- typedef enum // FIXME: @rename to oocf_coap_method_codes (section 12.1.1 of RFC 7252)
-{
+// FIXME: use OCF methods: RETRIEVE, CREATE etc
+typedef enum { // FIXME: @rename to oocf_coap_method_codes (section 12.1.1 of RFC 7252)
+// FIXME: use libcoap's COAP_REQUEST_GET, etc.?
     //OC_REST_NOMETHOD       = 0,
-    CA_GET = 1,                 /* 0.01 */
+    CA_GET = (1 << 0),                 /* 0.01 */
     //OC_REST_GET            = (1 << 0),
-    CA_PUT,                     /* 0.03 */
+    // COAP_REQUEST_GET
+    CA_PUT = (1 << 1),                 /* 0.03 */
     //OC_REST_PUT            = (1 << 1),
-    CA_POST,                    /* 0.02 */
+    // COAP_REQUEST_PUT
+    CA_POST = (1 << 2),                /* 0.02 */
     //OC_REST_POST           = (1 << 2),
-    CA_DELETE,                  /* 0.04 */
+    // COAP_REQUEST_POST
+    CA_DELETE = (1 << 3),              /* 0.04 */
     //OC_REST_DELETE         = (1 << 3),
-    CA_OBSERVE,
+    // COAP_REQUEST_DELETE
+    CA_OBSERVE = (1 << 4),
     //OC_REST_OBSERVE, //        = (1 << 4),
-    CA_OBSERVE_ALL,
+    // COAP_OPTION_OBSERVE
+    CA_OBSERVE_ALL = (1 << 5),
     /** Register observe request for all notifications, including stale notifications.*/
     //OC_REST_OBSERVE_ALL, //    = (1 << 5),
 #ifdef WITH_PRESENCE
     /** Subscribe for all presence notifications of a particular resource.*/
-    CA_PRESENSE,
+    CA_PRESENSE = (1 << 7),
     //OC_REST_PRESENCE, //       = (1 << 7),
 #endif
-    CA_DISCOVER
     /** Allows OCDoResource caller to do discovery.*/
+    CA_DISCOVER = (1 << 8)      /* FIXME: eliminate DISCOVERY method */
     //OC_REST_DISCOVER //       = (1 << 8)
+    // not defined in coap
 } CAMethod_t;
 
 /**
