@@ -31,39 +31,6 @@ typedef struct
     unsigned char id[UUID_IDENTITY_SIZE];
 } OCUUIdentity;
 
-/**
- * Data structure to encapsulate IPv4/IPv6/Contiki/lwIP device addresses.
- * OCDevAddr must be the same as CAEndpoint (in CACommon.h).
- */
-/* FIXME GAR: i.e. this is an abstraction for IP addresses? then why not put it in comm/ip/foo? */
-#include <stdint.h>
-typedef struct
-{
-    /** adapter type.*/
-    OCTransportAdapter      adapter;
-
-    /** transport modifiers.*/
-    OCTransportFlags        flags;
-
-    /** for IP.*/
-    uint16_t                port;
-
-    /** address for all adapters.*/
-    /* GAR FIXME: meaning depends on adapter (=nw) type? */
-    /* e.g. BLE address is 48 bits (6 bytes) http://microchipdeveloper.com/wireless:ble-link-layer-address */
-    char                    addr[MAX_ADDR_STR_SIZE];
-
-    /** usually zero for default interface.*/
-    uint32_t                ifindex;
-
-    /** destination GatewayID:ClientId.*/
-    char                    routeData[MAX_ADDR_STR_SIZE];
-
-    /** device UUID of remote. */
-    char                    remoteId[MAX_IDENTITY_SIZE];
-
-} OCDevAddr;
-
 /** bit shift required for connectivity adapter.*/
 #define CT_ADAPTER_SHIFT 16
 
