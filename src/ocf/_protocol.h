@@ -48,29 +48,30 @@ typedef enum
     OC_REST_NOMETHOD       = 0,
 
     /** Read.*/
-    OC_REST_GET, //            = (1 << 0),
+    OC_REST_GET             = (1 << 0),
 
     /** Write.*/
-    OC_REST_PUT, //            = (1 << 1),
+    OC_REST_PUT             = (1 << 1),
 
     /** Update.*/
-    OC_REST_POST, //           = (1 << 2),
+    OC_REST_POST           = (1 << 2),
 
     /** Delete.*/
-    OC_REST_DELETE, //         = (1 << 3),
+    OC_REST_DELETE          = (1 << 3),
 
+    // FIXME: OBSERVE is not a method!
     /** Register observe request for most up date notifications ONLY.*/
-    OC_REST_OBSERVE, //        = (1 << 4),
+    OC_REST_OBSERVE        = (1 << 4),
 
     /** Register observe request for all notifications, including stale notifications.*/
-    OC_REST_OBSERVE_ALL, //    = (1 << 5),
+    OC_REST_OBSERVE_ALL    = (1 << 5),
 
 #ifdef WITH_PRESENCE
     /** Subscribe for all presence notifications of a particular resource.*/
-    OC_REST_PRESENCE, //       = (1 << 7),
+    OC_REST_PRESENCE       = (1 << 7),
 #endif
     /** Allows OCDoResource caller to do discovery.*/
-    OC_REST_DISCOVER //       = (1 << 8)
+    OC_REST_DISCOVER       = (1 << 8)
 } OCMethod;
 
 #define OC_MASK_RESOURCE_SECURE    (OC_NONSECURE | OC_SECURE)
