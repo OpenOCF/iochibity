@@ -95,7 +95,7 @@ public class InboundResponse extends InboundMessage
 
     // uint8_t numRcvdVendorSpecificHeaderOptions;
     // OCHeaderOption rcvdVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
-    native public List<CoAPOption> getOptions();
+    native public List<CoAPOption> getCoAPOptions();
 
 // } OCClientResponse;
 
