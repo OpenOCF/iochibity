@@ -94,7 +94,7 @@ typedef struct _oocf_coap_msg_unpacked /* src: camessagehandler.c */
 
     // FIXME: this URI is always a URL, never a URN?
     char *resourceUri;          /**< Resource URL, path + query **/
-    CARemoteId_t identity;      /**< endpoint identity */
+    CARemoteId_t identity;      /**< endpoint identity; di from ep? */
     CADataType_t dataType;      /**< data type */
 } CAInfo_t; /* @rename: _oocf_coap_msg_unpacked */
 

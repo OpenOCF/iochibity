@@ -5,7 +5,7 @@ import org.openocf.test.PojoLogger;
 import openocf.OpenOCFServer;
 import openocf.ConfigJava;
 //import openocf.utils.Endpoint;
-import openocf.utils.CoAPOption;
+import openocf.message.CoAPOption;
 // import openocf.InboundRequest;
 import openocf.utils.PropertyMap;
 import openocf.app.ResourceSP;

@@ -25,7 +25,7 @@ char     *MID_INRESP_GET_EP_T = "()Lopenocf/Endpoint;";
 jfieldID  FID_INRESP_IS_RETAIN          = NULL;
 
 /* jfieldID  FID_INRESP_CONN_TYPE          = NULL; */
-/* jfieldID  FID_INRESP_REMOTE_SID         = NULL; */
+/* jfieldID  FID_INRESP_REMOTE_DI         = NULL; */
 /* jfieldID  FID_INRESP_RESULT             = NULL; */
 /* jfieldID  FID_INRESP_SERIAL             = NULL; */
 /* jfieldID  FID_INRESP_URI                = NULL; */
@@ -87,12 +87,12 @@ int init_InboundResponse(JNIEnv* env)
     /* 	} */
     /* } */
 
-    /* if (FID_INRESP_REMOTE_SID == NULL) { */
-    /* 	FID_INRESP_REMOTE_SID = (*env)->GetFieldID(env, K_INBOUND_RESPONSE, */
+    /* if (FID_INRESP_REMOTE_DI == NULL) { */
+    /* 	FID_INRESP_REMOTE_DI = (*env)->GetFieldID(env, K_INBOUND_RESPONSE, */
     /* 						   "_secID", "Ljava/lang/String;"); */
-    /* 	JNI_ASSERT_NULL(FID_INRESP_REMOTE_SID, */
+    /* 	JNI_ASSERT_NULL(FID_INRESP_REMOTE_DI, */
     /* 			ERR_MSG(ERR_FLD, "InboundResponse._secID"), -1); */
-    /* 	/\* if (FID_INRESP_REMOTE_SID == NULL) { *\/ */
+    /* 	/\* if (FID_INRESP_REMOTE_DI == NULL) { *\/ */
     /* 	/\*     printf("ERROR: GetFieldID failed for 'secID' of InboundResponse\n"); *\/ */
     /* 	/\*     return -1; *\/ */
     /* 	/\* } *\/ */
@@ -183,15 +183,51 @@ Java_openocf_message_InboundResponse_getUri(JNIEnv *env, jobject this)
  * for each method.  But that is not required; we could in principle
  * use the same callback for different operations _if_ we could pull
  * the method from the inbound response. So our only option is to find
- * the request associated with this response.
+ * the request associated with this response (using the coap token?)
  */
 JNIEXPORT jint JNICALL
 Java_openocf_message_InboundResponse_getMethod(JNIEnv *env, jobject this)
 {
-    // FIXME:  ??? this code is for inboundrequest
-    OCEntityHandlerRequest *handle = (OCEntityHandlerRequest*)
-	(*env)->GetLongField(env, this, FID_INBOUND_REQUEST_HANDLE);
-    return (jint) handle->requestHandle->method;
+    // FIXME
+    return 0;
+}
+
+/*
+ * Class:     openocf_message_InboundResponse
+ * Method:    getResult
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_openocf_message_InboundResponse_getResult(JNIEnv *env, jobject this)
+{
+    OC_UNUSED(env);
+    OC_UNUSED(this);
+    return (jint)tls_response_in->response->result;
+}
+
+/*
+ * Class:     openocf_message_InboundResponse
+ * Method:    getNotificationSerial
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_openocf_message_InboundResponse_getNotificationSerial(JNIEnv *env, jobject this)
+{
+    OC_UNUSED(env);
+    OC_UNUSED(this);
+    return (jint)tls_response_in->response->sequenceNumber;
+}
+
+/*
+ * Class:     openocf_message_InboundResponse
+ * Method:    getIdentity
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_openocf_message_InboundResponse_getIdentity(JNIEnv *env, jobject this)
+{
+    OC_UNUSED(env);
+    OC_UNUSED(this);
+
+    OCIdentity *identity = &(tls_response_in->response->identity);
+    return (*env)->NewStringUTF(env, identity->id);
 }
 
 /*
@@ -224,32 +260,29 @@ Java_openocf_message_InboundResponse_getEndpoint(JNIEnv *env , jobject this)
 
 /*
  * Class:     openocf_message_InboundResponse
- * Method:    getCoapOptions
+ * Method:    getCoAPOptions
  * Signature: ()Ljava/util/List;
  *
- * Returns List<CoAPOption>
- */
-JNIEXPORT jobject JNICALL Java_openocf_message_InboundResponse_getCoapOptions(JNIEnv *env, jobject this)
+ * returns List<Map>
+*/
+JNIEXPORT jobject JNICALL
+Java_openocf_message_InboundResponse_getCoAPOptions(JNIEnv *env, jobject this)
 {
-    struct oocf_coap_options *options = tls_response_in->response->rcvdVendorSpecificHeaderOptions;
-    uint8_t option_count = tls_response_in->response->numRcvdVendorSpecificHeaderOptions;
-
-    // create List<CoAPOption>
-
     jobject j_option_list  = (*env)->NewObject(env, K_ARRAYLIST, MID_ARRAYLIST_CTOR);
     if (j_option_list == NULL) { THROW_JNI_EXCEPTION("option_list ArrayList() (ctor)"); }
 
     uint16_t option_id  = 0;
     uint16_t option_len = 0;
-    for (int i=0; i < option_count; i++) {
+
+    for (int i=0; i < tls_response_in->response->numRcvdVendorSpecificHeaderOptions; i++) {
 	option_id = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionID;
 	option_len = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionLength;
 
-
-        jobject j_Option = (*env)->NewObject(env, K_OPTION, MID__CTOR);
-        if (j_Endpoint == NULL) {
-            THROW_JNI_EXCEPTION("Option() (ctor)");
-        }
+        //FIXME
+        /* jobject j_Option = (*env)->NewObject(env, K_COAP_OPTION, MID__CTOR); */
+        /* if (j_Endpoint == NULL) { */
+        /*     THROW_JNI_EXCEPTION("CoAPOption() (ctor)"); */
+        /* } */
     }
     return j_option_list;
 }
@@ -464,8 +497,8 @@ static jobject discovery_to_jmap(JNIEnv *env, OCClientResponse *msg)
 
     // cJSON_AddItemToObject(root, "href", cJSON_CreateString("oic/res"));
 
-    /* sid (di) */
-    j_sval = (*env)->NewStringUTF(env, payload->sid);
+    /* di (di) */
+    j_sval = (*env)->NewStringUTF(env, payload->di);
     ores = (*env)->CallObjectMethod(env, j_payload_map, MID_HASHMAP_PUT, KEY_OCF_DI, j_sval);
     if ((*env)->ExceptionCheck(env)) { (*env)->ExceptionDescribe(env); }
     (*env)->DeleteLocalRef(env, j_sval);
@@ -713,9 +746,9 @@ static void discovery_to_json(OCClientResponse *msg)
     ifaces[1] = "oic.if.ll";
     cJSON_AddItemToObject(root, "if", cJSON_CreateStringArray(ifaces, 2));
     cJSON_AddItemToObject(root, "n", payload->name?
-			  cJSON_CreateString(payload->sid) : cJSON_CreateNull());
+			  cJSON_CreateString(payload->di) : cJSON_CreateNull());
     cJSON_AddItemToObject(root, "mpro", cJSON_CreateNull());
-    cJSON_AddItemToObject(root, "di", cJSON_CreateString(payload->sid));
+    cJSON_AddItemToObject(root, "di", cJSON_CreateString(payload->di));
 
     /* OIC_LOG_V(INFO, TAG, "Discovery payload type: %s",
      * 	      (pay->type == NULL) ? "(null)" : pay->type->value);

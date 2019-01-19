@@ -23,7 +23,7 @@ import openocf.Endpoint;
 import openocf.message.OutboundRequest;
 import openocf.message.InboundResponse;
 // import openocf.ObservationOut;
-import openocf.utils.CoAPOption;
+import openocf.message.CoAPOption;
 import openocf.observation.ObservationRecord;
 // import openocf.ObservationList;
 import openocf.utils.PropertyMap;

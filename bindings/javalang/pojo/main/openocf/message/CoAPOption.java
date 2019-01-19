@@ -1,14 +1,14 @@
-package openocf.utils;
+package openocf.message;
+
+import java.util.HashMap;
 
 // NB: OCHeaderOption misnamed, CoAP Options are not headers
 
-public class CoAPOption	// OCHeaderOption
+public class CoAPOption<K,V> extends HashMap<K,V> // OCHeaderOption
 {
-    Int id;
-    // Int length;  // internal, not needed by app code
-    Int type;
+    // Int id;
 
-    public native Object getValue();
+    // String value;
 
 // typedef struct OCHeaderOption
 // {

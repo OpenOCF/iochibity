@@ -128,7 +128,7 @@ void register_device(OCClientResponse* c_OCClientResponse)
     /* (*toPP)->base.type = PAYLOAD_TYPE_DEVICE; */
 
     /* /\* 1a. copy strings *\/ */
-    /* (*toPP)->sid           = OICStrdup(fromPP->sid); */
+    /* (*toPP)->di           = OICStrdup(fromPP->di); */
     /* (*toPP)->deviceName    = OICStrdup(fromPP->deviceName); */
     /* (*toPP)->specVersion   = OICStrdup(fromPP->specVersion); */
 
@@ -201,14 +201,14 @@ void register_resources(OCClientResponse* c_OCClientResponse)
 
     OCStringLL *fromSLL, **toSLL; // , *toSLLHead;
     while(fromDP) {
-	OIC_LOG_V(DEBUG, __FILE__, "[%d] discovery payload sid: %s", __LINE__, fromDP->sid);
+	OIC_LOG_V(DEBUG, __FILE__, "[%d] discovery payload di: %s", __LINE__, fromDP->di);
 	OIC_LOG_V(DEBUG, __FILE__, "[%d] discovery payload name: %s", __LINE__, fromDP->name);
 
 	/* 1. create new OCDiscoveryPayload */
 	(*toDP)                    = (OCDiscoveryPayload*)OCDiscoveryPayloadCreate();
 
-	/* 1a. copy fromDP sid, baseURI, name, uri strings */
-	(*toDP)->sid               = OICStrdup(fromDP->sid);
+	/* 1a. copy fromDP di, baseURI, name, uri strings */
+	(*toDP)->di               = OICStrdup(fromDP->di);
 
 	/*GAR baseURI removed from OCDiscoveryPayload in 1.3
 	(*toDP)->baseURI           = OICStrdup(fromDP->baseURI);

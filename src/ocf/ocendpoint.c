@@ -1131,6 +1131,38 @@ CAResult_t CAGetLinkLocalZoneIdInternal(uint32_t ifindex, char **zoneId)
     return CA_STATUS_OK;
 }
 
+/**
+ * Convert CATransportFlags_t to OCTransportModifiers_t.
+ *
+ * @param caConType CATransportFlags_t input.
+ * @return OCTransportFlags
+ */
+LOCAL OCTransportFlags CAToOCTransportFlags(CATransportFlags_t caFlags)
+{
+    return (OCTransportFlags)caFlags;
+}
+
+// FIXME: get rid of OCDevAddr?
+void CopyEndpointToDevAddr(const CAEndpoint_t *in, OCDevAddr *out)
+{
+    VERIFY_NON_NULL_NR(in, FATAL);
+    VERIFY_NON_NULL_NR(out, FATAL);
+
+    out->adapter = (OCTransportAdapter)in->adapter;
+    out->flags = CAToOCTransportFlags(in->flags);
+    OICStrcpy(out->addr, sizeof(out->addr), in->addr);
+    OICStrcpy(out->remoteId, sizeof(out->remoteId), in->remoteId);
+    out->port = in->port;
+    out->ifindex = in->ifindex;
+#if defined (ROUTING_GATEWAY) || defined (ROUTING_EP)
+    /* This assert is to prevent accidental mismatch between address size macros defined in
+     * RI and CA and cause crash here. */
+    OC_STATIC_ASSERT(MAX_ADDR_STR_SIZE_CA == MAX_ADDR_STR_SIZE,
+                                        "Address size mismatch between RI and CA");
+    memcpy(out->routeData, in->routeData, sizeof(in->routeData));
+#endif
+}
+
 void CopyDevAddrToEndpoint(const OCDevAddr *in, CAEndpoint_t *out)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);

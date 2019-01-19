@@ -10,7 +10,7 @@ extern jmethodID MID_INRESP_GET_EP;
 extern jfieldID  FID_INRESP_IS_RETAIN;
 
 /* extern jfieldID  FID_INRESP_CONN_TYPE; */
-/* extern jfieldID  FID_INRESP_REMOTE_SID; */
+/* extern jfieldID  FID_INRESP_REMOTE_DI; */
 /* extern jfieldID  FID_INRESP_RESULT; */
 /* extern jfieldID  FID_INRESP_SERIAL; */
 /* extern jfieldID  FID_INRESP_URI; */

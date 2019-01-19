@@ -223,12 +223,12 @@ static OCStackResult OCParseDiscoveryPayloadCbor(OCPayload **outPayload,
             {
                 if (cbor_value_is_byte_string(&curVal))
                 {
-                    err = cbor_value_dup_byte_string(&curVal, (uint8_t **)&(temp->sid), &len, NULL);
+                    err = cbor_value_dup_byte_string(&curVal, (uint8_t **)&(temp->di), &len, NULL);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to copy device id value");
                 }
                 else if (cbor_value_is_text_string(&curVal))
                 {
-                    err = cbor_value_dup_text_string(&curVal, &(temp->sid), &len, NULL);
+                    err = cbor_value_dup_text_string(&curVal, &(temp->di), &len, NULL);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "to copy device id value");
                 }
             }
@@ -588,13 +588,13 @@ static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *reso
             OCDiscoveryPayload **temp = outPayload;
             while (*temp)
             {
-                if (!(*temp)->sid)
+                if (!(*temp)->di)
                 {
-                    (*temp)->sid = di;
+                    (*temp)->di = di;
                     OCDiscoveryPayloadAddNewResource(*temp, resource);
                     break;
                 }
-                else if (!strcmp((*temp)->sid, di))
+                else if (!strcmp((*temp)->di, di))
                 {
                     OCDiscoveryPayloadAddNewResource(*temp, resource);
                     OICFree(di);
@@ -606,7 +606,7 @@ static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *reso
             {
                 *temp = OCDiscoveryPayloadCreate();
                 VERIFY_PARAM_NON_NULL(TAG, *temp, "Failed error initializing discovery payload");
-                (*temp)->sid = di;
+                (*temp)->di = di;
                 OCDiscoveryPayloadAddNewResource(*temp, resource);
             }
         }

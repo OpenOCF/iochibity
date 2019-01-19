@@ -1,6 +1,6 @@
 package openocf;
 
-import openocf.utils.CoAPOption;
+import openocf.message.CoAPOption;
 import openocf.Endpoint;
 
 import java.util.List;

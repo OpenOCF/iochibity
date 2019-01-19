@@ -233,24 +233,24 @@ typedef struct OCResourcePayload // @rewrite: -> OCResourceLink or OCF_Link
     /* GAR: what about the remaining optional parameters, e.g. di, type (mt?), etc. */
 } OCResourcePayload;
 /* src: octypes.h */
-typedef struct OCDiscoveryPayload /* GAR: implicitly uri is "oic/res" (set in OCClientResponse parent) */
+typedef struct oocf_oic_wk_res /* GAR: implicitly uri is "oic/res" (set in OCClientResponse parent) */
 {
     OCPayload base;
 
-    char *sid;			/* property "di" (OIC 1.1 only mandatory) */
+    char *di;			/* property "di" (OIC 1.1 only mandatory) */
 
-    char *name;			/* propery "n" (optional) */
+    char *name;			/* propery "n" (optional, OIC 1.1, OCF 1.0) */
 
-    OCStringLL *type;		/* propery "rt" (mandatory) */
+    OCStringLL *type;		/* propery "rt" (mandatory OIC 1.1, OCF 1.0) */
 
-    OCStringLL *iface;		/* property "if" (mandatory) */
+    OCStringLL *iface;		/* property "if" (mandatory OIC 1.1, OCF 1.0) */
 
     /** This structure holds the old /oic/res response. */
-    OCResourcePayload *resources; /* property "links" (mandatory) */
+    OCResourcePayload *resources; /* property "links" (mandatory OIC 1.1, OCF 1.0) */
 
     struct OCDiscoveryPayload *next;
 
-    /* GAR: property "mpro" (messaging protocol support)? */
+    //char *mpro /* OIC 1.1.0 property "mpro" (messaging protocol support) */
 
 } OCDiscoveryPayload;
 
@@ -2520,7 +2520,7 @@ void OC_CALL OCDiscoveryPayloadDestroy(OCDiscoveryPayload* payload)
     {
         return;
     }
-    OICFree(payload->sid);
+    OICFree(payload->di);
     OCFreeOCStringLL(payload->type);
     OICFree(payload->name);
     OCFreeOCStringLL(payload->iface);

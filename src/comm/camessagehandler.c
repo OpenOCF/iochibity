@@ -1158,6 +1158,8 @@ void oocf_handle_inbound_messages() // @was CAHandleRequestResponseCallbacks
     {			       /* inbound response, CLIENT mode */
         OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE callback option count: %d", td->responseInfo->info.numOptions);
 	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE result: %d", td->responseInfo->result);
+	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE info identity: %s", td->responseInfo->info.identity);
+	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE ep remote id: %s", td->remoteEndpoint->remoteId);
 	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE isMcast? %d", td->responseInfo->isMulticast);
 	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE result: %u", td->responseInfo->result);
 	OIC_LOG_V(DEBUG, TAG, "inbound RESPONSE payload len: %u", td->responseInfo->info.payloadSize);

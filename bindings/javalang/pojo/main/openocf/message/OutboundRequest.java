@@ -3,7 +3,7 @@ package openocf.message;
 import openocf.observation.ObservationRecord;
 import openocf.constants.ConnectivityType;
 import openocf.Endpoint;
-import openocf.utils.CoAPOption;
+import openocf.message.CoAPOption;
 import openocf.app.CoResourceSP;
 
 import java.util.List;

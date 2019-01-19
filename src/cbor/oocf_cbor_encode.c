@@ -411,7 +411,7 @@ LOCAL int64_t OCConvertDiscoveryPayloadCbor(OCDiscoveryPayload *payload,
 
         // Insert Device ID into the root map
         err |= AddTextStringToMap(&rootMap, OC_RSRVD_DEVICE_ID, sizeof(OC_RSRVD_DEVICE_ID) - 1,
-                payload->sid);
+                payload->di);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed setting device id");
 
         // Insert Resource Type
@@ -434,7 +434,7 @@ LOCAL int64_t OCConvertDiscoveryPayloadCbor(OCDiscoveryPayload *payload,
         const char *deviceId = OCGetServerInstanceIDString();
         if (NULL != deviceId)
         {
-            isSelf = !strcmp(payload->sid, deviceId);
+            isSelf = !strcmp(payload->di, deviceId);
         }
 
         for (size_t i = 0; i < resourceCount; ++i)
@@ -572,7 +572,7 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
 
             // Anchor
             char anchor[MAX_URI_LENGTH];
-            int snRet = snprintf(anchor, MAX_URI_LENGTH, "ocf://%s", payload->sid);
+            int snRet = snprintf(anchor, MAX_URI_LENGTH, "ocf://%s", payload->di);
             if(0 > snRet || snRet >= MAX_URI_LENGTH)
             {
                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, CborErrorInternalError, "Error (snprintf)");

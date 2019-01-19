@@ -579,10 +579,10 @@ static void log_header_options (OCClientResponse *clientResponse)
 
 static void log_endpoint_info(OCClientResponse *clientResponse)
 {
-    OIC_LOG_V(INFO, TAG, "Origin addr: %s:%d", clientResponse->devAddr.addr, clientResponse->devAddr.port);
-    OIC_LOG_V(INFO, TAG, "Origin ifindex: %d", clientResponse->devAddr.ifindex);
-    OIC_LOG_V(INFO, TAG, "Origin route data: %s", clientResponse->devAddr.routeData);
-    OIC_LOG_V(INFO, TAG, "Origin device ID: %s", clientResponse->devAddr.remoteId);
+    OIC_LOG_V(INFO, TAG, "ep addr: %s:%d", clientResponse->devAddr.addr, clientResponse->devAddr.port);
+    OIC_LOG_V(INFO, TAG, "ep ifindex: %d", clientResponse->devAddr.ifindex);
+    OIC_LOG_V(INFO, TAG, "ep route data: %s", clientResponse->devAddr.routeData);
+    OIC_LOG_V(INFO, TAG, "ep device ID: %s", clientResponse->devAddr.remoteId);
 
     switch ( clientResponse->devAddr.adapter) {
     case OC_DEFAULT_ADAPTER: /** value zero indicates discovery.  FIXME:  huh? */

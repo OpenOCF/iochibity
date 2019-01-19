@@ -1,8 +1,7 @@
 package org.openocf.test.server;
 
 import openocf.OpenOCFServer;
-// import openocf.utils.Endpoint;
-import openocf.utils.CoAPOption;
+import openocf.message.CoAPOption;
 import openocf.message.InboundRequest;
 import openocf.message.OutboundResponse;
 // import openocf.message.ObservationRecord;

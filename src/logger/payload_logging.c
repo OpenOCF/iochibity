@@ -195,7 +195,7 @@ INLINE_API void OCPayloadLogDiscovery(LogLevel level, OCDiscoveryPayload* payloa
 
     while(payload && payload->resources)
     {
-        OIC_LOG_V(level, PL_TAG, "\tDI: %s", payload->sid);
+        OIC_LOG_V(level, PL_TAG, "\tDI: %s", payload->di);
         if (payload->name)
         {
             OIC_LOG_V(level, PL_TAG, "\tNAME: %s", payload->name);
