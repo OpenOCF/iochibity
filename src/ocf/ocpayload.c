@@ -239,18 +239,18 @@ typedef struct OCDiscoveryPayload /* GAR: implicitly uri is "oic/res" (set in OC
 
     char *di;			/* property "di" (OIC 1.1 only mandatory) */
 
-    char *name;			/* propery "n" (optional) */
+    char *name;			/* propery "n" (optional, OIC 1.1, OCF 1.0) */
 
-    OCStringLL *type;		/* propery "rt" (mandatory) */
+    OCStringLL *type;		/* propery "rt" (mandatory OIC 1.1, OCF 1.0) */
 
-    OCStringLL *iface;		/* property "if" (mandatory) */
+    OCStringLL *iface;		/* property "if" (mandatory OIC 1.1, OCF 1.0) */
 
     /** This structure holds the old /oic/res response. */
-    OCResourcePayload *resources; /* property "links" (mandatory) */
+    OCResourcePayload *resources; /* property "links" (mandatory OIC 1.1, OCF 1.0) */
 
     struct OCDiscoveryPayload *next;
 
-    /* GAR: property "mpro" (messaging protocol support)? */
+    //char *mpro /* OIC 1.1.0 property "mpro" (messaging protocol support) */
 
 } OCDiscoveryPayload;
 

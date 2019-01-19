@@ -2121,7 +2121,7 @@ static OCStackResult discoveryPayloadCreateAndAddDeviceId(OCPayload **payload)
     }
 
     *payload = (OCPayload *) OCDiscoveryPayloadCreate();
-    VERIFY_PARAM_NON_NULL(TAG, *payload, "Failed adding device id to discovery payload.");
+    VERIFY_PARAM_NON_NULL(TAG, *payload, "Failed creating discovery payload.");
 
     {
         OCDiscoveryPayload *discPayload = (OCDiscoveryPayload *)*payload;

@@ -244,7 +244,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
         requestInfo.method = CA_GET;
         break;
     default:
-	OIC_LOG_V(ERROR, TAG, "%s: INVALID METHOD: %d", __func__, method);
+	OIC_LOG_V(ERROR, TAG, "%s: INVALID METHOD: 0x%04X", __func__, method);
         result = OC_STACK_INVALID_METHOD;
         goto exit;
     }
@@ -258,7 +258,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
 
     if (dest_ep    /* dest_ep set by user code */
         &&         /* why &&? what if both? */
-        !devAddr)               /* devAddr not derived from URI or defaulted for mcast discovery */
+        !devAddr)  /* devAddr not derived from URI or defaulted for mcast discovery */
     {
         devAddr = (OCDevAddr *)OICMalloc(sizeof (OCDevAddr));
         if (!devAddr)
@@ -1259,9 +1259,12 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                             }
 #endif
 
-                        // set remoteID(device ID) into OCClientResponse callback parameter
+                        // set remoteID (device ID) into OCClientResponse callback parameter
+                        // i.e. from payload into ep
+                        // FIXME: this is OIC 1.1 only?
                         if (OC_REST_DISCOVER == cbNode->method
-                            && PAYLOAD_TYPE_DISCOVERY == response->payload->type)
+                            &&
+                            PAYLOAD_TYPE_DISCOVERY == response->payload->type)
                             {
                                 OCDiscoveryPayload *payload = (OCDiscoveryPayload*) response->payload;
                                 // Payload can be empty in case of error message.

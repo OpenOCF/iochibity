@@ -158,7 +158,7 @@ static void SRMSendResponse(SRMRequestContext_t *context)
 /* SERVER mode: send outbound response */
 void SRMGenerateResponse(SRMRequestContext_t *context)
 {
-    OIC_LOG_V(INFO, TAG, "%s : entering function.", __func__);
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
 
     // If Access Granted, validate parameters and then pass request
     // on to resource endpoint.
