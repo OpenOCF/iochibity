@@ -3,7 +3,7 @@ package openocf.message;
 import java.util.List;
 
 import openocf.observation.ObservationRecords;
-import openocf.utils.CoAPOption;
+import openocf.message.CoAPOption;
 import openocf.Endpoint;
 
 // wraps OCEntityHandlerResponse which contains handle of

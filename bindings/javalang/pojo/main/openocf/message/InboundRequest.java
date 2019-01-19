@@ -4,7 +4,7 @@ import java.util.List;
 
 import openocf.app.IResourceSP;
 import openocf.observation.ObservationRecords;
-import openocf.utils.CoAPOption;
+import openocf.message.CoAPOption;
 import openocf.Endpoint;
 
 /**

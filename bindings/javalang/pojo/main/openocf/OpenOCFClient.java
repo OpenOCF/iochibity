@@ -8,7 +8,7 @@ import openocf.app.CoResourceSP;
 import openocf.message.OutboundRequest;
 import openocf.message.InboundResponse;
 import openocf.observation.CoResourceLink;
-import openocf.utils.CoAPOption;
+import openocf.message.CoAPOption;
 import openocf.Endpoint;
 
 public class OpenOCFClient

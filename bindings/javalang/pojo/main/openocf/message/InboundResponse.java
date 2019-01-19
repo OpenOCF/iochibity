@@ -5,14 +5,13 @@ import java.util.Map;
 
 import openocf.Channel;
 import openocf.Endpoint;
-import openocf.utils.CoAPOption;
+import openocf.message.CoAPOption;
 
 // InboundResponses are server message records co-observed by clients
 
 // Wrapper for args to application-defined callback for server responses:
 //     void *context, OCDoHandle txn_id, OCClientResponse response
 // to be passed to client coReact method
-// 
 
 // Structure (mirrors OutboundRequest?):
 // 1. SP/CoSP-specific: method, uri

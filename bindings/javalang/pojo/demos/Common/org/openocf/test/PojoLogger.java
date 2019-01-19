@@ -8,11 +8,11 @@ import openocf.Endpoint;
 import openocf.engine.OCFCommonSP;
 import openocf.app.CoResourceSP;
 import openocf.observation.ObservationRecord;
-import openocf.utils.CoAPOption;
-import openocf.message.OutboundRequest;
+import openocf.message.CoAPOption;
 import openocf.message.InboundRequest;
-import openocf.message.OutboundResponse;
 import openocf.message.InboundResponse;
+import openocf.message.OutboundRequest;
+import openocf.message.OutboundResponse;
 
 // import openocf.ObservationList;
 import openocf.utils.PropertyMap;
