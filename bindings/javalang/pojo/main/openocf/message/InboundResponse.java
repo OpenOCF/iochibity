@@ -72,17 +72,15 @@ public class InboundResponse extends InboundMessage
     // OCDevAddr devAddr;  /* contains OCTransportAdapter adapter; OCTransportFlags flags;
     // should match params in OutboundRequest?
     native public Endpoint getEndpoint();
-    // the "endpoint" in a message is more than just a locator, "channel" is more accurate
-    native public Channel getChannel(); // was: getEndpoint
 
     //IGNORE fields for backward compatibility:
     //     OCDevAddr *addr; /** backward compatibility (points to devAddr).*/
     //     OCConnectivityType connType; /** backward compatibility -dups what's in OCDevAddr */
 
-    // OCIdentity identity; /** OCIdentity.id - security identity of the remote server.*/
+    // OCIdentity identity; /** OCIdentity.id - "security" identity of the remote server.*/
     // private String _secID;
     // public String getSecID() { return _secID; }
-    native public String getSecID();
+    native public String getIdentity();
 
     // /** If associated with observe, this will represent the sequence of notifications from server.*/
     // uint32_t sequenceNumber;
