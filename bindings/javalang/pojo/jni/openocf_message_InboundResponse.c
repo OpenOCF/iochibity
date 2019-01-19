@@ -183,15 +183,51 @@ Java_openocf_message_InboundResponse_getUri(JNIEnv *env, jobject this)
  * for each method.  But that is not required; we could in principle
  * use the same callback for different operations _if_ we could pull
  * the method from the inbound response. So our only option is to find
- * the request associated with this response.
+ * the request associated with this response (using the coap token?)
  */
 JNIEXPORT jint JNICALL
 Java_openocf_message_InboundResponse_getMethod(JNIEnv *env, jobject this)
 {
-    // FIXME:  ??? this code is for inboundrequest
-    OCEntityHandlerRequest *handle = (OCEntityHandlerRequest*)
-	(*env)->GetLongField(env, this, FID_INBOUND_REQUEST_HANDLE);
-    return (jint) handle->requestHandle->method;
+    // FIXME
+    return 0;
+}
+
+/*
+ * Class:     openocf_message_InboundResponse
+ * Method:    getResult
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_openocf_message_InboundResponse_getResult(JNIEnv *env, jobject this)
+{
+    OC_UNUSED(env);
+    OC_UNUSED(this);
+    return (jint)tls_response_in->response->result;
+}
+
+/*
+ * Class:     openocf_message_InboundResponse
+ * Method:    getNotificationSerial
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_openocf_message_InboundResponse_getNotificationSerial(JNIEnv *env, jobject this)
+{
+    OC_UNUSED(env);
+    OC_UNUSED(this);
+    return (jint)tls_response_in->response->sequenceNumber;
+}
+
+/*
+ * Class:     openocf_message_InboundResponse
+ * Method:    getIdentity
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_openocf_message_InboundResponse_getIdentity(JNIEnv *env, jobject this)
+{
+    OC_UNUSED(env);
+    OC_UNUSED(this);
+
+    OCIdentity *identity = &(tls_response_in->response->identity);
+    return (*env)->NewStringUTF(env, identity->id);
 }
 
 /*
