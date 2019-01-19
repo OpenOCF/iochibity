@@ -237,7 +237,7 @@ typedef struct OCDiscoveryPayload /* GAR: implicitly uri is "oic/res" (set in OC
 {
     OCPayload base;
 
-    char *sid;			/* property "di" (OIC 1.1 only mandatory) */
+    char *di;			/* property "di" (OIC 1.1 only mandatory) */
 
     char *name;			/* propery "n" (optional) */
 
@@ -2520,7 +2520,7 @@ void OC_CALL OCDiscoveryPayloadDestroy(OCDiscoveryPayload* payload)
     {
         return;
     }
-    OICFree(payload->sid);
+    OICFree(payload->di);
     OCFreeOCStringLL(payload->type);
     OICFree(payload->name);
     OCFreeOCStringLL(payload->iface);

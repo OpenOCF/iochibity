@@ -1265,10 +1265,10 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                             {
                                 OCDiscoveryPayload *payload = (OCDiscoveryPayload*) response->payload;
                                 // Payload can be empty in case of error message.
-                                if (payload && payload->sid)
+                                if (payload && payload->di)
                                     {
                                         OICStrcpy(response->devAddr.remoteId, sizeof(response->devAddr.remoteId),
-                                                  payload->sid);
+                                                  payload->di);
                                         OIC_LOG_V(INFO, TAG, "[%d] %s: Device ID of response : %s",
                                                   __LINE__, __func__,
                                                   response->devAddr.remoteId);

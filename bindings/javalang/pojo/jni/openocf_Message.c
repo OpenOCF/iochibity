@@ -278,7 +278,7 @@ int init_Message(JNIEnv* env)
 /* 	return NULL; */
 /*     } */
 /*     jstring j_n = (*env)->NewStringUTF(env, OC_RSRVD_DEVICE_ID);         /\* di *\/ */
-/*     jstring j_s = (*env)->NewStringUTF(env, c_payload->sid); */
+/*     jstring j_s = (*env)->NewStringUTF(env, c_payload->di); */
 /*     (*env)->CallObjectMethod(env, j_pmap, MID_PMAP_PUT, j_n, j_s); */
 
 /*     j_n = (*env)->NewStringUTF(env, OC_RSRVD_DEVICE_NAME);               /\* n *\/ */
@@ -463,7 +463,7 @@ jobject OCDiscoveryPayload_to_Observation(JNIEnv* env, OCDiscoveryPayload* c_pay
     jstring j_n;
     jstring j_s;
     j_n = (*env)->NewStringUTF(env, OC_RSRVD_DEVICE_ID);         /* di */
-    j_s = (*env)->NewStringUTF(env, c_payload->sid);
+    j_s = (*env)->NewStringUTF(env, c_payload->di);
     (*env)->CallObjectMethod(env, j_pmap, MID_PMAP_PUT, j_n, j_s);
 
     j_n = (*env)->NewStringUTF(env, OC_RSRVD_DEVICE_NAME);               /* n */

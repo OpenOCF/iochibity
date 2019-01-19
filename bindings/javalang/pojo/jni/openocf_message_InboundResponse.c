@@ -25,7 +25,7 @@ char     *MID_INRESP_GET_EP_T = "()Lopenocf/Endpoint;";
 jfieldID  FID_INRESP_IS_RETAIN          = NULL;
 
 /* jfieldID  FID_INRESP_CONN_TYPE          = NULL; */
-/* jfieldID  FID_INRESP_REMOTE_SID         = NULL; */
+/* jfieldID  FID_INRESP_REMOTE_DI         = NULL; */
 /* jfieldID  FID_INRESP_RESULT             = NULL; */
 /* jfieldID  FID_INRESP_SERIAL             = NULL; */
 /* jfieldID  FID_INRESP_URI                = NULL; */
@@ -87,12 +87,12 @@ int init_InboundResponse(JNIEnv* env)
     /* 	} */
     /* } */
 
-    /* if (FID_INRESP_REMOTE_SID == NULL) { */
-    /* 	FID_INRESP_REMOTE_SID = (*env)->GetFieldID(env, K_INBOUND_RESPONSE, */
+    /* if (FID_INRESP_REMOTE_DI == NULL) { */
+    /* 	FID_INRESP_REMOTE_DI = (*env)->GetFieldID(env, K_INBOUND_RESPONSE, */
     /* 						   "_secID", "Ljava/lang/String;"); */
-    /* 	JNI_ASSERT_NULL(FID_INRESP_REMOTE_SID, */
+    /* 	JNI_ASSERT_NULL(FID_INRESP_REMOTE_DI, */
     /* 			ERR_MSG(ERR_FLD, "InboundResponse._secID"), -1); */
-    /* 	/\* if (FID_INRESP_REMOTE_SID == NULL) { *\/ */
+    /* 	/\* if (FID_INRESP_REMOTE_DI == NULL) { *\/ */
     /* 	/\*     printf("ERROR: GetFieldID failed for 'secID' of InboundResponse\n"); *\/ */
     /* 	/\*     return -1; *\/ */
     /* 	/\* } *\/ */
@@ -446,8 +446,8 @@ static jobject discovery_to_jmap(JNIEnv *env, OCClientResponse *msg)
 
     // cJSON_AddItemToObject(root, "href", cJSON_CreateString("oic/res"));
 
-    /* sid (di) */
-    j_sval = (*env)->NewStringUTF(env, payload->sid);
+    /* di (di) */
+    j_sval = (*env)->NewStringUTF(env, payload->di);
     ores = (*env)->CallObjectMethod(env, j_payload_map, MID_HASHMAP_PUT, KEY_OCF_DI, j_sval);
     if ((*env)->ExceptionCheck(env)) { (*env)->ExceptionDescribe(env); }
     (*env)->DeleteLocalRef(env, j_sval);
@@ -695,9 +695,9 @@ static void discovery_to_json(OCClientResponse *msg)
     ifaces[1] = "oic.if.ll";
     cJSON_AddItemToObject(root, "if", cJSON_CreateStringArray(ifaces, 2));
     cJSON_AddItemToObject(root, "n", payload->name?
-			  cJSON_CreateString(payload->sid) : cJSON_CreateNull());
+			  cJSON_CreateString(payload->di) : cJSON_CreateNull());
     cJSON_AddItemToObject(root, "mpro", cJSON_CreateNull());
-    cJSON_AddItemToObject(root, "di", cJSON_CreateString(payload->sid));
+    cJSON_AddItemToObject(root, "di", cJSON_CreateString(payload->di));
 
     /* OIC_LOG_V(INFO, TAG, "Discovery payload type: %s",
      * 	      (pay->type == NULL) ? "(null)" : pay->type->value);

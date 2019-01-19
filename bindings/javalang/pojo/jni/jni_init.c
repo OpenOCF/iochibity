@@ -125,7 +125,7 @@ jmethodID MID_HASHMAP_PUT = NULL;
 /* jfieldID  FID_INRESP_REMOTE_DEVADDR     = NULL; */
 /* jmethodID MID_INRESP_GET_REMOTE_DEVADDR = NULL; */
 /* jfieldID  FID_INRESP_CONN_TYPE          = NULL; */
-/* jfieldID  FID_INRESP_REMOTE_SID         = NULL; */
+/* jfieldID  FID_INRESP_REMOTE_DI         = NULL; */
 /* jfieldID  FID_INRESP_RESULT             = NULL; */
 /* jfieldID  FID_INRESP_SERIAL             = NULL; */
 /* jfieldID  FID_INRESP_URI                = NULL; */
@@ -660,12 +660,12 @@ int init_ObservationOut(JNIEnv* env)
 /*     /\* 	} *\/ */
 /*     /\* } *\/ */
 
-/*     if (FID_INRESP_REMOTE_SID == NULL) { */
-/* 	FID_INRESP_REMOTE_SID = (*env)->GetFieldID(env, K_INBOUND_RESPONSE, */
+/*     if (FID_INRESP_REMOTE_DI == NULL) { */
+/* 	FID_INRESP_REMOTE_DI = (*env)->GetFieldID(env, K_INBOUND_RESPONSE, */
 /* 						   "_secID", "Ljava/lang/String;"); */
-/* 	JNI_ASSERT_NULL(FID_INRESP_REMOTE_SID, */
+/* 	JNI_ASSERT_NULL(FID_INRESP_REMOTE_DI, */
 /* 			ERR_MSG(ERR_FLD, "InboundResponse._secID"), -1); */
-/* 	/\* if (FID_INRESP_REMOTE_SID == NULL) { *\/ */
+/* 	/\* if (FID_INRESP_REMOTE_DI == NULL) { *\/ */
 /* 	/\*     LOGD(LOG_TAG, "ERROR: GetFieldID failed for 'secID' of InboundResponse\n"); *\/ */
 /* 	/\*     return -1; *\/ */
 /* 	/\* } *\/ */

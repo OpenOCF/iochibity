@@ -79,8 +79,8 @@ THREAD_LOCAL txn_t* tls_txn;
 /*     (*env)->SetIntField(env, j_InboundResponse, FID_INRESP_CONN_TYPE, c_OCClientResponse->connType); */
 
 /*     /\* FIXME: use id_length *\/ */
-/*     jstring j_sid = (*env)->NewStringUTF(env, (char*)c_OCClientResponse->identity.id); */
-/*     (*env)->SetObjectField(env, j_InboundResponse, FID_INRESP_REMOTE_SID, j_sid); */
+/*     jstring j_di = (*env)->NewStringUTF(env, (char*)c_OCClientResponse->identity.id); */
+/*     (*env)->SetObjectField(env, j_InboundResponse, FID_INRESP_REMOTE_DI, j_di); */
 
 /*     (*env)->SetIntField(env, j_InboundResponse, FID_INRESP_RESULT, c_OCClientResponse->result); */
 /*     (*env)->SetIntField(env, j_InboundResponse, FID_INRESP_SERIAL, c_OCClientResponse->sequenceNumber); */

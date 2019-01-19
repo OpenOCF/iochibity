@@ -2355,15 +2355,15 @@ LOCAL OCResourceInterface *findResourceInterfaceAtIndex(OCResourceHandle handle,
 
 static const OicUuid_t* OC_CALL OCGetServerInstanceID(void)
 {
-    static OicUuid_t sid;
+    static OicUuid_t di;
 
-    if (OC_STACK_OK != GetDoxmDeviceID(&sid))
+    if (OC_STACK_OK != GetDoxmDeviceID(&di))
     {
         OIC_LOG(FATAL, TAG, "Generate UUID for Server Instance failed!");
         return NULL;
     }
 
-    return &sid;
+    return &di;
 }
 
 const char* OC_CALL OCGetServerInstanceIDString(void)

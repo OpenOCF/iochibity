@@ -2125,13 +2125,14 @@ static OCStackResult discoveryPayloadCreateAndAddDeviceId(OCPayload **payload)
 
     {
         OCDiscoveryPayload *discPayload = (OCDiscoveryPayload *)*payload;
-        discPayload->sid = (char *)OICCalloc(1, UUID_STRING_SIZE);
-        VERIFY_PARAM_NON_NULL(TAG, discPayload->sid, "Failed adding device id to discovery payload.");
+        // FIXME: di not included in OCF 1.0, only OIC 1.1
+        discPayload->di = (char *)OICCalloc(1, UUID_STRING_SIZE);
+        VERIFY_PARAM_NON_NULL(TAG, discPayload->di, "Failed adding device id to discovery payload.");
 
         const char* uid = OCGetServerInstanceIDString();
         if (uid)
         {
-            memcpy(discPayload->sid, uid, UUID_STRING_SIZE);
+            memcpy(discPayload->di, uid, UUID_STRING_SIZE);
         }
 
     }
