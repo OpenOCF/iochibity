@@ -224,17 +224,35 @@ Java_openocf_message_InboundResponse_getEndpoint(JNIEnv *env , jobject this)
 
 /*
  * Class:     openocf_message_InboundResponse
- * Method:    getOptions
+ * Method:    getCoapOptions
  * Signature: ()Ljava/util/List;
+ *
+ * Returns List<CoAPOption>
  */
-JNIEXPORT jobject JNICALL
-Java_openocf_message_InboundResponse_getOptions(JNIEnv *env, jobject this)
+JNIEXPORT jobject JNICALL Java_openocf_message_InboundResponse_getCoapOptions(JNIEnv *env, jobject this)
 {
-    OC_UNUSED(env);
-    OC_UNUSED(this);
-    return NULL;
-}
+    struct oocf_coap_options *options = tls_response_in->response->rcvdVendorSpecificHeaderOptions;
+    uint8_t option_count = tls_response_in->response->numRcvdVendorSpecificHeaderOptions;
 
+    // create List<CoAPOption>
+
+    jobject j_option_list  = (*env)->NewObject(env, K_ARRAYLIST, MID_ARRAYLIST_CTOR);
+    if (j_option_list == NULL) { THROW_JNI_EXCEPTION("option_list ArrayList() (ctor)"); }
+
+    uint16_t option_id  = 0;
+    uint16_t option_len = 0;
+    for (int i=0; i < option_count; i++) {
+	option_id = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionID;
+	option_len = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionLength;
+
+
+        jobject j_Option = (*env)->NewObject(env, K_OPTION, MID__CTOR);
+        if (j_Endpoint == NULL) {
+            THROW_JNI_EXCEPTION("Option() (ctor)");
+        }
+    }
+    return j_option_list;
+}
 
 #include "cJSON.h"
 

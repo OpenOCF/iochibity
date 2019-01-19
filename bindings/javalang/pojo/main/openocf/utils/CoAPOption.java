@@ -4,6 +4,12 @@ package openocf.utils;
 
 public class CoAPOption	// OCHeaderOption
 {
+    Int id;
+    // Int length;  // internal, not needed by app code
+    Int type;
+
+    public native Object getValue();
+
 // typedef struct OCHeaderOption
 // {
 //     /** The protocol ID this option applies to.*/
