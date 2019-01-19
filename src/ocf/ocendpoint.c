@@ -39,7 +39,29 @@
 #include <netinet/in.h>
 #endif
 /* src: cacommon.h */
-// FIXME: make this a superset of struct ifaddrs
+// FIXME: make this a superset of struct ifaddrs?
+
+// FIXME: rename this to oocf_channel; it's more than just endpoint
+// info.  An EP is just part of a channel descriptor. E.g.:
+
+/* struct oocf_channel { */
+/*     struct oocf_endpoint ep; */
+/*     CATransportFlags_t  flags; */
+/*     //etc. */
+/* } */
+
+// FIXME: this is more than just endpoint info; it also indicates
+// network, transport, routing, security, and NIF (for responses, the
+// NIF on which msg arrived).  ALSO note the difference between EP and
+// EP payload!  The former is for messages actually sent/recd; the
+// latter is for OCF resource ep data, so it does not contain NIF,
+// remoteID, routeData.
+
+// Strictly speaking, EP means just addressing info. The other stuff
+// reflects actual communications.
+
+// FIXME: add uri_path and uri_query to oocf_endpoint?
+
 struct oocf_endpoint
 {
     // EP transport: one transport per ep, since each ep has one
