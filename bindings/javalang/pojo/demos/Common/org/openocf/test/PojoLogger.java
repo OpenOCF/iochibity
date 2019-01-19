@@ -280,7 +280,7 @@ public class PojoLogger
     // 	if ( (resource.policies & ResourcePolicy.SECURE) > 0) {PojoLogger.LOGGER.info("\tSECURE");}
     // }
 
-    static public void logChannel(Endpoint ep)
+    static public void logEndpoint(Endpoint ep)
     {
         PojoLogger.LOGGER.info("IP address:\t" + ep.getIPAddress());
         PojoLogger.LOGGER.info("port:\t\t" + ep.getPort());
