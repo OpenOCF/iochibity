@@ -233,7 +233,7 @@ typedef struct OCResourcePayload // @rewrite: -> OCResourceLink or OCF_Link
     /* GAR: what about the remaining optional parameters, e.g. di, type (mt?), etc. */
 } OCResourcePayload;
 /* src: octypes.h */
-typedef struct OCDiscoveryPayload /* GAR: implicitly uri is "oic/res" (set in OCClientResponse parent) */
+typedef struct oocf_oic_wk_res /* GAR: implicitly uri is "oic/res" (set in OCClientResponse parent) */
 {
     OCPayload base;
 
