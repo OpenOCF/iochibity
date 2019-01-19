@@ -427,7 +427,7 @@ static void log_header_options (OCClientResponse *clientResponse)
 	option_id = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionID;
 	option_len = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionLength;
 	switch (option_id) {
-	case  COAP_OPTION_ACCEPT:
+	case  COAP_OPTION_ACCEPT: /* uint */
 	    /* Client and server negotiate content (payload) format using COAP header options
 	     * COAP_OPTION_ACCEPT 12 and COAP_OPTION_CONTENT_VERSION; options are:
 	     * application/cbor 60 = 0x3C
@@ -438,10 +438,9 @@ static void log_header_options (OCClientResponse *clientResponse)
 		      option_id);
 	    /* uint */
 	    break;
-	case OCF_ACCEPT_CONTENT_FORMAT_VERSION:
+	case OCF_ACCEPT_CONTENT_FORMAT_VERSION: /* 2 byte uint */
 	    OIC_LOG_V(INFO, TAG, "\t\t OCF-Accept-Content-Version-Format (code %d), len %d",
 		      option_id, option_len);
-	    /* 2 byte uint */
 	    break;
 
 	case  COAP_OPTION_CONTENT_FORMAT: /* uint */
