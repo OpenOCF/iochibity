@@ -764,20 +764,19 @@ public class PojoLogger
 
     static public void logInboundResponse(InboundResponse response)
     {
-	PojoLogger.LOGGER.info("Response uri path:\t" + response.getUri());
+	PojoLogger.LOGGER.info("uri_path:\t" + response.getUri());
 
 	// inbound messages (OCClientResponse) do not contain method
-	// PojoLogger.LOGGER.info("APP_LOGGER Response method:\t" + response.getMethod());
-
-	// PojoLogger.LOGGER.info("APP_LOGGER Response conn type:\t" + response.connType());
-	// PojoLogger.LOGGER.info("APP_LOGGER Response sec ID:\t"
-	//FIXME 		   + Arrays.toString(response.getCoSecurityId()));
-	//FIXME PojoLogger.LOGGER.info("APP_LOGGER Response serial:\t" + response.getNotificationSerial());
+	PojoLogger.LOGGER.info("method:\t" + response.getMethod());
+	//PojoLogger.LOGGER.info("APP_LOGGER Response conn type:\t" + response.connType());
+	PojoLogger.LOGGER.info("identity:\t" + response.getIdentity());
+	PojoLogger.LOGGER.info("result:\t" + response.getResult());
+        PojoLogger.LOGGER.info("serial:\t" + response.getNotificationSerial());
 
 	// logCoAddress(response.getEndpoint());
 
-        PojoLogger.LOGGER.info("Sending endpoint:");
-	logChannel(response.getEndpoint());
+        PojoLogger.LOGGER.info("Sender endpoint:");
+	logEndpoint(response.getEndpoint());
 
 	// List<HeaderOption> headerOptions = req.getOptions();
 	// if (headerOptions != null)
