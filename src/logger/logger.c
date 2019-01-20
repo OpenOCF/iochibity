@@ -965,7 +965,7 @@ char *log_coap_option(coap_option *option) EXPORT
     }
 }
 
-char *log_coap_option_string(struct oocf_coap_options options[], int i) EXPORT
+char *log_coap_option_string(struct oocf_coap_option options[], int i) EXPORT
 //uint16_t id) EXPORT
 {
     /* https://www.iana.org/assignments/core-parameters/core-parameters.xhtml#option-numbers */
@@ -1019,7 +1019,7 @@ char *log_coap_option_string(struct oocf_coap_options options[], int i) EXPORT
     }
 }
 
-char *log_coap_option_value_string(struct oocf_coap_options options[], int i, uint16_t val) EXPORT
+char *log_coap_option_value_string(struct oocf_coap_option options[], int i, uint16_t val) EXPORT
 {
     /* https://www.iana.org/assignments/core-parameters/core-parameters.xhtml#option-numbers */
     switch (options[i].optionID) {

@@ -41,9 +41,9 @@ struct oocf_inbound_response    /* decoded from cbor? */
     uint8_t numRcvdVendorSpecificHeaderOptions;
 
     /** An array of the received vendor specific header options.*/
-    struct oocf_coap_options /* OCHeaderOption */ rcvdVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
+    struct oocf_coap_option /* OCHeaderOption */ rcvdVendorSpecificHeaderOptions[MAX_HEADER_OPTIONS];
 
-    uint8_t coap_response;      /* CoAP defined; sections 3 and 12.1.2 of RFC 7252 */
+    uint8_t coap_response_code;      /* CoAP defined; sections 3 and 12.1.2 of RFC 7252 */
 
 };                              /* OCClientResponse */
 #endif	/* EXPORT_INTERFACE */

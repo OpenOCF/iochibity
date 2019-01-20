@@ -117,7 +117,7 @@ void CASendCSMMessage(const CAEndpoint_t *endpoint)
               endpoint->addr, endpoint->port);
 
     uint8_t numOptions = 0;
-    struct oocf_coap_options /* CAHeaderOption_t */ *csmOpts = NULL;
+    struct oocf_coap_option /* CAHeaderOption_t */ *csmOpts = NULL;
     unsigned int maxMsgSize = 1152;
     unsigned char optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH] = { 0 };
     size_t optionDataLength = coap_encode_var_bytes(optionData, maxMsgSize);

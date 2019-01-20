@@ -271,7 +271,7 @@ Java_openocf_message_InboundResponse_getCoAPOptions(JNIEnv *env, jobject this)
     jobject j_option_list  = (*env)->NewObject(env, K_ARRAYLIST, MID_ARRAYLIST_CTOR);
     if (j_option_list == NULL) { THROW_JNI_EXCEPTION("option_list ArrayList() (ctor)"); }
 
-    struct oocf_coap_options *options = tls_response_in->response->rcvdVendorSpecificHeaderOptions;
+    struct oocf_coap_option *options = tls_response_in->response->rcvdVendorSpecificHeaderOptions;
     for (int i=0; i < tls_response_in->response->numRcvdVendorSpecificHeaderOptions; i++) {
     jobject j_option  = (*env)->NewObject(env, K_ARRAYLIST, MID_ARRAYLIST_CTOR);
 

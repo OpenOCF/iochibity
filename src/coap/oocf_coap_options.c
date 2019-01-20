@@ -76,15 +76,17 @@ typedef enum
 
 #if EXPORT_INTERFACE
 #include <stdint.h>
-struct oocf_coap_options
+struct oocf_coap_option
 {
     //CATransportProtocolID_t protocolID;                     /**< Protocol ID:  CoAP or ?? */
     uint16_t optionID;                                      /**< CoAP option number */
     uint16_t optionLength;                                  /**< Option Length **/
     uint8_t /* char */ optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];      /**< Optional data values**/
 };
-typedef struct oocf_coap_options CAHeaderOption_t;
-typedef struct oocf_coap_options OCHeaderOption;
+typedef struct oocf_coap_option CAHeaderOption_t;
+typedef struct oocf_coap_option OCHeaderOption;
+
+
 /**
  * This structure will be used to define the vendor specific header options to be included
  * in communication packets.
@@ -105,9 +107,9 @@ typedef struct oocf_coap_options OCHeaderOption;
 ns, */
 /*                                         uint16_t optionID, void* optionData, size_t optionDataLength, */
 /*                                         uint16_t* receivedDataLength) */
-OCStackResult OC_CALL OCGetHeaderOption(struct oocf_coap_options /* CAHeaderOption_t */ *options_array, /**< array */
-                                        size_t numOptions,
-                                        uint16_t optionID,
+OCStackResult OC_CALL OCGetHeaderOption(const struct oocf_coap_option /* CAHeaderOption_t */ *options_array,
+                                        const size_t numOptions,
+                                        const uint16_t optionID,
                                         void *optionData, /**< [out]  */
                                         size_t optionDataLength,
                                         uint16_t* receivedDataLength /**< [out]   */
