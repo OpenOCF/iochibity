@@ -77,18 +77,6 @@ typedef enum
 #define OC_MASK_RESOURCE_SECURE    (OC_NONSECURE | OC_SECURE)
 
 /**
- * Transport Protocol IDs.
- */
-typedef enum
-{
-    /** For invalid ID.*/
-    OC_INVALID_ID   = (1 << 0),
-
-    /* For coap ID.*/
-    OC_COAP_ID      = (1 << 1)
-} OCTransportProtocolID;
-
-/**
  * Sequence number is a 24 bit field,
  * per https://tools.ietf.org/html/rfc7641.
  */

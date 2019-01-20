@@ -88,6 +88,18 @@ typedef struct oocf_coap_option OCHeaderOption;
 
 
 /**
+ * Transport Protocol IDs.
+ */
+/* typedef enum */
+/* { */
+/*     /\** For invalid ID.*\/ */
+/*     OC_INVALID_ID   = (1 << 0), */
+
+/*     /\* For coap ID.*\/ */
+/*     OC_COAP_ID      = (1 << 1) */
+/* } OCTransportProtocolID; */
+
+/**
  * This structure will be used to define the vendor specific header options to be included
  * in communication packets.
  */
