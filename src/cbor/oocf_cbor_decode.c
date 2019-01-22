@@ -60,8 +60,8 @@ OCStackResult OCParsePayload(struct OCPayload **outPayload,
     OIC_LOG_V(INFO, TAG, "CBOR Parsing Payload Type: %d %s of size: %" PRIuPTR,
               payloadType,
               (payloadType == PAYLOAD_TYPE_DISCOVERY)? "DISCOVERY"
-              :(payloadType == PAYLOAD_TYPE_DEVICE)? "DEVICE"
-              :(payloadType == PAYLOAD_TYPE_PLATFORM)? "PLATFORM"
+              //:(payloadType == PAYLOAD_TYPE_DEVICE)? "DEVICE"
+              //:(payloadType == PAYLOAD_TYPE_PLATFORM)? "PLATFORM"
               :(payloadType == PAYLOAD_TYPE_REPRESENTATION)? "REPRESENTATION"
               :(payloadType == PAYLOAD_TYPE_SECURITY)? "SECURITY"
               :(payloadType == PAYLOAD_TYPE_DIAGNOSTIC)? "DIAGNOSTIC"
