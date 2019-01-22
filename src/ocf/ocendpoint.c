@@ -1017,7 +1017,7 @@ bool CAIPIsLocalEndpoint(const CAEndpoint_t *ep)
  * @param payload Discovery payload which has Endpoint information.
  * @param ifindex index which indicate network interface.
  * => oocf_ipv6.c?
- * FIXME: name it accurately
+ * FIXME: name it accurately. oocf_add_zone_to_linklocal_eps?
  */
 OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload, uint32_t ifindex)
 {
@@ -1027,6 +1027,8 @@ OCStackResult OCMapZoneIdToLinkLocalEndpoint(OCDiscoveryPayload *payload, uint32
         OIC_LOG(ERROR, TAG, "Given argument payload is NULL!!");
         return OC_STACK_INVALID_PARAM;
     }
+
+    // FIXME: OCDiscoveryPayload has a next ptr!
 
     OCResourcePayload *curRes = payload->resources;
 

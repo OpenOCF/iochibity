@@ -771,8 +771,9 @@ OCStackResult OCSendRequest(const CAEndpoint_t *dest_ep, struct CARequestInfo *r
 }
 
 static void _decode_cbor_payload(ClientCB *cbNode, /* @was OCHandleResponse */
-                                 const CAResponseInfo_t *responseInfo,
-                                 struct oocf_inbound_response * response)
+                                 const CAResponseInfo_t *responseInfo, /**< [in] contains encoded payload */
+                                 struct oocf_inbound_response * response /**< [out] contains decoded OCPayload */
+                                 )
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
 
@@ -907,7 +908,7 @@ static void _decode_cbor_payload(ClientCB *cbNode, /* @was OCHandleResponse */
                     if (PAYLOAD_TYPE_DISCOVERY == response->payload->type)
                         {
                             OCDiscoveryPayload *disPayload = (OCDiscoveryPayload*)(response->payload);
-                            /* NB: this call updates disPayload */
+                            /* NB: this call may update ep payloads of disPayload */
                             if (OC_STACK_OK !=
                                 OCMapZoneIdToLinkLocalEndpoint(disPayload, response->devAddr.ifindex))
                                 {
@@ -1275,8 +1276,8 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                                         OIC_LOG_V(INFO, TAG, "[%d] %s: Device ID of response : %s",
                                                   __LINE__, __func__,
                                                   response->devAddr.remoteId);
-
 #if defined(TCP_ADAPTER) && defined(WITH_CLOUD)
+                                        /* FIXME: what does this have to do with remoteId? */
                                         CAConnectUserPref_t connPrefer = CA_USER_PREF_CLOUD;
                                         CAResult_t ret = CAUtilCMGetConnectionUserConfig(&connPrefer);
                                         if (ret == CA_STATUS_OK && connPrefer != CA_USER_PREF_CLOUD)

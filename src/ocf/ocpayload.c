@@ -105,6 +105,7 @@ typedef enum
 
 /** Enum to describe payload interface interface.*/
 /* src: octypes.h */
+// FIXME: semantics? used only in OCRepPayload
 typedef enum
 {
     PAYLOAD_NON_BATCH_INTERFACE,

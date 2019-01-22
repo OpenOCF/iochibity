@@ -279,16 +279,16 @@ typedef struct OCResource {
     struct OCResource *next;
 
     /** Relative path on the device; will be combined with base url to create fully qualified path.*/
-    char *uri;
+    char *uri;                  /* FIXME: naming. url_path */
 
     /** Resource type(s); linked list.*/
-    OCResourceType *rsrcType;
+    OCResourceType *rsrcType;   /* FIXME: naming.  rts */
 
     /** Resource interface(s); linked list.*/
-    OCResourceInterface *rsrcInterface;
+    OCResourceInterface *rsrcInterface; /* FIXME: naming.  rifs */
 
     /** Resource attributes; linked list.*/
-    OCAttribute *rsrcAttributes; /* GAR:misnamed, should be Properties */
+    OCAttribute *rsrcAttributes; /* FIXME: naming.  properties */
 
     /** Array of pointers to resources; can be used to represent a container of resources.
      * (i.e. hierarchies of resources) or for reference resources (i.e. for a resource collection).*/
@@ -298,7 +298,7 @@ typedef struct OCResource {
 
     /** Pointer to function that handles the entity bound to the resource.
      *  This handler has to be explicitly defined by the programmer.*/
-    OCEntityHandler entityHandler;
+    OCEntityHandler entityHandler; /* FIXME: naming.  service_provider */
 
     /** Callback parameter.*/
     void * entityHandlerCallbackParam;
@@ -306,7 +306,7 @@ typedef struct OCResource {
     /** Properties on the resource – defines meta information on the resource.
      * (ACTIVE, DISCOVERABLE etc ). */
 
-    OCResourceProperty resourceProperties ; /* GAR: misnamed; should be policies, not properties */
+    OCResourceProperty resourceProperties ; /* FIXME: naming. policies */
 
     /* @note: Methods supported by this resource should be based on the interface targeted
      * i.e. look into the interface structure based on the query request Can be removed here;
@@ -320,7 +320,7 @@ typedef struct OCResource {
     uint32_t sequenceNum;
 
     /** Pointer of ActionSet which to support group action.*/
-    OCActionSet *actionsetHead;
+    OCActionSet *actionsetHead; /* FIXME: obsolete? */
 
     /** The instance identifier for this web link in an array of web links - used in links. */
     /* GAR: uniqueStr, OCIdentity, uniqueUUID not referenced in source code!? */
@@ -2589,6 +2589,7 @@ OCStackResult OC_CALL OCGetAttribute(const OCResource *resource, const char *att
     return OC_STACK_NO_RESOURCE;
 }
 
+// FIXME: naming. gets property only for device or platform
 OCStackResult OC_CALL OCGetPropertyValue(OCPayloadType type, const char *prop, void **value)
 {
     if (!prop)

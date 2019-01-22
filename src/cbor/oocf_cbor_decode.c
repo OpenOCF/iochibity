@@ -185,8 +185,7 @@ exit:
     return err;
 }
 
-static OCStackResult OCParseDiscoveryPayloadCbor(OCPayload **outPayload,
-        CborValue *rootValue)
+static OCStackResult OCParseDiscoveryPayloadCbor(OCPayload **outPayload, CborValue *rootValue)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCStackResult ret = OC_STACK_INVALID_PARAM;
@@ -419,6 +418,7 @@ exit:
     return ret;
 }
 
+// FIXME: naming. DecodeLinks?
 static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *resourceMap)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);

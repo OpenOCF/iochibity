@@ -105,7 +105,8 @@ typedef struct oocf_coap_option OCHeaderOption;
  */
 /* typedef struct OCHeaderOption */
 /* { */
-/*     // protocolID is evidently speculative; CoAP options do not */
+/*     // protocolID is evidently speculative; allowed values are CoAP
+       // and Invalid. CoAP options do not */
 /*     // include a protocol id.  Maybe this is in case some protocol */
 /*     // other than CoAP should be added later? */
 /*     /\* OCTransportProtocolID protocolID; *\/ */
