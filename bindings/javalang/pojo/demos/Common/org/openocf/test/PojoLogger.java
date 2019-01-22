@@ -762,6 +762,16 @@ public class PojoLogger
 	}
     }
 
+    static public void logCoAPOptions(List<CoAPOption> options)
+    {
+	PojoLogger.LOGGER.info("CoAP Options:");
+        if (options != null) {
+            PojoLogger.LOGGER.info("options ct: " + options.size());
+            //options.forEach(item -> PojoLogger.LOGGER.info("option item"));
+            options.forEach(item -> item.forEach((k,v) -> PojoLogger.LOGGER.info("\t" + k + " == " + v)));
+        }
+    }
+
     static public void logInboundResponse(InboundResponse response)
     {
 	PojoLogger.LOGGER.info("uri_path:\t" + response.getUri());
@@ -773,14 +783,10 @@ public class PojoLogger
 	PojoLogger.LOGGER.info("result:\t" + response.getResult());
         PojoLogger.LOGGER.info("serial:\t" + response.getNotificationSerial());
 
-	// logCoAddress(response.getEndpoint());
+        logCoAPOptions((List<CoAPOption>)response.getCoAPOptions());
 
         PojoLogger.LOGGER.info("Sender endpoint:");
 	logEndpoint(response.getEndpoint());
-
-	// List<HeaderOption> headerOptions = req.getOptions();
-	// if (headerOptions != null)
-	//     PojoLogger.LOGGER.info("LOG InboundRequest header options ct: " + headerOptions.size());
 
 	// FIXME:
 	// if (result.cosp == OCStackResult.OK) {

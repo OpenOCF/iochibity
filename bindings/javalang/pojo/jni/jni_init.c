@@ -49,6 +49,7 @@
 /* #include "logger.h" */
 
 int init_Endpoint(JNIEnv* env);
+int init_CoAPOption(JNIEnv* env);
 int init_Message(JNIEnv* env);
 int init_InboundRequest(JNIEnv* env);
 int init_InboundResponse(JNIEnv* env);
@@ -1041,6 +1042,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
     init_java(env);
 
     init_Endpoint(env);
+
+    init_CoAPOption(env);
 
     init_Message(env);
 
