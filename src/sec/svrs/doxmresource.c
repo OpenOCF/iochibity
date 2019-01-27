@@ -41,7 +41,7 @@
 #if EXPORT_INTERFACE
 #include <stdlib.h>
 /* src: securevirtualresourcetypes.h */
-typedef enum
+enum oocf_oic_sec_doxmtype
 {
     OIC_JUST_WORKS                          = 0x0, /* oic.sec.doxm.jw */
     OIC_RANDOM_DEVICE_PIN                   = 0x1, /* oic.sec.doxm.rdp */
@@ -53,7 +53,8 @@ typedef enum
 /* #endif //MULTIPLE_OWNER */
     OIC_MV_JUST_WORKS                       = 0xFF01, /* Mutual Verified? */
     OIC_CON_MFG_CERT                        = 0xFF02, /* Confirm Manufacturer Cert? */
-} OicSecOxm_t;
+};
+typedef enum oocf_oic_sec_doxmtype OicSecOxm_t; /* @legacy */
 
 /* src: doxresource.h */
 // NOTE that this enum must match the gDoxmPropertyAccessModes

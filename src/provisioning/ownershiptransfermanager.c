@@ -2717,21 +2717,23 @@ OCStackResult OTMDoOwnershipTransfer(void* ctx,
     return res;
 }
 
-OCStackResult OTMSetOxmAllowStatus(const OicSecOxm_t oxm, const bool allowStatus)
+// FIXME: @naming. oocf_enable_otm(type, enable)
+OCStackResult OTMSetOxmAllowStatus(const oocf_oic_sec_doxmtype /* OicSecOxm_t */ doxmtype,
+                                   const bool allowStatus)
 {
-    OIC_LOG_V(INFO, TAG, "IN %s : oxm=%d, allow status=%s",
-              __func__, oxm, (allowStatus ? "true" : "false"));
+    OIC_LOG_V(INFO, TAG, "%s ENTRY: doxmtype=%d, allow status=%s",
+              __func__, doxmtype, (allowStatus ? "true" : "false"));
 
 #ifdef MULTIPLE_OWNER
-    if(OIC_OXM_COUNT <= oxm && OIC_MV_JUST_WORKS != oxm && OIC_PRECONFIG_PIN != oxm && OIC_CON_MFG_CERT != oxm)
+    if(OIC_OXM_COUNT <= doxmtype && OIC_MV_JUST_WORKS != doxmtype && OIC_PRECONFIG_PIN != doxmtype && OIC_CON_MFG_CERT != doxmtype)
 #else
-    if(OIC_OXM_COUNT <= oxm && OIC_MV_JUST_WORKS != oxm && OIC_CON_MFG_CERT != oxm)
+    if(OIC_OXM_COUNT <= doxmtype && OIC_MV_JUST_WORKS != doxmtype && OIC_CON_MFG_CERT != doxmtype)
 #endif
     {
         return OC_STACK_INVALID_PARAM;
     }
 
-    OxmAllowTableIdx_t oxmIdx = GetOxmAllowTableIdx(oxm);
+    OxmAllowTableIdx_t oxmIdx = GetOxmAllowTableIdx(doxmtype);
     if(OXM_IDX_COUNT <= oxmIdx)
     {
         OIC_LOG(ERROR, TAG, "Invalid oxm index to access oxm allow table.");
@@ -2739,8 +2741,7 @@ OCStackResult OTMSetOxmAllowStatus(const OicSecOxm_t oxm, const bool allowStatus
     }
     g_OxmAllowStatus[oxmIdx] = (allowStatus ? ALLOWED_OXM : NOT_ALLOWED_OXM);
 
-    OIC_LOG_V(INFO, TAG, "OUT %s", __func__);
-
+    OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
     return OC_STACK_OK;
 }
 
