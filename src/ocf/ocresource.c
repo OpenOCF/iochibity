@@ -3141,6 +3141,7 @@ OCStackResult OC_CALL OCSetAttribute(OCResource *resource, const char *attribute
     return SetAttributeInternal(resource, attribute, value, updateDatabase);
 }
 
+// FIXME: naming. this is only for device and platform, name it accordingly!
 OCStackResult OC_CALL OCSetPropertyValue(OCPayloadType type, const char *prop, const void *value)
 {
     if (!prop || !value)

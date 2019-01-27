@@ -128,6 +128,7 @@ void process_options(struct CARequestInfo requestInfo, uint8_t numOptions, OCHea
  * Discover or Perform requests on a specified resource
  */
 // FIXME: @rename oocf_exhibit_request or send_request
+// FIXME: pass a routing flag? mcast/ucast
 OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
                                   OCMethod method,
                                   const char *requestUri,
@@ -653,7 +654,7 @@ exit:
 
 /**
  * Discover or Perform requests on a specified resource
- * Deprecated: use OCDoRequest instead
+ * Deprecated: use OCDoRequest instead. Signature is same, its just a better name.
  */
 OCStackResult OC_CALL OCDoResource(OCDoHandle *handle,
                                    OCMethod method,
