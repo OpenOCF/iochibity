@@ -776,8 +776,8 @@ public class PojoLogger
 
 	// logCoAddress(response.getEndpoint());
 
-        PojoLogger.LOGGER.info("Sending endpoint:");
-	logChannel(response.getEndpoint());
+        PojoLogger.LOGGER.info("Origin endpoint:");
+	logEndpoint(response.getEndpoint());
 
 	// List<HeaderOption> headerOptions = req.getOptions();
 	// if (headerOptions != null)
