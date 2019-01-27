@@ -1,3 +1,7 @@
+#include <arpa/inet.h>
+
+// windows: <ws2tcipp.h>
+
 /*
  * MAX_ADDR_STR_SIZE_CA - fromm octypes.h and cacommon.h, both of
  * which contained copies of this code.
@@ -12,6 +16,6 @@
  * OCDevAddr (defined in OCTypes.h) must be the same
  * as CAEndpoint_t (defined here)
  */
-#define MAX_ADDR_STR_SIZE (66)
+#define MAX_ADDR_STR_SIZE INET6_ADDRSTRLEN + 20
 #endif
 #define MAX_ADDR_STR_SIZE_CA MAX_ADDR_STR_SIZE

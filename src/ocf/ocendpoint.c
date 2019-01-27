@@ -77,7 +77,9 @@ struct oocf_endpoint
     // sa_family_t sa_family;
     // sa_data:
     in_port_t               port;       // for IP
-    char                    addr[INET6_ADDRSTRLEN + 1]; // address for all
+    // FIXME: here "addr" means URI, not addr literal
+    char                    addr[MAX_ADDR_STR_SIZE_CA]; // URI address
+    //char                    ip_addr[INET6_ADDRSTRLEN + 1]; // address literal
     //struct in6_addr         addr6;
 
     /* union { */
