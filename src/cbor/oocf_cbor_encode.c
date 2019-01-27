@@ -38,7 +38,7 @@
 // Endpoint Map length, it contains "ep", "pri".
 #define EP_MAP_LEN (2)
 
-/* FIXME: @rename:  oocf_coap_to_cbor or similar. oocf_cbor_encode_coap_payload? */
+/* FIXME: @rename:  oocf_coap_to_cbor or similar. oocf_cbor_encode_ocf_payload? */
 OCStackResult OCConvertPayload(struct OCPayload* payload, OCPayloadFormat format,
                                uint8_t** outPayload, size_t* size)
 {
@@ -487,7 +487,7 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
     cbor_encoder_init(&encoder, outPayload, *size, 0);
 
     /*
-    The format for the payload is "modelled" as JSON.
+    The format for the payload is "modeled" as JSON.
 
     [                                                  // rootArray
         {
@@ -505,6 +505,7 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
     CborEncoder rootArray;
     CborEncoder rootMap;
     CborEncoder linkArray;
+    // FIXME: what does baseline mean?
     bool isBaseline = payload->name || payload->type || payload->iface;
     if (isBaseline)
     {
@@ -519,19 +520,20 @@ static int64_t OCConvertDiscoveryPayloadVndOcfCbor(OCDiscoveryPayload *payload,
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed creating discovery map");
 
         // Insert Name
+        // FIXME: optional
         err |= ConditionalAddTextStringToMap(&rootMap, OC_RSRVD_DEVICE_NAME,
                 sizeof(OC_RSRVD_DEVICE_NAME) - 1, payload->name);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed setting name");
 
-        // Insert Resource Type
+        // Insert Resource Type (mandatory)
         err |= OCStringLLJoin(&rootMap, OC_RSRVD_RESOURCE_TYPE, payload->type);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed setting RT");
 
-        // Insert interfaces
+        // Insert interfaces (mandatory)
         err |= OCStringLLJoin(&rootMap, OC_RSRVD_INTERFACE, payload->iface);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed adding interface types tag/value");
 
-        // Insert Links into the root map.
+        // Insert Links into the root map. (mandatory)
         err |= cbor_encode_text_string(&rootMap, OC_RSRVD_LINKS, sizeof(OC_RSRVD_LINKS) - 1);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, err, "Failed setting links array tag");
 
@@ -701,7 +703,7 @@ LOCAL int64_t OCConvertDiscoveryPayload(OCDiscoveryPayload *payload, OCPayloadFo
                                          uint8_t *outPayload, size_t *size)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    if (OC_FORMAT_VND_OCF_CBOR == format)
+    if (OC_FORMAT_VND_OCF_CBOR == format)  // FIXME: what about format version?
     {
         return OCConvertDiscoveryPayloadVndOcfCbor(payload, outPayload, size);
     }

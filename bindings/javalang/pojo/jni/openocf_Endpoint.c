@@ -443,6 +443,8 @@ JNIEXPORT jboolean JNICALL Java_openocf_Endpoint_isTransportUDP(JNIEnv *env, job
 JNIEXPORT jboolean JNICALL Java_openocf_Endpoint_isTransportTCP(JNIEnv *env, jobject this)
 {
     jlong handle = (*env)->GetLongField(env, this, FID_EP_HANDLE);
+    OCDevAddr *ep_handle = (OCDevAddr*) handle;
+    return ep_handle->adapter & OC_ADAPTER_TCP;
 }
 
 /*

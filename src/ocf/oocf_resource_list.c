@@ -381,7 +381,7 @@ OCStackResult OC_CALL OCCreateResourceWithEp(OCResourceHandle *handle,
         const char *resourceInterfaceName,
         const char *uri, OCEntityHandler entityHandler,
         void *callbackParam,
-        uint8_t resourceProperties,
+        uint8_t resourceProperties, /* FIXME: naming. resourcePolicies */
         OCTpsSchemeFlags resourceTpsTypes)
 {
 

@@ -60,8 +60,8 @@ OCStackResult OCParsePayload(struct OCPayload **outPayload,
     OIC_LOG_V(INFO, TAG, "CBOR Parsing Payload Type: %d %s of size: %" PRIuPTR,
               payloadType,
               (payloadType == PAYLOAD_TYPE_DISCOVERY)? "DISCOVERY"
-              :(payloadType == PAYLOAD_TYPE_DEVICE)? "DEVICE"
-              :(payloadType == PAYLOAD_TYPE_PLATFORM)? "PLATFORM"
+              //:(payloadType == PAYLOAD_TYPE_DEVICE)? "DEVICE"
+              //:(payloadType == PAYLOAD_TYPE_PLATFORM)? "PLATFORM"
               :(payloadType == PAYLOAD_TYPE_REPRESENTATION)? "REPRESENTATION"
               :(payloadType == PAYLOAD_TYPE_SECURITY)? "SECURITY"
               :(payloadType == PAYLOAD_TYPE_DIAGNOSTIC)? "DIAGNOSTIC"
@@ -185,8 +185,7 @@ exit:
     return err;
 }
 
-static OCStackResult OCParseDiscoveryPayloadCbor(OCPayload **outPayload,
-        CborValue *rootValue)
+static OCStackResult OCParseDiscoveryPayloadCbor(OCPayload **outPayload, CborValue *rootValue)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     OCStackResult ret = OC_STACK_INVALID_PARAM;
@@ -419,6 +418,7 @@ exit:
     return ret;
 }
 
+// FIXME: naming. DecodeLinks?
 static CborError ParseResources(OCDiscoveryPayload **outPayload, CborValue *resourceMap)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);

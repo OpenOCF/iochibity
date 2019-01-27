@@ -80,7 +80,7 @@ typedef struct _oocf_coap_msg_unpacked /* src: camessagehandler.c */
     uint8_t tokenLength;        /**< token length */
 
     /* libcoap: options_start(pdu), coap_option_iterator_x, etc */
-    struct oocf_coap_options /* CAHeaderOption_t */ *options;  /** Header Options for the request */
+    struct oocf_coap_option /* CAHeaderOption_t */ *options;  /** Header Options for the request */
     uint8_t numOptions;         /**< Number of Header options */
 
     uint8_t *payload_cbor;      /**< cbor-encoded coap payload */

@@ -4,6 +4,7 @@
 
 //#include "openocf_message_InboundResponse.h"
 #include "openocf_Endpoint.ids.h"
+#include "openocf_message_CoAPOption.ids.h"
 #include "map_keys.h"
 
 
@@ -268,26 +269,43 @@ Java_openocf_message_InboundResponse_getEndpoint(JNIEnv *env , jobject this)
 JNIEXPORT jobject JNICALL
 Java_openocf_message_InboundResponse_getCoAPOptions(JNIEnv *env, jobject this)
 {
-    jobject j_option_list  = (*env)->NewObject(env, K_ARRAYLIST, MID_ARRAYLIST_CTOR);
-    if (j_option_list == NULL) { THROW_JNI_EXCEPTION("option_list ArrayList() (ctor)"); }
+    OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
+    jobject j_options  = (*env)->NewObject(env, K_ARRAYLIST, MID_ARRAYLIST_CTOR);
+    if (j_options == NULL) { THROW_JNI_EXCEPTION("option_list ArrayList() (ctor)"); }
 
-    uint16_t option_id  = 0;
-    uint16_t option_len = 0;
+    jobject ores;		/* object result */
+    jstring j_sval;
+    jboolean bres;			/* boolean result */
 
-    for (int i=0; i < tls_response_in->response->numRcvdVendorSpecificHeaderOptions; i++) {
-	option_id = tls_response_in->response->rcvdVendorSpecificHeaderOptions[i].optionID;
-	option_len = tls_response_in->response->rcvdVendorSpecificHeaderOptions[i].optionLength;
+    struct oocf_coap_option *rcvdOptions = tls_response_in->response->rcvdVendorSpecificHeaderOptions;
+    /* FIXME: the OCHeaderOption struct also contains a "protocolID", deal with it */
+    for (int i = 0; i < tls_response_in->response->numRcvdVendorSpecificHeaderOptions; i++) {
+	OIC_LOG_V(INFO, TAG, "%s option %u", __func__, i);
 
-        //FIXME
-        /* jobject j_Option = (*env)->NewObject(env, K_COAP_OPTION, MID__CTOR); */
-        /* if (j_Endpoint == NULL) { */
-        /*     THROW_JNI_EXCEPTION("CoAPOption() (ctor)"); */
-        /* } */
+	jobject j_option = (*env)->NewObject(env, K_COAP_OPTION, MID_COAP_OPTION_CTOR);
+	if (j_option == NULL) { THROW_JNI_EXCEPTION("CoAPOPTION () (ctor)"); }
+
+	int k = 0, v = 0;
+	/* if (((OCHeaderOption)rcvdOptions[i]).protocolID == OC_COAP_ID) */
+	/*     { */
+		k = ((OCHeaderOption)rcvdOptions[i]).optionID;
+		jobject j_k = (*env)->CallStaticObjectMethod(env, K_INTEGER, MID_INT_VALUE_OF, k);
+		v = rcvdOptions[i].optionData[0] * 256 + rcvdOptions[i].optionData[1];
+		jobject j_v = (*env)->CallStaticObjectMethod(env, K_INTEGER, MID_INT_VALUE_OF, v);
+		ores = (*env)->CallObjectMethod(env, j_option, MID_HASHMAP_PUT, j_k, j_v);
+		if ((*env)->ExceptionCheck(env)) { (*env)->ExceptionDescribe(env); }
+        /*     } else { */
+	/*     // error ??? */
+	/* } */
+	bres = (*env)->CallBooleanMethod(env, j_options, MID_ARRAYLIST_ADD, j_option);
     }
-    return j_option_list;
+
+    return j_options;
 }
 
-#include "cJSON.h"
+
+//#include "cJSON.h"
+>>>>>>> c2c2ede3deeaa15014d636092f2598ed7948d77f
 
 static jobject link_to_map(OCResourcePayload *link)
 {

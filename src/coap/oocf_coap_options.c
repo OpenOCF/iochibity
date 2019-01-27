@@ -76,22 +76,37 @@ typedef enum
 
 #if EXPORT_INTERFACE
 #include <stdint.h>
-struct oocf_coap_options
+struct oocf_coap_option
 {
     //CATransportProtocolID_t protocolID;                     /**< Protocol ID:  CoAP or ?? */
     uint16_t optionID;                                      /**< CoAP option number */
     uint16_t optionLength;                                  /**< Option Length **/
     uint8_t /* char */ optionData[CA_MAX_HEADER_OPTION_DATA_LENGTH];      /**< Optional data values**/
 };
-typedef struct oocf_coap_options CAHeaderOption_t;
-typedef struct oocf_coap_options OCHeaderOption;
+typedef struct oocf_coap_option CAHeaderOption_t;
+typedef struct oocf_coap_option OCHeaderOption;
+
+
+/**
+ * Transport Protocol IDs.
+ */
+/* typedef enum */
+/* { */
+/*     /\** For invalid ID.*\/ */
+/*     OC_INVALID_ID   = (1 << 0), */
+
+/*     /\* For coap ID.*\/ */
+/*     OC_COAP_ID      = (1 << 1) */
+/* } OCTransportProtocolID; */
+
 /**
  * This structure will be used to define the vendor specific header options to be included
  * in communication packets.
  */
 /* typedef struct OCHeaderOption */
 /* { */
-/*     // protocolID is evidently speculative; CoAP options do not */
+/*     // protocolID is evidently speculative; allowed values are CoAP
+       // and Invalid. CoAP options do not */
 /*     // include a protocol id.  Maybe this is in case some protocol */
 /*     // other than CoAP should be added later? */
 /*     /\* OCTransportProtocolID protocolID; *\/ */
@@ -105,9 +120,9 @@ typedef struct oocf_coap_options OCHeaderOption;
 ns, */
 /*                                         uint16_t optionID, void* optionData, size_t optionDataLength, */
 /*                                         uint16_t* receivedDataLength) */
-OCStackResult OC_CALL OCGetHeaderOption(struct oocf_coap_options /* CAHeaderOption_t */ *options_array, /**< array */
-                                        size_t numOptions,
-                                        uint16_t optionID,
+OCStackResult OC_CALL OCGetHeaderOption(const struct oocf_coap_option /* CAHeaderOption_t */ *options_array,
+                                        const size_t numOptions,
+                                        const uint16_t optionID,
                                         void *optionData, /**< [out]  */
                                         size_t optionDataLength,
                                         uint16_t* receivedDataLength /**< [out]   */

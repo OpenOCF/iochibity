@@ -762,19 +762,28 @@ public class PojoLogger
 	}
     }
 
+    static public void logCoAPOptions(List<CoAPOption> options)
+    {
+	PojoLogger.LOGGER.info("CoAP Options:");
+        if (options != null) {
+            PojoLogger.LOGGER.info("options ct: " + options.size());
+            //options.forEach(item -> PojoLogger.LOGGER.info("option item"));
+            options.forEach(item -> item.forEach((k,v) -> PojoLogger.LOGGER.info("\t" + k + " == " + v)));
+        }
+    }
+
     static public void logInboundResponse(InboundResponse response)
     {
-	PojoLogger.LOGGER.info("Response uri path:\t" + response.getUri());
+	PojoLogger.LOGGER.info("uri_path:\t" + response.getUri());
 
 	// inbound messages (OCClientResponse) do not contain method
-	// PojoLogger.LOGGER.info("APP_LOGGER Response method:\t" + response.getMethod());
+	PojoLogger.LOGGER.info("method:\t" + response.getMethod());
+	//PojoLogger.LOGGER.info("APP_LOGGER Response conn type:\t" + response.connType());
+	PojoLogger.LOGGER.info("identity:\t" + response.getIdentity());
+	PojoLogger.LOGGER.info("result:\t" + response.getResult());
+        PojoLogger.LOGGER.info("serial:\t" + response.getNotificationSerial());
 
-	// PojoLogger.LOGGER.info("APP_LOGGER Response conn type:\t" + response.connType());
-	// PojoLogger.LOGGER.info("APP_LOGGER Response sec ID:\t"
-	//FIXME 		   + Arrays.toString(response.getCoSecurityId()));
-	//FIXME PojoLogger.LOGGER.info("APP_LOGGER Response serial:\t" + response.getNotificationSerial());
-
-	// logCoAddress(response.getEndpoint());
+        logCoAPOptions((List<CoAPOption>)response.getCoAPOptions());
 
         PojoLogger.LOGGER.info("Origin endpoint:");
 	logEndpoint(response.getEndpoint());

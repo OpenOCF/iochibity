@@ -1,6 +1,92 @@
 = payload
 
-Payloads are (Co)Observation records
+OCF 2.0 section 12.1:
+
+"All the property information from the resource model shall be carried
+within the message payload. This payload shall be generated in the
+resource model layer and shall be encapsulated in the data
+connectivity layer. The message header shall only be used to describe
+the message payload (e.g., verb, mime-type, message payload format),
+in addition to the mandatory header fields defined in messaging
+protocol (e.g., CoAP) specification. If the message header does not
+support this, then this information shall also be carried in the
+message payload. Resource model information shall not be included in
+the message header structure unless the message header field is
+mandatory in the messaging protocol specification."
+
+However, an OCF message "payload" may be split across multiple CoAP
+message payloads if BlockWise Transfer (BWT) is enabled; in this case,
+the complete OCF message is called the "body" and each block is the
+"payload" of a single CoAP message.  (RFC 7959, 8323)
+
+OpenOCF (Iotivity) messages are CoAP messages; the processing logic
+converts them into structs in which one field is a payload (OCF msg)
+pointer. E.g. struct oocf_inbound_response.
+
+Iotivity distinguishes between the following "types" of OCF messsage body:
+
+* OCDiscoveryPayload - for responses to discovery requests. we call it oocf_oic_wk_res
+* OCResourcePayload - for "links" in a discovery payload - we rename this OOCF_LinkPayload
+* OCEndpointPayload - for the "eps" field of link payload. Not really a payload, just part of a payload
+* OCRepPayload - for all other responses involving a resource "representation" (except SVRs)
+* OCSecurityPayload - cbor encoded rep of an SVR e.g. oic/sec/doxm
+* OCDiagnosticPayload
+* OCIntrospectionPayload
+* OCPresencePayload - obsolete?
+
+Obsolete:  OCPlatformPayload, OCDevicePayload
+
+Pragmatically, an OCF message body is a record of an observed
+behavior, as opposed to a "representation" of a "resource".  (E.g. how
+can "25 degrees centigrade" be construed as a representation of a
+thermometer?)
+
+NOTES
+
+NB correspondance between "resource" and "payload". A "discovery
+payload" is just an /oic/res (or oic.wk.res) record. A "security
+payload" is just a cbor-encoded record of an SVR. A "representation
+payload" is just a record of a user-defined resource.  Hence:
+
+OCDiscoveryPayload =>  struct oocf_record_oic_wk_res
+OCSecurityPayload =>  struct oocf_record_oic_sec_doxm, oocf_record_oic_sec_cred, etc.
+
+device, platform resources: OCRepPayload => struct OCResource
+user-defined resources: OCRepPayload => struct OCResource
+
+In the case of SVRs we already have a struct, e.g. OicSecCred_t,
+that's why we use cbor in the payload? But we don't have an oic.wk.res
+struct - it's a dynamically generated list of links to hosted resource
+structs. We only need a struct when processing a discovery request.
+
+IOW, /oic/res is "the resource to enable discovery"; that's all it's
+for. It need only be instantiated in response to discovery requests.
+
+what about oic/d and oic/p? For those we do need to store info in a
+structure.
+
+OCSecurityPayload - why cbor content? why not do same for all payloads?
+
+CBOR is the transfer syntax, it can encode any number of
+properties. To decode it, though, we need a place to put the
+properties - a c struct of some kind.  For each SVR, we have a routine
+that decodes cbor to the appropriate c struct, e.g. CBORPayloadToCred,
+which creates a OicSecCred_t for a cbor input.
+
+Question: why not decode the cbor to create the inbound msg body as a
+c struct, instead of leaving it to the app to do the decoding?
+
+Question: why not use a generic struct with dynamic name-value
+property map for SVRs, as we do for user-defined resources?  We could,
+but that would be inefficient and cumbersome since the engine
+frequently has to access the SVRs, e.g. for authorization logic.
+
+The struct for user-defined resources is OCResource.
+
+User-defined resources use dynamically allocated name-value map for
+properties.
+
+OBSOLETE notes:
 
 == payload types:
 
@@ -36,7 +122,7 @@ typedef struct OCResourcePayload
 
 
 
-=== utils.Endpoint
+=== Endpoint
 
 Note that we have several "endpoint" structs:
 
