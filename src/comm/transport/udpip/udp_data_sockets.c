@@ -424,7 +424,7 @@ void applyMulticastToInterface4(uint32_t ifindex) /* add_nif4_to_mcast_group */
     char addr_str[INET_ADDRSTRLEN + 1] = {0}; // debugging
 
 #if defined(HAVE_MREQN)
-    struct ip_mreqn mreq = {0};
+    struct ip_mreqn mreq = { .imr_multiaddr = {0}, .imr_address = {0}, .imr_ifindex = 0};
     memcpy(&mreq.imr_multiaddr.s_addr, (void*)&IPv4MulticastAddress, sizeof(struct in_addr));
     mreq.imr_address.s_addr = htonl(INADDR_ANY);
     mreq.imr_ifindex = 0;  // htonl(ifindex);
