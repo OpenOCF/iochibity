@@ -25,7 +25,9 @@ cc_library(
             "coap_codec.c",
             "coap_codec.h",
             "oocf_coap_options.c",
-            "oocf_coap_options.h"
+            "oocf_coap_options.h",
+            "oocf_coap_logging.c",
+            "oocf_coap_logging.h"
     ] + select({"//config:enable_tcp": ["caping.c",
                                         "caping.h",
                                         "coap_tcp_signaling.c",

@@ -20,7 +20,6 @@
 
 #include "occlientcb.h"
 
-#include "coap_config.h"
 #ifdef _MSC_VER
 #define HAVE_WS2TCPIP_H
 #endif

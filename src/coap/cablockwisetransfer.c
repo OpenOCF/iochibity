@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #if INTERFACE
+#include <stddef.h>
 #include <stdint.h>
 #endif
 #include <string.h>
@@ -2727,4 +2728,18 @@ CAResult_t CARemoveBlockMulticastDataFromListWithSeed(const uint8_t *token, uint
     oc_mutex_unlock(_bwt_context.multicastDataListMutex);
 
     return CA_STATUS_OK;
+}
+
+void log_bwt_block_data(CABlockData_t *block_data)
+{
+    OIC_LOG_V(DEBUG, "BWT", "%s ENTRY", __func__);
+    OIC_LOG_V(DEBUG, "BWT", "block1.num: %u", block_data->block1.num);
+    OIC_LOG_V(DEBUG, "BWT", "block1.m: %u", block_data->block1.m);
+    OIC_LOG_V(DEBUG, "BWT", "block1.szx: %u", block_data->block1.szx);
+    OIC_LOG_V(DEBUG, "BWT", "block2.num: %u", block_data->block2.num);
+    OIC_LOG_V(DEBUG, "BWT", "block2.m: %u", block_data->block2.m);
+    OIC_LOG_V(DEBUG, "BWT", "block2.szx: %u", block_data->block2.szx);
+    OIC_LOG_V(DEBUG, "BWT", "type: %u", block_data->type);
+    OIC_LOG_V(DEBUG, "BWT", "body len: %u", block_data->bwt_body_length);
+    OIC_LOG_V(DEBUG, "BWT", "body len so far: %u", block_data->bwt_body_partial_length);
 }

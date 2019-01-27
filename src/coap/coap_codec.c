@@ -49,10 +49,10 @@
 #endif
 #include "coap_config.h"
 #include "coap/coap_time.h"
+#include "coap/pdu.h"
 #endif
 
 #include "coap/coap_list.h"
-#include "coap/pdu.h"
 #include "coap/block.h"
 #include "coap/mem.h"
 #include "coap/prng.h"

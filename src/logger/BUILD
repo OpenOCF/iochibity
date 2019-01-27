@@ -33,9 +33,8 @@ cc_library(
 cc_library(
     name = "logger_impl",
     copts = ["-Iexternal/uthash/src",
-             "-Iexternal/libcoap/include",
-             "-Iexternal/tinycbor/src",
-             "-Iexternal/mbedtls"
+             #"-Iexternal/tinycbor/src",
+             #"-Iexternal/mbedtls"
     ]
     + select({"//config:msvc": [],
                      "//config:darwin": ["-U DEBUG", "-std=c11", "-D_DARWIN_C_SOURCE"],
@@ -50,14 +49,11 @@ cc_library(
                        "//conditions:default": []}),
     alwayslink = True,
     linkstatic = 1,
-    deps = ["@mbedtls//:mbedtls",
-            "@libcoap//:libcoap",
-            "@tinycbor//:tinycbor",
+    deps = [#"@mbedtls//:mbedtls",
+            #"@tinycbor//:tinycbor",
             "@uthash//:uthash"],
     hdrs = ["logger.h"],
     srcs = ["logger.c",
-            "log_svrs.c",
-            "log_svrs.h",
             "payload_logging.c",
             "payload_logging.h",
             "trace.c",
