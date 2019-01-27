@@ -275,8 +275,8 @@ Java_openocf_message_InboundResponse_getCoAPOptions(JNIEnv *env, jobject this)
     uint16_t option_len = 0;
 
     for (int i=0; i < tls_response_in->response->numRcvdVendorSpecificHeaderOptions; i++) {
-	option_id = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionID;
-	option_len = clientResponse->rcvdVendorSpecificHeaderOptions[i].optionLength;
+	option_id = tls_response_in->response->rcvdVendorSpecificHeaderOptions[i].optionID;
+	option_len = tls_response_in->response->rcvdVendorSpecificHeaderOptions[i].optionLength;
 
         //FIXME
         /* jobject j_Option = (*env)->NewObject(env, K_COAP_OPTION, MID__CTOR); */
