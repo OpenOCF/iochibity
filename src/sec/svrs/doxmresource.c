@@ -89,7 +89,6 @@ typedef struct OicSecDoxm
     OicSecCredType_t    sct;            // 3:R:S:Y:oic.sec.credtype
     bool                owned;          // 4:R:S:Y:Boolean
     OicUuid_t           deviceID;       // 6:R:S:Y:oic.uuid
-    bool                dpc;            // 7:R:S:Y:Boolean
     OicUuid_t           owner;          // 8:R:S:Y:oic.uuid
 #ifdef MULTIPLE_OWNER
     OicSecSubOwner_t* subOwners;        // 9:R/W:M:N:oic.uuid
@@ -135,7 +134,6 @@ static OicSecDoxm_t gDefaultDoxm =
     SYMMETRIC_PAIR_WISE_KEY | SIGNED_ASYMMETRIC_KEY, /* OicSecCredType_t sct */
     false,                  /* bool owned */
     {.id = {0}},            /* OicUuid_t deviceID */
-    false,                  /* bool dpc */
     {.id = {0}},            /* OicUuid_t owner */
 #ifdef MULTIPLE_OWNER
     NULL,                   /* OicSecSubOwner_t sub-owner list */
@@ -2484,14 +2482,6 @@ bool AreDoxmBinPropertyValuesEqual(OicSecDoxm_t* doxm1, OicSecDoxm_t* doxm2)
         OIC_LOG_V(ERROR, TAG, "%s: deviceID mismatch", __func__);
         return false;
     }
-
-    /* DEPRECATED dpc=direct pairing capability */
-    /* if (doxm1->dpc != doxm2->dpc) */
-    /* { */
-    /*     OIC_LOG_V(ERROR, TAG, "%s: dpc mismatch: (%u, %u)", */
-    /*         __func__, (uint32_t)doxm1->dpc, (uint32_t)doxm2->dpc); */
-    /*     return false; */
-    /* } */
 
     if (0 != memcmp(&doxm1->owner, &doxm2->owner, sizeof(doxm1->owner)))
     {
