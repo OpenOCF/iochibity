@@ -1878,7 +1878,7 @@ static int selectMultipleOwnershipTrnasferMethod(void)
         printf("   %d. (Not Supported)\n", OIC_JUST_WORKS);
         printf("   %d. Random PIN OxM\n", OIC_RANDOM_DEVICE_PIN);
         printf("   %d. (Not Supported)\n", OIC_MANUFACTURER_CERTIFICATE);
-        printf("   %d. (Not Supported)\n", OIC_DECENTRALIZED_PUBLIC_KEY);
+        // printf("   %d. (Not Supported)\n", OIC_DECENTRALIZED_PUBLIC_KEY);
         printf("   %d. Pre-Configured PIN OxM\n", OIC_PRECONFIG_PIN);
         printf("   > Enter Number of  OxM for Multiple Ownership Transfer : ");
         for(int ret=0; 1!=ret; )
@@ -2737,10 +2737,11 @@ int main()
     }
 
     // Client can choose a allowed/not-allowed OxM method.
-    if(OC_STACK_OK != OCSetOxmAllowStatus(OIC_DECENTRALIZED_PUBLIC_KEY, false))
-    {
-        OIC_LOG(WARNING, TAG, "Failed to disable OIC_DECENTRALIZED_PUBLIC_KEY OxM");
-    }
+    // FIXME: what is the point of this API? OTMs should be enabled at compile-time.
+    /* if(OC_STACK_OK != OCSetOxmAllowStatus(OIC_DECENTRALIZED_PUBLIC_KEY, false)) */
+    /* { */
+    /*     OIC_LOG(WARNING, TAG, "Failed to disable OIC_DECENTRALIZED_PUBLIC_KEY OxM"); */
+    /* } */
 
     // set callbacks for verification options
     SetDisplayNumCB(NULL, displayNumCB);

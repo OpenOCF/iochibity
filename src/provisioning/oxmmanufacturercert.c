@@ -45,22 +45,22 @@ OCStackResult CreateMCertificateBasedSelectOxmPayload(OTMContext_t* otmCtx, uint
         size, propertiesToInclude);
 }
 
-OCStackResult CreateConMCertificateBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
-{
-    if (!otmCtx || !otmCtx->selectedDeviceInfo || !payload || *payload || !size)
-    {
-        return OC_STACK_INVALID_PARAM;
-    }
+/* OCStackResult CreateConMCertificateBasedSelectOxmPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size) */
+/* { */
+/*     if (!otmCtx || !otmCtx->selectedDeviceInfo || !payload || *payload || !size) */
+/*     { */
+/*         return OC_STACK_INVALID_PARAM; */
+/*     } */
 
-    otmCtx->selectedDeviceInfo->doxm->oxmSel = OIC_CON_MFG_CERT;
+/*     otmCtx->selectedDeviceInfo->doxm->oxmSel = OIC_CON_MFG_CERT; */
 
-    bool propertiesToInclude[DOXM_PROPERTY_COUNT];
-    memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
-    propertiesToInclude[DOXM_OXMSEL] = true;
+/*     bool propertiesToInclude[DOXM_PROPERTY_COUNT]; */
+/*     memset(propertiesToInclude, 0, sizeof(propertiesToInclude)); */
+/*     propertiesToInclude[DOXM_OXMSEL] = true; */
 
-    return DoxmToCBORPayloadPartial(otmCtx->selectedDeviceInfo->doxm, payload,
-        size, propertiesToInclude);
-}
+/*     return DoxmToCBORPayloadPartial(otmCtx->selectedDeviceInfo->doxm, payload, */
+/*         size, propertiesToInclude); */
+/* } */
 
 OCStackResult CreateMCertificateBasedOwnerTransferPayload(OTMContext_t* otmCtx, uint8_t **payload, size_t *size)
 {

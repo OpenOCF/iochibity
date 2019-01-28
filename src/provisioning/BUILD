@@ -36,7 +36,8 @@ cc_library(
     #         # "//src/provitioning/cloud"
     # + select({"windows": ["//third_party/sqlite3"],
     #           "//conditions:default": []}),
-    srcs = glob(["*.c"]) + glob(["*.h"]),
+    srcs = glob(["*.c"], exclude=["oxmpreconfpin.c"])
+    + glob(["*.h"], exclude=["oxmpreconfpin.h"]),
     visibility = ["//visibility:public"]
     # visibility = ["//src/ocf:__pkg__",
     #               "//src/sec/acl:__pkg__",

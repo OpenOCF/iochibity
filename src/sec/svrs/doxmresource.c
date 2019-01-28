@@ -46,13 +46,16 @@ enum oocf_oic_sec_doxmtype
     OIC_JUST_WORKS                          = 0x0, /* oic.sec.doxm.jw */
     OIC_RANDOM_DEVICE_PIN                   = 0x1, /* oic.sec.doxm.rdp */
     OIC_MANUFACTURER_CERTIFICATE            = 0x2, /* oic.sec.doxm.mfgcert */
-    OIC_DECENTRALIZED_PUBLIC_KEY            = 0x3, /* ? */
-    OIC_OXM_COUNT,				   /* oic.sec.doxm.self? */
-/* #ifdef MULTIPLE_OWNER */
-    OIC_PRECONFIG_PIN                       = 0xFF00, /* ? */
-/* #endif //MULTIPLE_OWNER */
-    OIC_MV_JUST_WORKS                       = 0xFF01, /* Mutual Verified? */
-    OIC_CON_MFG_CERT                        = 0xFF02, /* Confirm Manufacturer Cert? */
+    // OIC_DECENTRALIZED_PUBLIC_KEY            = 0x3, /* ? reserved in spec */
+    OIC_OXM_COUNT,              /* count of OCF-defined OTMs */
+    /* 5~0xFEFF - reserved for OCF use */
+    /* 0xFF00~0xFFFF - reserved for vendor-specific OTM use */
+
+/* /\* #ifdef MULTIPLE_OWNER *\/ */
+/*     OIC_PRECONFIG_PIN                       = 0xFF00, /\* ? *\/ */
+/* /\* #endif //MULTIPLE_OWNER *\/ */
+/*     OIC_MV_JUST_WORKS                       = 0xFF01, /\* Mutual Verified Just Works *\/ */
+/*     OIC_CON_MFG_CERT                        = 0xFF02, /\* Confirm Manufacturer Cert *\/ */
 };
 typedef enum oocf_oic_sec_doxmtype OicSecOxm_t; /* @legacy */
 
@@ -1430,52 +1433,52 @@ OCEntityHandlerResult StartOTMJustWorks(struct oocf_inbound_request /*OCEntityHa
     {
 #if defined(__WITH_DTLS__) || defined(__WITH_TLS__)
         //In case of Mutual Verified Just-Works, verify mutualVerifNum
-        if (OIC_MV_JUST_WORKS == gDoxm->oxmSel && false == gDoxm->owned)
-        {
-            uint8_t preMutualVerifNum[OWNER_PSK_LENGTH_128] = {0};
-            uint8_t mutualVerifNum[MUTUAL_VERIF_NUM_LEN] = {0};
-            OicUuid_t deviceID = {.id = {0}};
+        /* if (OIC_MV_JUST_WORKS == gDoxm->oxmSel && false == gDoxm->owned) */
+        /* { */
+        /*     uint8_t preMutualVerifNum[OWNER_PSK_LENGTH_128] = {0}; */
+        /*     uint8_t mutualVerifNum[MUTUAL_VERIF_NUM_LEN] = {0}; */
+        /*     OicUuid_t deviceID = {.id = {0}}; */
 
-            //Generate mutualVerifNum
-            struct CARequestInfo /* OCServerRequest */ *request = (struct CARequestInfo *)ehRequest->requestHandle;
+        /*     //Generate mutualVerifNum */
+        /*     struct CARequestInfo /\* OCServerRequest *\/ *request = (struct CARequestInfo *)ehRequest->requestHandle; */
 
-            char label[LABEL_LEN] = {0};
-            snprintf(label, LABEL_LEN, "%s%s", MUTUAL_VERIF_NUM, OXM_MV_JUST_WORKS);
-            if (OC_STACK_OK != GetDoxmDeviceID(&deviceID))
-            {
-                OIC_LOG(ERROR, TAG, "Error while retrieving Owner's device ID");
-                ehRet = OC_EH_ERROR;
-                goto exit;
+        /*     char label[LABEL_LEN] = {0}; */
+        /*     snprintf(label, LABEL_LEN, "%s%s", MUTUAL_VERIF_NUM, OXM_MV_JUST_WORKS); */
+        /*     if (OC_STACK_OK != GetDoxmDeviceID(&deviceID)) */
+        /*     { */
+        /*         OIC_LOG(ERROR, TAG, "Error while retrieving Owner's device ID"); */
+        /*         ehRet = OC_EH_ERROR; */
+        /*         goto exit; */
 
-            }
+        /*     } */
 
-            CAResult_t pskRet = CAGenerateOwnerPSK((CAEndpoint_t *)&request->dest_ep,
-                                                   (uint8_t *)label,
-                                                   strlen(label),
-                                                   gDoxm->owner.id, sizeof(gDoxm->owner.id),
-                                                   gDoxm->deviceID.id, sizeof(gDoxm->deviceID.id),
-                                                   preMutualVerifNum, OWNER_PSK_LENGTH_128);
-            if (CA_STATUS_OK != pskRet)
-            {
-                OIC_LOG(WARNING, TAG, "Failed to remove the invaild owner credential");
-                ehRet = OC_EH_ERROR;
-                goto exit;
+        /*     CAResult_t pskRet = CAGenerateOwnerPSK((CAEndpoint_t *)&request->dest_ep, */
+        /*                                            (uint8_t *)label, */
+        /*                                            strlen(label), */
+        /*                                            gDoxm->owner.id, sizeof(gDoxm->owner.id), */
+        /*                                            gDoxm->deviceID.id, sizeof(gDoxm->deviceID.id), */
+        /*                                            preMutualVerifNum, OWNER_PSK_LENGTH_128); */
+        /*     if (CA_STATUS_OK != pskRet) */
+        /*     { */
+        /*         OIC_LOG(WARNING, TAG, "Failed to remove the invaild owner credential"); */
+        /*         ehRet = OC_EH_ERROR; */
+        /*         goto exit; */
 
-            }
+        /*     } */
 
-            memcpy(mutualVerifNum, preMutualVerifNum + OWNER_PSK_LENGTH_128 - sizeof(mutualVerifNum),
-                   sizeof(mutualVerifNum));
+        /*     memcpy(mutualVerifNum, preMutualVerifNum + OWNER_PSK_LENGTH_128 - sizeof(mutualVerifNum), */
+        /*            sizeof(mutualVerifNum)); */
 
-            //Wait for user confirmation
-            if (OC_STACK_OK != VerifyOwnershipTransfer(mutualVerifNum, DISPLAY_NUM | USER_CONFIRM))
-            {
-                ehRet = OC_EH_NOT_ACCEPTABLE;
-            }
-            else
-            {
-                ehRet = OC_EH_OK;
-            }
-        }
+        /*     //Wait for user confirmation */
+        /*     if (OC_STACK_OK != VerifyOwnershipTransfer(mutualVerifNum, DISPLAY_NUM | USER_CONFIRM)) */
+        /*     { */
+        /*         ehRet = OC_EH_NOT_ACCEPTABLE; */
+        /*     } */
+        /*     else */
+        /*     { */
+        /*         ehRet = OC_EH_OK; */
+        /*     } */
+        /* } */
 #endif // __WITH_DTLS__ or __WITH_TLS__
     }
 exit:
@@ -1561,19 +1564,19 @@ OCEntityHandlerResult HandleDoxmPostRequestMfg(OicSecDoxm_t *newDoxm,
     OCEntityHandlerResult ehRet = OC_EH_OK;
 
         //In case of Confirm Manufacturer Cert, get user confirmation
-        if (OIC_CON_MFG_CERT == newDoxm->oxmSel && false == newDoxm->owned &&
-            !IsNilUuid(&newDoxm->owner))
-        {
-            if (OC_STACK_OK != VerifyOwnershipTransfer(NULL, USER_CONFIRM))
-            {
-                ehRet = OC_EH_NOT_ACCEPTABLE;
-                goto exit;
-            }
-            else
-            {
-                ehRet = OC_EH_OK;
-            }
-        }
+        /* if (OIC_CON_MFG_CERT == newDoxm->oxmSel && false == newDoxm->owned && */
+        /*     !IsNilUuid(&newDoxm->owner)) */
+        /* { */
+        /*     if (OC_STACK_OK != VerifyOwnershipTransfer(NULL, USER_CONFIRM)) */
+        /*     { */
+        /*         ehRet = OC_EH_NOT_ACCEPTABLE; */
+        /*         goto exit; */
+        /*     } */
+        /*     else */
+        /*     { */
+        /*         ehRet = OC_EH_OK; */
+        /*     } */
+        /* } */
 
         //Save the owner's UUID to derive owner credential
         memcpy(&(gDoxm->owner), &(newDoxm->owner), sizeof(OicUuid_t));
@@ -1613,16 +1616,16 @@ LOCAL OCEntityHandlerResult StartOwnershipTransfer(OicSecDoxm_t *newDoxm,
     switch (newDoxm->oxmSel)
     {
         case OIC_JUST_WORKS:
-        case OIC_MV_JUST_WORKS:
-            ehRet = StartOTMJustWorks(ehRequest);
-            break;
+        /* case OIC_MV_JUST_WORKS: */
+        /*     ehRet = StartOTMJustWorks(ehRequest); */
+        /*     break; */
         case OIC_RANDOM_DEVICE_PIN:
             ehRet = HandleDoxmPostRequestRandomPin(newDoxm, ehRequest);
             break;
 #if defined(__WITH_DTLS__) || defined (__WITH_TLS__)
         case OIC_MANUFACTURER_CERTIFICATE:
-        case OIC_CON_MFG_CERT:
-            ehRet = HandleDoxmPostRequestMfg(newDoxm, ehRequest);
+        /* case OIC_CON_MFG_CERT: */
+        /*     ehRet = HandleDoxmPostRequestMfg(newDoxm, ehRequest); */
             break;
 #endif // __WITH_DTLS__ or __WITH_TLS__
         default:

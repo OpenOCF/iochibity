@@ -119,23 +119,23 @@ OCStackResult CreateSecureSessionJustWorksCallback(OTMContext_t* otmCtx)
     return OC_STACK_OK;
 }
 
-OCStackResult CreateMVJustWorksSelectOxmPayload(OTMContext_t *otmCtx, uint8_t **cborPayload,
-                                             size_t *cborSize)
-{
-    if (!otmCtx || !otmCtx->selectedDeviceInfo || !cborPayload || *cborPayload || !cborSize)
-    {
-        return OC_STACK_INVALID_PARAM;
-    }
+/* OCStackResult CreateMVJustWorksSelectOxmPayload(OTMContext_t *otmCtx, uint8_t **cborPayload, */
+/*                                              size_t *cborSize) */
+/* { */
+/*     if (!otmCtx || !otmCtx->selectedDeviceInfo || !cborPayload || *cborPayload || !cborSize) */
+/*     { */
+/*         return OC_STACK_INVALID_PARAM; */
+/*     } */
 
-    otmCtx->selectedDeviceInfo->doxm->oxmSel = OIC_MV_JUST_WORKS;
-    *cborPayload = NULL;
-    *cborSize = 0;
+/*     otmCtx->selectedDeviceInfo->doxm->oxmSel = OIC_MV_JUST_WORKS; */
+/*     *cborPayload = NULL; */
+/*     *cborSize = 0; */
 
-    bool propertiesToInclude[DOXM_PROPERTY_COUNT];
-    memset(propertiesToInclude, 0, sizeof(propertiesToInclude));
-    propertiesToInclude[DOXM_OXMSEL] = true;
+/*     bool propertiesToInclude[DOXM_PROPERTY_COUNT]; */
+/*     memset(propertiesToInclude, 0, sizeof(propertiesToInclude)); */
+/*     propertiesToInclude[DOXM_OXMSEL] = true; */
 
-    return DoxmToCBORPayloadPartial(otmCtx->selectedDeviceInfo->doxm, cborPayload,
-        cborSize, propertiesToInclude);
-}
+/*     return DoxmToCBORPayloadPartial(otmCtx->selectedDeviceInfo->doxm, cborPayload, */
+/*         cborSize, propertiesToInclude); */
+/* } */
 

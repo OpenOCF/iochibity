@@ -142,7 +142,7 @@ OCStackResult OTMSetOTCallback(OicSecOxm_t oxm, struct OTMCallbackData* callback
     VERIFY_SUCCESS(TAG, (OIC_OXM_COUNT > oxm || OIC_PRECONFIG_PIN == oxm || OIC_MV_JUST_WORKS == oxm
                     || OIC_CON_MFG_CERT == oxm), ERROR);
 #else
-    VERIFY_SUCCESS(TAG, (OIC_OXM_COUNT > oxm || OIC_MV_JUST_WORKS == oxm || OIC_CON_MFG_CERT == oxm), ERROR);
+    VERIFY_SUCCESS(TAG, (OIC_OXM_COUNT > oxm /* || OIC_MV_JUST_WORKS == oxm || OIC_CON_MFG_CERT == oxm  */), ERROR);
 #endif // MULTIPLE_OWNER
 
     switch(oxm)
@@ -165,9 +165,9 @@ OCStackResult OTMSetOTCallback(OicSecOxm_t oxm, struct OTMCallbackData* callback
         callbacks->createSelectOxmPayloadCB = CreateMCertificateBasedSelectOxmPayload;
         callbacks->createOwnerTransferPayloadCB = CreateMCertificateBasedOwnerTransferPayload;
         break;
-    case OIC_DECENTRALIZED_PUBLIC_KEY:
-        OIC_LOG(ERROR, TAG, "OIC_DECENTRALIZED_PUBLIC_KEY not supported yet.");
-        return OC_STACK_INVALID_METHOD;
+    /* case OIC_DECENTRALIZED_PUBLIC_KEY: */
+    /*     OIC_LOG(ERROR, TAG, "OIC_DECENTRALIZED_PUBLIC_KEY not supported yet."); */
+    /*     return OC_STACK_INVALID_METHOD; */
 #ifdef MULTIPLE_OWNER
     case OIC_PRECONFIG_PIN:
         callbacks->loadSecretCB = LoadPreconfigPinCodeCallback;
@@ -176,18 +176,18 @@ OCStackResult OTMSetOTCallback(OicSecOxm_t oxm, struct OTMCallbackData* callback
         callbacks->createOwnerTransferPayloadCB = CreatePreconfigPinBasedOwnerTransferPayload;
         break;
 #endif //MULTIPLE_OWNER
-    case OIC_MV_JUST_WORKS:
-        callbacks->loadSecretCB = LoadSecretJustWorksCallback;
-        callbacks->createSecureSessionCB = CreateSecureSessionJustWorksCallback;
-        callbacks->createSelectOxmPayloadCB = CreateMVJustWorksSelectOxmPayload;
-        callbacks->createOwnerTransferPayloadCB = CreateJustWorksOwnerTransferPayload;
-        break;
-    case OIC_CON_MFG_CERT:
-        callbacks->loadSecretCB = PrepareMCertificateCallback;
-        callbacks->createSecureSessionCB = CreateSecureSessionMCertificateCallback;
-        callbacks->createSelectOxmPayloadCB = CreateConMCertificateBasedSelectOxmPayload;
-        callbacks->createOwnerTransferPayloadCB = CreateMCertificateBasedOwnerTransferPayload;
-        break;
+    /* case OIC_MV_JUST_WORKS: */
+    /*     callbacks->loadSecretCB = LoadSecretJustWorksCallback; */
+    /*     callbacks->createSecureSessionCB = CreateSecureSessionJustWorksCallback; */
+    /*     callbacks->createSelectOxmPayloadCB = CreateMVJustWorksSelectOxmPayload; */
+    /*     callbacks->createOwnerTransferPayloadCB = CreateJustWorksOwnerTransferPayload; */
+    /*     break; */
+    /* case OIC_CON_MFG_CERT: */
+    /*     callbacks->loadSecretCB = PrepareMCertificateCallback; */
+    /*     callbacks->createSecureSessionCB = CreateSecureSessionMCertificateCallback; */
+    /*     callbacks->createSelectOxmPayloadCB = CreateConMCertificateBasedSelectOxmPayload; */
+    /*     callbacks->createOwnerTransferPayloadCB = CreateMCertificateBasedOwnerTransferPayload; */
+    /*     break; */
     default:
         OIC_LOG_V(ERROR, TAG, "Unknown OxM : %d", (int)oxm);
         return OC_STACK_INVALID_PARAM;
@@ -213,12 +213,12 @@ static OxmAllowTableIdx_t GetOxmAllowTableIdx(OicSecOxm_t oxm)
             return OXM_IDX_RANDOM_DEVICE_PIN;
         case OIC_MANUFACTURER_CERTIFICATE:
             return OXM_IDX_MANUFACTURER_CERTIFICATE;
-        case OIC_DECENTRALIZED_PUBLIC_KEY:
-            return OXM_IDX_DECENTRALIZED_PUBLIC_KEY;
-        case OIC_MV_JUST_WORKS:
-            return OXM_IDX_MV_JUST_WORKS;
-        case OIC_CON_MFG_CERT:
-            return OXM_IDX_CON_MFG_CERT;
+        /* case OIC_DECENTRALIZED_PUBLIC_KEY: */
+        /*     return OXM_IDX_DECENTRALIZED_PUBLIC_KEY; */
+        /* case OIC_MV_JUST_WORKS: */
+        /*     return OXM_IDX_MV_JUST_WORKS; */
+        /* case OIC_CON_MFG_CERT: */
+        /*     return OXM_IDX_CON_MFG_CERT; */
 #ifdef MULTIPLE_OWNER
         case OIC_PRECONFIG_PIN:
             return OXM_IDX_PRECONFIG_PIN;
@@ -432,8 +432,8 @@ static void SetResult(OTMContext_t* otmCtx, const OCStackResult res)
         OicUuid_t emptyUuid = { .id={0}};
         SetUuidForPinBasedOxm(&emptyUuid);
     }
-    else if(OIC_MANUFACTURER_CERTIFICATE == otmCtx->selectedDeviceInfo->doxm->oxmSel ||
-                        OIC_CON_MFG_CERT == otmCtx->selectedDeviceInfo->doxm->oxmSel)
+    else if(OIC_MANUFACTURER_CERTIFICATE == otmCtx->selectedDeviceInfo->doxm->oxmSel
+                        /* || OIC_CON_MFG_CERT == otmCtx->selectedDeviceInfo->doxm->oxmSel */)
     {
         //Revert back certificate related callbacks.
         if(CA_STATUS_OK != CAregisterPkixInfoHandler(GetPkixInfo))
@@ -522,57 +522,57 @@ static CAResult_t OwnershipTransferSessionEstablished(const CAEndpoint_t *endpoi
     OC_UNUSED(otmCtx);
 
     //In case of Mutual Verified Just-Works, display mutualVerifNum
-    if (OIC_MV_JUST_WORKS == newDevDoxm->oxmSel)
-    {
-        uint8_t preMutualVerifNum[OWNER_PSK_LENGTH_128] = {0};
-        uint8_t mutualVerifNum[MUTUAL_VERIF_NUM_LEN] = {0};
-        OicUuid_t deviceID = {.id = {0}};
+    /* if (OIC_MV_JUST_WORKS == newDevDoxm->oxmSel) */
+    /* { */
+    /*     uint8_t preMutualVerifNum[OWNER_PSK_LENGTH_128] = {0}; */
+    /*     uint8_t mutualVerifNum[MUTUAL_VERIF_NUM_LEN] = {0}; */
+    /*     OicUuid_t deviceID = {.id = {0}}; */
 
-        //Generate mutualVerifNum
-        char label[LABEL_LEN] = {0};
-        snprintf(label, LABEL_LEN, "%s%s", MUTUAL_VERIF_NUM, OXM_MV_JUST_WORKS);
-        res = GetDoxmDeviceID(&deviceID);
-        if (OC_STACK_OK != res)
-        {
-            OIC_LOG(ERROR, TAG, "Error while retrieving Owner's device ID");
-            result = CA_HANDLE_ERROR_OTHER_MODULE;
-            goto exit;
-        }
-        CAResult_t pskRet = CAGenerateOwnerPSK(endpoint,
-                (uint8_t *)label,
-                strlen(label),
-                deviceID.id, sizeof(deviceID.id),
-                newDevDoxm->deviceID.id, sizeof(newDevDoxm->deviceID.id),
-                preMutualVerifNum, sizeof(preMutualVerifNum));
+    /*     //Generate mutualVerifNum */
+    /*     char label[LABEL_LEN] = {0}; */
+    /*     snprintf(label, LABEL_LEN, "%s%s", MUTUAL_VERIF_NUM, OXM_MV_JUST_WORKS); */
+    /*     res = GetDoxmDeviceID(&deviceID); */
+    /*     if (OC_STACK_OK != res) */
+    /*     { */
+    /*         OIC_LOG(ERROR, TAG, "Error while retrieving Owner's device ID"); */
+    /*         result = CA_HANDLE_ERROR_OTHER_MODULE; */
+    /*         goto exit; */
+    /*     } */
+    /*     CAResult_t pskRet = CAGenerateOwnerPSK(endpoint, */
+    /*             (uint8_t *)label, */
+    /*             strlen(label), */
+    /*             deviceID.id, sizeof(deviceID.id), */
+    /*             newDevDoxm->deviceID.id, sizeof(newDevDoxm->deviceID.id), */
+    /*             preMutualVerifNum, sizeof(preMutualVerifNum)); */
 
-        if (CA_STATUS_OK != pskRet)
-        {
-            OIC_LOG(WARNING, TAG, "CAGenerateOwnerPSK failed");
-            result = CA_HANDLE_ERROR_OTHER_MODULE;
-            goto exit;
-        }
+    /*     if (CA_STATUS_OK != pskRet) */
+    /*     { */
+    /*         OIC_LOG(WARNING, TAG, "CAGenerateOwnerPSK failed"); */
+    /*         result = CA_HANDLE_ERROR_OTHER_MODULE; */
+    /*         goto exit; */
+    /*     } */
 
-        memcpy(mutualVerifNum, preMutualVerifNum + sizeof(preMutualVerifNum) - sizeof(mutualVerifNum),
-                sizeof(mutualVerifNum));
-        res = VerifyOwnershipTransfer(mutualVerifNum, DISPLAY_NUM);
-        if (OC_STACK_OK != res)
-        {
-            OIC_LOG(ERROR, TAG, "Error while displaying mutualVerifNum");
-            result = CA_HANDLE_ERROR_OTHER_MODULE;
-            goto exit;
-        }
-    }
+    /*     memcpy(mutualVerifNum, preMutualVerifNum + sizeof(preMutualVerifNum) - sizeof(mutualVerifNum), */
+    /*             sizeof(mutualVerifNum)); */
+    /*     res = VerifyOwnershipTransfer(mutualVerifNum, DISPLAY_NUM); */
+    /*     if (OC_STACK_OK != res) */
+    /*     { */
+    /*         OIC_LOG(ERROR, TAG, "Error while displaying mutualVerifNum"); */
+    /*         result = CA_HANDLE_ERROR_OTHER_MODULE; */
+    /*         goto exit; */
+    /*     } */
+    /* } */
     //In case of confirmed manufacturer cert, display message
-    else if (OIC_CON_MFG_CERT == newDevDoxm->oxmSel)
-    {
-        res = VerifyOwnershipTransfer(NULL, DISPLAY_NUM);
-        if (OC_STACK_OK != res)
-        {
-            OIC_LOG(ERROR, TAG, "Error while displaying message");
-            result = CA_HANDLE_ERROR_OTHER_MODULE;
-            goto exit;
-        }
-    }
+    /* else if (OIC_CON_MFG_CERT == newDevDoxm->oxmSel) */
+    /* { */
+    /*     res = VerifyOwnershipTransfer(NULL, DISPLAY_NUM); */
+    /*     if (OC_STACK_OK != res) */
+    /*     { */
+    /*         OIC_LOG(ERROR, TAG, "Error while displaying message"); */
+    /*         result = CA_HANDLE_ERROR_OTHER_MODULE; */
+    /*         goto exit; */
+    /*     } */
+    /* } */
 
 exit:
     OIC_LOG_V(DEBUG, TAG, "OUT %s", __func__);
@@ -1137,20 +1137,20 @@ static OCStackApplicationResult OwnerUuidUpdateHandler(void *ctx, OCDoHandle UNU
         if(otmCtx && otmCtx->selectedDeviceInfo)
         {
             //In case of Mutual Verified Just-Works, wait for user confirmation
-            if (OIC_MV_JUST_WORKS == otmCtx->selectedDeviceInfo->doxm->oxmSel)
-            {
-                res = VerifyOwnershipTransfer(NULL, USER_CONFIRM);
-                if (OC_STACK_OK != res)
-                {
-                    if (OC_STACK_OK != SRPResetDevice(otmCtx->selectedDeviceInfo, otmCtx->ctxResultCallback))
-                    {
-                        OIC_LOG(WARNING, TAG, "OwnerUuidUpdateHandler : SRPResetDevice error");
-                    }
-                    OIC_LOG(ERROR, TAG, "OwnerUuidUpdateHandler:Failed to verify user confirm");
-                    SetResult(otmCtx, res);
-                    return OC_STACK_DELETE_TRANSACTION;
-                }
-            }
+            /* if (OIC_MV_JUST_WORKS == otmCtx->selectedDeviceInfo->doxm->oxmSel) */
+            /* { */
+            /*     res = VerifyOwnershipTransfer(NULL, USER_CONFIRM); */
+            /*     if (OC_STACK_OK != res) */
+            /*     { */
+            /*         if (OC_STACK_OK != SRPResetDevice(otmCtx->selectedDeviceInfo, otmCtx->ctxResultCallback)) */
+            /*         { */
+            /*             OIC_LOG(WARNING, TAG, "OwnerUuidUpdateHandler : SRPResetDevice error"); */
+            /*         } */
+            /*         OIC_LOG(ERROR, TAG, "OwnerUuidUpdateHandler:Failed to verify user confirm"); */
+            /*         SetResult(otmCtx, res); */
+            /*         return OC_STACK_DELETE_TRANSACTION; */
+            /*     } */
+            /* } */
 
            res = GetRealUuid(otmCtx);
            if(OC_STACK_OK != res)
@@ -1163,15 +1163,15 @@ static OCStackApplicationResult OwnerUuidUpdateHandler(void *ctx, OCDoHandle UNU
     }
     else
     {
-        if (OIC_CON_MFG_CERT == otmCtx->selectedDeviceInfo->doxm->oxmSel &&
-                    OC_STACK_NOT_ACCEPTABLE == clientResponse->result)
-        {
-            res = OC_STACK_USER_DENIED_REQ;
-        }
-        else
-        {
+        /* if (OIC_CON_MFG_CERT == otmCtx->selectedDeviceInfo->doxm->oxmSel && */
+        /*             OC_STACK_NOT_ACCEPTABLE == clientResponse->result) */
+        /* { */
+        /*     res = OC_STACK_USER_DENIED_REQ; */
+        /* } */
+        /* else */
+        /* { */
             res = clientResponse->result;
-        }
+        /* } */
         OIC_LOG_V(ERROR, TAG, "OwnerUuidHandler : Unexpected result %d", res);
         SetResult(otmCtx, res);
         return OC_STACK_DELETE_TRANSACTION;
@@ -2727,7 +2727,7 @@ OCStackResult OTMSetOxmAllowStatus(const oocf_oic_sec_doxmtype /* OicSecOxm_t */
 #ifdef MULTIPLE_OWNER
     if(OIC_OXM_COUNT <= doxmtype && OIC_MV_JUST_WORKS != doxmtype && OIC_PRECONFIG_PIN != doxmtype && OIC_CON_MFG_CERT != doxmtype)
 #else
-    if(OIC_OXM_COUNT <= doxmtype && OIC_MV_JUST_WORKS != doxmtype && OIC_CON_MFG_CERT != doxmtype)
+    if(OIC_OXM_COUNT <= doxmtype) // && OIC_MV_JUST_WORKS != doxmtype && OIC_CON_MFG_CERT != doxmtype)
 #endif
     {
         return OC_STACK_INVALID_PARAM;
