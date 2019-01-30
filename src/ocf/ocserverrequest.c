@@ -36,9 +36,9 @@
 
 int RBResponseTokenCmp(OCServerResponse *target, OCServerResponse *treeNode)
 {
-    return memcmp(((struct CARequestInfo*)target->requestHandle)->info.token,
-                  ((struct CARequestInfo*)treeNode->requestHandle)->info.token,
-                  ((struct CARequestInfo*)target->requestHandle)->info.tokenLength);
+    return memcmp(((struct oocf_msg_coap_request*)target->requestHandle)->info.token,
+                  ((struct oocf_msg_coap_request*)treeNode->requestHandle)->info.token,
+                  ((struct oocf_msg_coap_request*)target->requestHandle)->info.tokenLength);
     /* return memcmp(((OCServerRequest*)target->requestHandle)->requestToken, */
     /*               ((OCServerRequest*)treeNode->requestHandle)->requestToken, */
     /*               ((OCServerRequest*)target->requestHandle)->tokenLength); */
@@ -100,7 +100,7 @@ static RB_GENERATE(ServerResponseTree, OCServerResponse, entry, RBResponseTokenC
  *     OCServerResponse*
  */
 //static OCServerResponse *GetServerResponseUsingHandle (const OCServerRequest * handle)
-static OCServerResponse *GetServerResponseUsingHandle(struct CARequestInfo * handle)
+static OCServerResponse *GetServerResponseUsingHandle(struct oocf_msg_coap_request * handle)
 {
     if (!handle)
     {
@@ -265,7 +265,7 @@ static CAResponseResult_t ConvertEHResultToCAResult (OCEntityHandlerResult resul
 // Internal APIs
 //-------------------------------------------------------------------------------------------------
 /* implicitly convert OCServerProtocolRequest to OCServerResponse and add to inbound rqst cache */
-/* fixme: drop the conversion, just cache struct CARequestInfo */
+/* fixme: drop the conversion, just cache struct oocf_msg_coap_request */
 /* OCStackResult AddServerRequest (OCServerRequest ** request, */
 /*                                 uint16_t coapMessageID, */
 /*                                 uint8_t delayedResNeeded, */
@@ -408,7 +408,7 @@ OCStackResult HandleSingleResponse(OCEntityHandlerResponse * ehResponse)
         OIC_LOG(ERROR, TAG, "ehResponse/requestHandle is NULL");        return OC_STACK_ERROR;
     }
 
-    struct CARequestInfo *serverRequest = (struct CARequestInfo *)ehResponse->requestHandle;
+    struct oocf_msg_coap_request *serverRequest = (struct oocf_msg_coap_request *)ehResponse->requestHandle;
 
     CopyEndpoint(&serverRequest->dest_ep, &responseEndpoint);
 
@@ -1135,8 +1135,8 @@ OCStackResult HandleAggregateResponse(OCEntityHandlerResponse * ehResponse)
 
     OIC_LOG(INFO, TAG, "Inside HandleAggregateResponse");
 
-    struct CARequestInfo *request = (struct CARequestInfo *)ehResponse->requestHandle;
-    OCServerResponse *serverResponse = GetServerResponseUsingHandle((struct CARequestInfo *)
+    struct oocf_msg_coap_request *request = (struct oocf_msg_coap_request *)ehResponse->requestHandle;
+    OCServerResponse *serverResponse = GetServerResponseUsingHandle((struct oocf_msg_coap_request *)
                                                                     ehResponse->requestHandle);
 
     OCStackResult stackRet = OC_STACK_ERROR;

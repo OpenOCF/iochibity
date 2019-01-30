@@ -1371,7 +1371,7 @@ OCStackResult XCheckRequestsEndpoint(const OCDevAddr *reqDevAddr,
     }
 }
 
-OCStackResult DetermineResourceHandling (const struct CARequestInfo *request,
+OCStackResult DetermineResourceHandling (const struct oocf_msg_coap_request *request,
                                          ResourceHandling *handling,
                                          OCResource **resource)
 {
@@ -1733,7 +1733,7 @@ static bool includeThisResourceInResponse(OCResource *resource,
            resourceMatchesRTFilter(resource, resourceTypeFilter);
 }
 
-static OCStackResult SendNonPersistantDiscoveryResponse(struct CARequestInfo *request,
+static OCStackResult SendNonPersistantDiscoveryResponse(struct oocf_msg_coap_request *request,
                                                         OCPayload *discoveryPayload,
                                                         OCEntityHandlerResult ehResult)
 {
@@ -1869,7 +1869,7 @@ exit:
     return OC_STACK_NO_MEMORY;
 }
 
-static bool isUnicast(struct CARequestInfo *request) // (OCServerRequest *request)
+static bool isUnicast(struct oocf_msg_coap_request *request) // (OCServerRequest *request)
 {
     /* bool isMulticast = request->devAddr.flags & OC_MULTICAST; */
     bool isMulticast = request->dest_ep.flags & CA_MULTICAST;
@@ -1982,7 +1982,7 @@ static bool isUnicast(struct CARequestInfo *request) // (OCServerRequest *reques
 /*     return result; */
 /* } */
 
-OCStackResult _oocf_handle_discovery_request(struct CARequestInfo *request,
+OCStackResult _oocf_handle_discovery_request(struct oocf_msg_coap_request *request,
                                              OCPayload **thePayload,
                                              char *interfaceQuery,
                                              char *resourceTypeQuery,
@@ -2128,7 +2128,7 @@ exit:
 }
 
 /* handle inbound request for SVR */
-OCStackResult HandleVirtualResource (struct CARequestInfo *request, OCResource* resource)
+OCStackResult HandleVirtualResource (struct oocf_msg_coap_request *request, OCResource* resource)
 // OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource* resource)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
@@ -2360,7 +2360,7 @@ exit:
 }
 
 OCStackResult
-HandleDefaultDeviceEntityHandler(struct CARequestInfo *request)
+HandleDefaultDeviceEntityHandler(struct oocf_msg_coap_request *request)
 {
     if (!request)
     {
@@ -2395,7 +2395,7 @@ exit:
 
 /* OCStackResult */
 /* XHandleDefaultDeviceEntityHandler(OCServerRequest *request) */
-/* //XHandleDefaultDeviceEntityHandler(struct CARequestInfo *request) */
+/* //XHandleDefaultDeviceEntityHandler(struct oocf_msg_coap_request *request) */
 /* { */
 /*     if (!request) */
 /*     { */
@@ -2427,7 +2427,7 @@ exit:
 /*     return result; */
 /* } */
 
-OCStackResult HandleCollectionResourceDefaultEntityHandler(struct CARequestInfo *request,
+OCStackResult HandleCollectionResourceDefaultEntityHandler(struct oocf_msg_coap_request *request,
                                                            OCResource *resource)
 {
     if (!request || !resource)

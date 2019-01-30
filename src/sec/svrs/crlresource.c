@@ -503,7 +503,7 @@ static OCEntityHandlerResult HandleCRLGetRequest(const struct oocf_inbound_reque
     uint8_t* payload = NULL;
     size_t size = 0;
 
-    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    char *query = getQueryFromRequestURL(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri);
     if (query)
     {
         OIC_LOG_V(DEBUG,TAG,"query:%s", query);
@@ -548,9 +548,9 @@ static OCEntityHandlerResult HandleCRLPostRequest(const struct oocf_inbound_requ
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
     OicSecCrl_t *crl = NULL;
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
+                        ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
+                   ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     bool create = (NULL == gCrl);
 
     if (payload)
@@ -602,7 +602,7 @@ static OCEntityHandlerResult CRLEntityHandler(OCEntityHandlerFlag flag,
     {
         // TODO :  Handle PUT and DEL methods
         OIC_LOG (INFO, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
+        switch (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method)
         {
             case CA_GET:
                 ehRet = HandleCRLGetRequest(ehRequest);

@@ -2914,7 +2914,7 @@ static OCEntityHandlerResult HandleACLGetRequest(const struct oocf_inbound_reque
 
     OicUuid_t subject = {.id= { 0 } };
 
-    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    char *query = getQueryFromRequestURL(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri);
 
     // In case, 'subject' field is included in REST request.
     if (query && GetSubjectFromQueryString(query, &subject))
@@ -3018,10 +3018,10 @@ static OCEntityHandlerResult HandleACLPostRequest(const struct oocf_inbound_requ
 
     // Convert CBOR into ACL data and update to SVR buffers. This will also validate the ACL data received.
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
+                        ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     //ehRequest->payload)->securityData;
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
+                   ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     //ehRequest->payload)->payloadSize;
 
     OicSecDostype_t dos;
@@ -3133,10 +3133,10 @@ static OCEntityHandlerResult HandleACL2PostRequest(const struct oocf_inbound_req
 
     // Convert CBOR into ACL data and update to SVR buffers. This will also validate the ACL data received.
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
+                        ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     //ehRequest->payload)->securityData;
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
+                   ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     //ehRequest->payload)->payloadSize;
 
 
@@ -3259,7 +3259,7 @@ static OCEntityHandlerResult HandleACLDeleteRequest(const struct oocf_inbound_re
     AceIdList_t *aceIdList = NULL;
     char resource[MAX_URI_LENGTH] = { 0 };
 
-    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    char *query = getQueryFromRequestURL(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri);
     VERIFY_NOT_NULL(TAG, query, ERROR);
 
     OicSecDostype_t dos;
@@ -3326,7 +3326,7 @@ OCEntityHandlerResult ACLEntityHandler(OCEntityHandlerFlag flag, struct oocf_inb
     {
         // TODO :  Handle PUT method
         OIC_LOG(DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
+        switch (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method)
         {
             case CA_GET:
                 ehRet = HandleACLGetRequest(ehRequest, OIC_SEC_ACL_V2);
@@ -3365,7 +3365,7 @@ OCEntityHandlerResult ACL2EntityHandler(OCEntityHandlerFlag flag, struct oocf_in
     {
         // TODO :  Handle PUT method
         OIC_LOG(DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
+        switch (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method)
         {
             case CA_GET:
                 ehRet = HandleACLGetRequest(ehRequest, OIC_SEC_ACL_V2);

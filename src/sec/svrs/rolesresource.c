@@ -800,7 +800,7 @@ static OCEntityHandlerResult HandleGetRequest(struct oocf_inbound_request /*OCEn
     size_t publicKeyLength = 0;
 
     res = GetPeerPublicKey(&
-                           (((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep),
+                           (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->dest_ep),
                            &publicKey, &publicKeyLength);
     // OC_STACK_NO_RESOURCE means that the Peer doesn't have a Public Key.
     if ((OC_STACK_OK != res) && (OC_STACK_NO_RESOURCE != res))
@@ -850,13 +850,13 @@ static OCEntityHandlerResult HandlePostRequest(struct oocf_inbound_request /*OCE
 
     struct RoleCertChain *chains = NULL;
     uint8_t *payload = ((OCSecurityPayload*)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
+                        ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     // ehRequest->payload)->securityData);
     size_t size = ((OCSecurityPayload*)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
+                   ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     // ehRequest->payload)->payloadSize);
 
-    OCStackResult res = GetPeerPublicKey(&(((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep),
+    OCStackResult res = GetPeerPublicKey(&(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->dest_ep),
                                          &peerPubKey, &peerPubKeyLen);
     if (OC_STACK_OK != res)
     {
@@ -966,7 +966,7 @@ static OCEntityHandlerResult HandleDeleteRequest(struct oocf_inbound_request /*O
     OicParseQueryIter_t parseIter = { .attrPos = NULL };
     uint32_t credId = 0;
 
-    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    char *query = getQueryFromRequestURL(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri);
     if (NULL == query)
     {
         return ehRet;
@@ -993,7 +993,7 @@ static OCEntityHandlerResult HandleDeleteRequest(struct oocf_inbound_request /*O
         }
     }
 
-    OCStackResult res = GetPeerPublicKey(&(((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep),
+    OCStackResult res = GetPeerPublicKey(&(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->dest_ep),
                                          //ehRequest->devAddr,
                                          &peerPubKey, &peerPubKeyLen);
     if (OC_STACK_OK != res)
@@ -1079,7 +1079,7 @@ static OCEntityHandlerResult RolesEntityHandler(OCEntityHandlerFlag flag,
     if (flag & OC_REQUEST_FLAG)
     {
         OIC_LOG(DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
+        switch (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method)
         {
         case CA_GET:
             ehRet = HandleGetRequest(ehRequest);

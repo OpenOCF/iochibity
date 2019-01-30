@@ -117,7 +117,8 @@ LOCAL OCDoHandle GenerateInvocationHandle(void)
     return handle;
 }
 
-void process_options(struct CARequestInfo requestInfo, uint8_t numOptions, OCHeaderOption *options)
+void process_options(struct oocf_msg_coap_request *requestInfo,
+                     uint8_t numOptions, OCHeaderOption *options)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OIC_LOG_V(INFO, TAG, "%s EXIT", __func__);
@@ -163,7 +164,7 @@ OCStackResult OC_CALL OCDoRequest(OCDoHandle *handle,
     OCTransportAdapter adapter;
     OCTransportFlags flags;
     // the request contents are put here
-    struct CARequestInfo requestInfo = {.method = CA_GET};
+    struct oocf_msg_coap_request requestInfo = {.method = CA_GET};
     // requestUri  will be parsed into the following three variables
     OCDevAddr *devAddr = NULL;
     char *resourceUri = NULL;
@@ -688,7 +689,7 @@ OCStackResult OC_CALL OCDoResource(OCDoHandle *handle,
  * @return ::OC_STACK_OK on success, some other value upon failure.
  * src: ocstack.c
  */
-OCStackResult OCSendRequest(const CAEndpoint_t *dest_ep, struct CARequestInfo *requestInfo)
+OCStackResult OCSendRequest(const CAEndpoint_t *dest_ep, struct oocf_msg_coap_request *requestInfo)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
     VERIFY_NON_NULL(dest_ep, FATAL, OC_STACK_INVALID_PARAM);
@@ -1008,7 +1009,7 @@ void OC_CALL OCHandleResponse(const CAEndpoint_t* origin_ep,
                         CA_FORMAT_UNDEFINED == inbound_response_cbor->info.payloadFormat)
                         {
                             OIC_LOG(DEBUG, TAG, "Response result NOT_ACCEPTABLE, format UNDEFINED");
-                            struct CARequestInfo requestInfo = { .method = CA_GET };
+                            struct oocf_msg_coap_request requestInfo = { .method = CA_GET };
 
                             switch (cbNode->method)
                                 {

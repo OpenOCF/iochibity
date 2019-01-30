@@ -49,7 +49,7 @@ CAHistory_t requestHistory;  /**< filter IP family in requests */
  * @param[out]   requestInfo  Info for resource model to understand about the request.
  */
 typedef void (*CARequestCallback)(const CAEndpoint_t *object,
-                                  const struct CARequestInfo *requestInfo);
+                                  const struct oocf_msg_coap_request *requestInfo);
 
 /**
  * Callback function type for response delivery.
@@ -132,8 +132,8 @@ typedef struct oocf_ocf_msg_generic
     ROUTING_TYPE /* CASendDataType_t type */ outbound_routing;            /**< routing type (ucast/mcast) */
     CAEndpoint_t *remoteEndpoint;     /**< remote endpoint; origin for inbound, dest for outbound */
     //union {
-    struct CARequestInfo *requestInfo;     /**< request information */
-    CAResponseInfo_t *responseInfo;   /**< response information */
+    struct oocf_msg_coap_request *requestInfo;     // @was struct oocf_msg_coap_request
+    struct  oocf_msg_coap_response *responseInfo;  // @was CAResponseInfo_t *
     CAErrorInfo_t *errorInfo;         /**< error information */
 #ifdef WITH_TCP
     CASignalingInfo_t *signalingInfo; /**< signaling information */
@@ -270,7 +270,7 @@ static CAData_t* _oocf_coap_pdu_to_msg(const CAEndpoint_t *endpoint, /* @was CAG
     else if (CA_REQUEST_DATA == dataType) /* SERVER mode */
     {
 	OIC_LOG_V(DEBUG, TAG, "data type is CA_REQUEST_DATA (inbound)");
-        struct CARequestInfo *inbound_request = (struct CARequestInfo*)OICCalloc(1, sizeof(struct CARequestInfo));
+        struct oocf_msg_coap_request *inbound_request = (struct oocf_msg_coap_request*)OICCalloc(1, sizeof(struct oocf_msg_coap_request));
         if (!inbound_request)
         {
             OIC_LOG(ERROR, TAG, "memory allocation failed");
@@ -479,7 +479,7 @@ static void CADestroyData(void *data, uint32_t size)
 
     if (NULL != cadata->requestInfo)
     {
-        CADestroyRequestInfoInternal((struct CARequestInfo *) cadata->requestInfo);
+        CADestroyRequestInfoInternal((struct oocf_msg_coap_request *) cadata->requestInfo);
     }
 
     if (NULL != cadata->responseInfo)
@@ -1193,7 +1193,7 @@ CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint,
                             CADataType_t dataType)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    OIC_LOG_V(ERROR, TAG, "payload size: %u", ((struct CARequestInfo *)sendData)->info.payloadSize);
+    OIC_LOG_V(ERROR, TAG, "payload size: %u", ((struct oocf_msg_coap_request *)sendData)->info.payloadSize);
 
     CAData_t *cadata = (CAData_t *) OICCalloc(1, sizeof(CAData_t));
     if (!cadata)
@@ -1206,7 +1206,7 @@ CAData_t* CAPrepareSendData(const CAEndpoint_t *endpoint,
     {
         OIC_LOG_V(DEBUG, TAG, "%s type == REQUEST", __func__);
         // clone request info
-        struct CARequestInfo *request = CACloneRequestInfo((struct CARequestInfo *)sendData);
+        struct oocf_msg_coap_request *request = CACloneRequestInfo((struct oocf_msg_coap_request *)sendData);
         if (!request)
         {
             OIC_LOG(ERROR, TAG, "CACloneRequestInfo failed");

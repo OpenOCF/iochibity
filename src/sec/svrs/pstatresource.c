@@ -832,7 +832,7 @@ static OCEntityHandlerResult HandlePstatGetRequest (const struct oocf_inbound_re
     OIC_LOG(INFO, TAG, "HandlePstatGetRequest  processing GET request");
 
     //Checking if Get request is a query.
-    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    char *query = getQueryFromRequestURL(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri);
     if (query)
     {
         OIC_LOG_V(DEBUG,TAG,"query:%s", query);
@@ -880,15 +880,15 @@ static OCEntityHandlerResult HandlePstatPostRequest(struct oocf_inbound_request 
 
     if (//ehRequest->payload
         ((OCSecurityPayload *)
-         ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)
+         ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)
         && NULL != gPstat)
 
     {
         uint8_t *payload = ((OCSecurityPayload *)
-                            ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
+                            ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
         /* uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData; */
         size_t size = ((OCSecurityPayload *)
-                       ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
+                       ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
         /* size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize; */
         VERIFY_NOT_NULL(TAG, payload, ERROR);
 
@@ -1015,7 +1015,7 @@ exit:
     if (flag & OC_REQUEST_FLAG)
     {
         OIC_LOG(INFO, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
+        switch (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method)
         {
             case CA_GET:
                 ehRet = HandlePstatGetRequest(ehRequest);

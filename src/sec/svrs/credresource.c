@@ -2205,7 +2205,7 @@ static OCEntityHandlerResult HandleNewCredential(struct oocf_inbound_request *eh
         {
             case SYMMETRIC_PAIR_WISE_KEY:
             {
-                struct CARequestInfo *request = (CARequestInfo *)ehRequest->requestHandle;
+                struct oocf_msg_coap_request *request = (oocf_msg_coap_request *)ehRequest->requestHandle;
                 if (FillPrivateDataOfOwnerPSK(cred, (CAEndpoint_t *)&request->dest_ep, doxm))
                 {
                     if(OC_STACK_RESOURCE_DELETED == RemoveCredential(&cred->subject))
@@ -2321,7 +2321,7 @@ static OCEntityHandlerResult HandleNewCredential(struct oocf_inbound_request *eh
         {
             case SYMMETRIC_PAIR_WISE_KEY:
             {
-                struct CARequestInfo OCServerRequest; *request = (struct CARequestInfo *)ehRequest->requestHandle;
+                struct oocf_msg_coap_request OCServerRequest; *request = (struct oocf_msg_coap_request *)ehRequest->requestHandle;
                 if (FillPrivateDataOfSubOwnerPSK(cred, (CAEndpoint_t *)&request->devAddr, doxm, &cred->subject))
                 {
                     if(OC_STACK_RESOURCE_DELETED == RemoveCredential(&cred->subject))
@@ -2413,9 +2413,9 @@ static OCEntityHandlerResult HandlePostRequest(struct oocf_inbound_request *ehRe
     OicSecCred_t *cred = NULL;
     OicUuid_t     *rownerId = NULL;
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
+                        ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
+                   ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
 
     OicSecDostype_t dos;
     VERIFY_SUCCESS(TAG, OC_STACK_OK == GetDos(&dos), ERROR);
@@ -2527,7 +2527,7 @@ static OCEntityHandlerResult HandleDeleteRequest(const struct oocf_inbound_reque
     OCEntityHandlerResult ehRet = OC_EH_ERROR;
     CredIdList_t *credIdList = NULL;
     OicUuid_t subject = { .id= { 0 } };
-    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    char *query = getQueryFromRequestURL(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri);
 
     if (NULL == query)    //ehRequest->query)
     {
@@ -2588,7 +2588,7 @@ OCEntityHandlerResult CredEntityHandler(OCEntityHandlerFlag flag,
     {
         OIC_LOG (DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
         //TODO :  Remove Handle PUT methods once CTT have changed to POST on OTM
-        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
+        switch (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method)
         //ehRequest->method)
         {
             case CA_GET:

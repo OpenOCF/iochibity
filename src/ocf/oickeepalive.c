@@ -219,7 +219,7 @@ OCStackResult DeleteKeepAliveResource(void)
     return result;
 }
 
-OCStackResult HandleKeepAliveRequest(struct CARequestInfo *request,
+OCStackResult HandleKeepAliveRequest(struct oocf_msg_coap_request *request,
                                      const OCResource *resource)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
@@ -270,7 +270,7 @@ OCStackResult HandleKeepAliveRequest(struct CARequestInfo *request,
  * @param[in]   result      Result to be sent.
  * @return  ::OC_STACK_OK or Appropriate error code.
  */
-LOCAL OCStackResult SendKeepAliveResponse(struct CARequestInfo *request,
+LOCAL OCStackResult SendKeepAliveResponse(struct oocf_msg_coap_request *request,
 					   OCEntityHandlerResult result)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
@@ -311,7 +311,7 @@ LOCAL OCStackResult SendKeepAliveResponse(struct CARequestInfo *request,
  * @param[in]   resource    Resource handle used for sending the response.
  * @return  ::OC_STACK_OK or Appropriate error code.
  */
-LOCAL OCEntityHandlerResult HandleKeepAliveGETRequest(struct CARequestInfo *request,
+LOCAL OCEntityHandlerResult HandleKeepAliveGETRequest(struct oocf_msg_coap_request *request,
 						       const OCResource *resource)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
@@ -338,7 +338,7 @@ LOCAL OCEntityHandlerResult HandleKeepAliveGETRequest(struct CARequestInfo *requ
  * @param[in]   resource    Resource handle used for sending the response.
  * @return  ::OC_STACK_OK or Appropriate error code.
  */
-LOCAL OCEntityHandlerResult HandleKeepAlivePOSTRequest(struct CARequestInfo *request,
+LOCAL OCEntityHandlerResult HandleKeepAlivePOSTRequest(struct oocf_msg_coap_request *request,
 							const OCResource *resource)
 {
     VERIFY_NON_NULL(request, FATAL, OC_STACK_INVALID_PARAM);
@@ -549,7 +549,7 @@ LOCAL OCStackResult SendDisconnectMessage(const KeepAliveEntry_t *entry)
         return result;
     }
 
-    struct CARequestInfo requestInfo = { .method = CA_POST };
+    struct oocf_msg_coap_request requestInfo = { .method = CA_POST };
     result = CASendRequest(&entry->remoteAddr, &requestInfo);
     return CAResultToOCResult(result);
 }

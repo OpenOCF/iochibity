@@ -9,7 +9,7 @@
  * OCServerRequest.
  *
  * HandleCARequests
- * => OCHandleRequests (convert struct CARequestInfo to OCServerProtocolRequest)
+ * => OCHandleRequests (convert struct oocf_msg_coap_request to OCServerProtocolRequest)
  * ==> HandleStackRequests (convert OCServerProtocolRequest to OCServerRequest)
  * ===> ProcessRequest
  * ====> handler, depending on resource type.
@@ -18,24 +18,24 @@
  * TODO: eliminate intermediate structs.
  */
 
-static RB_HEAD(_oocf_request_cache_tree, CARequestInfo) g_request_cache_tree =
+static RB_HEAD(_oocf_request_cache_tree, oocf_msg_coap_request) g_request_cache_tree =
                                                             RB_INITIALIZER(&g_request_cache_tree);
 
-static RBL_GENERATE(_oocf_request_cache_tree, CARequestInfo, entry, RBRequestInfoEntryCmp);
+static RBL_GENERATE(_oocf_request_cache_tree, oocf_msg_coap_request, entry, RBRequestInfoEntryCmp);
 
-LOCAL int RBRequestInfoEntryCmp(CARequestInfo *target, CARequestInfo *treeNode)
+LOCAL int RBRequestInfoEntryCmp(oocf_msg_coap_request *target, oocf_msg_coap_request *treeNode)
 {
     return memcmp(target->info.token, treeNode->info.token, target->info.tokenLength);
 }
 
-struct CARequestInfo *_oocf_request_cache_put(CARequestInfo *request)
+struct oocf_msg_coap_request *_oocf_request_cache_put(oocf_msg_coap_request *request)
 {
     RBL_INSERT(_oocf_request_cache_tree, &g_request_cache_tree, request);
-    return (struct CARequestInfo*) request;
+    return (struct oocf_msg_coap_request*) request;
 }
 
 //void DeleteServerRequest(OCServerRequest * serverRequest)
-void _oocf_request_cache_delete(CARequestInfo *request)
+void _oocf_request_cache_delete(oocf_msg_coap_request *request)
 {
     if (request)
     {
@@ -54,7 +54,7 @@ void _oocf_request_cache_delete(CARequestInfo *request)
 }
 
 //OCServerRequest * GetServerRequestUsingToken (const uint8_t *token, uint8_t tokenLength)
-struct CARequestInfo * GetServerRequestUsingToken (const uint8_t *token, uint8_t tokenLength)
+struct oocf_msg_coap_request * GetServerRequestUsingToken (const uint8_t *token, uint8_t tokenLength)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     if (!token)
@@ -67,7 +67,7 @@ struct CARequestInfo * GetServerRequestUsingToken (const uint8_t *token, uint8_t
     OIC_LOG_BUFFER(INFO, TAG, (const uint8_t *)token, tokenLength);
 
     //OCServerRequest tmpFind, *out = NULL;
-    struct CARequestInfo tmpFind, *out = NULL;
+    struct oocf_msg_coap_request tmpFind, *out = NULL;
 
     tmpFind.info.token = (uint8_t*)token;
     tmpFind.info.tokenLength = tokenLength;
@@ -98,22 +98,22 @@ struct CARequestInfo * GetServerRequestUsingToken (const uint8_t *token, uint8_t
 /*     OCMethod method;            /\* from inbound requestInfo->method *\/ */
 
 /*     /\** the provided payload format. *\/ */
-/*     OCPayloadFormat payloadFormat; /\* in CAInfo_t (struct CARequestInfo.info) *\/ */
+/*     OCPayloadFormat payloadFormat; /\* in CAInfo_t (struct oocf_msg_coap_request.info) *\/ */
 
 /*     /\** the requested payload format. *\/ */
-/*     OCPayloadFormat acceptFormat; /\* in CAInfo_t (struct CARequestInfo.info) *\/ */
+/*     OCPayloadFormat acceptFormat; /\* in CAInfo_t (struct oocf_msg_coap_request.info) *\/ */
 
 /*     /\** the requested payload version. *\/ */
-/*     uint16_t acceptVersion;   /\* in CAInfo_t (struct CARequestInfo.info) *\/ */
+/*     uint16_t acceptVersion;   /\* in CAInfo_t (struct oocf_msg_coap_request.info) *\/ */
 
-/*     /\** extracted from resourceUri of inboud PDU (CAInfo_t (struct CARequestInfo.info) *\/ */
+/*     /\** extracted from resourceUri of inboud PDU (CAInfo_t (struct oocf_msg_coap_request.info) *\/ */
 /*     char resourceUrl[MAX_URI_LENGTH]; /\* path without query string *\/ */
 
 /*     /\** resource query send by client.*\/ */
 /*     char query[MAX_QUERY_LENGTH]; /\* extracted from resourceUri of inbound pdu *\/ */
 
 /*     /\** reqJSON is retrieved from the payload of the received request PDU.*\/ */
-/*     uint8_t *payload;   /\* in CAInfo_t (struct CARequestInfo.info) *\/ */
+/*     uint8_t *payload;   /\* in CAInfo_t (struct oocf_msg_coap_request.info) *\/ */
 
 /*     /\** qos is indicating if the request is CON or NON.*\/ */
 /*     OCQualityOfService qos;     /\* FIXME: @rename coap_msg_type (NON, CON, ACK, RESET) *\/ */
@@ -257,7 +257,7 @@ struct CARequestInfo * GetServerRequestUsingToken (const uint8_t *token, uint8_t
 struct oocf_inbound_request     /* @was OCEntityHandlerRequest (typedef) */
 {
     OCResourceHandle   resource; /* ptr to struct OCResource  FIXME: name resourceHandle*/
-    OCRequestHandle    requestHandle; /* ptr to struct CARequestInfo */
+    OCRequestHandle    requestHandle; /* ptr to struct oocf_msg_coap_request */
     //OCMethod           method;  /* REST method, inbound request PDU.*/
     struct oocf_endpoint  origin_ep;  //OCDevAddr          devAddr; /* origin_ep */
     //char              *query;   /* derived from *requestHandle->info.resourceUri */
@@ -413,7 +413,7 @@ typedef uint8_t ServerID[16]; /* src: ocstackinternal.h */
  * @param endPoint CA remote endpoint.
  * @param requestInfo CA request info.
  */
-void HandleCARequests(const CAEndpoint_t* endPoint, struct CARequestInfo* requestInfo)
+void HandleCARequests(const CAEndpoint_t* endPoint, struct oocf_msg_coap_request* requestInfo)
 {
     OIC_LOG(INFO, TAG, "Enter HandleCARequests");
     OIC_TRACE_BEGIN(%s:HandleCARequests, TAG);
@@ -446,7 +446,7 @@ void HandleCARequests(const CAEndpoint_t* endPoint, struct CARequestInfo* reques
      * destination. It can also remove "RM" coap header option before passing request / response to
      * RI as this option will make no sense to either RI or application.
      */
-    OCStackResult ret = RMHandleRequest((struct CARequestInfo *)requestInfo, (CAEndpoint_t *)endPoint,
+    OCStackResult ret = RMHandleRequest((struct oocf_msg_coap_request *)requestInfo, (CAEndpoint_t *)endPoint,
                                         &needRIHandling, &isEmptyMsg);
     if (OC_STACK_OK != ret || !needRIHandling)
     {
@@ -492,7 +492,7 @@ void HandleCARequests(const CAEndpoint_t* endPoint, struct CARequestInfo* reques
 
 /** convert inbound request msg from CA structs to OC structs, then pass to handler  */
 // FIXME: eliminate this routine! unify CA and OC layers
-void OCHandleRequests(const CAEndpoint_t* origin_ep, struct CARequestInfo* requestInfo)
+void OCHandleRequests(const CAEndpoint_t* origin_ep, struct oocf_msg_coap_request* requestInfo)
 {
     OIC_TRACE_MARK(%s:OCHandleRequests:%s, TAG, requestInfo->info.resourceUri);
     OIC_LOG(DEBUG, TAG, "Enter OCHandleRequests");
@@ -722,7 +722,7 @@ void OCHandleRequests(const CAEndpoint_t* origin_ep, struct CARequestInfo* reque
 // FIXME: this routine just converts OCServerProtocolRequest to OCServerRequest
 //OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolRequest)
 /* FIXME: HandleInboundRequests */
-OCStackResult HandleStackRequests(const CAEndpoint_t* origin_ep, struct CARequestInfo* requestInfo)
+OCStackResult HandleStackRequests(const CAEndpoint_t* origin_ep, struct oocf_msg_coap_request* requestInfo)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
     OCStackResult result = OC_STACK_ERROR;
@@ -840,9 +840,9 @@ OCStackResult HandleStackRequests(const CAEndpoint_t* origin_ep, struct CAReques
     /* OCServerRequest * request = GetServerRequestUsingToken(requestInfo->info.token, */
     /*                                                        requestInfo->info.tokenLength); */
 
-    /* struct CARequestInfo * request = GetServerRequestUsingToken(requestInfo->info.token, */
+    /* struct oocf_msg_coap_request * request = GetServerRequestUsingToken(requestInfo->info.token, */
     /*                                                             requestInfo->info.tokenLength); */
-    struct CARequestInfo tmpFind, *request = NULL;
+    struct oocf_msg_coap_request tmpFind, *request = NULL;
     tmpFind.info.token = requestInfo->info.token;
     tmpFind.info.tokenLength = requestInfo->info.tokenLength;
     /* out = RB_FIND(ServerRequestTree, &g_serverRequestTree, &tmpFind); */
@@ -922,7 +922,7 @@ OCStackResult HandleStackRequests(const CAEndpoint_t* origin_ep, struct CAReques
     return result;
 }
 
-OCStackResult ProcessRequest(ResourceHandling resHandling, OCResource *resource, struct CARequestInfo *request)
+OCStackResult ProcessRequest(ResourceHandling resHandling, OCResource *resource, struct oocf_msg_coap_request *request)
 // OCStackResult ProcessRequest(ResourceHandling resHandling, OCResource *resource, OCServerRequest *request)
 {
     OIC_LOG_V(INFO, TAG, "%s ENTRY", __func__);
@@ -977,7 +977,7 @@ OCStackResult ProcessRequest(ResourceHandling resHandling, OCResource *resource,
 
 /* src: ocresource.c */
 // FIXME: @rename _oocf_pass_request_to_user_handler
-OCStackResult HandleResourceWithEntityHandler(struct CARequestInfo *request,
+OCStackResult HandleResourceWithEntityHandler(struct oocf_msg_coap_request *request,
                                               OCResource *resource)
 {
     if(!request || ! resource)
@@ -1283,7 +1283,7 @@ exit:
 /* src: ocresource.c */
 OCStackResult EHRequest(struct oocf_inbound_request /* OCEntityHandlerRequest */ *ehRequest,
                         OCPayloadType type,
-                        struct CARequestInfo *request,
+                        struct oocf_msg_coap_request *request,
                         struct OCResource *resource)
 {
     return FormOCEntityHandlerRequest(ehRequest,
@@ -1481,7 +1481,7 @@ OCStackResult SendDirectStackResponse(const CAEndpoint_t* endPoint, const uint16
     if (doPost)
     {
         OIC_LOG(DEBUG, TAG, "Sending a POST message for EMPTY ACK in Client Mode");
-        struct CARequestInfo reqInfo = {.method = CA_POST };
+        struct oocf_msg_coap_request reqInfo = {.method = CA_POST };
         /* The following initialization is not done in a single initializer block as in
          * arduino, .c file is compiled as .cpp and moves it from C99 to C++11.  The latter
          * does not have designated initalizers. This is a work-around for now.
@@ -1546,7 +1546,7 @@ OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse) EXPORT
     OIC_TRACE_BEGIN(%s:OCDoResponse, TAG);
     OCStackResult result = OC_STACK_ERROR;
     // OCServerRequest *serverRequest = NULL;
-    struct CARequestInfo *request = NULL;
+    struct oocf_msg_coap_request *request = NULL;
 
     OIC_LOG_V(DEBUG, TAG, "%s result: 0x%04x", __func__, ehResponse->ehResult);
 
@@ -1557,7 +1557,7 @@ OCStackResult OC_CALL OCDoResponse(OCEntityHandlerResponse *ehResponse) EXPORT
     // Normal response
     // Get pointer to request info
     // serverRequest = (OCServerRequest *)ehResponse->requestHandle;
-    request = (struct CARequestInfo *)ehResponse->requestHandle;
+    request = (struct oocf_msg_coap_request *)ehResponse->requestHandle;
     VERIFY_NON_NULL(request->ehResponseHandler, ERROR, OC_STACK_INVALID_PARAM);
     if(request)
     {

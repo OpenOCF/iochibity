@@ -276,7 +276,7 @@ CAResult_t CASetProxyUri(const char *uri)
 }
 
 CAResult_t CAGetRequestInfoFromPDU(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint,
-                                   struct CARequestInfo *outReqInfo)
+                                   struct oocf_msg_coap_request *outReqInfo)
 {
     VERIFY_NON_NULL_MSG(pdu, TAG, "pdu");
     VERIFY_NON_NULL_MSG(outReqInfo, TAG, "outReqInfo");

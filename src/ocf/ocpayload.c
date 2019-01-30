@@ -2588,7 +2588,7 @@ OCRepPayload** OC_CALL OCLinksPayloadArrayCreate(const char* resourceUri,
             return NULL;
 
         linksRepPayloadArray = BuildCollectionLinksPayloadArray(resourceUri, contentFormat,
-                                                                &((struct CARequestInfo*)
+                                                                &((struct oocf_msg_coap_request*)
                                                                   ehRequest->requestHandle)->dest_ep,
                                                                 insertSelfLink, createdArraySize);
 
@@ -2607,7 +2607,7 @@ OCStackResult OC_CALL OCGetRequestPayloadVersion(struct oocf_inbound_request /* 
     if ((ehRequest == NULL)||(pContentFormat == NULL))
         return OC_STACK_ERROR;
 
-    struct CARequestInfo *serverRequest = (struct CARequestInfo*) ehRequest->requestHandle;
+    struct oocf_msg_coap_request *serverRequest = (struct oocf_msg_coap_request*) ehRequest->requestHandle;
     switch (serverRequest->info.acceptFormat)
     {
         case OC_FORMAT_CBOR:
@@ -2634,8 +2634,8 @@ OCStackResult OC_CALL OCGetRequestPayloadVersion(struct oocf_inbound_request /* 
     size_t vOptionDataSize = sizeof(vOptionData);
     uint16_t actualDataSize = 0;
 
-    OCGetHeaderOption(((struct CARequestInfo*)ehRequest->requestHandle)->info.options,
-                      ((struct CARequestInfo*)ehRequest->requestHandle)->info.numOptions,
+    OCGetHeaderOption(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.options,
+                      ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.numOptions,
                       OCF_OPTION_ACCEPT_CONTENT_FORMAT_VERSION, vOptionData, vOptionDataSize, &actualDataSize);
 
     // Check if "OCF-Accept-Content-Format-Version" is present,

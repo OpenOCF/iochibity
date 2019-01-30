@@ -993,7 +993,7 @@ static OCEntityHandlerResult HandleDoxmGetRequest (const struct oocf_inbound_req
     OIC_LOG(DEBUG, TAG, "Doxm EntityHandle processing GET request");
 
     //Checking if Get request is a query.
-    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    char *query = getQueryFromRequestURL(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri);
 
     if (query)
     {
@@ -1440,7 +1440,7 @@ OCEntityHandlerResult StartOTMJustWorks(struct oocf_inbound_request /*OCEntityHa
         /*     OicUuid_t deviceID = {.id = {0}}; */
 
         /*     //Generate mutualVerifNum */
-        /*     struct CARequestInfo /\* OCServerRequest *\/ *request = (struct CARequestInfo *)ehRequest->requestHandle; */
+        /*     struct oocf_msg_coap_request /\* OCServerRequest *\/ *request = (struct oocf_msg_coap_request *)ehRequest->requestHandle; */
 
         /*     char label[LABEL_LEN] = {0}; */
         /*     snprintf(label, LABEL_LEN, "%s%s", MUTUAL_VERIF_NUM, OXM_MV_JUST_WORKS); */
@@ -1512,7 +1512,7 @@ OCEntityHandlerResult HandleDoxmPostRequestRandomPin(OicSecDoxm_t *newDoxm,
         RegisterOTMSslHandshakeCallback(DoxmDTLSHandshakeCB);
         caRes = CASelectCipherSuite(MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
                                     (CATransportAdapter_t)
-                                    ((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep.adapter);
+                                    ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->dest_ep.adapter);
                                     /* ehRequest->devAddr.adapter); */
 
         VERIFY_SUCCESS(TAG, caRes == CA_STATUS_OK, ERROR);
@@ -1590,7 +1590,7 @@ OCEntityHandlerResult HandleDoxmPostRequestMfg(OicSecDoxm_t *newDoxm,
         //Unset pre-selected ciphersuite, if any
         caRes = CASelectCipherSuite(0,
                                     (CATransportAdapter_t)
-                                    ((struct CARequestInfo*)ehRequest->requestHandle)->dest_ep.adapter);
+                                    ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->dest_ep.adapter);
                                     /* ehRequest->devAddr.adapter); */
         VERIFY_SUCCESS(TAG, caRes == CA_STATUS_OK, ERROR);
         OIC_LOG(DEBUG, TAG, "No ciphersuite preferred");
@@ -1665,11 +1665,11 @@ static OCEntityHandlerResult HandleDoxmPostRequest(struct oocf_inbound_request /
     // Convert CBOR Doxm data into binary. This will also validate
     // the Doxm data received.
     uint8_t *payload = ((OCSecurityPayload *)
-                        ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
+                        ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     /* uint8_t *payload = ((OCSecurityPayload *) ehRequest->payload)->securityData; */
     VERIFY_NOT_NULL(TAG, payload, ERROR);
     size_t size = ((OCSecurityPayload *)
-                   ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
+                   ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
     /* size_t size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize; */
 
     OCStackResult res = CBORPayloadToDoxmBin(payload, size, &newDoxm, &roParsed,
@@ -1748,7 +1748,7 @@ OCEntityHandlerResult DoxmEntityHandler(OCEntityHandlerFlag flag,
     {
         OIC_LOG(DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
 
-        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
+        switch (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method)
         {
             case CA_GET:
                 ehRet = HandleDoxmGetRequest(ehRequest);

@@ -211,7 +211,7 @@ static OCStackResult HandleBatchInterface(oocf_inbound_request /* OCEntityHandle
     }
 
     OCStackResult stackRet = OC_STACK_OK;
-    char *req_url = ((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri;
+    char *req_url = ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri;
     char *url_path = getPathFromRequestURL(req_url);
     //char *storeQuery = NULL;
     OCResource *collResource = (OCResource *)ehRequest->resource;
@@ -222,7 +222,7 @@ static OCStackResult HandleBatchInterface(oocf_inbound_request /* OCEntityHandle
         if (collResource->rsrcChildResourcesHead)
         {
             //storeQuery = getQueryFromRequestURL(req_url); //query;
-            ((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri = url_path;
+            ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri = url_path;
             //OIC_LOG_V(DEBUG, TAG, "Query : %s", ehRequest->query);
         }
 
@@ -252,7 +252,7 @@ static OCStackResult HandleBatchInterface(oocf_inbound_request /* OCEntityHandle
                 if (ehResult == OC_EH_SLOW)
                 {
                     OIC_LOG(INFO, TAG, "This is a slow resource");
-                    ((struct CARequestInfo *)ehRequest->requestHandle)->slowFlag = 1;
+                    ((struct oocf_msg_coap_request *)ehRequest->requestHandle)->slowFlag = 1;
                     stackRet = EntityHandlerCodeToOCStackCode(ehResult);
                 }
             }
@@ -263,20 +263,20 @@ static OCStackResult HandleBatchInterface(oocf_inbound_request /* OCEntityHandle
         }
         ehRequest->resource = (OCResourceHandle) collResource; /* FIXME: why? */
     }
-    ((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri = req_url;
+    ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri = req_url;
     return stackRet;
 }
 
 OCStackResult DefaultCollectionEntityHandler(OCEntityHandlerFlag flag,
                                              oocf_inbound_request /* OCEntityHandlerRequest */ *ehRequest)
 {
-    char *query = getQueryFromRequestURL( ((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    char *query = getQueryFromRequestURL( ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri);
     if (!ehRequest || !query)
     {
         return OC_STACK_INVALID_PARAM;
     }
     // Delete is not supported for any interface query method.
-    if ( ((struct CARequestInfo*)ehRequest->requestHandle)->method == CA_DELETE || flag != OC_REQUEST_FLAG)
+    if ( ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method == CA_DELETE || flag != OC_REQUEST_FLAG)
     {
         return OC_STACK_ERROR;
     }
@@ -299,8 +299,8 @@ OCStackResult DefaultCollectionEntityHandler(OCEntityHandlerFlag flag,
 
     if (0 == strcmp(ifQueryParam, OC_RSRVD_INTERFACE_LL) || 0 == strcmp (ifQueryParam, OC_RSRVD_INTERFACE_DEFAULT))
     {
-        if (((struct CARequestInfo*)ehRequest->requestHandle)->method == CA_PUT
-            || ((struct CARequestInfo*)ehRequest->requestHandle)->method == CA_POST)
+        if (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method == CA_PUT
+            || ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method == CA_POST)
         {
             result =  OC_STACK_ERROR;
         }
@@ -311,7 +311,7 @@ OCStackResult DefaultCollectionEntityHandler(OCEntityHandlerFlag flag,
     }
     else if (0 == strcmp(ifQueryParam, OC_RSRVD_INTERFACE_BATCH))
     {
-        struct CARequestInfo *request = (struct CARequestInfo *)ehRequest->requestHandle;
+        struct oocf_msg_coap_request *request = (struct oocf_msg_coap_request *)ehRequest->requestHandle;
         if (request)
         {
             request->numResponses = GetNumOfResourcesInCollection((OCResource *)ehRequest->resource);

@@ -316,7 +316,7 @@ static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *dest_ep,
                                             CADataType_t dataType)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    OIC_LOG_V(ERROR, TAG, "payload size: %u", ((struct CARequestInfo *)sendMsg)->info.payloadSize);
+    OIC_LOG_V(ERROR, TAG, "payload size: %u", ((struct oocf_msg_coap_request *)sendMsg)->info.payloadSize);
 
     CATransportAdapter_t connTypes[] = {
             CA_ADAPTER_IP
@@ -356,7 +356,7 @@ static CAResult_t CASendMessageMultiAdapter(const CAEndpoint_t *dest_ep,
     return ret;
 }
 
-CAResult_t CASendRequest(const CAEndpoint_t *dest_ep, const struct CARequestInfo *requestInfo)
+CAResult_t CASendRequest(const CAEndpoint_t *dest_ep, const struct oocf_msg_coap_request *requestInfo)
 {
     OIC_LOG(DEBUG, TAG, "CASendRequest");
 
@@ -379,7 +379,7 @@ CAResult_t CASendRequest(const CAEndpoint_t *dest_ep, const struct CARequestInfo
 CAResult_t CASendResponse(const CAEndpoint_t *dest_ep, const CAResponseInfo_t *responseInfo)
 {
     OIC_LOG_V(DEBUG, TAG, "%s ENTRY", __func__);
-    OIC_LOG_V(ERROR, TAG, "payload size: %u", ((CARequestInfo *)responseInfo)->info.payloadSize);
+    OIC_LOG_V(ERROR, TAG, "payload size: %u", ((oocf_msg_coap_request *)responseInfo)->info.payloadSize);
 
     if (!g_isInitialized)
     {

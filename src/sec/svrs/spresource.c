@@ -566,7 +566,7 @@ static OCEntityHandlerResult HandleSpGetRequest (const struct oocf_inbound_reque
     OIC_LOG(INFO, TAG, "HandleSpGetRequest  processing GET request");
 
     //Checking if Get request is a query.
-    char *query = getQueryFromRequestURL(((struct CARequestInfo*)ehRequest->requestHandle)->info.resourceUri);
+    char *query = getQueryFromRequestURL(((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.resourceUri);
     if (query) {
         //if (ehRequest->query)
         OIC_LOG_V(DEBUG,TAG,"query:%s", query);
@@ -758,16 +758,16 @@ static OCEntityHandlerResult HandleSpPostRequest(struct oocf_inbound_request /*O
     }
 
     VERIFY_OR_LOG_AND_EXIT(TAG, (NULL != ((OCSecurityPayload *)
-                                          ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)),
+                                          ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)),
                                  "sp POST : no payload supplied ", ERROR);
     VERIFY_OR_LOG_AND_EXIT(TAG, (NULL != gSp), "sp POST : corrupt internal SP resource ", ERROR);
 
     /* payload = ((OCSecurityPayload *) ehRequest->payload)->securityData; */
     payload = ((OCSecurityPayload *)
-               ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
+               ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->securityData;
     /* size = ((OCSecurityPayload *) ehRequest->payload)->payloadSize; */
     size = ((OCSecurityPayload *)
-            ((struct CARequestInfo*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
+            ((struct oocf_msg_coap_request*)ehRequest->requestHandle)->info.payload_cbor)->payloadSize;
 
     VERIFY_NOT_NULL(TAG, payload, ERROR);
 
@@ -889,7 +889,7 @@ OCEntityHandlerResult SpEntityHandler(OCEntityHandlerFlag flag,
     if (flag & OC_REQUEST_FLAG)
     {
         OIC_LOG(INFO, TAG, "Flag includes OC_REQUEST_FLAG");
-        switch (((struct CARequestInfo*)ehRequest->requestHandle)->method)
+        switch (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method)
         {
             case CA_GET:
                 ehRet = HandleSpGetRequest(ehRequest);

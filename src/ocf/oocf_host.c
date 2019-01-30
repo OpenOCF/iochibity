@@ -18,7 +18,7 @@ typedef enum
  * Request Information. Used for both outbound and inbound request messages.
  */
 #if EXPORT_INTERFACE
-struct CARequestInfo
+struct oocf_msg_coap_request  // @was CARequestInfo
 {
     CAMethod_t method;  /**< Name of the Method Allowed */
 
@@ -42,14 +42,14 @@ struct CARequestInfo
     OCStackResult observeResult;
 
 /** Node entry in red-black tree of linked lists.*/
-    RBL_ENTRY(CARequestInfo) entry; /*  */
+    RBL_ENTRY(oocf_msg_coap_request) entry; /*  */
 };
-
+typedef struct oocf_msg_coap_request CARequestInfo;
 /**
  * Handle to an OCRequest object owned by the OCStack.
  */
 /* src: octypes.h */
-typedef struct CARequestInfo *OCRequestHandle;
+typedef struct oocf_msg_coap_request *OCRequestHandle;
 
 #endif  /* EXPORT_INTERFACE */
 

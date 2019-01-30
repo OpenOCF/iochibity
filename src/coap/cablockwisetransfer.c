@@ -1840,7 +1840,7 @@ CAData_t* CACreateNewDataSet(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint
     VERIFY_TRUE_RET((pdu->transport_hdr->udp.token_length <= UINT8_MAX), TAG,
                     "pdu->transport_hdr->udp.token_length", NULL);
 
-    struct CARequestInfo* requestInfo = NULL;
+    struct oocf_msg_coap_request* requestInfo = NULL;
     CAResponseInfo_t* responseInfo = NULL;
 
     uint32_t code = pdu->transport_hdr->udp.code;
@@ -1875,7 +1875,7 @@ CAData_t* CACreateNewDataSet(const coap_pdu_t *pdu, const CAEndpoint_t *endpoint
         }
         memcpy(requestData.token, pdu->transport_hdr->udp.token, requestData.tokenLength);
 
-        requestInfo = (struct CARequestInfo*) OICCalloc(1, sizeof(struct CARequestInfo));
+        requestInfo = (struct oocf_msg_coap_request*) OICCalloc(1, sizeof(struct oocf_msg_coap_request));
         if (!requestInfo)
         {
             OIC_LOG(ERROR, TAG, "out of memory");

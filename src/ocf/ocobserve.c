@@ -245,7 +245,7 @@ OCStackResult SendObserveNotification(ResourceObserver *observer,
     /*                           observer->resUri, 0, observer->acceptFormat, */
     /*                           observer->acceptVersion, &observer->devAddr); */
 
-    struct CARequestInfo *request = (struct CARequestInfo*)OICMalloc(sizeof(struct CARequestInfo));
+    struct oocf_msg_coap_request *request = (struct oocf_msg_coap_request*)OICMalloc(sizeof(struct oocf_msg_coap_request));
     request->delayedResNeeded = 0;
     request->notificationFlag = 1;
     request->method = CA_GET;
@@ -340,7 +340,7 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
     OCStackResult result = OC_STACK_ERROR;
     ResourceObserver * resourceObserver = resPtr->observersHead;
 /* #ifdef WITH_PRESENCE
- *     struct CARequestInfo * request = NULL;
+ *     struct oocf_msg_coap_request * request = NULL;
  * #endif */
     bool observeErrorFlag = false;
 
@@ -452,7 +452,7 @@ OCStackResult SendListObserverNotification (OCResource * resource,
             /*                           observer->acceptVersion, */
             /*                           &observer->devAddr); */
 
-            struct CARequestInfo *request = (struct CARequestInfo*)OICMalloc(sizeof(struct CARequestInfo));
+            struct oocf_msg_coap_request *request = (struct oocf_msg_coap_request*)OICMalloc(sizeof(struct oocf_msg_coap_request));
             request->delayedResNeeded = 0;
             request->notificationFlag = 1;
             request->method = CA_GET;
@@ -847,7 +847,7 @@ GetObserveHeaderOption (uint32_t * observationOption,
 }
 
  /* FIXME: dup name, also in ocresource.c */
-OCStackResult HandleVirtualObserveRequest(struct CARequestInfo *request)
+OCStackResult HandleVirtualObserveRequest(struct oocf_msg_coap_request *request)
 {
     OCStackResult result = OC_STACK_OK;
     if (request->notificationFlag)

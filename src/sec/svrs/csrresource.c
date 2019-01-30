@@ -447,7 +447,7 @@ static OCEntityHandlerResult CredCsrEntityHandler(OCEntityHandlerFlag flag,
     if (flag & OC_REQUEST_FLAG)
     {
         OIC_LOG(DEBUG, TAG, "Flag includes OC_REQUEST_FLAG");
-        if (((struct CARequestInfo*)ehRequest->requestHandle)->method == CA_GET)
+        if (((struct oocf_msg_coap_request*)ehRequest->requestHandle)->method == CA_GET)
             //ehRequest->method == OC_REST_GET)
         {
             ret = HandleCsrGetRequest(ehRequest);

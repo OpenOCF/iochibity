@@ -1308,7 +1308,7 @@ OCStackResult OC_CALL OCCancel(OCDoHandle handle, OCQualityOfService qos, OCHead
      */
     OCStackResult ret = OC_STACK_OK;
     CAEndpoint_t endpoint = {.adapter = CA_DEFAULT_ADAPTER};
-    struct CARequestInfo requestInfo = {.method = CA_GET};
+    struct oocf_msg_coap_request requestInfo = {.method = CA_GET};
 
     if(!handle)
     {
